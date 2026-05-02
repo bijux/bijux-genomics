@@ -55,10 +55,11 @@ Route common change types to the right crate, config path, fixture path, and pro
 - avoid hidden CLI-only logic
 
 ## Scope
-This document defines the operational or architecture surface for this workflow surface.
+The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
 
 ## Non-goals
-- Replacing crate-level implementation details or test contracts.
+This document does not redefine source-of-truth schemas, code ownership boundaries, or release policy outside this surface.
 
 ## Contracts
-- Changes to this surface must stay aligned with governed checks and generated references.
+Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
+

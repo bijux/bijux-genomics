@@ -240,6 +240,7 @@ fn scenario_ancient_dna_authenticity_caveat_library() -> Result<(Vec<String>, se
     let damage_g_to_a: f64 = 0.16;
     let short_fragment_fraction: f64 = 0.34;
     let mean_coverage: f64 = 0.95;
+    let contamination_estimate: f64 = 0.12;
 
     let terminal_damage = damage_c_to_t.max(damage_g_to_a);
     let damage_signal = if terminal_damage >= 0.20 {
@@ -310,6 +311,7 @@ fn scenario_ancient_dna_authenticity_caveat_library() -> Result<(Vec<String>, se
             "strict_profile": true,
             "damage_signal": damage_signal,
             "authenticity_score": 0.61,
+            "contamination_estimate": contamination_estimate,
             "contamination_scope": "mitochondrial",
             "workflow_id": "ancient_dna_damage_and_authenticity",
             "workflow_caveats": [
@@ -1025,10 +1027,11 @@ fn evidence_gap_local(run_dir: &Path) -> Result<LocalEvidenceGapResponse> {
 
     let verified =
         verification.get("verified").and_then(serde_json::Value::as_bool).unwrap_or(false);
-    let base_gap_count = usize::try_from(
-        verification.get("gap_count").and_then(serde_json::Value::as_u64).unwrap_or(0),
-    )
-    .unwrap_or(usize::MAX);
+    let base_gap_count = verification
+        .get("gap_count")
+        .and_then(serde_json::Value::as_u64)
+        .and_then(|value| usize::try_from(value).ok())
+        .unwrap_or(0);
 
     Ok(LocalEvidenceGapResponse {
         schema_version: "bijux.evidence_gap.v1".to_string(),

@@ -3,7 +3,7 @@
 `bijux-dna-core` owns the shared contract, identifier, metric, canonicalization,
 hashing, and foundation types used across `bijux-genomics`.
 
-This crate follows repository governance documentation. `/Users/bijan/bijux/bijux-genomics/README.md`,
+This crate follows repository governance documentation. `/Users/bijan/bijux/bijux-g2/bijux-genomics/README.md`,
 `README.md`, and `README.md`; re-read
 those files before editing this child repository and before committing.
 

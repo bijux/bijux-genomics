@@ -63,3 +63,8 @@ site/
 /target-containers/
 /target-isolate-*/
 **/target-isolate-*/
+
+# HPC confidential local inputs
+/configs/hpc/.env
+/configs/hpc/*.env
+/configs/hpc/campaign/user.override.toml

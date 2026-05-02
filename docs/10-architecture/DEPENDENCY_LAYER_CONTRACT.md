@@ -41,10 +41,11 @@ No undocumented dependency exception is allowed.
   `crates/bijux-dna-policies/tests/contracts/tooling/governance_core/cargo_metadata_snapshot_policy.rs`.
 
 ## Scope
-This document defines the operational or architecture surface for this workflow surface.
+The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
 
 ## Non-goals
-- Replacing crate-level implementation details or test contracts.
+This document does not redefine source-of-truth schemas, code ownership boundaries, or release policy outside this surface.
 
 ## Contracts
-- Changes to this surface must stay aligned with governed checks and generated references.
+Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
+

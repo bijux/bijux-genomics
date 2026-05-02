@@ -26,3 +26,4 @@ agreement before starting work in this repository and before making commits.
 - Intro: `docs/00-intro/WHAT_IS_BIJUX.md`
 - Licensing: `docs/50-reference/LICENSING.md`
 - CI/operations: `docs/30-operations/CI.md`
+- HPC campaign dry-run: `docs/30-operations/HPC_CAMPAIGN_DRYRUN.md`

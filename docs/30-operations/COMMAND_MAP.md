@@ -35,6 +35,12 @@ Authority:
   `cargo run -q -p bijux-dna-dev -- examples run run -- <example-id>`
 - FASTQ workflow execution surface:
   `cargo run -q -p bijux-dna -- run run`
+- Slurm campaign stage submit (mock-safe):
+  `cargo run -q -p bijux-dna -- slurm submit-stage-benchmark --config configs/hpc/campaign/lunarc-small.toml --stage fastq.validate_reads --mock-submit`
+- Slurm campaign domain submit:
+  `cargo run -q -p bijux-dna -- slurm submit-domain-benchmark --config configs/hpc/campaign/lunarc-small.toml --domain fastq --mock-submit`
+- Generate benchmark matrix with readiness and repetition policy:
+  `cargo run -q -p bijux-dna -- config benchmark-matrix --config configs/hpc/campaign/lunarc-small.toml --domain all --out artifacts/benchmark/matrix.json --json`
 
 ## Inspect
 - Current governed status view:
@@ -82,14 +88,15 @@ Notes:
 - Use [RELEASE_RUNNABLE_EXAMPLES.md](RELEASE_RUNNABLE_EXAMPLES.md) for manifest/output/caveat links and release-facing example command paths.
 - Use [BACKLOG_SCOREBOARD.md](BACKLOG_SCOREBOARD.md) for Level 1 closure-scope routing and status policy.
 
+## Purpose
+This document describes the governed intent and operator-facing meaning of this surface.
+
 ## Scope
-This document defines the operational or architecture surface for this workflow surface.
+The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
 
 ## Non-goals
-- Replacing crate-level implementation details or test contracts.
+This document does not redefine source-of-truth schemas, code ownership boundaries, or release policy outside this surface.
 
 ## Contracts
-- Changes to this surface must stay aligned with governed checks and generated references.
+Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
 
-## Purpose
-This document records the durable intent and enforcement boundary for this surface.

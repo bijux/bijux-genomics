@@ -1,0 +1,50 @@
+# schema_version = 1
+# owner = platform
+# purpose = Lunarc small HPC campaign profile for stage-level diagnostics
+# authority = platform
+# stability = stable
+# last_updated = 2026-05-02
+schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "fastq-hpc-mini"
+domain = "fastq"
+description = "Small Lunarc profile for stage diagnostics"
+
+[layout]
+corpora_root = "/mnt/shared/bijux/corpora"
+databases_root = "/mnt/shared/bijux/databases"
+images_root = "/mnt/shared/bijux/images"
+scratch_root = "/mnt/shared/bijux/scratch"
+logs_root = "/mnt/shared/bijux/logs"
+encrypted_results_root = "/mnt/shared/bijux/results"
+encrypted_code_root = "/mnt/shared/bijux/code"
+appraiser_imports_root = "/mnt/shared/bijux/appraiser-imports"
+baselines_root = "/mnt/shared/bijux/baselines"
+
+[slurm]
+site_profile = "lunarc"
+partition = "main"
+qos = "normal"
+default_resource_template = "standard"
+
+[resources]
+default = "standard"
+
+[resources.templates.standard]
+cpus = 16
+mem_gb = 64
+walltime = "04:00:00"
+scratch_gb = 128
+
+[security]
+encryption_backend = "mock-envelope-v1"
+encryption_recipients = ["bio-team"]
+encrypt_operator_outputs = false
+env_file = "configs/hpc/.env"
+
+[[jobs]]
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample_0001"
+resource_template = "standard"

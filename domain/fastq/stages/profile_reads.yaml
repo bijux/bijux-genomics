@@ -69,4 +69,6 @@ assumptions:
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
-planned_out_of_scope: []
+planned_out_of_scope:
+  - "seqkit"
+  - "seqfu"

@@ -4,6 +4,8 @@ use anyhow::Result;
 
 use crate::commands::cli;
 #[cfg(debug_assertions)]
+use crate::commands::router::root_commands::handle_slurm_root;
+#[cfg(debug_assertions)]
 use crate::commands::router::root_commands::{
     handle_ci_root, handle_config_root, handle_domain_root, handle_ena_root, handle_lab_root,
     handle_tool_root,
@@ -56,6 +58,11 @@ pub(crate) fn try_handle_root_command(
         #[cfg(debug_assertions)]
         cli::DnaCommand::Config(args) => {
             handle_config_root(&args.command, cwd)?;
+            Ok(true)
+        }
+        #[cfg(debug_assertions)]
+        cli::DnaCommand::Slurm(args) => {
+            handle_slurm_root(&args.command, cwd)?;
             Ok(true)
         }
         cli::DnaCommand::Status(args) => {

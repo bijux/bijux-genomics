@@ -313,6 +313,554 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 return Err(anyhow::anyhow!("config doctor failed"));
             }
         }
+        cli::ConfigCommand::CampaignPreflight { config, env_file, user_policies, json } => {
+            let report =
+                hpc::campaign_preflight(config, env_file.as_deref(), user_policies.as_deref())?;
+            if *json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("schema_version={}", report.schema_version);
+                println!("config_path={}", report.config_path);
+                println!("env_file_path={}", report.env_file_path);
+                println!("user_policy_path={}", report.user_policy_path);
+                println!("user_policies_applied={}", report.user_policies_applied);
+                println!("ok={}", report.ok);
+                println!("slurm_site_profile={}", report.resolved_slurm.site_profile);
+                println!("slurm_account={}", report.resolved_slurm.account_redacted);
+                println!("slurm_project={}", report.resolved_slurm.project_redacted);
+                println!("slurm_partition={}", report.resolved_slurm.partition);
+                println!("slurm_qos={}", report.resolved_slurm.qos);
+                println!("checks={}", report.checks.len());
+            }
+            if !report.ok {
+                return Err(anyhow::anyhow!("campaign preflight failed"));
+            }
+        }
+        cli::ConfigCommand::CampaignDryRun { config, env_file, user_policies, json } => {
+            let report =
+                hpc::campaign_dry_run(config, env_file.as_deref(), user_policies.as_deref())?;
+            if *json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("schema_version={}", report.schema_version);
+                println!("config_path={}", report.config_path);
+                println!("env_file_path={}", report.env_file_path);
+                println!("user_policy_path={}", report.user_policy_path);
+                println!("user_policies_applied={}", report.user_policies_applied);
+                println!("campaign_id={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("slurm_site_profile={}", report.resolved_slurm.site_profile);
+                println!("slurm_account={}", report.resolved_slurm.account_redacted);
+                println!("slurm_project={}", report.resolved_slurm.project_redacted);
+                println!("slurm_partition={}", report.resolved_slurm.partition);
+                println!("slurm_qos={}", report.resolved_slurm.qos);
+                println!("planned_jobs={}", report.planned_jobs.len());
+            }
+        }
+        cli::ConfigCommand::WriteCampaignProfiles { out_dir } => {
+            let written = hpc::write_campaign_profiles(out_dir)?;
+            for path in written {
+                println!("written={}", path.display());
+            }
+        }
+        cli::ConfigCommand::PreparationGraph { config, env_file, user_policies, json } => {
+            let report = hpc::preparation_dependency_graph(
+                config,
+                env_file.as_deref(),
+                user_policies.as_deref(),
+            )?;
+            if *json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("ready={}", report.ready);
+                println!("nodes={}", report.nodes.len());
+                println!("missing={}", report.missing_prerequisites.len());
+            }
+            if !report.ready {
+                return Err(anyhow::anyhow!(
+                    "preparation dependency graph found missing prerequisites"
+                ));
+            }
+        }
+        cli::ConfigCommand::PrepareFoundation {
+            config,
+            env_file,
+            user_policies,
+            dry_run,
+            json,
+        } => {
+            let report = hpc::prepare_foundation(
+                config,
+                env_file.as_deref(),
+                user_policies.as_deref(),
+                *dry_run,
+            )?;
+            if *json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("dry_run={}", report.dry_run);
+                println!("actions={}", report.actions.len());
+                println!(
+                    "reused={}",
+                    report.actions.iter().filter(|action| action.action == "reused").count()
+                );
+                println!(
+                    "prepared={}",
+                    report.actions.iter().filter(|action| action.action == "prepared").count()
+                );
+                println!(
+                    "would_prepare={}",
+                    report.actions.iter().filter(|action| action.action == "would_prepare").count()
+                );
+            }
+        }
+        cli::ConfigCommand::CleanupPreparation {
+            config,
+            env_file,
+            user_policies,
+            dry_run,
+            json,
+        } => {
+            let report = hpc::cleanup_preparation(
+                config,
+                env_file.as_deref(),
+                user_policies.as_deref(),
+                *dry_run,
+            )?;
+            if *json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("dry_run={}", report.dry_run);
+                println!("entries={}", report.removed.len());
+                println!(
+                    "would_remove={}",
+                    report.removed.iter().filter(|entry| entry.action == "would_remove").count()
+                );
+                println!(
+                    "removed={}",
+                    report.removed.iter().filter(|entry| entry.action == "removed").count()
+                );
+            }
+        }
+        cli::ConfigCommand::BenchmarkMatrix(args) => {
+            let report = hpc::benchmark_matrix(args)?;
+            if let Some(out_path) = &args.out {
+                if let Some(parent) = out_path.parent() {
+                    bijux_dna_infra::ensure_dir(parent)?;
+                }
+                let payload = serde_json::to_vec_pretty(&report)?;
+                bijux_dna_api::v1::api::run::atomic_write_bytes(out_path, &payload)?;
+            }
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("domains={}", report.domains.join(","));
+                println!("rows={}", report.rows.len());
+                println!(
+                    "ready={}",
+                    report.summary.readiness_counts.get("ready").copied().unwrap_or(0)
+                );
+                println!(
+                    "degraded={}",
+                    report.summary.readiness_counts.get("degraded").copied().unwrap_or(0)
+                );
+                println!(
+                    "refuse={}",
+                    report.summary.readiness_counts.get("refuse").copied().unwrap_or(0)
+                );
+                if let Some(out_path) = &args.out {
+                    println!("matrix_out={}", out_path.display());
+                }
+            }
+            if args.fail_on_refuse
+                && report.summary.readiness_counts.get("refuse").copied().unwrap_or(0) > 0
+            {
+                return Err(anyhow::anyhow!("benchmark matrix contains refuse-class rows"));
+            }
+        }
+        cli::ConfigCommand::AppraiseMatrix(args) => {
+            let report = hpc::appraise_matrix(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("findings={}", report.findings.len());
+                println!("appraisers={}", report.summary.by_appraiser.len());
+                println!(
+                    "critical={}",
+                    report.summary.by_severity.get("critical").copied().unwrap_or(0)
+                );
+                println!(
+                    "warning={}",
+                    report.summary.by_severity.get("warning").copied().unwrap_or(0)
+                );
+                println!("info={}", report.summary.by_severity.get("info").copied().unwrap_or(0));
+                if let Some(path) = &args.out {
+                    println!("appraisal_out={}", path.display());
+                }
+            }
+        }
+        cli::ConfigCommand::HardeningQueue(args) => {
+            let report = hpc::generate_hardening_queue(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("entries={}", report.entries.len());
+                println!(
+                    "critical={}",
+                    report.entries.iter().filter(|entry| entry.severity == "critical").count()
+                );
+                println!(
+                    "warning={}",
+                    report.entries.iter().filter(|entry| entry.severity == "warning").count()
+                );
+                println!(
+                    "info={}",
+                    report.entries.iter().filter(|entry| entry.severity == "info").count()
+                );
+                if let Some(path) = &args.out {
+                    println!("hardening_queue_out={}", path.display());
+                }
+            }
+        }
+        cli::ConfigCommand::FastqBenchmarkCampaign(args) => {
+            let report = hpc::fastq_benchmark_campaign(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("selected_goals={}", report.selected_goals.join(","));
+                println!("goals={}", report.summary.total_goals);
+                println!("rows={}", report.summary.total_rows);
+                println!("findings={}", report.summary.total_findings);
+                println!("queue_entries={}", report.summary.total_queue_entries);
+                println!(
+                    "ready_for_benchmark_run={}",
+                    report
+                        .summary
+                        .status_counts
+                        .get("ready-for-benchmark-run")
+                        .copied()
+                        .unwrap_or(0)
+                );
+                println!(
+                    "requires_hardening={}",
+                    report.summary.status_counts.get("requires-hardening").copied().unwrap_or(0)
+                );
+                println!(
+                    "missing_stage_binding={}",
+                    report.summary.status_counts.get("missing-stage-binding").copied().unwrap_or(0)
+                );
+                if let Some(path) = &args.out {
+                    println!("fastq_campaign_out={}", path.display());
+                }
+            }
+        }
+        cli::ConfigCommand::BamBenchmarkCampaign(args) => {
+            let report = hpc::bam_benchmark_campaign(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("selected_goals={}", report.selected_goals.join(","));
+                println!("goals={}", report.summary.total_goals);
+                println!("rows={}", report.summary.total_rows);
+                println!("findings={}", report.summary.total_findings);
+                println!("queue_entries={}", report.summary.total_queue_entries);
+                println!(
+                    "ready_for_benchmark_run={}",
+                    report
+                        .summary
+                        .status_counts
+                        .get("ready-for-benchmark-run")
+                        .copied()
+                        .unwrap_or(0)
+                );
+                println!(
+                    "requires_hardening={}",
+                    report.summary.status_counts.get("requires-hardening").copied().unwrap_or(0)
+                );
+                println!(
+                    "missing_stage_binding={}",
+                    report.summary.status_counts.get("missing-stage-binding").copied().unwrap_or(0)
+                );
+                if let Some(path) = &args.out {
+                    println!("bam_campaign_out={}", path.display());
+                }
+            }
+        }
+        cli::ConfigCommand::VcfBenchmarkCampaign(args) => {
+            let report = hpc::vcf_benchmark_campaign(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("selected_goals={}", report.selected_goals.join(","));
+                println!("goals={}", report.summary.total_goals);
+                println!("rows={}", report.summary.total_rows);
+                println!("findings={}", report.summary.total_findings);
+                println!("queue_entries={}", report.summary.total_queue_entries);
+                println!(
+                    "ready_for_benchmark_run={}",
+                    report
+                        .summary
+                        .status_counts
+                        .get("ready-for-benchmark-run")
+                        .copied()
+                        .unwrap_or(0)
+                );
+                println!(
+                    "requires_hardening={}",
+                    report.summary.status_counts.get("requires-hardening").copied().unwrap_or(0)
+                );
+                println!(
+                    "missing_stage_binding={}",
+                    report.summary.status_counts.get("missing-stage-binding").copied().unwrap_or(0)
+                );
+                if let Some(path) = &args.out {
+                    println!("vcf_campaign_out={}", path.display());
+                }
+            }
+        }
+        cli::ConfigCommand::CrossBenchmarkCampaign(args) => {
+            let report = hpc::cross_benchmark_campaign(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("selected_goals={}", report.selected_goals.join(","));
+                println!("goals={}", report.summary.total_goals);
+                println!("rows={}", report.summary.total_rows);
+                println!("findings={}", report.summary.total_findings);
+                println!("queue_entries={}", report.summary.total_queue_entries);
+                println!(
+                    "ready_for_benchmark_run={}",
+                    report
+                        .summary
+                        .status_counts
+                        .get("ready-for-benchmark-run")
+                        .copied()
+                        .unwrap_or(0)
+                );
+                println!(
+                    "requires_hardening={}",
+                    report.summary.status_counts.get("requires-hardening").copied().unwrap_or(0)
+                );
+                println!(
+                    "missing_stage_binding={}",
+                    report.summary.status_counts.get("missing-stage-binding").copied().unwrap_or(0)
+                );
+                if let Some(path) = &args.out {
+                    println!("cross_campaign_out={}", path.display());
+                }
+            }
+        }
+        cli::ConfigCommand::HardeningBenchmarkCampaign(args) => {
+            let report = hpc::hardening_benchmark_campaign(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("selected_goals={}", report.selected_goals.join(","));
+                println!("goals={}", report.summary.total_goals);
+                println!("rows={}", report.summary.total_rows);
+                println!("findings={}", report.summary.total_findings);
+                println!("queue_entries={}", report.summary.total_queue_entries);
+                println!(
+                    "ready_for_benchmark_run={}",
+                    report
+                        .summary
+                        .status_counts
+                        .get("ready-for-benchmark-run")
+                        .copied()
+                        .unwrap_or(0)
+                );
+                println!(
+                    "requires_hardening={}",
+                    report.summary.status_counts.get("requires-hardening").copied().unwrap_or(0)
+                );
+                println!(
+                    "missing_stage_binding={}",
+                    report.summary.status_counts.get("missing-stage-binding").copied().unwrap_or(0)
+                );
+                if let Some(path) = &args.out {
+                    println!("hardening_campaign_out={}", path.display());
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+pub(crate) fn handle_slurm_root(command: &cli::SlurmCommand, _cwd: &Path) -> Result<()> {
+    match command {
+        cli::SlurmCommand::SubmitStageBenchmark(args) => {
+            let report = hpc::submit_stage_benchmark(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("submission_mode={}", report.mode);
+                println!("submitted_jobs={}", report.jobs.len());
+            }
+        }
+        cli::SlurmCommand::SubmitDomainBenchmark(args) => {
+            let report = hpc::submit_domain_benchmark(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("submission_mode={}", report.mode);
+                println!("submitted_jobs={}", report.jobs.len());
+            }
+        }
+        cli::SlurmCommand::SubmitCrossBenchmark(args) => {
+            let report = hpc::submit_cross_benchmark(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("submission_mode={}", report.mode);
+                println!("submitted_jobs={}", report.jobs.len());
+            }
+        }
+        cli::SlurmCommand::SubmitCampaign(args) => {
+            let report = hpc::submit_campaign(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("submission_mode={}", report.mode);
+                println!("submitted_jobs={}", report.jobs.len());
+            }
+        }
+        cli::SlurmCommand::Cancel(args) => {
+            let report = hpc::cancel_jobs(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("mode={}", report.mode);
+                println!("requested={}", report.requested_job_ids.len());
+                println!("cancelled={}", report.cancelled_job_ids.len());
+            }
+        }
+        cli::SlurmCommand::Monitor(args) => {
+            let report = hpc::monitor_campaign(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("jobs={}", report.snapshot.total_jobs);
+                println!("results_bundles={}", report.snapshot.jobs_with_results_bundle);
+                println!("code_bundles={}", report.snapshot.jobs_with_code_bundle);
+                println!("appraiser_done={}", report.snapshot.jobs_with_appraiser_done);
+            }
+        }
+        cli::SlurmCommand::CopyBackManifest(args) => {
+            let manifest = hpc::write_copy_back_manifest(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&manifest)?;
+            } else {
+                println!("manifest={}", manifest.manifest_path);
+                println!("entries={}", manifest.entries.len());
+            }
+        }
+        cli::SlurmCommand::DecryptBundle(args) => {
+            let report = hpc::decrypt_bundle_to_local(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("bundle={}", report.bundle_path);
+                println!("output={}", report.output_path);
+                println!("sha256={}", report.plaintext_sha256);
+            }
+        }
+        cli::SlurmCommand::VerifyBundle(args) => {
+            let report = hpc::verify_bundle_integrity(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("bundle={}", report.bundle_path);
+                println!("sidecar={}", report.sidecar_path);
+                println!("ok={}", report.ok);
+                println!("sha256={}", report.plaintext_sha256);
+            }
+        }
+        cli::SlurmCommand::RewrapBundle(args) => {
+            let report = hpc::rewrap_bundle(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("bundle={}", report.source_bundle_path);
+                println!("rewrapped={}", report.output_bundle_path);
+                println!("sha256={}", report.plaintext_sha256);
+            }
+        }
+        cli::SlurmCommand::ImportReplay(args) => {
+            let report = hpc::import_encrypted_replay(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("results={}", report.results_bundle);
+                println!("code={}", report.code_bundle);
+                println!("feasible={}", report.replay_feasible);
+                println!("out_dir={}", report.output_root);
+            }
+        }
+        cli::SlurmCommand::ImportCampaign(args) => {
+            let report = hpc::import_encrypted_campaign(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign_dir={}", report.campaign_dir);
+                println!("imported_pairs={}", report.imported_pairs);
+                println!("out_dir={}", report.output_root);
+            }
+        }
+        cli::SlurmCommand::ExportFailureBundle(args) => {
+            let report = hpc::export_failure_bundle(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("stage={}", report.stage);
+                println!("tool={}", report.tool);
+                println!("sample={}", report.sample);
+                println!("bundle={}", report.bundle_path);
+            }
+        }
+        cli::SlurmCommand::ShareBundle(args) => {
+            let report = hpc::share_bundle_with_profile(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("source={}", report.source_bundle_path);
+                println!("shared={}", report.shared_bundle_path);
+                println!("sidecar={}", report.shared_sidecar_path);
+            }
+        }
+        cli::SlurmCommand::VerifyResultsPolicy(args) => {
+            let report = hpc::verify_results_policy(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("results_ok={}", report.results_complete);
+                println!("code_ok={}", report.code_complete);
+                println!("appraiser_policy_ok={}", report.appraiser_policy_ok);
+            }
+        }
     }
     Ok(())
 }

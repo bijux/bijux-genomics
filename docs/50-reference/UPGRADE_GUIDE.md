@@ -4,17 +4,16 @@
 # UPGRADE_GUIDE
 
 ## Purpose
-Generated release-change guide summarizing governed compatibility-impacting changes.
+Release-specific compatibility notes for governed schema, API, and evidence changes.
 
 ## Scope
-Release metadata and change declarations from compatibility release-change config.
+Covers migration-facing impacts declared in `configs/ci/compatibility/release_changes.toml`.
 
 ## Non-goals
-- Replacing detailed operational runbooks or incident procedures.
+Does not replace crate changelogs, release process policy, or ad hoc migration playbooks.
 
 ## Contracts
-- Generated-only document; manual edits are forbidden.
-- Change rows must stay aligned with governed release change config.
+This guide is generated from governed compatibility config via `cargo run -p bijux-dna-dev -- tooling run generate-docs`.
 
 Release: `feat-deep-foundation-compatibility`
 
