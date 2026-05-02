@@ -439,6 +439,31 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class != "ready").count()
             ),
         ],
+        "G175" => vec![
+            format!("image_hardening_rows_present={}", !rows.is_empty()),
+            format!(
+                "image_hardening_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "image_hardening_mapping_summary_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+            ),
+            format!(
+                "image_hardening_image_mismatch_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "image-mismatch")
+                    .count()
+            ),
+            format!(
+                "image_hardening_image_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.failure_class == "image-mismatch")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -780,6 +805,40 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "database_hardening_reference_panel_bound=false"));
+    }
+
+    #[test]
+    fn goal_175_emits_image_hardening_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G175".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "artifact-validity".to_string(),
+            row_id: "h6".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "image-mismatch".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "image mismatch".to_string(),
+            recommendation: "prepare or stage matching image before benchmark".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0003".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "image-mismatch".to_string(),
+            recommendation: "prepare or stage matching image before benchmark".to_string(),
+            affected_rows: vec!["h6".to_string()],
+            source_appraisers: vec!["artifact-validity".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "image_hardening_mapping_summary_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "image_hardening_image_mismatch_findings=1"));
     }
 
     #[test]
