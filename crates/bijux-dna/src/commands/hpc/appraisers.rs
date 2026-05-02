@@ -47,6 +47,7 @@ struct ArtifactValidityAppraiser;
 struct ScientificOutputAppraiser;
 struct ReproducibilityAppraiser;
 struct BackendEquivalenceAppraiser;
+struct FailureClassAppraiser;
 
 fn plugins() -> Vec<Box<dyn AppraiserPlugin>> {
     vec![
@@ -55,6 +56,7 @@ fn plugins() -> Vec<Box<dyn AppraiserPlugin>> {
         Box::new(ScientificOutputAppraiser),
         Box::new(ReproducibilityAppraiser),
         Box::new(BackendEquivalenceAppraiser),
+        Box::new(FailureClassAppraiser),
     ]
 }
 
@@ -274,6 +276,35 @@ impl AppraiserPlugin for BackendEquivalenceAppraiser {
                     result_scope: "encrypted-results".to_string(),
                     summary: "stage has fewer than two backend/tool alternatives".to_string(),
                     recommendation: "add alternative backend/tool binding for equivalence checks".to_string(),
+                });
+            }
+        }
+        findings
+    }
+}
+
+impl AppraiserPlugin for FailureClassAppraiser {
+    fn id(&self) -> &'static str {
+        "failure-class"
+    }
+
+    fn appraise(&self, matrix: &BenchmarkMatrixReport) -> Vec<AppraisalFinding> {
+        let mut findings = Vec::new();
+        for row in &matrix.rows {
+            if row.readiness.class != "ready" {
+                findings.push(AppraisalFinding {
+                    appraiser_id: self.id().to_string(),
+                    row_id: row.row_id.clone(),
+                    severity: if row.readiness.class == "refuse" {
+                        "critical".to_string()
+                    } else {
+                        "warning".to_string()
+                    },
+                    confidence: "high".to_string(),
+                    failure_class: format!("readiness-{}", row.readiness.class),
+                    result_scope: "encrypted-results".to_string(),
+                    summary: "row is not fully ready".to_string(),
+                    recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
                 });
             }
         }
