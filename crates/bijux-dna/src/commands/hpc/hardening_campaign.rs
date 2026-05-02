@@ -4406,6 +4406,27 @@ fn goal_specific_checks(
                 findings.len()
             ),
         ],
+        "G270" => vec![
+            format!("monthly_campaign_rows_present={}", !rows.is_empty()),
+            format!(
+                "monthly_campaign_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "monthly_campaign_profile_coverage_call_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.call")
+            ),
+            format!(
+                "monthly_campaign_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!(
+                "monthly_campaign_findings_count={}",
+                findings.len()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -7415,6 +7436,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "nightly_campaign_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_270_emits_monthly_campaign_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G270".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-profile".to_string(),
+            row_id: "h7".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-outlier".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "monthly full-campaign import reports coverage runtime drift".to_string(),
+            recommendation: "compare monthly full-campaign outcomes against accepted baselines".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "monthly_campaign_profile_coverage_call_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "monthly_campaign_findings_count=1"));
     }
 
     #[test]
