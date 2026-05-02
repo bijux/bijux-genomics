@@ -502,6 +502,24 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G108" => vec![
+            format!("adapter_rows_present={}", !rows.is_empty()),
+            format!(
+                "adapter_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.detect_adapters")
+            ),
+            format!(
+                "adapter_backend_candidates={}",
+                rows.iter().map(|row| row.tool_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "adapter_equivalence_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.appraiser_id == "backend-equivalence")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -929,5 +947,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("subsample_repro_findings=")));
+    }
+
+    #[test]
+    fn goal_108_emits_adapter_detection_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G108".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "backend-equivalence".to_string(),
+            row_id: "r3".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "single-backend".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("adapter_equivalence_findings=")));
     }
 }
