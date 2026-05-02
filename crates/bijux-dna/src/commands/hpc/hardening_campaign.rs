@@ -1418,6 +1418,33 @@ fn goal_specific_checks(
                 findings.iter().filter(|finding| finding.severity != "critical").count()
             ),
         ],
+        "G197" => vec![
+            format!("confidence_scores_rows_present={}", !rows.is_empty()),
+            format!(
+                "confidence_scores_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "confidence_scores_high_confidence_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.confidence == "high")
+                    .count()
+            ),
+            format!(
+                "confidence_scores_medium_confidence_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.confidence == "medium")
+                    .count()
+            ),
+            format!(
+                "confidence_scores_manual_review_proxy={}",
+                findings
+                    .iter()
+                    .any(|finding| finding.confidence == "medium" && finding.severity == "warning")
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -2527,6 +2554,44 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "campaign_salvage_noncritical_findings=1"));
+    }
+
+    #[test]
+    fn goal_197_emits_appraiser_confidence_score_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G197".to_string()];
+        let findings = vec![
+            AppraisalFinding {
+                appraiser_id: "failure-class".to_string(),
+                row_id: "h1".to_string(),
+                severity: "critical".to_string(),
+                confidence: "high".to_string(),
+                failure_class: "readiness-refuse".to_string(),
+                result_scope: "encrypted-results".to_string(),
+                summary: "strong confidence finding".to_string(),
+                recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+            },
+            AppraisalFinding {
+                appraiser_id: "runtime-performance".to_string(),
+                row_id: "h4".to_string(),
+                severity: "warning".to_string(),
+                confidence: "medium".to_string(),
+                failure_class: "runtime-under-sampled".to_string(),
+                result_scope: "encrypted-results".to_string(),
+                summary: "weak confidence finding".to_string(),
+                recommendation: "increase repetitions to at least 2".to_string(),
+            },
+        ];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "confidence_scores_high_confidence_findings=1"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "confidence_scores_manual_review_proxy=true"));
     }
 
     #[test]
