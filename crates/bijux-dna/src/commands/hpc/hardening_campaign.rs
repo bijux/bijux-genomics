@@ -1038,6 +1038,30 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G190" => vec![
+            format!("regression_workflow_rows_present={}", !rows.is_empty()),
+            format!(
+                "regression_workflow_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "regression_workflow_profile_coverage_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "regression_workflow_critical_findings={}",
+                findings.iter().filter(|finding| finding.severity == "critical").count()
+            ),
+            format!(
+                "regression_workflow_non_info_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.severity != "info")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1905,6 +1929,52 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "baseline_workflow_critical_findings=0"));
+    }
+
+    #[test]
+    fn goal_190_emits_regression_workflow_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G190".to_string()];
+        let findings = vec![
+            AppraisalFinding {
+                appraiser_id: "failure-class".to_string(),
+                row_id: "h10".to_string(),
+                severity: "critical".to_string(),
+                confidence: "high".to_string(),
+                failure_class: "readiness-refuse".to_string(),
+                result_scope: "encrypted-results".to_string(),
+                summary: "regression rerun surfaced refuse row".to_string(),
+                recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+            },
+            AppraisalFinding {
+                appraiser_id: "code-freeze".to_string(),
+                row_id: "h13".to_string(),
+                severity: "critical".to_string(),
+                confidence: "high".to_string(),
+                failure_class: "code-freeze-incomplete".to_string(),
+                result_scope: "encrypted-code".to_string(),
+                summary: "regression rerun surfaced replay/code drift".to_string(),
+                recommendation: "bind tool and image lock before code freeze publication".to_string(),
+            },
+        ];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0701".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+            affected_rows: vec!["h10".to_string(), "h13".to_string()],
+            source_appraisers: vec!["failure-class".to_string(), "code-freeze".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "regression_workflow_profile_coverage_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "regression_workflow_critical_findings=1"));
     }
 
     #[test]
