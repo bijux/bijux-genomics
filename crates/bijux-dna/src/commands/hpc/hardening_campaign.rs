@@ -4385,6 +4385,27 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G269" => vec![
+            format!("nightly_campaign_rows_present={}", !rows.is_empty()),
+            format!(
+                "nightly_campaign_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "nightly_campaign_validate_align_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "nightly_campaign_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!(
+                "nightly_campaign_findings_count={}",
+                findings.len()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -7368,6 +7389,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "replay_regression_code_freeze_queue_entries=1"));
+    }
+
+    #[test]
+    fn goal_269_emits_nightly_campaign_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G269".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "nightly campaign import captured refusal drift in filter stage".to_string(),
+            recommendation: "rotate nightly subset and track drift history for refuses".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "nightly_campaign_validate_align_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "nightly_campaign_findings_count=1"));
     }
 
     #[test]
