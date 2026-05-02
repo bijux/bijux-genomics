@@ -1921,6 +1921,27 @@ fn goal_specific_checks(
             ),
             format!("cnv_boundary_findings_count={}", findings.len()),
         ],
+        "G210" => vec![
+            format!("cram_boundary_rows_present={}", !rows.is_empty()),
+            format!(
+                "cram_boundary_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "cram_boundary_validate_summary_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.validate")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "cram_boundary_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!(
+                "cram_boundary_queue_entries={}",
+                queue_entries.len()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -3386,6 +3407,30 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "cnv_boundary_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_210_emits_cram_boundary_corpus_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G210".to_string()];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-1601".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+            affected_rows: vec!["h10".to_string()],
+            source_appraisers: vec!["failure-class".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &[], &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "cram_boundary_validate_summary_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "cram_boundary_queue_entries=1"));
     }
 
     #[test]
