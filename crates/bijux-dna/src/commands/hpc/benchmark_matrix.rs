@@ -82,9 +82,9 @@ fn registry_path_from_root(root: &Path) -> PathBuf {
 }
 
 pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixReport> {
-    if args.domain != "fastq" {
+    if !matches!(args.domain.as_str(), "fastq" | "bam" | "vcf") {
         return Err(anyhow!(
-            "benchmark-matrix currently supports --domain fastq for this iteration"
+            "benchmark-matrix supports --domain fastq|bam|vcf"
         ));
     }
     let dry_run =
@@ -125,5 +125,21 @@ mod tests {
         assert!(stages.iter().all(|stage| stage.starts_with("fastq.")));
         assert!(stages.iter().any(|stage| stage == "fastq.validate_reads"));
         assert!(!stages.iter().any(|stage| stage.ends_with("._schema")));
+    }
+
+    #[test]
+    fn stage_catalog_lists_non_schema_bam_entries() {
+        let root = super::workspace_root().expect("workspace root");
+        let stages = domain_stage_ids(&root, "bam").expect("stages");
+        assert!(stages.iter().all(|stage| stage.starts_with("bam.")));
+        assert!(stages.iter().any(|stage| stage == "bam.align"));
+    }
+
+    #[test]
+    fn stage_catalog_lists_non_schema_vcf_entries() {
+        let root = super::workspace_root().expect("workspace root");
+        let stages = domain_stage_ids(&root, "vcf").expect("stages");
+        assert!(stages.iter().all(|stage| stage.starts_with("vcf.")));
+        assert!(stages.iter().any(|stage| stage == "vcf.call"));
     }
 }
