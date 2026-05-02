@@ -921,51 +921,72 @@ fn is_encrypted_bundle_marker(path: &Path) -> bool {
     preview.contains("\"schema_version\": \"bijux.hpc.bundle.")
 }
 
-fn scheduler_ids_from_submission_manifest(path: &Path) -> Result<BTreeMap<String, String>> {
+#[derive(Debug, Deserialize)]
+struct SubmissionManifestJobRow {
+    planned_job_id: Option<String>,
+    scheduler_job_id: Option<String>,
+    log_path: Option<String>,
+    out_path: Option<String>,
+    err_path: Option<String>,
+    results_path: Option<String>,
+    code_path: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct SubmissionManifestFile {
+    jobs: Vec<SubmissionManifestJobRow>,
+}
+
+fn submission_jobs_from_manifest(
+    path: &Path,
+) -> Result<BTreeMap<String, SubmissionManifestJobRow>> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let value: serde_json::Value =
+    let manifest: SubmissionManifestFile =
         serde_json::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
-    let mut map = BTreeMap::new();
-    for row in value.get("jobs").and_then(|rows| rows.as_array()).into_iter().flatten() {
-        let Some(planned_id) = row.get("planned_job_id").and_then(|v| v.as_str()) else {
-            continue;
-        };
-        let Some(scheduler_id) = row.get("scheduler_job_id").and_then(|v| v.as_str()) else {
-            continue;
-        };
-        map.insert(planned_id.to_string(), scheduler_id.to_string());
-    }
-    Ok(map)
+    Ok(manifest
+        .jobs
+        .into_iter()
+        .filter_map(|row| row.planned_job_id.clone().map(|planned_id| (planned_id, row)))
+        .collect())
 }
 
 pub fn monitor_campaign(args: &SlurmMonitorArgs) -> Result<SlurmMonitorReport> {
     let report =
         campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_policies.as_deref())?;
-    let scheduler_ids = if let Some(path) = &args.submission_manifest {
-        scheduler_ids_from_submission_manifest(path)?
+    let submitted_jobs = if let Some(path) = &args.submission_manifest {
+        submission_jobs_from_manifest(path)?
     } else {
         BTreeMap::new()
     };
     let mut entries = Vec::new();
     for job in &report.planned_jobs {
-        let log_exists = Path::new(&job.outputs.log).is_file();
-        let out_exists = Path::new(&job.outputs.out).is_file();
-        let err_exists = Path::new(&job.outputs.err).is_file();
-        let results_exists = Path::new(&job.outputs.results).is_file();
-        let code_exists = Path::new(&job.outputs.code).is_file();
-        let results_sidecar_exists = sidecar_path_for(Path::new(&job.outputs.results)).is_file();
-        let code_sidecar_exists = sidecar_path_for(Path::new(&job.outputs.code)).is_file();
+        let submitted_job = submitted_jobs.get(&job.job_id);
+        let log_path =
+            submitted_job.and_then(|row| row.log_path.as_deref()).unwrap_or(&job.outputs.log);
+        let out_path =
+            submitted_job.and_then(|row| row.out_path.as_deref()).unwrap_or(&job.outputs.out);
+        let err_path =
+            submitted_job.and_then(|row| row.err_path.as_deref()).unwrap_or(&job.outputs.err);
+        let results_path = submitted_job
+            .and_then(|row| row.results_path.as_deref())
+            .unwrap_or(&job.outputs.results);
+        let code_path =
+            submitted_job.and_then(|row| row.code_path.as_deref()).unwrap_or(&job.outputs.code);
+        let log_exists = Path::new(log_path).is_file();
+        let out_exists = Path::new(out_path).is_file();
+        let err_exists = Path::new(err_path).is_file();
+        let results_exists = Path::new(results_path).is_file();
+        let code_exists = Path::new(code_path).is_file();
+        let results_sidecar_exists = sidecar_path_for(Path::new(results_path)).is_file();
+        let code_sidecar_exists = sidecar_path_for(Path::new(code_path)).is_file();
         let results_bundle_encrypted =
-            results_exists && is_encrypted_bundle_marker(Path::new(&job.outputs.results));
-        let code_bundle_encrypted =
-            code_exists && is_encrypted_bundle_marker(Path::new(&job.outputs.code));
-        let appraiser_done =
-            PathBuf::from(format!("{}.appraiser.done", job.outputs.results)).is_file();
+            results_exists && is_encrypted_bundle_marker(Path::new(results_path));
+        let code_bundle_encrypted = code_exists && is_encrypted_bundle_marker(Path::new(code_path));
+        let appraiser_done = PathBuf::from(format!("{results_path}.appraiser.done")).is_file();
         entries.push(SlurmMonitorEntry {
             planned_job_id: job.job_id.clone(),
-            scheduler_job_id: scheduler_ids
-                .get(&job.job_id)
-                .cloned()
+            scheduler_job_id: submitted_job
+                .and_then(|row| row.scheduler_job_id.clone())
                 .unwrap_or_else(|| "<unknown>".to_string()),
             stage: job.stage.clone(),
             tool: job.tool.clone(),
