@@ -3786,6 +3786,30 @@ fn goal_specific_checks(
             ),
             format!("tool_dossier_findings_count={}", findings.len()),
         ],
+        "G254" => vec![
+            format!("corpus_dossier_rows_present={}", !rows.is_empty()),
+            format!(
+                "corpus_dossier_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "corpus_dossier_profile_coverage_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "corpus_dossier_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!(
+                "corpus_dossier_corpus_mismatch_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "corpus-mismatch")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -6383,6 +6407,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "tool_dossier_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_254_emits_corpus_dossier_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G254".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "corpus-suitability".to_string(),
+            row_id: "h10".to_string(),
+            severity: "warning".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "corpus-mismatch".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "corpus dossier import includes corpus mismatch at filter boundary".to_string(),
+            recommendation: "record corpus suitability weaknesses and mismatch caveats per stage".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "corpus_dossier_profile_coverage_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "corpus_dossier_corpus_mismatch_findings=1"));
     }
 
     #[test]
