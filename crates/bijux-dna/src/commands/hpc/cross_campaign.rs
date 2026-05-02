@@ -405,7 +405,7 @@ fn goal_specific_checks(
     goal_id: &str,
     rows: &[CrossMatrixRowRef],
     _findings: &[AppraisalFinding],
-    _queue_entries: &[HardeningQueueEntry],
+    queue_entries: &[HardeningQueueEntry],
 ) -> Vec<String> {
     match goal_id {
         "G161" => vec![
@@ -600,6 +600,28 @@ fn goal_specific_checks(
             format!(
                 "contamination_flow_stats_bound={}",
                 rows.iter().any(|row| row.stage_id == BRIDGE_VCF_FILTER_TO_VCF_STATS)
+            ),
+        ],
+        "G170" => vec![
+            format!("reviewer_bundle_rows_present={}", !rows.is_empty()),
+            format!(
+                "reviewer_bundle_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "reviewer_bundle_gl_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_FASTQ_TRIM_TO_VCF_GL)
+            ),
+            format!(
+                "reviewer_bundle_call_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_BAM_GENOTYPING_TO_VCF_CALL)
+            ),
+            format!(
+                "reviewer_bundle_hardening_entries={}",
+                queue_entries.iter().filter(|entry| entry.severity != "info").count()
             ),
         ],
         _ => Vec::new(),
@@ -1029,5 +1051,29 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("contamination_flow_bam_to_vcf_bound=true")));
+    }
+
+    #[test]
+    fn goal_170_emits_reviewer_bundle_generation_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G170".to_string()];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0004".to_string(),
+            severity: "warning".to_string(),
+            failure_class: "bundle-import-gap".to_string(),
+            recommendation: "verify decrypt/import pipeline".to_string(),
+            affected_rows: vec!["c10".to_string()],
+            source_appraisers: vec!["failure-class".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &[], &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("reviewer_bundle_stage_count=3")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("reviewer_bundle_call_bound=true")));
     }
 }
