@@ -3104,6 +3104,24 @@ fn goal_specific_checks(
             ),
             format!("campaign_comparison_findings_count={}", findings.len()),
         ],
+        "G240" => vec![
+            format!("benchmark_docs_rows_present={}", !rows.is_empty()),
+            format!(
+                "benchmark_docs_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "benchmark_docs_validate_filter_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "benchmark_docs_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!("benchmark_docs_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -5337,6 +5355,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "campaign_comparison_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_240_emits_benchmark_docs_hint_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G240".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "benchmark output indicates docs caveat for filter refusal behavior".to_string(),
+            recommendation: "add docs hint when refusal behavior changes user-visible guidance".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "benchmark_docs_validate_filter_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "benchmark_docs_findings_count=1"));
     }
 
     #[test]
