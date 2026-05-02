@@ -419,6 +419,20 @@ fn env_file_private(path: &Path) -> Option<bool> {
     }
 }
 
+fn age_cli_available() -> bool {
+    std::process::Command::new("age")
+        .arg("--version")
+        .output()
+        .is_ok_and(|output| output.status.success())
+}
+
+fn looks_like_age_recipient(value: &str) -> bool {
+    let Some(rest) = value.strip_prefix("age1") else {
+        return false;
+    };
+    rest.len() >= 10 && rest.chars().all(|ch| ch.is_ascii_lowercase() || ch.is_ascii_digit())
+}
+
 fn is_secret_key_name(name: &str) -> bool {
     let lower = name.to_ascii_lowercase();
     let allowlist = ["secret_provider", "secret_ref", "secret_env_key", "encryption_recipients"];
@@ -1066,6 +1080,27 @@ pub fn campaign_preflight(
         ok: is_supported_encryption_backend(&config.security.encryption_backend),
         detail: config.security.encryption_backend.clone(),
     });
+    if config.security.encryption_backend == "age-cli" {
+        checks.push(CampaignCheck {
+            name: "age_cli_available".to_string(),
+            ok: age_cli_available(),
+            detail: "required for age-cli backend".to_string(),
+        });
+        checks.push(CampaignCheck {
+            name: "age_recipients_valid".to_string(),
+            ok: config
+                .security
+                .encryption_recipients
+                .iter()
+                .all(|recipient| looks_like_age_recipient(recipient)),
+            detail: format!("count={}", config.security.encryption_recipients.len()),
+        });
+        checks.push(CampaignCheck {
+            name: "age_identity_files_configured".to_string(),
+            ok: !config.security.encryption_identity_files.is_empty(),
+            detail: format!("count={}", config.security.encryption_identity_files.len()),
+        });
+    }
     checks.push(CampaignCheck {
         name: "env_file_private".to_string(),
         ok: env_file_private(&metadata.env_file_path).unwrap_or(true),
@@ -1371,6 +1406,54 @@ sample = "sample-1"
             .checks
             .iter()
             .any(|check| check.name == "encryption_backend_supported" && !check.ok));
+    }
+
+    #[test]
+    fn campaign_preflight_flags_invalid_age_recipient_and_missing_identity_files() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_path = root.path().join("campaign.toml");
+        let config = r#"
+schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "/shared/corpora"
+databases_root = "/shared/databases"
+images_root = "/shared/images"
+scratch_root = "/shared/scratch"
+logs_root = "/shared/logs"
+encrypted_results_root = "/shared/results"
+encrypted_code_root = "/shared/code"
+appraiser_imports_root = "/shared/imports"
+baselines_root = "/shared/baselines"
+
+[slurm]
+site_profile = "generic"
+
+[security]
+encryption_backend = "age-cli"
+encryption_recipients = ["alice"]
+
+[[jobs]]
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-1"
+"#;
+        std::fs::write(&config_path, config).expect("write config");
+
+        let report = campaign_preflight(&config_path, None, None).expect("preflight");
+        assert!(!report.ok);
+        assert!(report
+            .checks
+            .iter()
+            .any(|check| check.name == "age_recipients_valid" && !check.ok));
+        assert!(report
+            .checks
+            .iter()
+            .any(|check| check.name == "age_identity_files_configured" && !check.ok));
     }
 
     #[test]
