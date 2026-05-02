@@ -88,7 +88,7 @@ pub enum ConfigCommand {
         #[arg(long, value_name = "PATH")]
         env_file: Option<PathBuf>,
         #[arg(long, value_name = "PATH")]
-        user_overrides: Option<PathBuf>,
+        user_policies: Option<PathBuf>,
         #[arg(long, default_value_t = false)]
         json: bool,
     },
@@ -99,7 +99,7 @@ pub enum ConfigCommand {
         #[arg(long, value_name = "PATH")]
         env_file: Option<PathBuf>,
         #[arg(long, value_name = "PATH")]
-        user_overrides: Option<PathBuf>,
+        user_policies: Option<PathBuf>,
         #[arg(long, default_value_t = false)]
         json: bool,
     },
@@ -115,7 +115,7 @@ pub enum ConfigCommand {
         #[arg(long, value_name = "PATH")]
         env_file: Option<PathBuf>,
         #[arg(long, value_name = "PATH")]
-        user_overrides: Option<PathBuf>,
+        user_policies: Option<PathBuf>,
         #[arg(long, default_value_t = false)]
         json: bool,
     },
@@ -126,7 +126,7 @@ pub enum ConfigCommand {
         #[arg(long, value_name = "PATH")]
         env_file: Option<PathBuf>,
         #[arg(long, value_name = "PATH")]
-        user_overrides: Option<PathBuf>,
+        user_policies: Option<PathBuf>,
         #[arg(long, default_value_t = false)]
         dry_run: bool,
         #[arg(long, default_value_t = false)]
@@ -139,7 +139,7 @@ pub enum ConfigCommand {
         #[arg(long, value_name = "PATH")]
         env_file: Option<PathBuf>,
         #[arg(long, value_name = "PATH")]
-        user_overrides: Option<PathBuf>,
+        user_policies: Option<PathBuf>,
         #[arg(long, default_value_t = false)]
         dry_run: bool,
         #[arg(long, default_value_t = false)]
@@ -171,7 +171,7 @@ pub struct BenchmarkMatrixArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long, default_value = "all", help = "fastq|bam|vcf|cross|all")]
     pub domain: String,
     #[arg(long, value_name = "PATH")]
@@ -191,7 +191,7 @@ pub struct AppraiseMatrixArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long, default_value = "all", help = "fastq|bam|vcf|cross|all")]
     pub domain: String,
     #[arg(long, value_name = "PATH")]
@@ -211,7 +211,7 @@ pub struct HardeningQueueArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long, default_value = "all", help = "fastq|bam|vcf|cross|all")]
     pub domain: String,
     #[arg(long, value_name = "PATH")]
@@ -227,7 +227,7 @@ pub struct FastqBenchmarkCampaignArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G101,G102")]
     pub goals: Option<String>,
     #[arg(long, value_name = "PATH")]
@@ -243,7 +243,7 @@ pub struct BamBenchmarkCampaignArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G121,G122")]
     pub goals: Option<String>,
     #[arg(long, value_name = "PATH")]
@@ -259,7 +259,7 @@ pub struct VcfBenchmarkCampaignArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G141,G142")]
     pub goals: Option<String>,
     #[arg(long, value_name = "PATH")]
@@ -275,7 +275,7 @@ pub struct CrossBenchmarkCampaignArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G161,G162")]
     pub goals: Option<String>,
     #[arg(long, value_name = "PATH")]
@@ -291,7 +291,7 @@ pub struct HardeningBenchmarkCampaignArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G171,G172")]
     pub goals: Option<String>,
     #[arg(long, value_name = "PATH")]
@@ -341,7 +341,7 @@ pub struct SlurmSubmitStageArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long)]
     pub stage: String,
     #[arg(long)]
@@ -361,7 +361,7 @@ pub struct SlurmSubmitDomainArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long)]
     pub domain: String,
     #[arg(long, default_value_t = false)]
@@ -377,7 +377,7 @@ pub struct SlurmSubmitCrossArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long, help = "Comma-separated domains to include")]
     pub domains: Option<String>,
     #[arg(long, default_value_t = false)]
@@ -393,7 +393,7 @@ pub struct SlurmSubmitCampaignArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long, default_value_t = false)]
     pub mock_submit: bool,
     #[arg(long, default_value_t = false)]
@@ -419,7 +419,7 @@ pub struct SlurmMonitorArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
     pub submission_manifest: Option<PathBuf>,
     #[arg(long, default_value_t = false)]
@@ -433,7 +433,7 @@ pub struct SlurmCopyBackManifestArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
     pub out: Option<PathBuf>,
     #[arg(long, default_value_t = false)]
@@ -525,7 +525,7 @@ pub struct SlurmFailureBundleExportArgs {
     #[arg(long, value_name = "PATH")]
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
-    pub user_overrides: Option<PathBuf>,
+    pub user_policies: Option<PathBuf>,
     #[arg(long)]
     pub stage: String,
     #[arg(long)]
