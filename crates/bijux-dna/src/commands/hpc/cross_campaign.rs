@@ -426,6 +426,28 @@ fn goal_specific_checks(
                 rows.iter().any(|row| row.stage_id == BRIDGE_BAM_SUMMARY_TO_VCF_STATS)
             ),
         ],
+        "G162" => vec![
+            format!("adna_workflow_rows_present={}", !rows.is_empty()),
+            format!(
+                "adna_workflow_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "adna_workflow_damage_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_FASTQ_ADNA_TO_BAM_DAMAGE)
+            ),
+            format!(
+                "adna_workflow_contamination_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_FASTQ_VALIDATE_TO_BAM_CONTAMINATION)
+            ),
+            format!(
+                "adna_workflow_degraded_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "degraded").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -725,5 +747,21 @@ mod tests {
         assert_eq!(summary.total_goals, 2);
         assert_eq!(summary.status_counts.get("ready-for-benchmark-run"), Some(&1));
         assert_eq!(summary.status_counts.get("missing-stage-binding"), Some(&1));
+    }
+
+    #[test]
+    fn goal_162_emits_adna_cross_workflow_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G162".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("adna_workflow_stage_count=2")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("adna_workflow_damage_bound=true")));
     }
 }
