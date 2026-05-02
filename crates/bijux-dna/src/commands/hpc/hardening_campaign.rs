@@ -1272,6 +1272,30 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G191" => vec![
+            format!("sprint_generator_rows_present={}", !rows.is_empty()),
+            format!(
+                "sprint_generator_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "sprint_generator_high_risk_findings={}",
+                findings.iter().filter(|finding| finding.severity == "critical").count()
+            ),
+            format!(
+                "sprint_generator_non_bookkeeping_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.failure_class != "code-freeze-incomplete")
+                    .count()
+            ),
+            format!(
+                "sprint_generator_profile_coverage_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -2185,6 +2209,40 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "regression_workflow_critical_findings=1"));
+    }
+
+    #[test]
+    fn goal_191_emits_hardening_sprint_generator_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G191".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "high-risk row selected for sprint".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0801".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+            affected_rows: vec!["h10".to_string()],
+            source_appraisers: vec!["failure-class".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "sprint_generator_high_risk_findings=1"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "sprint_generator_non_bookkeeping_entries=1"));
     }
 
     #[test]
