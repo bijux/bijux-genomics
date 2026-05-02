@@ -352,8 +352,8 @@ fn status_for_goal(rows: &[HardeningMatrixRowRef], queue_entries: &[HardeningQue
 fn goal_specific_checks(
     goal_id: &str,
     rows: &[HardeningMatrixRowRef],
-    _findings: &[AppraisalFinding],
-    _queue_entries: &[HardeningQueueEntry],
+    findings: &[AppraisalFinding],
+    queue_entries: &[HardeningQueueEntry],
 ) -> Vec<String> {
     match goal_id {
         "G171" => vec![
@@ -365,6 +365,35 @@ fn goal_specific_checks(
             format!(
                 "stage_playbook_validate_bound={}",
                 rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+            ),
+        ],
+        "G172" => vec![
+            format!("tool_playbook_rows_present={}", !rows.is_empty()),
+            format!(
+                "tool_playbook_tool_count={}",
+                rows.iter().map(|row| row.tool_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "tool_playbook_degraded_or_refuse_tools={}",
+                rows.iter()
+                    .filter(|row| row.readiness_class != "ready")
+                    .map(|row| row.tool_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "tool_playbook_tool_binding_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "missing-tool-binding")
+                    .count()
+            ),
+            format!(
+                "tool_playbook_queue_non_info={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.severity != "info")
+                    .count()
             ),
         ],
         _ => Vec::new(),
@@ -632,6 +661,40 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("stage_playbook_stage_count=3")));
+    }
+
+    #[test]
+    fn goal_172_emits_tool_hardening_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G172".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "artifact-validity".to_string(),
+            row_id: "h5".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "missing-tool-binding".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "tool binding missing".to_string(),
+            recommendation: "bind stage to at least one governed tool".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0002".to_string(),
+            severity: "warning".to_string(),
+            failure_class: "missing-tool-binding".to_string(),
+            recommendation: "bind stage to at least one governed tool".to_string(),
+            affected_rows: vec!["h5".to_string()],
+            source_appraisers: vec!["artifact-validity".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "tool_playbook_tool_count=1"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "tool_playbook_tool_binding_findings=1"));
     }
 
     #[test]
