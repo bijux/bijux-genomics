@@ -16,7 +16,15 @@ pub struct BenchmarkMatrixReport {
     pub domain: String,
     pub domains: Vec<String>,
     pub generated_at: String,
+    pub summary: BenchmarkMatrixSummary,
     pub rows: Vec<BenchmarkMatrixRow>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct BenchmarkMatrixSummary {
+    pub total_rows: usize,
+    pub readiness_counts: std::collections::BTreeMap<String, usize>,
+    pub domain_counts: std::collections::BTreeMap<String, usize>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -311,6 +319,20 @@ fn repetition_policy(matrix_domain: &str, stage_id: &str, readiness_class: &str)
     repeats
 }
 
+fn summarize_rows(rows: &[BenchmarkMatrixRow]) -> BenchmarkMatrixSummary {
+    let mut readiness_counts = std::collections::BTreeMap::new();
+    let mut domain_counts = std::collections::BTreeMap::new();
+    for row in rows {
+        *readiness_counts.entry(row.readiness.class.clone()).or_insert(0) += 1;
+        *domain_counts.entry(row.matrix_domain.clone()).or_insert(0) += 1;
+    }
+    BenchmarkMatrixSummary {
+        total_rows: rows.len(),
+        readiness_counts,
+        domain_counts,
+    }
+}
+
 fn cross_bridges() -> &'static [CrossBridge] {
     &[
         CrossBridge {
@@ -424,6 +446,7 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
         domain: args.domain.clone(),
         domains,
         generated_at: now_timestamp_compact(),
+        summary: summarize_rows(&rows),
         rows,
     })
 }
@@ -434,7 +457,8 @@ mod tests {
 
     use super::{
         classify_readiness, cross_bridges, domain_stage_ids, match_database_surface, match_surface,
-        repetition_policy, resolve_matrix_domains, BenchmarkSurfaceMatch,
+        repetition_policy, resolve_matrix_domains, summarize_rows, BenchmarkMatrixRow,
+        BenchmarkReadiness, BenchmarkSurfaceMatch,
     };
     use crate::commands::cli::BenchmarkMatrixArgs;
     use crate::commands::hpc::benchmark_matrix;
@@ -679,5 +703,69 @@ sample = "sample-1"
         assert!(all.domains.contains(&"vcf".to_string()));
         assert!(all.domains.contains(&"cross".to_string()));
         assert!(all.rows.iter().any(|row| row.matrix_domain == "cross"));
+    }
+
+    #[test]
+    fn summary_aggregates_readiness_and_domain_counts() {
+        let rows = vec![
+            BenchmarkMatrixRow {
+                row_id: "r1".to_string(),
+                matrix_domain: "fastq".to_string(),
+                stage_id: "fastq.validate_reads".to_string(),
+                tool_id: "seqkit".to_string(),
+                corpus_match: BenchmarkSurfaceMatch {
+                    required_profile: "general".to_string(),
+                    matched_profile: "general".to_string(),
+                    ready: true,
+                },
+                database_match: BenchmarkSurfaceMatch {
+                    required_profile: "not-required".to_string(),
+                    matched_profile: "not-required".to_string(),
+                    ready: true,
+                },
+                image_match: BenchmarkSurfaceMatch {
+                    required_profile: "tool-images".to_string(),
+                    matched_profile: "seqkit".to_string(),
+                    ready: true,
+                },
+                readiness: BenchmarkReadiness {
+                    class: "ready".to_string(),
+                    reasons: Vec::new(),
+                },
+                repetitions: 3,
+            },
+            BenchmarkMatrixRow {
+                row_id: "r2".to_string(),
+                matrix_domain: "vcf".to_string(),
+                stage_id: "vcf.call".to_string(),
+                tool_id: "<unbound>".to_string(),
+                corpus_match: BenchmarkSurfaceMatch {
+                    required_profile: "wgs".to_string(),
+                    matched_profile: "<missing>".to_string(),
+                    ready: false,
+                },
+                database_match: BenchmarkSurfaceMatch {
+                    required_profile: "vcf".to_string(),
+                    matched_profile: "<missing>".to_string(),
+                    ready: false,
+                },
+                image_match: BenchmarkSurfaceMatch {
+                    required_profile: "tool-images".to_string(),
+                    matched_profile: "<missing>".to_string(),
+                    ready: false,
+                },
+                readiness: BenchmarkReadiness {
+                    class: "refuse".to_string(),
+                    reasons: vec!["missing".to_string()],
+                },
+                repetitions: 0,
+            },
+        ];
+        let summary = summarize_rows(&rows);
+        assert_eq!(summary.total_rows, 2);
+        assert_eq!(summary.domain_counts.get("fastq"), Some(&1));
+        assert_eq!(summary.domain_counts.get("vcf"), Some(&1));
+        assert_eq!(summary.readiness_counts.get("ready"), Some(&1));
+        assert_eq!(summary.readiness_counts.get("refuse"), Some(&1));
     }
 }
