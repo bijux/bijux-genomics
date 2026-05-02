@@ -4310,6 +4310,30 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class != "ready").count()
             ),
         ],
+        "G266" => vec![
+            format!("scientific_regression_rows_present={}", !rows.is_empty()),
+            format!(
+                "scientific_regression_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "scientific_regression_summary_filter_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "scientific_regression_scientific_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "scientific-invalidity")
+                    .count()
+            ),
+            format!(
+                "scientific_regression_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -7199,6 +7223,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "performance_regression_runtime_findings=1"));
+    }
+
+    #[test]
+    fn goal_266_emits_scientific_regression_gate_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G266".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "scientific-invalidity".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "scientific gate import reports changed variant/caveat outcome at filter stage".to_string(),
+            recommendation: "gate against accepted scientific baseline outputs".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "scientific_regression_summary_filter_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "scientific_regression_scientific_findings=1"));
     }
 
     #[test]
