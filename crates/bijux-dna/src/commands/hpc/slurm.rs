@@ -473,9 +473,11 @@ mod tests {
 
     use super::{
         submit_campaign, submit_cross_benchmark, submit_domain_benchmark, submit_stage_benchmark,
+        write_copy_back_manifest,
     };
     use crate::commands::cli::{
-        SlurmSubmitCampaignArgs, SlurmSubmitCrossArgs, SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
+        SlurmCopyBackManifestArgs, SlurmSubmitCampaignArgs, SlurmSubmitCrossArgs,
+        SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
     };
 
     fn write_campaign(root: &std::path::Path) -> std::path::PathBuf {
@@ -623,5 +625,20 @@ sample = "sample-2"
             assert!(std::path::Path::new(&job.err_path).is_file());
             assert!(std::path::Path::new(&job.script_path).is_file());
         }
+    }
+
+    #[test]
+    fn copy_back_manifest_writes_expected_entries() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign(root.path());
+        let out = root.path().join("copy-back.json");
+        let report = write_copy_back_manifest(&SlurmCopyBackManifestArgs {
+            config,
+            out: Some(out.clone()),
+            json: false,
+        })
+        .expect("write manifest");
+        assert_eq!(report.entries.len(), 3);
+        assert!(out.is_file());
     }
 }
