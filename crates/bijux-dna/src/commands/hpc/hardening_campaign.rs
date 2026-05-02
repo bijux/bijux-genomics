@@ -1318,6 +1318,33 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G193" => vec![
+            format!("upstream_tool_bundle_rows_present={}", !rows.is_empty()),
+            format!(
+                "upstream_tool_bundle_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "upstream_tool_bundle_trim_align_call_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.call")
+            ),
+            format!(
+                "upstream_tool_bundle_tool_binding_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "missing-tool-binding")
+                    .count()
+            ),
+            format!(
+                "upstream_tool_bundle_queue_non_info={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.severity != "info")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -2299,6 +2326,40 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "ambiguous_review_queue_warning_entries=1"));
+    }
+
+    #[test]
+    fn goal_193_emits_upstream_tool_issue_bundle_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G193".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "artifact-validity".to_string(),
+            row_id: "h5".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "missing-tool-binding".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "suspected upstream tool issue due to tool binding break".to_string(),
+            recommendation: "bind stage to at least one governed tool".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-1001".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "missing-tool-binding".to_string(),
+            recommendation: "bind stage to at least one governed tool".to_string(),
+            affected_rows: vec!["h5".to_string()],
+            source_appraisers: vec!["artifact-validity".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "upstream_tool_bundle_trim_align_call_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "upstream_tool_bundle_tool_binding_findings=1"));
     }
 
     #[test]
