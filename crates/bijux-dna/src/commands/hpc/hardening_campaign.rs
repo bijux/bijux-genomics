@@ -4858,6 +4858,37 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class != "ready").count()
             ),
         ],
+        "G280" => vec![
+            format!("public_caveat_rows_present={}", !rows.is_empty()),
+            format!(
+                "public_caveat_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "public_caveat_contamination_filter_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.contamination")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "public_caveat_scientific_or_corpus_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| {
+                        finding.failure_class == "scientific-invalidity"
+                            || finding.failure_class == "corpus-mismatch"
+                    })
+                    .count()
+            ),
+            format!(
+                "public_caveat_summary_required={}",
+                rows.iter().any(|row| row.readiness_class == "refuse")
+                    || findings.iter().any(|finding| {
+                        finding.failure_class == "scientific-invalidity"
+                            || finding.failure_class == "corpus-mismatch"
+                    })
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -8147,6 +8178,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "methods_appendix_runtime_repro_findings=1"));
+    }
+
+    #[test]
+    fn goal_280_emits_public_caveat_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G280".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "scientific-invalidity".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "public caveat import captures scientific-invalidity at filter stage".to_string(),
+            recommendation: "publish tested/weak/simulated caveats from benchmark findings".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "public_caveat_contamination_filter_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "public_caveat_summary_required=true"));
     }
 
     #[test]
