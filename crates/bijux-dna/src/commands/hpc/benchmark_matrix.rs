@@ -27,6 +27,13 @@ pub struct BenchmarkMatrixRow {
     pub tool_id: String,
 }
 
+#[derive(Debug, Clone, Copy)]
+struct CrossBridge {
+    id: &'static str,
+    from_stage: &'static str,
+    to_stage: &'static str,
+}
+
 fn now_timestamp_compact() -> String {
     let secs = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -82,13 +89,36 @@ fn registry_path_from_root(root: &Path) -> PathBuf {
     bijux_dna_infra::configs_file(root, "ci/registry/tool_registry.toml")
 }
 
+fn cross_bridges() -> &'static [CrossBridge] {
+    &[
+        CrossBridge {
+            id: "fastq_to_bam",
+            from_stage: "fastq.trim_reads",
+            to_stage: "bam.align",
+        },
+        CrossBridge {
+            id: "bam_to_vcf",
+            from_stage: "bam.genotyping",
+            to_stage: "vcf.call",
+        },
+        CrossBridge {
+            id: "fastq_to_vcf",
+            from_stage: "fastq.trim_reads",
+            to_stage: "vcf.call_gl",
+        },
+    ]
+}
+
 fn resolve_matrix_domains(value: &str) -> Result<Vec<String>> {
     match value {
-        "all" => Ok(vec!["fastq".to_string(), "bam".to_string(), "vcf".to_string()]),
+        "all" => Ok(vec![
+            "fastq".to_string(),
+            "bam".to_string(),
+            "vcf".to_string(),
+            "cross".to_string(),
+        ]),
         "fastq" | "bam" | "vcf" => Ok(vec![value.to_string()]),
-        "cross" => Err(anyhow!(
-            "benchmark-matrix cross domain generation is not yet enabled; use fastq|bam|vcf|all"
-        )),
+        "cross" => Ok(vec!["cross".to_string()]),
         other => Err(anyhow!(
             "benchmark-matrix supports --domain fastq|bam|vcf|cross|all; got `{other}`"
         )),
@@ -103,6 +133,27 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
     let registry_path = registry_path_from_root(&root);
     let mut rows = Vec::new();
     for domain in &domains {
+        if domain == "cross" {
+            for bridge in cross_bridges() {
+                let left_tools = registry_tools_for_stage(&registry_path, bridge.from_stage, None, "all")
+                    .unwrap_or_default();
+                let right_tools = registry_tools_for_stage(&registry_path, bridge.to_stage, None, "all")
+                    .unwrap_or_default();
+                for left in &left_tools {
+                    for right in &right_tools {
+                        let stage_binding = format!("{}=>{}", bridge.from_stage, bridge.to_stage);
+                        let tool_binding = format!("{left}=>{right}");
+                        rows.push(BenchmarkMatrixRow {
+                            row_id: format!("cross.{}::{}::{}", bridge.id, stage_binding, tool_binding),
+                            matrix_domain: "cross".to_string(),
+                            stage_id: stage_binding,
+                            tool_id: tool_binding,
+                        });
+                    }
+                }
+            }
+            continue;
+        }
         let stages = domain_stage_ids(&root, domain)?;
         for stage_id in stages {
             for tool_id in registry_tools_for_stage(&registry_path, &stage_id, None, "all")? {
@@ -129,7 +180,7 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
 mod tests {
     #![allow(clippy::expect_used)]
 
-    use super::{domain_stage_ids, resolve_matrix_domains};
+    use super::{cross_bridges, domain_stage_ids, resolve_matrix_domains};
 
     #[test]
     fn stage_catalog_lists_non_schema_fastq_entries() {
@@ -160,13 +211,28 @@ mod tests {
     fn matrix_domain_selector_supports_all_and_single_domains() {
         assert_eq!(
             resolve_matrix_domains("all").expect("all"),
-            vec!["fastq".to_string(), "bam".to_string(), "vcf".to_string()]
+            vec![
+                "fastq".to_string(),
+                "bam".to_string(),
+                "vcf".to_string(),
+                "cross".to_string()
+            ]
         );
         assert_eq!(
             resolve_matrix_domains("bam").expect("bam"),
             vec!["bam".to_string()]
         );
-        assert!(resolve_matrix_domains("cross").is_err());
+        assert_eq!(
+            resolve_matrix_domains("cross").expect("cross"),
+            vec!["cross".to_string()]
+        );
         assert!(resolve_matrix_domains("unknown").is_err());
+    }
+
+    #[test]
+    fn cross_bridge_catalog_is_populated() {
+        let bridges = cross_bridges();
+        assert!(bridges.len() >= 3);
+        assert!(bridges.iter().any(|bridge| bridge.id == "fastq_to_bam"));
     }
 }
