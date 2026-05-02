@@ -1121,6 +1121,156 @@ const G240_SCENARIOS: &[ScenarioDefinition] = &[
     },
 ];
 
+const G241_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "full-fastq-stage-tool-boundary",
+        focus: "validate full FASTQ stage/tool campaign coverage boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "full-fastq-encryption-appraiser-signals",
+        focus: "validate encrypted FASTQ campaign result and appraiser signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "full-fastq-campaign-proof",
+        focus: "capture full FASTQ campaign appraisal evidence",
+    },
+];
+
+const G242_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "full-bam-stage-tool-boundary",
+        focus: "validate full BAM stage/tool campaign coverage boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "full-bam-encryption-appraiser-signals",
+        focus: "validate encrypted BAM campaign result and appraiser signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "full-bam-campaign-proof",
+        focus: "capture full BAM campaign appraisal evidence",
+    },
+];
+
+const G243_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "full-vcf-stage-tool-boundary",
+        focus: "validate full VCF stage/tool campaign coverage boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "full-vcf-encryption-appraiser-signals",
+        focus: "validate encrypted VCF campaign result and appraiser signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "full-vcf-campaign-proof",
+        focus: "capture full VCF campaign appraisal evidence",
+    },
+];
+
+const G244_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "full-cross-domain-boundary",
+        focus: "validate full cross-domain campaign coverage boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "full-cross-domain-encryption-appraiser-signals",
+        focus: "validate encrypted cross-domain campaign and appraiser signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "full-cross-domain-campaign-proof",
+        focus: "capture full cross-domain campaign appraisal evidence",
+    },
+];
+
+const G245_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "all-domain-staged-series-boundary",
+        focus: "validate all-domain staged campaign series boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "all-domain-series-replay-signals",
+        focus: "validate reproducible series replay and evidence signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "all-domain-series-proof",
+        focus: "capture end-to-end all-domain series appraisal evidence",
+    },
+];
+
+const G246_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "local-slurm-parity-boundary",
+        focus: "validate local versus Slurm execution parity boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "local-slurm-diff-signal-coverage",
+        focus: "validate local/Slurm difference signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "local-slurm-parity-proof",
+        focus: "capture local versus Slurm parity appraisal evidence",
+    },
+];
+
+const G247_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "image-version-drift-boundary",
+        focus: "validate Apptainer image version drift boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "image-version-output-signal-coverage",
+        focus: "validate image version output drift signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "image-version-drift-proof",
+        focus: "capture image version drift appraisal evidence",
+    },
+];
+
+const G248_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "database-version-drift-boundary",
+        focus: "validate database version drift boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "database-version-performance-signal-coverage",
+        focus: "validate database version performance and scientific drift signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "database-version-drift-proof",
+        focus: "capture database version drift appraisal evidence",
+    },
+];
+
+const G249_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "corpus-scale-boundary",
+        focus: "validate corpus-scale small/medium/large boundary behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "corpus-scale-failure-signal-coverage",
+        focus: "validate scale-only failure signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "corpus-scale-proof",
+        focus: "capture corpus-scale appraisal evidence",
+    },
+];
+
+const G250_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "cold-warm-storage-boundary",
+        focus: "validate cold versus warm storage execution boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "storage-mode-io-signal-coverage",
+        focus: "validate storage mode IO and cache behavior signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "storage-mode-proof",
+        focus: "capture storage-mode appraisal evidence",
+    },
+];
+
 const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G171",
@@ -1541,6 +1691,66 @@ const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
         title: "add benchmark-to-docs update hints",
         stage_ids: &["fastq.validate_reads", "vcf.filter", "vcf.postprocess"],
         scenarios: G240_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G241",
+        title: "run full FASTQ stage/tool campaign",
+        stage_ids: &["fastq.validate_reads", "fastq.trim_reads", "fastq.profile_reads"],
+        scenarios: G241_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G242",
+        title: "run full BAM stage/tool campaign",
+        stage_ids: &["bam.validate", "bam.align", "bam.mapping_summary"],
+        scenarios: G242_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G243",
+        title: "run full VCF stage/tool campaign",
+        stage_ids: &["vcf.call", "vcf.filter", "vcf.stats"],
+        scenarios: G243_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G244",
+        title: "run full cross-domain campaign",
+        stage_ids: &["fastq.profile_reads", "bam.align", "vcf.call"],
+        scenarios: G244_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G245",
+        title: "run all-domain staged campaign",
+        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.postprocess"],
+        scenarios: G245_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G246",
+        title: "compare local and Slurm execution",
+        stage_ids: &["fastq.trim_reads", "bam.coverage", "vcf.filter"],
+        scenarios: G246_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G247",
+        title: "compare Apptainer image versions",
+        stage_ids: &["fastq.trim_reads", "bam.mapping_summary", "vcf.stats"],
+        scenarios: G247_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G248",
+        title: "compare database versions",
+        stage_ids: &["bam.align", "vcf.call", "vcf.impute"],
+        scenarios: G248_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G249",
+        title: "compare corpus scales",
+        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.filter"],
+        scenarios: G249_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G250",
+        title: "compare cold and warm storage modes",
+        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        scenarios: G250_SCENARIOS,
     },
 ];
 
@@ -3331,10 +3541,10 @@ mod tests {
     }
 
     #[test]
-    fn hardening_catalog_includes_iteration_21_goals() {
-        assert_eq!(HARDENING_GOALS_CATALOG.len(), 70);
+    fn hardening_catalog_includes_iteration_22_goals() {
+        assert_eq!(HARDENING_GOALS_CATALOG.len(), 80);
         assert_eq!(HARDENING_GOALS_CATALOG[0].goal_id, "G171");
-        assert_eq!(HARDENING_GOALS_CATALOG[69].goal_id, "G240");
+        assert_eq!(HARDENING_GOALS_CATALOG[79].goal_id, "G250");
     }
 
     #[test]
