@@ -66,7 +66,9 @@ pub struct CopyBackEntry {
     pub out_path: String,
     pub err_path: String,
     pub results_path: String,
+    pub results_sidecar_path: String,
     pub code_path: String,
+    pub code_sidecar_path: String,
     pub script_path: String,
 }
 
@@ -710,19 +712,27 @@ pub fn write_copy_back_manifest(
             out_path: job.outputs.out.clone(),
             err_path: job.outputs.err.clone(),
             results_path: job.outputs.results.clone(),
+            results_sidecar_path: sidecar_path_for(Path::new(&job.outputs.results))
+                .display()
+                .to_string(),
             code_path: job.outputs.code.clone(),
+            code_sidecar_path: sidecar_path_for(Path::new(&job.outputs.code))
+                .display()
+                .to_string(),
             script_path: script_path_for(Path::new(&job.outputs.log)).display().to_string(),
         })
         .collect::<Vec<_>>();
 
     let suggested_copy_command = if let Some(first) = entries.first() {
         format!(
-            "rsync -av {} {} {} {} {} <destination_dir>/",
+            "rsync -av {} {} {} {} {} {} {} <destination_dir>/",
             shell_quote(&first.log_path),
             shell_quote(&first.out_path),
             shell_quote(&first.err_path),
             shell_quote(&first.results_path),
-            shell_quote(&first.code_path)
+            shell_quote(&first.results_sidecar_path),
+            shell_quote(&first.code_path),
+            shell_quote(&first.code_sidecar_path)
         )
     } else {
         "rsync -av <source> <destination_dir>/".to_string()
