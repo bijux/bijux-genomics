@@ -917,6 +917,28 @@ fn goal_specific_checks(
                     .len()
             ),
         ],
+        "G185" => vec![
+            format!("benchmark_minimizer_rows_present={}", !rows.is_empty()),
+            format!(
+                "benchmark_minimizer_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "benchmark_minimizer_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!(
+                "benchmark_minimizer_critical_findings={}",
+                findings.iter().filter(|finding| finding.severity == "critical").count()
+            ),
+            format!(
+                "benchmark_minimizer_critical_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.severity == "critical")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1622,6 +1644,40 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "failure_taxonomy_queue_class_count=2"));
+    }
+
+    #[test]
+    fn goal_185_emits_benchmark_minimizer_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G185".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "refuse row available for minimizer anchoring".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0301".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+            affected_rows: vec!["h10".to_string()],
+            source_appraisers: vec!["failure-class".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "benchmark_minimizer_refuse_rows=1"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "benchmark_minimizer_critical_queue_entries=1"));
     }
 
     #[test]
