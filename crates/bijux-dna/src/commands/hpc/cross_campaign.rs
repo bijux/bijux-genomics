@@ -514,6 +514,28 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class == "refuse").count()
             ),
         ],
+        "G166" => vec![
+            format!("partial_failure_rows_present={}", !rows.is_empty()),
+            format!(
+                "partial_failure_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "partial_failure_fastq_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_FASTQ_TRIM_TO_BAM_ALIGN)
+            ),
+            format!(
+                "partial_failure_bam_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_BAM_GENOTYPING_TO_VCF_CALL)
+            ),
+            format!(
+                "partial_failure_vcf_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_FASTQ_TRIM_TO_VCF_GL)
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -877,5 +899,21 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("batch_fan_summary_stats_bound=true")));
+    }
+
+    #[test]
+    fn goal_166_emits_partial_failure_policy_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G166".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("partial_failure_stage_count=3")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("partial_failure_vcf_bound=true")));
     }
 }
