@@ -540,9 +540,16 @@ fn build_slurm_script(
         .planned
         .array_task
         .map_or_else(String::new, |task| format!("#SBATCH --array={task}\n"));
+    let retry_codes = report
+        .resolved_slurm
+        .retry_on_exit_codes
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join(",");
 
     format!(
-        "#!/usr/bin/env bash\nset -euo pipefail\n\n#SBATCH --job-name={}\n#SBATCH --cpus-per-task={}\n#SBATCH --mem={}G\n#SBATCH --time={}\n#SBATCH --partition={}\n#SBATCH --qos={}\n{}{}\n# Campaign: {}\n# Domain: {}\n# Stage: {}\n# Tool: {}\n# Sample: {}\n# Script path: {}\n\nexport BIJUX_RUN_CONTEXT=hpc\nexport BIJUX_ARRAY_TASK=${{SLURM_ARRAY_TASK_ID:-{}}}\nexport BIJUX_SCRATCH_DIR={}\nexport BIJUX_SCRATCH_IN=$BIJUX_SCRATCH_DIR/in\nexport BIJUX_SCRATCH_OUT=$BIJUX_SCRATCH_DIR/out\nmkdir -p \"$BIJUX_SCRATCH_IN\" \"$BIJUX_SCRATCH_OUT\"\ncleanup() {{\n  rm -rf \"$BIJUX_SCRATCH_DIR\"\n}}\ntrap cleanup EXIT\n\nif [ -f {} ]; then\n  set -a\n  # shellcheck disable=SC1090\n  . {}\n  set +a\nfi\n\n# Placeholder command until full stage runner integration is finalized.\necho \\\"execute stage {} tool {} sample {} array_task=$BIJUX_ARRAY_TASK scratch=$BIJUX_SCRATCH_DIR\\\"\n",
+        "#!/usr/bin/env bash\nset -euo pipefail\n\n#SBATCH --job-name={}\n#SBATCH --cpus-per-task={}\n#SBATCH --mem={}G\n#SBATCH --time={}\n#SBATCH --partition={}\n#SBATCH --qos={}\n{}{}\n# Campaign: {}\n# Domain: {}\n# Stage: {}\n# Tool: {}\n# Sample: {}\n# Script path: {}\n\nexport BIJUX_RUN_CONTEXT=hpc\nexport BIJUX_ARRAY_TASK=${{SLURM_ARRAY_TASK_ID:-{}}}\nexport BIJUX_SCRATCH_DIR={}\nexport BIJUX_SCRATCH_IN=$BIJUX_SCRATCH_DIR/in\nexport BIJUX_SCRATCH_OUT=$BIJUX_SCRATCH_DIR/out\nmkdir -p \"$BIJUX_SCRATCH_IN\" \"$BIJUX_SCRATCH_OUT\"\ncleanup() {{\n  rm -rf \"$BIJUX_SCRATCH_DIR\"\n}}\ntrap cleanup EXIT\n\nif [ -f {} ]; then\n  set -a\n  # shellcheck disable=SC1090\n  . {}\n  set +a\nfi\n\nretry_attempts={}\nretry_backoff_seconds={}\nretry_codes=\",{},\"\nattempt=1\nwhile true; do\n  # Placeholder command until full stage runner integration is finalized.\n  echo \\\"execute stage {} tool {} sample {} array_task=$BIJUX_ARRAY_TASK scratch=$BIJUX_SCRATCH_DIR attempt=$attempt\\\"\n  rc=0\n  if [ \"$rc\" -eq 0 ]; then\n    break\n  fi\n  if [ \"$attempt\" -ge \"$retry_attempts\" ]; then\n    exit \"$rc\"\n  fi\n  if [[ \"$retry_codes\" == *\",$rc,\"* ]]; then\n    sleep \"$retry_backoff_seconds\"\n    attempt=$((attempt + 1))\n    continue\n  fi\n  exit \"$rc\"\ndone\n",
         shell_quote(&job.name),
         job.planned.resources.cpus,
         job.planned.resources.mem_gb,
@@ -561,6 +568,9 @@ fn build_slurm_script(
         shell_quote(&job.planned.outputs.scratch_dir),
         shell_quote(&report.env_file_path),
         shell_quote(&report.env_file_path),
+        report.resolved_slurm.retry_attempts,
+        report.resolved_slurm.retry_backoff_seconds,
+        retry_codes,
         job.planned.stage,
         job.planned.tool,
         job.planned.sample
@@ -1811,6 +1821,95 @@ array_task = 7
             std::fs::read_to_string(&report.jobs[1].script_path).expect("read script 2");
         assert!(second_script.contains("set -euo pipefail"));
         assert!(second_script.contains("#SBATCH --dependency=afterok:mock-0001"));
+    }
+
+    #[test]
+    fn submit_campaign_scripts_include_retry_policy_when_configured() {
+        let root = tempfile::tempdir().expect("tempdir");
+        for name in [
+            "corpora",
+            "databases",
+            "images",
+            "scratch",
+            "logs",
+            "results",
+            "code",
+            "imports",
+            "baselines",
+        ] {
+            std::fs::create_dir_all(root.path().join(name)).expect("create dir");
+        }
+        let env_path = root.path().join("campaign.env");
+        std::fs::write(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n")
+            .expect("write env");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&env_path).expect("env metadata").permissions();
+            perms.set_mode(0o600);
+            std::fs::set_permissions(&env_path, perms).expect("set env perms");
+        }
+
+        let config_path = root.path().join("campaign-retry.toml");
+        let config = format!(
+            r#"
+[campaign]
+id = "mini-retry"
+domain = "fastq"
+
+[layout]
+corpora_root = "{root}/corpora"
+databases_root = "{root}/databases"
+images_root = "{root}/images"
+scratch_root = "{root}/scratch"
+logs_root = "{root}/logs"
+encrypted_results_root = "{root}/results"
+encrypted_code_root = "{root}/code"
+appraiser_imports_root = "{root}/imports"
+baselines_root = "{root}/baselines"
+
+[slurm]
+site_profile = "generic"
+retry_attempts = 3
+retry_backoff_seconds = 15
+retry_on_exit_codes = [1, 2, 137]
+
+[resources]
+default = "standard"
+
+[resources.templates.standard]
+cpus = 1
+mem_gb = 1
+walltime = "00:05:00"
+scratch_gb = 1
+
+[security]
+encryption_backend = "mock-envelope-v1"
+encryption_recipients = ["alice"]
+env_file = "{root}/campaign.env"
+
+[[jobs]]
+name = "fastq_validate_retry"
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-retry"
+"#,
+            root = root.path().display()
+        );
+        std::fs::write(&config_path, config).expect("write config");
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config: config_path,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+        let script = std::fs::read_to_string(&report.jobs[0].script_path).expect("read script");
+        assert!(script.contains("retry_attempts=3"));
+        assert!(script.contains("retry_backoff_seconds=15"));
+        assert!(script.contains("retry_codes=\",1,2,137,\""));
+        assert!(script.contains("while true; do"));
     }
 
     #[test]

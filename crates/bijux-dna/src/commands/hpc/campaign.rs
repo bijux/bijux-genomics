@@ -61,6 +61,10 @@ pub struct CampaignSlurm {
     pub qos: Option<String>,
     pub mail_user: Option<String>,
     pub default_resource_template: Option<String>,
+    pub retry_attempts: Option<u32>,
+    pub retry_backoff_seconds: Option<u32>,
+    #[serde(default)]
+    pub retry_on_exit_codes: Vec<i32>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -215,6 +219,9 @@ pub struct SlurmOverrides {
     pub partition: Option<String>,
     pub qos: Option<String>,
     pub default_resource_template: Option<String>,
+    pub retry_attempts: Option<u32>,
+    pub retry_backoff_seconds: Option<u32>,
+    pub retry_on_exit_codes: Option<Vec<i32>>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
@@ -299,6 +306,9 @@ pub struct ResolvedSlurm {
     pub partition: String,
     pub qos: String,
     pub default_resource_template: String,
+    pub retry_attempts: u32,
+    pub retry_backoff_seconds: u32,
+    pub retry_on_exit_codes: Vec<i32>,
 }
 
 #[derive(Debug, Clone)]
@@ -634,6 +644,15 @@ fn apply_overrides(config: &mut CampaignConfig, overrides: CampaignOverrides) {
         config.slurm.qos = trim_to_option(slurm.qos).or(config.slurm.qos.take());
         config.slurm.default_resource_template = trim_to_option(slurm.default_resource_template)
             .or(config.slurm.default_resource_template.take());
+        if let Some(value) = slurm.retry_attempts {
+            config.slurm.retry_attempts = Some(value);
+        }
+        if let Some(value) = slurm.retry_backoff_seconds {
+            config.slurm.retry_backoff_seconds = Some(value);
+        }
+        if let Some(values) = slurm.retry_on_exit_codes {
+            config.slurm.retry_on_exit_codes = values;
+        }
     }
     if let Some(resources) = overrides.resources {
         if let Some(default) = trim_to_option(resources.default) {
@@ -813,6 +832,13 @@ fn resolve_slurm(config: &CampaignConfig, env_map: &BTreeMap<String, String>) ->
         .filter(|value| !value.is_empty())
         .map(ToOwned::to_owned)
         .unwrap_or_else(|| config.resources.default.clone());
+    let retry_attempts = config.slurm.retry_attempts.unwrap_or(1).max(1);
+    let retry_backoff_seconds = config.slurm.retry_backoff_seconds.unwrap_or(30).max(1);
+    let retry_on_exit_codes = if config.slurm.retry_on_exit_codes.is_empty() {
+        vec![1]
+    } else {
+        config.slurm.retry_on_exit_codes.clone()
+    };
 
     ResolvedSlurm {
         site_profile: site_profile_name,
@@ -821,6 +847,9 @@ fn resolve_slurm(config: &CampaignConfig, env_map: &BTreeMap<String, String>) ->
         partition: partition.unwrap_or_else(|| "<missing>".to_string()),
         qos: qos.unwrap_or_else(|| "<missing>".to_string()),
         default_resource_template,
+        retry_attempts,
+        retry_backoff_seconds,
+        retry_on_exit_codes,
     }
 }
 
@@ -1150,6 +1179,16 @@ pub fn campaign_preflight(
         name: "slurm_qos_resolved".to_string(),
         ok: resolved_slurm.qos != "<missing>",
         detail: resolved_slurm.qos.clone(),
+    });
+    checks.push(CampaignCheck {
+        name: "slurm_retry_attempts_valid".to_string(),
+        ok: resolved_slurm.retry_attempts >= 1,
+        detail: resolved_slurm.retry_attempts.to_string(),
+    });
+    checks.push(CampaignCheck {
+        name: "slurm_retry_backoff_valid".to_string(),
+        ok: resolved_slurm.retry_backoff_seconds >= 1,
+        detail: resolved_slurm.retry_backoff_seconds.to_string(),
     });
 
     checks.push(CampaignCheck {
