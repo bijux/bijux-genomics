@@ -8,6 +8,7 @@ use crate::commands::hpc::{campaign_dry_run, sha256_hex};
 
 const PREPARATION_GRAPH_SCHEMA_VERSION: &str = "bijux.hpc.preparation_graph.v1";
 const PREPARATION_APPLY_SCHEMA_VERSION: &str = "bijux.hpc.preparation_apply.v1";
+const PREPARATION_CLEANUP_SCHEMA_VERSION: &str = "bijux.hpc.preparation_cleanup.v1";
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PreparationDependencyGraphReport {
@@ -51,6 +52,22 @@ struct PreparationLock {
     campaign_id: String,
     domain: String,
     fingerprint: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct PreparationCleanupReport {
+    pub schema_version: &'static str,
+    pub campaign_id: String,
+    pub domain: String,
+    pub dry_run: bool,
+    pub removed: Vec<PreparationCleanupEntry>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct PreparationCleanupEntry {
+    pub path: String,
+    pub kind: String,
+    pub action: String,
 }
 
 pub fn preparation_dependency_graph(
@@ -189,11 +206,85 @@ pub fn prepare_foundation(
     })
 }
 
+fn is_cleanup_candidate(path: &Path) -> bool {
+    let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
+        return false;
+    };
+    name.ends_with(".partial")
+        || name.ends_with(".tmp")
+        || name.ends_with(".failed")
+        || name.ends_with(".stale")
+}
+
+fn collect_cleanup_candidates(root: &Path, out: &mut Vec<PathBuf>) -> Result<()> {
+    if !root.exists() {
+        return Ok(());
+    }
+    for entry in std::fs::read_dir(root).with_context(|| format!("read {}", root.display()))? {
+        let entry = entry?;
+        let path = entry.path();
+        let metadata = entry.metadata()?;
+        if is_cleanup_candidate(&path) {
+            out.push(path.clone());
+        }
+        if metadata.is_dir() {
+            collect_cleanup_candidates(&path, out)?;
+        }
+    }
+    Ok(())
+}
+
+pub fn cleanup_preparation(
+    config_path: &Path,
+    env_file_override: Option<&Path>,
+    user_override_path: Option<&Path>,
+    dry_run: bool,
+) -> Result<PreparationCleanupReport> {
+    let report = campaign_dry_run(config_path, env_file_override, user_override_path)?;
+    let roots = [
+        PathBuf::from(report.layout.corpora_root.as_str()),
+        PathBuf::from(report.layout.databases_root.as_str()),
+        PathBuf::from(report.layout.images_root.as_str()),
+        PathBuf::from(report.layout.scratch_root.as_str()),
+    ];
+    let mut candidates = Vec::new();
+    for root in &roots {
+        collect_cleanup_candidates(root, &mut candidates)?;
+    }
+    candidates.sort();
+    candidates.dedup();
+
+    let mut removed = Vec::new();
+    for path in candidates {
+        let metadata = std::fs::metadata(&path).with_context(|| format!("stat {}", path.display()))?;
+        let kind = if metadata.is_dir() { "dir" } else { "file" };
+        if !dry_run {
+            if metadata.is_dir() {
+                std::fs::remove_dir_all(&path).with_context(|| format!("remove {}", path.display()))?;
+            } else {
+                std::fs::remove_file(&path).with_context(|| format!("remove {}", path.display()))?;
+            }
+        }
+        removed.push(PreparationCleanupEntry {
+            path: path.display().to_string(),
+            kind: kind.to_string(),
+            action: if dry_run { "would_remove".to_string() } else { "removed".to_string() },
+        });
+    }
+    Ok(PreparationCleanupReport {
+        schema_version: PREPARATION_CLEANUP_SCHEMA_VERSION,
+        campaign_id: report.campaign_id,
+        domain: report.domain,
+        dry_run,
+        removed,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     #![allow(clippy::expect_used)]
 
-    use super::{prepare_foundation, preparation_dependency_graph};
+    use super::{cleanup_preparation, prepare_foundation, preparation_dependency_graph};
 
     #[test]
     fn preparation_graph_contains_preparation_roots_and_job_edges() {
@@ -364,5 +455,72 @@ sample = "sample-1"
         for dir in ["corpora", "databases", "images"] {
             assert!(!root.path().join(dir).join(".bijux.prepare.lock.json").exists());
         }
+    }
+
+    #[test]
+    fn cleanup_preparation_removes_partial_and_failed_outputs() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_path = root.path().join("campaign.toml");
+        let config = format!(
+            r#"
+[campaign]
+id = "mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "{root}/corpora"
+databases_root = "{root}/databases"
+images_root = "{root}/images"
+scratch_root = "{root}/scratch"
+logs_root = "{root}/logs"
+encrypted_results_root = "{root}/results"
+encrypted_code_root = "{root}/code"
+appraiser_imports_root = "{root}/imports"
+baselines_root = "{root}/baselines"
+
+[slurm]
+site_profile = "generic"
+
+[resources]
+default = "standard"
+
+[resources.templates.standard]
+cpus = 1
+mem_gb = 1
+walltime = "00:05:00"
+scratch_gb = 1
+
+[security]
+encryption_recipients = ["alice"]
+
+[[jobs]]
+name = "fastq_validate"
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-1"
+"#,
+            root = root.path().display()
+        );
+        std::fs::write(&config_path, config).expect("write config");
+        let corpora = root.path().join("corpora");
+        let scratch = root.path().join("scratch");
+        std::fs::create_dir_all(&corpora).expect("mkdir corpora");
+        std::fs::create_dir_all(&scratch).expect("mkdir scratch");
+        let partial_file = corpora.join("sample.partial");
+        let failed_dir = scratch.join("old.failed");
+        std::fs::write(&partial_file, b"partial").expect("write partial");
+        std::fs::create_dir_all(&failed_dir).expect("mkdir failed");
+        std::fs::write(failed_dir.join("tmp.txt"), b"x").expect("write child");
+
+        let dry = cleanup_preparation(&config_path, None, None, true).expect("cleanup dry");
+        assert!(dry.dry_run);
+        assert_eq!(dry.removed.len(), 2);
+        assert!(partial_file.exists());
+        assert!(failed_dir.exists());
+
+        let applied = cleanup_preparation(&config_path, None, None, false).expect("cleanup apply");
+        assert_eq!(applied.removed.len(), 2);
+        assert!(!partial_file.exists());
+        assert!(!failed_dir.exists());
     }
 }

@@ -413,6 +413,36 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 );
             }
         }
+        cli::ConfigCommand::CleanupPreparation {
+            config,
+            env_file,
+            user_overrides,
+            dry_run,
+            json,
+        } => {
+            let report =
+                hpc::cleanup_preparation(config, env_file.as_deref(), user_overrides.as_deref(), *dry_run)?;
+            if *json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("dry_run={}", report.dry_run);
+                println!("entries={}", report.removed.len());
+                println!(
+                    "would_remove={}",
+                    report
+                        .removed
+                        .iter()
+                        .filter(|entry| entry.action == "would_remove")
+                        .count()
+                );
+                println!(
+                    "removed={}",
+                    report.removed.iter().filter(|entry| entry.action == "removed").count()
+                );
+            }
+        }
     }
     Ok(())
 }
