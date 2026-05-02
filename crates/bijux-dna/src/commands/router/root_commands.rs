@@ -510,6 +510,31 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 }
             }
         }
+        cli::ConfigCommand::HardeningQueue(args) => {
+            let report = hpc::generate_hardening_queue(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("entries={}", report.entries.len());
+                println!(
+                    "critical={}",
+                    report.entries.iter().filter(|entry| entry.severity == "critical").count()
+                );
+                println!(
+                    "warning={}",
+                    report.entries.iter().filter(|entry| entry.severity == "warning").count()
+                );
+                println!(
+                    "info={}",
+                    report.entries.iter().filter(|entry| entry.severity == "info").count()
+                );
+                if let Some(path) = &args.out {
+                    println!("hardening_queue_out={}", path.display());
+                }
+            }
+        }
     }
     Ok(())
 }

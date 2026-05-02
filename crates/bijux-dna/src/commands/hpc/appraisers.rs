@@ -4,10 +4,11 @@ use std::path::Path;
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::commands::cli::{AppraiseMatrixArgs, BenchmarkMatrixArgs};
+use crate::commands::cli::{AppraiseMatrixArgs, BenchmarkMatrixArgs, HardeningQueueArgs};
 use crate::commands::hpc::{benchmark_matrix, BenchmarkMatrixReport};
 
 const APPRAISAL_SCHEMA_VERSION: &str = "bijux.hpc.appraisal.v1";
+const HARDENING_QUEUE_SCHEMA_VERSION: &str = "bijux.hpc.hardening_queue.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppraisalReport {
@@ -37,6 +38,24 @@ pub struct AppraisalSummary {
     pub by_severity: BTreeMap<String, usize>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HardeningQueueReport {
+    pub schema_version: String,
+    pub campaign_id: String,
+    pub domain: String,
+    pub entries: Vec<HardeningQueueEntry>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HardeningQueueEntry {
+    pub queue_id: String,
+    pub severity: String,
+    pub failure_class: String,
+    pub recommendation: String,
+    pub affected_rows: Vec<String>,
+    pub source_appraisers: Vec<String>,
+}
+
 pub trait AppraiserPlugin {
     fn id(&self) -> &'static str;
     fn appraise(&self, matrix: &BenchmarkMatrixReport) -> Vec<AppraisalFinding>;
@@ -62,6 +81,14 @@ fn plugins() -> Vec<Box<dyn AppraiserPlugin>> {
         Box::new(CorpusSuitabilityAppraiser),
         Box::new(CodeFreezeAppraiser),
     ]
+}
+
+fn severity_weight(value: &str) -> u8 {
+    match value {
+        "critical" => 3,
+        "warning" => 2,
+        _ => 1,
+    }
 }
 
 fn summarize_findings(findings: &[AppraisalFinding]) -> AppraisalSummary {
@@ -115,8 +142,9 @@ pub fn appraise_matrix(args: &AppraiseMatrixArgs) -> Result<AppraisalReport> {
         findings.extend(plugin.appraise(&matrix));
     }
     findings.sort_by(|left, right| {
-        left.appraiser_id
-            .cmp(&right.appraiser_id)
+        severity_weight(&right.severity)
+            .cmp(&severity_weight(&left.severity))
+            .then_with(|| left.appraiser_id.cmp(&right.appraiser_id))
             .then_with(|| left.row_id.cmp(&right.row_id))
     });
     let report = AppraisalReport {
@@ -125,6 +153,72 @@ pub fn appraise_matrix(args: &AppraiseMatrixArgs) -> Result<AppraisalReport> {
         domain: matrix.domain,
         summary: summarize_findings(&findings),
         findings,
+    };
+    if let Some(path) = &args.out {
+        write_json_pretty(path, &report)?;
+    }
+    Ok(report)
+}
+
+fn appraisal_from_args(args: &HardeningQueueArgs) -> Result<AppraisalReport> {
+    if let Some(path) = &args.appraisal {
+        let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+        let value =
+            serde_json::from_str::<AppraisalReport>(&raw).with_context(|| format!("parse {}", path.display()))?;
+        return Ok(value);
+    }
+    appraise_matrix(&AppraiseMatrixArgs {
+        matrix: args.matrix.clone(),
+        config: args.config.clone(),
+        env_file: args.env_file.clone(),
+        user_overrides: args.user_overrides.clone(),
+        domain: args.domain.clone(),
+        out: None,
+        json: false,
+    })
+}
+
+pub fn generate_hardening_queue(args: &HardeningQueueArgs) -> Result<HardeningQueueReport> {
+    let appraisal = appraisal_from_args(args)?;
+    let mut grouped: BTreeMap<(String, String, String), HardeningQueueEntry> = BTreeMap::new();
+    for finding in &appraisal.findings {
+        let key = (
+            finding.severity.clone(),
+            finding.failure_class.clone(),
+            finding.recommendation.clone(),
+        );
+        let entry = grouped.entry(key).or_insert_with(|| HardeningQueueEntry {
+            queue_id: String::new(),
+            severity: finding.severity.clone(),
+            failure_class: finding.failure_class.clone(),
+            recommendation: finding.recommendation.clone(),
+            affected_rows: Vec::new(),
+            source_appraisers: Vec::new(),
+        });
+        if !entry.affected_rows.iter().any(|row| row == &finding.row_id) {
+            entry.affected_rows.push(finding.row_id.clone());
+        }
+        if !entry.source_appraisers.iter().any(|id| id == &finding.appraiser_id) {
+            entry.source_appraisers.push(finding.appraiser_id.clone());
+        }
+    }
+    let mut entries = grouped.into_values().collect::<Vec<_>>();
+    entries.sort_by(|left, right| {
+        severity_weight(&right.severity)
+            .cmp(&severity_weight(&left.severity))
+            .then_with(|| left.failure_class.cmp(&right.failure_class))
+            .then_with(|| left.recommendation.cmp(&right.recommendation))
+    });
+    for (index, entry) in entries.iter_mut().enumerate() {
+        entry.affected_rows.sort();
+        entry.source_appraisers.sort();
+        entry.queue_id = format!("hardening-{:04}", index + 1);
+    }
+    let report = HardeningQueueReport {
+        schema_version: HARDENING_QUEUE_SCHEMA_VERSION.to_string(),
+        campaign_id: appraisal.campaign_id,
+        domain: appraisal.domain,
+        entries,
     };
     if let Some(path) = &args.out {
         write_json_pretty(path, &report)?;
@@ -370,7 +464,7 @@ impl AppraiserPlugin for CodeFreezeAppraiser {
 mod tests {
     #![allow(clippy::expect_used)]
 
-    use super::{appraise_matrix, AppraiseMatrixArgs};
+    use super::{appraise_matrix, generate_hardening_queue, AppraiseMatrixArgs, HardeningQueueArgs};
 
     fn write_campaign(root: &std::path::Path) -> std::path::PathBuf {
         for name in [
@@ -461,5 +555,24 @@ sample = "sample-1"
         assert_eq!(report.schema_version, "bijux.hpc.appraisal.v1".to_string());
         assert!(report.summary.total_findings > 0);
         assert!(report.summary.by_appraiser.contains_key("runtime-performance"));
+    }
+
+    #[test]
+    fn hardening_queue_groups_findings() {
+        let temp = tempfile::tempdir().expect("temp");
+        let config = write_campaign(temp.path());
+        let report = generate_hardening_queue(&HardeningQueueArgs {
+            appraisal: None,
+            matrix: None,
+            config: Some(config),
+            env_file: None,
+            user_overrides: None,
+            domain: "all".to_string(),
+            out: None,
+            json: false,
+        })
+        .expect("queue");
+        assert!(!report.entries.is_empty());
+        assert!(report.entries[0].queue_id.starts_with("hardening-"));
     }
 }
