@@ -4804,6 +4804,33 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class != "ready").count()
             ),
         ],
+        "G278" => vec![
+            format!("reencryption_rows_present={}", !rows.is_empty()),
+            format!(
+                "reencryption_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "reencryption_validate_validate_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.validate")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "reencryption_encrypted_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope.starts_with("encrypted-"))
+                    .count()
+            ),
+            format!(
+                "reencryption_gate_triggered={}",
+                findings
+                    .iter()
+                    .any(|finding| finding.result_scope.starts_with("encrypted-"))
+                    || queue_entries.iter().any(|entry| entry.severity == "critical")
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -8041,6 +8068,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "local_archive_encrypted_findings=1"));
+    }
+
+    #[test]
+    fn goal_278_emits_reencryption_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G278".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "re-encryption import reports archival rewrap readiness gaps".to_string(),
+            recommendation: "re-encrypt accepted bundles with key-rotation compatible metadata".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "reencryption_validate_validate_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "reencryption_gate_triggered=true"));
     }
 
     #[test]
