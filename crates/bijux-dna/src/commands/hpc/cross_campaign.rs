@@ -580,6 +580,28 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class == "refuse").count()
             ),
         ],
+        "G169" => vec![
+            format!("contamination_flow_rows_present={}", !rows.is_empty()),
+            format!(
+                "contamination_flow_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "contamination_flow_fastq_to_bam_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_FASTQ_VALIDATE_TO_BAM_CONTAMINATION)
+            ),
+            format!(
+                "contamination_flow_bam_to_vcf_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_BAM_CONTAMINATION_TO_VCF_FILTER)
+            ),
+            format!(
+                "contamination_flow_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_VCF_FILTER_TO_VCF_STATS)
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -991,5 +1013,21 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("reference_change_call_bound=true")));
+    }
+
+    #[test]
+    fn goal_169_emits_contamination_propagation_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G169".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("contamination_flow_stage_count=3")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("contamination_flow_bam_to_vcf_bound=true")));
     }
 }
