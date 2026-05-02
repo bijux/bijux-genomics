@@ -999,6 +999,31 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G158" => vec![
+            format!("population_handoff_rows_present={}", !rows.is_empty()),
+            format!(
+                "population_handoff_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "population_handoff_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "population_handoff_demography_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.demography")
+            ),
+            format!(
+                "population_handoff_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.severity != "info")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1684,5 +1709,29 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("sv_boundary_qc_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_158_emits_population_handoff_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G158".to_string()];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0003".to_string(),
+            severity: "warning".to_string(),
+            failure_class: "handoff-caveat".to_string(),
+            recommendation: "tighten trust-class thresholds".to_string(),
+            affected_rows: vec!["v20".to_string()],
+            source_appraisers: vec!["failure-class".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &[], &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("population_handoff_stage_count=5")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("population_handoff_demography_bound=true")));
     }
 }
