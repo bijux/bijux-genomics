@@ -3386,6 +3386,24 @@ fn goal_specific_checks(
             ),
             format!("full_vcf_findings_count={}", findings.len()),
         ],
+        "G244" => vec![
+            format!("full_cross_domain_rows_present={}", !rows.is_empty()),
+            format!(
+                "full_cross_domain_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "full_cross_domain_profile_align_call_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.call")
+            ),
+            format!(
+                "full_cross_domain_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("full_cross_domain_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -5723,6 +5741,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "full_vcf_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_244_emits_full_cross_domain_campaign_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G244".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "reproducibility".to_string(),
+            row_id: "h5".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "reproducibility-low-repeats".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "cross-domain campaign align stage lacks repeat confidence".to_string(),
+            recommendation: "increase repetitions for cross-domain campaign parity".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "full_cross_domain_profile_align_call_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "full_cross_domain_findings_count=1"));
     }
 
     #[test]
