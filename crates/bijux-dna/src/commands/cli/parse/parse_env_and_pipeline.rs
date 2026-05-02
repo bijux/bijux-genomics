@@ -129,6 +129,10 @@ pub enum SlurmCommand {
 pub struct SlurmSubmitStageArgs {
     #[arg(long, value_name = "PATH")]
     pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_overrides: Option<PathBuf>,
     #[arg(long)]
     pub stage: String,
     #[arg(long)]
@@ -145,6 +149,10 @@ pub struct SlurmSubmitStageArgs {
 pub struct SlurmSubmitDomainArgs {
     #[arg(long, value_name = "PATH")]
     pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_overrides: Option<PathBuf>,
     #[arg(long)]
     pub domain: String,
     #[arg(long, default_value_t = false)]
@@ -157,6 +165,10 @@ pub struct SlurmSubmitDomainArgs {
 pub struct SlurmSubmitCrossArgs {
     #[arg(long, value_name = "PATH")]
     pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_overrides: Option<PathBuf>,
     #[arg(long, help = "Comma-separated domains to include")]
     pub domains: Option<String>,
     #[arg(long, default_value_t = false)]
@@ -169,6 +181,10 @@ pub struct SlurmSubmitCrossArgs {
 pub struct SlurmSubmitCampaignArgs {
     #[arg(long, value_name = "PATH")]
     pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_overrides: Option<PathBuf>,
     #[arg(long, default_value_t = false)]
     pub mock_submit: bool,
     #[arg(long, default_value_t = false)]
@@ -179,6 +195,10 @@ pub struct SlurmSubmitCampaignArgs {
 pub struct SlurmCopyBackManifestArgs {
     #[arg(long, value_name = "PATH")]
     pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_overrides: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
     pub out: Option<PathBuf>,
     #[arg(long, default_value_t = false)]

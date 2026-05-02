@@ -357,7 +357,8 @@ fn run_submission(
 }
 
 pub fn submit_stage_benchmark(args: &SlurmSubmitStageArgs) -> Result<SlurmSubmissionReport> {
-    let report = campaign_dry_run(&args.config, None, None)?;
+    let report =
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
     run_submission(
         report,
         SubmissionSettings {
@@ -372,7 +373,8 @@ pub fn submit_stage_benchmark(args: &SlurmSubmitStageArgs) -> Result<SlurmSubmis
 }
 
 pub fn submit_domain_benchmark(args: &SlurmSubmitDomainArgs) -> Result<SlurmSubmissionReport> {
-    let report = campaign_dry_run(&args.config, None, None)?;
+    let report =
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
     run_submission(
         report,
         SubmissionSettings {
@@ -383,7 +385,8 @@ pub fn submit_domain_benchmark(args: &SlurmSubmitDomainArgs) -> Result<SlurmSubm
 }
 
 pub fn submit_cross_benchmark(args: &SlurmSubmitCrossArgs) -> Result<SlurmSubmissionReport> {
-    let report = campaign_dry_run(&args.config, None, None)?;
+    let report =
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
     let domains = args
         .domains
         .as_deref()
@@ -415,7 +418,8 @@ pub fn submit_cross_benchmark(args: &SlurmSubmitCrossArgs) -> Result<SlurmSubmis
 }
 
 pub fn submit_campaign(args: &SlurmSubmitCampaignArgs) -> Result<SlurmSubmissionReport> {
-    let report = campaign_dry_run(&args.config, None, None)?;
+    let report =
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
     run_submission(
         report,
         SubmissionSettings {
@@ -428,7 +432,8 @@ pub fn submit_campaign(args: &SlurmSubmitCampaignArgs) -> Result<SlurmSubmission
 pub fn write_copy_back_manifest(
     args: &SlurmCopyBackManifestArgs,
 ) -> Result<CopyBackManifestReport> {
-    let report = campaign_dry_run(&args.config, None, None)?;
+    let report =
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
     let manifest_path = args.out.clone().unwrap_or_else(|| {
         Path::new(&report.config_path).parent().map_or_else(
             || PathBuf::from("artifacts/slurm_copy_back_manifest.json"),
@@ -570,6 +575,8 @@ sample = "sample-2"
         let config = write_campaign(root.path());
         let report = submit_stage_benchmark(&SlurmSubmitStageArgs {
             config,
+            env_file: None,
+            user_overrides: None,
             stage: "fastq.validate_reads".to_string(),
             tool: None,
             sample: None,
@@ -587,6 +594,8 @@ sample = "sample-2"
         let config = write_campaign(root.path());
         let report = submit_domain_benchmark(&SlurmSubmitDomainArgs {
             config,
+            env_file: None,
+            user_overrides: None,
             domain: "bam".to_string(),
             mock_submit: true,
             json: false,
@@ -602,6 +611,8 @@ sample = "sample-2"
         let config = write_campaign(root.path());
         let report = submit_cross_benchmark(&SlurmSubmitCrossArgs {
             config,
+            env_file: None,
+            user_overrides: None,
             domains: Some("fastq,bam".to_string()),
             mock_submit: true,
             json: false,
@@ -614,9 +625,14 @@ sample = "sample-2"
     fn submit_campaign_writes_operator_files() {
         let root = tempfile::tempdir().expect("tempdir");
         let config = write_campaign(root.path());
-        let report =
-            submit_campaign(&SlurmSubmitCampaignArgs { config, mock_submit: true, json: false })
-                .expect("submit campaign");
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
         assert_eq!(report.jobs.len(), 3);
         assert_eq!(report.jobs[1].dependency_scheduler_ids, vec!["mock-0001".to_string()]);
         for job in report.jobs {
@@ -634,6 +650,8 @@ sample = "sample-2"
         let out = root.path().join("copy-back.json");
         let report = write_copy_back_manifest(&SlurmCopyBackManifestArgs {
             config,
+            env_file: None,
+            user_overrides: None,
             out: Some(out.clone()),
             json: false,
         })
