@@ -484,6 +484,24 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G107" => vec![
+            format!("subsample_rows_present={}", !rows.is_empty()),
+            format!(
+                "subsample_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.subsample_reads")
+            ),
+            format!(
+                "subsample_repetition_floor={}",
+                rows.iter().map(|row| row.repetitions).min().unwrap_or(0)
+            ),
+            format!(
+                "subsample_repro_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.appraiser_id == "reproducibility")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -889,5 +907,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("demux_stage_bound=")));
+    }
+
+    #[test]
+    fn goal_107_emits_subsample_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G107".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "reproducibility".to_string(),
+            row_id: "r3".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "reproducibility-low-repeats".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("subsample_repro_findings=")));
     }
 }
