@@ -484,6 +484,32 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 return Err(anyhow::anyhow!("benchmark matrix contains refuse-class rows"));
             }
         }
+        cli::ConfigCommand::AppraiseMatrix(args) => {
+            let report = hpc::appraise_matrix(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("findings={}", report.findings.len());
+                println!("appraisers={}", report.summary.by_appraiser.len());
+                println!(
+                    "critical={}",
+                    report.summary.by_severity.get("critical").copied().unwrap_or(0)
+                );
+                println!(
+                    "warning={}",
+                    report.summary.by_severity.get("warning").copied().unwrap_or(0)
+                );
+                println!(
+                    "info={}",
+                    report.summary.by_severity.get("info").copied().unwrap_or(0)
+                );
+                if let Some(path) = &args.out {
+                    println!("appraisal_out={}", path.display());
+                }
+            }
+        }
     }
     Ok(())
 }

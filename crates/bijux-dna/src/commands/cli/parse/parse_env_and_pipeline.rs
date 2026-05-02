@@ -147,6 +147,8 @@ pub enum ConfigCommand {
     },
     #[command(name = "benchmark-matrix")]
     BenchmarkMatrix(BenchmarkMatrixArgs),
+    #[command(name = "appraise-matrix")]
+    AppraiseMatrix(AppraiseMatrixArgs),
     Doctor,
 }
 
@@ -164,6 +166,24 @@ pub struct BenchmarkMatrixArgs {
     pub out: Option<PathBuf>,
     #[arg(long, default_value_t = false)]
     pub fail_on_refuse: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct AppraiseMatrixArgs {
+    #[arg(long, value_name = "PATH")]
+    pub matrix: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub config: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_overrides: Option<PathBuf>,
+    #[arg(long, default_value = "all", help = "fastq|bam|vcf|cross|all")]
+    pub domain: String,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

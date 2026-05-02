@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::commands::cli::BenchmarkMatrixArgs;
 use crate::commands::cli::env::registry_tools_for_stage;
@@ -9,9 +9,9 @@ use crate::commands::hpc::campaign_dry_run;
 
 const BENCHMARK_MATRIX_SCHEMA_VERSION: &str = "bijux.hpc.benchmark_matrix.v1";
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BenchmarkMatrixReport {
-    pub schema_version: &'static str,
+    pub schema_version: String,
     pub campaign_id: String,
     pub domain: String,
     pub domains: Vec<String>,
@@ -20,14 +20,14 @@ pub struct BenchmarkMatrixReport {
     pub rows: Vec<BenchmarkMatrixRow>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BenchmarkMatrixSummary {
     pub total_rows: usize,
     pub readiness_counts: std::collections::BTreeMap<String, usize>,
     pub domain_counts: std::collections::BTreeMap<String, usize>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BenchmarkMatrixRow {
     pub row_id: String,
     pub matrix_domain: String,
@@ -40,14 +40,14 @@ pub struct BenchmarkMatrixRow {
     pub repetitions: u32,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BenchmarkSurfaceMatch {
     pub required_profile: String,
     pub matched_profile: String,
     pub ready: bool,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BenchmarkReadiness {
     pub class: String,
     pub reasons: Vec<String>,
@@ -441,7 +441,7 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
         }
     }
     Ok(BenchmarkMatrixReport {
-        schema_version: BENCHMARK_MATRIX_SCHEMA_VERSION,
+        schema_version: BENCHMARK_MATRIX_SCHEMA_VERSION.to_string(),
         campaign_id: dry_run.campaign_id,
         domain: args.domain.clone(),
         domains,
