@@ -85,11 +85,29 @@ bijux-dna slurm copy-back-manifest \
   --config configs/hpc/campaign/lunarc-small.toml
 ```
 
+Verify encrypted bundle integrity:
+
+```bash
+bijux-dna slurm verify-bundle \
+  --bundle /shared/bijux/results/fastq-hpc-mini/fastq/fastq.validate_reads/seqkit_v2/sample_0001/dryrun-0001-1700000000.results
+```
+
+Decrypt one encrypted bundle into a private local directory:
+
+```bash
+bijux-dna slurm decrypt-bundle \
+  --bundle /shared/bijux/results/fastq-hpc-mini/fastq/fastq.validate_reads/seqkit_v2/sample_0001/dryrun-0001-1700000000.results \
+  --out-dir artifacts/investigation/decrypt
+```
+
 ## Security notes
 
 - Do not commit Slurm account/project values in campaign config files.
 - Keep env files private (`0600` on Unix-like hosts).
 - Use `security.env_file` plus local override files for user-specific settings.
+- Keep `security.encrypt_operator_outputs = false` unless log/out/err files must be encrypted.
+- Use `security.encryption_backend = "age-cli"` with valid `age1...` recipients and
+  configured `security.encryption_identity_files` for real key-based encryption.
 
 ## Output path tokens
 
