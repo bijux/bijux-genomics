@@ -375,6 +375,24 @@ fn goal_specific_checks(
             ),
             format!("validation_findings={}", findings.len()),
         ],
+        "G122" => vec![
+            format!("bwa_alignment_rows_present={}", !rows.is_empty()),
+            format!(
+                "bwa_alignment_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.align")
+            ),
+            format!(
+                "bwa_alignment_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "ready").count()
+            ),
+            format!(
+                "bwa_alignment_runtime_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.appraiser_id == "runtime-performance")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -684,5 +702,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("validation_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_122_emits_bwa_alignment_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G122".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-performance".to_string(),
+            row_id: "b2".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-under-sampled".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("bwa_alignment_stage_bound=true")));
     }
 }
