@@ -584,6 +584,13 @@ fn goal_specific_checks(
         "G150" => vec![
             format!("phasing_rows_present={}", !rows.is_empty()),
             format!(
+                "phasing_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
                 "phasing_stage_bound={}",
                 rows.iter().any(|row| row.stage_id == "vcf.phasing")
             ),
@@ -1133,6 +1140,10 @@ mod tests {
         }];
         let entries = build_goal_entries(&selected, &matrix, &[], &queue);
         assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("phasing_stage_count=2")));
         assert!(entries[0]
             .goal_checks
             .iter()
