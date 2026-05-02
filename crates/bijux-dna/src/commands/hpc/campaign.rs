@@ -71,6 +71,8 @@ pub struct CampaignJob {
     pub tool: String,
     pub sample: String,
     #[serde(default)]
+    pub corpus_size_class: Option<String>,
+    #[serde(default)]
     pub depends_on: Vec<String>,
     #[serde(default)]
     pub array_task: Option<u32>,
@@ -120,6 +122,20 @@ pub struct ResourceTemplates {
     pub templates: BTreeMap<String, ResourceTemplate>,
     #[serde(default)]
     pub stage_defaults: BTreeMap<String, String>,
+    #[serde(default)]
+    pub corpus_size_scaling: BTreeMap<String, CorpusSizeScalePolicy>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct CorpusSizeScalePolicy {
+    #[serde(default = "default_scale_percent")]
+    pub cpu_percent: u32,
+    #[serde(default = "default_scale_percent")]
+    pub mem_percent: u32,
+    #[serde(default = "default_scale_percent")]
+    pub walltime_percent: u32,
+    #[serde(default = "default_scale_percent")]
+    pub scratch_percent: u32,
 }
 
 impl Default for ResourceTemplates {
@@ -128,6 +144,7 @@ impl Default for ResourceTemplates {
             default: default_resource_template_name(),
             templates: default_resource_template_map(),
             stage_defaults: BTreeMap::new(),
+            corpus_size_scaling: BTreeMap::new(),
         }
     }
 }
@@ -249,6 +266,7 @@ pub struct PlannedJob {
     pub stage: String,
     pub tool: String,
     pub sample: String,
+    pub corpus_size_class: Option<String>,
     pub array_task: Option<u32>,
     pub depends_on: Vec<String>,
     pub resource_template: String,
@@ -305,6 +323,10 @@ fn default_resource_template_name() -> String {
     "standard".to_string()
 }
 
+fn default_scale_percent() -> u32 {
+    100
+}
+
 fn default_resource_template_map() -> BTreeMap<String, ResourceTemplate> {
     BTreeMap::from([(
         "standard".to_string(),
@@ -315,6 +337,57 @@ fn default_resource_template_map() -> BTreeMap<String, ResourceTemplate> {
             scratch_gb: 128,
         },
     )])
+}
+
+fn parse_walltime_seconds(value: &str) -> Option<u64> {
+    let mut parts = value.split(':');
+    let hours = parts.next()?.parse::<u64>().ok()?;
+    let minutes = parts.next()?.parse::<u64>().ok()?;
+    let seconds = parts.next()?.parse::<u64>().ok()?;
+    if parts.next().is_some() || minutes >= 60 || seconds >= 60 {
+        return None;
+    }
+    Some(hours.saturating_mul(3600).saturating_add(minutes.saturating_mul(60)).saturating_add(seconds))
+}
+
+fn format_walltime_seconds(total_seconds: u64) -> String {
+    let hours = total_seconds / 3600;
+    let minutes = (total_seconds % 3600) / 60;
+    let seconds = total_seconds % 60;
+    format!("{hours:02}:{minutes:02}:{seconds:02}")
+}
+
+fn scale_u32(value: u32, percent: u32) -> Result<u32> {
+    if percent == 0 {
+        return Err(anyhow!("scale percentage must be > 0"));
+    }
+    let scaled = (u64::from(value) * u64::from(percent)).div_ceil(100);
+    Ok(u32::try_from(scaled).unwrap_or(u32::MAX).max(1))
+}
+
+fn scale_walltime(value: &str, percent: u32) -> Result<String> {
+    if percent == 0 {
+        return Err(anyhow!("scale percentage must be > 0"));
+    }
+    let seconds =
+        parse_walltime_seconds(value).ok_or_else(|| anyhow!("invalid walltime `{value}`"))?;
+    let scaled = seconds.saturating_mul(u64::from(percent)).div_ceil(100).max(1);
+    Ok(format_walltime_seconds(scaled))
+}
+
+fn apply_corpus_size_scaling(
+    base: &ResourceTemplate,
+    policy: Option<&CorpusSizeScalePolicy>,
+) -> Result<ResourceTemplate> {
+    let Some(policy) = policy else {
+        return Ok(base.clone());
+    };
+    Ok(ResourceTemplate {
+        cpus: scale_u32(base.cpus, policy.cpu_percent)?,
+        mem_gb: scale_u32(base.mem_gb, policy.mem_percent)?,
+        walltime: scale_walltime(&base.walltime, policy.walltime_percent)?,
+        scratch_gb: scale_u32(base.scratch_gb, policy.scratch_percent)?,
+    })
 }
 
 fn default_log_template() -> String {
@@ -1162,6 +1235,33 @@ pub fn campaign_preflight(
             ok: config.resources.templates.contains_key(&template_name),
             detail: template_name,
         });
+        if let Some(class_name) = job
+            .corpus_size_class
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+        {
+            checks.push(CampaignCheck {
+                name: format!("job_corpus_size_class_present:{}:{}", job.stage, job.sample),
+                ok: config.resources.corpus_size_scaling.contains_key(class_name),
+                detail: class_name.to_string(),
+            });
+        }
+    }
+
+    for (class_name, policy) in &config.resources.corpus_size_scaling {
+        let ok = policy.cpu_percent > 0
+            && policy.mem_percent > 0
+            && policy.walltime_percent > 0
+            && policy.scratch_percent > 0;
+        checks.push(CampaignCheck {
+            name: format!("corpus_size_policy_nonzero:{class_name}"),
+            ok,
+            detail: format!(
+                "cpu={} mem={} walltime={} scratch={}",
+                policy.cpu_percent, policy.mem_percent, policy.walltime_percent, policy.scratch_percent
+            ),
+        });
     }
 
     let ok = checks.iter().all(|check| check.ok);
@@ -1196,13 +1296,21 @@ pub fn campaign_dry_run(
             &resolved_slurm.default_resource_template,
         );
 
-        let resources =
-            config.resources.templates.get(&template_name).cloned().ok_or_else(|| {
-                anyhow!(
-                    "job `{}` references unknown resource template `{template_name}`",
-                    job.stage
-                )
-            })?;
+        let base_resources = config.resources.templates.get(&template_name).ok_or_else(|| {
+            anyhow!(
+                "job `{}` references unknown resource template `{template_name}`",
+                job.stage
+            )
+        })?;
+        let corpus_size_class =
+            job.corpus_size_class.as_deref().map(str::trim).filter(|value| !value.is_empty());
+        let scaling_policy = match corpus_size_class {
+            Some(class_name) => Some(config.resources.corpus_size_scaling.get(class_name).ok_or_else(
+                || anyhow!("job `{}` references unknown corpus_size_class `{class_name}`", job.stage),
+            )?),
+            None => None,
+        };
+        let resources = apply_corpus_size_scaling(base_resources, scaling_policy)?;
 
         let mut values = BTreeMap::new();
         values.insert("job_id".to_string(), job_id.clone());
@@ -1253,6 +1361,7 @@ pub fn campaign_dry_run(
             stage: job.stage.clone(),
             tool: job.tool.clone(),
             sample: job.sample.clone(),
+            corpus_size_class: corpus_size_class.map(ToOwned::to_owned),
             array_task: job.array_task,
             depends_on: job.depends_on.clone(),
             resource_template: template_name,
@@ -1696,6 +1805,123 @@ resource_template = "missing"
             .iter()
             .any(|check| check.name.starts_with("job_template_present") && !check.ok));
         assert!(default_resource_template_map().contains_key("standard"));
+    }
+
+    #[test]
+    fn campaign_dry_run_applies_corpus_size_scaling_policy() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_path = root.path().join("campaign.toml");
+        let config = r#"
+schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "/shared/corpora"
+databases_root = "/shared/databases"
+images_root = "/shared/images"
+scratch_root = "/shared/scratch"
+logs_root = "/shared/logs"
+encrypted_results_root = "/shared/results"
+encrypted_code_root = "/shared/code"
+appraiser_imports_root = "/shared/imports"
+baselines_root = "/shared/baselines"
+
+[slurm]
+site_profile = "generic"
+default_resource_template = "standard"
+
+[resources]
+default = "standard"
+
+[resources.templates.standard]
+cpus = 4
+mem_gb = 8
+walltime = "01:00:00"
+scratch_gb = 32
+
+[resources.corpus_size_scaling.stage_large]
+cpu_percent = 250
+mem_percent = 200
+walltime_percent = 150
+scratch_percent = 125
+
+[security]
+encryption_recipients = ["alice"]
+
+[[jobs]]
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-1"
+corpus_size_class = "stage_large"
+"#;
+        std::fs::write(&config_path, config).expect("write config");
+
+        let report = campaign_dry_run(&config_path, None, None).expect("dry run");
+        assert_eq!(report.planned_jobs.len(), 1);
+        let resources = &report.planned_jobs[0].resources;
+        assert_eq!(resources.cpus, 10);
+        assert_eq!(resources.mem_gb, 16);
+        assert_eq!(resources.walltime, "01:30:00");
+        assert_eq!(resources.scratch_gb, 40);
+        assert_eq!(
+            report.planned_jobs[0].corpus_size_class.as_deref(),
+            Some("stage_large")
+        );
+    }
+
+    #[test]
+    fn campaign_preflight_flags_unknown_corpus_size_class() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_path = root.path().join("campaign.toml");
+        let config = r#"
+schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "/shared/corpora"
+databases_root = "/shared/databases"
+images_root = "/shared/images"
+scratch_root = "/shared/scratch"
+logs_root = "/shared/logs"
+encrypted_results_root = "/shared/results"
+encrypted_code_root = "/shared/code"
+appraiser_imports_root = "/shared/imports"
+baselines_root = "/shared/baselines"
+
+[slurm]
+site_profile = "generic"
+default_resource_template = "standard"
+
+[resources]
+default = "standard"
+
+[resources.templates.standard]
+cpus = 4
+mem_gb = 8
+walltime = "01:00:00"
+scratch_gb = 32
+
+[security]
+encryption_recipients = ["alice"]
+
+[[jobs]]
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-1"
+corpus_size_class = "stage_large"
+"#;
+        std::fs::write(&config_path, config).expect("write config");
+        let report = campaign_preflight(&config_path, None, None).expect("preflight");
+        assert!(!report.ok);
+        assert!(report.checks.iter().any(
+            |check| check.name.starts_with("job_corpus_size_class_present") && !check.ok
+        ));
     }
 
     #[test]
