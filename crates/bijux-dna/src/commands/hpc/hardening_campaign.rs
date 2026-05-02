@@ -2696,6 +2696,24 @@ fn goal_specific_checks(
             ),
             format!("campaign_coverage_findings_count={}", findings.len()),
         ],
+        "G229" => vec![
+            format!("budget_planner_rows_present={}", !rows.is_empty()),
+            format!(
+                "budget_planner_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "budget_planner_align_coverage_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "budget_planner_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("budget_planner_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -4649,6 +4667,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "campaign_coverage_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_229_emits_budget_planner_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G229".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-profile".to_string(),
+            row_id: "h7".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-outlier".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "budget planner detects expensive coverage-stage profile".to_string(),
+            recommendation: "rebalance budget planner row-set for high-cost boundaries".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "budget_planner_align_coverage_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "budget_planner_findings_count=1"));
     }
 
     #[test]
