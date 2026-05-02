@@ -2172,6 +2172,24 @@ fn goal_specific_checks(
             ),
             format!("long_read_boundary_findings_count={}", findings.len()),
         ],
+        "G212" => vec![
+            format!("sample_swap_rows_present={}", !rows.is_empty()),
+            format!(
+                "sample_swap_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "sample_swap_profile_validate_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.validate")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "sample_swap_degraded_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "degraded").count()
+            ),
+            format!("sample_swap_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -3687,6 +3705,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "long_read_boundary_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_212_emits_sample_swap_corpus_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G212".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "h11".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "scientific-caveat".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "sample-swap caveat surfaced in stats stage".to_string(),
+            recommendation: "gate downstream interpretation on swap review".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "sample_swap_profile_validate_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "sample_swap_findings_count=1"));
     }
 
     #[test]
