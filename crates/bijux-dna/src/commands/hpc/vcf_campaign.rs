@@ -459,6 +459,13 @@ fn goal_specific_checks(
         "G145" => vec![
             format!("reference_context_rows_present={}", !rows.is_empty()),
             format!(
+                "reference_context_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
                 "reference_context_call_bound={}",
                 rows.iter().any(|row| row.stage_id == "vcf.call")
             ),
@@ -976,6 +983,10 @@ mod tests {
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("reference_context_stage_count=3")));
         assert!(entries[0]
             .goal_checks
             .iter()
