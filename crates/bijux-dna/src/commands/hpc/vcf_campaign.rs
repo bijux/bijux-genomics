@@ -559,6 +559,13 @@ fn goal_specific_checks(
         "G149" => vec![
             format!("gl_rows_present={}", !rows.is_empty()),
             format!(
+                "gl_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
                 "gl_call_stage_bound={}",
                 rows.iter().any(|row| row.stage_id == "vcf.call_gl")
             ),
@@ -1102,6 +1109,10 @@ mod tests {
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("gl_stage_count=2")));
         assert!(entries[0]
             .goal_checks
             .iter()
