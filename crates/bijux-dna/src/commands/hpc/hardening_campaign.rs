@@ -4182,6 +4182,31 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G261" => vec![
+            format!("encrypted_sharing_rows_present={}", !rows.is_empty()),
+            format!(
+                "encrypted_sharing_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "encrypted_sharing_profile_summary_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "encrypted_sharing_code_and_results_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope == "encrypted-code"
+                        || finding.result_scope == "encrypted-results")
+                    .count()
+            ),
+            format!(
+                "encrypted_sharing_queue_entries={}",
+                queue_entries.len()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -6941,6 +6966,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "slurm_resource_runtime_findings=1"));
+    }
+
+    #[test]
+    fn goal_261_emits_encrypted_sharing_package_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G261".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "sharing package import indicates missing code bundle fields".to_string(),
+            recommendation: "include required code sidecars for encrypted sharing packages".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "encrypted_sharing_profile_summary_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "encrypted_sharing_code_and_results_findings=1"));
     }
 
     #[test]
