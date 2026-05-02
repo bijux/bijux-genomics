@@ -4255,6 +4255,34 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class == "refuse").count()
             ),
         ],
+        "G264" => vec![
+            format!("source_blame_rows_present={}", !rows.is_empty()),
+            format!(
+                "source_blame_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "source_blame_profile_align_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "source_blame_drift_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| {
+                        finding.failure_class == "database-mismatch"
+                            || finding.failure_class == "image-mismatch"
+                            || finding.failure_class == "corpus-mismatch"
+                    })
+                    .count()
+            ),
+            format!(
+                "source_blame_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -7092,6 +7120,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "confidential_bundle_encrypted_findings=1"));
+    }
+
+    #[test]
+    fn goal_264_emits_source_blame_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G264".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "database-compatibility".to_string(),
+            row_id: "h5".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "database-mismatch".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "source blame import points to database drift at align boundary".to_string(),
+            recommendation: "attribute likely source changes from code/database/corpus locks".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "source_blame_profile_align_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "source_blame_drift_findings=1"));
     }
 
     #[test]
