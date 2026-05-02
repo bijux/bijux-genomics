@@ -971,6 +971,156 @@ const G230_SCENARIOS: &[ScenarioDefinition] = &[
     },
 ];
 
+const G231_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "campaign-lock-freeze-boundary",
+        focus: "validate campaign reproducibility lock freeze boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "campaign-lock-asset-signal-coverage",
+        focus: "validate lock coverage signals for corpus, DB, image, and code assets",
+    },
+    ScenarioDefinition {
+        scenario_id: "campaign-lock-appraisal-proof",
+        focus: "capture campaign lock appraisal evidence",
+    },
+];
+
+const G232_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "campaign-rerun-lock-replay-boundary",
+        focus: "validate rerun-from-lock replay boundary behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "campaign-rerun-diff-signal-coverage",
+        focus: "validate rerun diff signal coverage for selected updated assets",
+    },
+    ScenarioDefinition {
+        scenario_id: "campaign-rerun-appraisal-proof",
+        focus: "capture campaign rerun appraisal evidence",
+    },
+];
+
+const G233_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "queue-subset-selector-boundary",
+        focus: "validate hardening queue subset selection boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "queue-subset-validation-signal-coverage",
+        focus: "validate queue subset coverage signals for hardening verification rows",
+    },
+    ScenarioDefinition {
+        scenario_id: "queue-subset-appraisal-proof",
+        focus: "capture queue subset appraisal evidence",
+    },
+];
+
+const G234_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "priority-label-scientific-runtime-boundary",
+        focus: "validate campaign priority labels across scientific and runtime boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "priority-label-hardening-value-signals",
+        focus: "validate priority label signals for expected hardening value",
+    },
+    ScenarioDefinition {
+        scenario_id: "priority-label-appraisal-proof",
+        focus: "capture priority label appraisal evidence",
+    },
+];
+
+const G235_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "warm-start-prepared-asset-boundary",
+        focus: "validate warm-start campaign boundary with pre-locked assets",
+    },
+    ScenarioDefinition {
+        scenario_id: "warm-start-preflight-signal-coverage",
+        focus: "validate warm-start preflight signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "warm-start-appraisal-proof",
+        focus: "capture warm-start campaign appraisal evidence",
+    },
+];
+
+const G236_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "all-in-one-preflight-boundary",
+        focus: "validate all-in-one preflight boundaries across required campaign surfaces",
+    },
+    ScenarioDefinition {
+        scenario_id: "all-in-one-preflight-failure-signals",
+        focus: "validate preflight refusal and warning signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "all-in-one-preflight-appraisal-proof",
+        focus: "capture all-in-one preflight appraisal evidence",
+    },
+];
+
+const G237_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "all-in-one-import-decrypt-boundary",
+        focus: "validate all-in-one local import/decrypt boundary behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "all-in-one-import-index-signal-coverage",
+        focus: "validate local import indexing and appraisal signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "all-in-one-import-appraisal-proof",
+        focus: "capture all-in-one local import appraisal evidence",
+    },
+];
+
+const G238_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "all-in-one-report-summary-boundary",
+        focus: "validate all-in-one report summary boundary behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "all-in-one-report-link-signal-coverage",
+        focus: "validate report link coverage signals to detailed artifacts",
+    },
+    ScenarioDefinition {
+        scenario_id: "all-in-one-report-appraisal-proof",
+        focus: "capture all-in-one report appraisal evidence",
+    },
+];
+
+const G239_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "campaign-comparison-paired-boundary",
+        focus: "validate campaign comparison boundaries across paired campaigns",
+    },
+    ScenarioDefinition {
+        scenario_id: "campaign-comparison-drift-signal-coverage",
+        focus: "validate campaign drift and status comparison signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "campaign-comparison-appraisal-proof",
+        focus: "capture campaign comparison appraisal evidence",
+    },
+];
+
+const G240_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "benchmark-doc-hint-boundary",
+        focus: "validate benchmark-to-docs hint boundaries for command-impacting behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "benchmark-doc-hint-caveat-signal-coverage",
+        focus: "validate docs hint caveat signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "benchmark-doc-hint-appraisal-proof",
+        focus: "capture benchmark-to-docs hint appraisal evidence",
+    },
+];
+
 const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G171",
@@ -1331,6 +1481,66 @@ const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
         title: "add campaign splitting by HPC quota",
         stage_ids: &["fastq.validate_reads", "bam.mapping_summary", "vcf.stats"],
         scenarios: G230_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G231",
+        title: "add campaign reproducibility lock",
+        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.postprocess"],
+        scenarios: G231_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G232",
+        title: "add campaign rerun from lock",
+        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        scenarios: G232_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G233",
+        title: "add campaign subset from hardening queue",
+        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.filter"],
+        scenarios: G233_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G234",
+        title: "add campaign priority labels",
+        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.stats"],
+        scenarios: G234_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G235",
+        title: "add warm-start campaign mode",
+        stage_ids: &["bam.validate", "bam.mapping_summary", "vcf.call"],
+        scenarios: G235_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G236",
+        title: "add all-in-one preflight",
+        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.filter"],
+        scenarios: G236_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G237",
+        title: "add all-in-one local import",
+        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        scenarios: G237_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G238",
+        title: "add all-in-one report",
+        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.postprocess"],
+        scenarios: G238_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G239",
+        title: "add campaign comparison report",
+        stage_ids: &["bam.align", "vcf.call", "vcf.stats"],
+        scenarios: G239_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G240",
+        title: "add benchmark-to-docs update hints",
+        stage_ids: &["fastq.validate_reads", "vcf.filter", "vcf.postprocess"],
+        scenarios: G240_SCENARIOS,
     },
 ];
 
@@ -2941,10 +3151,10 @@ mod tests {
     }
 
     #[test]
-    fn hardening_catalog_includes_iteration_20_goals() {
-        assert_eq!(HARDENING_GOALS_CATALOG.len(), 60);
+    fn hardening_catalog_includes_iteration_21_goals() {
+        assert_eq!(HARDENING_GOALS_CATALOG.len(), 70);
         assert_eq!(HARDENING_GOALS_CATALOG[0].goal_id, "G171");
-        assert_eq!(HARDENING_GOALS_CATALOG[59].goal_id, "G230");
+        assert_eq!(HARDENING_GOALS_CATALOG[69].goal_id, "G240");
     }
 
     #[test]
