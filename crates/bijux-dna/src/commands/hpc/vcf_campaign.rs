@@ -514,6 +514,13 @@ fn goal_specific_checks(
                 rows.iter().any(|row| row.stage_id == "vcf.call_diploid")
             ),
             format!(
+                "diploid_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.failure_class.contains("readiness"))
+                    .count()
+            ),
+            format!(
                 "diploid_degraded_or_refuse_rows={}",
                 rows.iter()
                     .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
@@ -1039,6 +1046,10 @@ mod tests {
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("diploid_queue_entries=0")));
         assert!(entries[0]
             .goal_checks
             .iter()
