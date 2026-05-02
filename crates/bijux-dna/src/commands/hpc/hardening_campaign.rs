@@ -489,6 +489,28 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G177" => vec![
+            format!("resource_hardening_rows_present={}", !rows.is_empty()),
+            format!(
+                "resource_hardening_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "resource_hardening_degraded_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "degraded").count()
+            ),
+            format!(
+                "resource_hardening_min_repetitions={}",
+                rows.iter().map(|row| row.repetitions).min().unwrap_or(0)
+            ),
+            format!(
+                "resource_hardening_runtime_under_sampled_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "runtime-under-sampled")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -902,6 +924,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "wrapper_hardening_repro_low_repeat_findings=1"));
+    }
+
+    #[test]
+    fn goal_177_emits_resource_tuning_hardening_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G177".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-performance".to_string(),
+            row_id: "h7".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-under-sampled".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "benchmark row has too few repetitions".to_string(),
+            recommendation: "increase repetitions to at least 2".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "resource_hardening_degraded_rows=2"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "resource_hardening_runtime_under_sampled_findings=1"));
     }
 
     #[test]
