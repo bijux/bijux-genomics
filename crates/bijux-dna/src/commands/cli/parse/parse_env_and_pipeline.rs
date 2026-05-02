@@ -157,6 +157,8 @@ pub enum ConfigCommand {
     BamBenchmarkCampaign(BamBenchmarkCampaignArgs),
     #[command(name = "vcf-benchmark-campaign")]
     VcfBenchmarkCampaign(VcfBenchmarkCampaignArgs),
+    #[command(name = "cross-benchmark-campaign")]
+    CrossBenchmarkCampaign(CrossBenchmarkCampaignArgs),
     Doctor,
 }
 
@@ -257,6 +259,22 @@ pub struct VcfBenchmarkCampaignArgs {
     #[arg(long, value_name = "PATH")]
     pub user_overrides: Option<PathBuf>,
     #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G141,G142")]
+    pub goals: Option<String>,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct CrossBenchmarkCampaignArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_overrides: Option<PathBuf>,
+    #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G161,G162")]
     pub goals: Option<String>,
     #[arg(long, value_name = "PATH")]
     pub out: Option<PathBuf>,
