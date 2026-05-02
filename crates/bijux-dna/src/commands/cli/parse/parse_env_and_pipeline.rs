@@ -123,6 +123,10 @@ pub enum SlurmCommand {
     SubmitCampaign(SlurmSubmitCampaignArgs),
     #[command(name = "copy-back-manifest")]
     CopyBackManifest(SlurmCopyBackManifestArgs),
+    #[command(name = "decrypt-bundle")]
+    DecryptBundle(SlurmBundleDecryptArgs),
+    #[command(name = "verify-bundle")]
+    VerifyBundle(SlurmBundleIntegrityCheck),
 }
 
 #[derive(Debug, Args, Clone)]
@@ -201,6 +205,32 @@ pub struct SlurmCopyBackManifestArgs {
     pub user_overrides: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
     pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmBundleDecryptArgs {
+    #[arg(long, value_name = "PATH")]
+    pub bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub sidecar: Option<PathBuf>,
+    #[arg(long, value_name = "PATH", default_value = "artifacts/investigation/decrypt")]
+    pub out_dir: PathBuf,
+    #[arg(long = "identity-file", value_name = "PATH")]
+    pub identity_file: Vec<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmBundleIntegrityCheck {
+    #[arg(long, value_name = "PATH")]
+    pub bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub sidecar: Option<PathBuf>,
+    #[arg(long = "identity-file", value_name = "PATH")]
+    pub identity_file: Vec<PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

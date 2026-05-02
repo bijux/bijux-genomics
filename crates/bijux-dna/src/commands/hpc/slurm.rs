@@ -4,15 +4,21 @@ use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
+use serde_json::json;
 
 use crate::commands::cli::{
+    SlurmBundleDecryptArgs, SlurmBundleIntegrityCheck,
     SlurmCopyBackManifestArgs, SlurmSubmitCampaignArgs, SlurmSubmitCrossArgs,
     SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
 };
-use crate::commands::hpc::{campaign_dry_run, CampaignDryRunReport, PlannedJob};
+use crate::commands::hpc::{
+    campaign_dry_run, decrypt_bundle, sha256_hex, sidecar_path_for, write_encrypted_bundle,
+    BundleDecryptRequest, BundleWriteRequest, CampaignDryRunReport, PlannedJob,
+};
 
 const SLURM_SUBMISSION_SCHEMA_VERSION: &str = "bijux.hpc.slurm.submission.v1";
 const COPY_BACK_MANIFEST_SCHEMA_VERSION: &str = "bijux.hpc.copy_back_manifest.v1";
+const BUNDLE_DECRYPT_SCHEMA_VERSION: &str = "bijux.hpc.bundle.decrypt.v1";
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SlurmSubmissionReport {
@@ -62,6 +68,30 @@ pub struct CopyBackEntry {
     pub results_path: String,
     pub code_path: String,
     pub script_path: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SlurmDecryptReport {
+    pub schema_version: &'static str,
+    pub bundle_path: String,
+    pub sidecar_path: String,
+    pub output_path: String,
+    pub output_mode: String,
+    pub plaintext_sha256: String,
+    pub plaintext_bytes: usize,
+    pub backend: String,
+    pub recipient_fingerprints: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SlurmBundleIntegrityReport {
+    pub schema_version: &'static str,
+    pub bundle_path: String,
+    pub sidecar_path: String,
+    pub ok: bool,
+    pub backend: String,
+    pub plaintext_sha256: String,
+    pub plaintext_bytes: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -173,6 +203,224 @@ fn write_operator_files(
     write_text(log_path, &log)?;
     write_text(out_path, out)?;
     write_text(err_path, err)?;
+    Ok(())
+}
+
+fn git_stdout(args: &[&str]) -> Option<String> {
+    let output = Command::new("git").args(args).output().ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    Some(String::from_utf8_lossy(&output.stdout).trim().to_string())
+}
+
+fn build_results_bundle(
+    report: &CampaignDryRunReport,
+    job: &SelectedJob,
+    scheduler_job_id: &str,
+    submitted_at: &str,
+) -> Result<Vec<u8>> {
+    let payload = json!({
+        "schema_version": "bijux.hpc.results_bundle.v1",
+        "campaign": {
+            "id": report.campaign_id,
+            "domain": report.domain,
+            "config_path": report.config_path,
+            "env_file_path": report.env_file_path,
+            "user_override_path": report.user_override_path,
+        },
+        "job": {
+            "planned_job_id": job.planned.job_id,
+            "scheduler_job_id": scheduler_job_id,
+            "submitted_at": submitted_at,
+            "job_name": job.name,
+            "stage": job.planned.stage,
+            "tool": job.planned.tool,
+            "sample": job.planned.sample,
+            "resource_template": job.planned.resource_template,
+            "resources": job.planned.resources,
+            "depends_on": job.depends_on_names,
+        },
+        "metrics": {
+            "status": "pending_execution",
+            "submission_mode": "slurm",
+        },
+        "artifacts": {
+            "inventory": [
+                {"kind": "log", "path": job.planned.outputs.log},
+                {"kind": "out", "path": job.planned.outputs.out},
+                {"kind": "err", "path": job.planned.outputs.err},
+            ],
+            "encrypted_targets": [
+                {"kind": "results", "path": job.planned.outputs.results},
+                {"kind": "code", "path": job.planned.outputs.code},
+            ],
+        },
+        "reports": [{
+            "kind": "submission_receipt",
+            "summary": "job submitted or mocked; execution metrics pending runtime wrapper output",
+        }],
+        "traces": {
+            "script_path": script_path_for(Path::new(&job.planned.outputs.log)).display().to_string(),
+            "scheduler_job_id": scheduler_job_id,
+        },
+        "inventories": {
+            "encryption_backend": report.security.encryption_backend,
+            "recipient_fingerprints": report.security.encryption_recipients.iter().map(|recipient| {
+                sha256_hex(recipient.as_bytes()).chars().take(16).collect::<String>()
+            }).collect::<Vec<_>>(),
+        },
+        "appraiser_outputs": [{
+            "name": "submission_ready",
+            "status": "pending",
+            "note": "appraiser jobs are tracked after runtime completion",
+        }],
+    });
+    serde_json::to_vec_pretty(&payload).context("serialize results bundle payload")
+}
+
+fn build_code_bundle(
+    report: &CampaignDryRunReport,
+    job: &SelectedJob,
+    script_path: &Path,
+    scheduler_job_id: &str,
+    submitted_at: &str,
+) -> Result<Vec<u8>> {
+    let script = std::fs::read_to_string(script_path)
+        .with_context(|| format!("read {}", script_path.display()))?;
+    let payload = json!({
+        "schema_version": "bijux.hpc.code_bundle.v1",
+        "campaign": {
+            "id": report.campaign_id,
+            "domain": report.domain,
+            "config_path": report.config_path,
+            "env_file_path": report.env_file_path,
+            "user_override_path": report.user_override_path,
+            "user_overrides_applied": report.user_overrides_applied,
+        },
+        "job": {
+            "planned_job_id": job.planned.job_id,
+            "scheduler_job_id": scheduler_job_id,
+            "submitted_at": submitted_at,
+            "job_name": job.name,
+            "stage": job.planned.stage,
+            "tool": job.planned.tool,
+            "sample": job.planned.sample,
+        },
+        "code_freeze": {
+            "slurm_script": script,
+            "effective_settings": {
+                "slurm": report.resolved_slurm,
+                "resources": job.planned.resources,
+            },
+            "config_references": {
+                "campaign_config": report.config_path,
+                "env_file": report.env_file_path,
+                "user_override": report.user_override_path,
+            },
+            "repository_state": {
+                "git_head": git_stdout(&["rev-parse", "HEAD"]),
+                "git_branch": git_stdout(&["rev-parse", "--abbrev-ref", "HEAD"]),
+                "git_status_porcelain": git_stdout(&["status", "--porcelain"]),
+            },
+            "dvc_state": {
+                "available": Command::new("dvc").arg("--version").output().is_ok(),
+                "status_hint": "capture deferred to runtime wrapper when dvc is configured",
+            },
+        },
+        "locks": {
+            "corpus_lock": "deferred_to_prepare_corpus",
+            "database_lock": "deferred_to_prepare_database",
+            "image_lock": "deferred_to_prepare_apptainer",
+            "tool_lock": "deferred_to_runtime_registry_capture",
+        },
+        "plan": {
+            "depends_on": job.depends_on_names,
+            "outputs": job.planned.outputs,
+        },
+    });
+    serde_json::to_vec_pretty(&payload).context("serialize code bundle payload")
+}
+
+fn emit_primary_encrypted_bundles(
+    report: &CampaignDryRunReport,
+    job: &SelectedJob,
+    script_path: &Path,
+    scheduler_job_id: &str,
+    submitted_at: &str,
+) -> Result<()> {
+    let recipients = &report.security.encryption_recipients;
+    let backend = report.security.encryption_backend.as_str();
+
+    let results_payload = build_results_bundle(report, job, scheduler_job_id, submitted_at)?;
+    write_encrypted_bundle(&BundleWriteRequest {
+        output_path: Path::new(&job.planned.outputs.results),
+        bundle_kind: "results",
+        campaign_id: &report.campaign_id,
+        domain: &report.domain,
+        stage: &job.planned.stage,
+        tool: &job.planned.tool,
+        sample: &job.planned.sample,
+        planned_job_id: &job.planned.job_id,
+        scheduler_job_id,
+        submitted_at,
+        backend,
+        recipients,
+        plaintext: &results_payload,
+    })?;
+
+    let code_payload = build_code_bundle(report, job, script_path, scheduler_job_id, submitted_at)?;
+    write_encrypted_bundle(&BundleWriteRequest {
+        output_path: Path::new(&job.planned.outputs.code),
+        bundle_kind: "code",
+        campaign_id: &report.campaign_id,
+        domain: &report.domain,
+        stage: &job.planned.stage,
+        tool: &job.planned.tool,
+        sample: &job.planned.sample,
+        planned_job_id: &job.planned.job_id,
+        scheduler_job_id,
+        submitted_at,
+        backend,
+        recipients,
+        plaintext: &code_payload,
+    })?;
+    Ok(())
+}
+
+fn maybe_encrypt_operator_outputs(
+    report: &CampaignDryRunReport,
+    job: &SelectedJob,
+    scheduler_job_id: &str,
+    submitted_at: &str,
+) -> Result<()> {
+    if !report.security.encrypt_operator_outputs {
+        return Ok(());
+    }
+    let recipients = &report.security.encryption_recipients;
+    let backend = report.security.encryption_backend.as_str();
+    for (path, kind) in [
+        (job.planned.outputs.log.as_str(), "operator_log"),
+        (job.planned.outputs.out.as_str(), "operator_out"),
+        (job.planned.outputs.err.as_str(), "operator_err"),
+    ] {
+        let plaintext = std::fs::read(path).with_context(|| format!("read {path}"))?;
+        write_encrypted_bundle(&BundleWriteRequest {
+            output_path: Path::new(path),
+            bundle_kind: kind,
+            campaign_id: &report.campaign_id,
+            domain: &report.domain,
+            stage: &job.planned.stage,
+            tool: &job.planned.tool,
+            sample: &job.planned.sample,
+            planned_job_id: &job.planned.job_id,
+            scheduler_job_id,
+            submitted_at,
+            backend,
+            recipients,
+            plaintext: &plaintext,
+        })?;
+    }
     Ok(())
 }
 
@@ -326,6 +574,14 @@ fn run_submission(
         };
 
         write_operator_files(selected_job, &scheduler_job_id, &submitted_at)?;
+        emit_primary_encrypted_bundles(
+            &report,
+            selected_job,
+            &script_path,
+            &scheduler_job_id,
+            &submitted_at,
+        )?;
+        maybe_encrypt_operator_outputs(&report, selected_job, &scheduler_job_id, &submitted_at)?;
 
         name_to_scheduler_id.insert(selected_job.name.clone(), scheduler_job_id.clone());
         jobs_out.push(SubmittedJob {
@@ -489,20 +745,101 @@ pub fn write_copy_back_manifest(
     Ok(manifest)
 }
 
+fn ensure_private_directory(path: &Path) -> Result<()> {
+    bijux_dna_infra::ensure_dir(path).with_context(|| format!("create {}", path.display()))?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms =
+            std::fs::metadata(path).with_context(|| format!("stat {}", path.display()))?.permissions();
+        perms.set_mode(0o700);
+        std::fs::set_permissions(path, perms)
+            .with_context(|| format!("chmod {}", path.display()))?;
+    }
+    Ok(())
+}
+
+fn decrypted_output_path(bundle_path: &Path, out_dir: &Path) -> PathBuf {
+    let mut file = bundle_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map_or_else(|| "bundle".to_string(), ToOwned::to_owned);
+    file.push_str(".decrypted.json");
+    out_dir.join(file)
+}
+
+pub fn decrypt_bundle_to_local(args: &SlurmBundleDecryptArgs) -> Result<SlurmDecryptReport> {
+    ensure_private_directory(&args.out_dir)?;
+    let sidecar_path = args.sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.bundle));
+    let (sidecar, plaintext) = decrypt_bundle(&BundleDecryptRequest {
+        bundle_path: &args.bundle,
+        sidecar_path: Some(&sidecar_path),
+        identity_files: &args.identity_file,
+    })?;
+    let output_path = decrypted_output_path(&args.bundle, &args.out_dir);
+    bijux_dna_api::v1::api::run::atomic_write_bytes(&output_path, &plaintext)
+        .with_context(|| format!("write {}", output_path.display()))?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = std::fs::metadata(&output_path)
+            .with_context(|| format!("stat {}", output_path.display()))?
+            .permissions();
+        perms.set_mode(0o600);
+        std::fs::set_permissions(&output_path, perms)
+            .with_context(|| format!("chmod {}", output_path.display()))?;
+    }
+
+    Ok(SlurmDecryptReport {
+        schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
+        bundle_path: args.bundle.display().to_string(),
+        sidecar_path: sidecar_path.display().to_string(),
+        output_path: output_path.display().to_string(),
+        output_mode: "file".to_string(),
+        plaintext_sha256: sidecar.plaintext_sha256,
+        plaintext_bytes: plaintext.len(),
+        backend: sidecar.backend,
+        recipient_fingerprints: sidecar.recipient_fingerprints,
+    })
+}
+
+pub fn verify_bundle_integrity(args: &SlurmBundleIntegrityCheck) -> Result<SlurmBundleIntegrityReport> {
+    let sidecar_path = args.sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.bundle));
+    let (sidecar, plaintext) = decrypt_bundle(&BundleDecryptRequest {
+        bundle_path: &args.bundle,
+        sidecar_path: Some(&sidecar_path),
+        identity_files: &args.identity_file,
+    })?;
+    Ok(SlurmBundleIntegrityReport {
+        schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
+        bundle_path: args.bundle.display().to_string(),
+        sidecar_path: sidecar_path.display().to_string(),
+        ok: true,
+        backend: sidecar.backend,
+        plaintext_sha256: sidecar.plaintext_sha256,
+        plaintext_bytes: plaintext.len(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     #![allow(clippy::expect_used)]
 
     use super::{
-        submit_campaign, submit_cross_benchmark, submit_domain_benchmark, submit_stage_benchmark,
-        write_copy_back_manifest,
+        decrypt_bundle_to_local, submit_campaign, submit_cross_benchmark, submit_domain_benchmark,
+        submit_stage_benchmark, verify_bundle_integrity, write_copy_back_manifest,
     };
     use crate::commands::cli::{
+        SlurmBundleDecryptArgs, SlurmBundleIntegrityCheck,
         SlurmCopyBackManifestArgs, SlurmSubmitCampaignArgs, SlurmSubmitCrossArgs,
         SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
     };
 
-    fn write_campaign(root: &std::path::Path) -> std::path::PathBuf {
+    fn write_campaign_with_security(
+        root: &std::path::Path,
+        encryption_backend: &str,
+        encrypt_operator_outputs: bool,
+    ) -> std::path::PathBuf {
         for name in [
             "corpora",
             "databases",
@@ -558,7 +895,9 @@ walltime = "00:05:00"
 scratch_gb = 1
 
 [security]
+encryption_backend = "{encryption_backend}"
 encryption_recipients = ["alice"]
+encrypt_operator_outputs = {encrypt_operator_outputs}
 env_file = "{root}/campaign.env"
 
 [[jobs]]
@@ -580,10 +919,16 @@ stage = "vcf.validate"
 tool = "bcftools"
 sample = "sample-2"
 "#,
-            root = root.display()
+            root = root.display(),
+            encryption_backend = encryption_backend,
+            encrypt_operator_outputs = encrypt_operator_outputs
         );
         std::fs::write(&config_path, config).expect("write config");
         config_path
+    }
+
+    fn write_campaign(root: &std::path::Path) -> std::path::PathBuf {
+        write_campaign_with_security(root, "mock-envelope-v1", false)
     }
 
     #[test]
@@ -701,5 +1046,146 @@ sample = "sample-2"
         assert!(report.suggested_copy_command.starts_with("rsync -av "));
         assert!(report.entries.iter().all(|entry| !entry.script_path.is_empty()));
         assert!(out.is_file());
+    }
+
+    #[test]
+    fn submit_campaign_writes_encrypted_results_and_code_with_sidecars() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign(root.path());
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+
+        for job in report.jobs {
+            let results_path = std::path::PathBuf::from(&job.results_path);
+            let code_path = std::path::PathBuf::from(&job.code_path);
+            assert!(results_path.is_file());
+            assert!(code_path.is_file());
+            assert!(super::sidecar_path_for(&results_path).is_file());
+            assert!(super::sidecar_path_for(&code_path).is_file());
+        }
+    }
+
+    #[test]
+    fn submit_campaign_keeps_operator_outputs_readable_by_default() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign(root.path());
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+
+        let first = &report.jobs[0];
+        let log = std::fs::read_to_string(&first.log_path).expect("read log");
+        let out = std::fs::read_to_string(&first.out_path).expect("read out");
+        let err = std::fs::read_to_string(&first.err_path).expect("read err");
+        assert!(log.contains("scheduler_job_id=mock-0001"));
+        assert!(out.contains("pending"));
+        assert!(err.contains("pending"));
+        assert!(!super::sidecar_path_for(std::path::Path::new(&first.log_path)).exists());
+        assert!(!super::sidecar_path_for(std::path::Path::new(&first.out_path)).exists());
+        assert!(!super::sidecar_path_for(std::path::Path::new(&first.err_path)).exists());
+    }
+
+    #[test]
+    fn submit_campaign_encrypts_operator_outputs_when_enabled() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign_with_security(root.path(), "mock-envelope-v1", true);
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+
+        let first = &report.jobs[0];
+        let log = std::fs::read_to_string(&first.log_path).expect("read encrypted log");
+        assert!(log.contains("\"schema_version\": \"bijux.hpc.bundle.mock_envelope.v1\""));
+        assert!(super::sidecar_path_for(std::path::Path::new(&first.log_path)).is_file());
+        assert!(super::sidecar_path_for(std::path::Path::new(&first.out_path)).is_file());
+        assert!(super::sidecar_path_for(std::path::Path::new(&first.err_path)).is_file());
+    }
+
+    #[test]
+    fn decrypt_bundle_to_local_recovers_plaintext_bundle() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign(root.path());
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+        let first = &report.jobs[0];
+        let out_dir = root.path().join("decrypted");
+        let decrypt_report = decrypt_bundle_to_local(&SlurmBundleDecryptArgs {
+            bundle: std::path::PathBuf::from(&first.results_path),
+            sidecar: None,
+            out_dir: out_dir.clone(),
+            identity_file: Vec::new(),
+            json: false,
+        })
+        .expect("decrypt bundle");
+        assert!(std::path::Path::new(&decrypt_report.output_path).is_file());
+        let plaintext =
+            std::fs::read_to_string(std::path::Path::new(&decrypt_report.output_path)).expect("read");
+        assert!(plaintext.contains("\"schema_version\": \"bijux.hpc.results_bundle.v1\""));
+    }
+
+    #[test]
+    fn verify_bundle_integrity_reports_ok_for_valid_bundle() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign(root.path());
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+        let first = &report.jobs[0];
+        let check = verify_bundle_integrity(&SlurmBundleIntegrityCheck {
+            bundle: std::path::PathBuf::from(&first.code_path),
+            sidecar: None,
+            identity_file: Vec::new(),
+            json: false,
+        })
+        .expect("verify integrity");
+        assert!(check.ok);
+    }
+
+    #[test]
+    fn submit_campaign_fails_without_partial_plaintext_bundles_on_backend_error() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign_with_security(root.path(), "unsupported-backend", false);
+        let err = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect_err("must fail for unsupported backend");
+        assert!(err.to_string().contains("unsupported encryption backend"));
+        let leaked_results = root.path().join("results");
+        let leaked_code = root.path().join("code");
+        let results_entries = std::fs::read_dir(leaked_results).expect("results dir").count();
+        let code_entries = std::fs::read_dir(leaked_code).expect("code dir").count();
+        assert_eq!(results_entries, 0);
+        assert_eq!(code_entries, 0);
     }
 }

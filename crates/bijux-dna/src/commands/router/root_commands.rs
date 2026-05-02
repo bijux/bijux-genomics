@@ -414,6 +414,27 @@ pub(crate) fn handle_slurm_root(command: &cli::SlurmCommand, _cwd: &Path) -> Res
                 println!("entries={}", manifest.entries.len());
             }
         }
+        cli::SlurmCommand::DecryptBundle(args) => {
+            let report = hpc::decrypt_bundle_to_local(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("bundle={}", report.bundle_path);
+                println!("output={}", report.output_path);
+                println!("sha256={}", report.plaintext_sha256);
+            }
+        }
+        cli::SlurmCommand::VerifyBundle(args) => {
+            let report = hpc::verify_bundle_integrity(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("bundle={}", report.bundle_path);
+                println!("sidecar={}", report.sidecar_path);
+                println!("ok={}", report.ok);
+                println!("sha256={}", report.plaintext_sha256);
+            }
+        }
     }
     Ok(())
 }
