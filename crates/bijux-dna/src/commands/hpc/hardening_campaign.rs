@@ -221,6 +221,156 @@ const G180_SCENARIOS: &[ScenarioDefinition] = &[
     },
 ];
 
+const G181_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "repeat-run-drift-detection",
+        focus: "detect unstable outputs and ordering drift between repeated runs",
+    },
+    ScenarioDefinition {
+        scenario_id: "seed-and-temp-leakage-detection",
+        focus: "detect missing seed control and temp-path leakage in artifacts",
+    },
+    ScenarioDefinition {
+        scenario_id: "determinism-rerun-proof",
+        focus: "capture rerun proof after determinism hardening",
+    },
+];
+
+const G182_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "schema-parse-failure-detection",
+        focus: "detect parser and schema contract failures in result artifacts",
+    },
+    ScenarioDefinition {
+        scenario_id: "schema-contract-fix-queue",
+        focus: "queue schema contract hardening tasks from appraisal signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "schema-rerun-proof",
+        focus: "capture schema-pass proof after hardening",
+    },
+];
+
+const G183_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "advisory-caveat-coverage",
+        focus: "detect missing or over-promoted advisory caveats",
+    },
+    ScenarioDefinition {
+        scenario_id: "scientific-caveat-correction",
+        focus: "generate caveat correction tasks from scientific findings",
+    },
+    ScenarioDefinition {
+        scenario_id: "caveat-appraiser-pass",
+        focus: "capture caveat appraiser pass evidence after fixes",
+    },
+];
+
+const G184_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "taxonomy-classification-gaps",
+        focus: "detect failure classification gaps across runtime/tool/io/scientific classes",
+    },
+    ScenarioDefinition {
+        scenario_id: "taxonomy-grouping-hardening",
+        focus: "harden grouping quality for actionable hardening queues",
+    },
+    ScenarioDefinition {
+        scenario_id: "taxonomy-report-quality-proof",
+        focus: "capture evidence that grouped reports improved after hardening",
+    },
+];
+
+const G185_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "minimizer-failure-anchor-detection",
+        focus: "anchor reproducible failure rows for minimization candidates",
+    },
+    ScenarioDefinition {
+        scenario_id: "minimized-input-plan",
+        focus: "generate minimal corpus/config/database reproduction plans",
+    },
+    ScenarioDefinition {
+        scenario_id: "minimized-bundle-proof",
+        focus: "capture minimized encrypted failure bundle evidence",
+    },
+];
+
+const G186_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "local-investigation-layout-validation",
+        focus: "validate local investigation workspace structure for copied bundles",
+    },
+    ScenarioDefinition {
+        scenario_id: "local-index-and-catalog-checks",
+        focus: "validate indexing and organization checks for local investigation",
+    },
+    ScenarioDefinition {
+        scenario_id: "investigation-workflow-proof",
+        focus: "capture local investigation workflow proof from hardening checks",
+    },
+];
+
+const G187_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "result-metric-diff-detection",
+        focus: "detect changed metrics and caveats across result bundles",
+    },
+    ScenarioDefinition {
+        scenario_id: "result-artifact-diff-detection",
+        focus: "detect changed artifacts/logs/appraisals across result bundles",
+    },
+    ScenarioDefinition {
+        scenario_id: "result-diff-proof",
+        focus: "capture evidence that result diff workflow is actionable",
+    },
+];
+
+const G188_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "code-snapshot-diff-detection",
+        focus: "detect source/config/dag drift between code bundles",
+    },
+    ScenarioDefinition {
+        scenario_id: "image-db-corpus-diff-detection",
+        focus: "detect image/database/corpus lock drift between code bundles",
+    },
+    ScenarioDefinition {
+        scenario_id: "code-diff-proof",
+        focus: "capture evidence that code diff workflow is actionable",
+    },
+];
+
+const G189_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "baseline-promotion-gate-checks",
+        focus: "enforce appraisal-pass gates before baseline promotion",
+    },
+    ScenarioDefinition {
+        scenario_id: "baseline-lock-completeness-checks",
+        focus: "validate baseline lock completeness for accepted rows",
+    },
+    ScenarioDefinition {
+        scenario_id: "baseline-promotion-proof",
+        focus: "capture baseline promotion proof with lock records",
+    },
+];
+
+const G190_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "baseline-rerun-regression-detection",
+        focus: "detect performance/scientific/artifact/replay/security regressions",
+    },
+    ScenarioDefinition {
+        scenario_id: "regression-severity-queue-generation",
+        focus: "generate severity-sorted regression hardening queue entries",
+    },
+    ScenarioDefinition {
+        scenario_id: "regression-report-proof",
+        focus: "capture regression report evidence from rerun appraisals",
+    },
+];
+
 const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G171",
@@ -281,6 +431,66 @@ const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
         title: "add replay hardening",
         stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
         scenarios: G180_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G181",
+        title: "add nondeterminism hardening",
+        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        scenarios: G181_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G182",
+        title: "add output-schema hardening",
+        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.postprocess"],
+        scenarios: G182_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G183",
+        title: "add caveat hardening",
+        stage_ids: &["bam.contamination", "vcf.filter", "vcf.stats"],
+        scenarios: G183_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G184",
+        title: "add failure taxonomy hardening",
+        stage_ids: &["fastq.trim_reads", "bam.align", "vcf.filter"],
+        scenarios: G184_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G185",
+        title: "add benchmark minimizer",
+        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.filter"],
+        scenarios: G185_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G186",
+        title: "add local investigation workspace",
+        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        scenarios: G186_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G187",
+        title: "add result diff workflow",
+        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.stats"],
+        scenarios: G187_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G188",
+        title: "add code diff workflow",
+        stage_ids: &["fastq.trim_reads", "bam.mapping_summary", "vcf.postprocess"],
+        scenarios: G188_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G189",
+        title: "add accepted-baseline workflow",
+        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.stats"],
+        scenarios: G189_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G190",
+        title: "add regression workflow",
+        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.postprocess"],
+        scenarios: G190_SCENARIOS,
     },
 ];
 
@@ -810,9 +1020,9 @@ mod tests {
 
     #[test]
     fn hardening_catalog_includes_iteration_15_goals() {
-        assert_eq!(HARDENING_GOALS_CATALOG.len(), 10);
+        assert_eq!(HARDENING_GOALS_CATALOG.len(), 20);
         assert_eq!(HARDENING_GOALS_CATALOG[0].goal_id, "G171");
-        assert_eq!(HARDENING_GOALS_CATALOG[9].goal_id, "G180");
+        assert_eq!(HARDENING_GOALS_CATALOG[19].goal_id, "G190");
     }
 
     #[test]
