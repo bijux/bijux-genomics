@@ -341,6 +341,16 @@ fn cross_bridges() -> &'static [CrossBridge] {
             to_stage: "bam.align",
         },
         CrossBridge {
+            id: "fastq_validate_to_bam",
+            from_stage: "fastq.validate_reads",
+            to_stage: "bam.align",
+        },
+        CrossBridge {
+            id: "fastq_adna_to_bam_damage",
+            from_stage: "fastq.trim_terminal_damage",
+            to_stage: "bam.damage",
+        },
+        CrossBridge {
             id: "bam_to_vcf",
             from_stage: "bam.genotyping",
             to_stage: "vcf.call",
@@ -349,6 +359,31 @@ fn cross_bridges() -> &'static [CrossBridge] {
             id: "fastq_to_vcf",
             from_stage: "fastq.trim_reads",
             to_stage: "vcf.call_gl",
+        },
+        CrossBridge {
+            id: "bam_summary_to_vcf_stats",
+            from_stage: "bam.mapping_summary",
+            to_stage: "vcf.stats",
+        },
+        CrossBridge {
+            id: "fastq_profile_to_bam_summary",
+            from_stage: "fastq.profile_reads",
+            to_stage: "bam.mapping_summary",
+        },
+        CrossBridge {
+            id: "fastq_validate_to_bam_contamination",
+            from_stage: "fastq.validate_reads",
+            to_stage: "bam.contamination",
+        },
+        CrossBridge {
+            id: "bam_contamination_to_vcf_filter",
+            from_stage: "bam.contamination",
+            to_stage: "vcf.filter",
+        },
+        CrossBridge {
+            id: "vcf_filter_to_vcf_stats",
+            from_stage: "vcf.filter",
+            to_stage: "vcf.stats",
         },
     ]
 }
@@ -382,10 +417,16 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
     for domain in &domains {
         if domain == "cross" {
             for bridge in cross_bridges() {
-                let left_tools = registry_tools_for_stage(&registry_path, bridge.from_stage, None, "all")
-                    .unwrap_or_default();
-                let right_tools = registry_tools_for_stage(&registry_path, bridge.to_stage, None, "all")
-                    .unwrap_or_default();
+                let left_tools = match registry_tools_for_stage(&registry_path, bridge.from_stage, None, "all")
+                {
+                    Ok(value) if !value.is_empty() => value,
+                    _ => vec!["<unbound-left>".to_string()],
+                };
+                let right_tools =
+                    match registry_tools_for_stage(&registry_path, bridge.to_stage, None, "all") {
+                        Ok(value) if !value.is_empty() => value,
+                        _ => vec!["<unbound-right>".to_string()],
+                    };
                 for left in &left_tools {
                     for right in &right_tools {
                         let stage_binding = format!("{}=>{}", bridge.from_stage, bridge.to_stage);
@@ -586,8 +627,9 @@ sample = "sample-1"
     #[test]
     fn cross_bridge_catalog_is_populated() {
         let bridges = cross_bridges();
-        assert!(bridges.len() >= 3);
+        assert!(bridges.len() >= 10);
         assert!(bridges.iter().any(|bridge| bridge.id == "fastq_to_bam"));
+        assert!(bridges.iter().any(|bridge| bridge.id == "bam_contamination_to_vcf_filter"));
     }
 
     #[test]
@@ -695,8 +737,13 @@ sample = "sample-1"
             json: false,
         })
         .expect("cross matrix");
+        assert!(!cross.rows.is_empty());
         assert!(cross.rows.iter().all(|row| row.matrix_domain == "cross"));
         assert!(cross.rows.iter().all(|row| row.stage_id.contains("=>")));
+        assert!(cross
+            .rows
+            .iter()
+            .any(|row| row.row_id.contains("bam_contamination_to_vcf_filter")));
 
         let all = benchmark_matrix(&BenchmarkMatrixArgs {
             config,
