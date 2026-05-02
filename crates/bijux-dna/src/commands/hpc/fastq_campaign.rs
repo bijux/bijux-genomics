@@ -942,6 +942,34 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G118" => vec![
+            format!("qc_manifest_rows_present={}", !rows.is_empty()),
+            format!(
+                "qc_manifest_stage_bound={}",
+                rows.iter()
+                    .any(|row| row.stage_id == "fastq.materialize_qc_manifest")
+            ),
+            format!(
+                "qc_profile_stages_covered={}",
+                rows.iter()
+                    .filter(|row| {
+                        matches!(
+                            row.stage_id.as_str(),
+                            "fastq.profile_read_lengths"
+                                | "fastq.profile_overrepresented_sequences"
+                                | "fastq.materialize_qc_manifest"
+                        )
+                    })
+                    .count()
+            ),
+            format!(
+                "qc_stability_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.appraiser_id == "reproducibility")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1592,5 +1620,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("chunk_profile_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_118_emits_qc_manifest_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G118".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "reproducibility".to_string(),
+            row_id: "r12".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "reproducibility-low-repeats".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("qc_manifest_stage_bound=true")));
     }
 }
