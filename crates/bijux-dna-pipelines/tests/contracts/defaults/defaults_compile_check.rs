@@ -22,9 +22,7 @@ fn defaults_compile_against_domain_params() {
                 let missing = parsed.missing_required_fields();
                 assert!(
                     missing.is_empty(),
-                    "fastq defaults missing required fields for {}: {:?}",
-                    stage_id_str,
-                    missing
+                    "fastq defaults missing required fields for {stage_id_str}: {missing:?}"
                 );
                 continue;
             }

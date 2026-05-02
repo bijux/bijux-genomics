@@ -30,19 +30,22 @@ fn collect_json_files(root: &Path) -> Vec<PathBuf> {
 fn parse_core_fixture(schema: &str, value: serde_json::Value, path: &Path) {
     match schema {
         "bijux.execution_graph.v1" => {
-            let graph: ExecutionGraph = serde_json::from_value(value)
-                .unwrap_or_else(|err| panic!("{path:?}: ExecutionGraph parse failed: {err}"));
-            graph
-                .validate_strict()
-                .unwrap_or_else(|err| panic!("{path:?}: ExecutionGraph validate failed: {err}"));
+            let graph: ExecutionGraph = serde_json::from_value(value).unwrap_or_else(|err| {
+                panic!("{}: ExecutionGraph parse failed: {err}", path.display())
+            });
+            graph.validate_strict().unwrap_or_else(|err| {
+                panic!("{}: ExecutionGraph validate failed: {err}", path.display())
+            });
         }
         "bijux.run_record.v1" => {
-            let _: RunRecordV1 = serde_json::from_value(value)
-                .unwrap_or_else(|err| panic!("{path:?}: RunRecordV1 parse failed: {err}"));
+            let _: RunRecordV1 = serde_json::from_value(value).unwrap_or_else(|err| {
+                panic!("{}: RunRecordV1 parse failed: {err}", path.display())
+            });
         }
         "bijux.tool_invocation.v1" => {
-            let _: ToolInvocationV1 = serde_json::from_value(value)
-                .unwrap_or_else(|err| panic!("{path:?}: ToolInvocationV1 parse failed: {err}"));
+            let _: ToolInvocationV1 = serde_json::from_value(value).unwrap_or_else(|err| {
+                panic!("{}: ToolInvocationV1 parse failed: {err}", path.display())
+            });
         }
         _ => {
             // Not a core schema; ignore.
