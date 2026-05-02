@@ -72,10 +72,10 @@ pub struct PreparationCleanupEntry {
 
 pub fn preparation_dependency_graph(
     config_path: &Path,
-    env_file_override: Option<&Path>,
-    user_override_path: Option<&Path>,
+    env_file_policy: Option<&Path>,
+    user_policy_path: Option<&Path>,
 ) -> Result<PreparationDependencyGraphReport> {
-    let report = campaign_dry_run(config_path, env_file_override, user_override_path)?;
+    let report = campaign_dry_run(config_path, env_file_policy, user_policy_path)?;
     let mut nodes = Vec::new();
     nodes.push(PreparationDependencyNode {
         id: "corpora".to_string(),
@@ -103,15 +103,14 @@ pub fn preparation_dependency_graph(
 
     let mut missing_prerequisites = Vec::new();
     for job in &report.planned_jobs {
-        let mut depends_on = vec!["corpora".to_string(), "databases".to_string(), "images".to_string()];
+        let mut depends_on =
+            vec!["corpora".to_string(), "databases".to_string(), "images".to_string()];
         for dep in &job.depends_on {
             if let Some(resolved) = by_name.get(dep) {
                 depends_on.push(resolved.clone());
             } else {
-                missing_prerequisites.push(format!(
-                    "job {} references unknown dependency `{dep}`",
-                    job.job_id
-                ));
+                missing_prerequisites
+                    .push(format!("job {} references unknown dependency `{dep}`", job.job_id));
             }
         }
         nodes.push(PreparationDependencyNode {
@@ -133,7 +132,9 @@ pub fn preparation_dependency_graph(
     })
 }
 
-fn preparation_surfaces(report: &crate::commands::hpc::CampaignDryRunReport) -> [(&'static str, &str); 3] {
+fn preparation_surfaces(
+    report: &crate::commands::hpc::CampaignDryRunReport,
+) -> [(&'static str, &str); 3] {
     [
         ("corpora", report.layout.corpora_root.as_str()),
         ("databases", report.layout.databases_root.as_str()),
@@ -152,19 +153,21 @@ fn surface_fingerprint(campaign_id: &str, domain: &str, surface: &str, root_path
 
 pub fn prepare_foundation(
     config_path: &Path,
-    env_file_override: Option<&Path>,
-    user_override_path: Option<&Path>,
+    env_file_policy: Option<&Path>,
+    user_policy_path: Option<&Path>,
     dry_run: bool,
 ) -> Result<PreparationApplyReport> {
-    let report = campaign_dry_run(config_path, env_file_override, user_override_path)?;
+    let report = campaign_dry_run(config_path, env_file_policy, user_policy_path)?;
     let mut actions = Vec::new();
     for (surface, root_str) in preparation_surfaces(&report) {
         let root = Path::new(root_str);
         if !dry_run {
-            bijux_dna_infra::ensure_dir(root).with_context(|| format!("create {}", root.display()))?;
+            bijux_dna_infra::ensure_dir(root)
+                .with_context(|| format!("create {}", root.display()))?;
         }
         let lock = lock_path(root);
-        let fingerprint = surface_fingerprint(&report.campaign_id, &report.domain, surface, root_str);
+        let fingerprint =
+            surface_fingerprint(&report.campaign_id, &report.domain, surface, root_str);
         let state = PreparationLock {
             schema_version: PREPARATION_APPLY_SCHEMA_VERSION.to_string(),
             surface: surface.to_string(),
@@ -173,7 +176,8 @@ pub fn prepare_foundation(
             fingerprint: fingerprint.clone(),
         };
         let existing_fingerprint = if lock.is_file() {
-            let raw = std::fs::read_to_string(&lock).with_context(|| format!("read {}", lock.display()))?;
+            let raw = std::fs::read_to_string(&lock)
+                .with_context(|| format!("read {}", lock.display()))?;
             let parsed = serde_json::from_str::<PreparationLock>(&raw).ok();
             parsed.map(|value| value.fingerprint)
         } else {
@@ -236,11 +240,11 @@ fn collect_cleanup_candidates(root: &Path, out: &mut Vec<PathBuf>) -> Result<()>
 
 pub fn cleanup_preparation(
     config_path: &Path,
-    env_file_override: Option<&Path>,
-    user_override_path: Option<&Path>,
+    env_file_policy: Option<&Path>,
+    user_policy_path: Option<&Path>,
     dry_run: bool,
 ) -> Result<PreparationCleanupReport> {
-    let report = campaign_dry_run(config_path, env_file_override, user_override_path)?;
+    let report = campaign_dry_run(config_path, env_file_policy, user_policy_path)?;
     let roots = [
         PathBuf::from(report.layout.corpora_root.as_str()),
         PathBuf::from(report.layout.databases_root.as_str()),
@@ -256,13 +260,16 @@ pub fn cleanup_preparation(
 
     let mut removed = Vec::new();
     for path in candidates {
-        let metadata = std::fs::metadata(&path).with_context(|| format!("stat {}", path.display()))?;
+        let metadata =
+            std::fs::metadata(&path).with_context(|| format!("stat {}", path.display()))?;
         let kind = if metadata.is_dir() { "dir" } else { "file" };
         if !dry_run {
             if metadata.is_dir() {
-                std::fs::remove_dir_all(&path).with_context(|| format!("remove {}", path.display()))?;
+                std::fs::remove_dir_all(&path)
+                    .with_context(|| format!("remove {}", path.display()))?;
             } else {
-                std::fs::remove_file(&path).with_context(|| format!("remove {}", path.display()))?;
+                bijux_dna_infra::remove_file(&path)
+                    .with_context(|| format!("remove {}", path.display()))?;
             }
         }
         removed.push(PreparationCleanupEntry {
@@ -284,7 +291,7 @@ pub fn cleanup_preparation(
 mod tests {
     #![allow(clippy::expect_used)]
 
-    use super::{cleanup_preparation, prepare_foundation, preparation_dependency_graph};
+    use super::{cleanup_preparation, preparation_dependency_graph, prepare_foundation};
 
     #[test]
     fn preparation_graph_contains_preparation_roots_and_job_edges() {
@@ -337,7 +344,7 @@ depends_on = ["fastq_validate"]
 "#,
             root = root.path().display()
         );
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
         let graph = preparation_dependency_graph(&config_path, None, None).expect("graph");
         assert!(graph.ready);
         assert!(graph.nodes.iter().any(|node| node.id == "corpora"));
@@ -396,7 +403,7 @@ sample = "sample-1"
 "#,
             root = root.path().display()
         );
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
 
         let first = prepare_foundation(&config_path, None, None, false).expect("prepare 1");
         assert!(first.actions.iter().all(|action| action.action == "prepared"));
@@ -448,7 +455,7 @@ sample = "sample-1"
 "#,
             root = root.path().display()
         );
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
         let report = prepare_foundation(&config_path, None, None, true).expect("dry run");
         assert!(report.dry_run);
         assert!(report.actions.iter().all(|action| action.action == "would_prepare"));
@@ -501,16 +508,16 @@ sample = "sample-1"
 "#,
             root = root.path().display()
         );
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
         let corpora = root.path().join("corpora");
         let scratch = root.path().join("scratch");
-        std::fs::create_dir_all(&corpora).expect("mkdir corpora");
-        std::fs::create_dir_all(&scratch).expect("mkdir scratch");
+        bijux_dna_infra::ensure_dir(&corpora).expect("mkdir corpora");
+        bijux_dna_infra::ensure_dir(&scratch).expect("mkdir scratch");
         let partial_file = corpora.join("sample.partial");
         let failed_dir = scratch.join("old.failed");
-        std::fs::write(&partial_file, b"partial").expect("write partial");
-        std::fs::create_dir_all(&failed_dir).expect("mkdir failed");
-        std::fs::write(failed_dir.join("tmp.txt"), b"x").expect("write child");
+        bijux_dna_infra::write_bytes(&partial_file, b"partial").expect("write partial");
+        bijux_dna_infra::ensure_dir(&failed_dir).expect("mkdir failed");
+        bijux_dna_infra::write_bytes(failed_dir.join("tmp.txt"), b"x").expect("write child");
 
         let dry = cleanup_preparation(&config_path, None, None, true).expect("cleanup dry");
         assert!(dry.dry_run);

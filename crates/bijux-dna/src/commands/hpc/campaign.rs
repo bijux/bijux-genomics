@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 const CAMPAIGN_SCHEMA_VERSION: &str = "bijux.hpc.campaign.v1";
 const ENV_DEFAULT_PATH: &str = "configs/hpc/.env";
-const USER_OVERRIDE_DEFAULT_PATH: &str = "configs/hpc/campaign/user.override.toml";
+const USER_POLICY_DEFAULT_PATH: &str = "configs/hpc/campaign/user.policy.toml";
 
 const BUILTIN_LUNARC_PROFILE: &str = "lunarc";
 const BUILTIN_GENERIC_PROFILE: &str = "generic";
@@ -189,17 +189,17 @@ pub struct SiteProfile {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
-pub struct CampaignOverrides {
+pub struct CampaignPolicies {
     #[serde(default)]
-    pub layout: Option<LayoutOverrides>,
+    pub layout: Option<LayoutPolicies>,
     #[serde(default)]
-    pub slurm: Option<SlurmOverrides>,
+    pub slurm: Option<SlurmPolicies>,
     #[serde(default)]
-    pub resources: Option<ResourceOverrides>,
+    pub resources: Option<ResourcePolicies>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
-pub struct LayoutOverrides {
+pub struct LayoutPolicies {
     pub corpora_root: Option<PathBuf>,
     pub databases_root: Option<PathBuf>,
     pub images_root: Option<PathBuf>,
@@ -212,7 +212,7 @@ pub struct LayoutOverrides {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
-pub struct SlurmOverrides {
+pub struct SlurmPolicies {
     pub site_profile: Option<String>,
     pub account: Option<String>,
     pub project: Option<String>,
@@ -225,7 +225,7 @@ pub struct SlurmOverrides {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
-pub struct ResourceOverrides {
+pub struct ResourcePolicies {
     pub default: Option<String>,
     #[serde(default)]
     pub templates: BTreeMap<String, ResourceTemplate>,
@@ -236,8 +236,8 @@ pub struct CampaignPreflightReport {
     pub schema_version: &'static str,
     pub config_path: String,
     pub env_file_path: String,
-    pub user_override_path: String,
-    pub user_overrides_applied: bool,
+    pub user_policy_path: String,
+    pub user_policies_applied: bool,
     pub checks: Vec<CampaignCheck>,
     pub resolved_slurm: ResolvedSlurm,
     pub ok: bool,
@@ -248,8 +248,8 @@ pub struct CampaignDryRunReport {
     pub schema_version: &'static str,
     pub config_path: String,
     pub env_file_path: String,
-    pub user_override_path: String,
-    pub user_overrides_applied: bool,
+    pub user_policy_path: String,
+    pub user_policies_applied: bool,
     pub campaign_id: String,
     pub domain: String,
     pub layout: PlannedLayout,
@@ -328,8 +328,8 @@ pub struct ResolvedSlurm {
 #[derive(Debug, Clone)]
 struct ResolutionMetadata {
     env_file_path: PathBuf,
-    user_override_path: PathBuf,
-    user_overrides_applied: bool,
+    user_policy_path: PathBuf,
+    user_policies_applied: bool,
 }
 
 fn default_campaign_schema_version() -> String {
@@ -372,7 +372,12 @@ fn parse_walltime_seconds(value: &str) -> Option<u64> {
     if parts.next().is_some() || minutes >= 60 || seconds >= 60 {
         return None;
     }
-    Some(hours.saturating_mul(3600).saturating_add(minutes.saturating_mul(60)).saturating_add(seconds))
+    Some(
+        hours
+            .saturating_mul(3600)
+            .saturating_add(minutes.saturating_mul(60))
+            .saturating_add(seconds),
+    )
 }
 
 fn format_walltime_seconds(total_seconds: u64) -> String {
@@ -501,7 +506,10 @@ fn path_writable(path: &Path) -> bool {
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |delta| delta.as_nanos());
     let probe = path.join(format!(".bijux_probe_{nonce}"));
-    std::fs::write(&probe, b"ok").and_then(|_| std::fs::remove_file(&probe)).is_ok()
+    if bijux_dna_infra::write_bytes(&probe, b"ok").is_err() {
+        return false;
+    }
+    bijux_dna_infra::remove_file(&probe).is_ok()
 }
 
 fn env_file_private(path: &Path) -> Option<bool> {
@@ -619,8 +627,8 @@ fn built_in_site_profile(name: &str) -> Option<SiteProfile> {
     }
 }
 
-fn apply_overrides(config: &mut CampaignConfig, overrides: CampaignOverrides) {
-    if let Some(layout) = overrides.layout {
+fn apply_policies(config: &mut CampaignConfig, policies: CampaignPolicies) {
+    if let Some(layout) = policies.layout {
         if let Some(value) = layout.corpora_root {
             config.layout.corpora_root = value;
         }
@@ -649,7 +657,7 @@ fn apply_overrides(config: &mut CampaignConfig, overrides: CampaignOverrides) {
             config.layout.baselines_root = value;
         }
     }
-    if let Some(slurm) = overrides.slurm {
+    if let Some(slurm) = policies.slurm {
         config.slurm.site_profile =
             trim_to_option(slurm.site_profile).or(config.slurm.site_profile.take());
         config.slurm.account = trim_to_option(slurm.account).or(config.slurm.account.take());
@@ -668,7 +676,7 @@ fn apply_overrides(config: &mut CampaignConfig, overrides: CampaignOverrides) {
             config.slurm.retry_on_exit_codes = values;
         }
     }
-    if let Some(resources) = overrides.resources {
+    if let Some(resources) = policies.resources {
         if let Some(default) = trim_to_option(resources.default) {
             config.resources.default = default;
         }
@@ -932,7 +940,7 @@ fn load_campaign_config_raw(config_path: &Path) -> Result<(CampaignConfig, Strin
     Ok((cfg, raw))
 }
 
-fn load_override_file(path: &Path) -> Result<CampaignOverrides> {
+fn load_policy_file(path: &Path) -> Result<CampaignPolicies> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     let parsed = toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
     Ok(parsed)
@@ -940,9 +948,9 @@ fn load_override_file(path: &Path) -> Result<CampaignOverrides> {
 
 fn load_env_map(
     config: &CampaignConfig,
-    env_file_override: Option<&Path>,
+    env_file_policy: Option<&Path>,
 ) -> Result<(BTreeMap<String, String>, PathBuf)> {
-    let env_path = env_file_override
+    let env_path = env_file_policy
         .map(Path::to_path_buf)
         .or_else(|| config.security.env_file.clone())
         .unwrap_or_else(|| PathBuf::from(ENV_DEFAULT_PATH));
@@ -956,33 +964,29 @@ fn load_env_map(
 
 fn resolve_campaign_config(
     config_path: &Path,
-    env_file_override: Option<&Path>,
-    user_override_path: Option<&Path>,
+    env_file_policy: Option<&Path>,
+    user_policy_path: Option<&Path>,
 ) -> Result<(CampaignConfig, ResolvedSlurm, ResolutionMetadata)> {
     let (mut config, _) = load_campaign_config_raw(config_path)?;
     merge_site_profile_file(&mut config, config_path)?;
 
-    let override_path = user_override_path
+    let policy_path = user_policy_path
         .map(Path::to_path_buf)
-        .unwrap_or_else(|| PathBuf::from(USER_OVERRIDE_DEFAULT_PATH));
-    let mut user_overrides_applied = false;
-    if override_path.exists() {
-        let overrides = load_override_file(&override_path)?;
-        apply_overrides(&mut config, overrides);
-        user_overrides_applied = true;
+        .unwrap_or_else(|| PathBuf::from(USER_POLICY_DEFAULT_PATH));
+    let mut user_policies_applied = false;
+    if policy_path.exists() {
+        let policies = load_policy_file(&policy_path)?;
+        apply_policies(&mut config, policies);
+        user_policies_applied = true;
     }
 
     validate_templates(&config.output_templates)?;
-    let (env_map, env_file_path) = load_env_map(&config, env_file_override)?;
+    let (env_map, env_file_path) = load_env_map(&config, env_file_policy)?;
     let resolved_slurm = resolve_slurm(&config, &env_map);
     Ok((
         config,
         resolved_slurm,
-        ResolutionMetadata {
-            env_file_path,
-            user_override_path: override_path,
-            user_overrides_applied,
-        },
+        ResolutionMetadata { env_file_path, user_policy_path: policy_path, user_policies_applied },
     ))
 }
 
@@ -1147,11 +1151,11 @@ depends_on = ["fastq_validate_sample_0001"]
 
 pub fn campaign_preflight(
     config_path: &Path,
-    env_file_override: Option<&Path>,
-    user_override_path: Option<&Path>,
+    env_file_policy: Option<&Path>,
+    user_policy_path: Option<&Path>,
 ) -> Result<CampaignPreflightReport> {
     let (config, resolved_slurm, metadata) =
-        resolve_campaign_config(config_path, env_file_override, user_override_path)?;
+        resolve_campaign_config(config_path, env_file_policy, user_policy_path)?;
 
     let mut checks = Vec::new();
     checks.push(CampaignCheck {
@@ -1289,11 +1293,8 @@ pub fn campaign_preflight(
             ok: config.resources.templates.contains_key(&template_name),
             detail: template_name,
         });
-        if let Some(class_name) = job
-            .corpus_size_class
-            .as_deref()
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
+        if let Some(class_name) =
+            job.corpus_size_class.as_deref().map(str::trim).filter(|value| !value.is_empty())
         {
             checks.push(CampaignCheck {
                 name: format!("job_corpus_size_class_present:{}:{}", job.stage, job.sample),
@@ -1313,7 +1314,10 @@ pub fn campaign_preflight(
             ok,
             detail: format!(
                 "cpu={} mem={} walltime={} scratch={}",
-                policy.cpu_percent, policy.mem_percent, policy.walltime_percent, policy.scratch_percent
+                policy.cpu_percent,
+                policy.mem_percent,
+                policy.walltime_percent,
+                policy.scratch_percent
             ),
         });
     }
@@ -1323,8 +1327,8 @@ pub fn campaign_preflight(
         schema_version: CAMPAIGN_SCHEMA_VERSION,
         config_path: config_path.display().to_string(),
         env_file_path: metadata.env_file_path.display().to_string(),
-        user_override_path: metadata.user_override_path.display().to_string(),
-        user_overrides_applied: metadata.user_overrides_applied,
+        user_policy_path: metadata.user_policy_path.display().to_string(),
+        user_policies_applied: metadata.user_policies_applied,
         checks,
         resolved_slurm,
         ok,
@@ -1333,11 +1337,11 @@ pub fn campaign_preflight(
 
 pub fn campaign_dry_run(
     config_path: &Path,
-    env_file_override: Option<&Path>,
-    user_override_path: Option<&Path>,
+    env_file_policy: Option<&Path>,
+    user_policy_path: Option<&Path>,
 ) -> Result<CampaignDryRunReport> {
     let (config, resolved_slurm, metadata) =
-        resolve_campaign_config(config_path, env_file_override, user_override_path)?;
+        resolve_campaign_config(config_path, env_file_policy, user_policy_path)?;
     let timestamp = now_timestamp_compact();
     let mut planned_jobs = Vec::new();
 
@@ -1351,17 +1355,19 @@ pub fn campaign_dry_run(
         );
 
         let base_resources = config.resources.templates.get(&template_name).ok_or_else(|| {
-            anyhow!(
-                "job `{}` references unknown resource template `{template_name}`",
-                job.stage
-            )
+            anyhow!("job `{}` references unknown resource template `{template_name}`", job.stage)
         })?;
         let corpus_size_class =
             job.corpus_size_class.as_deref().map(str::trim).filter(|value| !value.is_empty());
         let scaling_policy = match corpus_size_class {
-            Some(class_name) => Some(config.resources.corpus_size_scaling.get(class_name).ok_or_else(
-                || anyhow!("job `{}` references unknown corpus_size_class `{class_name}`", job.stage),
-            )?),
+            Some(class_name) => {
+                Some(config.resources.corpus_size_scaling.get(class_name).ok_or_else(|| {
+                    anyhow!(
+                        "job `{}` references unknown corpus_size_class `{class_name}`",
+                        job.stage
+                    )
+                })?)
+            }
             None => None,
         };
         let resources = apply_corpus_size_scaling(base_resources, scaling_policy)?;
@@ -1443,8 +1449,8 @@ pub fn campaign_dry_run(
         schema_version: CAMPAIGN_SCHEMA_VERSION,
         config_path: config_path.display().to_string(),
         env_file_path: metadata.env_file_path.display().to_string(),
-        user_override_path: metadata.user_override_path.display().to_string(),
-        user_overrides_applied: metadata.user_overrides_applied,
+        user_policy_path: metadata.user_policy_path.display().to_string(),
+        user_policies_applied: metadata.user_policies_applied,
         campaign_id: config.campaign.id,
         domain: config.campaign.domain,
         layout: PlannedLayout {
@@ -1556,7 +1562,7 @@ stage = "fastq.validate_reads"
 tool = "seqkit_v2"
 sample = "sample-1"
 "#;
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
 
         let err =
             campaign_preflight(&config_path, None, None).expect_err("must reject missing tokens");
@@ -1597,7 +1603,7 @@ stage = "fastq.validate_reads"
 tool = "seqkit_v2"
 sample = "sample-1"
 "#;
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
 
         let report = campaign_preflight(&config_path, None, None).expect("preflight");
         assert!(!report.ok);
@@ -1641,7 +1647,7 @@ stage = "fastq.validate_reads"
 tool = "seqkit_v2"
 sample = "sample-1"
 "#;
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
 
         let report = campaign_preflight(&config_path, None, None).expect("preflight");
         assert!(!report.ok);
@@ -1699,16 +1705,16 @@ tool = "seqkit_v2"
 sample = "sample-1"
 resource_template = "standard"
 "#;
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
 
         let report = campaign_dry_run(
             &config_path,
             None,
-            Some(root.path().join("missing.override").as_path()),
+            Some(root.path().join("missing.policy").as_path()),
         )
         .expect("dry run");
         assert!(report.env_file_path.ends_with(ENV_DEFAULT_PATH));
-        assert!(!report.user_overrides_applied);
+        assert!(!report.user_policies_applied);
         assert_eq!(report.planned_jobs.len(), 1);
         let job = &report.planned_jobs[0];
         assert!(job
@@ -1764,7 +1770,7 @@ stage = "fastq.validate_reads"
 tool = "seqkit_v2"
 sample = "sample-1"
 "#;
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
 
         let report = campaign_dry_run(&config_path, None, None).expect("dry run");
         assert_eq!(
@@ -1774,7 +1780,7 @@ sample = "sample-1"
     }
 
     #[test]
-    fn campaign_resource_stage_defaults_choose_template_without_job_override() {
+    fn campaign_resource_stage_defaults_choose_template_without_job_policy() {
         let root = tempfile::tempdir().expect("tempdir");
         let config_path = root.path().join("campaign.toml");
         let config = r#"
@@ -1825,12 +1831,12 @@ stage = "fastq.validate_reads"
 tool = "seqkit_v2"
 sample = "sample-1"
 "#;
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
 
         let report = campaign_dry_run(
             &config_path,
             None,
-            Some(root.path().join("missing.override").as_path()),
+            Some(root.path().join("missing.policy").as_path()),
         )
         .expect("dry run");
         assert_eq!(report.planned_jobs.len(), 1);
@@ -1871,12 +1877,12 @@ tool = "samtools"
 sample = "sample-1"
 resource_template = "missing"
 "#;
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
 
         let report = campaign_preflight(
             &config_path,
             None,
-            Some(root.path().join("missing.override").as_path()),
+            Some(root.path().join("missing.policy").as_path()),
         )
         .expect("preflight");
         assert!(!report.ok);
@@ -1937,7 +1943,7 @@ tool = "seqkit_v2"
 sample = "sample-1"
 corpus_size_class = "stage_large"
 "#;
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
 
         let report = campaign_dry_run(&config_path, None, None).expect("dry run");
         assert_eq!(report.planned_jobs.len(), 1);
@@ -1946,10 +1952,7 @@ corpus_size_class = "stage_large"
         assert_eq!(resources.mem_gb, 16);
         assert_eq!(resources.walltime, "01:30:00");
         assert_eq!(resources.scratch_gb, 40);
-        assert_eq!(
-            report.planned_jobs[0].corpus_size_class.as_deref(),
-            Some("stage_large")
-        );
+        assert_eq!(report.planned_jobs[0].corpus_size_class.as_deref(), Some("stage_large"));
     }
 
     #[test]
@@ -1996,19 +1999,20 @@ tool = "seqkit_v2"
 sample = "sample-1"
 corpus_size_class = "stage_large"
 "#;
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
         let report = campaign_preflight(&config_path, None, None).expect("preflight");
         assert!(!report.ok);
-        assert!(report.checks.iter().any(
-            |check| check.name.starts_with("job_corpus_size_class_present") && !check.ok
-        ));
+        assert!(report
+            .checks
+            .iter()
+            .any(|check| check.name.starts_with("job_corpus_size_class_present") && !check.ok));
     }
 
     #[test]
-    fn campaign_reports_mark_user_overrides_when_file_exists() {
+    fn campaign_reports_mark_user_policies_when_file_exists() {
         let root = tempfile::tempdir().expect("tempdir");
         let config_path = root.path().join("campaign.toml");
-        let override_path = root.path().join("user.override.toml");
+        let policy_path = root.path().join("user.policy.toml");
         let config = r#"
 [campaign]
 id = "mini"
@@ -2036,16 +2040,16 @@ stage = "fastq.validate_reads"
 tool = "seqkit_v2"
 sample = "sample-1"
 "#;
-        let override_toml = r#"
+        let policy_toml = r#"
 [slurm]
 partition = "debug"
 "#;
-        std::fs::write(&config_path, config).expect("write config");
-        std::fs::write(&override_path, override_toml).expect("write override");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&policy_path, policy_toml).expect("write policy");
 
-        let report = campaign_dry_run(&config_path, None, Some(&override_path)).expect("dry run");
-        assert!(report.user_overrides_applied);
-        assert_eq!(report.user_override_path, override_path.display().to_string());
+        let report = campaign_dry_run(&config_path, None, Some(&policy_path)).expect("dry run");
+        assert!(report.user_policies_applied);
+        assert_eq!(report.user_policy_path, policy_path.display().to_string());
         assert_eq!(report.resolved_slurm.partition, "debug");
     }
 
@@ -2074,7 +2078,7 @@ partition = "debug"
             &appraiser_imports_root,
             &baselines_root,
         ] {
-            std::fs::create_dir_all(dir).expect("create dir");
+            bijux_dna_infra::ensure_dir(dir).expect("create dir");
         }
 
         let config = format!(
@@ -2115,8 +2119,8 @@ sample = "sample-1"
             appraiser_imports_root = appraiser_imports_root.display(),
             baselines_root = baselines_root.display()
         );
-        std::fs::write(&config_path, config).expect("write config");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(
             &env_file_path,
             "BIJUX_SLURM_ACCOUNT=account-local\nBIJUX_SLURM_PROJECT=project-local\n",
         )
@@ -2153,7 +2157,7 @@ sample = "sample-1"
             "imports",
             "baselines",
         ] {
-            std::fs::create_dir_all(root.path().join(name)).expect("create dir");
+            bijux_dna_infra::ensure_dir(root.path().join(name)).expect("create dir");
         }
         let config = format!(
             r#"
@@ -2185,8 +2189,8 @@ sample = "sample-1"
 "#,
             root = root.path().display()
         );
-        std::fs::write(&config_path, config).expect("write config");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(
             &env_file_path,
             "BIJUX_SLURM_ACCOUNT=account-local\nBIJUX_SLURM_PROJECT=project-local\n",
         )
@@ -2206,16 +2210,16 @@ sample = "sample-1"
         let root = tempfile::tempdir().expect("tempdir");
         let config_dir = root.path().join("campaign");
         let profiles_dir = config_dir.join("site-profiles");
-        std::fs::create_dir_all(&profiles_dir).expect("create profile dir");
+        bijux_dna_infra::ensure_dir(&profiles_dir).expect("create profile dir");
         let config_path = config_dir.join("mini.toml");
         let env_file_path = root.path().join("campaign.env");
 
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             profiles_dir.join("generic.toml"),
             "partition = \"debug\"\nqos = \"short\"\n",
         )
         .expect("write profile");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &env_file_path,
             "BIJUX_SLURM_ACCOUNT=account-local\nBIJUX_SLURM_PROJECT=project-local\n",
         )
@@ -2238,7 +2242,7 @@ sample = "sample-1"
             "imports",
             "baselines",
         ] {
-            std::fs::create_dir_all(root.path().join(name)).expect("create dir");
+            bijux_dna_infra::ensure_dir(root.path().join(name)).expect("create dir");
         }
         let config = format!(
             r#"
@@ -2270,7 +2274,7 @@ sample = "sample-1"
 "#,
             root = root.path().display()
         );
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
 
         let report = campaign_dry_run(&config_path, Some(&env_file_path), None).expect("dry run");
         assert_eq!(report.resolved_slurm.partition, "debug");

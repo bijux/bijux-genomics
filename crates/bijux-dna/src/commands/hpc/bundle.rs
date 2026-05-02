@@ -1,8 +1,8 @@
-use std::io::{Read, Write};
+use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::run::run_command;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -97,9 +97,7 @@ pub fn digest_file_sha256(path: &Path) -> Result<String> {
     let mut hasher = Sha256::new();
     let mut buf = [0_u8; 8192];
     loop {
-        let count = file
-            .read(&mut buf)
-            .with_context(|| format!("read {}", path.display()))?;
+        let count = file.read(&mut buf).with_context(|| format!("read {}", path.display()))?;
         if count == 0 {
             break;
         }
@@ -122,12 +120,20 @@ fn ensure_parent(path: &Path) -> Result<()> {
 
 fn temp_output_path(output_path: &Path) -> PathBuf {
     let mut path = output_path.to_path_buf();
-    let suffix = output_path
+    let suffix = output_path.file_name().and_then(|name| name.to_str()).map_or_else(
+        || "bundle.tmp".to_string(),
+        |name| format!("{name}.tmp.{}.{}", std::process::id(), monotonic_nanos()),
+    );
+    path.set_file_name(suffix);
+    path
+}
+
+fn temp_plaintext_path(output_path: &Path) -> PathBuf {
+    let mut path = temp_output_path(output_path);
+    let suffix = path
         .file_name()
         .and_then(|name| name.to_str())
-        .map_or_else(|| "bundle.tmp".to_string(), |name| {
-            format!("{name}.tmp.{}.{}", std::process::id(), monotonic_nanos())
-        });
+        .map_or_else(|| "bundle.input".to_string(), |name| format!("{name}.input"));
     path.set_file_name(suffix);
     path
 }
@@ -193,12 +199,10 @@ fn decrypt_mock_envelope(ciphertext: &[u8]) -> Result<Vec<u8>> {
     let envelope: MockEnvelope =
         serde_json::from_slice(ciphertext).context("parse mock envelope ciphertext")?;
     if envelope.schema_version != MOCK_ENVELOPE_SCHEMA_VERSION {
-        return Err(anyhow!(
-            "unsupported mock envelope schema `{}`",
-            envelope.schema_version
-        ));
+        return Err(anyhow!("unsupported mock envelope schema `{}`", envelope.schema_version));
     }
-    let key = Sha256::digest(format!("mock-envelope-v1|{}", envelope.recipients.join("|")).as_bytes());
+    let key =
+        Sha256::digest(format!("mock-envelope-v1|{}", envelope.recipients.join("|")).as_bytes());
     let cipher_bytes = hex_decode(&envelope.ciphertext_hex)?;
     let plaintext = cipher_bytes
         .iter()
@@ -212,32 +216,29 @@ fn decrypt_mock_envelope(ciphertext: &[u8]) -> Result<Vec<u8>> {
     Ok(plaintext)
 }
 
-fn encrypt_age_cli(
-    recipients: &[String],
-    plaintext: &[u8],
-    output_path: &Path,
-) -> Result<()> {
+fn encrypt_age_cli(recipients: &[String], plaintext: &[u8], output_path: &Path) -> Result<()> {
     if recipients.is_empty() {
         return Err(anyhow!("age-cli backend requires at least one recipient"));
     }
-    let mut command = Command::new("age");
-    command.arg("--encrypt");
+    let plaintext_path = temp_plaintext_path(output_path);
+    bijux_dna_infra::write_bytes(&plaintext_path, plaintext)
+        .with_context(|| format!("stage plaintext {}", plaintext_path.display()))?;
+
+    let mut args = vec!["--encrypt".to_string()];
     for recipient in recipients {
-        command.arg("-r").arg(recipient);
+        args.push("-r".to_string());
+        args.push(recipient.clone());
     }
-    command.arg("-o").arg(output_path).arg("-");
-    command.stdin(Stdio::piped()).stdout(Stdio::null()).stderr(Stdio::piped());
-    let mut child = command.spawn().context("spawn age --encrypt")?;
-    {
-        let stdin = child.stdin.as_mut().ok_or_else(|| anyhow!("open age stdin"))?;
-        stdin.write_all(plaintext).context("write plaintext to age stdin")?;
-    }
-    let output = child.wait_with_output().context("wait for age --encrypt")?;
-    if !output.status.success() {
-        return Err(anyhow!(
-            "age --encrypt failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        ));
+    args.push("-o".to_string());
+    args.push(output_path.display().to_string());
+    args.push(plaintext_path.display().to_string());
+
+    let output = run_command("age", &args)
+        .with_context(|| format!("run age --encrypt for {}", output_path.display()));
+    let _ = bijux_dna_infra::remove_file_if_exists(&plaintext_path);
+    let output = output?;
+    if output.exit_code != 0 {
+        return Err(anyhow!("age --encrypt failed: {}", output.stderr.trim()));
     }
     Ok(())
 }
@@ -248,22 +249,18 @@ fn decrypt_age_cli(bundle_path: &Path, identity_files: &[PathBuf]) -> Result<Vec
             "age-cli decrypt requires at least one identity file; pass --identity-file"
         ));
     }
-    let mut command = Command::new("age");
-    command.arg("--decrypt");
+    let mut args = vec!["--decrypt".to_string()];
     for identity_file in identity_files {
-        command.arg("-i").arg(identity_file);
+        args.push("-i".to_string());
+        args.push(identity_file.display().to_string());
     }
-    command.arg(bundle_path);
-    let output = command
-        .output()
+    args.push(bundle_path.display().to_string());
+    let output = run_command("age", &args)
         .with_context(|| format!("run age --decrypt for {}", bundle_path.display()))?;
-    if !output.status.success() {
-        return Err(anyhow!(
-            "age --decrypt failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        ));
+    if output.exit_code != 0 {
+        return Err(anyhow!("age --decrypt failed: {}", output.stderr.trim()));
     }
-    Ok(output.stdout)
+    Ok(output.stdout.into_bytes())
 }
 
 fn encrypt_with_backend(
@@ -275,7 +272,7 @@ fn encrypt_with_backend(
     match backend {
         EncryptionBackend::MockEnvelopeV1 => {
             let ciphertext = encrypt_mock_envelope(recipients, plaintext)?;
-            std::fs::write(output_path, ciphertext)
+            bijux_dna_infra::write_bytes(output_path, ciphertext)
                 .with_context(|| format!("write {}", output_path.display()))?;
             Ok(())
         }
@@ -308,21 +305,16 @@ pub fn write_encrypted_bundle(request: &BundleWriteRequest<'_>) -> Result<Bundle
     let temp_path = temp_output_path(request.output_path);
     let plaintext_sha256 = sha256_hex(request.plaintext);
 
-    let encrypt_result = encrypt_with_backend(
-        &backend,
-        request.recipients,
-        request.plaintext,
-        &temp_path,
-    );
+    let encrypt_result =
+        encrypt_with_backend(&backend, request.recipients, request.plaintext, &temp_path);
 
     if let Err(error) = encrypt_result {
-        let _ = std::fs::remove_file(&temp_path);
-        return Err(error)
-            .with_context(|| format!("encrypt {}", request.output_path.display()));
+        let _ = bijux_dna_infra::remove_file(&temp_path);
+        return Err(error).with_context(|| format!("encrypt {}", request.output_path.display()));
     }
 
     let ciphertext_sha256 = digest_file_sha256(&temp_path)?;
-    std::fs::rename(&temp_path, request.output_path).with_context(|| {
+    bijux_dna_infra::rename(&temp_path, request.output_path).with_context(|| {
         format!(
             "move encrypted bundle {} -> {}",
             temp_path.display(),
@@ -370,10 +362,7 @@ pub fn decrypt_bundle(request: &BundleDecryptRequest<'_>) -> Result<(BundleSidec
     let sidecar: BundleSidecar =
         serde_json::from_slice(&raw_sidecar).context("parse bundle sidecar")?;
     if sidecar.schema_version != BUNDLE_SIDECAR_SCHEMA_VERSION {
-        return Err(anyhow!(
-            "unsupported bundle sidecar schema `{}`",
-            sidecar.schema_version
-        ));
+        return Err(anyhow!("unsupported bundle sidecar schema `{}`", sidecar.schema_version));
     }
     if Path::new(&sidecar.ciphertext_path) != request.bundle_path {
         return Err(anyhow!(
@@ -467,7 +456,7 @@ mod tests {
 
         let mut ciphertext = std::fs::read(&bundle_path).expect("read ciphertext");
         ciphertext[0] ^= 1;
-        std::fs::write(&bundle_path, ciphertext).expect("write tampered ciphertext");
+        bijux_dna_infra::write_bytes(&bundle_path, ciphertext).expect("write tampered ciphertext");
 
         let err = decrypt_bundle(&BundleDecryptRequest {
             bundle_path: &bundle_path,
@@ -507,7 +496,7 @@ mod tests {
             serde_json::from_slice(&std::fs::read(&sidecar_path).expect("read sidecar"))
                 .expect("parse sidecar");
         sidecar["backend"] = serde_json::Value::String("age-cli".to_string());
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &sidecar_path,
             serde_json::to_vec_pretty(&sidecar).expect("serialize sidecar"),
         )

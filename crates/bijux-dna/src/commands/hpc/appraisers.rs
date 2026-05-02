@@ -98,16 +98,13 @@ fn summarize_findings(findings: &[AppraisalFinding]) -> AppraisalSummary {
         *by_appraiser.entry(finding.appraiser_id.clone()).or_insert(0) += 1;
         *by_severity.entry(finding.severity.clone()).or_insert(0) += 1;
     }
-    AppraisalSummary {
-        total_findings: findings.len(),
-        by_appraiser,
-        by_severity,
-    }
+    AppraisalSummary { total_findings: findings.len(), by_appraiser, by_severity }
 }
 
 fn matrix_from_args(args: &AppraiseMatrixArgs) -> Result<BenchmarkMatrixReport> {
     if let Some(path) = &args.matrix {
-        let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+        let raw =
+            std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
         let value = serde_json::from_str::<BenchmarkMatrixReport>(&raw)
             .with_context(|| format!("parse {}", path.display()))?;
         return Ok(value);
@@ -118,7 +115,7 @@ fn matrix_from_args(args: &AppraiseMatrixArgs) -> Result<BenchmarkMatrixReport> 
     benchmark_matrix(&BenchmarkMatrixArgs {
         config,
         env_file: args.env_file.clone(),
-        user_overrides: args.user_overrides.clone(),
+        user_policies: args.user_policies.clone(),
         domain: args.domain.clone(),
         out: None,
         fail_on_refuse: false,
@@ -167,16 +164,17 @@ pub fn appraise_matrix_report(matrix: BenchmarkMatrixReport) -> AppraisalReport 
 
 fn appraisal_from_args(args: &HardeningQueueArgs) -> Result<AppraisalReport> {
     if let Some(path) = &args.appraisal {
-        let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-        let value =
-            serde_json::from_str::<AppraisalReport>(&raw).with_context(|| format!("parse {}", path.display()))?;
+        let raw =
+            std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+        let value = serde_json::from_str::<AppraisalReport>(&raw)
+            .with_context(|| format!("parse {}", path.display()))?;
         return Ok(value);
     }
     appraise_matrix(&AppraiseMatrixArgs {
         matrix: args.matrix.clone(),
         config: args.config.clone(),
         env_file: args.env_file.clone(),
-        user_overrides: args.user_overrides.clone(),
+        user_policies: args.user_policies.clone(),
         domain: args.domain.clone(),
         out: None,
         json: false,
@@ -253,7 +251,8 @@ impl AppraiserPlugin for RuntimePerformanceAppraiser {
                     failure_class: "runtime-unrunnable".to_string(),
                     result_scope: "encrypted-results".to_string(),
                     summary: "benchmark row has zero repetitions".to_string(),
-                    recommendation: "set non-zero repetitions or resolve readiness blockers".to_string(),
+                    recommendation: "set non-zero repetitions or resolve readiness blockers"
+                        .to_string(),
                 });
             } else if row.repetitions < 2 {
                 findings.push(AppraisalFinding {
@@ -326,7 +325,8 @@ impl AppraiserPlugin for ScientificOutputAppraiser {
                     failure_class: "scientific-invalidity".to_string(),
                     result_scope: "encrypted-results".to_string(),
                     summary: "row classified as refuse is scientifically invalid".to_string(),
-                    recommendation: "resolve readiness mismatches before scientific evaluation".to_string(),
+                    recommendation: "resolve readiness mismatches before scientific evaluation"
+                        .to_string(),
                 });
             }
         }
@@ -351,7 +351,8 @@ impl AppraiserPlugin for ReproducibilityAppraiser {
                     failure_class: "reproducibility-low-repeats".to_string(),
                     result_scope: "encrypted-results".to_string(),
                     summary: "ready row has fewer than 3 repetitions".to_string(),
-                    recommendation: "set repetitions >= 3 for reproducibility confidence".to_string(),
+                    recommendation: "set repetitions >= 3 for reproducibility confidence"
+                        .to_string(),
                 });
             }
         }
@@ -383,7 +384,8 @@ impl AppraiserPlugin for BackendEquivalenceAppraiser {
                     failure_class: "single-backend".to_string(),
                     result_scope: "encrypted-results".to_string(),
                     summary: "stage has fewer than two backend/tool alternatives".to_string(),
-                    recommendation: "add alternative backend/tool binding for equivalence checks".to_string(),
+                    recommendation: "add alternative backend/tool binding for equivalence checks"
+                        .to_string(),
                 });
             }
         }
@@ -437,7 +439,8 @@ impl AppraiserPlugin for CorpusSuitabilityAppraiser {
                     failure_class: "corpus-mismatch".to_string(),
                     result_scope: "encrypted-results".to_string(),
                     summary: "corpus does not match required stage profile".to_string(),
-                    recommendation: "materialize corpus profile matching stage scientific claim".to_string(),
+                    recommendation: "materialize corpus profile matching stage scientific claim"
+                        .to_string(),
                 });
             }
         }
@@ -461,8 +464,10 @@ impl AppraiserPlugin for CodeFreezeAppraiser {
                     confidence: "medium".to_string(),
                     failure_class: "code-freeze-incomplete".to_string(),
                     result_scope: "encrypted-code".to_string(),
-                    summary: "row lacks stable tool/image binding for freeze completeness".to_string(),
-                    recommendation: "bind tool and image lock before code freeze publication".to_string(),
+                    summary: "row lacks stable tool/image binding for freeze completeness"
+                        .to_string(),
+                    recommendation: "bind tool and image lock before code freeze publication"
+                        .to_string(),
                 });
             }
         }
@@ -474,7 +479,9 @@ impl AppraiserPlugin for CodeFreezeAppraiser {
 mod tests {
     #![allow(clippy::expect_used)]
 
-    use super::{appraise_matrix, generate_hardening_queue, AppraiseMatrixArgs, HardeningQueueArgs};
+    use super::{
+        appraise_matrix, generate_hardening_queue, AppraiseMatrixArgs, HardeningQueueArgs,
+    };
 
     fn write_campaign(root: &std::path::Path) -> std::path::PathBuf {
         for name in [
@@ -488,14 +495,16 @@ mod tests {
             "imports",
             "baselines",
         ] {
-            std::fs::create_dir_all(root.join(name)).expect("create dir");
+            bijux_dna_infra::ensure_dir(root.join(name)).expect("create dir");
         }
-        std::fs::write(root.join("corpora/general"), b"x").expect("seed corpus");
-        std::fs::write(root.join("databases/general"), b"x").expect("seed db");
-        std::fs::create_dir_all(root.join("images/apptainer")).expect("seed image dir");
-        std::fs::write(root.join("images/apptainer/seqkit.sif"), b"x").expect("seed image");
+        bijux_dna_infra::write_bytes(root.join("corpora/general"), b"x").expect("seed corpus");
+        bijux_dna_infra::write_bytes(root.join("databases/general"), b"x").expect("seed db");
+        bijux_dna_infra::ensure_dir(root.join("images/apptainer")).expect("seed image dir");
+        bijux_dna_infra::write_bytes(root.join("images/apptainer/seqkit.sif"), b"x")
+            .expect("seed image");
         let env_path = root.join("campaign.env");
-        std::fs::write(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n").expect("env");
+        bijux_dna_infra::write_bytes(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n")
+            .expect("env");
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -544,7 +553,7 @@ sample = "sample-1"
 "#,
             root = root.display()
         );
-        std::fs::write(&path, cfg).expect("write config");
+        bijux_dna_infra::write_bytes(&path, cfg).expect("write config");
         path
     }
 
@@ -585,7 +594,8 @@ sample = "sample-1"
                 }
             ]
         });
-        std::fs::write(path, serde_json::to_vec_pretty(&matrix).expect("json")).expect("matrix");
+        bijux_dna_infra::write_bytes(path, serde_json::to_vec_pretty(&matrix).expect("json"))
+            .expect("matrix");
     }
 
     #[test]
@@ -596,7 +606,7 @@ sample = "sample-1"
             matrix: None,
             config: Some(config),
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             domain: "all".to_string(),
             out: None,
             json: false,
@@ -616,7 +626,7 @@ sample = "sample-1"
             matrix: None,
             config: Some(config),
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             domain: "all".to_string(),
             out: None,
             json: false,
@@ -635,7 +645,7 @@ sample = "sample-1"
             matrix: Some(matrix),
             config: None,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             domain: "all".to_string(),
             out: None,
             json: false,

@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::commands::cli::BenchmarkMatrixArgs;
 use crate::commands::cli::env::registry_tools_for_stage;
+use crate::commands::cli::BenchmarkMatrixArgs;
 use crate::commands::hpc::campaign_dry_run;
 
 const BENCHMARK_MATRIX_SCHEMA_VERSION: &str = "bijux.hpc.benchmark_matrix.v1";
@@ -71,7 +71,7 @@ fn workspace_root() -> Result<PathBuf> {
     let mut cursor = std::env::current_dir().context("resolve current directory")?;
     loop {
         let domain_dir = cursor.join("domain");
-        let registry = cursor.join("configs").join("ci").join("registry").join("tool_registry.toml");
+        let registry = bijux_dna_infra::configs_file(&cursor, "ci/registry/tool_registry.toml");
         if domain_dir.is_dir() && registry.is_file() {
             return Ok(cursor);
         }
@@ -91,8 +91,8 @@ fn domain_stage_ids(root: &Path, domain: &str) -> Result<Vec<String>> {
         return Err(anyhow!("stage catalog not found: {}", stages_dir.display()));
     }
     let mut stages = Vec::new();
-    for entry in std::fs::read_dir(&stages_dir)
-        .with_context(|| format!("read {}", stages_dir.display()))?
+    for entry in
+        std::fs::read_dir(&stages_dir).with_context(|| format!("read {}", stages_dir.display()))?
     {
         let path = entry?.path();
         if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
@@ -118,13 +118,7 @@ fn registry_path_from_root(root: &Path) -> PathBuf {
 fn normalize_token(value: &str) -> String {
     value
         .chars()
-        .map(|ch| {
-            if ch.is_ascii_alphanumeric() {
-                ch.to_ascii_lowercase()
-            } else {
-                '_'
-            }
-        })
+        .map(|ch| if ch.is_ascii_alphanumeric() { ch.to_ascii_lowercase() } else { '_' })
         .collect::<String>()
 }
 
@@ -189,7 +183,8 @@ fn stage_database_profile(stage_id: &str) -> Option<&'static str> {
         if stage_id.contains("rrna") {
             return Some("rrna");
         }
-        if stage_id.starts_with("vcf.") || stage_id.contains("call") || stage_id.contains("genotyp") {
+        if stage_id.starts_with("vcf.") || stage_id.contains("call") || stage_id.contains("genotyp")
+        {
             return Some("vcf");
         }
         if stage_id.contains("align") {
@@ -278,16 +273,10 @@ fn classify_readiness(
 ) -> BenchmarkReadiness {
     let mut reasons = Vec::new();
     if !corpus_match.ready {
-        reasons.push(format!(
-            "corpus profile `{}` missing",
-            corpus_match.required_profile
-        ));
+        reasons.push(format!("corpus profile `{}` missing", corpus_match.required_profile));
     }
     if !database_match.ready {
-        reasons.push(format!(
-            "database profile `{}` missing",
-            database_match.required_profile
-        ));
+        reasons.push(format!("database profile `{}` missing", database_match.required_profile));
     }
     if !image_match.ready {
         reasons.push("image match missing for tool binding".to_string());
@@ -299,10 +288,7 @@ fn classify_readiness(
     } else {
         "refuse"
     };
-    BenchmarkReadiness {
-        class: class.to_string(),
-        reasons,
-    }
+    BenchmarkReadiness { class: class.to_string(), reasons }
 }
 
 fn repetition_policy(matrix_domain: &str, stage_id: &str, readiness_class: &str) -> u32 {
@@ -326,20 +312,12 @@ fn summarize_rows(rows: &[BenchmarkMatrixRow]) -> BenchmarkMatrixSummary {
         *readiness_counts.entry(row.readiness.class.clone()).or_insert(0) += 1;
         *domain_counts.entry(row.matrix_domain.clone()).or_insert(0) += 1;
     }
-    BenchmarkMatrixSummary {
-        total_rows: rows.len(),
-        readiness_counts,
-        domain_counts,
-    }
+    BenchmarkMatrixSummary { total_rows: rows.len(), readiness_counts, domain_counts }
 }
 
 fn cross_bridges() -> &'static [CrossBridge] {
     &[
-        CrossBridge {
-            id: "fastq_to_bam",
-            from_stage: "fastq.trim_reads",
-            to_stage: "bam.align",
-        },
+        CrossBridge { id: "fastq_to_bam", from_stage: "fastq.trim_reads", to_stage: "bam.align" },
         CrossBridge {
             id: "fastq_validate_to_bam",
             from_stage: "fastq.validate_reads",
@@ -350,16 +328,8 @@ fn cross_bridges() -> &'static [CrossBridge] {
             from_stage: "fastq.trim_terminal_damage",
             to_stage: "bam.damage",
         },
-        CrossBridge {
-            id: "bam_to_vcf",
-            from_stage: "bam.genotyping",
-            to_stage: "vcf.call",
-        },
-        CrossBridge {
-            id: "fastq_to_vcf",
-            from_stage: "fastq.trim_reads",
-            to_stage: "vcf.call_gl",
-        },
+        CrossBridge { id: "bam_to_vcf", from_stage: "bam.genotyping", to_stage: "vcf.call" },
+        CrossBridge { id: "fastq_to_vcf", from_stage: "fastq.trim_reads", to_stage: "vcf.call_gl" },
         CrossBridge {
             id: "bam_summary_to_vcf_stats",
             from_stage: "bam.mapping_summary",
@@ -390,12 +360,9 @@ fn cross_bridges() -> &'static [CrossBridge] {
 
 fn resolve_matrix_domains(value: &str) -> Result<Vec<String>> {
     match value {
-        "all" => Ok(vec![
-            "fastq".to_string(),
-            "bam".to_string(),
-            "vcf".to_string(),
-            "cross".to_string(),
-        ]),
+        "all" => {
+            Ok(vec!["fastq".to_string(), "bam".to_string(), "vcf".to_string(), "cross".to_string()])
+        }
         "fastq" | "bam" | "vcf" => Ok(vec![value.to_string()]),
         "cross" => Ok(vec!["cross".to_string()]),
         other => Err(anyhow!(
@@ -407,7 +374,7 @@ fn resolve_matrix_domains(value: &str) -> Result<Vec<String>> {
 pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixReport> {
     let domains = resolve_matrix_domains(&args.domain)?;
     let dry_run =
-        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_policies.as_deref())?;
     let root = workspace_root()?;
     let registry_path = registry_path_from_root(&root);
     let corpus_tokens = collect_name_tokens(Path::new(&dry_run.layout.corpora_root), false)?;
@@ -417,8 +384,12 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
     for domain in &domains {
         if domain == "cross" {
             for bridge in cross_bridges() {
-                let left_tools = match registry_tools_for_stage(&registry_path, bridge.from_stage, None, "all")
-                {
+                let left_tools = match registry_tools_for_stage(
+                    &registry_path,
+                    bridge.from_stage,
+                    None,
+                    "all",
+                ) {
                     Ok(value) if !value.is_empty() => value,
                     _ => vec!["<unbound-left>".to_string()],
                 };
@@ -431,20 +402,26 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
                     for right in &right_tools {
                         let stage_binding = format!("{}=>{}", bridge.from_stage, bridge.to_stage);
                         let tool_binding = format!("{left}=>{right}");
-                        let corpus_match = match_surface(
-                            stage_corpus_profile(&stage_binding),
-                            &corpus_tokens,
-                        );
-                        let database_match = match_database_surface(&stage_binding, &database_tokens);
+                        let corpus_match =
+                            match_surface(stage_corpus_profile(&stage_binding), &corpus_tokens);
+                        let database_match =
+                            match_database_surface(&stage_binding, &database_tokens);
                         let image_match = match_image_surface(&tool_binding, &image_tokens);
                         let readiness =
                             classify_readiness(&corpus_match, &database_match, &image_match);
                         rows.push(BenchmarkMatrixRow {
-                            row_id: format!("cross.{}::{}::{}", bridge.id, stage_binding, tool_binding),
+                            row_id: format!(
+                                "cross.{}::{}::{}",
+                                bridge.id, stage_binding, tool_binding
+                            ),
                             matrix_domain: "cross".to_string(),
                             stage_id: stage_binding,
                             tool_id: tool_binding,
-                            repetitions: repetition_policy("cross", bridge.to_stage, &readiness.class),
+                            repetitions: repetition_policy(
+                                "cross",
+                                bridge.to_stage,
+                                &readiness.class,
+                            ),
                             corpus_match,
                             database_match,
                             image_match,
@@ -465,8 +442,7 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
                 let corpus_match = match_surface(stage_corpus_profile(&stage_id), &corpus_tokens);
                 let database_match = match_database_surface(&stage_id, &database_tokens);
                 let image_match = match_image_surface(&tool_id, &image_tokens);
-                let readiness =
-                    classify_readiness(&corpus_match, &database_match, &image_match);
+                let readiness = classify_readiness(&corpus_match, &database_match, &image_match);
                 rows.push(BenchmarkMatrixRow {
                     row_id: format!("{stage_id}::{tool_id}"),
                     matrix_domain: domain.clone(),
@@ -516,14 +492,17 @@ mod tests {
             "imports",
             "baselines",
         ] {
-            std::fs::create_dir_all(root.join(name)).expect("create dir");
+            bijux_dna_infra::ensure_dir(root.join(name)).expect("create dir");
         }
-        std::fs::write(root.join("corpora/modern_wgs"), b"x").expect("seed corpus token");
-        std::fs::write(root.join("databases/vcf_reference"), b"x").expect("seed db token");
-        std::fs::create_dir_all(root.join("images/apptainer")).expect("seed image dir");
-        std::fs::write(root.join("images/apptainer/seqkit.sif"), b"x").expect("seed image token");
+        bijux_dna_infra::write_bytes(root.join("corpora/modern_wgs"), b"x")
+            .expect("seed corpus token");
+        bijux_dna_infra::write_bytes(root.join("databases/vcf_reference"), b"x")
+            .expect("seed db token");
+        bijux_dna_infra::ensure_dir(root.join("images/apptainer")).expect("seed image dir");
+        bijux_dna_infra::write_bytes(root.join("images/apptainer/seqkit.sif"), b"x")
+            .expect("seed image token");
         let env_path = root.join("campaign.env");
-        std::fs::write(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n")
+        bijux_dna_infra::write_bytes(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n")
             .expect("write env");
         #[cfg(unix)]
         {
@@ -573,7 +552,7 @@ sample = "sample-1"
 "#,
             root = root.display()
         );
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
         config_path
     }
 
@@ -606,21 +585,10 @@ sample = "sample-1"
     fn matrix_domain_selector_supports_all_and_single_domains() {
         assert_eq!(
             resolve_matrix_domains("all").expect("all"),
-            vec![
-                "fastq".to_string(),
-                "bam".to_string(),
-                "vcf".to_string(),
-                "cross".to_string()
-            ]
+            vec!["fastq".to_string(), "bam".to_string(), "vcf".to_string(), "cross".to_string()]
         );
-        assert_eq!(
-            resolve_matrix_domains("bam").expect("bam"),
-            vec!["bam".to_string()]
-        );
-        assert_eq!(
-            resolve_matrix_domains("cross").expect("cross"),
-            vec!["cross".to_string()]
-        );
+        assert_eq!(resolve_matrix_domains("bam").expect("bam"), vec!["bam".to_string()]);
+        assert_eq!(resolve_matrix_domains("cross").expect("cross"), vec!["cross".to_string()]);
         assert!(resolve_matrix_domains("unknown").is_err());
     }
 
@@ -671,7 +639,8 @@ sample = "sample-1"
 
     #[test]
     fn corpus_surface_uses_profile_matching_tokens() {
-        let match_result = match_surface("edna", &["modern_wgs".to_string(), "edna_sweden".to_string()]);
+        let match_result =
+            match_surface("edna", &["modern_wgs".to_string(), "edna_sweden".to_string()]);
         assert_eq!(match_result.required_profile, "edna");
         assert!(match_result.ready);
         assert!(match_result.matched_profile.contains("edna"));
@@ -684,7 +653,7 @@ sample = "sample-1"
         let report = benchmark_matrix(&BenchmarkMatrixArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             domain: "fastq".to_string(),
             out: None,
             fail_on_refuse: false,
@@ -702,7 +671,7 @@ sample = "sample-1"
         let bam = benchmark_matrix(&BenchmarkMatrixArgs {
             config: config.clone(),
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             domain: "bam".to_string(),
             out: None,
             fail_on_refuse: false,
@@ -712,7 +681,7 @@ sample = "sample-1"
         let vcf = benchmark_matrix(&BenchmarkMatrixArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             domain: "vcf".to_string(),
             out: None,
             fail_on_refuse: false,
@@ -730,7 +699,7 @@ sample = "sample-1"
         let cross = benchmark_matrix(&BenchmarkMatrixArgs {
             config: config.clone(),
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             domain: "cross".to_string(),
             out: None,
             fail_on_refuse: false,
@@ -748,7 +717,7 @@ sample = "sample-1"
         let all = benchmark_matrix(&BenchmarkMatrixArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             domain: "all".to_string(),
             out: None,
             fail_on_refuse: false,
@@ -785,10 +754,7 @@ sample = "sample-1"
                     matched_profile: "seqkit".to_string(),
                     ready: true,
                 },
-                readiness: BenchmarkReadiness {
-                    class: "ready".to_string(),
-                    reasons: Vec::new(),
-                },
+                readiness: BenchmarkReadiness { class: "ready".to_string(), reasons: Vec::new() },
                 repetitions: 3,
             },
             BenchmarkMatrixRow {

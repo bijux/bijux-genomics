@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::run::run_command;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -341,11 +341,12 @@ fn write_operator_files(
 }
 
 fn git_stdout(args: &[&str]) -> Option<String> {
-    let output = Command::new("git").args(args).output().ok()?;
-    if !output.status.success() {
+    let arg_vec = args.iter().map(|value| (*value).to_string()).collect::<Vec<_>>();
+    let output = run_command("git", &arg_vec).ok()?;
+    if output.exit_code != 0 {
         return None;
     }
-    Some(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    Some(output.stdout.trim().to_string())
 }
 
 fn build_results_bundle(
@@ -362,7 +363,7 @@ fn build_results_bundle(
             "domain": report.domain,
             "config_path": report.config_path,
             "env_file_path": report.env_file_path,
-            "user_override_path": report.user_override_path,
+            "user_policy_path": report.user_policy_path,
         },
         "job": {
             "planned_job_id": job.planned.job_id,
@@ -411,7 +412,8 @@ fn build_results_bundle(
             "note": "appraiser jobs are tracked after runtime completion",
         }],
     });
-    let text = serde_json::to_string_pretty(&payload).context("serialize results bundle payload")?;
+    let text =
+        serde_json::to_string_pretty(&payload).context("serialize results bundle payload")?;
     Ok(redact_text(text, redaction_needles).into_bytes())
 }
 
@@ -432,8 +434,8 @@ fn build_code_bundle(
             "domain": report.domain,
             "config_path": report.config_path,
             "env_file_path": report.env_file_path,
-            "user_override_path": report.user_override_path,
-            "user_overrides_applied": report.user_overrides_applied,
+            "user_policy_path": report.user_policy_path,
+            "user_policies_applied": report.user_policies_applied,
         },
         "job": {
             "planned_job_id": job.planned.job_id,
@@ -453,7 +455,7 @@ fn build_code_bundle(
             "config_references": {
                 "campaign_config": report.config_path,
                 "env_file": report.env_file_path,
-                "user_override": report.user_override_path,
+                "user_policy": report.user_policy_path,
             },
             "repository_state": {
                 "git_head": git_stdout(&["rev-parse", "HEAD"]),
@@ -461,7 +463,9 @@ fn build_code_bundle(
                 "git_status_porcelain": git_stdout(&["status", "--porcelain"]),
             },
             "dvc_state": {
-                "available": Command::new("dvc").arg("--version").output().is_ok(),
+                "available": run_command("dvc", &["--version".to_string()])
+                    .map(|output| output.exit_code == 0)
+                    .unwrap_or(false),
                 "status_hint": "capture deferred to runtime wrapper when dvc is configured",
             },
         },
@@ -580,14 +584,12 @@ fn build_slurm_script(
     dependency_scheduler_ids: &[String],
 ) -> String {
     let dependency_line = if dependency_scheduler_ids.is_empty() {
-        "".to_string()
+        String::new()
     } else {
         format!("#SBATCH --dependency=afterok:{}\n", dependency_scheduler_ids.join(":"))
     };
-    let array_line = job
-        .planned
-        .array_task
-        .map_or_else(String::new, |task| format!("#SBATCH --array={task}\n"));
+    let array_line =
+        job.planned.array_task.map_or_else(String::new, |task| format!("#SBATCH --array={task}\n"));
     let retry_codes = report
         .resolved_slurm
         .retry_on_exit_codes
@@ -626,21 +628,17 @@ fn build_slurm_script(
 }
 
 fn submit_with_sbatch(script_path: &Path, dependency_scheduler_ids: &[String]) -> Result<String> {
-    let mut command = Command::new("sbatch");
+    let mut args = Vec::new();
     if !dependency_scheduler_ids.is_empty() {
-        command.arg(format!("--dependency=afterok:{}", dependency_scheduler_ids.join(":")));
+        args.push(format!("--dependency=afterok:{}", dependency_scheduler_ids.join(":")));
     }
-    command.arg(script_path);
-    let output =
-        command.output().with_context(|| format!("run sbatch for {}", script_path.display()))?;
-    if !output.status.success() {
-        return Err(anyhow!(
-            "sbatch failed for {}: {}",
-            script_path.display(),
-            String::from_utf8_lossy(&output.stderr)
-        ));
+    args.push(script_path.display().to_string());
+    let output = run_command("sbatch", &args)
+        .with_context(|| format!("run sbatch for {}", script_path.display()))?;
+    if output.exit_code != 0 {
+        return Err(anyhow!("sbatch failed for {}: {}", script_path.display(), output.stderr));
     }
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stdout = output.stdout;
     let id = stdout
         .split_whitespace()
         .find(|token| token.chars().all(|ch| ch.is_ascii_digit()))
@@ -740,12 +738,7 @@ fn run_submission(
             SubmissionMode::Real => submit_with_sbatch(&script_path, &dependency_scheduler_ids)?,
         };
 
-        write_operator_files(
-            selected_job,
-            &scheduler_job_id,
-            &submitted_at,
-            &redaction_needles,
-        )?;
+        write_operator_files(selected_job, &scheduler_job_id, &submitted_at, &redaction_needles)?;
         emit_primary_encrypted_bundles(
             &report,
             selected_job,
@@ -796,7 +789,7 @@ fn run_submission(
 
 pub fn submit_stage_benchmark(args: &SlurmSubmitStageArgs) -> Result<SlurmSubmissionReport> {
     let report =
-        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_policies.as_deref())?;
     run_submission(
         report,
         SubmissionSettings {
@@ -812,7 +805,7 @@ pub fn submit_stage_benchmark(args: &SlurmSubmitStageArgs) -> Result<SlurmSubmis
 
 pub fn submit_domain_benchmark(args: &SlurmSubmitDomainArgs) -> Result<SlurmSubmissionReport> {
     let report =
-        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_policies.as_deref())?;
     run_submission(
         report,
         SubmissionSettings {
@@ -824,7 +817,7 @@ pub fn submit_domain_benchmark(args: &SlurmSubmitDomainArgs) -> Result<SlurmSubm
 
 pub fn submit_cross_benchmark(args: &SlurmSubmitCrossArgs) -> Result<SlurmSubmissionReport> {
     let report =
-        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_policies.as_deref())?;
     let domains = args
         .domains
         .as_deref()
@@ -857,7 +850,7 @@ pub fn submit_cross_benchmark(args: &SlurmSubmitCrossArgs) -> Result<SlurmSubmis
 
 pub fn submit_campaign(args: &SlurmSubmitCampaignArgs) -> Result<SlurmSubmissionReport> {
     let report =
-        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_policies.as_deref())?;
     run_submission(
         report,
         SubmissionSettings {
@@ -877,8 +870,8 @@ fn collect_cancel_job_ids(args: &SlurmCancelArgs) -> Result<Vec<String>> {
     if let Some(manifest_path) = &args.manifest {
         let raw = std::fs::read_to_string(manifest_path)
             .with_context(|| format!("read {}", manifest_path.display()))?;
-        let value: serde_json::Value =
-            serde_json::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))?;
+        let value: serde_json::Value = serde_json::from_str(&raw)
+            .with_context(|| format!("parse {}", manifest_path.display()))?;
         let manifest_ids = value
             .get("jobs")
             .and_then(|rows| rows.as_array())
@@ -907,15 +900,9 @@ pub fn cancel_jobs(args: &SlurmCancelArgs) -> Result<SlurmCancelReport> {
             cancelled_job_ids: requested_job_ids,
         });
     }
-    let output = Command::new("scancel")
-        .args(&requested_job_ids)
-        .output()
-        .context("run scancel")?;
-    if !output.status.success() {
-        return Err(anyhow!(
-            "scancel failed: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
-        ));
+    let output = run_command("scancel", &requested_job_ids).context("run scancel")?;
+    if output.exit_code != 0 {
+        return Err(anyhow!("scancel failed: {}", output.stderr.trim()));
     }
     Ok(SlurmCancelReport {
         schema_version: SLURM_SUBMISSION_SCHEMA_VERSION,
@@ -939,12 +926,7 @@ fn scheduler_ids_from_submission_manifest(path: &Path) -> Result<BTreeMap<String
     let value: serde_json::Value =
         serde_json::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
     let mut map = BTreeMap::new();
-    for row in value
-        .get("jobs")
-        .and_then(|rows| rows.as_array())
-        .into_iter()
-        .flatten()
-    {
+    for row in value.get("jobs").and_then(|rows| rows.as_array()).into_iter().flatten() {
         let Some(planned_id) = row.get("planned_job_id").and_then(|v| v.as_str()) else {
             continue;
         };
@@ -958,7 +940,7 @@ fn scheduler_ids_from_submission_manifest(path: &Path) -> Result<BTreeMap<String
 
 pub fn monitor_campaign(args: &SlurmMonitorArgs) -> Result<SlurmMonitorReport> {
     let report =
-        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_policies.as_deref())?;
     let scheduler_ids = if let Some(path) = &args.submission_manifest {
         scheduler_ids_from_submission_manifest(path)?
     } else {
@@ -973,9 +955,12 @@ pub fn monitor_campaign(args: &SlurmMonitorArgs) -> Result<SlurmMonitorReport> {
         let code_exists = Path::new(&job.outputs.code).is_file();
         let results_sidecar_exists = sidecar_path_for(Path::new(&job.outputs.results)).is_file();
         let code_sidecar_exists = sidecar_path_for(Path::new(&job.outputs.code)).is_file();
-        let results_bundle_encrypted = results_exists && is_encrypted_bundle_marker(Path::new(&job.outputs.results));
-        let code_bundle_encrypted = code_exists && is_encrypted_bundle_marker(Path::new(&job.outputs.code));
-        let appraiser_done = PathBuf::from(format!("{}.appraiser.done", job.outputs.results)).is_file();
+        let results_bundle_encrypted =
+            results_exists && is_encrypted_bundle_marker(Path::new(&job.outputs.results));
+        let code_bundle_encrypted =
+            code_exists && is_encrypted_bundle_marker(Path::new(&job.outputs.code));
+        let appraiser_done =
+            PathBuf::from(format!("{}.appraiser.done", job.outputs.results)).is_file();
         entries.push(SlurmMonitorEntry {
             planned_job_id: job.job_id.clone(),
             scheduler_job_id: scheduler_ids
@@ -1004,7 +989,9 @@ pub fn monitor_campaign(args: &SlurmMonitorArgs) -> Result<SlurmMonitorReport> {
         jobs_with_err: entries.iter().filter(|row| row.err_exists).count(),
         jobs_with_results_bundle: entries
             .iter()
-            .filter(|row| row.results_exists && row.results_sidecar_exists && row.results_bundle_encrypted)
+            .filter(|row| {
+                row.results_exists && row.results_sidecar_exists && row.results_bundle_encrypted
+            })
             .count(),
         jobs_with_code_bundle: entries
             .iter()
@@ -1025,7 +1012,7 @@ pub fn write_copy_back_manifest(
     args: &SlurmCopyBackManifestArgs,
 ) -> Result<CopyBackManifestReport> {
     let report =
-        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_policies.as_deref())?;
     let manifest_path = args.out.clone().unwrap_or_else(|| {
         Path::new(&report.config_path).parent().map_or_else(
             || PathBuf::from("artifacts/slurm_copy_back_manifest.json"),
@@ -1049,9 +1036,7 @@ pub fn write_copy_back_manifest(
                 .display()
                 .to_string(),
             code_path: job.outputs.code.clone(),
-            code_sidecar_path: sidecar_path_for(Path::new(&job.outputs.code))
-                .display()
-                .to_string(),
+            code_sidecar_path: sidecar_path_for(Path::new(&job.outputs.code)).display().to_string(),
             script_path: script_path_for(Path::new(&job.outputs.log)).display().to_string(),
         })
         .collect::<Vec<_>>();
@@ -1093,8 +1078,9 @@ fn ensure_private_directory(path: &Path) -> Result<()> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let mut perms =
-            std::fs::metadata(path).with_context(|| format!("stat {}", path.display()))?.permissions();
+        let mut perms = std::fs::metadata(path)
+            .with_context(|| format!("stat {}", path.display()))?
+            .permissions();
         perms.set_mode(0o700);
         std::fs::set_permissions(path, perms)
             .with_context(|| format!("chmod {}", path.display()))?;
@@ -1121,11 +1107,7 @@ fn bundle_output_path(bundle_path: &Path, out_dir: &Path, suffix: &str) -> PathB
 }
 
 fn normalize_recipients(values: &[String]) -> Vec<String> {
-    values
-        .iter()
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty())
-        .collect()
+    values.iter().map(|value| value.trim().to_string()).filter(|value| !value.is_empty()).collect()
 }
 
 fn unsafe_destination(path: &Path) -> Result<bool> {
@@ -1149,7 +1131,7 @@ fn unsafe_destination(path: &Path) -> Result<bool> {
 fn ensure_safe_private_directory(path: &Path, allow_unsafe_destination: bool) -> Result<()> {
     if unsafe_destination(path)? && !allow_unsafe_destination {
         return Err(anyhow!(
-            "refuse unsafe decrypt destination {}; pass --allow-unsafe-destination to override",
+            "refuse unsafe decrypt destination {}; pass --allow-unsafe-destination to policy",
             path.display()
         ));
     }
@@ -1160,8 +1142,8 @@ fn load_env_map_for_redaction(env_path: &Path) -> Result<BTreeMap<String, String
     if !env_path.exists() {
         return Ok(BTreeMap::new());
     }
-    let raw =
-        std::fs::read_to_string(env_path).with_context(|| format!("read {}", env_path.display()))?;
+    let raw = std::fs::read_to_string(env_path)
+        .with_context(|| format!("read {}", env_path.display()))?;
     let mut map = BTreeMap::new();
     for line in raw.lines() {
         let trimmed = line.trim();
@@ -1268,10 +1250,11 @@ fn appraiser_output_policy_issues(results_payload: &serde_json::Value) -> Vec<St
         issues.push("results payload lacks `appraiser_outputs`".to_string());
     }
     if let Some(entries) = results_payload.get("artifacts").and_then(|v| v.get("inventory")) {
-        if entries
-            .as_array()
-            .is_some_and(|rows| rows.iter().any(|row| row.get("kind") == Some(&serde_json::Value::String("appraiser_output".to_string()))))
-        {
+        if entries.as_array().is_some_and(|rows| {
+            rows.iter().any(|row| {
+                row.get("kind") == Some(&serde_json::Value::String("appraiser_output".to_string()))
+            })
+        }) {
             issues.push("appraiser output must not be listed as plaintext artifact".to_string());
         }
     }
@@ -1293,12 +1276,11 @@ fn normalized_sidecar_for_bundle(
     }
     sidecar["ciphertext_path"] =
         serde_json::Value::String(bundle_path.as_os_str().to_string_lossy().to_string());
-    let normalized = temp_dir.join(
-        original_sidecar
-            .file_name()
-            .and_then(|name| name.to_str())
-            .map_or_else(|| "normalized.sidecar.json".to_string(), |name| format!("{name}.normalized")),
-    );
+    let normalized =
+        temp_dir.join(original_sidecar.file_name().and_then(|name| name.to_str()).map_or_else(
+            || "normalized.sidecar.json".to_string(),
+            |name| format!("{name}.normalized"),
+        ));
     let payload = serde_json::to_vec_pretty(&sidecar).context("serialize normalized sidecar")?;
     bijux_dna_api::v1::api::run::atomic_write_bytes(&normalized, &payload)
         .with_context(|| format!("write {}", normalized.display()))?;
@@ -1340,7 +1322,9 @@ pub fn decrypt_bundle_to_local(args: &SlurmBundleDecryptArgs) -> Result<SlurmDec
     })
 }
 
-pub fn verify_bundle_integrity(args: &SlurmBundleIntegrityCheck) -> Result<SlurmBundleIntegrityReport> {
+pub fn verify_bundle_integrity(
+    args: &SlurmBundleIntegrityCheck,
+) -> Result<SlurmBundleIntegrityReport> {
     let sidecar_path = args.sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.bundle));
     let (sidecar, plaintext) = decrypt_bundle(&BundleDecryptRequest {
         bundle_path: &args.bundle,
@@ -1416,7 +1400,8 @@ pub fn import_encrypted_replay(args: &SlurmReplayImportArgs) -> Result<SlurmRepl
         identity_files: &args.identity_file,
     })?;
 
-    let results_out = bundle_output_path(&args.results_bundle, &args.out_dir, ".replay.results.json");
+    let results_out =
+        bundle_output_path(&args.results_bundle, &args.out_dir, ".replay.results.json");
     let code_out = bundle_output_path(&args.code_bundle, &args.out_dir, ".replay.code.json");
     bijux_dna_api::v1::api::run::atomic_write_bytes(&results_out, &results_plaintext)?;
     bijux_dna_api::v1::api::run::atomic_write_bytes(&code_out, &code_plaintext)?;
@@ -1424,8 +1409,9 @@ pub fn import_encrypted_replay(args: &SlurmReplayImportArgs) -> Result<SlurmRepl
     {
         use std::os::unix::fs::PermissionsExt;
         for path in [&results_out, &code_out] {
-            let mut perms =
-                std::fs::metadata(path).with_context(|| format!("stat {}", path.display()))?.permissions();
+            let mut perms = std::fs::metadata(path)
+                .with_context(|| format!("stat {}", path.display()))?
+                .permissions();
             perms.set_mode(0o600);
             std::fs::set_permissions(path, perms)
                 .with_context(|| format!("chmod {}", path.display()))?;
@@ -1458,7 +1444,9 @@ pub fn import_encrypted_replay(args: &SlurmReplayImportArgs) -> Result<SlurmRepl
     Ok(report)
 }
 
-pub fn import_encrypted_campaign(args: &SlurmCampaignImportArgs) -> Result<SlurmCampaignImportReport> {
+pub fn import_encrypted_campaign(
+    args: &SlurmCampaignImportArgs,
+) -> Result<SlurmCampaignImportReport> {
     ensure_safe_private_directory(&args.out_dir, args.allow_unsafe_destination)?;
     if !args.campaign_dir.is_dir() {
         return Err(anyhow!(
@@ -1485,10 +1473,9 @@ pub fn import_encrypted_campaign(args: &SlurmCampaignImportArgs) -> Result<Slurm
         let Some(results_name) = results.file_name().and_then(|n| n.to_str()) else {
             continue;
         };
-        let code_name = results_name.strip_suffix(".results").map_or_else(
-            || format!("{results_name}.code"),
-            |prefix| format!("{prefix}.code"),
-        );
+        let code_name = results_name
+            .strip_suffix(".results")
+            .map_or_else(|| format!("{results_name}.code"), |prefix| format!("{prefix}.code"));
         let code_path = results.with_file_name(code_name);
         if !code_path.is_file() {
             errors.push(format!("missing code bundle for {}", results.display()));
@@ -1547,9 +1534,11 @@ pub fn import_encrypted_campaign(args: &SlurmCampaignImportArgs) -> Result<Slurm
     Ok(report)
 }
 
-pub fn export_failure_bundle(args: &SlurmFailureBundleExportArgs) -> Result<SlurmFailureBundleExportReport> {
+pub fn export_failure_bundle(
+    args: &SlurmFailureBundleExportArgs,
+) -> Result<SlurmFailureBundleExportReport> {
     let report =
-        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_policies.as_deref())?;
     let Some(job) = report
         .planned_jobs
         .iter()
@@ -1622,8 +1611,8 @@ pub fn export_failure_bundle(args: &SlurmFailureBundleExportArgs) -> Result<Slur
 
 pub fn share_bundle_with_profile(args: &SlurmShareBundleArgs) -> Result<SlurmShareBundleReport> {
     let sidecar_path = args.sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.bundle));
-    let profile_raw =
-        std::fs::read_to_string(&args.profile).with_context(|| format!("read {}", args.profile.display()))?;
+    let profile_raw = std::fs::read_to_string(&args.profile)
+        .with_context(|| format!("read {}", args.profile.display()))?;
     let profile: ShareProfile = toml::from_str(&profile_raw).context("parse share profile")?;
     if profile.recipients.is_empty() {
         return Err(anyhow!("share profile has no recipients"));
@@ -1636,10 +1625,10 @@ pub fn share_bundle_with_profile(args: &SlurmShareBundleArgs) -> Result<SlurmSha
     })?;
 
     let shared_bundle = args.out_dir.join(
-        args.bundle.file_name().and_then(|name| name.to_str()).map_or_else(
-            || "shared.bundle".to_string(),
-            |name| format!("{name}.shared"),
-        ),
+        args.bundle
+            .file_name()
+            .and_then(|name| name.to_str())
+            .map_or_else(|| "shared.bundle".to_string(), |name| format!("{name}.shared")),
     );
     let sidecar = write_encrypted_bundle(&BundleWriteRequest {
         output_path: &shared_bundle,
@@ -1663,7 +1652,8 @@ pub fn share_bundle_with_profile(args: &SlurmShareBundleArgs) -> Result<SlurmSha
     redacted_sidecar.sample = "<redacted>".to_string();
     redacted_sidecar.campaign_id = "<redacted>".to_string();
     let redacted_path = sidecar_path_for(&shared_bundle);
-    let payload = serde_json::to_vec_pretty(&redacted_sidecar).context("serialize redacted sidecar")?;
+    let payload =
+        serde_json::to_vec_pretty(&redacted_sidecar).context("serialize redacted sidecar")?;
     bijux_dna_api::v1::api::run::atomic_write_bytes(&redacted_path, &payload)
         .with_context(|| format!("write {}", redacted_path.display()))?;
 
@@ -1683,7 +1673,9 @@ pub fn share_bundle_with_profile(args: &SlurmShareBundleArgs) -> Result<SlurmSha
     Ok(report)
 }
 
-pub fn verify_results_policy(args: &SlurmResultsPolicyCheckArgs) -> Result<SlurmResultsPolicyReport> {
+pub fn verify_results_policy(
+    args: &SlurmResultsPolicyCheckArgs,
+) -> Result<SlurmResultsPolicyReport> {
     let results_sidecar =
         args.results_sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.results_bundle));
     let code_sidecar =
@@ -1725,8 +1717,8 @@ mod tests {
 
     use super::{
         cancel_jobs, decrypt_bundle_to_local, export_failure_bundle, import_encrypted_campaign,
-        import_encrypted_replay, monitor_campaign, rewrap_bundle, share_bundle_with_profile, submit_campaign,
-        submit_cross_benchmark, submit_domain_benchmark, submit_stage_benchmark,
+        import_encrypted_replay, monitor_campaign, rewrap_bundle, share_bundle_with_profile,
+        submit_campaign, submit_cross_benchmark, submit_domain_benchmark, submit_stage_benchmark,
         verify_bundle_integrity, verify_results_policy, write_copy_back_manifest,
     };
     use crate::commands::cli::{
@@ -1754,10 +1746,10 @@ mod tests {
             "imports",
             "baselines",
         ] {
-            std::fs::create_dir_all(root.join(name)).expect("create dir");
+            bijux_dna_infra::ensure_dir(root.join(name)).expect("create dir");
         }
         let env_path = root.join("campaign.env");
-        std::fs::write(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n")
+        bijux_dna_infra::write_bytes(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n")
             .expect("write env");
         #[cfg(unix)]
         {
@@ -1826,7 +1818,7 @@ sample = "sample-2"
             encryption_backend = encryption_backend,
             encrypt_operator_outputs = encrypt_operator_outputs
         );
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
         config_path
     }
 
@@ -1841,7 +1833,7 @@ sample = "sample-2"
         let report = submit_stage_benchmark(&SlurmSubmitStageArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             stage: "fastq.validate_reads".to_string(),
             tool: None,
             sample: None,
@@ -1867,10 +1859,10 @@ sample = "sample-2"
             "imports",
             "baselines",
         ] {
-            std::fs::create_dir_all(root.path().join(name)).expect("create dir");
+            bijux_dna_infra::ensure_dir(root.path().join(name)).expect("create dir");
         }
         let env_path = root.path().join("campaign.env");
-        std::fs::write(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n")
+        bijux_dna_infra::write_bytes(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n")
             .expect("write env");
         #[cfg(unix)]
         {
@@ -1924,12 +1916,12 @@ array_task = 7
 "#,
             root = root.path().display()
         );
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
 
         let report = submit_stage_benchmark(&SlurmSubmitStageArgs {
             config: config_path,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             stage: "fastq.validate_reads".to_string(),
             tool: None,
             sample: None,
@@ -1951,7 +1943,7 @@ array_task = 7
         let report = submit_domain_benchmark(&SlurmSubmitDomainArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             domain: "bam".to_string(),
             mock_submit: true,
             json: false,
@@ -1968,7 +1960,7 @@ array_task = 7
         let report = submit_cross_benchmark(&SlurmSubmitCrossArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             domains: Some("fastq,bam".to_string()),
             mock_submit: true,
             json: false,
@@ -1984,7 +1976,7 @@ array_task = 7
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
@@ -2010,7 +2002,7 @@ array_task = 7
                 { "scheduler_job_id": "2234" }
             ]
         });
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &manifest_path,
             serde_json::to_vec_pretty(&manifest).expect("serialize manifest"),
         )
@@ -2035,19 +2027,19 @@ array_task = 7
         let submission = submit_campaign(&SlurmSubmitCampaignArgs {
             config: config.clone(),
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
         .expect("submit campaign");
         let submission_manifest = root.path().join("submission-report.json");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &submission_manifest,
             serde_json::to_vec_pretty(&submission).expect("serialize submission"),
         )
         .expect("write submission report");
         let first_results = std::path::PathBuf::from(&submission.jobs[0].results_path);
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             format!("{}.appraiser.done", first_results.display()),
             b"done",
         )
@@ -2056,7 +2048,7 @@ array_task = 7
         let report = monitor_campaign(&SlurmMonitorArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             submission_manifest: Some(submission_manifest),
             json: false,
         })
@@ -2078,7 +2070,7 @@ array_task = 7
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
@@ -2112,10 +2104,10 @@ array_task = 7
             "imports",
             "baselines",
         ] {
-            std::fs::create_dir_all(root.path().join(name)).expect("create dir");
+            bijux_dna_infra::ensure_dir(root.path().join(name)).expect("create dir");
         }
         let env_path = root.path().join("campaign.env");
-        std::fs::write(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n")
+        bijux_dna_infra::write_bytes(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n")
             .expect("write env");
         #[cfg(unix)]
         {
@@ -2171,11 +2163,11 @@ sample = "sample-retry"
 "#,
             root = root.path().display()
         );
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config: config_path,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
@@ -2195,7 +2187,7 @@ sample = "sample-retry"
         let report = write_copy_back_manifest(&SlurmCopyBackManifestArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             out: Some(out.clone()),
             json: false,
         })
@@ -2214,7 +2206,7 @@ sample = "sample-retry"
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
@@ -2237,7 +2229,7 @@ sample = "sample-retry"
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
@@ -2262,7 +2254,7 @@ sample = "sample-retry"
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
@@ -2283,7 +2275,7 @@ sample = "sample-retry"
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
@@ -2300,8 +2292,8 @@ sample = "sample-retry"
         })
         .expect("decrypt bundle");
         assert!(std::path::Path::new(&decrypt_report.output_path).is_file());
-        let plaintext =
-            std::fs::read_to_string(std::path::Path::new(&decrypt_report.output_path)).expect("read");
+        let plaintext = std::fs::read_to_string(std::path::Path::new(&decrypt_report.output_path))
+            .expect("read");
         assert!(plaintext.contains("\"schema_version\": \"bijux.hpc.results_bundle.v1\""));
     }
 
@@ -2312,7 +2304,7 @@ sample = "sample-retry"
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
@@ -2335,7 +2327,7 @@ sample = "sample-retry"
         let err = submit_campaign(&SlurmSubmitCampaignArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
@@ -2356,14 +2348,14 @@ sample = "sample-retry"
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
         .expect("submit campaign");
         let first = &report.jobs[0];
         let out_dir = root.path().join("unsafe-decrypt");
-        std::fs::create_dir_all(&out_dir).expect("create out dir");
+        bijux_dna_infra::ensure_dir(&out_dir).expect("create out dir");
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -2402,7 +2394,7 @@ sample = "sample-retry"
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
@@ -2436,7 +2428,7 @@ sample = "sample-retry"
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
@@ -2465,13 +2457,13 @@ sample = "sample-retry"
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
         .expect("submit campaign");
         let campaign_dir = root.path().join("campaign-copy");
-        std::fs::create_dir_all(&campaign_dir).expect("mkdir");
+        bijux_dna_infra::ensure_dir(&campaign_dir).expect("mkdir");
         let first = &report.jobs[0];
         for path in [&first.results_path, &first.code_path] {
             let src = std::path::Path::new(path);
@@ -2502,7 +2494,7 @@ sample = "sample-retry"
         let report = export_failure_bundle(&SlurmFailureBundleExportArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             stage: "fastq.validate_reads".to_string(),
             tool: "seqkit_v2".to_string(),
             sample: "sample-1".to_string(),
@@ -2524,13 +2516,13 @@ sample = "sample-retry"
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
         .expect("submit campaign");
         let profile = root.path().join("collab-profile.toml");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &profile,
             "profile_id = \"collab-a\"\nbackend = \"mock-envelope-v1\"\nrecipients = [\"team-a\"]\n",
         )
@@ -2557,7 +2549,7 @@ sample = "sample-retry"
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
@@ -2651,11 +2643,11 @@ sample = "sample-retry"
             "imports",
             "baselines",
         ] {
-            std::fs::create_dir_all(root.path().join(name)).expect("create dir");
+            bijux_dna_infra::ensure_dir(root.path().join(name)).expect("create dir");
         }
         let secret = "SENSITIVE_TOKEN_12345";
         let env_path = root.path().join("campaign.env");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &env_path,
             format!("BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\nBIJUX_API_TOKEN={secret}\n"),
         )
@@ -2711,11 +2703,11 @@ sample = "{secret}"
             root = root.path().display(),
             secret = secret
         );
-        std::fs::write(&config_path, config).expect("write config");
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
         let report = submit_campaign(&SlurmSubmitCampaignArgs {
             config: config_path,
             env_file: None,
-            user_overrides: None,
+            user_policies: None,
             mock_submit: true,
             json: false,
         })
