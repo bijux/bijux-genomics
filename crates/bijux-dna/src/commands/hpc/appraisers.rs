@@ -43,9 +43,13 @@ pub trait AppraiserPlugin {
 }
 
 struct RuntimePerformanceAppraiser;
+struct ArtifactValidityAppraiser;
 
 fn plugins() -> Vec<Box<dyn AppraiserPlugin>> {
-    vec![Box::new(RuntimePerformanceAppraiser)]
+    vec![
+        Box::new(RuntimePerformanceAppraiser),
+        Box::new(ArtifactValidityAppraiser),
+    ]
 }
 
 fn summarize_findings(findings: &[AppraisalFinding]) -> AppraisalSummary {
@@ -152,6 +156,43 @@ impl AppraiserPlugin for RuntimePerformanceAppraiser {
     }
 }
 
+impl AppraiserPlugin for ArtifactValidityAppraiser {
+    fn id(&self) -> &'static str {
+        "artifact-validity"
+    }
+
+    fn appraise(&self, matrix: &BenchmarkMatrixReport) -> Vec<AppraisalFinding> {
+        let mut findings = Vec::new();
+        for row in &matrix.rows {
+            if row.tool_id == "<unbound>" {
+                findings.push(AppraisalFinding {
+                    appraiser_id: self.id().to_string(),
+                    row_id: row.row_id.clone(),
+                    severity: "critical".to_string(),
+                    confidence: "high".to_string(),
+                    failure_class: "missing-tool-binding".to_string(),
+                    result_scope: "encrypted-results".to_string(),
+                    summary: "stage has no registry-bound tool".to_string(),
+                    recommendation: "bind stage to at least one governed tool".to_string(),
+                });
+            }
+            if !row.image_match.ready {
+                findings.push(AppraisalFinding {
+                    appraiser_id: self.id().to_string(),
+                    row_id: row.row_id.clone(),
+                    severity: "warning".to_string(),
+                    confidence: "high".to_string(),
+                    failure_class: "image-mismatch".to_string(),
+                    result_scope: "encrypted-results".to_string(),
+                    summary: "required tool image is not staged".to_string(),
+                    recommendation: "prepare or stage matching image before benchmark".to_string(),
+                });
+            }
+        }
+        findings
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #![allow(clippy::expect_used)]
@@ -247,5 +288,6 @@ sample = "sample-1"
         assert_eq!(report.schema_version, "bijux.hpc.appraisal.v1".to_string());
         assert!(report.summary.total_findings > 0);
         assert!(report.summary.by_appraiser.contains_key("runtime-performance"));
+        assert!(report.summary.by_appraiser.contains_key("artifact-validity"));
     }
 }
