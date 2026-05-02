@@ -1472,6 +1472,27 @@ fn goal_specific_checks(
                     .len()
             ),
         ],
+        "G199" => vec![
+            format!("stage_risk_ranking_rows_present={}", !rows.is_empty()),
+            format!(
+                "stage_risk_ranking_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "stage_risk_ranking_trim_coverage_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "stage_risk_ranking_critical_findings={}",
+                findings.iter().filter(|finding| finding.severity == "critical").count()
+            ),
+            format!(
+                "stage_risk_ranking_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -2657,6 +2678,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "history_analytics_unique_failure_classes=2"));
+    }
+
+    #[test]
+    fn goal_199_emits_stage_risk_ranking_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G199".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "stage risk ranking anchor from refuse row".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "stage_risk_ranking_trim_coverage_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "stage_risk_ranking_refuse_rows=1"));
     }
 
     #[test]
