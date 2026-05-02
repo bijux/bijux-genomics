@@ -153,6 +153,8 @@ pub enum ConfigCommand {
     HardeningQueue(HardeningQueueArgs),
     #[command(name = "fastq-benchmark-campaign")]
     FastqBenchmarkCampaign(FastqBenchmarkCampaignArgs),
+    #[command(name = "bam-benchmark-campaign")]
+    BamBenchmarkCampaign(BamBenchmarkCampaignArgs),
     Doctor,
 }
 
@@ -221,6 +223,22 @@ pub struct FastqBenchmarkCampaignArgs {
     #[arg(long, value_name = "PATH")]
     pub user_overrides: Option<PathBuf>,
     #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G101,G102")]
+    pub goals: Option<String>,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct BamBenchmarkCampaignArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_overrides: Option<PathBuf>,
+    #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G121,G122")]
     pub goals: Option<String>,
     #[arg(long, value_name = "PATH")]
     pub out: Option<PathBuf>,

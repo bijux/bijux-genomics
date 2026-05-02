@@ -1,5 +1,6 @@
 mod bundle;
 mod appraisers;
+mod bam_campaign;
 mod benchmark_matrix;
 mod campaign;
 mod fastq_campaign;
@@ -9,6 +10,7 @@ mod slurm;
 
 pub use bundle::*;
 pub use appraisers::*;
+pub use bam_campaign::*;
 pub use benchmark_matrix::*;
 pub use campaign::*;
 pub use fastq_campaign::*;

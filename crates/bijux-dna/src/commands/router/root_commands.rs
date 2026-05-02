@@ -579,6 +579,50 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 }
             }
         }
+        cli::ConfigCommand::BamBenchmarkCampaign(args) => {
+            let report = hpc::bam_benchmark_campaign(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("selected_goals={}", report.selected_goals.join(","));
+                println!("goals={}", report.summary.total_goals);
+                println!("rows={}", report.summary.total_rows);
+                println!("findings={}", report.summary.total_findings);
+                println!("queue_entries={}", report.summary.total_queue_entries);
+                println!(
+                    "ready_for_benchmark_run={}",
+                    report
+                        .summary
+                        .status_counts
+                        .get("ready-for-benchmark-run")
+                        .copied()
+                        .unwrap_or(0)
+                );
+                println!(
+                    "requires_hardening={}",
+                    report
+                        .summary
+                        .status_counts
+                        .get("requires-hardening")
+                        .copied()
+                        .unwrap_or(0)
+                );
+                println!(
+                    "missing_stage_binding={}",
+                    report
+                        .summary
+                        .status_counts
+                        .get("missing-stage-binding")
+                        .copied()
+                        .unwrap_or(0)
+                );
+                if let Some(path) = &args.out {
+                    println!("bam_campaign_out={}", path.display());
+                }
+            }
+        }
     }
     Ok(())
 }
