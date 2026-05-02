@@ -2660,6 +2660,24 @@ fn goal_specific_checks(
             ),
             format!("annotation_db_findings_count={}", findings.len()),
         ],
+        "G227" => vec![
+            format!("corpus_db_matrix_rows_present={}", !rows.is_empty()),
+            format!(
+                "corpus_db_matrix_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "corpus_db_matrix_validate_align_call_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.call")
+            ),
+            format!(
+                "corpus_db_matrix_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("corpus_db_matrix_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -4561,6 +4579,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "annotation_db_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_227_emits_corpus_db_compatibility_matrix_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G227".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "database-compatibility".to_string(),
+            row_id: "h5".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "database-mismatch".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "corpus/database matrix mismatch for align boundary".to_string(),
+            recommendation: "update compatibility matrix for selected corpus and DB bundle".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "corpus_db_matrix_validate_align_call_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "corpus_db_matrix_findings_count=1"));
     }
 
     #[test]
