@@ -421,6 +421,10 @@ fn goal_specific_checks(
                 "modern_workflow_fastq_to_bam_bound={}",
                 rows.iter().any(|row| row.stage_id == BRIDGE_FASTQ_TRIM_TO_BAM_ALIGN)
             ),
+            format!(
+                "modern_workflow_summary_to_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_BAM_SUMMARY_TO_VCF_STATS)
+            ),
         ],
         _ => Vec::new(),
     }
@@ -678,6 +682,10 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("modern_workflow_stage_count=4")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("modern_workflow_summary_to_stats_bound=true")));
     }
 
     #[test]
