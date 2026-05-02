@@ -3068,6 +3068,24 @@ fn goal_specific_checks(
             ),
             format!("all_in_one_import_findings_count={}", findings.len()),
         ],
+        "G238" => vec![
+            format!("all_in_one_report_rows_present={}", !rows.is_empty()),
+            format!(
+                "all_in_one_report_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "all_in_one_report_profile_coverage_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "all_in_one_report_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("all_in_one_report_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -5249,6 +5267,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "all_in_one_import_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_238_emits_all_in_one_report_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G238".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "h13".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "scientific-caveat".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "all-in-one report requires caveat link to postprocess drift".to_string(),
+            recommendation: "include postprocess caveat links in generated summary reports".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "all_in_one_report_profile_coverage_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "all_in_one_report_findings_count=1"));
     }
 
     #[test]
