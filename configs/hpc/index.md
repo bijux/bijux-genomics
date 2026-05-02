@@ -7,4 +7,5 @@ Files:
 - `configs/hpc/campaign/README.md`
 - `configs/hpc/campaign/lunarc-small.toml`
 - `configs/hpc/campaign/generic-small.toml`
+- `configs/hpc/campaign/cross-mini.toml`
 - `configs/hpc/rsync/index.md`
