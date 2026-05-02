@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: d7fce4e5c7254bad4984be76d92b1abc0bf0c30c
+# source_commit: 7f92f74f3d6b5fa90319ebb5b71976f79393927f
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -648,7 +648,7 @@ smoke_help_cmd = "fastp --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "fastp --help"
 expected_bin = "fastp"
-expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "raw_backend_report_json", "filtered_reads_r1", "filtered_reads_r2", "length_distribution_tsv", "length_distribution_json"]
+expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "raw_backend_report_json", "filtered_reads_r1", "filtered_reads_r2", "length_distribution_tsv", "length_distribution_json", "filtered_fastq_r1", "filtered_fastq_r2", "filter_report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable with other governed trimming and filtering backends only when stage contract, read layout, and retained report artifacts are matched."
 dockerfile = "containers/docker/arm64/Dockerfile.fastp"
@@ -1532,7 +1532,7 @@ smoke_help_cmd = "seqkit --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "seqkit --help"
 expected_bin = "seqkit"
-expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "filtered_reads_r1", "filtered_reads_r2", "normalized_abundance_tsv", "report_json", "overrepresented_sequences_tsv", "overrepresented_sequences_json", "report_json"]
+expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "filtered_reads_r1", "filtered_reads_r2", "normalized_abundance_tsv", "report_json", "overrepresented_sequences_tsv", "overrepresented_sequences_json", "report_json", "qc_json", "qc_tsv"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable with governed read filtering, trimming, and abundance-normalization backends only inside the same stage contract and lineage."
 dockerfile = "containers/docker/arm64/Dockerfile.seqkit"
@@ -2174,7 +2174,7 @@ primary_tools = ["bbduk"]
 optional_alternatives = ["prinseq"]
 validation_tools = []
 reporting_tools = []
-planned_out_of_scope = ["dustmasker"]
+planned_out_of_scope = ["fastp", "dustmasker"]
 default_rationale = "Default complexity filtering uses deterministic entropy/polyX thresholds."
 requires_validation = false
 requires_reporting = false
@@ -2282,7 +2282,7 @@ primary_tools = ["seqkit_stats"]
 optional_alternatives = []
 validation_tools = []
 reporting_tools = []
-planned_out_of_scope = []
+planned_out_of_scope = ["seqkit", "seqfu"]
 default_rationale = "Neutral stats baseline is lightweight and deterministic."
 requires_validation = false
 requires_reporting = false
