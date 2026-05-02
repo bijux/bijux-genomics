@@ -4358,6 +4358,33 @@ fn goal_specific_checks(
                 queue_entries.iter().filter(|entry| entry.severity == "critical").count()
             ),
         ],
+        "G268" => vec![
+            format!("replay_regression_rows_present={}", !rows.is_empty()),
+            format!(
+                "replay_regression_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "replay_regression_profile_summary_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "replay_regression_code_freeze_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "code-freeze-incomplete")
+                    .count()
+            ),
+            format!(
+                "replay_regression_code_freeze_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.source_appraisers.iter().any(|id| id == "code-freeze"))
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -7307,6 +7334,40 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "security_regression_critical_queue_entries=1"));
+    }
+
+    #[test]
+    fn goal_268_emits_replay_regression_gate_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G268".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "replay gate import reports missing reconstructability fields".to_string(),
+            recommendation: "gate on complete replay fields in .code/.results bundles".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0268".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            recommendation: "gate on complete replay fields in .code/.results bundles".to_string(),
+            affected_rows: vec!["h13".to_string()],
+            source_appraisers: vec!["code-freeze".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "replay_regression_profile_summary_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "replay_regression_code_freeze_queue_entries=1"));
     }
 
     #[test]
