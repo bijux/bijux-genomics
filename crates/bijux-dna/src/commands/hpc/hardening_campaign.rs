@@ -4709,6 +4709,30 @@ fn goal_specific_checks(
                     || findings.iter().any(|finding| finding.failure_class.starts_with("runtime-"))
             ),
         ],
+        "G274" => vec![
+            format!("encryption_budget_rows_present={}", !rows.is_empty()),
+            format!(
+                "encryption_budget_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "encryption_budget_contamination_impute_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.contamination")
+                    && rows.iter().any(|row| row.stage_id == "vcf.impute")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "encryption_budget_encrypted_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope.starts_with("encrypted-"))
+                    .count()
+            ),
+            format!(
+                "encryption_budget_critical_queue_entries={}",
+                queue_entries.iter().filter(|entry| entry.severity == "critical").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -7822,6 +7846,40 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "storage_budget_triggered=true"));
+    }
+
+    #[test]
+    fn goal_274_emits_encryption_budget_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G274".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "encryption budget import reports sidecar/encryption health regression".to_string(),
+            recommendation: "pause when encryption or sidecar health drops below threshold".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0274".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            recommendation: "pause when encryption or sidecar health drops below threshold".to_string(),
+            affected_rows: vec!["h13".to_string()],
+            source_appraisers: vec!["code-freeze".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "encryption_budget_contamination_impute_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "encryption_budget_critical_queue_entries=1"));
     }
 
     #[test]
