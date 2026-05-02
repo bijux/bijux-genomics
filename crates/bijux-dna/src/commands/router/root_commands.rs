@@ -367,6 +367,57 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
     Ok(())
 }
 
+pub(crate) fn handle_slurm_root(command: &cli::SlurmCommand, _cwd: &Path) -> Result<()> {
+    match command {
+        cli::SlurmCommand::SubmitStageBenchmark(args) => {
+            let report = hpc::submit_stage_benchmark(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("submission_mode={}", report.mode);
+                println!("submitted_jobs={}", report.jobs.len());
+            }
+        }
+        cli::SlurmCommand::SubmitDomainBenchmark(args) => {
+            let report = hpc::submit_domain_benchmark(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("submission_mode={}", report.mode);
+                println!("submitted_jobs={}", report.jobs.len());
+            }
+        }
+        cli::SlurmCommand::SubmitCrossBenchmark(args) => {
+            let report = hpc::submit_cross_benchmark(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("submission_mode={}", report.mode);
+                println!("submitted_jobs={}", report.jobs.len());
+            }
+        }
+        cli::SlurmCommand::SubmitCampaign(args) => {
+            let report = hpc::submit_campaign(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("submission_mode={}", report.mode);
+                println!("submitted_jobs={}", report.jobs.len());
+            }
+        }
+        cli::SlurmCommand::CopyBackManifest(args) => {
+            let manifest = hpc::write_copy_back_manifest(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&manifest)?;
+            } else {
+                println!("manifest={}", manifest.manifest_path);
+                println!("entries={}", manifest.entries.len());
+            }
+        }
+    }
+    Ok(())
+}
+
 pub(crate) fn handle_domain_root(command: &cli::DomainCommand, cwd: &Path) -> Result<()> {
     match command {
         cli::DomainCommand::Validate { domain_dir } => {

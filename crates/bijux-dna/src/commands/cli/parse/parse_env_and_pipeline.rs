@@ -112,6 +112,80 @@ pub enum ConfigCommand {
 }
 
 #[derive(Debug, Subcommand)]
+pub enum SlurmCommand {
+    #[command(name = "submit-stage-benchmark")]
+    SubmitStageBenchmark(SlurmSubmitStageArgs),
+    #[command(name = "submit-domain-benchmark")]
+    SubmitDomainBenchmark(SlurmSubmitDomainArgs),
+    #[command(name = "submit-cross-benchmark")]
+    SubmitCrossBenchmark(SlurmSubmitCrossArgs),
+    #[command(name = "submit-campaign")]
+    SubmitCampaign(SlurmSubmitCampaignArgs),
+    #[command(name = "copy-back-manifest")]
+    CopyBackManifest(SlurmCopyBackManifestArgs),
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmSubmitStageArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long)]
+    pub stage: String,
+    #[arg(long)]
+    pub tool: Option<String>,
+    #[arg(long)]
+    pub sample: Option<String>,
+    #[arg(long, default_value_t = false)]
+    pub mock_submit: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmSubmitDomainArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long)]
+    pub domain: String,
+    #[arg(long, default_value_t = false)]
+    pub mock_submit: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmSubmitCrossArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, help = "Comma-separated domains to include")]
+    pub domains: Option<String>,
+    #[arg(long, default_value_t = false)]
+    pub mock_submit: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmSubmitCampaignArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, default_value_t = false)]
+    pub mock_submit: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmCopyBackManifestArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Subcommand)]
 pub enum RegistryCommand {
     #[command(name = "list-tools", alias = "tools")]
     Tools {
