@@ -1526,6 +1526,60 @@ resource_template = "standard"
             .contains("/shared/logs/mini/fastq/fastq.validate_reads/seqkit_v2/sample-1/"));
         assert!(job.outputs.results.ends_with(".results"));
         assert!(job.outputs.code.ends_with(".code"));
+        assert!(report.security.redacted_env_keys.is_empty());
+    }
+
+    #[test]
+    fn campaign_dry_run_carries_redaction_keys_into_security_plan() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_path = root.path().join("campaign.toml");
+        let config = r#"
+schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "/shared/corpora"
+databases_root = "/shared/databases"
+images_root = "/shared/images"
+scratch_root = "/shared/scratch"
+logs_root = "/shared/logs"
+encrypted_results_root = "/shared/results"
+encrypted_code_root = "/shared/code"
+appraiser_imports_root = "/shared/imports"
+baselines_root = "/shared/baselines"
+
+[slurm]
+site_profile = "generic"
+
+[resources]
+default = "standard"
+
+[resources.templates.standard]
+cpus = 8
+mem_gb = 32
+walltime = "02:00:00"
+scratch_gb = 64
+
+[security]
+encryption_backend = "mock-envelope-v1"
+encryption_recipients = ["alice"]
+redacted_env_keys = ["BIJUX_API_TOKEN", "PRIVATE_PATH"]
+
+[[jobs]]
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-1"
+"#;
+        std::fs::write(&config_path, config).expect("write config");
+
+        let report = campaign_dry_run(&config_path, None, None).expect("dry run");
+        assert_eq!(
+            report.security.redacted_env_keys,
+            vec!["BIJUX_API_TOKEN".to_string(), "PRIVATE_PATH".to_string()]
+        );
     }
 
     #[test]
