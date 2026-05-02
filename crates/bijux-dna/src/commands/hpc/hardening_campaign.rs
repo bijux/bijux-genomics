@@ -2324,6 +2324,24 @@ fn goal_specific_checks(
             ),
             format!("database_build_findings_count={}", findings.len()),
         ],
+        "G220" => vec![
+            format!("truth_set_rows_present={}", !rows.is_empty()),
+            format!(
+                "truth_set_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "truth_set_validate_call_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "vcf.call")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "truth_set_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!("truth_set_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -4045,6 +4063,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "database_build_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_220_emits_truth_set_anchored_corpus_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G220".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "truth-set anchored boundary hits filter refuse row".to_string(),
+            recommendation: "resolve refusal causes before truth-set scoring".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "truth_set_validate_call_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "truth_set_findings_count=1"));
     }
 
     #[test]
