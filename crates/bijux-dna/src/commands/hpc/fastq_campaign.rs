@@ -832,6 +832,24 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G113" => vec![
+            format!("rrna_depletion_rows_present={}", !rows.is_empty()),
+            format!(
+                "rrna_depletion_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.deplete_rrna")
+            ),
+            format!(
+                "rrna_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "ready").count()
+            ),
+            format!(
+                "rrna_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.failure_class.contains("readiness"))
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1381,5 +1399,17 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("host_depletion_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_113_emits_rrna_depletion_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G113".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("rrna_depletion_stage_bound=true")));
     }
 }
