@@ -3834,6 +3834,33 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G256" => vec![
+            format!("image_dossier_rows_present={}", !rows.is_empty()),
+            format!(
+                "image_dossier_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "image_dossier_trim_summary_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "image_dossier_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!(
+                "image_dossier_drift_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| {
+                        finding.failure_class == "image-mismatch"
+                            || finding.failure_class == "runtime-outlier"
+                    })
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -6483,6 +6510,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "database_dossier_mismatch_findings=1"));
+    }
+
+    #[test]
+    fn goal_256_emits_image_dossier_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G256".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-profile".to_string(),
+            row_id: "h6".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-outlier".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "image dossier import reports runtime drift at mapping-summary stage".to_string(),
+            recommendation: "track smoke and drift outcomes in per-image dossier output".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "image_dossier_trim_summary_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "image_dossier_drift_findings=1"));
     }
 
     #[test]
