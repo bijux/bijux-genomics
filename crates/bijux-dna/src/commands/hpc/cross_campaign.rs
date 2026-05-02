@@ -470,6 +470,28 @@ fn goal_specific_checks(
                 rows.iter().any(|row| row.stage_id == BRIDGE_VCF_FILTER_TO_VCF_STATS)
             ),
         ],
+        "G164" => vec![
+            format!("fastq_to_vcf_rows_present={}", !rows.is_empty()),
+            format!(
+                "fastq_to_vcf_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "fastq_to_vcf_gl_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_FASTQ_TRIM_TO_VCF_GL)
+            ),
+            format!(
+                "fastq_to_vcf_call_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_BAM_GENOTYPING_TO_VCF_CALL)
+            ),
+            format!(
+                "fastq_to_vcf_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_VCF_FILTER_TO_VCF_STATS)
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -801,5 +823,21 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("bam_to_vcf_call_bound=true")));
+    }
+
+    #[test]
+    fn goal_164_emits_fastq_to_vcf_chain_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G164".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("fastq_to_vcf_stage_count=3")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("fastq_to_vcf_gl_bound=true")));
     }
 }
