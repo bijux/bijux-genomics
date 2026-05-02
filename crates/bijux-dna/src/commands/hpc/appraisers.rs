@@ -48,6 +48,7 @@ struct ScientificOutputAppraiser;
 struct ReproducibilityAppraiser;
 struct BackendEquivalenceAppraiser;
 struct FailureClassAppraiser;
+struct CorpusSuitabilityAppraiser;
 
 fn plugins() -> Vec<Box<dyn AppraiserPlugin>> {
     vec![
@@ -57,6 +58,7 @@ fn plugins() -> Vec<Box<dyn AppraiserPlugin>> {
         Box::new(ReproducibilityAppraiser),
         Box::new(BackendEquivalenceAppraiser),
         Box::new(FailureClassAppraiser),
+        Box::new(CorpusSuitabilityAppraiser),
     ]
 }
 
@@ -305,6 +307,31 @@ impl AppraiserPlugin for FailureClassAppraiser {
                     result_scope: "encrypted-results".to_string(),
                     summary: "row is not fully ready".to_string(),
                     recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+                });
+            }
+        }
+        findings
+    }
+}
+
+impl AppraiserPlugin for CorpusSuitabilityAppraiser {
+    fn id(&self) -> &'static str {
+        "corpus-suitability"
+    }
+
+    fn appraise(&self, matrix: &BenchmarkMatrixReport) -> Vec<AppraisalFinding> {
+        let mut findings = Vec::new();
+        for row in &matrix.rows {
+            if !row.corpus_match.ready {
+                findings.push(AppraisalFinding {
+                    appraiser_id: self.id().to_string(),
+                    row_id: row.row_id.clone(),
+                    severity: "warning".to_string(),
+                    confidence: "medium".to_string(),
+                    failure_class: "corpus-mismatch".to_string(),
+                    result_scope: "encrypted-results".to_string(),
+                    summary: "corpus does not match required stage profile".to_string(),
+                    recommendation: "materialize corpus profile matching stage scientific claim".to_string(),
                 });
             }
         }
