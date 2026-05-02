@@ -963,6 +963,30 @@ fn goal_specific_checks(
                 queue_entries.len()
             ),
         ],
+        "G187" => vec![
+            format!("result_diff_rows_present={}", !rows.is_empty()),
+            format!(
+                "result_diff_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "result_diff_profile_coverage_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "result_diff_encrypted_result_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope == "encrypted-results")
+                    .count()
+            ),
+            format!(
+                "result_diff_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1736,6 +1760,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "investigation_workspace_code_scope_findings=1"));
+    }
+
+    #[test]
+    fn goal_187_emits_result_diff_workflow_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G187".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "h7".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "readiness-degraded".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "result diff candidate row is degraded".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "result_diff_profile_coverage_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "result_diff_encrypted_result_findings=1"));
     }
 
     #[test]
