@@ -2190,6 +2190,24 @@ fn goal_specific_checks(
             ),
             format!("sample_swap_findings_count={}", findings.len()),
         ],
+        "G213" => vec![
+            format!("duplicate_cohort_rows_present={}", !rows.is_empty()),
+            format!(
+                "duplicate_cohort_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "duplicate_cohort_profile_coverage_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "duplicate_cohort_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("duplicate_cohort_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -3731,6 +3749,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "sample_swap_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_213_emits_duplicate_cohort_corpus_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G213".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "reproducibility".to_string(),
+            row_id: "h7".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "reproducibility-low-repeats".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "duplicate cohort coverage stage requires extra repeats".to_string(),
+            recommendation: "set repetitions >= 3 for reproducibility confidence".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "duplicate_cohort_profile_coverage_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "duplicate_cohort_findings_count=1"));
     }
 
     #[test]
