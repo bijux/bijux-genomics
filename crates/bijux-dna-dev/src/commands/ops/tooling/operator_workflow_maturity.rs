@@ -284,9 +284,9 @@ fn scenario_workflow_import_export_package() -> Result<(Vec<String>, serde_json:
             "import_bundle": workspace.rel(&import_dir).display().to_string(),
             "bundle_id": imported["bundle_id"],
             "run_id": imported["run_id"],
-            "input_count": imported["inputs"].as_array().map_or(0, std::vec::Vec::len),
-            "reference_count": imported["references"].as_array().map_or(0, std::vec::Vec::len),
-            "caveat_count": imported["caveats"].as_array().map_or(0, std::vec::Vec::len),
+            "input_count": imported["inputs"].as_array().map_or(0, Vec::len),
+            "reference_count": imported["references"].as_array().map_or(0, Vec::len),
+            "caveat_count": imported["caveats"].as_array().map_or(0, Vec::len),
         }),
     ))
 }
@@ -322,8 +322,8 @@ fn scenario_run_comparison_command() -> Result<(Vec<String>, serde_json::Value)>
     let call_rate_delta = candidate["metrics"]["call_rate"].as_f64().unwrap_or(0.0)
         - baseline["metrics"]["call_rate"].as_f64().unwrap_or(0.0);
 
-    if stage_delta["added"].as_array().is_none_or(std::vec::Vec::is_empty)
-        || tool_delta["added"].as_array().is_none_or(std::vec::Vec::is_empty)
+    if stage_delta["added"].as_array().is_none_or(Vec::is_empty)
+        || tool_delta["added"].as_array().is_none_or(Vec::is_empty)
     {
         return Err(anyhow!(
             "run comparison must expose stage and tool deltas when candidate diverges from baseline"
@@ -478,7 +478,7 @@ fn scenario_cache_corruption_quarantine() -> Result<(Vec<String>, serde_json::Va
         json!({"cache_key":"ck_ref_01","artifact_id":"aligned_bam","expected_sha":"sha_ok_a","observed_sha":"sha_ok_a","expected_size":14_800_000_000_u64,"observed_size":14_800_000_000_u64}),
         json!({"cache_key":"ck_ref_02","artifact_id":"variants_vcf","expected_sha":"sha_ok_b","observed_sha":"sha_bad_b","expected_size":4_100_000_u64,"observed_size":4_100_000_u64}),
         json!({"cache_key":"ck_ref_03","artifact_id":"coverage_json","expected_sha":"sha_ok_c","observed_sha":"sha_ok_c","expected_size":120_000_u64,"observed_size":0_u64}),
-        json!({"cache_key":"ck_ref_04","artifact_id":"qc_manifest","expected_sha":"sha_ok_d","observed_sha":"sha_ok_d","expected_size":52000_u64,"observed_size":52000_u64}),
+        json!({"cache_key":"ck_ref_04","artifact_id":"qc_manifest","expected_sha":"sha_ok_d","observed_sha":"sha_ok_d","expected_size":52_000_u64,"observed_size":52_000_u64}),
     ];
 
     let mut valid_entries = Vec::<String>::new();
@@ -539,7 +539,7 @@ fn scenario_bundle_portability_check() -> Result<(Vec<String>, serde_json::Value
             "reports/qc_manifest.json"
         ],
         "forbidden_absolute_paths": [
-            "<posix-home>/",
+            "<user-home-root>/",
             "C:\\\\"
         ]
     });

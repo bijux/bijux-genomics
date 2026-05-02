@@ -81,7 +81,497 @@ pub enum ConfigCommand {
         #[arg(long)]
         root: Option<PathBuf>,
     },
+    #[command(name = "campaign-preflight")]
+    CampaignPreflight {
+        #[arg(long, value_name = "PATH")]
+        config: PathBuf,
+        #[arg(long, value_name = "PATH")]
+        env_file: Option<PathBuf>,
+        #[arg(long, value_name = "PATH")]
+        user_policies: Option<PathBuf>,
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
+    #[command(name = "campaign-dry-run")]
+    CampaignDryRun {
+        #[arg(long, value_name = "PATH")]
+        config: PathBuf,
+        #[arg(long, value_name = "PATH")]
+        env_file: Option<PathBuf>,
+        #[arg(long, value_name = "PATH")]
+        user_policies: Option<PathBuf>,
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
+    #[command(name = "write-campaign-profiles")]
+    WriteCampaignProfiles {
+        #[arg(long, default_value = "configs/hpc/campaign")]
+        out_dir: PathBuf,
+    },
+    #[command(name = "preparation-graph")]
+    PreparationGraph {
+        #[arg(long, value_name = "PATH")]
+        config: PathBuf,
+        #[arg(long, value_name = "PATH")]
+        env_file: Option<PathBuf>,
+        #[arg(long, value_name = "PATH")]
+        user_policies: Option<PathBuf>,
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
+    #[command(name = "prepare-foundation")]
+    PrepareFoundation {
+        #[arg(long, value_name = "PATH")]
+        config: PathBuf,
+        #[arg(long, value_name = "PATH")]
+        env_file: Option<PathBuf>,
+        #[arg(long, value_name = "PATH")]
+        user_policies: Option<PathBuf>,
+        #[arg(long, default_value_t = false)]
+        dry_run: bool,
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
+    #[command(name = "cleanup-preparation")]
+    CleanupPreparation {
+        #[arg(long, value_name = "PATH")]
+        config: PathBuf,
+        #[arg(long, value_name = "PATH")]
+        env_file: Option<PathBuf>,
+        #[arg(long, value_name = "PATH")]
+        user_policies: Option<PathBuf>,
+        #[arg(long, default_value_t = false)]
+        dry_run: bool,
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
+    #[command(name = "benchmark-matrix")]
+    BenchmarkMatrix(BenchmarkMatrixArgs),
+    #[command(name = "appraise-matrix")]
+    AppraiseMatrix(AppraiseMatrixArgs),
+    #[command(name = "hardening-queue")]
+    HardeningQueue(HardeningQueueArgs),
+    #[command(name = "fastq-benchmark-campaign")]
+    FastqBenchmarkCampaign(FastqBenchmarkCampaignArgs),
+    #[command(name = "bam-benchmark-campaign")]
+    BamBenchmarkCampaign(BamBenchmarkCampaignArgs),
+    #[command(name = "vcf-benchmark-campaign")]
+    VcfBenchmarkCampaign(VcfBenchmarkCampaignArgs),
+    #[command(name = "cross-benchmark-campaign")]
+    CrossBenchmarkCampaign(CrossBenchmarkCampaignArgs),
+    #[command(name = "hardening-benchmark-campaign")]
+    HardeningBenchmarkCampaign(HardeningBenchmarkCampaignArgs),
     Doctor,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct BenchmarkMatrixArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long, default_value = "all", help = "fastq|bam|vcf|cross|all")]
+    pub domain: String,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub fail_on_refuse: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct AppraiseMatrixArgs {
+    #[arg(long, value_name = "PATH")]
+    pub matrix: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub config: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long, default_value = "all", help = "fastq|bam|vcf|cross|all")]
+    pub domain: String,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct HardeningQueueArgs {
+    #[arg(long, value_name = "PATH")]
+    pub appraisal: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub matrix: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub config: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long, default_value = "all", help = "fastq|bam|vcf|cross|all")]
+    pub domain: String,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct FastqBenchmarkCampaignArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G101,G102")]
+    pub goals: Option<String>,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct BamBenchmarkCampaignArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G121,G122")]
+    pub goals: Option<String>,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct VcfBenchmarkCampaignArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G141,G142")]
+    pub goals: Option<String>,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct CrossBenchmarkCampaignArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G161,G162")]
+    pub goals: Option<String>,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct HardeningBenchmarkCampaignArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G171,G172")]
+    pub goals: Option<String>,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum SlurmCommand {
+    #[command(name = "submit-stage-benchmark")]
+    SubmitStageBenchmark(SlurmSubmitStageArgs),
+    #[command(name = "submit-domain-benchmark")]
+    SubmitDomainBenchmark(SlurmSubmitDomainArgs),
+    #[command(name = "submit-cross-benchmark")]
+    SubmitCrossBenchmark(SlurmSubmitCrossArgs),
+    #[command(name = "submit-campaign")]
+    SubmitCampaign(SlurmSubmitCampaignArgs),
+    #[command(name = "cancel")]
+    Cancel(SlurmCancelArgs),
+    #[command(name = "monitor")]
+    Monitor(SlurmMonitorArgs),
+    #[command(name = "copy-back-manifest")]
+    CopyBackManifest(SlurmCopyBackManifestArgs),
+    #[command(name = "decrypt-bundle")]
+    DecryptBundle(SlurmBundleDecryptArgs),
+    #[command(name = "verify-bundle")]
+    VerifyBundle(SlurmBundleIntegrityCheck),
+    #[command(name = "rewrap-bundle")]
+    RewrapBundle(SlurmBundleRewrapArgs),
+    #[command(name = "import-replay")]
+    ImportReplay(SlurmReplayImportArgs),
+    #[command(name = "import-campaign")]
+    ImportCampaign(SlurmCampaignImportArgs),
+    #[command(name = "export-failure-bundle")]
+    ExportFailureBundle(SlurmFailureBundleExportArgs),
+    #[command(name = "share-bundle")]
+    ShareBundle(SlurmShareBundleArgs),
+    #[command(name = "verify-results-policy")]
+    VerifyResultsPolicy(SlurmResultsPolicyCheckArgs),
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmSubmitStageArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long)]
+    pub stage: String,
+    #[arg(long)]
+    pub tool: Option<String>,
+    #[arg(long)]
+    pub sample: Option<String>,
+    #[arg(long, default_value_t = false)]
+    pub mock_submit: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmSubmitDomainArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long)]
+    pub domain: String,
+    #[arg(long, default_value_t = false)]
+    pub mock_submit: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmSubmitCrossArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long, help = "Comma-separated domains to include")]
+    pub domains: Option<String>,
+    #[arg(long, default_value_t = false)]
+    pub mock_submit: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmSubmitCampaignArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub mock_submit: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmCancelArgs {
+    #[arg(long = "job-id", value_name = "JOB_ID")]
+    pub job_id: Vec<String>,
+    #[arg(long, value_name = "PATH")]
+    pub manifest: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub mock_cancel: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmMonitorArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub submission_manifest: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmCopyBackManifestArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmBundleDecryptArgs {
+    #[arg(long, value_name = "PATH")]
+    pub bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub sidecar: Option<PathBuf>,
+    #[arg(long, value_name = "PATH", default_value = "artifacts/investigation/decrypt")]
+    pub out_dir: PathBuf,
+    #[arg(long = "identity-file", value_name = "PATH")]
+    pub identity_file: Vec<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub allow_unsafe_destination: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmBundleIntegrityCheck {
+    #[arg(long, value_name = "PATH")]
+    pub bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub sidecar: Option<PathBuf>,
+    #[arg(long = "identity-file", value_name = "PATH")]
+    pub identity_file: Vec<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmBundleRewrapArgs {
+    #[arg(long, value_name = "PATH")]
+    pub bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub sidecar: Option<PathBuf>,
+    #[arg(long = "identity-file", value_name = "PATH")]
+    pub identity_file: Vec<PathBuf>,
+    #[arg(long = "recipient", value_name = "RECIPIENT")]
+    pub recipient: Vec<String>,
+    #[arg(long, value_name = "PATH")]
+    pub out_bundle: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmReplayImportArgs {
+    #[arg(long, value_name = "PATH")]
+    pub results_bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub results_sidecar: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub code_bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub code_sidecar: Option<PathBuf>,
+    #[arg(long, value_name = "PATH", default_value = "artifacts/investigation/replay")]
+    pub out_dir: PathBuf,
+    #[arg(long = "identity-file", value_name = "PATH")]
+    pub identity_file: Vec<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub allow_unsafe_destination: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmCampaignImportArgs {
+    #[arg(long, value_name = "PATH")]
+    pub campaign_dir: PathBuf,
+    #[arg(long, value_name = "PATH", default_value = "artifacts/investigation/campaign-import")]
+    pub out_dir: PathBuf,
+    #[arg(long = "identity-file", value_name = "PATH")]
+    pub identity_file: Vec<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub allow_unsafe_destination: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmFailureBundleExportArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_policies: Option<PathBuf>,
+    #[arg(long)]
+    pub stage: String,
+    #[arg(long)]
+    pub tool: String,
+    #[arg(long)]
+    pub sample: String,
+    #[arg(long, value_name = "PATH")]
+    pub out_dir: PathBuf,
+    #[arg(long = "recipient", value_name = "RECIPIENT")]
+    pub recipient: Vec<String>,
+    #[arg(long, default_value = "mock-envelope-v1")]
+    pub backend: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmShareBundleArgs {
+    #[arg(long, value_name = "PATH")]
+    pub bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub sidecar: Option<PathBuf>,
+    #[arg(long = "identity-file", value_name = "PATH")]
+    pub identity_file: Vec<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub profile: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub out_dir: PathBuf,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmResultsPolicyCheckArgs {
+    #[arg(long, value_name = "PATH")]
+    pub results_bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub results_sidecar: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub code_bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub code_sidecar: Option<PathBuf>,
+    #[arg(long = "identity-file", value_name = "PATH")]
+    pub identity_file: Vec<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
 }
 
 #[derive(Debug, Subcommand)]

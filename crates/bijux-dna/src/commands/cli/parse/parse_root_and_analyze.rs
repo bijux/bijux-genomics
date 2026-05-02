@@ -60,6 +60,7 @@ nested_root_command_args!(ToolRootArgs, ToolCommand);
 nested_root_command_args!(DomainRootArgs, DomainCommand);
 nested_root_command_args!(LabRootArgs, LabCommand);
 nested_root_command_args!(ConfigRootArgs, ConfigCommand);
+nested_root_command_args!(SlurmRootArgs, SlurmCommand);
 nested_root_command_args!(FastqRootArgs, FastqCommand);
 nested_root_command_args!(BamRootArgs, BamCommand);
 nested_root_command_args!(VcfRootArgs, VcfCommand);
@@ -85,6 +86,8 @@ pub enum DnaCommand {
     Lab(LabRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
     Config(ConfigRootArgs),
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
+    Slurm(SlurmRootArgs),
     Status(StatusArgs),
     #[command(name = "run")]
     Fastq(FastqRootArgs),

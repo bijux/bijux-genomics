@@ -1,0 +1,21 @@
+# schema_version = 1
+# owner = platform
+# purpose = Optional user-local policy overrides for HPC campaign slurm and resource defaults
+# authority = platform
+# stability = stable
+# last_updated = 2026-05-02
+
+# Keep this file free of secrets. Put secret values in `configs/hpc/.env` and load with `--env-file`.
+
+[slurm]
+# account = "project-account"
+# project = "project-code"
+# partition = "main"
+# qos = "normal"
+# default_resource_template = "standard"
+# retry_attempts = 1
+# retry_backoff_seconds = 20
+# retry_on_exit_codes = [1, 2]
+
+[resources]
+# default = "standard"

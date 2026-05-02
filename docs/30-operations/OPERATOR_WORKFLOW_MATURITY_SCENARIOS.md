@@ -34,14 +34,15 @@ cargo run -q -p bijux-dna-dev -- tooling run operator-workflow-maturity -- --out
 - `G199` `g199_scale_aware_progress_reporting`: sample/stage/artifact progress summaries with explicit failure rows.
 - `G200` `g200_resource_prediction_from_past_runs`: advisory CPU/memory/scratch suggestions from successful historical runs.
 
+## Purpose
+This document describes the governed intent and operator-facing meaning of this surface.
+
 ## Scope
-This document defines the operational or architecture surface for this workflow surface.
+The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
 
 ## Non-goals
-- Replacing crate-level implementation details or test contracts.
+This document does not redefine source-of-truth schemas, code ownership boundaries, or release policy outside this surface.
 
 ## Contracts
-- Changes to this surface must stay aligned with governed checks and generated references.
+Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
 
-## Purpose
-This document records the durable intent and enforcement boundary for this surface.

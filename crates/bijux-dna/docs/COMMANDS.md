@@ -167,6 +167,22 @@ These commands are hidden in non-debug builds or exist for repository control-pl
 - `bijux-dna lab corpus list-fastq`
 - `bijux-dna config init-hpc`
 - `bijux-dna config doctor`
+- `bijux-dna config campaign-preflight`
+- `bijux-dna config campaign-dry-run`
+- `bijux-dna config write-campaign-profiles`
+- `bijux-dna slurm submit-stage-benchmark`
+- `bijux-dna slurm submit-domain-benchmark`
+- `bijux-dna slurm submit-cross-benchmark`
+- `bijux-dna slurm submit-campaign`
+- `bijux-dna slurm copy-back-manifest`
+- `bijux-dna slurm verify-bundle`
+- `bijux-dna slurm decrypt-bundle`
+- `bijux-dna slurm rewrap-bundle`
+- `bijux-dna slurm import-replay`
+- `bijux-dna slurm import-campaign`
+- `bijux-dna slurm export-failure-bundle`
+- `bijux-dna slurm share-bundle`
+- `bijux-dna slurm verify-results-policy`
 - `bijux-dna bam run`
 - `bijux-dna bam list-stages`
 - `bijux-dna bam explain`

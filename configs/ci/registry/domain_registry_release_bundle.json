@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "d7fce4e5c7254bad4984be76d92b1abc0bf0c30c",
-  "bundle_checksum_sha256": "baa75465019efe0d45a44e8835b541cb5d11c9b1d1857105fe92f6ca769e23c9",
+  "source_commit": "7f92f74f3d6b5fa90319ebb5b71976f79393927f",
+  "bundle_checksum_sha256": "23c9c8592d3fb07b7ec7a7fa70790e2ac2cc5e8969e9ef26b951d4dfc21541b2",
   "domains": [
     {
       "domain_id": "bam",
@@ -2800,7 +2800,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "36dbd1f20289405484a374baca12a8be8506274c617736cb87f7db65e7e5e91d"
+      "checksum_sha256": "c80dc72a3330d1d5670b64b56d38d8118bebe1c48481ebcce448dd30dcdaedcf"
     },
     {
       "domain_id": "fastq",
@@ -4720,7 +4720,8 @@
             "none"
           ],
           "planned_out_of_scope": [
-            "dustmasker"
+            "dustmasker",
+            "fastp"
           ]
         },
         {
@@ -6188,7 +6189,10 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": []
+          "planned_out_of_scope": [
+            "seqfu",
+            "seqkit"
+          ]
         },
         {
           "stage_id": "fastq.remove_chimeras",
@@ -8393,9 +8397,13 @@
             "fastq.trim_reads"
           ],
           "planned_stage_ids": [
+            "fastq.filter_low_complexity",
             "fastq.profile_read_lengths"
           ],
           "expected_artifacts": [
+            "filter_report_json",
+            "filtered_fastq_r1",
+            "filtered_fastq_r2",
             "filtered_reads_r1",
             "filtered_reads_r2",
             "length_distribution_json",
@@ -9048,13 +9056,17 @@
             "fastq.trim_reads",
             "fastq.trim_terminal_damage"
           ],
-          "planned_stage_ids": [],
+          "planned_stage_ids": [
+            "fastq.profile_reads"
+          ],
           "expected_artifacts": [
             "filtered_reads_r1",
             "filtered_reads_r2",
             "normalized_abundance_tsv",
             "overrepresented_sequences_json",
             "overrepresented_sequences_tsv",
+            "qc_json",
+            "qc_tsv",
             "report_json",
             "trimmed_reads_r1",
             "trimmed_reads_r2"
@@ -11218,7 +11230,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "84c7b1a3eec8e27ecadb63848b7ae9c486f7eba4a038ca37ddf6233098ae4392"
+      "checksum_sha256": "1951c9d93b8494f79230692d229122c804420289fee6b2966de3705c5584e12c"
     },
     {
       "domain_id": "vcf",
@@ -13476,7 +13488,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "99c9707536d88dd6acacefb7b578b949c0fabd4ea07722ab97c34e5137131682"
+      "checksum_sha256": "ac2a340cb86caab4829ff620b9cfdd2110651f422c8ae24a4cbc4581590bd1d2"
     }
   ]
 }

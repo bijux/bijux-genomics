@@ -34,14 +34,15 @@ cargo run -q -p bijux-dna-dev -- tooling run reference-external-data -- --out ar
 - `G179` `g179_ena_batch_accession`: ENA batch accession conversion with uncertainty propagation.
 - `G180` `g180_offline_data_package`: offline reference/data package materialization report.
 
+## Purpose
+This document describes the governed intent and operator-facing meaning of this surface.
+
 ## Scope
-This document defines the operational or architecture surface for this workflow surface.
+The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
 
 ## Non-goals
-- Replacing crate-level implementation details or test contracts.
+This document does not redefine source-of-truth schemas, code ownership boundaries, or release policy outside this surface.
 
 ## Contracts
-- Changes to this surface must stay aligned with governed checks and generated references.
+Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
 
-## Purpose
-This document records the durable intent and enforcement boundary for this surface.

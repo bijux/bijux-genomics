@@ -15,7 +15,7 @@ pub use bijux_dna_infra::{
 pub use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 pub use bijux_dna_runner::backend::docker::replay::replay_run;
 pub use bijux_dna_runner::command_runner::{
-    run_command, run_command_with_context, CommandOutputV1,
+    run_command, run_command_with_context, run_command_with_context_and_stdin, CommandOutputV1,
 };
 pub use bijux_dna_runtime::manifests::load_manifests;
 pub use bijux_dna_runtime::run::{load_profile, new_run_id, resolve_run_base_dir};

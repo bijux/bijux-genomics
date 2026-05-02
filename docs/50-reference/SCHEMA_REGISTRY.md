@@ -7,14 +7,13 @@
 Generated registry of governed workflow, plan, runtime, evidence, metric, report, and error compatibility surfaces.
 
 ## Scope
-Schema and error compatibility contracts exposed by governed registries.
+Lists authoritative compatibility surfaces, their semantic versions, and durable error code ownership.
 
 ## Non-goals
-- Replacing crate-level API or data model documentation.
+Does not replace crate-level API docs, implementation details, or migration playbooks.
 
 ## Contracts
-- Generated-only document; manual edits are forbidden.
-- Registry rows must remain deterministic for a fixed repository state.
+This page is generated from governed registries in code and must be updated via `cargo run -p bijux-dna-dev -- tooling run generate-docs`.
 
 ## Schema Families
 | Family | Schema | Semantic Version | Surface | Compatibility | Migration Rule | Owner |
