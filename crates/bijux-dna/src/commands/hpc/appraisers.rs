@@ -49,6 +49,7 @@ struct ReproducibilityAppraiser;
 struct BackendEquivalenceAppraiser;
 struct FailureClassAppraiser;
 struct CorpusSuitabilityAppraiser;
+struct CodeFreezeAppraiser;
 
 fn plugins() -> Vec<Box<dyn AppraiserPlugin>> {
     vec![
@@ -59,6 +60,7 @@ fn plugins() -> Vec<Box<dyn AppraiserPlugin>> {
         Box::new(BackendEquivalenceAppraiser),
         Box::new(FailureClassAppraiser),
         Box::new(CorpusSuitabilityAppraiser),
+        Box::new(CodeFreezeAppraiser),
     ]
 }
 
@@ -332,6 +334,31 @@ impl AppraiserPlugin for CorpusSuitabilityAppraiser {
                     result_scope: "encrypted-results".to_string(),
                     summary: "corpus does not match required stage profile".to_string(),
                     recommendation: "materialize corpus profile matching stage scientific claim".to_string(),
+                });
+            }
+        }
+        findings
+    }
+}
+
+impl AppraiserPlugin for CodeFreezeAppraiser {
+    fn id(&self) -> &'static str {
+        "code-freeze"
+    }
+
+    fn appraise(&self, matrix: &BenchmarkMatrixReport) -> Vec<AppraisalFinding> {
+        let mut findings = Vec::new();
+        for row in &matrix.rows {
+            if row.tool_id == "<unbound>" || !row.image_match.ready {
+                findings.push(AppraisalFinding {
+                    appraiser_id: self.id().to_string(),
+                    row_id: row.row_id.clone(),
+                    severity: "warning".to_string(),
+                    confidence: "medium".to_string(),
+                    failure_class: "code-freeze-incomplete".to_string(),
+                    result_scope: "encrypted-code".to_string(),
+                    summary: "row lacks stable tool/image binding for freeze completeness".to_string(),
+                    recommendation: "bind tool and image lock before code freeze publication".to_string(),
                 });
             }
         }
