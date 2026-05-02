@@ -4780,6 +4780,30 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class != "ready").count()
             ),
         ],
+        "G277" => vec![
+            format!("local_archive_rows_present={}", !rows.is_empty()),
+            format!(
+                "local_archive_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "local_archive_profile_coverage_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "local_archive_encrypted_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope.starts_with("encrypted-"))
+                    .count()
+            ),
+            format!(
+                "local_archive_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -7991,6 +8015,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "retention_tier_encrypted_findings=1"));
+    }
+
+    #[test]
+    fn goal_277_emits_local_archive_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G277".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "local archive import reports missing investigation metadata fields".to_string(),
+            recommendation: "archive decrypted investigations in a structured local private format".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "local_archive_profile_coverage_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "local_archive_encrypted_findings=1"));
     }
 
     #[test]
