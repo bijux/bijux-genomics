@@ -14,5 +14,13 @@ Use `security.encryption_backend` to choose `mock-envelope-v1` (local fixture ba
 for recipient-based encryption with real identities.
 Set `security.encrypt_operator_outputs = true` only when `.log/.out/.err` must also be encrypted.
 
+Sharing flow:
+
+1. Define collaborator recipients in `sharing/*.toml`.
+2. Re-encrypt and redact with:
+   `bijux-dna slurm share-bundle --bundle <path> --profile configs/hpc/campaign/sharing/<profile>.toml --out-dir <dir>`
+3. Verify policy coverage with:
+   `bijux-dna slurm verify-results-policy --results-bundle <results> --code-bundle <code>`
+
 Resource templates can be selected globally with `resources.default`, or by stage family via
 `resources.stage_defaults`.
