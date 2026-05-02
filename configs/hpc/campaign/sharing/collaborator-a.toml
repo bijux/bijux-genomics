@@ -1,0 +1,3 @@
+profile_id = "collaborator-a"
+backend = "mock-envelope-v1"
+recipients = ["bio-team-review-a"]

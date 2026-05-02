@@ -7,6 +7,7 @@ These are baseline campaign profiles for Slurm dry-run and preflight validation.
 - `cross-mini.toml`: cross-domain fixture with explicit handoff dependency.
 - `site-profiles/lunarc.toml`: Lunarc site defaults.
 - `site-profiles/generic.toml`: generic site defaults.
+- `sharing/*.toml`: collaborator recipient profiles for bundle sharing.
 
 Secrets must not be committed in these profiles. Use `security.env_file` and user overrides.
 Use `security.encryption_backend` to choose `mock-envelope-v1` (local fixture backend) or `age-cli`
