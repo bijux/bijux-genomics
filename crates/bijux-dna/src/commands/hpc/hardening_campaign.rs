@@ -2288,6 +2288,24 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G218" => vec![
+            format!("shared_storage_io_rows_present={}", !rows.is_empty()),
+            format!(
+                "shared_storage_io_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "shared_storage_io_profile_summary_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "shared_storage_io_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("shared_storage_io_queue_entries={}", queue_entries.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -3959,6 +3977,30 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "artifact_minimization_code_scope_findings=1"));
+    }
+
+    #[test]
+    fn goal_218_emits_shared_storage_io_stress_corpus_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G218".to_string()];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-1701".to_string(),
+            severity: "warning".to_string(),
+            failure_class: "runtime-outlier".to_string(),
+            recommendation: "review shared-storage IO staging and scratch placement".to_string(),
+            affected_rows: vec!["h3".to_string()],
+            source_appraisers: vec!["runtime-profile".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &[], &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "shared_storage_io_profile_summary_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "shared_storage_io_queue_entries=1"));
     }
 
     #[test]
