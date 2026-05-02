@@ -924,6 +924,24 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G117" => vec![
+            format!("chunked_rows_present={}", !rows.is_empty()),
+            format!(
+                "chunk_filter_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.filter_reads")
+            ),
+            format!(
+                "chunk_profile_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+            ),
+            format!(
+                "chunk_equivalence_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.appraiser_id == "backend-equivalence")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1099,7 +1117,7 @@ mod tests {
             domains: vec!["fastq".to_string()],
             generated_at: "0".to_string(),
             summary: BenchmarkMatrixSummary {
-                total_rows: 14,
+                total_rows: 15,
                 readiness_counts: std::collections::BTreeMap::new(),
                 domain_counts: std::collections::BTreeMap::new(),
             },
@@ -1115,6 +1133,7 @@ mod tests {
                 row("r9", "fastq.screen_taxonomy", "degraded"),
                 row("r10", "fastq.normalize_primers", "ready"),
                 row("r11", "fastq.filter_reads", "ready"),
+                row("r15", "fastq.profile_reads", "ready"),
                 row("r12", "fastq.materialize_qc_manifest", "ready"),
                 row("r13", "fastq.capture_provenance_snapshot", "ready"),
                 row("r14", "fastq.trim_terminal_damage", "ready"),
@@ -1551,5 +1570,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("edna_primer_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_117_emits_chunked_processing_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G117".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "backend-equivalence".to_string(),
+            row_id: "r11".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "single-backend".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("chunk_profile_stage_bound=true")));
     }
 }
