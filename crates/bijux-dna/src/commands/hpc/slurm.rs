@@ -1218,7 +1218,7 @@ pub fn import_encrypted_replay(args: &SlurmReplayImportArgs) -> Result<SlurmRepl
     checks.extend(validate_code_payload(&code_json));
     let replay_feasible = checks.is_empty();
 
-    Ok(SlurmReplayImportReport {
+    let report = SlurmReplayImportReport {
         schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
         results_bundle: args.results_bundle.display().to_string(),
         code_bundle: args.code_bundle.display().to_string(),
@@ -1227,7 +1227,12 @@ pub fn import_encrypted_replay(args: &SlurmReplayImportArgs) -> Result<SlurmRepl
         code_plaintext_sha256: code_meta.plaintext_sha256,
         replay_feasible,
         completeness_checks: checks,
-    })
+    };
+    let manifest_path = args.out_dir.join("import-replay-report.json");
+    let payload = serde_json::to_vec_pretty(&report).context("serialize replay import report")?;
+    bijux_dna_api::v1::api::run::atomic_write_bytes(&manifest_path, &payload)
+        .with_context(|| format!("write {}", manifest_path.display()))?;
+    Ok(report)
 }
 
 pub fn import_encrypted_campaign(args: &SlurmCampaignImportArgs) -> Result<SlurmCampaignImportReport> {
@@ -1303,7 +1308,7 @@ pub fn import_encrypted_campaign(args: &SlurmCampaignImportArgs) -> Result<Slurm
     }
 
     let failed_pairs = errors.len();
-    Ok(SlurmCampaignImportReport {
+    let report = SlurmCampaignImportReport {
         schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
         campaign_dir: args.campaign_dir.display().to_string(),
         output_root: args.out_dir.display().to_string(),
@@ -1311,7 +1316,12 @@ pub fn import_encrypted_campaign(args: &SlurmCampaignImportArgs) -> Result<Slurm
         failed_pairs,
         imported,
         errors,
-    })
+    };
+    let manifest_path = args.out_dir.join("import-campaign-report.json");
+    let payload = serde_json::to_vec_pretty(&report).context("serialize campaign import report")?;
+    bijux_dna_api::v1::api::run::atomic_write_bytes(&manifest_path, &payload)
+        .with_context(|| format!("write {}", manifest_path.display()))?;
+    Ok(report)
 }
 
 pub fn export_failure_bundle(args: &SlurmFailureBundleExportArgs) -> Result<SlurmFailureBundleExportReport> {
@@ -1370,7 +1380,7 @@ pub fn export_failure_bundle(args: &SlurmFailureBundleExportArgs) -> Result<Slur
         recipients: &recipients,
         plaintext: &plaintext,
     })?;
-    Ok(SlurmFailureBundleExportReport {
+    let report = SlurmFailureBundleExportReport {
         schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
         stage: job.stage.clone(),
         tool: job.tool.clone(),
@@ -1379,7 +1389,12 @@ pub fn export_failure_bundle(args: &SlurmFailureBundleExportArgs) -> Result<Slur
         sidecar_path: sidecar_path_for(&bundle_path).display().to_string(),
         plaintext_sha256: sidecar.plaintext_sha256,
         recipients: sidecar.recipients,
-    })
+    };
+    let manifest_path = args.out_dir.join("failure-export-report.json");
+    let payload = serde_json::to_vec_pretty(&report).context("serialize failure export report")?;
+    bijux_dna_api::v1::api::run::atomic_write_bytes(&manifest_path, &payload)
+        .with_context(|| format!("write {}", manifest_path.display()))?;
+    Ok(report)
 }
 
 pub fn share_bundle_with_profile(args: &SlurmShareBundleArgs) -> Result<SlurmShareBundleReport> {
@@ -1429,7 +1444,7 @@ pub fn share_bundle_with_profile(args: &SlurmShareBundleArgs) -> Result<SlurmSha
     bijux_dna_api::v1::api::run::atomic_write_bytes(&redacted_path, &payload)
         .with_context(|| format!("write {}", redacted_path.display()))?;
 
-    Ok(SlurmShareBundleReport {
+    let report = SlurmShareBundleReport {
         schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
         source_bundle_path: args.bundle.display().to_string(),
         shared_bundle_path: shared_bundle.display().to_string(),
@@ -1437,7 +1452,12 @@ pub fn share_bundle_with_profile(args: &SlurmShareBundleArgs) -> Result<SlurmSha
         plaintext_sha256: sidecar.plaintext_sha256,
         shared_recipients: profile.recipients,
         profile_id: profile.profile_id,
-    })
+    };
+    let manifest_path = args.out_dir.join("share-bundle-report.json");
+    let payload = serde_json::to_vec_pretty(&report).context("serialize share bundle report")?;
+    bijux_dna_api::v1::api::run::atomic_write_bytes(&manifest_path, &payload)
+        .with_context(|| format!("write {}", manifest_path.display()))?;
+    Ok(report)
 }
 
 pub fn verify_results_policy(args: &SlurmResultsPolicyCheckArgs) -> Result<SlurmResultsPolicyReport> {
@@ -1955,6 +1975,7 @@ sample = "sample-2"
         .expect("import replay");
         assert!(imported.replay_feasible);
         assert!(imported.completeness_checks.is_empty());
+        assert!(root.path().join("replay/import-replay-report.json").is_file());
     }
 
     #[test]
@@ -1990,6 +2011,7 @@ sample = "sample-2"
         .expect("import campaign");
         assert_eq!(imported.imported_pairs, 1, "errors={:?}", imported.errors);
         assert_eq!(imported.failed_pairs, 0);
+        assert!(root.path().join("campaign-import/import-campaign-report.json").is_file());
     }
 
     #[test]
@@ -2012,6 +2034,7 @@ sample = "sample-2"
         .expect("export failure");
         assert!(std::path::Path::new(&report.bundle_path).is_file());
         assert!(std::path::Path::new(&report.sidecar_path).is_file());
+        assert!(root.path().join("failure-export/failure-export-report.json").is_file());
     }
 
     #[test]
@@ -2044,6 +2067,7 @@ sample = "sample-2"
         let sidecar = std::fs::read_to_string(&shared.shared_sidecar_path).expect("read sidecar");
         assert!(sidecar.contains("\"campaign_id\": \"<redacted>\""));
         assert!(sidecar.contains("\"stage\": \"<redacted>\""));
+        assert!(root.path().join("shared/share-bundle-report.json").is_file());
     }
 
     #[test]
