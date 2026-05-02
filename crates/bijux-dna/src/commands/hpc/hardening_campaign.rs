@@ -1399,6 +1399,25 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G196" => vec![
+            format!("campaign_salvage_rows_present={}", !rows.is_empty()),
+            format!(
+                "campaign_salvage_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "campaign_salvage_partial_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!(
+                "campaign_salvage_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!(
+                "campaign_salvage_noncritical_findings={}",
+                findings.iter().filter(|finding| finding.severity != "critical").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -2482,6 +2501,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "runtime_issue_bundle_runtime_findings=1"));
+    }
+
+    #[test]
+    fn goal_196_emits_campaign_salvage_workflow_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G196".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-performance".to_string(),
+            row_id: "h7".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-under-sampled".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "partial campaign row preserved for salvage".to_string(),
+            recommendation: "increase repetitions to at least 2".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "campaign_salvage_partial_rows=3"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "campaign_salvage_noncritical_findings=1"));
     }
 
     #[test]
