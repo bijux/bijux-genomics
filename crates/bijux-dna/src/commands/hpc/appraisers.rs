@@ -137,6 +137,14 @@ fn write_json_pretty(path: &Path, value: &impl Serialize) -> Result<()> {
 
 pub fn appraise_matrix(args: &AppraiseMatrixArgs) -> Result<AppraisalReport> {
     let matrix = matrix_from_args(args)?;
+    let report = appraise_matrix_report(matrix);
+    if let Some(path) = &args.out {
+        write_json_pretty(path, &report)?;
+    }
+    Ok(report)
+}
+
+pub fn appraise_matrix_report(matrix: BenchmarkMatrixReport) -> AppraisalReport {
     let mut findings = Vec::new();
     for plugin in plugins() {
         findings.extend(plugin.appraise(&matrix));
@@ -154,10 +162,7 @@ pub fn appraise_matrix(args: &AppraiseMatrixArgs) -> Result<AppraisalReport> {
         summary: summarize_findings(&findings),
         findings,
     };
-    if let Some(path) = &args.out {
-        write_json_pretty(path, &report)?;
-    }
-    Ok(report)
+    report
 }
 
 fn appraisal_from_args(args: &HardeningQueueArgs) -> Result<AppraisalReport> {
@@ -180,6 +185,14 @@ fn appraisal_from_args(args: &HardeningQueueArgs) -> Result<AppraisalReport> {
 
 pub fn generate_hardening_queue(args: &HardeningQueueArgs) -> Result<HardeningQueueReport> {
     let appraisal = appraisal_from_args(args)?;
+    let report = hardening_queue_from_appraisal(appraisal);
+    if let Some(path) = &args.out {
+        write_json_pretty(path, &report)?;
+    }
+    Ok(report)
+}
+
+pub fn hardening_queue_from_appraisal(appraisal: AppraisalReport) -> HardeningQueueReport {
     let mut grouped: BTreeMap<(String, String, String), HardeningQueueEntry> = BTreeMap::new();
     for finding in &appraisal.findings {
         let key = (
@@ -220,10 +233,7 @@ pub fn generate_hardening_queue(args: &HardeningQueueArgs) -> Result<HardeningQu
         domain: appraisal.domain,
         entries,
     };
-    if let Some(path) = &args.out {
-        write_json_pretty(path, &report)?;
-    }
-    Ok(report)
+    report
 }
 
 impl AppraiserPlugin for RuntimePerformanceAppraiser {

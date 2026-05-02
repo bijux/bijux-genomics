@@ -151,6 +151,8 @@ pub enum ConfigCommand {
     AppraiseMatrix(AppraiseMatrixArgs),
     #[command(name = "hardening-queue")]
     HardeningQueue(HardeningQueueArgs),
+    #[command(name = "fastq-benchmark-campaign")]
+    FastqBenchmarkCampaign(FastqBenchmarkCampaignArgs),
     Doctor,
 }
 
@@ -204,6 +206,22 @@ pub struct HardeningQueueArgs {
     pub user_overrides: Option<PathBuf>,
     #[arg(long, default_value = "all", help = "fastq|bam|vcf|cross|all")]
     pub domain: String,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct FastqBenchmarkCampaignArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_overrides: Option<PathBuf>,
+    #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G101,G102")]
+    pub goals: Option<String>,
     #[arg(long, value_name = "PATH")]
     pub out: Option<PathBuf>,
     #[arg(long, default_value_t = false)]
