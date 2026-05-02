@@ -464,6 +464,31 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G176" => vec![
+            format!("wrapper_hardening_rows_present={}", !rows.is_empty()),
+            format!(
+                "wrapper_hardening_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "wrapper_hardening_summary_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+            ),
+            format!(
+                "wrapper_hardening_runtime_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class.starts_with("runtime-"))
+                    .count()
+            ),
+            format!(
+                "wrapper_hardening_repro_low_repeat_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "reproducibility-low-repeats")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -839,6 +864,44 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "image_hardening_image_mismatch_findings=1"));
+    }
+
+    #[test]
+    fn goal_176_emits_slurm_wrapper_hardening_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G176".to_string()];
+        let findings = vec![
+            AppraisalFinding {
+                appraiser_id: "runtime-performance".to_string(),
+                row_id: "h7".to_string(),
+                severity: "warning".to_string(),
+                confidence: "medium".to_string(),
+                failure_class: "runtime-under-sampled".to_string(),
+                result_scope: "encrypted-results".to_string(),
+                summary: "benchmark row has too few repetitions".to_string(),
+                recommendation: "increase repetitions to at least 2".to_string(),
+            },
+            AppraisalFinding {
+                appraiser_id: "reproducibility".to_string(),
+                row_id: "h6".to_string(),
+                severity: "warning".to_string(),
+                confidence: "medium".to_string(),
+                failure_class: "reproducibility-low-repeats".to_string(),
+                result_scope: "encrypted-results".to_string(),
+                summary: "low repeats for reproducibility".to_string(),
+                recommendation: "set repetitions >= 3 for reproducibility confidence".to_string(),
+            },
+        ];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "wrapper_hardening_runtime_findings=1"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "wrapper_hardening_repro_low_repeat_findings=1"));
     }
 
     #[test]
