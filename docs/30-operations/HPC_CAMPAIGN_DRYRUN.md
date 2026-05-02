@@ -147,6 +147,14 @@ bijux-dna slurm share-bundle \
   --out-dir artifacts/investigation/shared
 ```
 
+Verify results/code completeness and appraiser-output encryption policy:
+
+```bash
+bijux-dna slurm verify-results-policy \
+  --results-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results \
+  --code-bundle /shared/bijux/code/fastq-hpc-mini/.../dryrun-0001-1700000000.code
+```
+
 ## Security notes
 
 - Do not commit Slurm account/project values in campaign config files.
@@ -155,6 +163,8 @@ bijux-dna slurm share-bundle \
 - Keep `security.encrypt_operator_outputs = false` unless log/out/err files must be encrypted.
 - Use `security.encryption_backend = "age-cli"` with valid `age1...` recipients and
   configured `security.encryption_identity_files` for real key-based encryption.
+- Decrypt/import commands refuse unsafe destination directories by default. Use
+  `--allow-unsafe-destination` only for explicit audited exceptions.
 
 ## Output path tokens
 
