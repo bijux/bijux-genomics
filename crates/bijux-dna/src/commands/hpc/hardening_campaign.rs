@@ -3726,6 +3726,30 @@ fn goal_specific_checks(
             ),
             format!("storage_mode_findings_count={}", findings.len()),
         ],
+        "G251" => vec![
+            format!("flagship_dashboard_rows_present={}", !rows.is_empty()),
+            format!(
+                "flagship_dashboard_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "flagship_dashboard_profile_summary_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "flagship_dashboard_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!(
+                "flagship_dashboard_encrypted_scope_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope.starts_with("encrypted-"))
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -6245,6 +6269,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "storage_mode_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_251_emits_flagship_dashboard_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G251".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "h11".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "scientific-invalidity".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "flagship dashboard import shows scientific fail row in stats stage".to_string(),
+            recommendation: "highlight pass/fail and appraiser scientific status in dashboard".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "flagship_dashboard_profile_summary_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "flagship_dashboard_encrypted_scope_findings=1"));
     }
 
     #[test]
