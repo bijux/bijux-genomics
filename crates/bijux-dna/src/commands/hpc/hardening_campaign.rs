@@ -4231,6 +4231,30 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class != "ready").count()
             ),
         ],
+        "G263" => vec![
+            format!("confidential_bundle_rows_present={}", !rows.is_empty()),
+            format!(
+                "confidential_bundle_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "confidential_bundle_trim_contamination_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.contamination")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "confidential_bundle_encrypted_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope.starts_with("encrypted-"))
+                    .count()
+            ),
+            format!(
+                "confidential_bundle_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -7042,6 +7066,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "reviewer_decrypt_encrypted_findings=1"));
+    }
+
+    #[test]
+    fn goal_263_emits_confidential_issue_bundle_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G263".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "confidential issue bundle import includes refused filter row evidence".to_string(),
+            recommendation: "minimize and encrypt only relevant artifacts in issue bundle output".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "confidential_bundle_trim_contamination_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "confidential_bundle_encrypted_findings=1"));
     }
 
     #[test]
