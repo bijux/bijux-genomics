@@ -758,6 +758,24 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G131" => vec![
+            format!("adna_damage_rows_present={}", !rows.is_empty()),
+            format!(
+                "adna_damage_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.damage")
+            ),
+            format!(
+                "adna_damage_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "ready").count()
+            ),
+            format!(
+                "adna_damage_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.appraiser_id == "scientific-output")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1268,5 +1286,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("coverage_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_131_emits_adna_damage_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G131".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "b10".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "readiness-degraded".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("adna_damage_stage_bound=true")));
     }
 }
