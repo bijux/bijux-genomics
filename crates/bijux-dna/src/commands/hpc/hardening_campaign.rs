@@ -1877,6 +1877,30 @@ fn goal_specific_checks(
                 findings.len()
             ),
         ],
+        "G208" => vec![
+            format!("sv_boundary_rows_present={}", !rows.is_empty()),
+            format!(
+                "sv_boundary_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "sv_boundary_coverage_call_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.call")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "sv_boundary_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!(
+                "sv_boundary_non_info_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.severity != "info")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -3292,6 +3316,30 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "microbial_corpus_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_208_emits_sv_boundary_corpus_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G208".to_string()];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-1501".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+            affected_rows: vec!["h10".to_string()],
+            source_appraisers: vec!["failure-class".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &[], &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "sv_boundary_coverage_call_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "sv_boundary_non_info_queue_entries=1"));
     }
 
     #[test]
