@@ -987,6 +987,33 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class != "ready").count()
             ),
         ],
+        "G188" => vec![
+            format!("code_diff_rows_present={}", !rows.is_empty()),
+            format!(
+                "code_diff_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "code_diff_trim_summary_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "code_diff_code_scope_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope == "encrypted-code")
+                    .count()
+            ),
+            format!(
+                "code_diff_code_freeze_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.source_appraisers.iter().any(|id| id == "code-freeze"))
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1786,6 +1813,40 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "result_diff_encrypted_result_findings=1"));
+    }
+
+    #[test]
+    fn goal_188_emits_code_diff_workflow_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G188".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "code bundle diff reveals missing lock metadata".to_string(),
+            recommendation: "bind tool and image lock before code freeze publication".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0501".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            recommendation: "bind tool and image lock before code freeze publication".to_string(),
+            affected_rows: vec!["h13".to_string()],
+            source_appraisers: vec!["code-freeze".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "code_diff_trim_summary_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "code_diff_code_freeze_queue_entries=1"));
     }
 
     #[test]
