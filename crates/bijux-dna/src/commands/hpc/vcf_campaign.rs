@@ -854,6 +854,28 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class == "refuse").count()
             ),
         ],
+        "G152" => vec![
+            format!("cohort_qc_rows_present={}", !rows.is_empty()),
+            format!(
+                "cohort_qc_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "cohort_qc_qc_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.qc")
+            ),
+            format!(
+                "cohort_qc_stats_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "cohort_qc_filter_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1423,5 +1445,21 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("imputation_impute_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_152_emits_cohort_qc_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G152".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("cohort_qc_stage_count=3")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("cohort_qc_qc_stage_bound=true")));
     }
 }
