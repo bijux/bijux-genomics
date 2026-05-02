@@ -3014,6 +3014,24 @@ fn goal_specific_checks(
             ),
             format!("priority_label_findings_count={}", findings.len()),
         ],
+        "G235" => vec![
+            format!("warm_start_rows_present={}", !rows.is_empty()),
+            format!(
+                "warm_start_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "warm_start_validate_summary_call_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.validate")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.call")
+            ),
+            format!(
+                "warm_start_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("warm_start_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -3303,7 +3321,7 @@ mod tests {
         let selected = vec!["G172".to_string()];
         let findings = vec![AppraisalFinding {
             appraiser_id: "artifact-validity".to_string(),
-            row_id: "h5".to_string(),
+            row_id: "h6".to_string(),
             severity: "warning".to_string(),
             confidence: "medium".to_string(),
             failure_class: "missing-tool-binding".to_string(),
@@ -4257,7 +4275,7 @@ mod tests {
         let selected = vec!["G201".to_string()];
         let findings = vec![AppraisalFinding {
             appraiser_id: "failure-class".to_string(),
-            row_id: "h5".to_string(),
+            row_id: "h6".to_string(),
             severity: "warning".to_string(),
             confidence: "medium".to_string(),
             failure_class: "readiness-degraded".to_string(),
@@ -4511,7 +4529,7 @@ mod tests {
         let selected = vec!["G211".to_string()];
         let findings = vec![AppraisalFinding {
             appraiser_id: "failure-class".to_string(),
-            row_id: "h5".to_string(),
+            row_id: "h6".to_string(),
             severity: "warning".to_string(),
             confidence: "medium".to_string(),
             failure_class: "readiness-degraded".to_string(),
@@ -5119,6 +5137,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "priority_label_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_235_emits_warm_start_campaign_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G235".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "h6".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "readiness-degraded".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "warm-start campaign has degraded pre-locked align surface".to_string(),
+            recommendation: "restore ready warm-start assets before submit".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "warm_start_validate_summary_call_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "warm_start_findings_count=1"));
     }
 
     #[test]
