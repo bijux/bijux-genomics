@@ -2156,4 +2156,92 @@ sample = "sample-2"
         assert!(!policy.code_complete);
         assert!(!policy.appraiser_policy_ok);
     }
+
+    #[test]
+    fn submit_campaign_redacts_seeded_secret_values_in_operator_outputs() {
+        let root = tempfile::tempdir().expect("tempdir");
+        for name in [
+            "corpora",
+            "databases",
+            "images",
+            "scratch",
+            "logs",
+            "results",
+            "code",
+            "imports",
+            "baselines",
+        ] {
+            std::fs::create_dir_all(root.path().join(name)).expect("create dir");
+        }
+        let secret = "SENSITIVE_TOKEN_12345";
+        let env_path = root.path().join("campaign.env");
+        std::fs::write(
+            &env_path,
+            format!("BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\nBIJUX_API_TOKEN={secret}\n"),
+        )
+        .expect("write env");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&env_path).expect("env metadata").permissions();
+            perms.set_mode(0o600);
+            std::fs::set_permissions(&env_path, perms).expect("set env perms");
+        }
+        let config_path = root.path().join("campaign.toml");
+        let config = format!(
+            r#"
+[campaign]
+id = "mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "{root}/corpora"
+databases_root = "{root}/databases"
+images_root = "{root}/images"
+scratch_root = "{root}/scratch"
+logs_root = "{root}/logs"
+encrypted_results_root = "{root}/results"
+encrypted_code_root = "{root}/code"
+appraiser_imports_root = "{root}/imports"
+baselines_root = "{root}/baselines"
+
+[slurm]
+site_profile = "generic"
+
+[resources]
+default = "standard"
+
+[resources.templates.standard]
+cpus = 1
+mem_gb = 1
+walltime = "00:05:00"
+scratch_gb = 1
+
+[security]
+encryption_backend = "mock-envelope-v1"
+encryption_recipients = ["alice"]
+env_file = "{root}/campaign.env"
+
+[[jobs]]
+name = "fastq_validate_secret"
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "{secret}"
+"#,
+            root = root.path().display(),
+            secret = secret
+        );
+        std::fs::write(&config_path, config).expect("write config");
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config: config_path,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+        let log = std::fs::read_to_string(&report.jobs[0].log_path).expect("read log");
+        assert!(!log.contains(secret));
+        assert!(log.contains("<redacted>"));
+    }
 }
