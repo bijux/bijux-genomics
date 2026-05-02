@@ -541,6 +541,10 @@ fn goal_specific_checks(
                 rows.iter().any(|row| row.stage_id == "vcf.call_pseudohaploid")
             ),
             format!(
+                "pseudohaploid_repetition_floor={}",
+                rows.iter().map(|row| row.repetitions).min().unwrap_or(0)
+            ),
+            format!(
                 "pseudohaploid_ready_rows={}",
                 rows.iter().filter(|row| row.readiness_class == "ready").count()
             ),
@@ -1072,6 +1076,10 @@ mod tests {
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("pseudohaploid_repetition_floor=5")));
         assert!(entries[0]
             .goal_checks
             .iter()
