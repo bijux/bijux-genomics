@@ -405,6 +405,16 @@ pub(crate) fn handle_slurm_root(command: &cli::SlurmCommand, _cwd: &Path) -> Res
                 println!("submitted_jobs={}", report.jobs.len());
             }
         }
+        cli::SlurmCommand::Cancel(args) => {
+            let report = hpc::cancel_jobs(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("mode={}", report.mode);
+                println!("requested={}", report.requested_job_ids.len());
+                println!("cancelled={}", report.cancelled_job_ids.len());
+            }
+        }
         cli::SlurmCommand::CopyBackManifest(args) => {
             let manifest = hpc::write_copy_back_manifest(args)?;
             if args.json {

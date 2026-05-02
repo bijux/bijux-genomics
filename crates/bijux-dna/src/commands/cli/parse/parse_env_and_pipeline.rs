@@ -121,6 +121,8 @@ pub enum SlurmCommand {
     SubmitCrossBenchmark(SlurmSubmitCrossArgs),
     #[command(name = "submit-campaign")]
     SubmitCampaign(SlurmSubmitCampaignArgs),
+    #[command(name = "cancel")]
+    Cancel(SlurmCancelArgs),
     #[command(name = "copy-back-manifest")]
     CopyBackManifest(SlurmCopyBackManifestArgs),
     #[command(name = "decrypt-bundle")]
@@ -203,6 +205,18 @@ pub struct SlurmSubmitCampaignArgs {
     pub user_overrides: Option<PathBuf>,
     #[arg(long, default_value_t = false)]
     pub mock_submit: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmCancelArgs {
+    #[arg(long = "job-id", value_name = "JOB_ID")]
+    pub job_id: Vec<String>,
+    #[arg(long, value_name = "PATH")]
+    pub manifest: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub mock_cancel: bool,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

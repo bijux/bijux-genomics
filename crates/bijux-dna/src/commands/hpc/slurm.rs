@@ -8,9 +8,10 @@ use serde_json::json;
 
 use crate::commands::cli::{
     SlurmBundleDecryptArgs, SlurmBundleIntegrityCheck, SlurmBundleRewrapArgs,
-    SlurmCampaignImportArgs, SlurmCopyBackManifestArgs, SlurmFailureBundleExportArgs,
-    SlurmReplayImportArgs, SlurmResultsPolicyCheckArgs, SlurmShareBundleArgs,
-    SlurmSubmitCampaignArgs, SlurmSubmitCrossArgs, SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
+    SlurmCampaignImportArgs, SlurmCancelArgs, SlurmCopyBackManifestArgs,
+    SlurmFailureBundleExportArgs, SlurmReplayImportArgs, SlurmResultsPolicyCheckArgs,
+    SlurmShareBundleArgs, SlurmSubmitCampaignArgs, SlurmSubmitCrossArgs, SlurmSubmitDomainArgs,
+    SlurmSubmitStageArgs,
 };
 use crate::commands::hpc::{
     campaign_dry_run, decrypt_bundle, sha256_hex, sidecar_path_for, write_encrypted_bundle,
@@ -57,6 +58,14 @@ pub struct CopyBackManifestReport {
     pub domain: String,
     pub suggested_copy_command: String,
     pub entries: Vec<CopyBackEntry>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SlurmCancelReport {
+    pub schema_version: &'static str,
+    pub mode: String,
+    pub requested_job_ids: Vec<String>,
+    pub cancelled_job_ids: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -819,6 +828,64 @@ pub fn submit_campaign(args: &SlurmSubmitCampaignArgs) -> Result<SlurmSubmission
     )
 }
 
+fn collect_cancel_job_ids(args: &SlurmCancelArgs) -> Result<Vec<String>> {
+    let mut ids = args
+        .job_id
+        .iter()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .collect::<Vec<_>>();
+    if let Some(manifest_path) = &args.manifest {
+        let raw = std::fs::read_to_string(manifest_path)
+            .with_context(|| format!("read {}", manifest_path.display()))?;
+        let value: serde_json::Value =
+            serde_json::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))?;
+        let manifest_ids = value
+            .get("jobs")
+            .and_then(|rows| rows.as_array())
+            .into_iter()
+            .flatten()
+            .filter_map(|row| row.get("scheduler_job_id").and_then(|id| id.as_str()))
+            .map(ToOwned::to_owned)
+            .collect::<Vec<_>>();
+        ids.extend(manifest_ids);
+    }
+    ids.sort();
+    ids.dedup();
+    if ids.is_empty() {
+        return Err(anyhow!("cancel requires --job-id values or --manifest containing jobs"));
+    }
+    Ok(ids)
+}
+
+pub fn cancel_jobs(args: &SlurmCancelArgs) -> Result<SlurmCancelReport> {
+    let requested_job_ids = collect_cancel_job_ids(args)?;
+    if args.mock_cancel {
+        return Ok(SlurmCancelReport {
+            schema_version: SLURM_SUBMISSION_SCHEMA_VERSION,
+            mode: "mock".to_string(),
+            requested_job_ids: requested_job_ids.clone(),
+            cancelled_job_ids: requested_job_ids,
+        });
+    }
+    let output = Command::new("scancel")
+        .args(&requested_job_ids)
+        .output()
+        .context("run scancel")?;
+    if !output.status.success() {
+        return Err(anyhow!(
+            "scancel failed: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    Ok(SlurmCancelReport {
+        schema_version: SLURM_SUBMISSION_SCHEMA_VERSION,
+        mode: "real".to_string(),
+        requested_job_ids: requested_job_ids.clone(),
+        cancelled_job_ids: requested_job_ids,
+    })
+}
+
 pub fn write_copy_back_manifest(
     args: &SlurmCopyBackManifestArgs,
 ) -> Result<CopyBackManifestReport> {
@@ -1522,16 +1589,17 @@ mod tests {
     #![allow(clippy::expect_used)]
 
     use super::{
-        decrypt_bundle_to_local, export_failure_bundle, import_encrypted_campaign,
+        cancel_jobs, decrypt_bundle_to_local, export_failure_bundle, import_encrypted_campaign,
         import_encrypted_replay, rewrap_bundle, share_bundle_with_profile, submit_campaign,
         submit_cross_benchmark, submit_domain_benchmark, submit_stage_benchmark,
         verify_bundle_integrity, verify_results_policy, write_copy_back_manifest,
     };
     use crate::commands::cli::{
         SlurmBundleDecryptArgs, SlurmBundleIntegrityCheck, SlurmBundleRewrapArgs,
-        SlurmCampaignImportArgs, SlurmCopyBackManifestArgs, SlurmFailureBundleExportArgs,
-        SlurmReplayImportArgs, SlurmResultsPolicyCheckArgs, SlurmShareBundleArgs,
-        SlurmSubmitCampaignArgs, SlurmSubmitCrossArgs, SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
+        SlurmCampaignImportArgs, SlurmCancelArgs, SlurmCopyBackManifestArgs,
+        SlurmFailureBundleExportArgs, SlurmReplayImportArgs, SlurmResultsPolicyCheckArgs,
+        SlurmShareBundleArgs, SlurmSubmitCampaignArgs, SlurmSubmitCrossArgs, SlurmSubmitDomainArgs,
+        SlurmSubmitStageArgs,
     };
     use crate::commands::hpc::{BundleDecryptRequest, BundleWriteRequest};
 
@@ -1794,6 +1862,35 @@ array_task = 7
             assert!(std::path::Path::new(&job.err_path).is_file());
             assert!(std::path::Path::new(&job.script_path).is_file());
         }
+    }
+
+    #[test]
+    fn cancel_jobs_accepts_manifest_and_job_ids_in_mock_mode() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let manifest_path = root.path().join("submission.json");
+        let manifest = serde_json::json!({
+            "schema_version": "bijux.hpc.slurm.submission.v1",
+            "jobs": [
+                { "scheduler_job_id": "1234" },
+                { "scheduler_job_id": "2234" }
+            ]
+        });
+        std::fs::write(
+            &manifest_path,
+            serde_json::to_vec_pretty(&manifest).expect("serialize manifest"),
+        )
+        .expect("write manifest");
+
+        let report = cancel_jobs(&SlurmCancelArgs {
+            job_id: vec!["3234".to_string()],
+            manifest: Some(manifest_path),
+            mock_cancel: true,
+            json: false,
+        })
+        .expect("cancel mock");
+        assert_eq!(report.mode, "mock");
+        assert_eq!(report.requested_job_ids, vec!["1234", "2234", "3234"]);
+        assert_eq!(report.cancelled_job_ids, report.requested_job_ids);
     }
 
     #[test]
