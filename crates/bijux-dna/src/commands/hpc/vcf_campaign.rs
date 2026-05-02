@@ -876,6 +876,28 @@ fn goal_specific_checks(
                 rows.iter().any(|row| row.stage_id == "vcf.filter")
             ),
         ],
+        "G153" => vec![
+            format!("population_guardrail_rows_present={}", !rows.is_empty()),
+            format!(
+                "population_guardrail_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "population_guardrail_pca_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.pca")
+            ),
+            format!(
+                "population_guardrail_admixture_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.admixture")
+            ),
+            format!(
+                "population_guardrail_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1461,5 +1483,21 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("cohort_qc_qc_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_153_emits_population_guardrail_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G153".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("population_guardrail_stage_count=4")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("population_guardrail_pca_stage_bound=true")));
     }
 }
