@@ -3945,6 +3945,33 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G260" => vec![
+            format!("slurm_resource_rows_present={}", !rows.is_empty()),
+            format!(
+                "slurm_resource_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "slurm_resource_coverage_summary_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "slurm_resource_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!(
+                "slurm_resource_runtime_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| {
+                        finding.failure_class == "runtime-under-sampled"
+                            || finding.failure_class == "runtime-outlier"
+                    })
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -6678,6 +6705,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "backend_selection_runtime_repro_findings=1"));
+    }
+
+    #[test]
+    fn goal_260_emits_slurm_resource_default_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G260".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-performance".to_string(),
+            row_id: "h7".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-under-sampled".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "resource-default import reports under-sampled runtime at coverage stage".to_string(),
+            recommendation: "raise baseline Slurm defaults from observed usage intervals".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "slurm_resource_coverage_summary_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "slurm_resource_runtime_findings=1"));
     }
 
     #[test]
