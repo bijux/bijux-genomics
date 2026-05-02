@@ -850,6 +850,28 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G114" => vec![
+            format!("contaminant_depletion_rows_present={}", !rows.is_empty()),
+            format!(
+                "contaminant_stage_bound={}",
+                rows.iter()
+                    .any(|row| row.stage_id == "fastq.deplete_reference_contaminants")
+            ),
+            format!(
+                "contaminant_critical_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.severity == "critical")
+                    .count()
+            ),
+            format!(
+                "contaminant_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.failure_class.contains("readiness"))
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1411,5 +1433,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("rrna_depletion_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_114_emits_contaminant_depletion_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G114".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "r8".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("contaminant_stage_bound=true")));
     }
 }
