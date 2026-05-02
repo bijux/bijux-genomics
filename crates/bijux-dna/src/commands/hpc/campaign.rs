@@ -888,6 +888,12 @@ mem_gb = 64
 walltime = "04:00:00"
 scratch_gb = 128
 
+[security]
+encryption_backend = "mock-envelope-v1"
+encryption_recipients = ["bio-team"]
+encrypt_operator_outputs = false
+env_file = "configs/hpc/.env"
+
 [[jobs]]
 stage = "fastq.validate_reads"
 tool = "seqkit_v2"
@@ -926,6 +932,12 @@ mem_gb = 32
 walltime = "02:00:00"
 scratch_gb = 64
 
+[security]
+encryption_backend = "mock-envelope-v1"
+encryption_recipients = ["bio-team"]
+encrypt_operator_outputs = false
+env_file = "configs/hpc/.env"
+
 [[jobs]]
 stage = "vcf.validate"
 tool = "bcftools_v1_20"
@@ -963,6 +975,12 @@ cpus = 8
 mem_gb = 32
 walltime = "02:00:00"
 scratch_gb = 64
+
+[security]
+encryption_backend = "mock-envelope-v1"
+encryption_recipients = ["bio-team"]
+encrypt_operator_outputs = false
+env_file = "configs/hpc/.env"
 
 [[jobs]]
 name = "fastq_validate_sample_0001"

@@ -39,7 +39,9 @@ scratch_gb = 16
 fastq = "fastq_small"
 
 [security]
+encryption_backend = "mock-envelope-v1"
 encryption_recipients = ["bio-team"]
+encrypt_operator_outputs = false
 env_file = "configs/hpc/.env"
 
 [[jobs]]
