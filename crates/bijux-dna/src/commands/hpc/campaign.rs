@@ -817,6 +817,7 @@ pub fn write_campaign_profiles(out_dir: &Path) -> Result<Vec<PathBuf>> {
 
     let lunarc_path = out_dir.join("lunarc-small.toml");
     let generic_path = out_dir.join("generic-small.toml");
+    let cross_path = out_dir.join("cross-mini.toml");
 
     let lunarc = r#"schema_version = "bijux.hpc.campaign.v1"
 
@@ -896,12 +897,59 @@ sample = "cohort_01"
 resource_template = "standard"
 "#;
 
+    let cross = r#"schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "cross-hpc-mini"
+domain = "cross"
+description = "Cross-domain mini profile with explicit handoff dependencies"
+
+[layout]
+corpora_root = "/shared/bijux/corpora"
+databases_root = "/shared/bijux/databases"
+images_root = "/shared/bijux/images"
+scratch_root = "/shared/bijux/scratch"
+logs_root = "/shared/bijux/logs"
+encrypted_results_root = "/shared/bijux/results"
+encrypted_code_root = "/shared/bijux/code"
+appraiser_imports_root = "/shared/bijux/appraiser-imports"
+baselines_root = "/shared/bijux/baselines"
+
+[slurm]
+site_profile = "generic"
+default_resource_template = "standard"
+
+[resources]
+default = "standard"
+
+[resources.templates.standard]
+cpus = 8
+mem_gb = 32
+walltime = "02:00:00"
+scratch_gb = 64
+
+[[jobs]]
+name = "fastq_validate_sample_0001"
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample_0001"
+
+[[jobs]]
+name = "bam_sort_sample_0001"
+stage = "bam.sort"
+tool = "samtools_v1_20"
+sample = "sample_0001"
+depends_on = ["fastq_validate_sample_0001"]
+"#;
+
     bijux_dna_api::v1::api::run::atomic_write_bytes(&lunarc_path, lunarc.as_bytes())
         .with_context(|| format!("write {}", lunarc_path.display()))?;
     bijux_dna_api::v1::api::run::atomic_write_bytes(&generic_path, generic.as_bytes())
         .with_context(|| format!("write {}", generic_path.display()))?;
+    bijux_dna_api::v1::api::run::atomic_write_bytes(&cross_path, cross.as_bytes())
+        .with_context(|| format!("write {}", cross_path.display()))?;
 
-    Ok(vec![lunarc_path, generic_path])
+    Ok(vec![lunarc_path, generic_path, cross_path])
 }
 
 pub fn campaign_preflight(
@@ -1129,7 +1177,7 @@ mod tests {
 
     use super::{
         campaign_dry_run, campaign_preflight, default_resource_template_map, parse_env_line,
-        validate_confidential_config, ENV_DEFAULT_PATH,
+        validate_confidential_config, write_campaign_profiles, ENV_DEFAULT_PATH,
     };
 
     #[test]
@@ -1653,5 +1701,18 @@ sample = "sample-1"
         let report = campaign_dry_run(&config_path, Some(&env_file_path), None).expect("dry run");
         assert_eq!(report.resolved_slurm.partition, "debug");
         assert_eq!(report.resolved_slurm.qos, "short");
+    }
+
+    #[test]
+    fn write_campaign_profiles_emits_expected_files() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let written = write_campaign_profiles(root.path()).expect("write profiles");
+        assert_eq!(written.len(), 3);
+        assert!(written.iter().any(|path| path.ends_with("lunarc-small.toml")));
+        assert!(written.iter().any(|path| path.ends_with("generic-small.toml")));
+        assert!(written.iter().any(|path| path.ends_with("cross-mini.toml")));
+        for path in written {
+            assert!(path.is_file());
+        }
     }
 }
