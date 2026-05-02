@@ -2208,6 +2208,24 @@ fn goal_specific_checks(
             ),
             format!("duplicate_cohort_findings_count={}", findings.len()),
         ],
+        "G214" => vec![
+            format!("panel_choice_rows_present={}", !rows.is_empty()),
+            format!(
+                "panel_choice_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "panel_choice_impute_call_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.impute")
+                    && rows.iter().any(|row| row.stage_id == "vcf.call")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "panel_choice_degraded_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "degraded").count()
+            ),
+            format!("panel_choice_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -3775,6 +3793,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "duplicate_cohort_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_214_emits_panel_choice_sensitivity_corpus_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G214".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "database-compatibility".to_string(),
+            row_id: "h12".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "database-mismatch".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "panel-choice imputation boundary needs map compatibility review".to_string(),
+            recommendation: "align panel and map bundle with selected reference".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "panel_choice_impute_call_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "panel_choice_findings_count=1"));
     }
 
     #[test]
