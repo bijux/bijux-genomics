@@ -420,10 +420,16 @@ fn env_file_private(path: &Path) -> Option<bool> {
 }
 
 fn age_cli_available() -> bool {
-    std::process::Command::new("age")
-        .arg("--version")
-        .output()
-        .is_ok_and(|output| output.status.success())
+    let Some(paths) = std::env::var_os("PATH") else {
+        return false;
+    };
+    for dir in std::env::split_paths(&paths) {
+        let candidate = dir.join("age");
+        if candidate.is_file() {
+            return true;
+        }
+    }
+    false
 }
 
 fn looks_like_age_recipient(value: &str) -> bool {
