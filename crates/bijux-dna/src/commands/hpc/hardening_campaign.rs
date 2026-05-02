@@ -3050,6 +3050,24 @@ fn goal_specific_checks(
             ),
             format!("all_in_one_preflight_queue_entries={}", queue_entries.len()),
         ],
+        "G237" => vec![
+            format!("all_in_one_import_rows_present={}", !rows.is_empty()),
+            format!(
+                "all_in_one_import_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "all_in_one_import_profile_summary_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "all_in_one_import_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("all_in_one_import_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -5205,6 +5223,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "all_in_one_preflight_queue_entries=1"));
+    }
+
+    #[test]
+    fn goal_237_emits_all_in_one_import_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G237".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-profile".to_string(),
+            row_id: "h3".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-outlier".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "all-in-one import profile stage has runtime caveat".to_string(),
+            recommendation: "optimize import pipeline and re-index replay artifacts".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "all_in_one_import_profile_summary_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "all_in_one_import_findings_count=1"));
     }
 
     #[test]
