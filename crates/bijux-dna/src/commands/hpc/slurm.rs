@@ -644,6 +644,30 @@ sample = "sample-2"
     }
 
     #[test]
+    fn submit_campaign_scripts_include_strict_mode_and_dependency_directives() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign(root.path());
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+
+        let first_script =
+            std::fs::read_to_string(&report.jobs[0].script_path).expect("read script 1");
+        assert!(first_script.contains("set -euo pipefail"));
+        assert!(!first_script.contains("--dependency=afterok"));
+
+        let second_script =
+            std::fs::read_to_string(&report.jobs[1].script_path).expect("read script 2");
+        assert!(second_script.contains("set -euo pipefail"));
+        assert!(second_script.contains("#SBATCH --dependency=afterok:mock-0001"));
+    }
+
+    #[test]
     fn copy_back_manifest_writes_expected_entries() {
         let root = tempfile::tempdir().expect("tempdir");
         let config = write_campaign(root.path());
