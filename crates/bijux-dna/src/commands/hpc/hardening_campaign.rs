@@ -1421,6 +1421,156 @@ const G260_SCENARIOS: &[ScenarioDefinition] = &[
     },
 ];
 
+const G261_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "encrypted-sharing-package-boundary",
+        focus: "validate encrypted sharing package row and scope boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "encrypted-sharing-recipient-signals",
+        focus: "validate recipient coverage and encrypted scope signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "encrypted-sharing-package-proof",
+        focus: "capture encrypted package and sidecar sharing evidence",
+    },
+];
+
+const G262_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "reviewer-decrypt-scope-boundary",
+        focus: "validate reviewer decrypt profile scope and authorization boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "reviewer-decrypt-recipient-signals",
+        focus: "validate recipient-scoped decrypt findings and queue signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "reviewer-decrypt-proof",
+        focus: "capture reviewer decrypt profile evidence",
+    },
+];
+
+const G263_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "confidential-issue-bundle-boundary",
+        focus: "validate confidential issue bundle minimization boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "confidential-issue-redaction-signals",
+        focus: "validate confidential redaction and encrypted scope signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "confidential-issue-bundle-proof",
+        focus: "capture confidential issue bundle generation evidence",
+    },
+];
+
+const G264_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "source-blame-change-boundary",
+        focus: "validate source blame change-surface attribution boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "source-blame-drift-signals",
+        focus: "validate source blame drift and mismatch signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "source-blame-proof",
+        focus: "capture source blame report evidence",
+    },
+];
+
+const G265_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "performance-regression-gate-boundary",
+        focus: "validate performance regression gate baseline boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "performance-regression-runtime-signals",
+        focus: "validate runtime and resource regression signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "performance-regression-proof",
+        focus: "capture performance regression gate evidence",
+    },
+];
+
+const G266_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "scientific-regression-gate-boundary",
+        focus: "validate scientific regression gate baseline boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "scientific-regression-caveat-signals",
+        focus: "validate scientific output and caveat regression signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "scientific-regression-proof",
+        focus: "capture scientific regression gate evidence",
+    },
+];
+
+const G267_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "security-regression-gate-boundary",
+        focus: "validate security regression gate and encryption boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "security-regression-leakage-signals",
+        focus: "validate leakage, redaction, and encryption failure signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "security-regression-proof",
+        focus: "capture security regression gate evidence",
+    },
+];
+
+const G268_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "replay-regression-gate-boundary",
+        focus: "validate replay regression gate reconstructability boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "replay-regression-code-result-signals",
+        focus: "validate replay regression signals from code and results bundles",
+    },
+    ScenarioDefinition {
+        scenario_id: "replay-regression-proof",
+        focus: "capture replay regression gate evidence",
+    },
+];
+
+const G269_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "nightly-mini-campaign-rotation-boundary",
+        focus: "validate nightly mini-campaign rotation boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "nightly-mini-campaign-drift-signals",
+        focus: "validate nightly drift-history and hardening signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "nightly-mini-campaign-proof",
+        focus: "capture nightly mini-campaign evidence",
+    },
+];
+
+const G270_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "monthly-full-campaign-boundary",
+        focus: "validate monthly full-campaign baseline comparison boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "monthly-full-campaign-regression-signals",
+        focus: "validate monthly runtime and scientific regression signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "monthly-full-campaign-proof",
+        focus: "capture monthly full-campaign history evidence",
+    },
+];
+
 const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G171",
@@ -1961,6 +2111,66 @@ const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
         title: "add benchmark-driven Slurm resource defaults",
         stage_ids: &["bam.coverage", "bam.mapping_summary", "vcf.postprocess"],
         scenarios: G260_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G261",
+        title: "add encrypted benchmark sharing package",
+        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        scenarios: G261_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G262",
+        title: "add reviewer decrypt profile",
+        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.postprocess"],
+        scenarios: G262_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G263",
+        title: "add confidential issue bundle generator",
+        stage_ids: &["fastq.trim_reads", "bam.contamination", "vcf.filter"],
+        scenarios: G263_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G264",
+        title: "add source blame from code bundles",
+        stage_ids: &["fastq.profile_reads", "bam.align", "vcf.postprocess"],
+        scenarios: G264_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G265",
+        title: "add performance-regression gate from Slurm baselines",
+        stage_ids: &["fastq.trim_reads", "bam.coverage", "vcf.stats"],
+        scenarios: G265_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G266",
+        title: "add scientific-regression gate from Slurm baselines",
+        stage_ids: &["bam.mapping_summary", "vcf.filter", "vcf.stats"],
+        scenarios: G266_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G267",
+        title: "add security-regression gate from Slurm baselines",
+        stage_ids: &["bam.contamination", "vcf.impute", "vcf.postprocess"],
+        scenarios: G267_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G268",
+        title: "add replay-regression gate from code/results bundles",
+        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        scenarios: G268_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G269",
+        title: "add nightly Slurm mini-campaign",
+        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.filter"],
+        scenarios: G269_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G270",
+        title: "add monthly full-campaign mode",
+        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.call"],
+        scenarios: G270_SCENARIOS,
     },
 ];
 
@@ -4181,10 +4391,10 @@ mod tests {
     }
 
     #[test]
-    fn hardening_catalog_includes_iteration_23_goals() {
-        assert_eq!(HARDENING_GOALS_CATALOG.len(), 90);
+    fn hardening_catalog_includes_iteration_24_goals() {
+        assert_eq!(HARDENING_GOALS_CATALOG.len(), 100);
         assert_eq!(HARDENING_GOALS_CATALOG[0].goal_id, "G171");
-        assert_eq!(HARDENING_GOALS_CATALOG[89].goal_id, "G260");
+        assert_eq!(HARDENING_GOALS_CATALOG[99].goal_id, "G270");
     }
 
     #[test]
