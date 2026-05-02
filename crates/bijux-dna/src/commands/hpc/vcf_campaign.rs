@@ -975,6 +975,30 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G157" => vec![
+            format!("sv_boundary_rows_present={}", !rows.is_empty()),
+            format!(
+                "sv_boundary_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "sv_boundary_call_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.call")
+            ),
+            format!(
+                "sv_boundary_qc_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.qc")
+            ),
+            format!(
+                "sv_boundary_degraded_or_refuse_rows={}",
+                rows.iter()
+                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1644,5 +1668,21 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("annotation_postprocess_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_157_emits_structural_variant_boundary_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G157".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("sv_boundary_stage_count=3")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("sv_boundary_qc_stage_bound=true")));
     }
 }
