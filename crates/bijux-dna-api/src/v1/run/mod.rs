@@ -37,10 +37,11 @@ pub use request_contracts::{
 pub use runtime_support::{
     atomic_write_bytes, build_tool_execution_spec, ensure_dir, execution_step_from_stage_plan,
     init_logging, load_image_catalog, load_manifests, load_platform, load_profile, new_run_id,
-    replay_run, resolve_run_base_dir, run_command, run_command_with_context, run_dir, temp_dir,
-    temp_dir_in, write_bytes, write_plan_support_artifacts, CommandOutputV1, DryRunExecutor,
-    ExecutionManifest, Executor, FactsRowV1, PathSpec, Profile, RunSpec, RuntimeKind, StageId,
-    StagePlanV1, ToolId, ToolRegistry, ToolRole, RUN_LAYOUT_CONTRACT,
+    replay_run, resolve_run_base_dir, run_command, run_command_with_context,
+    run_command_with_context_and_stdin, run_dir, temp_dir, temp_dir_in, write_bytes,
+    write_plan_support_artifacts, CommandOutputV1, DryRunExecutor, ExecutionManifest, Executor,
+    FactsRowV1, PathSpec, Profile, RunSpec, RuntimeKind, StageId, StagePlanV1, ToolId,
+    ToolRegistry, ToolRole, RUN_LAYOUT_CONTRACT,
 };
 pub use stage_assets::{
     stage_external_asset_requirement, stage_requires_local_assets, StageAssetClass,
