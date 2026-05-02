@@ -445,6 +445,13 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
         }
         cli::ConfigCommand::BenchmarkMatrix(args) => {
             let report = hpc::benchmark_matrix(args)?;
+            if let Some(out_path) = &args.out {
+                if let Some(parent) = out_path.parent() {
+                    bijux_dna_infra::ensure_dir(parent)?;
+                }
+                let payload = serde_json::to_vec_pretty(&report)?;
+                bijux_dna_api::v1::api::run::atomic_write_bytes(out_path, &payload)?;
+            }
             if args.json {
                 cli::render::json::print_pretty(&report)?;
             } else {
@@ -461,6 +468,9 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                     "refuse={}",
                     report.summary.readiness_counts.get("refuse").copied().unwrap_or(0)
                 );
+                if let Some(out_path) = &args.out {
+                    println!("matrix_out={}", out_path.display());
+                }
             }
             if args.fail_on_refuse
                 && report

@@ -644,6 +644,7 @@ sample = "sample-1"
             env_file: None,
             user_overrides: None,
             domain: "fastq".to_string(),
+            out: None,
             fail_on_refuse: false,
             json: false,
         })
@@ -661,6 +662,7 @@ sample = "sample-1"
             env_file: None,
             user_overrides: None,
             domain: "bam".to_string(),
+            out: None,
             fail_on_refuse: false,
             json: false,
         })
@@ -670,6 +672,7 @@ sample = "sample-1"
             env_file: None,
             user_overrides: None,
             domain: "vcf".to_string(),
+            out: None,
             fail_on_refuse: false,
             json: false,
         })
@@ -687,6 +690,7 @@ sample = "sample-1"
             env_file: None,
             user_overrides: None,
             domain: "cross".to_string(),
+            out: None,
             fail_on_refuse: false,
             json: false,
         })
@@ -699,6 +703,7 @@ sample = "sample-1"
             env_file: None,
             user_overrides: None,
             domain: "all".to_string(),
+            out: None,
             fail_on_refuse: false,
             json: false,
         })
