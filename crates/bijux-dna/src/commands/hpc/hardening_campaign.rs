@@ -3368,6 +3368,24 @@ fn goal_specific_checks(
             ),
             format!("full_bam_findings_count={}", findings.len()),
         ],
+        "G243" => vec![
+            format!("full_vcf_rows_present={}", !rows.is_empty()),
+            format!(
+                "full_vcf_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "full_vcf_call_filter_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.call")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "full_vcf_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("full_vcf_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -5679,6 +5697,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "full_bam_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_243_emits_full_vcf_campaign_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G243".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "full VCF campaign includes filter refusal boundary".to_string(),
+            recommendation: "resolve filter refusal before full VCF promotion".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "full_vcf_call_filter_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "full_vcf_findings_count=1"));
     }
 
     #[test]
