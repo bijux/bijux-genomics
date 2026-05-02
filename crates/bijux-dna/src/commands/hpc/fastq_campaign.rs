@@ -970,6 +970,28 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G119" => vec![
+            format!("provenance_rows_present={}", !rows.is_empty()),
+            format!(
+                "provenance_stage_bound={}",
+                rows.iter()
+                    .any(|row| row.stage_id == "fastq.capture_provenance_snapshot")
+            ),
+            format!(
+                "provenance_code_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope == "encrypted-code")
+                    .count()
+            ),
+            format!(
+                "provenance_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.failure_class.contains("code-freeze"))
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1642,5 +1664,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("qc_manifest_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_119_emits_provenance_capture_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G119".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "r13".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("provenance_stage_bound=true")));
     }
 }
