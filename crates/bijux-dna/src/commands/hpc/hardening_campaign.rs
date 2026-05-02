@@ -1769,6 +1769,27 @@ fn goal_specific_checks(
             ),
             format!("adna_corpus_queue_entries={}", queue_entries.len()),
         ],
+        "G203" => vec![
+            format!("edna_corpus_rows_present={}", !rows.is_empty()),
+            format!(
+                "edna_corpus_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "edna_corpus_profile_contam_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.contamination")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "edna_corpus_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!(
+                "edna_corpus_warning_findings={}",
+                findings.iter().filter(|finding| finding.severity == "warning").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -3056,6 +3077,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "adna_corpus_contamination_findings=1"));
+    }
+
+    #[test]
+    fn goal_203_emits_edna_corpus_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G203".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "corpus-suitability".to_string(),
+            row_id: "h3".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "corpus-mismatch".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "eDNA corpus boundary warning".to_string(),
+            recommendation: "materialize corpus profile matching stage scientific claim".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "edna_corpus_profile_contam_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "edna_corpus_warning_findings=1"));
     }
 
     #[test]
