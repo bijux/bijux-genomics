@@ -414,6 +414,10 @@ fn goal_specific_checks(
                 rows.iter().any(|row| row.stage_id == "vcf.filter")
             ),
             format!(
+                "filter_degraded_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "degraded").count()
+            ),
+            format!(
                 "filter_repetition_floor={}",
                 rows.iter().map(|row| row.repetitions).min().unwrap_or(0)
             ),
@@ -916,6 +920,10 @@ mod tests {
         let selected = vec!["G143".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
         assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("filter_degraded_rows=1")));
         assert!(entries[0]
             .goal_checks
             .iter()
