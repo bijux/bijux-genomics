@@ -3,13 +3,14 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::commands::cli::{
-    SlurmBundleDecryptArgs, SlurmBundleIntegrityCheck,
-    SlurmCopyBackManifestArgs, SlurmSubmitCampaignArgs, SlurmSubmitCrossArgs,
-    SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
+    SlurmBundleDecryptArgs, SlurmBundleIntegrityCheck, SlurmBundleRewrapArgs,
+    SlurmCampaignImportArgs, SlurmCopyBackManifestArgs, SlurmFailureBundleExportArgs,
+    SlurmReplayImportArgs, SlurmResultsPolicyCheckArgs, SlurmShareBundleArgs,
+    SlurmSubmitCampaignArgs, SlurmSubmitCrossArgs, SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
 };
 use crate::commands::hpc::{
     campaign_dry_run, decrypt_bundle, sha256_hex, sidecar_path_for, write_encrypted_bundle,
@@ -94,6 +95,86 @@ pub struct SlurmBundleIntegrityReport {
     pub backend: String,
     pub plaintext_sha256: String,
     pub plaintext_bytes: usize,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SlurmBundleRewrapReport {
+    pub schema_version: &'static str,
+    pub source_bundle_path: String,
+    pub output_bundle_path: String,
+    pub source_sidecar_path: String,
+    pub output_sidecar_path: String,
+    pub plaintext_sha256: String,
+    pub plaintext_bytes: usize,
+    pub backend: String,
+    pub recipients: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SlurmReplayImportReport {
+    pub schema_version: &'static str,
+    pub results_bundle: String,
+    pub code_bundle: String,
+    pub output_root: String,
+    pub results_plaintext_sha256: String,
+    pub code_plaintext_sha256: String,
+    pub replay_feasible: bool,
+    pub completeness_checks: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SlurmCampaignImportReport {
+    pub schema_version: &'static str,
+    pub campaign_dir: String,
+    pub output_root: String,
+    pub imported_pairs: usize,
+    pub failed_pairs: usize,
+    pub imported: Vec<SlurmReplayImportReport>,
+    pub errors: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SlurmFailureBundleExportReport {
+    pub schema_version: &'static str,
+    pub stage: String,
+    pub tool: String,
+    pub sample: String,
+    pub bundle_path: String,
+    pub sidecar_path: String,
+    pub plaintext_sha256: String,
+    pub recipients: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SlurmShareBundleReport {
+    pub schema_version: &'static str,
+    pub source_bundle_path: String,
+    pub shared_bundle_path: String,
+    pub shared_sidecar_path: String,
+    pub plaintext_sha256: String,
+    pub shared_recipients: Vec<String>,
+    pub profile_id: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SlurmResultsPolicyReport {
+    pub schema_version: &'static str,
+    pub results_complete: bool,
+    pub code_complete: bool,
+    pub appraiser_policy_ok: bool,
+    pub issues: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct ShareProfile {
+    pub profile_id: String,
+    pub recipients: Vec<String>,
+    #[serde(default = "default_share_backend")]
+    pub backend: String,
+}
+
+fn default_share_backend() -> String {
+    "mock-envelope-v1".to_string()
 }
 
 #[derive(Debug, Clone)]
@@ -185,6 +266,7 @@ fn write_operator_files(
     job: &SelectedJob,
     scheduler_job_id: &str,
     submitted_at: &str,
+    redaction_needles: &[String],
 ) -> Result<()> {
     let log_path = Path::new(&job.planned.outputs.log);
     let out_path = Path::new(&job.planned.outputs.out);
@@ -202,9 +284,9 @@ fn write_operator_files(
     let out = "pending: scheduler output will be captured by slurm runtime wrapper\n";
     let err = "pending: scheduler stderr will be captured by slurm runtime wrapper\n";
 
-    write_text(log_path, &log)?;
-    write_text(out_path, out)?;
-    write_text(err_path, err)?;
+    write_text(log_path, &redact_text(log, redaction_needles))?;
+    write_text(out_path, &redact_text(out.to_string(), redaction_needles))?;
+    write_text(err_path, &redact_text(err.to_string(), redaction_needles))?;
     Ok(())
 }
 
@@ -221,6 +303,7 @@ fn build_results_bundle(
     job: &SelectedJob,
     scheduler_job_id: &str,
     submitted_at: &str,
+    redaction_needles: &[String],
 ) -> Result<Vec<u8>> {
     let payload = json!({
         "schema_version": "bijux.hpc.results_bundle.v1",
@@ -278,7 +361,8 @@ fn build_results_bundle(
             "note": "appraiser jobs are tracked after runtime completion",
         }],
     });
-    serde_json::to_vec_pretty(&payload).context("serialize results bundle payload")
+    let text = serde_json::to_string_pretty(&payload).context("serialize results bundle payload")?;
+    Ok(redact_text(text, redaction_needles).into_bytes())
 }
 
 fn build_code_bundle(
@@ -287,6 +371,7 @@ fn build_code_bundle(
     script_path: &Path,
     scheduler_job_id: &str,
     submitted_at: &str,
+    redaction_needles: &[String],
 ) -> Result<Vec<u8>> {
     let script = std::fs::read_to_string(script_path)
         .with_context(|| format!("read {}", script_path.display()))?;
@@ -341,7 +426,8 @@ fn build_code_bundle(
             "outputs": job.planned.outputs,
         },
     });
-    serde_json::to_vec_pretty(&payload).context("serialize code bundle payload")
+    let text = serde_json::to_string_pretty(&payload).context("serialize code bundle payload")?;
+    Ok(redact_text(text, redaction_needles).into_bytes())
 }
 
 fn emit_primary_encrypted_bundles(
@@ -350,11 +436,13 @@ fn emit_primary_encrypted_bundles(
     script_path: &Path,
     scheduler_job_id: &str,
     submitted_at: &str,
+    redaction_needles: &[String],
 ) -> Result<()> {
     let recipients = &report.security.encryption_recipients;
     let backend = report.security.encryption_backend.as_str();
 
-    let results_payload = build_results_bundle(report, job, scheduler_job_id, submitted_at)?;
+    let results_payload =
+        build_results_bundle(report, job, scheduler_job_id, submitted_at, redaction_needles)?;
     write_encrypted_bundle(&BundleWriteRequest {
         output_path: Path::new(&job.planned.outputs.results),
         bundle_kind: "results",
@@ -371,7 +459,14 @@ fn emit_primary_encrypted_bundles(
         plaintext: &results_payload,
     })?;
 
-    let code_payload = build_code_bundle(report, job, script_path, scheduler_job_id, submitted_at)?;
+    let code_payload = build_code_bundle(
+        report,
+        job,
+        script_path,
+        scheduler_job_id,
+        submitted_at,
+        redaction_needles,
+    )?;
     write_encrypted_bundle(&BundleWriteRequest {
         output_path: Path::new(&job.planned.outputs.code),
         bundle_kind: "code",
@@ -395,6 +490,7 @@ fn maybe_encrypt_operator_outputs(
     job: &SelectedJob,
     scheduler_job_id: &str,
     submitted_at: &str,
+    redaction_needles: &[String],
 ) -> Result<()> {
     if !report.security.encrypt_operator_outputs {
         return Ok(());
@@ -406,7 +502,8 @@ fn maybe_encrypt_operator_outputs(
         (job.planned.outputs.out.as_str(), "operator_out"),
         (job.planned.outputs.err.as_str(), "operator_err"),
     ] {
-        let plaintext = std::fs::read(path).with_context(|| format!("read {path}"))?;
+        let plaintext = std::fs::read_to_string(path).with_context(|| format!("read {path}"))?;
+        let redacted = redact_text(plaintext, redaction_needles);
         write_encrypted_bundle(&BundleWriteRequest {
             output_path: Path::new(path),
             bundle_kind: kind,
@@ -420,7 +517,7 @@ fn maybe_encrypt_operator_outputs(
             submitted_at,
             backend,
             recipients,
-            plaintext: &plaintext,
+            plaintext: redacted.as_bytes(),
         })?;
     }
     Ok(())
@@ -544,6 +641,7 @@ fn run_submission(
 ) -> Result<SlurmSubmissionReport> {
     let selected = select_jobs(&report, &settings.subset)?;
     let dependency_name_graph = infer_dependencies(&selected);
+    let redaction_needles = redaction_needles(&report)?;
 
     let submitted_at = now_timestamp_compact();
     let mut name_to_scheduler_id: BTreeMap<String, String> = BTreeMap::new();
@@ -575,15 +673,27 @@ fn run_submission(
             SubmissionMode::Real => submit_with_sbatch(&script_path, &dependency_scheduler_ids)?,
         };
 
-        write_operator_files(selected_job, &scheduler_job_id, &submitted_at)?;
+        write_operator_files(
+            selected_job,
+            &scheduler_job_id,
+            &submitted_at,
+            &redaction_needles,
+        )?;
         emit_primary_encrypted_bundles(
             &report,
             selected_job,
             &script_path,
             &scheduler_job_id,
             &submitted_at,
+            &redaction_needles,
         )?;
-        maybe_encrypt_operator_outputs(&report, selected_job, &scheduler_job_id, &submitted_at)?;
+        maybe_encrypt_operator_outputs(
+            &report,
+            selected_job,
+            &scheduler_job_id,
+            &submitted_at,
+            &redaction_needles,
+        )?;
 
         name_to_scheduler_id.insert(selected_job.name.clone(), scheduler_job_id.clone());
         jobs_out.push(SubmittedJob {
@@ -778,8 +888,202 @@ fn decrypted_output_path(bundle_path: &Path, out_dir: &Path) -> PathBuf {
     out_dir.join(file)
 }
 
+fn bundle_output_path(bundle_path: &Path, out_dir: &Path, suffix: &str) -> PathBuf {
+    let mut file = bundle_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map_or_else(|| "bundle".to_string(), ToOwned::to_owned);
+    file.push_str(suffix);
+    out_dir.join(file)
+}
+
+fn normalize_recipients(values: &[String]) -> Vec<String> {
+    values
+        .iter()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .collect()
+}
+
+fn unsafe_destination(path: &Path) -> Result<bool> {
+    if !path.exists() {
+        return Ok(false);
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mode = std::fs::metadata(path)
+            .with_context(|| format!("stat {}", path.display()))?
+            .permissions()
+            .mode();
+        if (mode & 0o007) != 0 || (mode & 0o070) != 0 {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
+fn ensure_safe_private_directory(path: &Path, allow_unsafe_destination: bool) -> Result<()> {
+    if unsafe_destination(path)? && !allow_unsafe_destination {
+        return Err(anyhow!(
+            "refuse unsafe decrypt destination {}; pass --allow-unsafe-destination to override",
+            path.display()
+        ));
+    }
+    ensure_private_directory(path)
+}
+
+fn load_env_map_for_redaction(env_path: &Path) -> Result<BTreeMap<String, String>> {
+    if !env_path.exists() {
+        return Ok(BTreeMap::new());
+    }
+    let raw =
+        std::fs::read_to_string(env_path).with_context(|| format!("read {}", env_path.display()))?;
+    let mut map = BTreeMap::new();
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        let mut parts = trimmed.splitn(2, '=');
+        let Some(key) = parts.next() else { continue };
+        let Some(value) = parts.next() else { continue };
+        map.insert(key.trim().to_string(), value.trim().trim_matches('"').to_string());
+    }
+    Ok(map)
+}
+
+fn redaction_needles(report: &CampaignDryRunReport) -> Result<Vec<String>> {
+    let env_map = load_env_map_for_redaction(Path::new(&report.env_file_path))?;
+    let mut needles = Vec::new();
+    for (key, value) in env_map {
+        if value.is_empty() {
+            continue;
+        }
+        let uppercase = key.to_ascii_uppercase();
+        let by_name = uppercase.contains("SECRET")
+            || uppercase.contains("TOKEN")
+            || uppercase.contains("PASSWORD")
+            || uppercase.contains("KEY")
+            || uppercase.contains("ACCOUNT")
+            || uppercase.contains("PROJECT");
+        let explicitly = report.security.redacted_env_keys.iter().any(|k| k == &key);
+        if (by_name || explicitly) && value.len() >= 4 {
+            needles.push(value);
+        }
+    }
+    needles.sort();
+    needles.dedup();
+    Ok(needles)
+}
+
+fn redact_text(mut text: String, needles: &[String]) -> String {
+    for needle in needles {
+        if needle.is_empty() {
+            continue;
+        }
+        text = text.replace(needle, "<redacted>");
+    }
+    text
+}
+
+fn required_result_paths(_payload: &serde_json::Value) -> Vec<&'static str> {
+    vec![
+        "metrics",
+        "artifacts.inventory",
+        "reports",
+        "appraiser_outputs",
+        "job.stage",
+        "job.tool",
+        "job.sample",
+    ]
+}
+
+fn required_code_paths(payload: &serde_json::Value) -> Vec<&'static str> {
+    let _ = payload;
+    vec![
+        "code_freeze.repository_state",
+        "code_freeze.config_references",
+        "code_freeze.slurm_script",
+        "locks.corpus_lock",
+        "locks.database_lock",
+        "locks.image_lock",
+        "plan.outputs",
+    ]
+}
+
+fn has_json_path(root: &serde_json::Value, path: &str) -> bool {
+    let mut node = root;
+    for part in path.split('.') {
+        let Some(next) = node.get(part) else {
+            return false;
+        };
+        node = next;
+    }
+    true
+}
+
+fn validate_results_payload(payload: &serde_json::Value) -> Vec<String> {
+    required_result_paths(payload)
+        .into_iter()
+        .filter(|path| !has_json_path(payload, path))
+        .map(|path| format!("missing results field `{path}`"))
+        .collect()
+}
+
+fn validate_code_payload(payload: &serde_json::Value) -> Vec<String> {
+    required_code_paths(payload)
+        .into_iter()
+        .filter(|path| !has_json_path(payload, path))
+        .map(|path| format!("missing code field `{path}`"))
+        .collect()
+}
+
+fn appraiser_output_policy_issues(results_payload: &serde_json::Value) -> Vec<String> {
+    let mut issues = Vec::new();
+    if !has_json_path(results_payload, "appraiser_outputs") {
+        issues.push("results payload lacks `appraiser_outputs`".to_string());
+    }
+    if let Some(entries) = results_payload.get("artifacts").and_then(|v| v.get("inventory")) {
+        if entries
+            .as_array()
+            .is_some_and(|rows| rows.iter().any(|row| row.get("kind") == Some(&serde_json::Value::String("appraiser_output".to_string()))))
+        {
+            issues.push("appraiser output must not be listed as plaintext artifact".to_string());
+        }
+    }
+    issues
+}
+
+fn normalized_sidecar_for_bundle(
+    bundle_path: &Path,
+    original_sidecar: &Path,
+    temp_dir: &Path,
+) -> Result<PathBuf> {
+    let raw = std::fs::read(original_sidecar)
+        .with_context(|| format!("read {}", original_sidecar.display()))?;
+    let mut sidecar: serde_json::Value =
+        serde_json::from_slice(&raw).context("parse sidecar for normalization")?;
+    let current = sidecar.get("ciphertext_path").and_then(|v| v.as_str()).unwrap_or("");
+    if Path::new(current) == bundle_path {
+        return Ok(original_sidecar.to_path_buf());
+    }
+    sidecar["ciphertext_path"] =
+        serde_json::Value::String(bundle_path.as_os_str().to_string_lossy().to_string());
+    let normalized = temp_dir.join(
+        original_sidecar
+            .file_name()
+            .and_then(|name| name.to_str())
+            .map_or_else(|| "normalized.sidecar.json".to_string(), |name| format!("{name}.normalized")),
+    );
+    let payload = serde_json::to_vec_pretty(&sidecar).context("serialize normalized sidecar")?;
+    bijux_dna_api::v1::api::run::atomic_write_bytes(&normalized, &payload)
+        .with_context(|| format!("write {}", normalized.display()))?;
+    Ok(normalized)
+}
+
 pub fn decrypt_bundle_to_local(args: &SlurmBundleDecryptArgs) -> Result<SlurmDecryptReport> {
-    ensure_private_directory(&args.out_dir)?;
+    ensure_safe_private_directory(&args.out_dir, args.allow_unsafe_destination)?;
     let sidecar_path = args.sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.bundle));
     let (sidecar, plaintext) = decrypt_bundle(&BundleDecryptRequest {
         bundle_path: &args.bundle,
@@ -831,19 +1135,364 @@ pub fn verify_bundle_integrity(args: &SlurmBundleIntegrityCheck) -> Result<Slurm
     })
 }
 
+pub fn rewrap_bundle(args: &SlurmBundleRewrapArgs) -> Result<SlurmBundleRewrapReport> {
+    let sidecar_path = args.sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.bundle));
+    let (sidecar, plaintext) = decrypt_bundle(&BundleDecryptRequest {
+        bundle_path: &args.bundle,
+        sidecar_path: Some(&sidecar_path),
+        identity_files: &args.identity_file,
+    })?;
+    let recipients = normalize_recipients(&args.recipient);
+    if recipients.is_empty() {
+        return Err(anyhow!("rewrap requires at least one --recipient"));
+    }
+    let output_bundle = args.out_bundle.clone().unwrap_or_else(|| args.bundle.clone());
+    let output = write_encrypted_bundle(&BundleWriteRequest {
+        output_path: &output_bundle,
+        bundle_kind: &sidecar.bundle_kind,
+        campaign_id: &sidecar.campaign_id,
+        domain: &sidecar.domain,
+        stage: &sidecar.stage,
+        tool: &sidecar.tool,
+        sample: &sidecar.sample,
+        planned_job_id: &sidecar.planned_job_id,
+        scheduler_job_id: &sidecar.scheduler_job_id,
+        submitted_at: &sidecar.submitted_at,
+        backend: &sidecar.backend,
+        recipients: &recipients,
+        plaintext: &plaintext,
+    })?;
+    Ok(SlurmBundleRewrapReport {
+        schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
+        source_bundle_path: args.bundle.display().to_string(),
+        output_bundle_path: output_bundle.display().to_string(),
+        source_sidecar_path: sidecar_path.display().to_string(),
+        output_sidecar_path: sidecar_path_for(&output_bundle).display().to_string(),
+        plaintext_sha256: output.plaintext_sha256,
+        plaintext_bytes: output.plaintext_bytes,
+        backend: output.backend,
+        recipients: output.recipients,
+    })
+}
+
+pub fn import_encrypted_replay(args: &SlurmReplayImportArgs) -> Result<SlurmReplayImportReport> {
+    ensure_safe_private_directory(&args.out_dir, args.allow_unsafe_destination)?;
+    let results_sidecar =
+        args.results_sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.results_bundle));
+    let code_sidecar =
+        args.code_sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.code_bundle));
+
+    let (results_meta, results_plaintext) = decrypt_bundle(&BundleDecryptRequest {
+        bundle_path: &args.results_bundle,
+        sidecar_path: Some(&results_sidecar),
+        identity_files: &args.identity_file,
+    })?;
+    let (code_meta, code_plaintext) = decrypt_bundle(&BundleDecryptRequest {
+        bundle_path: &args.code_bundle,
+        sidecar_path: Some(&code_sidecar),
+        identity_files: &args.identity_file,
+    })?;
+
+    let results_out = bundle_output_path(&args.results_bundle, &args.out_dir, ".replay.results.json");
+    let code_out = bundle_output_path(&args.code_bundle, &args.out_dir, ".replay.code.json");
+    bijux_dna_api::v1::api::run::atomic_write_bytes(&results_out, &results_plaintext)?;
+    bijux_dna_api::v1::api::run::atomic_write_bytes(&code_out, &code_plaintext)?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        for path in [&results_out, &code_out] {
+            let mut perms =
+                std::fs::metadata(path).with_context(|| format!("stat {}", path.display()))?.permissions();
+            perms.set_mode(0o600);
+            std::fs::set_permissions(path, perms)
+                .with_context(|| format!("chmod {}", path.display()))?;
+        }
+    }
+
+    let results_json: serde_json::Value =
+        serde_json::from_slice(&results_plaintext).context("parse results replay payload")?;
+    let code_json: serde_json::Value =
+        serde_json::from_slice(&code_plaintext).context("parse code replay payload")?;
+    let mut checks = Vec::new();
+    checks.extend(validate_results_payload(&results_json));
+    checks.extend(validate_code_payload(&code_json));
+    let replay_feasible = checks.is_empty();
+
+    Ok(SlurmReplayImportReport {
+        schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
+        results_bundle: args.results_bundle.display().to_string(),
+        code_bundle: args.code_bundle.display().to_string(),
+        output_root: args.out_dir.display().to_string(),
+        results_plaintext_sha256: results_meta.plaintext_sha256,
+        code_plaintext_sha256: code_meta.plaintext_sha256,
+        replay_feasible,
+        completeness_checks: checks,
+    })
+}
+
+pub fn import_encrypted_campaign(args: &SlurmCampaignImportArgs) -> Result<SlurmCampaignImportReport> {
+    ensure_safe_private_directory(&args.out_dir, args.allow_unsafe_destination)?;
+    if !args.campaign_dir.is_dir() {
+        return Err(anyhow!(
+            "campaign import requires directory; got {}",
+            args.campaign_dir.display()
+        ));
+    }
+
+    let mut results_bundles = Vec::new();
+    for entry in std::fs::read_dir(&args.campaign_dir)
+        .with_context(|| format!("read {}", args.campaign_dir.display()))?
+    {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_file() && path.extension().and_then(|e| e.to_str()) == Some("results") {
+            results_bundles.push(path);
+        }
+    }
+    results_bundles.sort();
+
+    let mut imported = Vec::new();
+    let mut errors = Vec::new();
+    for results in results_bundles {
+        let Some(results_name) = results.file_name().and_then(|n| n.to_str()) else {
+            continue;
+        };
+        let code_name = results_name.strip_suffix(".results").map_or_else(
+            || format!("{results_name}.code"),
+            |prefix| format!("{prefix}.code"),
+        );
+        let code_path = results.with_file_name(code_name);
+        if !code_path.is_file() {
+            errors.push(format!("missing code bundle for {}", results.display()));
+            continue;
+        }
+
+        let replay_out = args.out_dir.join(
+            results
+                .file_stem()
+                .and_then(|stem| stem.to_str())
+                .map_or_else(|| "campaign-row".to_string(), ToOwned::to_owned),
+        );
+        ensure_private_directory(&replay_out)?;
+        let normalized_meta_dir = replay_out.join("sidecars");
+        ensure_private_directory(&normalized_meta_dir)?;
+        let normalized_results_sidecar = normalized_sidecar_for_bundle(
+            &results,
+            &sidecar_path_for(&results),
+            &normalized_meta_dir,
+        )?;
+        let normalized_code_sidecar = normalized_sidecar_for_bundle(
+            &code_path,
+            &sidecar_path_for(&code_path),
+            &normalized_meta_dir,
+        )?;
+        let report = import_encrypted_replay(&SlurmReplayImportArgs {
+            results_bundle: results.clone(),
+            results_sidecar: Some(normalized_results_sidecar),
+            code_bundle: code_path,
+            code_sidecar: Some(normalized_code_sidecar),
+            out_dir: replay_out,
+            identity_file: args.identity_file.clone(),
+            allow_unsafe_destination: args.allow_unsafe_destination,
+            json: false,
+        });
+        match report {
+            Ok(value) => imported.push(value),
+            Err(error) => errors.push(format!("{}: {error}", results.display())),
+        }
+    }
+
+    let failed_pairs = errors.len();
+    Ok(SlurmCampaignImportReport {
+        schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
+        campaign_dir: args.campaign_dir.display().to_string(),
+        output_root: args.out_dir.display().to_string(),
+        imported_pairs: imported.len(),
+        failed_pairs,
+        imported,
+        errors,
+    })
+}
+
+pub fn export_failure_bundle(args: &SlurmFailureBundleExportArgs) -> Result<SlurmFailureBundleExportReport> {
+    let report =
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
+    let Some(job) = report
+        .planned_jobs
+        .iter()
+        .find(|job| job.stage == args.stage && job.tool == args.tool && job.sample == args.sample)
+    else {
+        return Err(anyhow!(
+            "no job matched stage={} tool={} sample={}",
+            args.stage,
+            args.tool,
+            args.sample
+        ));
+    };
+    ensure_parent(&args.out_dir.join("placeholder"))?;
+    let recipients = normalize_recipients(&args.recipient);
+    if recipients.is_empty() {
+        return Err(anyhow!("failure export requires at least one --recipient"));
+    }
+    let payload = json!({
+        "schema_version": "bijux.hpc.failure_bundle.v1",
+        "campaign_id": report.campaign_id,
+        "domain": report.domain,
+        "failure_row": {
+            "stage": job.stage,
+            "tool": job.tool,
+            "sample": job.sample,
+            "job_name": job.job_name,
+            "planned_job_id": job.job_id,
+        },
+        "minimal_context": {
+            "resources": job.resources,
+            "resource_template": job.resource_template,
+            "outputs": job.outputs,
+        },
+    });
+    let plaintext =
+        serde_json::to_vec_pretty(&payload).context("serialize failure bundle plaintext")?;
+    let file_name = format!("{}-{}-{}.failure", args.stage, args.tool, args.sample);
+    let bundle_path = args.out_dir.join(file_name);
+    let sidecar = write_encrypted_bundle(&BundleWriteRequest {
+        output_path: &bundle_path,
+        bundle_kind: "failure_export",
+        campaign_id: &report.campaign_id,
+        domain: &report.domain,
+        stage: &job.stage,
+        tool: &job.tool,
+        sample: &job.sample,
+        planned_job_id: &job.job_id,
+        scheduler_job_id: "unavailable",
+        submitted_at: "unavailable",
+        backend: &args.backend,
+        recipients: &recipients,
+        plaintext: &plaintext,
+    })?;
+    Ok(SlurmFailureBundleExportReport {
+        schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
+        stage: job.stage.clone(),
+        tool: job.tool.clone(),
+        sample: job.sample.clone(),
+        bundle_path: bundle_path.display().to_string(),
+        sidecar_path: sidecar_path_for(&bundle_path).display().to_string(),
+        plaintext_sha256: sidecar.plaintext_sha256,
+        recipients: sidecar.recipients,
+    })
+}
+
+pub fn share_bundle_with_profile(args: &SlurmShareBundleArgs) -> Result<SlurmShareBundleReport> {
+    let sidecar_path = args.sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.bundle));
+    let profile_raw =
+        std::fs::read_to_string(&args.profile).with_context(|| format!("read {}", args.profile.display()))?;
+    let profile: ShareProfile = toml::from_str(&profile_raw).context("parse share profile")?;
+    if profile.recipients.is_empty() {
+        return Err(anyhow!("share profile has no recipients"));
+    }
+    ensure_parent(&args.out_dir.join("placeholder"))?;
+    let (source_meta, plaintext) = decrypt_bundle(&BundleDecryptRequest {
+        bundle_path: &args.bundle,
+        sidecar_path: Some(&sidecar_path),
+        identity_files: &args.identity_file,
+    })?;
+
+    let shared_bundle = args.out_dir.join(
+        args.bundle.file_name().and_then(|name| name.to_str()).map_or_else(
+            || "shared.bundle".to_string(),
+            |name| format!("{name}.shared"),
+        ),
+    );
+    let sidecar = write_encrypted_bundle(&BundleWriteRequest {
+        output_path: &shared_bundle,
+        bundle_kind: &source_meta.bundle_kind,
+        campaign_id: &source_meta.campaign_id,
+        domain: &source_meta.domain,
+        stage: &source_meta.stage,
+        tool: &source_meta.tool,
+        sample: &source_meta.sample,
+        planned_job_id: &source_meta.planned_job_id,
+        scheduler_job_id: &source_meta.scheduler_job_id,
+        submitted_at: &source_meta.submitted_at,
+        backend: &profile.backend,
+        recipients: &profile.recipients,
+        plaintext: &plaintext,
+    })?;
+
+    let mut redacted_sidecar = sidecar.clone();
+    redacted_sidecar.stage = "<redacted>".to_string();
+    redacted_sidecar.tool = "<redacted>".to_string();
+    redacted_sidecar.sample = "<redacted>".to_string();
+    redacted_sidecar.campaign_id = "<redacted>".to_string();
+    let redacted_path = sidecar_path_for(&shared_bundle);
+    let payload = serde_json::to_vec_pretty(&redacted_sidecar).context("serialize redacted sidecar")?;
+    bijux_dna_api::v1::api::run::atomic_write_bytes(&redacted_path, &payload)
+        .with_context(|| format!("write {}", redacted_path.display()))?;
+
+    Ok(SlurmShareBundleReport {
+        schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
+        source_bundle_path: args.bundle.display().to_string(),
+        shared_bundle_path: shared_bundle.display().to_string(),
+        shared_sidecar_path: redacted_path.display().to_string(),
+        plaintext_sha256: sidecar.plaintext_sha256,
+        shared_recipients: profile.recipients,
+        profile_id: profile.profile_id,
+    })
+}
+
+pub fn verify_results_policy(args: &SlurmResultsPolicyCheckArgs) -> Result<SlurmResultsPolicyReport> {
+    let results_sidecar =
+        args.results_sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.results_bundle));
+    let code_sidecar =
+        args.code_sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.code_bundle));
+    let (_, results_plaintext) = decrypt_bundle(&BundleDecryptRequest {
+        bundle_path: &args.results_bundle,
+        sidecar_path: Some(&results_sidecar),
+        identity_files: &args.identity_file,
+    })?;
+    let (_, code_plaintext) = decrypt_bundle(&BundleDecryptRequest {
+        bundle_path: &args.code_bundle,
+        sidecar_path: Some(&code_sidecar),
+        identity_files: &args.identity_file,
+    })?;
+    let results_json: serde_json::Value =
+        serde_json::from_slice(&results_plaintext).context("parse results bundle json")?;
+    let code_json: serde_json::Value =
+        serde_json::from_slice(&code_plaintext).context("parse code bundle json")?;
+
+    let mut issues = validate_results_payload(&results_json);
+    issues.extend(validate_code_payload(&code_json));
+    issues.extend(appraiser_output_policy_issues(&results_json));
+    let results_complete = validate_results_payload(&results_json).is_empty();
+    let code_complete = validate_code_payload(&code_json).is_empty();
+    let appraiser_policy_ok = appraiser_output_policy_issues(&results_json).is_empty();
+
+    Ok(SlurmResultsPolicyReport {
+        schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
+        results_complete,
+        code_complete,
+        appraiser_policy_ok,
+        issues,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     #![allow(clippy::expect_used)]
 
     use super::{
-        decrypt_bundle_to_local, submit_campaign, submit_cross_benchmark, submit_domain_benchmark,
-        submit_stage_benchmark, verify_bundle_integrity, write_copy_back_manifest,
+        decrypt_bundle_to_local, export_failure_bundle, import_encrypted_campaign,
+        import_encrypted_replay, rewrap_bundle, share_bundle_with_profile, submit_campaign,
+        submit_cross_benchmark, submit_domain_benchmark, submit_stage_benchmark,
+        verify_bundle_integrity, verify_results_policy, write_copy_back_manifest,
     };
     use crate::commands::cli::{
-        SlurmBundleDecryptArgs, SlurmBundleIntegrityCheck,
-        SlurmCopyBackManifestArgs, SlurmSubmitCampaignArgs, SlurmSubmitCrossArgs,
-        SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
+        SlurmBundleDecryptArgs, SlurmBundleIntegrityCheck, SlurmBundleRewrapArgs,
+        SlurmCampaignImportArgs, SlurmCopyBackManifestArgs, SlurmFailureBundleExportArgs,
+        SlurmReplayImportArgs, SlurmResultsPolicyCheckArgs, SlurmShareBundleArgs,
+        SlurmSubmitCampaignArgs, SlurmSubmitCrossArgs, SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
     };
+    use crate::commands::hpc::{BundleDecryptRequest, BundleWriteRequest};
 
     fn write_campaign_with_security(
         root: &std::path::Path,
@@ -1146,6 +1795,7 @@ sample = "sample-2"
             sidecar: None,
             out_dir: out_dir.clone(),
             identity_file: Vec::new(),
+            allow_unsafe_destination: false,
             json: false,
         })
         .expect("decrypt bundle");
@@ -1197,5 +1847,289 @@ sample = "sample-2"
         let code_entries = std::fs::read_dir(leaked_code).expect("code dir").count();
         assert_eq!(results_entries, 0);
         assert_eq!(code_entries, 0);
+    }
+
+    #[test]
+    fn decrypt_bundle_refuses_world_readable_destination_by_default() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign(root.path());
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+        let first = &report.jobs[0];
+        let out_dir = root.path().join("unsafe-decrypt");
+        std::fs::create_dir_all(&out_dir).expect("create out dir");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&out_dir).expect("metadata").permissions();
+            perms.set_mode(0o755);
+            std::fs::set_permissions(&out_dir, perms).expect("chmod");
+        }
+
+        let err = decrypt_bundle_to_local(&SlurmBundleDecryptArgs {
+            bundle: std::path::PathBuf::from(&first.results_path),
+            sidecar: None,
+            out_dir: out_dir.clone(),
+            identity_file: Vec::new(),
+            allow_unsafe_destination: false,
+            json: false,
+        })
+        .expect_err("must reject unsafe destination");
+        assert!(err.to_string().contains("refuse unsafe decrypt destination"));
+
+        let ok = decrypt_bundle_to_local(&SlurmBundleDecryptArgs {
+            bundle: std::path::PathBuf::from(&first.results_path),
+            sidecar: None,
+            out_dir,
+            identity_file: Vec::new(),
+            allow_unsafe_destination: true,
+            json: false,
+        })
+        .expect("allow unsafe destination");
+        assert!(std::path::Path::new(&ok.output_path).is_file());
+    }
+
+    #[test]
+    fn rewrap_bundle_preserves_plaintext_identity() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign(root.path());
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+        let first = &report.jobs[0];
+        let original = verify_bundle_integrity(&SlurmBundleIntegrityCheck {
+            bundle: std::path::PathBuf::from(&first.results_path),
+            sidecar: None,
+            identity_file: Vec::new(),
+            json: false,
+        })
+        .expect("verify original");
+        let out_bundle = root.path().join("rewrapped.results");
+        let rewrapped = rewrap_bundle(&SlurmBundleRewrapArgs {
+            bundle: std::path::PathBuf::from(&first.results_path),
+            sidecar: None,
+            identity_file: Vec::new(),
+            recipient: vec!["charlie".to_string()],
+            out_bundle: Some(out_bundle.clone()),
+            json: false,
+        })
+        .expect("rewrap");
+        assert_eq!(rewrapped.plaintext_sha256, original.plaintext_sha256);
+        assert!(out_bundle.is_file());
+    }
+
+    #[test]
+    fn import_replay_reports_feasible_for_complete_pair() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign(root.path());
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+        let first = &report.jobs[0];
+        let imported = import_encrypted_replay(&SlurmReplayImportArgs {
+            results_bundle: std::path::PathBuf::from(&first.results_path),
+            results_sidecar: None,
+            code_bundle: std::path::PathBuf::from(&first.code_path),
+            code_sidecar: None,
+            out_dir: root.path().join("replay"),
+            identity_file: Vec::new(),
+            allow_unsafe_destination: false,
+            json: false,
+        })
+        .expect("import replay");
+        assert!(imported.replay_feasible);
+        assert!(imported.completeness_checks.is_empty());
+    }
+
+    #[test]
+    fn import_campaign_ingests_results_code_pairs() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign(root.path());
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+        let campaign_dir = root.path().join("campaign-copy");
+        std::fs::create_dir_all(&campaign_dir).expect("mkdir");
+        let first = &report.jobs[0];
+        for path in [&first.results_path, &first.code_path] {
+            let src = std::path::Path::new(path);
+            let dst = campaign_dir.join(src.file_name().expect("filename"));
+            std::fs::copy(src, &dst).expect("copy bundle");
+            let src_side = super::sidecar_path_for(src);
+            let dst_side = campaign_dir.join(src_side.file_name().expect("side name"));
+            std::fs::copy(src_side, dst_side).expect("copy sidecar");
+        }
+        let imported = import_encrypted_campaign(&SlurmCampaignImportArgs {
+            campaign_dir: campaign_dir.clone(),
+            out_dir: root.path().join("campaign-import"),
+            identity_file: Vec::new(),
+            allow_unsafe_destination: false,
+            json: false,
+        })
+        .expect("import campaign");
+        assert_eq!(imported.imported_pairs, 1, "errors={:?}", imported.errors);
+        assert_eq!(imported.failed_pairs, 0);
+    }
+
+    #[test]
+    fn export_failure_bundle_writes_minimal_encrypted_bundle() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign(root.path());
+        let out = root.path().join("failure-export");
+        let report = export_failure_bundle(&SlurmFailureBundleExportArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            stage: "fastq.validate_reads".to_string(),
+            tool: "seqkit_v2".to_string(),
+            sample: "sample-1".to_string(),
+            out_dir: out,
+            recipient: vec!["alice".to_string()],
+            backend: "mock-envelope-v1".to_string(),
+            json: false,
+        })
+        .expect("export failure");
+        assert!(std::path::Path::new(&report.bundle_path).is_file());
+        assert!(std::path::Path::new(&report.sidecar_path).is_file());
+    }
+
+    #[test]
+    fn share_bundle_profile_reencrypts_and_redacts_public_sidecar() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign(root.path());
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+        let profile = root.path().join("collab-profile.toml");
+        std::fs::write(
+            &profile,
+            "profile_id = \"collab-a\"\nbackend = \"mock-envelope-v1\"\nrecipients = [\"team-a\"]\n",
+        )
+        .expect("write profile");
+        let shared = share_bundle_with_profile(&SlurmShareBundleArgs {
+            bundle: std::path::PathBuf::from(&report.jobs[0].results_path),
+            sidecar: None,
+            identity_file: Vec::new(),
+            profile,
+            out_dir: root.path().join("shared"),
+            json: false,
+        })
+        .expect("share bundle");
+        let sidecar = std::fs::read_to_string(&shared.shared_sidecar_path).expect("read sidecar");
+        assert!(sidecar.contains("\"campaign_id\": \"<redacted>\""));
+        assert!(sidecar.contains("\"stage\": \"<redacted>\""));
+    }
+
+    #[test]
+    fn verify_results_policy_detects_incomplete_results_and_code() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign(root.path());
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+        let first = &report.jobs[0];
+
+        let (results_sidecar, results_plaintext) = super::decrypt_bundle(&BundleDecryptRequest {
+            bundle_path: std::path::Path::new(&first.results_path),
+            sidecar_path: None,
+            identity_files: &[],
+        })
+        .expect("decrypt results");
+        let (code_sidecar, code_plaintext) = super::decrypt_bundle(&BundleDecryptRequest {
+            bundle_path: std::path::Path::new(&first.code_path),
+            sidecar_path: None,
+            identity_files: &[],
+        })
+        .expect("decrypt code");
+        let mut results_json: serde_json::Value =
+            serde_json::from_slice(&results_plaintext).expect("parse results");
+        let mut code_json: serde_json::Value =
+            serde_json::from_slice(&code_plaintext).expect("parse code");
+        results_json.as_object_mut().expect("obj").remove("appraiser_outputs");
+        code_json
+            .get_mut("code_freeze")
+            .and_then(|v| v.as_object_mut())
+            .expect("code_freeze")
+            .remove("repository_state");
+
+        let bad_results = root.path().join("bad.results");
+        let bad_code = root.path().join("bad.code");
+        let recipients = vec!["alice".to_string()];
+        super::write_encrypted_bundle(&BundleWriteRequest {
+            output_path: &bad_results,
+            bundle_kind: &results_sidecar.bundle_kind,
+            campaign_id: &results_sidecar.campaign_id,
+            domain: &results_sidecar.domain,
+            stage: &results_sidecar.stage,
+            tool: &results_sidecar.tool,
+            sample: &results_sidecar.sample,
+            planned_job_id: &results_sidecar.planned_job_id,
+            scheduler_job_id: &results_sidecar.scheduler_job_id,
+            submitted_at: &results_sidecar.submitted_at,
+            backend: "mock-envelope-v1",
+            recipients: &recipients,
+            plaintext: &serde_json::to_vec_pretty(&results_json).expect("serialize"),
+        })
+        .expect("write bad results");
+        super::write_encrypted_bundle(&BundleWriteRequest {
+            output_path: &bad_code,
+            bundle_kind: &code_sidecar.bundle_kind,
+            campaign_id: &code_sidecar.campaign_id,
+            domain: &code_sidecar.domain,
+            stage: &code_sidecar.stage,
+            tool: &code_sidecar.tool,
+            sample: &code_sidecar.sample,
+            planned_job_id: &code_sidecar.planned_job_id,
+            scheduler_job_id: &code_sidecar.scheduler_job_id,
+            submitted_at: &code_sidecar.submitted_at,
+            backend: "mock-envelope-v1",
+            recipients: &recipients,
+            plaintext: &serde_json::to_vec_pretty(&code_json).expect("serialize"),
+        })
+        .expect("write bad code");
+
+        let policy = verify_results_policy(&SlurmResultsPolicyCheckArgs {
+            results_bundle: bad_results,
+            results_sidecar: None,
+            code_bundle: bad_code,
+            code_sidecar: None,
+            identity_file: Vec::new(),
+            json: false,
+        })
+        .expect("verify policy");
+        assert!(!policy.results_complete);
+        assert!(!policy.code_complete);
+        assert!(!policy.appraiser_policy_ok);
     }
 }

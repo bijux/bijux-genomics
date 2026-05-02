@@ -127,6 +127,18 @@ pub enum SlurmCommand {
     DecryptBundle(SlurmBundleDecryptArgs),
     #[command(name = "verify-bundle")]
     VerifyBundle(SlurmBundleIntegrityCheck),
+    #[command(name = "rewrap-bundle")]
+    RewrapBundle(SlurmBundleRewrapArgs),
+    #[command(name = "import-replay")]
+    ImportReplay(SlurmReplayImportArgs),
+    #[command(name = "import-campaign")]
+    ImportCampaign(SlurmCampaignImportArgs),
+    #[command(name = "export-failure-bundle")]
+    ExportFailureBundle(SlurmFailureBundleExportArgs),
+    #[command(name = "share-bundle")]
+    ShareBundle(SlurmShareBundleArgs),
+    #[command(name = "verify-results-policy")]
+    VerifyResultsPolicy(SlurmResultsPolicyCheckArgs),
 }
 
 #[derive(Debug, Args, Clone)]
@@ -220,6 +232,8 @@ pub struct SlurmBundleDecryptArgs {
     #[arg(long = "identity-file", value_name = "PATH")]
     pub identity_file: Vec<PathBuf>,
     #[arg(long, default_value_t = false)]
+    pub allow_unsafe_destination: bool,
+    #[arg(long, default_value_t = false)]
     pub json: bool,
 }
 
@@ -229,6 +243,112 @@ pub struct SlurmBundleIntegrityCheck {
     pub bundle: PathBuf,
     #[arg(long, value_name = "PATH")]
     pub sidecar: Option<PathBuf>,
+    #[arg(long = "identity-file", value_name = "PATH")]
+    pub identity_file: Vec<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmBundleRewrapArgs {
+    #[arg(long, value_name = "PATH")]
+    pub bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub sidecar: Option<PathBuf>,
+    #[arg(long = "identity-file", value_name = "PATH")]
+    pub identity_file: Vec<PathBuf>,
+    #[arg(long = "recipient", value_name = "RECIPIENT")]
+    pub recipient: Vec<String>,
+    #[arg(long, value_name = "PATH")]
+    pub out_bundle: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmReplayImportArgs {
+    #[arg(long, value_name = "PATH")]
+    pub results_bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub results_sidecar: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub code_bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub code_sidecar: Option<PathBuf>,
+    #[arg(long, value_name = "PATH", default_value = "artifacts/investigation/replay")]
+    pub out_dir: PathBuf,
+    #[arg(long = "identity-file", value_name = "PATH")]
+    pub identity_file: Vec<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub allow_unsafe_destination: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmCampaignImportArgs {
+    #[arg(long, value_name = "PATH")]
+    pub campaign_dir: PathBuf,
+    #[arg(long, value_name = "PATH", default_value = "artifacts/investigation/campaign-import")]
+    pub out_dir: PathBuf,
+    #[arg(long = "identity-file", value_name = "PATH")]
+    pub identity_file: Vec<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub allow_unsafe_destination: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmFailureBundleExportArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_overrides: Option<PathBuf>,
+    #[arg(long)]
+    pub stage: String,
+    #[arg(long)]
+    pub tool: String,
+    #[arg(long)]
+    pub sample: String,
+    #[arg(long, value_name = "PATH")]
+    pub out_dir: PathBuf,
+    #[arg(long = "recipient", value_name = "RECIPIENT")]
+    pub recipient: Vec<String>,
+    #[arg(long, default_value = "mock-envelope-v1")]
+    pub backend: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmShareBundleArgs {
+    #[arg(long, value_name = "PATH")]
+    pub bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub sidecar: Option<PathBuf>,
+    #[arg(long = "identity-file", value_name = "PATH")]
+    pub identity_file: Vec<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub profile: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub out_dir: PathBuf,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmResultsPolicyCheckArgs {
+    #[arg(long, value_name = "PATH")]
+    pub results_bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub results_sidecar: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub code_bundle: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub code_sidecar: Option<PathBuf>,
     #[arg(long = "identity-file", value_name = "PATH")]
     pub identity_file: Vec<PathBuf>,
     #[arg(long, default_value_t = false)]

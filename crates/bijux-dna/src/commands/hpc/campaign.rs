@@ -239,6 +239,7 @@ pub struct PlannedSecurity {
     pub encryption_recipients: Vec<String>,
     pub encryption_identity_files: Vec<String>,
     pub encrypt_operator_outputs: bool,
+    pub redacted_env_keys: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -1277,6 +1278,7 @@ pub fn campaign_dry_run(
                 .map(|path| path.display().to_string())
                 .collect(),
             encrypt_operator_outputs: config.security.encrypt_operator_outputs,
+            redacted_env_keys: config.security.redacted_env_keys,
         },
         planned_jobs,
     })

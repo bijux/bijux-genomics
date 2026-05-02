@@ -435,6 +435,68 @@ pub(crate) fn handle_slurm_root(command: &cli::SlurmCommand, _cwd: &Path) -> Res
                 println!("sha256={}", report.plaintext_sha256);
             }
         }
+        cli::SlurmCommand::RewrapBundle(args) => {
+            let report = hpc::rewrap_bundle(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("bundle={}", report.source_bundle_path);
+                println!("rewrapped={}", report.output_bundle_path);
+                println!("sha256={}", report.plaintext_sha256);
+            }
+        }
+        cli::SlurmCommand::ImportReplay(args) => {
+            let report = hpc::import_encrypted_replay(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("results={}", report.results_bundle);
+                println!("code={}", report.code_bundle);
+                println!("feasible={}", report.replay_feasible);
+                println!("out_dir={}", report.output_root);
+            }
+        }
+        cli::SlurmCommand::ImportCampaign(args) => {
+            let report = hpc::import_encrypted_campaign(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign_dir={}", report.campaign_dir);
+                println!("imported_pairs={}", report.imported_pairs);
+                println!("out_dir={}", report.output_root);
+            }
+        }
+        cli::SlurmCommand::ExportFailureBundle(args) => {
+            let report = hpc::export_failure_bundle(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("stage={}", report.stage);
+                println!("tool={}", report.tool);
+                println!("sample={}", report.sample);
+                println!("bundle={}", report.bundle_path);
+            }
+        }
+        cli::SlurmCommand::ShareBundle(args) => {
+            let report = hpc::share_bundle_with_profile(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("source={}", report.source_bundle_path);
+                println!("shared={}", report.shared_bundle_path);
+                println!("sidecar={}", report.shared_sidecar_path);
+            }
+        }
+        cli::SlurmCommand::VerifyResultsPolicy(args) => {
+            let report = hpc::verify_results_policy(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("results_ok={}", report.results_complete);
+                println!("code_ok={}", report.code_complete);
+                println!("appraiser_policy_ok={}", report.appraiser_policy_ok);
+            }
+        }
     }
     Ok(())
 }
