@@ -359,6 +359,21 @@ fn path_writable(path: &Path) -> bool {
     std::fs::write(&probe, b"ok").and_then(|_| std::fs::remove_file(&probe)).is_ok()
 }
 
+fn env_file_private(path: &Path) -> Option<bool> {
+    if !path.exists() {
+        return None;
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        return std::fs::metadata(path).ok().map(|meta| meta.permissions().mode() & 0o077 == 0);
+    }
+    #[cfg(not(unix))]
+    {
+        Some(true)
+    }
+}
+
 fn is_secret_key_name(name: &str) -> bool {
     let lower = name.to_ascii_lowercase();
     let allowlist = ["secret_provider", "secret_ref", "secret_env_key", "encryption_recipients"];
@@ -862,6 +877,11 @@ pub fn campaign_preflight(
         ok: !config.security.encryption_recipients.is_empty(),
         detail: format!("count={}", config.security.encryption_recipients.len()),
     });
+    checks.push(CampaignCheck {
+        name: "env_file_private".to_string(),
+        ok: env_file_private(&metadata.env_file_path).unwrap_or(true),
+        detail: metadata.env_file_path.display().to_string(),
+    });
 
     for (name, path) in [
         ("corpora_root", &config.layout.corpora_root),
@@ -1333,9 +1353,83 @@ sample = "sample-1"
             "BIJUX_SLURM_ACCOUNT=account-local\nBIJUX_SLURM_PROJECT=project-local\n",
         )
         .expect("write env");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&env_file_path).expect("env metadata").permissions();
+            perms.set_mode(0o600);
+            std::fs::set_permissions(&env_file_path, perms).expect("set env mode");
+        }
 
         let report =
             campaign_preflight(&config_path, Some(&env_file_path), None).expect("preflight");
         assert!(report.ok);
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn campaign_preflight_flags_world_readable_env_file() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_path = root.path().join("campaign.toml");
+        let env_file_path = root.path().join("campaign.env");
+        for name in [
+            "corpora",
+            "databases",
+            "images",
+            "scratch",
+            "logs",
+            "results",
+            "code",
+            "imports",
+            "baselines",
+        ] {
+            std::fs::create_dir_all(root.path().join(name)).expect("create dir");
+        }
+        let config = format!(
+            r#"
+[campaign]
+id = "mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "{root}/corpora"
+databases_root = "{root}/databases"
+images_root = "{root}/images"
+scratch_root = "{root}/scratch"
+logs_root = "{root}/logs"
+encrypted_results_root = "{root}/results"
+encrypted_code_root = "{root}/code"
+appraiser_imports_root = "{root}/imports"
+baselines_root = "{root}/baselines"
+
+[slurm]
+site_profile = "generic"
+
+[security]
+encryption_recipients = ["alice"]
+
+[[jobs]]
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-1"
+"#,
+            root = root.path().display()
+        );
+        std::fs::write(&config_path, config).expect("write config");
+        std::fs::write(
+            &env_file_path,
+            "BIJUX_SLURM_ACCOUNT=account-local\nBIJUX_SLURM_PROJECT=project-local\n",
+        )
+        .expect("write env");
+        let mut perms = std::fs::metadata(&env_file_path).expect("env metadata").permissions();
+        perms.set_mode(0o644);
+        std::fs::set_permissions(&env_file_path, perms).expect("set env mode");
+
+        let report =
+            campaign_preflight(&config_path, Some(&env_file_path), None).expect("preflight");
+        assert!(!report.ok);
+        assert!(report.checks.iter().any(|check| check.name == "env_file_private" && !check.ok));
     }
 }
