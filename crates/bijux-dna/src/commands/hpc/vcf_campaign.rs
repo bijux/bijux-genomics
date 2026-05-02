@@ -392,6 +392,10 @@ fn goal_specific_checks(
                 rows.iter().any(|row| row.stage_id == "vcf.stats")
             ),
             format!(
+                "stats_degraded_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "degraded").count()
+            ),
+            format!(
                 "stats_ready_rows={}",
                 rows.iter().filter(|row| row.readiness_class == "ready").count()
             ),
@@ -896,6 +900,10 @@ mod tests {
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("stats_degraded_rows=0")));
         assert!(entries[0]
             .goal_checks
             .iter()
