@@ -3498,6 +3498,24 @@ fn goal_specific_checks(
             ),
             format!("corpus_scale_findings_count={}", findings.len()),
         ],
+        "G250" => vec![
+            format!("storage_mode_rows_present={}", !rows.is_empty()),
+            format!(
+                "storage_mode_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "storage_mode_profile_summary_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "storage_mode_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("storage_mode_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -5991,6 +6009,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "corpus_scale_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_250_emits_storage_mode_comparison_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G250".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-profile".to_string(),
+            row_id: "h3".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-outlier".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "cold/warm storage comparison shows profile-stage IO drift".to_string(),
+            recommendation: "benchmark cache-state and staging policy across storage modes".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "storage_mode_profile_summary_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "storage_mode_findings_count=1"));
     }
 
     #[test]
