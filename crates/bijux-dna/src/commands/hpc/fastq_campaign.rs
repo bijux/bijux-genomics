@@ -40,6 +40,7 @@ pub struct FastqBenchmarkGoalEntry {
     pub matched_rows: Vec<FastqMatrixRowRef>,
     pub appraisal_findings: Vec<AppraisalFinding>,
     pub hardening_entries: Vec<HardeningQueueEntry>,
+    pub goal_checks: Vec<String>,
     pub status: String,
 }
 
@@ -356,6 +357,40 @@ fn status_for_goal(rows: &[FastqMatrixRowRef], queue_entries: &[HardeningQueueEn
     "ready-for-benchmark-run".to_string()
 }
 
+fn goal_specific_checks(
+    goal_id: &str,
+    rows: &[FastqMatrixRowRef],
+    findings: &[AppraisalFinding],
+    queue_entries: &[HardeningQueueEntry],
+) -> Vec<String> {
+    match goal_id {
+        "G101" => vec![
+            format!("validation_rows_present={}", !rows.is_empty()),
+            format!(
+                "layout_diversity_detected={}",
+                rows.iter()
+                    .any(|row| row.stage_id == "fastq.validate_reads" && row.tool_id != "<unbound>")
+            ),
+            format!(
+                "validation_failure_classes={}",
+                findings
+                    .iter()
+                    .map(|finding| finding.failure_class.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "validation_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.failure_class.contains("runtime") || entry.failure_class.contains("readiness"))
+                    .count()
+            ),
+        ],
+        _ => Vec::new(),
+    }
+}
+
 fn build_goal_entries(
     selected_goal_ids: &[String],
     matrix: &BenchmarkMatrixReport,
@@ -398,6 +433,8 @@ fn build_goal_entries(
             .collect::<Vec<_>>();
 
         let status = status_for_goal(&matched_rows, &hardening_entries);
+        let goal_checks =
+            goal_specific_checks(goal.goal_id, &matched_rows, &appraisal_findings, &hardening_entries);
 
         entries.push(FastqBenchmarkGoalEntry {
             goal_id: goal.goal_id.to_string(),
@@ -414,6 +451,7 @@ fn build_goal_entries(
             matched_rows,
             appraisal_findings,
             hardening_entries,
+            goal_checks,
             status,
         });
     }
@@ -616,6 +654,7 @@ mod tests {
                 }],
                 appraisal_findings: Vec::new(),
                 hardening_entries: Vec::new(),
+                goal_checks: Vec::new(),
                 status: "ready-for-benchmark-run".to_string(),
             },
             super::FastqBenchmarkGoalEntry {
@@ -626,6 +665,7 @@ mod tests {
                 matched_rows: Vec::new(),
                 appraisal_findings: Vec::new(),
                 hardening_entries: Vec::new(),
+                goal_checks: Vec::new(),
                 status: "missing-stage-binding".to_string(),
             },
         ];
@@ -634,5 +674,39 @@ mod tests {
         assert_eq!(summary.total_goals, 2);
         assert_eq!(summary.status_counts.get("ready-for-benchmark-run"), Some(&1));
         assert_eq!(summary.status_counts.get("missing-stage-binding"), Some(&1));
+    }
+
+    #[test]
+    fn goal_101_emits_validation_specific_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G101".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "r1".to_string(),
+            severity: "warning".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-degraded".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0001".to_string(),
+            severity: "warning".to_string(),
+            failure_class: "runtime-under-sampled".to_string(),
+            recommendation: "increase repetitions".to_string(),
+            affected_rows: vec!["r1".to_string()],
+            source_appraisers: vec!["runtime-performance".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("validation_rows_present=")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("validation_queue_entries=")));
     }
 }
