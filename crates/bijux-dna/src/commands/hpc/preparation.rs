@@ -32,6 +32,7 @@ pub struct PreparationApplyReport {
     pub schema_version: &'static str,
     pub campaign_id: String,
     pub domain: String,
+    pub dry_run: bool,
     pub actions: Vec<PreparationApplyAction>,
 }
 
@@ -136,12 +137,15 @@ pub fn prepare_foundation(
     config_path: &Path,
     env_file_override: Option<&Path>,
     user_override_path: Option<&Path>,
+    dry_run: bool,
 ) -> Result<PreparationApplyReport> {
     let report = campaign_dry_run(config_path, env_file_override, user_override_path)?;
     let mut actions = Vec::new();
     for (surface, root_str) in preparation_surfaces(&report) {
         let root = Path::new(root_str);
-        bijux_dna_infra::ensure_dir(root).with_context(|| format!("create {}", root.display()))?;
+        if !dry_run {
+            bijux_dna_infra::ensure_dir(root).with_context(|| format!("create {}", root.display()))?;
+        }
         let lock = lock_path(root);
         let fingerprint = surface_fingerprint(&report.campaign_id, &report.domain, surface, root_str);
         let state = PreparationLock {
@@ -160,6 +164,8 @@ pub fn prepare_foundation(
         };
         let action = if existing_fingerprint.as_deref() == Some(fingerprint.as_str()) {
             "reused"
+        } else if dry_run {
+            "would_prepare"
         } else {
             let payload =
                 serde_json::to_vec_pretty(&state).context("serialize preparation lock")?;
@@ -178,6 +184,7 @@ pub fn prepare_foundation(
         schema_version: PREPARATION_APPLY_SCHEMA_VERSION,
         campaign_id: report.campaign_id,
         domain: report.domain,
+        dry_run,
         actions,
     })
 }
@@ -300,9 +307,62 @@ sample = "sample-1"
         );
         std::fs::write(&config_path, config).expect("write config");
 
-        let first = prepare_foundation(&config_path, None, None).expect("prepare 1");
+        let first = prepare_foundation(&config_path, None, None, false).expect("prepare 1");
         assert!(first.actions.iter().all(|action| action.action == "prepared"));
-        let second = prepare_foundation(&config_path, None, None).expect("prepare 2");
+        let second = prepare_foundation(&config_path, None, None, false).expect("prepare 2");
         assert!(second.actions.iter().all(|action| action.action == "reused"));
+    }
+
+    #[test]
+    fn prepare_foundation_dry_run_does_not_write_lockfiles() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_path = root.path().join("campaign.toml");
+        let config = format!(
+            r#"
+[campaign]
+id = "mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "{root}/corpora"
+databases_root = "{root}/databases"
+images_root = "{root}/images"
+scratch_root = "{root}/scratch"
+logs_root = "{root}/logs"
+encrypted_results_root = "{root}/results"
+encrypted_code_root = "{root}/code"
+appraiser_imports_root = "{root}/imports"
+baselines_root = "{root}/baselines"
+
+[slurm]
+site_profile = "generic"
+
+[resources]
+default = "standard"
+
+[resources.templates.standard]
+cpus = 1
+mem_gb = 1
+walltime = "00:05:00"
+scratch_gb = 1
+
+[security]
+encryption_recipients = ["alice"]
+
+[[jobs]]
+name = "fastq_validate"
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-1"
+"#,
+            root = root.path().display()
+        );
+        std::fs::write(&config_path, config).expect("write config");
+        let report = prepare_foundation(&config_path, None, None, true).expect("dry run");
+        assert!(report.dry_run);
+        assert!(report.actions.iter().all(|action| action.action == "would_prepare"));
+        for dir in ["corpora", "databases", "images"] {
+            assert!(!root.path().join(dir).join(".bijux.prepare.lock.json").exists());
+        }
     }
 }

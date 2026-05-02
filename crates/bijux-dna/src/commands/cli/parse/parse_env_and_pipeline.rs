@@ -128,6 +128,8 @@ pub enum ConfigCommand {
         #[arg(long, value_name = "PATH")]
         user_overrides: Option<PathBuf>,
         #[arg(long, default_value_t = false)]
+        dry_run: bool,
+        #[arg(long, default_value_t = false)]
         json: bool,
     },
     Doctor,
