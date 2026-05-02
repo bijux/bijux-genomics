@@ -898,6 +898,30 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class == "refuse").count()
             ),
         ],
+        "G154" => vec![
+            format!("roh_ibd_rows_present={}", !rows.is_empty()),
+            format!(
+                "roh_ibd_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "roh_ibd_roh_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.roh")
+            ),
+            format!(
+                "roh_ibd_ibd_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.ibd")
+            ),
+            format!(
+                "roh_ibd_degraded_or_refuse_rows={}",
+                rows.iter()
+                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1499,5 +1523,21 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("population_guardrail_pca_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_154_emits_roh_ibd_boundary_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G154".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("roh_ibd_stage_count=3")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("roh_ibd_roh_stage_bound=true")));
     }
 }
