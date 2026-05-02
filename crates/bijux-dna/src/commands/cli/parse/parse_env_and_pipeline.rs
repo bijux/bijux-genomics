@@ -123,6 +123,8 @@ pub enum SlurmCommand {
     SubmitCampaign(SlurmSubmitCampaignArgs),
     #[command(name = "cancel")]
     Cancel(SlurmCancelArgs),
+    #[command(name = "monitor")]
+    Monitor(SlurmMonitorArgs),
     #[command(name = "copy-back-manifest")]
     CopyBackManifest(SlurmCopyBackManifestArgs),
     #[command(name = "decrypt-bundle")]
@@ -217,6 +219,20 @@ pub struct SlurmCancelArgs {
     pub manifest: Option<PathBuf>,
     #[arg(long, default_value_t = false)]
     pub mock_cancel: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct SlurmMonitorArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_overrides: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub submission_manifest: Option<PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

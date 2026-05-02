@@ -9,9 +9,9 @@ use serde_json::json;
 use crate::commands::cli::{
     SlurmBundleDecryptArgs, SlurmBundleIntegrityCheck, SlurmBundleRewrapArgs,
     SlurmCampaignImportArgs, SlurmCancelArgs, SlurmCopyBackManifestArgs,
-    SlurmFailureBundleExportArgs, SlurmReplayImportArgs, SlurmResultsPolicyCheckArgs,
-    SlurmShareBundleArgs, SlurmSubmitCampaignArgs, SlurmSubmitCrossArgs, SlurmSubmitDomainArgs,
-    SlurmSubmitStageArgs,
+    SlurmFailureBundleExportArgs, SlurmMonitorArgs, SlurmReplayImportArgs,
+    SlurmResultsPolicyCheckArgs, SlurmShareBundleArgs, SlurmSubmitCampaignArgs,
+    SlurmSubmitCrossArgs, SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
 };
 use crate::commands::hpc::{
     campaign_dry_run, decrypt_bundle, sha256_hex, sidecar_path_for, write_encrypted_bundle,
@@ -66,6 +66,45 @@ pub struct SlurmCancelReport {
     pub mode: String,
     pub requested_job_ids: Vec<String>,
     pub cancelled_job_ids: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SlurmMonitorReport {
+    pub schema_version: &'static str,
+    pub campaign_id: String,
+    pub domain: String,
+    pub snapshot: SlurmMonitorSnapshot,
+    pub jobs: Vec<SlurmMonitorEntry>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SlurmMonitorSnapshot {
+    pub total_jobs: usize,
+    pub jobs_with_log: usize,
+    pub jobs_with_out: usize,
+    pub jobs_with_err: usize,
+    pub jobs_with_results_bundle: usize,
+    pub jobs_with_code_bundle: usize,
+    pub jobs_with_appraiser_done: usize,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SlurmMonitorEntry {
+    pub planned_job_id: String,
+    pub scheduler_job_id: String,
+    pub stage: String,
+    pub tool: String,
+    pub sample: String,
+    pub log_exists: bool,
+    pub out_exists: bool,
+    pub err_exists: bool,
+    pub results_exists: bool,
+    pub results_sidecar_exists: bool,
+    pub results_bundle_encrypted: bool,
+    pub code_exists: bool,
+    pub code_sidecar_exists: bool,
+    pub code_bundle_encrypted: bool,
+    pub appraiser_done: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -886,6 +925,102 @@ pub fn cancel_jobs(args: &SlurmCancelArgs) -> Result<SlurmCancelReport> {
     })
 }
 
+fn is_encrypted_bundle_marker(path: &Path) -> bool {
+    let Ok(bytes) = std::fs::read(path) else {
+        return false;
+    };
+    let preview_len = bytes.len().min(512);
+    let preview = String::from_utf8_lossy(&bytes[..preview_len]);
+    preview.contains("\"schema_version\": \"bijux.hpc.bundle.")
+}
+
+fn scheduler_ids_from_submission_manifest(path: &Path) -> Result<BTreeMap<String, String>> {
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    let value: serde_json::Value =
+        serde_json::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    let mut map = BTreeMap::new();
+    for row in value
+        .get("jobs")
+        .and_then(|rows| rows.as_array())
+        .into_iter()
+        .flatten()
+    {
+        let Some(planned_id) = row.get("planned_job_id").and_then(|v| v.as_str()) else {
+            continue;
+        };
+        let Some(scheduler_id) = row.get("scheduler_job_id").and_then(|v| v.as_str()) else {
+            continue;
+        };
+        map.insert(planned_id.to_string(), scheduler_id.to_string());
+    }
+    Ok(map)
+}
+
+pub fn monitor_campaign(args: &SlurmMonitorArgs) -> Result<SlurmMonitorReport> {
+    let report =
+        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
+    let scheduler_ids = if let Some(path) = &args.submission_manifest {
+        scheduler_ids_from_submission_manifest(path)?
+    } else {
+        BTreeMap::new()
+    };
+    let mut entries = Vec::new();
+    for job in &report.planned_jobs {
+        let log_exists = Path::new(&job.outputs.log).is_file();
+        let out_exists = Path::new(&job.outputs.out).is_file();
+        let err_exists = Path::new(&job.outputs.err).is_file();
+        let results_exists = Path::new(&job.outputs.results).is_file();
+        let code_exists = Path::new(&job.outputs.code).is_file();
+        let results_sidecar_exists = sidecar_path_for(Path::new(&job.outputs.results)).is_file();
+        let code_sidecar_exists = sidecar_path_for(Path::new(&job.outputs.code)).is_file();
+        let results_bundle_encrypted = results_exists && is_encrypted_bundle_marker(Path::new(&job.outputs.results));
+        let code_bundle_encrypted = code_exists && is_encrypted_bundle_marker(Path::new(&job.outputs.code));
+        let appraiser_done = PathBuf::from(format!("{}.appraiser.done", job.outputs.results)).is_file();
+        entries.push(SlurmMonitorEntry {
+            planned_job_id: job.job_id.clone(),
+            scheduler_job_id: scheduler_ids
+                .get(&job.job_id)
+                .cloned()
+                .unwrap_or_else(|| "<unknown>".to_string()),
+            stage: job.stage.clone(),
+            tool: job.tool.clone(),
+            sample: job.sample.clone(),
+            log_exists,
+            out_exists,
+            err_exists,
+            results_exists,
+            results_sidecar_exists,
+            results_bundle_encrypted,
+            code_exists,
+            code_sidecar_exists,
+            code_bundle_encrypted,
+            appraiser_done,
+        });
+    }
+    let snapshot = SlurmMonitorSnapshot {
+        total_jobs: entries.len(),
+        jobs_with_log: entries.iter().filter(|row| row.log_exists).count(),
+        jobs_with_out: entries.iter().filter(|row| row.out_exists).count(),
+        jobs_with_err: entries.iter().filter(|row| row.err_exists).count(),
+        jobs_with_results_bundle: entries
+            .iter()
+            .filter(|row| row.results_exists && row.results_sidecar_exists && row.results_bundle_encrypted)
+            .count(),
+        jobs_with_code_bundle: entries
+            .iter()
+            .filter(|row| row.code_exists && row.code_sidecar_exists && row.code_bundle_encrypted)
+            .count(),
+        jobs_with_appraiser_done: entries.iter().filter(|row| row.appraiser_done).count(),
+    };
+    Ok(SlurmMonitorReport {
+        schema_version: SLURM_SUBMISSION_SCHEMA_VERSION,
+        campaign_id: report.campaign_id,
+        domain: report.domain,
+        snapshot,
+        jobs: entries,
+    })
+}
+
 pub fn write_copy_back_manifest(
     args: &SlurmCopyBackManifestArgs,
 ) -> Result<CopyBackManifestReport> {
@@ -1590,16 +1725,16 @@ mod tests {
 
     use super::{
         cancel_jobs, decrypt_bundle_to_local, export_failure_bundle, import_encrypted_campaign,
-        import_encrypted_replay, rewrap_bundle, share_bundle_with_profile, submit_campaign,
+        import_encrypted_replay, monitor_campaign, rewrap_bundle, share_bundle_with_profile, submit_campaign,
         submit_cross_benchmark, submit_domain_benchmark, submit_stage_benchmark,
         verify_bundle_integrity, verify_results_policy, write_copy_back_manifest,
     };
     use crate::commands::cli::{
         SlurmBundleDecryptArgs, SlurmBundleIntegrityCheck, SlurmBundleRewrapArgs,
         SlurmCampaignImportArgs, SlurmCancelArgs, SlurmCopyBackManifestArgs,
-        SlurmFailureBundleExportArgs, SlurmReplayImportArgs, SlurmResultsPolicyCheckArgs,
-        SlurmShareBundleArgs, SlurmSubmitCampaignArgs, SlurmSubmitCrossArgs, SlurmSubmitDomainArgs,
-        SlurmSubmitStageArgs,
+        SlurmFailureBundleExportArgs, SlurmMonitorArgs, SlurmReplayImportArgs,
+        SlurmResultsPolicyCheckArgs, SlurmShareBundleArgs, SlurmSubmitCampaignArgs,
+        SlurmSubmitCrossArgs, SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
     };
     use crate::commands::hpc::{BundleDecryptRequest, BundleWriteRequest};
 
@@ -1891,6 +2026,49 @@ array_task = 7
         assert_eq!(report.mode, "mock");
         assert_eq!(report.requested_job_ids, vec!["1234", "2234", "3234"]);
         assert_eq!(report.cancelled_job_ids, report.requested_job_ids);
+    }
+
+    #[test]
+    fn monitor_campaign_reports_bundle_and_sidecar_snapshots() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_campaign(root.path());
+        let submission = submit_campaign(&SlurmSubmitCampaignArgs {
+            config: config.clone(),
+            env_file: None,
+            user_overrides: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+        let submission_manifest = root.path().join("submission-report.json");
+        std::fs::write(
+            &submission_manifest,
+            serde_json::to_vec_pretty(&submission).expect("serialize submission"),
+        )
+        .expect("write submission report");
+        let first_results = std::path::PathBuf::from(&submission.jobs[0].results_path);
+        std::fs::write(
+            format!("{}.appraiser.done", first_results.display()),
+            b"done",
+        )
+        .expect("write appraiser marker");
+
+        let report = monitor_campaign(&SlurmMonitorArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            submission_manifest: Some(submission_manifest),
+            json: false,
+        })
+        .expect("monitor");
+        assert_eq!(report.snapshot.total_jobs, 3);
+        assert_eq!(report.snapshot.jobs_with_log, 3);
+        assert_eq!(report.snapshot.jobs_with_out, 3);
+        assert_eq!(report.snapshot.jobs_with_err, 3);
+        assert_eq!(report.snapshot.jobs_with_results_bundle, 3);
+        assert_eq!(report.snapshot.jobs_with_code_bundle, 3);
+        assert_eq!(report.snapshot.jobs_with_appraiser_done, 1);
+        assert!(report.jobs.iter().all(|job| job.scheduler_job_id != "<unknown>"));
     }
 
     #[test]
