@@ -221,6 +221,156 @@ const G130_SCENARIOS: &[ScenarioDefinition] = &[
     },
 ];
 
+const G131_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "damage-fragmentation-signals",
+        focus: "terminal damage and fragmentation evidence",
+    },
+    ScenarioDefinition {
+        scenario_id: "low-endogenous-caveats",
+        focus: "low endogenous content caveat behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "adna-damage-refusal-boundary",
+        focus: "aDNA damage refusal and caveat boundary",
+    },
+];
+
+const G132_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "pmd-evidence-surface",
+        focus: "PMD-like evidence reporting surface",
+    },
+    ScenarioDefinition {
+        scenario_id: "authenticity-overclaim-guard",
+        focus: "authenticity over-claim guardrails",
+    },
+    ScenarioDefinition {
+        scenario_id: "authenticity-caveat-stability",
+        focus: "authenticity caveat stability across repeats",
+    },
+];
+
+const G133_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "mito-contam-prerequisites",
+        focus: "mitochondrial contamination prerequisites",
+    },
+    ScenarioDefinition {
+        scenario_id: "mito-contam-confidence",
+        focus: "confidence and caveat behavior for mito contamination",
+    },
+    ScenarioDefinition {
+        scenario_id: "mito-contam-failure-modes",
+        focus: "mitochondrial contamination failure modes",
+    },
+];
+
+const G134_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "nuclear-panel-build-compat",
+        focus: "nuclear contamination panel/build compatibility",
+    },
+    ScenarioDefinition {
+        scenario_id: "nuclear-coverage-constraints",
+        focus: "coverage constraints for nuclear contamination",
+    },
+    ScenarioDefinition {
+        scenario_id: "nuclear-estimator-output-boundary",
+        focus: "estimator output and caveat boundary",
+    },
+];
+
+const G135_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "prealign-endogenous-interpretation",
+        focus: "prealignment endogenous-content interpretation",
+    },
+    ScenarioDefinition {
+        scenario_id: "postalign-endogenous-interpretation",
+        focus: "postalignment endogenous-content interpretation",
+    },
+    ScenarioDefinition {
+        scenario_id: "contaminant-interaction-effects",
+        focus: "contaminant interaction effects on endogenous estimates",
+    },
+];
+
+const G136_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "sex-inference-boundary",
+        focus: "sex inference boundary conditions",
+    },
+    ScenarioDefinition {
+        scenario_id: "par-caveats",
+        focus: "PAR caveat behavior and missing coverage handling",
+    },
+    ScenarioDefinition {
+        scenario_id: "unsuitable-reference-refusal",
+        focus: "unsuitable reference refusal behavior",
+    },
+];
+
+const G137_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "organelle-y-readiness",
+        focus: "organellar and Y evidence readiness",
+    },
+    ScenarioDefinition {
+        scenario_id: "haplogroup-overclaim-guard",
+        focus: "haplogroup over-claim prevention",
+    },
+    ScenarioDefinition {
+        scenario_id: "haplogroup-readiness-reporting",
+        focus: "haplogroup readiness reporting stability",
+    },
+];
+
+const G138_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "kinship-marker-overlap",
+        focus: "kinship marker overlap prerequisites",
+    },
+    ScenarioDefinition {
+        scenario_id: "kinship-coverage-identity",
+        focus: "coverage and sample identity prerequisites",
+    },
+    ScenarioDefinition {
+        scenario_id: "kinship-contam-prechecks",
+        focus: "contamination precheck behavior for kinship",
+    },
+];
+
+const G139_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "predicted-vs-actual-cpu-mem",
+        focus: "predicted vs actual CPU and memory",
+    },
+    ScenarioDefinition {
+        scenario_id: "predicted-vs-actual-io-scratch",
+        focus: "predicted vs actual IO and scratch usage",
+    },
+    ScenarioDefinition {
+        scenario_id: "resource-tuning-patch-surface",
+        focus: "resource tuning patch surface and impact",
+    },
+];
+
+const G140_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "modern-wgs-template",
+        focus: "modern WGS QC template behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "adna-lowpass-template",
+        focus: "aDNA and low-pass readiness templates",
+    },
+    ScenarioDefinition {
+        scenario_id: "targeted-batch-coverage-template",
+        focus: "targeted, batch merge, and coverage review templates",
+    },
+];
+
 const BAM_GOALS_CATALOG: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G121",
@@ -281,6 +431,74 @@ const BAM_GOALS_CATALOG: &[GoalDefinition] = &[
         title: "benchmark coverage regimes",
         stage_ids: &["bam.coverage"],
         scenarios: G130_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G131",
+        title: "benchmark ancient-DNA damage evidence",
+        stage_ids: &["bam.damage"],
+        scenarios: G131_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G132",
+        title: "benchmark PMD/authenticity advisory outputs",
+        stage_ids: &["bam.authenticity"],
+        scenarios: G132_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G133",
+        title: "benchmark mitochondrial contamination",
+        stage_ids: &["bam.contamination"],
+        scenarios: G133_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G134",
+        title: "benchmark nuclear contamination",
+        stage_ids: &["bam.contamination"],
+        scenarios: G134_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G135",
+        title: "benchmark endogenous-content estimation",
+        stage_ids: &["bam.endogenous_content"],
+        scenarios: G135_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G136",
+        title: "benchmark sex/PAR evidence",
+        stage_ids: &["bam.sex"],
+        scenarios: G136_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G137",
+        title: "benchmark haplogroup-readiness",
+        stage_ids: &["bam.haplogroups"],
+        scenarios: G137_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G138",
+        title: "benchmark kinship prerequisites",
+        stage_ids: &["bam.kinship"],
+        scenarios: G138_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G139",
+        title: "benchmark BAM resource estimation",
+        stage_ids: &["bam.qc_pre", "bam.mapping_summary", "bam.coverage"],
+        scenarios: G139_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G140",
+        title: "benchmark full BAM templates",
+        stage_ids: &[
+            "bam.qc_pre",
+            "bam.align",
+            "bam.markdup",
+            "bam.mapping_summary",
+            "bam.coverage",
+            "bam.damage",
+            "bam.authenticity",
+        ],
+        scenarios: G140_SCENARIOS,
     },
 ];
 
@@ -715,7 +933,7 @@ mod tests {
             domains: vec!["bam".to_string()],
             generated_at: "0".to_string(),
             summary: BenchmarkMatrixSummary {
-                total_rows: 9,
+                total_rows: 16,
                 readiness_counts: std::collections::BTreeMap::new(),
                 domain_counts: std::collections::BTreeMap::new(),
             },
@@ -729,15 +947,24 @@ mod tests {
                 row("b7", "bam.mapping_summary", "ready"),
                 row("b8", "bam.coverage", "degraded"),
                 row("b9", "bam.validate", "refuse"),
+                row("b10", "bam.damage", "ready"),
+                row("b11", "bam.authenticity", "degraded"),
+                row("b12", "bam.contamination", "ready"),
+                row("b13", "bam.endogenous_content", "degraded"),
+                row("b14", "bam.sex", "ready"),
+                row("b15", "bam.haplogroups", "degraded"),
+                row("b16", "bam.kinship", "ready"),
             ],
         }
     }
 
     #[test]
-    fn bam_catalog_has_ten_iteration_10_goals() {
-        assert_eq!(BAM_GOALS_CATALOG.len(), 10);
+    fn bam_catalog_includes_iteration_10_and_11_goals() {
+        assert_eq!(BAM_GOALS_CATALOG.len(), 20);
         assert_eq!(BAM_GOALS_CATALOG[0].goal_id, "G121");
         assert_eq!(BAM_GOALS_CATALOG[9].goal_id, "G130");
+        assert_eq!(BAM_GOALS_CATALOG[10].goal_id, "G131");
+        assert_eq!(BAM_GOALS_CATALOG[19].goal_id, "G140");
     }
 
     #[test]
