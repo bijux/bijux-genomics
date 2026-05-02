@@ -1748,6 +1748,27 @@ fn goal_specific_checks(
                 findings.len()
             ),
         ],
+        "G202" => vec![
+            format!("adna_corpus_rows_present={}", !rows.is_empty()),
+            format!(
+                "adna_corpus_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "adna_corpus_trim_contam_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.contamination")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "adna_corpus_contamination_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class.contains("contamination") || finding.failure_class == "readiness-refuse")
+                    .count()
+            ),
+            format!("adna_corpus_queue_entries={}", queue_entries.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -3009,6 +3030,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "modern_wgs_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_202_emits_adna_corpus_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G202".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "aDNA boundary triggers refuse contamination-ready path".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "adna_corpus_trim_contam_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "adna_corpus_contamination_findings=1"));
     }
 
     #[test]
