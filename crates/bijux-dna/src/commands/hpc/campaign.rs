@@ -470,6 +470,15 @@ fn validate_templates(templates: &OutputTemplates) -> Result<()> {
         "sample".to_string(),
         "array_task".to_string(),
     ]);
+    let required = BTreeSet::from([
+        "job_id".to_string(),
+        "timestamp".to_string(),
+        "campaign".to_string(),
+        "domain".to_string(),
+        "stage".to_string(),
+        "tool".to_string(),
+        "sample".to_string(),
+    ]);
     for (name, template) in [
         ("log", templates.log.as_str()),
         ("out", templates.out.as_str()),
@@ -477,10 +486,18 @@ fn validate_templates(templates: &OutputTemplates) -> Result<()> {
         ("results", templates.results.as_str()),
         ("code", templates.code.as_str()),
     ] {
-        for token in template_tokens(template)? {
-            if !allowed.contains(&token) {
+        let tokens = template_tokens(template)?;
+        for token in &tokens {
+            if !allowed.contains(token.as_str()) {
                 return Err(anyhow!(
                     "output template `{name}` references unsupported token `{token}`"
+                ));
+            }
+        }
+        for required_token in &required {
+            if !tokens.contains(required_token.as_str()) {
+                return Err(anyhow!(
+                    "output template `{name}` must include required token `{required_token}`"
                 ));
             }
         }
@@ -958,6 +975,53 @@ mod tests {
     fn confidential_config_rejects_secret_values() {
         let err = validate_confidential_config("token = \"abcd\"").expect_err("must reject secret");
         assert!(err.to_string().contains("sensitive key `token`"));
+    }
+
+    #[test]
+    fn campaign_templates_require_core_tokens() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_path = root.path().join("campaign.toml");
+        let config = r#"
+[campaign]
+id = "mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "/shared/corpora"
+databases_root = "/shared/databases"
+images_root = "/shared/images"
+scratch_root = "/shared/scratch"
+logs_root = "/shared/logs"
+encrypted_results_root = "/shared/results"
+encrypted_code_root = "/shared/code"
+appraiser_imports_root = "/shared/imports"
+baselines_root = "/shared/baselines"
+
+[output_templates]
+log = "{campaign}/{job_id}.log"
+out = "{campaign}/{job_id}.out"
+err = "{campaign}/{job_id}.err"
+results = "{campaign}/{job_id}.results"
+code = "{campaign}/{job_id}.code"
+
+[slurm]
+site_profile = "generic"
+account = "a1"
+project = "p1"
+
+[security]
+encryption_recipients = ["alice"]
+
+[[jobs]]
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-1"
+"#;
+        std::fs::write(&config_path, config).expect("write config");
+
+        let err =
+            campaign_preflight(&config_path, None, None).expect_err("must reject missing tokens");
+        assert!(err.to_string().contains("must include required token"));
     }
 
     #[test]
