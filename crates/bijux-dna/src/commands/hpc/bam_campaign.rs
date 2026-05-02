@@ -889,6 +889,24 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G138" => vec![
+            format!("kinship_rows_present={}", !rows.is_empty()),
+            format!(
+                "kinship_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.kinship")
+            ),
+            format!(
+                "kinship_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "ready").count()
+            ),
+            format!(
+                "kinship_refusal_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.severity == "critical")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1553,5 +1571,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("haplogroup_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_138_emits_kinship_prerequisite_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G138".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "b16".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("kinship_stage_bound=true")));
     }
 }
