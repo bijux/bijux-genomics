@@ -3810,6 +3810,30 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G255" => vec![
+            format!("database_dossier_rows_present={}", !rows.is_empty()),
+            format!(
+                "database_dossier_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "database_dossier_align_impute_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.impute")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "database_dossier_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!(
+                "database_dossier_mismatch_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "database-mismatch")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -6433,6 +6457,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "corpus_dossier_corpus_mismatch_findings=1"));
+    }
+
+    #[test]
+    fn goal_255_emits_database_dossier_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G255".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "database-compatibility".to_string(),
+            row_id: "h12".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "database-mismatch".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "database dossier import reports panel mismatch at impute boundary".to_string(),
+            recommendation: "record source compatibility and update impact in database dossiers".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "database_dossier_align_impute_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "database_dossier_mismatch_findings=1"));
     }
 
     #[test]
