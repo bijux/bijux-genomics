@@ -1051,6 +1051,46 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G160" => vec![
+            format!("full_template_rows_present={}", !rows.is_empty()),
+            format!(
+                "full_template_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "full_template_core_stages_covered={}",
+                rows.iter()
+                    .filter(|row| {
+                        matches!(
+                            row.stage_id.as_str(),
+                            "vcf.call"
+                                | "vcf.filter"
+                                | "vcf.stats"
+                                | "vcf.qc"
+                                | "vcf.impute"
+                                | "vcf.pca"
+                                | "vcf.roh"
+                                | "vcf.ibd"
+                                | "vcf.demography"
+                                | "vcf.phasing"
+                        )
+                    })
+                    .count()
+            ),
+            format!(
+                "full_template_degraded_or_refuse_rows={}",
+                rows.iter()
+                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .count()
+            ),
+            format!(
+                "full_template_hardening_entries={}",
+                queue_entries.iter().filter(|entry| entry.severity != "info").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1786,5 +1826,29 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("large_file_impute_bound=true")));
+    }
+
+    #[test]
+    fn goal_160_emits_full_template_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G160".to_string()];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0004".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            recommendation: "resolve demography prerequisites".to_string(),
+            affected_rows: vec!["v20".to_string()],
+            source_appraisers: vec!["failure-class".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &[], &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("full_template_stage_count=10")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("full_template_core_stages_covered=10")));
     }
 }
