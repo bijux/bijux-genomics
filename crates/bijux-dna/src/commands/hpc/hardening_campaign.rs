@@ -1345,6 +1345,33 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G194" => vec![
+            format!("data_issue_bundle_rows_present={}", !rows.is_empty()),
+            format!(
+                "data_issue_bundle_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "data_issue_bundle_validate_contam_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.contamination")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "data_issue_bundle_corpus_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "corpus-mismatch")
+                    .count()
+            ),
+            format!(
+                "data_issue_bundle_security_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.failure_class.contains("readiness") || entry.failure_class == "corpus-mismatch")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -2360,6 +2387,40 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "upstream_tool_bundle_tool_binding_findings=1"));
+    }
+
+    #[test]
+    fn goal_194_emits_data_issue_bundle_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G194".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "corpus-suitability".to_string(),
+            row_id: "h10".to_string(),
+            severity: "warning".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "corpus-mismatch".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "suspected data issue from corpus mismatch".to_string(),
+            recommendation: "materialize corpus profile matching stage scientific claim".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-1101".to_string(),
+            severity: "warning".to_string(),
+            failure_class: "corpus-mismatch".to_string(),
+            recommendation: "materialize corpus profile matching stage scientific claim".to_string(),
+            affected_rows: vec!["h10".to_string()],
+            source_appraisers: vec!["corpus-suitability".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "data_issue_bundle_validate_contam_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "data_issue_bundle_corpus_findings=1"));
     }
 
     #[test]
