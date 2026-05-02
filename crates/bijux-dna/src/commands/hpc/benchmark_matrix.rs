@@ -14,6 +14,7 @@ pub struct BenchmarkMatrixReport {
     pub schema_version: &'static str,
     pub campaign_id: String,
     pub domain: String,
+    pub domains: Vec<String>,
     pub generated_at: String,
     pub rows: Vec<BenchmarkMatrixRow>,
 }
@@ -81,32 +82,44 @@ fn registry_path_from_root(root: &Path) -> PathBuf {
     bijux_dna_infra::configs_file(root, "ci/registry/tool_registry.toml")
 }
 
-pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixReport> {
-    if !matches!(args.domain.as_str(), "fastq" | "bam" | "vcf") {
-        return Err(anyhow!(
-            "benchmark-matrix supports --domain fastq|bam|vcf"
-        ));
+fn resolve_matrix_domains(value: &str) -> Result<Vec<String>> {
+    match value {
+        "all" => Ok(vec!["fastq".to_string(), "bam".to_string(), "vcf".to_string()]),
+        "fastq" | "bam" | "vcf" => Ok(vec![value.to_string()]),
+        "cross" => Err(anyhow!(
+            "benchmark-matrix cross domain generation is not yet enabled; use fastq|bam|vcf|all"
+        )),
+        other => Err(anyhow!(
+            "benchmark-matrix supports --domain fastq|bam|vcf|cross|all; got `{other}`"
+        )),
     }
+}
+
+pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixReport> {
+    let domains = resolve_matrix_domains(&args.domain)?;
     let dry_run =
         campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
     let root = workspace_root()?;
     let registry_path = registry_path_from_root(&root);
-    let stages = domain_stage_ids(&root, &args.domain)?;
     let mut rows = Vec::new();
-    for stage_id in stages {
-        for tool_id in registry_tools_for_stage(&registry_path, &stage_id, None, "all")? {
-            rows.push(BenchmarkMatrixRow {
-                row_id: format!("{stage_id}::{tool_id}"),
-                matrix_domain: args.domain.clone(),
-                stage_id: stage_id.clone(),
-                tool_id,
-            });
+    for domain in &domains {
+        let stages = domain_stage_ids(&root, domain)?;
+        for stage_id in stages {
+            for tool_id in registry_tools_for_stage(&registry_path, &stage_id, None, "all")? {
+                rows.push(BenchmarkMatrixRow {
+                    row_id: format!("{stage_id}::{tool_id}"),
+                    matrix_domain: domain.clone(),
+                    stage_id: stage_id.clone(),
+                    tool_id,
+                });
+            }
         }
     }
     Ok(BenchmarkMatrixReport {
         schema_version: BENCHMARK_MATRIX_SCHEMA_VERSION,
         campaign_id: dry_run.campaign_id,
         domain: args.domain.clone(),
+        domains,
         generated_at: now_timestamp_compact(),
         rows,
     })
@@ -116,7 +129,7 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
 mod tests {
     #![allow(clippy::expect_used)]
 
-    use super::domain_stage_ids;
+    use super::{domain_stage_ids, resolve_matrix_domains};
 
     #[test]
     fn stage_catalog_lists_non_schema_fastq_entries() {
@@ -141,5 +154,19 @@ mod tests {
         let stages = domain_stage_ids(&root, "vcf").expect("stages");
         assert!(stages.iter().all(|stage| stage.starts_with("vcf.")));
         assert!(stages.iter().any(|stage| stage == "vcf.call"));
+    }
+
+    #[test]
+    fn matrix_domain_selector_supports_all_and_single_domains() {
+        assert_eq!(
+            resolve_matrix_domains("all").expect("all"),
+            vec!["fastq".to_string(), "bam".to_string(), "vcf".to_string()]
+        );
+        assert_eq!(
+            resolve_matrix_domains("bam").expect("bam"),
+            vec!["bam".to_string()]
+        );
+        assert!(resolve_matrix_domains("cross").is_err());
+        assert!(resolve_matrix_domains("unknown").is_err());
     }
 }

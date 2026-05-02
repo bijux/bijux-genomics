@@ -158,7 +158,7 @@ pub struct BenchmarkMatrixArgs {
     pub env_file: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
     pub user_overrides: Option<PathBuf>,
-    #[arg(long, default_value = "fastq")]
+    #[arg(long, default_value = "all", help = "fastq|bam|vcf|cross|all")]
     pub domain: String,
     #[arg(long, default_value_t = false)]
     pub json: bool,

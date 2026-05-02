@@ -450,6 +450,7 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
             } else {
                 println!("campaign={}", report.campaign_id);
                 println!("domain={}", report.domain);
+                println!("domains={}", report.domains.join(","));
                 println!("rows={}", report.rows.len());
             }
         }
