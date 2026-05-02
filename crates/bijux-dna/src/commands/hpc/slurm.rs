@@ -100,11 +100,6 @@ fn stage_domain(stage_id: &str) -> String {
     stage_id.split('.').next().unwrap_or("unknown").to_string()
 }
 
-fn default_job_name(planned: &PlannedJob, index: usize) -> String {
-    format!("{}_{}_{}_{}", planned.stage, planned.tool, planned.sample, index + 1)
-        .replace(['/', ' ', ':'], "_")
-}
-
 fn infer_dependencies(jobs: &[SelectedJob]) -> Vec<Vec<String>> {
     let mut by_sample_last_name: BTreeMap<String, String> = BTreeMap::new();
     let mut result = Vec::with_capacity(jobs.len());
@@ -243,7 +238,7 @@ fn select_jobs(
 ) -> Result<Vec<SelectedJob>> {
     let mut selected = Vec::new();
 
-    for (index, planned) in report.planned_jobs.iter().enumerate() {
+    for planned in &report.planned_jobs {
         let include = match subset {
             SubmissionSubset::All => true,
             SubmissionSubset::Stage { stage, tool, sample } => {
@@ -265,9 +260,9 @@ fn select_jobs(
         };
         if include {
             selected.push(SelectedJob {
-                name: default_job_name(planned, index),
+                name: planned.job_name.clone(),
                 planned: planned.clone(),
-                depends_on_names: Vec::new(),
+                depends_on_names: planned.depends_on.clone(),
             });
         }
     }
@@ -543,16 +538,20 @@ encryption_recipients = ["alice"]
 env_file = "{root}/campaign.env"
 
 [[jobs]]
+name = "fastq_validate_sample1"
 stage = "fastq.validate_reads"
 tool = "seqkit_v2"
 sample = "sample-1"
 
 [[jobs]]
+name = "bam_sort_sample1"
 stage = "bam.sort"
 tool = "samtools"
 sample = "sample-1"
+depends_on = ["fastq_validate_sample1"]
 
 [[jobs]]
+name = "vcf_validate_sample2"
 stage = "vcf.validate"
 tool = "bcftools"
 sample = "sample-2"
@@ -617,6 +616,7 @@ sample = "sample-2"
             submit_campaign(&SlurmSubmitCampaignArgs { config, mock_submit: true, json: false })
                 .expect("submit campaign");
         assert_eq!(report.jobs.len(), 3);
+        assert_eq!(report.jobs[1].dependency_scheduler_ids, vec!["mock-0001".to_string()]);
         for job in report.jobs {
             assert!(std::path::Path::new(&job.log_path).is_file());
             assert!(std::path::Path::new(&job.out_path).is_file());

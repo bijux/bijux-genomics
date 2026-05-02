@@ -65,9 +65,13 @@ pub struct CampaignSlurm {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CampaignJob {
+    #[serde(default)]
+    pub name: Option<String>,
     pub stage: String,
     pub tool: String,
     pub sample: String,
+    #[serde(default)]
+    pub depends_on: Vec<String>,
     #[serde(default)]
     pub array_task: Option<u32>,
     #[serde(default)]
@@ -212,9 +216,11 @@ pub struct CampaignDryRunReport {
 #[derive(Debug, Clone, Serialize)]
 pub struct PlannedJob {
     pub job_id: String,
+    pub job_name: String,
     pub stage: String,
     pub tool: String,
     pub sample: String,
+    pub depends_on: Vec<String>,
     pub resource_template: String,
     pub resources: ResourceTemplate,
     pub outputs: PlannedOutputs,
@@ -716,6 +722,32 @@ fn now_timestamp_compact() -> String {
     secs.to_string()
 }
 
+fn normalize_job_name(value: &str) -> String {
+    value
+        .chars()
+        .map(
+            |ch| {
+                if ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-' | '.') {
+                    ch
+                } else {
+                    '_'
+                }
+            },
+        )
+        .collect::<String>()
+}
+
+fn campaign_job_name(job: &CampaignJob, index: usize) -> String {
+    job.name
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(normalize_job_name)
+        .unwrap_or_else(|| {
+            normalize_job_name(&format!("{}-{}-{}-{}", job.stage, job.tool, job.sample, index + 1))
+        })
+}
+
 fn load_campaign_config_raw(config_path: &Path) -> Result<(CampaignConfig, String)> {
     let raw = std::fs::read_to_string(config_path)
         .with_context(|| format!("read {}", config_path.display()))?;
@@ -1007,6 +1039,7 @@ pub fn campaign_dry_run(
 
     for (index, job) in config.jobs.iter().enumerate() {
         let job_id = format!("dryrun-{:04}", index + 1);
+        let job_name = campaign_job_name(job, index);
         let template_name = resolve_job_resource_template(
             job,
             &config.resources,
@@ -1066,9 +1099,11 @@ pub fn campaign_dry_run(
 
         planned_jobs.push(PlannedJob {
             job_id,
+            job_name,
             stage: job.stage.clone(),
             tool: job.tool.clone(),
             sample: job.sample.clone(),
+            depends_on: job.depends_on.clone(),
             resource_template: template_name,
             resources,
             outputs,
