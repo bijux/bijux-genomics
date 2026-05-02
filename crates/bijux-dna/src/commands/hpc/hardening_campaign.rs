@@ -1296,6 +1296,28 @@ fn goal_specific_checks(
                     && rows.iter().any(|row| row.stage_id == "vcf.filter")
             ),
         ],
+        "G192" => vec![
+            format!("ambiguous_review_rows_present={}", !rows.is_empty()),
+            format!(
+                "ambiguous_review_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "ambiguous_review_degraded_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "degraded").count()
+            ),
+            format!(
+                "ambiguous_review_warning_findings={}",
+                findings.iter().filter(|finding| finding.severity == "warning").count()
+            ),
+            format!(
+                "ambiguous_review_queue_warning_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.severity == "warning")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -2243,6 +2265,40 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "sprint_generator_non_bookkeeping_entries=1"));
+    }
+
+    #[test]
+    fn goal_192_emits_ambiguous_review_queue_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G192".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-performance".to_string(),
+            row_id: "h5".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-under-sampled".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "ambiguous warning routed for manual review".to_string(),
+            recommendation: "increase repetitions to at least 2".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0901".to_string(),
+            severity: "warning".to_string(),
+            failure_class: "runtime-under-sampled".to_string(),
+            recommendation: "increase repetitions to at least 2".to_string(),
+            affected_rows: vec!["h5".to_string()],
+            source_appraisers: vec!["runtime-performance".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "ambiguous_review_warning_findings=1"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "ambiguous_review_queue_warning_entries=1"));
     }
 
     #[test]
