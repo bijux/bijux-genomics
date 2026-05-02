@@ -3750,6 +3750,24 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G252" => vec![
+            format!("stage_dossier_rows_present={}", !rows.is_empty()),
+            format!(
+                "stage_dossier_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "stage_dossier_validate_validate_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.validate")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "stage_dossier_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!("stage_dossier_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -6295,6 +6313,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "flagship_dashboard_encrypted_scope_findings=1"));
+    }
+
+    #[test]
+    fn goal_252_emits_stage_dossier_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G252".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "scientific-invalidity".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "stage dossier import includes refused filter row for scientific caveat".to_string(),
+            recommendation: "expose failed stage caveat details in per-stage dossier output".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "stage_dossier_validate_validate_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "stage_dossier_refuse_rows=1"));
     }
 
     #[test]
