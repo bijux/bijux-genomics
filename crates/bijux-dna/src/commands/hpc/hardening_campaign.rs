@@ -939,6 +939,30 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G186" => vec![
+            format!("investigation_workspace_rows_present={}", !rows.is_empty()),
+            format!(
+                "investigation_workspace_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "investigation_workspace_profile_summary_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "investigation_workspace_code_scope_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope == "encrypted-code")
+                    .count()
+            ),
+            format!(
+                "investigation_workspace_queue_entries={}",
+                queue_entries.len()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1678,6 +1702,40 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "benchmark_minimizer_critical_queue_entries=1"));
+    }
+
+    #[test]
+    fn goal_186_emits_local_investigation_workspace_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G186".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "local workspace indexing missing code lock metadata".to_string(),
+            recommendation: "bind tool and image lock before code freeze publication".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0401".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            recommendation: "bind tool and image lock before code freeze publication".to_string(),
+            affected_rows: vec!["h13".to_string()],
+            source_appraisers: vec!["code-freeze".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "investigation_workspace_profile_summary_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "investigation_workspace_code_scope_findings=1"));
     }
 
     #[test]
