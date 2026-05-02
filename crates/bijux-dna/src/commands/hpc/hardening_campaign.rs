@@ -521,6 +521,156 @@ const G200_SCENARIOS: &[ScenarioDefinition] = &[
     },
 ];
 
+const G201_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "modern-wgs-input-baseline",
+        focus: "validate modern WGS paired-read, BAM, and VCF baseline readiness",
+    },
+    ScenarioDefinition {
+        scenario_id: "modern-wgs-reference-known-sites",
+        focus: "validate modern WGS reference and known-sites coverage requirements",
+    },
+    ScenarioDefinition {
+        scenario_id: "modern-wgs-campaign-proof",
+        focus: "capture modern WGS campaign coverage evidence",
+    },
+];
+
+const G202_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "adna-damage-and-contamination-signals",
+        focus: "validate aDNA damage/degraded read and contamination signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "adna-low-endogenous-readiness",
+        focus: "validate low endogenous-content handling and caveat propagation",
+    },
+    ScenarioDefinition {
+        scenario_id: "adna-appraisal-proof",
+        focus: "capture aDNA appraisal evidence from benchmark rows",
+    },
+];
+
+const G203_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "edna-primer-taxonomy-boundaries",
+        focus: "validate primer-rich and taxonomy boundary readiness for eDNA workflows",
+    },
+    ScenarioDefinition {
+        scenario_id: "edna-abundance-caveat-signals",
+        focus: "validate abundance caveat and contamination signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "edna-campaign-proof",
+        focus: "capture eDNA campaign appraisal evidence",
+    },
+];
+
+const G204_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "low-pass-gl-impute-boundaries",
+        focus: "validate low-pass GL/imputation boundary readiness",
+    },
+    ScenarioDefinition {
+        scenario_id: "low-pass-population-signal-coverage",
+        focus: "validate low-pass population signal coverage and caveat flow",
+    },
+    ScenarioDefinition {
+        scenario_id: "low-pass-campaign-proof",
+        focus: "capture low-pass campaign evidence",
+    },
+];
+
+const G205_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "contamination-rich-readiness",
+        focus: "validate contaminant-rich row readiness and refusal behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "contamination-caveat-propagation",
+        focus: "validate contamination caveat propagation across BAM and VCF surfaces",
+    },
+    ScenarioDefinition {
+        scenario_id: "contamination-campaign-proof",
+        focus: "capture contamination campaign appraisal evidence",
+    },
+];
+
+const G206_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "nonhuman-reference-context-boundary",
+        focus: "validate non-human reference context and species/build constraints",
+    },
+    ScenarioDefinition {
+        scenario_id: "nonhuman-panel-compatibility-signals",
+        focus: "validate panel/reference compatibility signals for non-human flows",
+    },
+    ScenarioDefinition {
+        scenario_id: "nonhuman-appraisal-proof",
+        focus: "capture non-human reference appraisal evidence",
+    },
+];
+
+const G207_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "microbial-reference-annotation-boundary",
+        focus: "validate microbial reference and annotation boundary readiness",
+    },
+    ScenarioDefinition {
+        scenario_id: "microbial-variant-taxonomy-signals",
+        focus: "validate microbial variant and taxonomy signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "microbial-campaign-proof",
+        focus: "capture microbial campaign appraisal evidence",
+    },
+];
+
+const G208_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "sv-boundary-support-refusal",
+        focus: "validate structural-variant support/refusal boundary behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "sv-evidence-caveat-signals",
+        focus: "validate SV evidence and caveat propagation signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "sv-appraisal-proof",
+        focus: "capture SV boundary appraisal evidence",
+    },
+];
+
+const G209_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "cnv-coverage-boundary",
+        focus: "validate CNV coverage boundary support/refusal behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "cnv-variant-caveat-signals",
+        focus: "validate CNV variant and caveat signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "cnv-appraisal-proof",
+        focus: "capture CNV boundary appraisal evidence",
+    },
+];
+
+const G210_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "cram-reference-requirement-boundary",
+        focus: "validate CRAM reference requirement and missing-reference refusal behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "cram-io-runtime-signals",
+        focus: "validate CRAM IO/runtime signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "cram-appraisal-proof",
+        focus: "capture CRAM boundary appraisal evidence",
+    },
+];
+
 const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G171",
@@ -701,6 +851,66 @@ const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
         title: "add hardening acceptance rerun",
         stage_ids: &["fastq.validate_reads", "bam.align", "vcf.filter"],
         scenarios: G200_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G201",
+        title: "build modern WGS benchmark corpus",
+        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.call"],
+        scenarios: G201_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G202",
+        title: "build ancient-DNA benchmark corpus",
+        stage_ids: &["fastq.trim_reads", "bam.contamination", "vcf.filter"],
+        scenarios: G202_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G203",
+        title: "build eDNA/metabarcoding benchmark corpus",
+        stage_ids: &["fastq.profile_reads", "bam.contamination", "vcf.stats"],
+        scenarios: G203_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G204",
+        title: "build low-pass population benchmark corpus",
+        stage_ids: &["fastq.profile_reads", "vcf.impute", "vcf.stats"],
+        scenarios: G204_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G205",
+        title: "build contamination-heavy benchmark corpus",
+        stage_ids: &["fastq.validate_reads", "bam.contamination", "vcf.filter"],
+        scenarios: G205_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G206",
+        title: "build non-human reference benchmark corpus",
+        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.postprocess"],
+        scenarios: G206_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G207",
+        title: "build microbial benchmark corpus",
+        stage_ids: &["fastq.trim_reads", "bam.align", "vcf.call"],
+        scenarios: G207_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G208",
+        title: "build structural-variant boundary corpus",
+        stage_ids: &["bam.coverage", "vcf.call", "vcf.filter"],
+        scenarios: G208_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G209",
+        title: "build CNV boundary corpus",
+        stage_ids: &["bam.coverage", "vcf.filter", "vcf.stats"],
+        scenarios: G209_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G210",
+        title: "build CRAM boundary corpus",
+        stage_ids: &["bam.validate", "bam.mapping_summary", "vcf.filter"],
+        scenarios: G210_SCENARIOS,
     },
 ];
 
@@ -1727,9 +1937,9 @@ mod tests {
 
     #[test]
     fn hardening_catalog_includes_iteration_15_goals() {
-        assert_eq!(HARDENING_GOALS_CATALOG.len(), 30);
+        assert_eq!(HARDENING_GOALS_CATALOG.len(), 40);
         assert_eq!(HARDENING_GOALS_CATALOG[0].goal_id, "G171");
-        assert_eq!(HARDENING_GOALS_CATALOG[29].goal_id, "G200");
+        assert_eq!(HARDENING_GOALS_CATALOG[39].goal_id, "G210");
     }
 
     #[test]
