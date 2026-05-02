@@ -589,6 +589,29 @@ fn resolve_site_profile(config: &CampaignConfig) -> SiteProfile {
         .unwrap_or_default()
 }
 
+fn merge_site_profile_file(config: &mut CampaignConfig, config_path: &Path) -> Result<()> {
+    let profile_name = config
+        .slurm
+        .site_profile
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .unwrap_or(BUILTIN_GENERIC_PROFILE);
+    let Some(config_dir) = config_path.parent() else {
+        return Ok(());
+    };
+    let profile_path = config_dir.join("site-profiles").join(format!("{profile_name}.toml"));
+    if !profile_path.exists() {
+        return Ok(());
+    }
+    let raw = std::fs::read_to_string(&profile_path)
+        .with_context(|| format!("read {}", profile_path.display()))?;
+    let profile: SiteProfile =
+        toml::from_str(&raw).with_context(|| format!("parse {}", profile_path.display()))?;
+    config.site_profiles.insert(profile_name.to_string(), profile);
+    Ok(())
+}
+
 fn resolve_slurm(config: &CampaignConfig, env_map: &BTreeMap<String, String>) -> ResolvedSlurm {
     let site_profile_name = config
         .slurm
@@ -704,6 +727,7 @@ fn resolve_campaign_config(
     user_override_path: Option<&Path>,
 ) -> Result<(CampaignConfig, ResolvedSlurm, ResolutionMetadata)> {
     let (mut config, _) = load_campaign_config_raw(config_path)?;
+    merge_site_profile_file(&mut config, config_path)?;
 
     let override_path = user_override_path
         .map(Path::to_path_buf)
@@ -1431,5 +1455,81 @@ sample = "sample-1"
             campaign_preflight(&config_path, Some(&env_file_path), None).expect("preflight");
         assert!(!report.ok);
         assert!(report.checks.iter().any(|check| check.name == "env_file_private" && !check.ok));
+    }
+
+    #[test]
+    fn campaign_resolves_partition_from_site_profile_file() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_dir = root.path().join("campaign");
+        let profiles_dir = config_dir.join("site-profiles");
+        std::fs::create_dir_all(&profiles_dir).expect("create profile dir");
+        let config_path = config_dir.join("mini.toml");
+        let env_file_path = root.path().join("campaign.env");
+
+        std::fs::write(
+            profiles_dir.join("generic.toml"),
+            "partition = \"debug\"\nqos = \"short\"\n",
+        )
+        .expect("write profile");
+        std::fs::write(
+            &env_file_path,
+            "BIJUX_SLURM_ACCOUNT=account-local\nBIJUX_SLURM_PROJECT=project-local\n",
+        )
+        .expect("write env");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&env_file_path).expect("env metadata").permissions();
+            perms.set_mode(0o600);
+            std::fs::set_permissions(&env_file_path, perms).expect("set env mode");
+        }
+        for name in [
+            "corpora",
+            "databases",
+            "images",
+            "scratch",
+            "logs",
+            "results",
+            "code",
+            "imports",
+            "baselines",
+        ] {
+            std::fs::create_dir_all(root.path().join(name)).expect("create dir");
+        }
+        let config = format!(
+            r#"
+[campaign]
+id = "mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "{root}/corpora"
+databases_root = "{root}/databases"
+images_root = "{root}/images"
+scratch_root = "{root}/scratch"
+logs_root = "{root}/logs"
+encrypted_results_root = "{root}/results"
+encrypted_code_root = "{root}/code"
+appraiser_imports_root = "{root}/imports"
+baselines_root = "{root}/baselines"
+
+[slurm]
+site_profile = "generic"
+
+[security]
+encryption_recipients = ["alice"]
+
+[[jobs]]
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-1"
+"#,
+            root = root.path().display()
+        );
+        std::fs::write(&config_path, config).expect("write config");
+
+        let report = campaign_dry_run(&config_path, Some(&env_file_path), None).expect("dry run");
+        assert_eq!(report.resolved_slurm.partition, "debug");
+        assert_eq!(report.resolved_slurm.qos, "short");
     }
 }
