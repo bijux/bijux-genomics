@@ -1024,6 +1024,33 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G159" => vec![
+            format!("large_file_rows_present={}", !rows.is_empty()),
+            format!(
+                "large_file_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "large_file_impute_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.impute")
+            ),
+            format!(
+                "large_file_degraded_or_refuse_rows={}",
+                rows.iter()
+                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .count()
+            ),
+            format!(
+                "large_file_runtime_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.appraiser_id == "runtime-performance")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1733,5 +1760,31 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("population_handoff_demography_bound=true")));
+    }
+
+    #[test]
+    fn goal_159_emits_large_file_behavior_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G159".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-performance".to_string(),
+            row_id: "v12".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-under-sampled".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("large_file_stage_count=4")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("large_file_impute_bound=true")));
     }
 }
