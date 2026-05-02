@@ -418,6 +418,27 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class != "ready").count()
             ),
         ],
+        "G174" => vec![
+            format!("database_hardening_rows_present={}", !rows.is_empty()),
+            format!(
+                "database_hardening_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "database_hardening_reference_panel_bound={}",
+                rows.iter()
+                    .any(|row| row.stage_id == "vcf.prepare_reference_panel")
+            ),
+            format!(
+                "database_hardening_alignment_and_call_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.call")
+            ),
+            format!(
+                "database_hardening_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -743,6 +764,22 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "corpus_hardening_corpus_mismatch_findings=1"));
+    }
+
+    #[test]
+    fn goal_174_emits_database_hardening_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G174".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "database_hardening_alignment_and_call_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "database_hardening_reference_panel_bound=false"));
     }
 
     #[test]
