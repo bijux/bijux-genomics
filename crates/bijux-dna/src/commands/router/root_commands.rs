@@ -379,6 +379,24 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 return Err(anyhow::anyhow!("preparation dependency graph found missing prerequisites"));
             }
         }
+        cli::ConfigCommand::PrepareFoundation { config, env_file, user_overrides, json } => {
+            let report = hpc::prepare_foundation(config, env_file.as_deref(), user_overrides.as_deref())?;
+            if *json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("actions={}", report.actions.len());
+                println!(
+                    "reused={}",
+                    report.actions.iter().filter(|action| action.action == "reused").count()
+                );
+                println!(
+                    "prepared={}",
+                    report.actions.iter().filter(|action| action.action == "prepared").count()
+                );
+            }
+        }
     }
     Ok(())
 }

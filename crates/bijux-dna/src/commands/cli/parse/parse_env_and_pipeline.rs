@@ -119,6 +119,17 @@ pub enum ConfigCommand {
         #[arg(long, default_value_t = false)]
         json: bool,
     },
+    #[command(name = "prepare-foundation")]
+    PrepareFoundation {
+        #[arg(long, value_name = "PATH")]
+        config: PathBuf,
+        #[arg(long, value_name = "PATH")]
+        env_file: Option<PathBuf>,
+        #[arg(long, value_name = "PATH")]
+        user_overrides: Option<PathBuf>,
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
     Doctor,
 }
 
