@@ -3442,6 +3442,24 @@ fn goal_specific_checks(
             ),
             format!("local_slurm_parity_findings_count={}", findings.len()),
         ],
+        "G247" => vec![
+            format!("image_version_rows_present={}", !rows.is_empty()),
+            format!(
+                "image_version_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "image_version_trim_summary_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "image_version_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("image_version_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -5857,6 +5875,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "local_slurm_parity_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_247_emits_image_version_drift_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G247".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-profile".to_string(),
+            row_id: "h6".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-outlier".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "image-version comparison shows mapping-summary runtime drift".to_string(),
+            recommendation: "pin image digest or tune image runtime profile".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "image_version_trim_summary_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "image_version_findings_count=1"));
     }
 
     #[test]
