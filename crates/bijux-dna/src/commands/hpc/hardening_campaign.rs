@@ -3411,7 +3411,7 @@ mod tests {
         let selected = vec!["G172".to_string()];
         let findings = vec![AppraisalFinding {
             appraiser_id: "artifact-validity".to_string(),
-            row_id: "h6".to_string(),
+            row_id: "h5".to_string(),
             severity: "warning".to_string(),
             confidence: "medium".to_string(),
             failure_class: "missing-tool-binding".to_string(),
@@ -4365,7 +4365,7 @@ mod tests {
         let selected = vec!["G201".to_string()];
         let findings = vec![AppraisalFinding {
             appraiser_id: "failure-class".to_string(),
-            row_id: "h6".to_string(),
+            row_id: "h5".to_string(),
             severity: "warning".to_string(),
             confidence: "medium".to_string(),
             failure_class: "readiness-degraded".to_string(),
