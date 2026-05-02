@@ -17,6 +17,7 @@ fn policy__contracts__ci_tools_policy__workflows_use_make_only() {
         ".github/workflows/codecov.yml",
         ".github/workflows/github-policy.yml",
         ".github/workflows/labeler.yml",
+        ".github/workflows/pr-approval-policy.yml",
     ];
     let mut offenders = Vec::new();
     for entry in WalkDir::new(workflows_dir).into_iter().filter_map(Result::ok) {

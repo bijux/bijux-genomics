@@ -11,6 +11,7 @@ Commands:
   domain              
   lab                 
   config              
+  slurm               
   status              
   run                 
   bam                 
