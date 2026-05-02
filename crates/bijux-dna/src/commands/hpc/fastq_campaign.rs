@@ -541,6 +541,24 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G110" => vec![
+            format!("umi_rows_present={}", !rows.is_empty()),
+            format!(
+                "umi_extraction_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.extract_umis")
+            ),
+            format!(
+                "umi_grouping_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.remove_duplicates")
+            ),
+            format!(
+                "umi_code_freeze_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.appraiser_id == "code-freeze")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1012,5 +1030,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("trim_backend_findings=")));
+    }
+
+    #[test]
+    fn goal_110_emits_umi_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G110".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "r4".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("umi_code_freeze_findings=")));
     }
 }
