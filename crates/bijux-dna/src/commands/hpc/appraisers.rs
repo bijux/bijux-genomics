@@ -42,8 +42,10 @@ pub trait AppraiserPlugin {
     fn appraise(&self, matrix: &BenchmarkMatrixReport) -> Vec<AppraisalFinding>;
 }
 
+struct RuntimePerformanceAppraiser;
+
 fn plugins() -> Vec<Box<dyn AppraiserPlugin>> {
-    Vec::new()
+    vec![Box::new(RuntimePerformanceAppraiser)]
 }
 
 fn summarize_findings(findings: &[AppraisalFinding]) -> AppraisalSummary {
@@ -112,6 +114,42 @@ pub fn appraise_matrix(args: &AppraiseMatrixArgs) -> Result<AppraisalReport> {
         write_json_pretty(path, &report)?;
     }
     Ok(report)
+}
+
+impl AppraiserPlugin for RuntimePerformanceAppraiser {
+    fn id(&self) -> &'static str {
+        "runtime-performance"
+    }
+
+    fn appraise(&self, matrix: &BenchmarkMatrixReport) -> Vec<AppraisalFinding> {
+        let mut findings = Vec::new();
+        for row in &matrix.rows {
+            if row.repetitions == 0 {
+                findings.push(AppraisalFinding {
+                    appraiser_id: self.id().to_string(),
+                    row_id: row.row_id.clone(),
+                    severity: "critical".to_string(),
+                    confidence: "high".to_string(),
+                    failure_class: "runtime-unrunnable".to_string(),
+                    result_scope: "encrypted-results".to_string(),
+                    summary: "benchmark row has zero repetitions".to_string(),
+                    recommendation: "set non-zero repetitions or resolve readiness blockers".to_string(),
+                });
+            } else if row.repetitions < 2 {
+                findings.push(AppraisalFinding {
+                    appraiser_id: self.id().to_string(),
+                    row_id: row.row_id.clone(),
+                    severity: "warning".to_string(),
+                    confidence: "medium".to_string(),
+                    failure_class: "runtime-under-sampled".to_string(),
+                    result_scope: "encrypted-results".to_string(),
+                    summary: "benchmark row has too few repetitions".to_string(),
+                    recommendation: "increase repetitions to at least 2".to_string(),
+                });
+            }
+        }
+        findings
+    }
 }
 
 #[cfg(test)]
@@ -207,6 +245,7 @@ sample = "sample-1"
         })
         .expect("appraise");
         assert_eq!(report.schema_version, "bijux.hpc.appraisal.v1".to_string());
-        assert_eq!(report.summary.total_findings, 0);
+        assert!(report.summary.total_findings > 0);
+        assert!(report.summary.by_appraiser.contains_key("runtime-performance"));
     }
 }
