@@ -100,6 +100,53 @@ bijux-dna slurm decrypt-bundle \
   --out-dir artifacts/investigation/decrypt
 ```
 
+Re-encrypt an existing bundle for rotated recipients:
+
+```bash
+bijux-dna slurm rewrap-bundle \
+  --bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results \
+  --recipient age1newrecipientxxxxxxxxxxxxxxxxxxxx \
+  --out-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results.rotated
+```
+
+Import one encrypted results/code pair for replay validation:
+
+```bash
+bijux-dna slurm import-replay \
+  --results-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results \
+  --code-bundle /shared/bijux/code/fastq-hpc-mini/.../dryrun-0001-1700000000.code \
+  --out-dir artifacts/investigation/replay
+```
+
+Import a copied campaign directory and decode all available pairs:
+
+```bash
+bijux-dna slurm import-campaign \
+  --campaign-dir artifacts/investigation/campaign-copy \
+  --out-dir artifacts/investigation/campaign-import
+```
+
+Export a minimal encrypted failure package for one benchmark row:
+
+```bash
+bijux-dna slurm export-failure-bundle \
+  --config configs/hpc/campaign/cross-mini.toml \
+  --stage fastq.validate_reads \
+  --tool seqkit_v2 \
+  --sample sample_0001 \
+  --recipient age1collaboratorxxxxxxxxxxxxxxxxxxx \
+  --out-dir artifacts/investigation/failure-export
+```
+
+Share an encrypted bundle with a collaborator profile:
+
+```bash
+bijux-dna slurm share-bundle \
+  --bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results \
+  --profile configs/hpc/campaign/sharing/collaborator-a.toml \
+  --out-dir artifacts/investigation/shared
+```
+
 ## Security notes
 
 - Do not commit Slurm account/project values in campaign config files.
