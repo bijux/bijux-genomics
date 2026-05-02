@@ -1271,6 +1271,156 @@ const G250_SCENARIOS: &[ScenarioDefinition] = &[
     },
 ];
 
+const G251_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "flagship-dashboard-readiness-boundary",
+        focus: "validate flagship dashboard pass/fail and hardening readiness boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "flagship-dashboard-signal-coverage",
+        focus: "validate flagship dashboard performance, scientific, and encryption signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "flagship-dashboard-proof",
+        focus: "capture imported campaign dashboard evidence",
+    },
+];
+
+const G252_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "stage-dossier-coverage-boundary",
+        focus: "validate per-stage dossier coverage across stage families and outcomes",
+    },
+    ScenarioDefinition {
+        scenario_id: "stage-dossier-failure-caveat-signals",
+        focus: "validate per-stage dossier failure and caveat signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "stage-dossier-proof",
+        focus: "capture generated per-stage dossier evidence",
+    },
+];
+
+const G253_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "tool-dossier-support-boundary",
+        focus: "validate per-tool dossier support and stage binding boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "tool-dossier-drift-signals",
+        focus: "validate per-tool dossier drift and failure signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "tool-dossier-proof",
+        focus: "capture generated per-tool dossier evidence",
+    },
+];
+
+const G254_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "corpus-dossier-suitability-boundary",
+        focus: "validate per-corpus dossier stage-coverage and suitability boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "corpus-dossier-weakness-signals",
+        focus: "validate per-corpus dossier weakness and mismatch signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "corpus-dossier-proof",
+        focus: "capture generated per-corpus dossier evidence",
+    },
+];
+
+const G255_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "database-dossier-compatibility-boundary",
+        focus: "validate per-database dossier compatibility and stage-usage boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "database-dossier-drift-signals",
+        focus: "validate per-database dossier drift and mismatch signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "database-dossier-proof",
+        focus: "capture generated per-database dossier evidence",
+    },
+];
+
+const G256_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "image-dossier-inventory-boundary",
+        focus: "validate per-image dossier inventory and row-coverage boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "image-dossier-drift-signals",
+        focus: "validate per-image dossier smoke, failure, and drift signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "image-dossier-proof",
+        focus: "capture generated per-image dossier evidence",
+    },
+];
+
+const G257_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "stage-promotion-pass-gate-boundary",
+        focus: "validate benchmark-driven promotion pass-gate boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "stage-promotion-rerun-signals",
+        focus: "validate promotion rerun-proof and hardening signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "stage-promotion-proof",
+        focus: "capture stage promotion records from benchmark outcomes",
+    },
+];
+
+const G258_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "stage-demotion-failure-gate-boundary",
+        focus: "validate benchmark-driven demotion failure-gate boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "stage-demotion-severity-signals",
+        focus: "validate demotion severity and refusal signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "stage-demotion-proof",
+        focus: "capture stage demotion evidence from benchmark outcomes",
+    },
+];
+
+const G259_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "backend-selection-scenario-boundary",
+        focus: "validate benchmark-driven backend selection across scenario boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "backend-selection-performance-signals",
+        focus: "validate backend selection performance and reliability signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "backend-selection-proof",
+        focus: "capture backend recommendation evidence from benchmark outcomes",
+    },
+];
+
+const G260_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "slurm-resource-default-boundary",
+        focus: "validate benchmark-driven Slurm resource default boundary behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "slurm-resource-confidence-signals",
+        focus: "validate Slurm resource confidence and runtime signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "slurm-resource-default-proof",
+        focus: "capture before/after Slurm resource default evidence",
+    },
+];
+
 const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G171",
@@ -1751,6 +1901,66 @@ const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
         title: "compare cold and warm storage modes",
         stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
         scenarios: G250_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G251",
+        title: "build flagship HPC benchmark dashboard",
+        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        scenarios: G251_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G252",
+        title: "build per-stage evidence dossiers",
+        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.filter"],
+        scenarios: G252_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G253",
+        title: "build per-tool evidence dossiers",
+        stage_ids: &["fastq.trim_reads", "bam.align", "vcf.call"],
+        scenarios: G253_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G254",
+        title: "build per-corpus evidence dossiers",
+        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.filter"],
+        scenarios: G254_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G255",
+        title: "build per-database evidence dossiers",
+        stage_ids: &["bam.align", "vcf.impute", "vcf.filter"],
+        scenarios: G255_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G256",
+        title: "build per-image evidence dossiers",
+        stage_ids: &["fastq.trim_reads", "bam.mapping_summary", "vcf.stats"],
+        scenarios: G256_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G257",
+        title: "add benchmark-driven stage promotion",
+        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.stats"],
+        scenarios: G257_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G258",
+        title: "add benchmark-driven stage demotion",
+        stage_ids: &["fastq.profile_reads", "bam.contamination", "vcf.filter"],
+        scenarios: G258_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G259",
+        title: "add benchmark-driven default backend selection",
+        stage_ids: &["fastq.trim_reads", "bam.align", "vcf.call"],
+        scenarios: G259_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G260",
+        title: "add benchmark-driven Slurm resource defaults",
+        stage_ids: &["bam.coverage", "bam.mapping_summary", "vcf.postprocess"],
+        scenarios: G260_SCENARIOS,
     },
 ];
 
@@ -3725,10 +3935,10 @@ mod tests {
     }
 
     #[test]
-    fn hardening_catalog_includes_iteration_22_goals() {
-        assert_eq!(HARDENING_GOALS_CATALOG.len(), 80);
+    fn hardening_catalog_includes_iteration_23_goals() {
+        assert_eq!(HARDENING_GOALS_CATALOG.len(), 90);
         assert_eq!(HARDENING_GOALS_CATALOG[0].goal_id, "G171");
-        assert_eq!(HARDENING_GOALS_CATALOG[79].goal_id, "G250");
+        assert_eq!(HARDENING_GOALS_CATALOG[89].goal_id, "G260");
     }
 
     #[test]
