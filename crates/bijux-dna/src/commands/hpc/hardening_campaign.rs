@@ -1727,6 +1727,27 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G201" => vec![
+            format!("modern_wgs_rows_present={}", !rows.is_empty()),
+            format!(
+                "modern_wgs_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "modern_wgs_validate_align_call_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.call")
+            ),
+            format!(
+                "modern_wgs_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!(
+                "modern_wgs_findings_count={}",
+                findings.len()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -2962,6 +2983,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "acceptance_rerun_before_after_queue_entries=1"));
+    }
+
+    #[test]
+    fn goal_201_emits_modern_wgs_corpus_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G201".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "h5".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "readiness-degraded".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "modern WGS readiness needs tuning".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "modern_wgs_validate_align_call_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "modern_wgs_findings_count=1"));
     }
 
     #[test]
