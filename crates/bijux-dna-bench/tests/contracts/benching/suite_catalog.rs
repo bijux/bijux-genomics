@@ -496,8 +496,7 @@ fn checked_in_corpus_catalog_covers_backend_comparison_cohorts() -> Result<()> {
     for required_domain in ["fastq", "bam", "vcf"] {
         assert!(
             domains_with_cohorts.contains(required_domain),
-            "corpus catalog must define backend comparison cohorts for {}",
-            required_domain
+            "corpus catalog must define backend comparison cohorts for {required_domain}"
         );
     }
     Ok(())

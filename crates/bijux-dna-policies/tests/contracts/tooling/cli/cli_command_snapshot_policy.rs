@@ -4,13 +4,34 @@ mod support;
 
 use std::process::Command;
 
+fn cargo_target_dir(root: &std::path::Path) -> std::path::PathBuf {
+    std::env::var_os("CARGO_TARGET_DIR")
+        .map_or_else(|| root.join("artifacts/target"), std::path::PathBuf::from)
+}
+
 fn run_workspace_bijux_dna(
     root: &std::path::Path,
     args: &[&str],
     context: &str,
 ) -> std::process::Output {
-    let mut command = Command::new("cargo");
-    command.current_dir(root).args(["run", "-q", "-p", "bijux-dna", "--bin", "bijux-dna", "--"]);
+    let debug_binary = cargo_target_dir(root).join("debug/bijux-dna");
+    let mut command = if debug_binary.exists() {
+        let mut command = Command::new(debug_binary);
+        command.current_dir(root);
+        command
+    } else {
+        let mut command = Command::new("cargo");
+        command.current_dir(root).args([
+            "run",
+            "-q",
+            "-p",
+            "bijux-dna",
+            "--bin",
+            "bijux-dna",
+            "--",
+        ]);
+        command
+    };
     command.args(args).output().unwrap_or_else(|err| {
         panic!("{context}: {err}");
     })

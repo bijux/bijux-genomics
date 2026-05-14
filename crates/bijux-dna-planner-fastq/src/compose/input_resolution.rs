@@ -211,7 +211,7 @@ fn ensure_input_role(
     input_id: &str,
     allowed_roles: &[ArtifactRole],
 ) -> Result<()> {
-    if allowed_roles.iter().any(|role| *role == input.artifact.role) {
+    if allowed_roles.contains(&input.artifact.role) {
         return Ok(());
     }
     Err(anyhow!(

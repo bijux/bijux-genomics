@@ -87,7 +87,7 @@
         {
           "key": "BIJUX_RELEASE_RUST_TOOLCHAIN",
           "type": "string",
-          "value": "1.86.0"
+          "value": "1.88.0"
         },
         {
           "key": "BIJUX_RELEASE_BUILD_MATRIX_JSON",
@@ -156,7 +156,7 @@
         {
           "key": "BIJUX_CRATES_RELEASE_RUST_TOOLCHAIN",
           "type": "string",
-          "value": "1.86.0"
+          "value": "1.88.0"
         },
         {
           "key": "BIJUX_CRATES_RELEASE_VERIFY_TOKEN_COMMAND",
@@ -327,7 +327,7 @@
             "run": {
               "uses": "./.github/workflows/reusable-ci-rust-stack.yml",
               "with": {
-                "rust_toolchain_version": "1.86.0",
+                "rust_toolchain_version": "1.88.0",
                 "enable_python_toolchain": false,
                 "test_python_versions": "[\"3.11\"]",
                 "use_isolated_temp_roots": true,
@@ -1411,7 +1411,7 @@
                 {
                   "uses": "dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9",
                   "with": {
-                    "toolchain": "1.86.0"
+                    "toolchain": "1.88.0"
                   }
                 },
                 {
@@ -1448,7 +1448,7 @@
                 {
                   "uses": "dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9",
                   "with": {
-                    "toolchain": "1.86.0"
+                    "toolchain": "1.88.0"
                   }
                 },
                 {
@@ -1480,7 +1480,7 @@
                 {
                   "uses": "dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9",
                   "with": {
-                    "toolchain": "1.86.0"
+                    "toolchain": "1.88.0"
                   }
                 },
                 {
@@ -1505,7 +1505,7 @@
                 {
                   "uses": "dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9",
                   "with": {
-                    "toolchain": "1.86.0"
+                    "toolchain": "1.88.0"
                   }
                 },
                 {
@@ -1530,7 +1530,7 @@
                 {
                   "uses": "dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9",
                   "with": {
-                    "toolchain": "1.86.0"
+                    "toolchain": "1.88.0"
                   }
                 },
                 {
@@ -3400,7 +3400,7 @@
             "contents": "read"
           },
           "env": {
-            "RUST_TOOLCHAIN_VERSION": "1.86.0",
+            "RUST_TOOLCHAIN_VERSION": "1.88.0",
             "CARGO_DENY_VERSION": "0.18.3",
             "CARGO_AUDIT_VERSION": "0.22.0",
             "CARGO_NEXTEST_VERSION": "0.9.100"

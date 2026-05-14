@@ -12,12 +12,13 @@ pub(super) fn ensure_stage_known(
     if profile.tools.contains_key(stage) || profile.params.contains_key(stage) {
         return Ok(());
     }
-    Err(anyhow::anyhow!("{} references unknown stage {}", context, stage.as_str()))
+    let stage_id = stage.as_str();
+    Err(anyhow::anyhow!("{context} references unknown stage {stage_id}"))
 }
 
 pub(super) fn ensure_tool_id_valid(tool: &ToolId, context: &str) -> anyhow::Result<()> {
     validate_tool_id(tool)
-        .map_err(|err| anyhow::anyhow!("{} references invalid tool id {}: {err}", context, tool))
+        .map_err(|err| anyhow::anyhow!("{context} references invalid tool id {tool}: {err}"))
 }
 
 pub(super) fn ensure_params_match_stage(
@@ -35,5 +36,5 @@ pub(super) fn ensure_params_match_stage(
     if valid {
         return Ok(());
     }
-    Err(anyhow::anyhow!("{} uses params incompatible with stage {}", context, stage_id))
+    Err(anyhow::anyhow!("{context} uses params incompatible with stage {stage_id}"))
 }

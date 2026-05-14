@@ -40,8 +40,7 @@ fn stage_registry_declares_semantic_io_and_versioning_metadata() {
     for (stage_id, stage) in registry.stages() {
         assert!(
             !stage.produced_artifacts.is_empty(),
-            "stage {} must declare stable produced artifact names",
-            stage_id
+            "stage {stage_id} must declare stable produced artifact names"
         );
         for name in &stage.produced_artifacts {
             assert!(
@@ -49,9 +48,7 @@ fn stage_registry_declares_semantic_io_and_versioning_metadata() {
                     && name
                         .chars()
                         .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_'),
-                "stage {} produced artifact name must be stable snake_case: {}",
-                stage_id,
-                name
+                "stage {stage_id} produced artifact name must be stable snake_case: {name}"
             );
         }
         assert!(
@@ -60,8 +57,7 @@ fn stage_registry_declares_semantic_io_and_versioning_metadata() {
                     .stage_semver
                     .split('.')
                     .all(|p| !p.is_empty() && p.chars().all(|c| c.is_ascii_digit())),
-            "stage {} must declare semver version",
-            stage_id
+            "stage {stage_id} must declare semver version"
         );
     }
 }

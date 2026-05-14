@@ -70,7 +70,7 @@ pub fn recalibration_args_with_outputs(
     let known_sites = params
         .known_sites
         .iter()
-        .map(|path| format!("--known-sites {}", path))
+        .map(|path| format!("--known-sites {path}"))
         .collect::<Vec<_>>()
         .join(" ");
     let mode = format!("{:?}", params.mode);

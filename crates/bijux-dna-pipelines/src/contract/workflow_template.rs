@@ -366,7 +366,7 @@ pub fn parse_sample_sheet(template_id: &str, input: &str) -> Result<SampleSheetV
             bail!("sample sheet row {row_number} declares single_end but r2 is present");
         }
         if !seen_sample_lanes.insert((sample_id.clone(), lane_id.clone())) {
-            bail!("sample sheet repeats sample/lane pair {}:{}", sample_id, lane_id);
+            bail!("sample sheet repeats sample/lane pair {sample_id}:{lane_id}");
         }
         if expected_outputs.is_empty() {
             bail!("sample sheet row {row_number} must declare at least one expected output");
@@ -904,8 +904,7 @@ pub fn evaluate_batch_fan_semantics(
         if count > 1 && !to.starts_with("cohort::") {
             refusal_codes.push("non_cohort_fanin_overwrite_risk".to_string());
             notes.push(format!(
-                "target {} receives {} {} edges and may overwrite per-sample outputs",
-                to, count, artifact_scope
+                "target {to} receives {count} {artifact_scope} edges and may overwrite per-sample outputs"
             ));
         }
     }

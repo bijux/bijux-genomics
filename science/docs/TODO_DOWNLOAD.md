@@ -51,7 +51,7 @@ and
 | `source.fastq.tool.diamond.upstream` | `diamond` | `fastq.screen_taxonomy` | `science/docs/upstream/fastq/tools/diamond/repo` | https://github.com/bbuchfink/diamond |
 | `source.fastq.tool.fastq_scan.upstream` | `fastq_scan` | `fastq.profile_overrepresented_sequences,fastq.validate_reads` | `science/docs/upstream/fastq/tools/fastq_scan/repo` | https://github.com/rpetit3/fastq-scan |
 | `source.fastq.tool.fastqvalidator.upstream` | `fastqvalidator` | `fastq.validate_reads` | `science/docs/upstream/fastq/tools/fastqvalidator/repo` | https://github.com/statgen/fastQValidator |
-| `source.fastq.tool.fastp.upstream` | `fastp` | `fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_polyg_tails,fastq.trim_reads` | `science/docs/upstream/fastq/tools/fastp/repo` | https://github.com/OpenGene/fastp |
+| `source.fastq.tool.fastp.upstream` | `fastp` | `fastq.filter_low_complexity,fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_polyg_tails,fastq.trim_reads` | `science/docs/upstream/fastq/tools/fastp/repo` | https://github.com/OpenGene/fastp |
 | `source.fastq.tool.fastqc.upstream` | `fastqc` | `fastq.detect_adapters,fastq.profile_overrepresented_sequences,fastq.validate_reads` | `science/docs/upstream/fastq/tools/fastqc/repo` | https://github.com/s-andrews/FastQC |
 | `source.fastq.tool.fastx_clipper.upstream` | `fastx_clipper` | `fastq.trim_reads` | `science/docs/upstream/fastq/tools/fastx_clipper/repo` | https://github.com/agordon/fastx_toolkit |
 | `source.fastq.tool.flash2.upstream` | `flash2` | `fastq.merge_pairs` | `science/docs/upstream/fastq/tools/flash2/repo` | https://github.com/dstreett/FLASH2 |
@@ -64,8 +64,8 @@ and
 | `source.fastq.tool.multiqc.upstream` | `multiqc` | `fastq.report_qc` | `science/docs/upstream/fastq/tools/multiqc/repo` | https://github.com/multiqc/multiqc |
 | `source.fastq.tool.prinseq.upstream` | `prinseq` | `fastq.filter_low_complexity,fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_reads` | `science/docs/upstream/fastq/tools/prinseq/repo` | https://github.com/Adrian-Cantu/PRINSEQ-plus-plus |
 | `source.fastq.tool.rcorrector.upstream` | `rcorrector` | `fastq.correct_errors` | `science/docs/upstream/fastq/tools/rcorrector/repo` | https://github.com/mourisl/Rcorrector |
-| `source.fastq.tool.seqfu.upstream` | `seqfu` | `fastq.normalize_abundance,fastq.profile_read_lengths` | `science/docs/upstream/fastq/tools/seqfu/repo` | https://github.com/telatin/seqfu2 |
-| `source.fastq.tool.seqkit.upstream` | `seqkit` | `fastq.filter_reads,fastq.normalize_abundance,fastq.profile_overrepresented_sequences,fastq.trim_reads,fastq.trim_terminal_damage` | `science/docs/upstream/fastq/tools/seqkit/repo` | https://github.com/shenwei356/seqkit |
+| `source.fastq.tool.seqfu.upstream` | `seqfu` | `fastq.normalize_abundance,fastq.profile_read_lengths,fastq.profile_reads` | `science/docs/upstream/fastq/tools/seqfu/repo` | https://github.com/telatin/seqfu2 |
+| `source.fastq.tool.seqkit.upstream` | `seqkit` | `fastq.filter_reads,fastq.normalize_abundance,fastq.profile_overrepresented_sequences,fastq.profile_reads,fastq.trim_reads,fastq.trim_terminal_damage` | `science/docs/upstream/fastq/tools/seqkit/repo` | https://github.com/shenwei356/seqkit |
 | `source.fastq.tool.seqkit_stats.upstream` | `seqkit_stats` | `fastq.profile_read_lengths,fastq.profile_reads` | `science/docs/upstream/fastq/tools/seqkit_stats/repo` | https://github.com/shenwei356/seqkit |
 | `source.fastq.tool.seqpurge.upstream` | `seqpurge` | `fastq.trim_reads` | `science/docs/upstream/fastq/tools/seqpurge/repo` | https://github.com/imgag/ngs-bits |
 | `source.fastq.tool.seqtk.upstream` | `seqtk` | `fastq.validate_reads` | `science/docs/upstream/fastq/tools/seqtk/repo` | https://github.com/lh3/seqtk |

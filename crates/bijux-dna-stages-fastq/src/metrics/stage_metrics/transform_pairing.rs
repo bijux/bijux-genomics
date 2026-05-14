@@ -135,7 +135,7 @@ pub(super) fn merge_metrics(
         |report| report.merge_rate,
     );
     let bases_in = r1.bases.min(r2.bases);
-    let mean_q_in = (r1.mean_q + r2.mean_q) / 2.0;
+    let mean_q_in = f64::midpoint(r1.mean_q, r2.mean_q);
     let merge_q_delta = merged.mean_q - mean_q_in;
     Ok(serde_json::to_value(FastqMergeMetricsV1 {
         reads_in: min_reads,
@@ -169,7 +169,7 @@ pub(super) fn validate_metrics(
     let reads_in = input_r1.reads + inputs.get(1).map_or(0, |_| input_r2.reads);
     let bases_in = input_r1.bases + inputs.get(1).map_or(0, |_| input_r2.bases);
     let mean_q = if inputs.get(1).is_some() {
-        (input_r1.mean_q + input_r2.mean_q) / 2.0
+        f64::midpoint(input_r1.mean_q, input_r2.mean_q)
     } else {
         input_r1.mean_q
     };

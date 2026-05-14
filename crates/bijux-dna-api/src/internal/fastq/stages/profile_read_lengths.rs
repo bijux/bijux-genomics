@@ -418,7 +418,7 @@ fn validate_read_lengths_observation(lengths: &[usize]) -> Result<()> {
     if lengths.is_empty() {
         return Err(anyhow!("profile_read_lengths observation has no reads"));
     }
-    if lengths.iter().any(|length| *length == 0) {
+    if lengths.contains(&0) {
         return Err(anyhow!("profile_read_lengths observation contains zero-length reads"));
     }
     Ok(())
