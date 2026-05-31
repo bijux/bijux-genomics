@@ -214,7 +214,8 @@ pub use filter_policy_matrix::{
     governed_filter_policy_matrix, FilterPolicyEntryV1, FilterScientificBoundary,
 };
 pub use id_catalog::{
-    FastqInvariantsPreset, FASTQ_METRICS_CATALOG, FASTQ_PARAMS_CATALOG, FASTQ_STAGE_ID_CATALOG,
+    FastqInvariantsPreset, FASTQ_LOCAL_BENCH_STAGE_ID_CATALOG, FASTQ_METRICS_CATALOG,
+    FASTQ_PARAMS_CATALOG, FASTQ_STAGE_ID_CATALOG,
 };
 pub use integration_matrix::{
     benchmark_scenarios, benchmark_scenarios_for_stage, governed_tool_ids_for_stage,
