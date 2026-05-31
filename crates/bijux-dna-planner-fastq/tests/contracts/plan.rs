@@ -10,6 +10,8 @@ mod domain_parity;
 mod filter_plan;
 #[path = "plan/local_index_reference.rs"]
 mod local_index_reference;
+#[path = "plan/local_profile_read_lengths_smoke.rs"]
+mod local_profile_read_lengths_smoke;
 #[path = "plan/local_validate_reads_smoke.rs"]
 mod local_validate_reads_smoke;
 #[path = "plan/merge_plan.rs"]
