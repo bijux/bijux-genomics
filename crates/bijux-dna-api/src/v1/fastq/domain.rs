@@ -117,6 +117,18 @@ pub fn write_local_estimate_library_complexity_prealign_smoke_report() -> Result
     crate::internal::fastq::stages::estimate_library_complexity_prealign::write_local_estimate_library_complexity_prealign_smoke_report()
 }
 
+/// Materialize the governed local-smoke `fastq.trim_terminal_damage` artifacts.
+///
+/// The written summary artifact lives at `target/local-smoke/fastq.trim_terminal_damage/metrics.json`
+/// under the active repository root, alongside the top-level `trimmed.fastq.gz`.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_trim_terminal_damage_smoke_report() -> Result<PathBuf> {
+    crate::internal::fastq::stages::trim_terminal_damage::write_local_trim_terminal_damage_smoke_report()
+}
+
 fn resolve_plan_dir(repo_root: &Path, out_dir: &Path) -> PathBuf {
     if out_dir.is_absolute() {
         out_dir.to_path_buf()
