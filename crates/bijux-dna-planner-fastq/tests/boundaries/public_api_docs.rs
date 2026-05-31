@@ -65,6 +65,7 @@ fn public_api_docs_match_curated_exports() {
             "stage_tool_maturity",
             "benchmark_cohorts_for_stage",
             "local_detect_adapters_smoke_plans",
+            "local_detect_duplicates_premerge_smoke_plans",
             "local_index_reference_plan",
             "local_profile_read_lengths_smoke_plans",
             "local_validate_reads_smoke_plans",
@@ -150,6 +151,10 @@ fn documented_stage_api_exports_remain_compilable() {
     )
         -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalDetectAdaptersSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_detect_adapters_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalDetectDuplicatesPremergeSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_detect_duplicates_premerge_smoke_plans;
     let _: fn(
         &Path,
     )
