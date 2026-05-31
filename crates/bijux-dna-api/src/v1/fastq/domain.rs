@@ -90,6 +90,19 @@ pub fn write_local_detect_adapters_smoke_report() -> Result<PathBuf> {
     crate::internal::fastq::stages::detect_adapters::write_local_detect_adapters_smoke_report()
 }
 
+/// Materialize the governed local-smoke `fastq.detect_duplicates_premerge` report bundle.
+///
+/// The written summary artifact lives at
+/// `target/local-smoke/fastq.detect_duplicates_premerge/duplicates.json` under the active
+/// repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_detect_duplicates_premerge_smoke_report() -> Result<PathBuf> {
+    crate::internal::fastq::stages::detect_duplicates_premerge::write_local_detect_duplicates_premerge_smoke_report()
+}
+
 fn resolve_plan_dir(repo_root: &Path, out_dir: &Path) -> PathBuf {
     if out_dir.is_absolute() {
         out_dir.to_path_buf()
