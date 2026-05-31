@@ -30,6 +30,8 @@ mod mod_contracts_v1_fastq_local_detect_duplicates_premerge_smoke_rs;
 mod mod_contracts_v1_fastq_local_estimate_library_complexity_prealign_smoke_rs;
 #[path = "contracts/v1_fastq_local_profile_read_lengths_smoke.rs"]
 mod mod_contracts_v1_fastq_local_profile_read_lengths_smoke_rs;
+#[path = "contracts/v1_fastq_local_trim_terminal_damage_smoke.rs"]
+mod mod_contracts_v1_fastq_local_trim_terminal_damage_smoke_rs;
 #[path = "contracts/v1_fastq_local_validate_reads_smoke.rs"]
 mod mod_contracts_v1_fastq_local_validate_reads_smoke_rs;
 #[path = "contracts/v1_fastq_small_integration.rs"]
