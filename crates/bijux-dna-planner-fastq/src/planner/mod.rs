@@ -62,12 +62,12 @@ pub use local_smoke::{
     local_detect_adapters_smoke_plans, local_detect_duplicates_premerge_smoke_plans,
     local_estimate_library_complexity_prealign_smoke_plans,
     local_normalize_primers_smoke_plans, local_profile_read_lengths_smoke_plans,
-    local_trim_polyg_tails_smoke_plans, local_trim_terminal_damage_smoke_plans,
-    local_validate_reads_smoke_plans,
+    local_trim_polyg_tails_smoke_plans, local_trim_reads_smoke_plans,
+    local_trim_terminal_damage_smoke_plans, local_validate_reads_smoke_plans,
     LocalDetectAdaptersSmokeCasePlan, LocalDetectDuplicatesPremergeSmokeCasePlan,
     LocalEstimateLibraryComplexityPrealignSmokeCasePlan, LocalProfileReadLengthsSmokeCasePlan,
     LocalNormalizePrimersSmokeCasePlan, LocalTrimPolygTailsSmokeCasePlan,
-    LocalTrimTerminalDamageSmokeCasePlan,
+    LocalTrimReadsSmokeCasePlan, LocalTrimTerminalDamageSmokeCasePlan,
     LocalValidateReadsSmokeCasePlan,
 };
 pub(crate) use quality_sampling::estimate_mean_q;
