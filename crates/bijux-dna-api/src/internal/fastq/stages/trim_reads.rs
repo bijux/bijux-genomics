@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::support::workspace::load_workspace_registry;
@@ -12,6 +12,7 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
+use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
 use bijux_dna_domain_fastq::TrimReadsReportV1;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
@@ -36,6 +37,7 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_TRIM_READS,
 };
+use serde::Serialize;
 
 mod policy;
 
@@ -44,6 +46,48 @@ use self::policy::{
     contaminant_policy_uses_bank, normalized_adapter_policy, normalized_contaminant_policy,
     normalized_polyx_policy, polyx_policy_uses_bank,
 };
+
+const LOCAL_TRIM_READS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.trim_reads.local_smoke.report.v1";
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+enum LocalTrimReadsSmokeLayout {
+    SingleEnd,
+    PairedEnd,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalTrimReadsSmokeCaseReport {
+    sample_id: String,
+    layout: LocalTrimReadsSmokeLayout,
+    input_r1: String,
+    input_r2: Option<String>,
+    input_read_count_total: u64,
+    input_read_count_r1: u64,
+    input_read_count_r2: Option<u64>,
+    input_pair_count: Option<u64>,
+    output_read_count_total: u64,
+    output_read_count_r1: u64,
+    output_read_count_r2: Option<u64>,
+    output_pair_count: Option<u64>,
+    read_count_not_greater_than_input: bool,
+    min_length: u32,
+    quality_cutoff: Option<u32>,
+    trimmed_reads_r1: String,
+    trimmed_reads_r2: Option<String>,
+    report_json: String,
+    raw_backend_report: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalTrimReadsSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    case_count: u64,
+    all_cases_passed: bool,
+    cases: Vec<LocalTrimReadsSmokeCaseReport>,
+}
 
 fn apply_thread_override(
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
@@ -69,6 +113,215 @@ fn write_governed_trim_report(
 ) -> Result<()> {
     bijux_dna_infra::atomic_write_json(report_path, report)
         .with_context(|| format!("write governed trim report {}", report_path.display()))
+}
+
+/// Materialize the governed local-smoke `fastq.trim_reads` report bundle.
+///
+/// The written summary artifact lives at `target/local-smoke/fastq.trim_reads/report.json`
+/// under the active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_trim_reads_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases = bijux_dna_planner_fastq::stage_api::local_trim_reads_smoke_plans(&repo_root)?;
+    let output_root = repo_root.join("target/local-smoke/fastq.trim_reads");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+
+    let case_reports = cases
+        .iter()
+        .map(|case| materialize_local_trim_reads_smoke_case(&repo_root, case))
+        .collect::<Result<Vec<_>>>()?;
+
+    let summary = LocalTrimReadsSmokeReport {
+        schema_version: LOCAL_TRIM_READS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_TRIM_READS.as_str().to_string(),
+        case_count: case_reports.len() as u64,
+        all_cases_passed: case_reports.iter().all(|case| case.read_count_not_greater_than_input),
+        cases: case_reports,
+    };
+
+    let report_path = output_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
+    Ok(report_path)
+}
+
+fn materialize_local_trim_reads_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalTrimReadsSmokeCasePlan,
+) -> Result<LocalTrimReadsSmokeCaseReport> {
+    let effective_params =
+        serde_json::from_value::<TrimEffectiveParams>(case.plan.effective_params.clone())
+            .context("decode trim reads local-smoke effective params")?;
+    let input_r1 = repo_root.join(&case.r1);
+    let input_r2 = case.r2.as_ref().map(|path| repo_root.join(path));
+    let output_r1 = resolve_plan_output_path(
+        repo_root,
+        &required_plan_output_path(&case.plan, "trimmed_reads_r1")?,
+    );
+    let output_r2 = case
+        .r2
+        .as_ref()
+        .map(|_| required_plan_output_path(&case.plan, "trimmed_reads_r2"))
+        .transpose()?
+        .map(|path| resolve_plan_output_path(repo_root, &path));
+    let report_path =
+        resolve_plan_output_path(repo_root, &required_plan_output_path(&case.plan, "report_json")?);
+    let raw_backend_report = optional_plan_output_path(&case.plan, "raw_backend_report_json")
+        .or_else(|| optional_plan_output_path(&case.plan, "raw_backend_report_txt"))
+        .map(|path| resolve_plan_output_path(repo_root, &path));
+
+    for path in [&output_r1, &report_path] {
+        if let Some(parent) = path.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+    if let Some(output_r2) = output_r2.as_ref() {
+        if let Some(parent) = output_r2.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+    if let Some(raw_backend_report) = raw_backend_report.as_ref() {
+        if let Some(parent) = raw_backend_report.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+
+    let mut report = bijux_dna_domain_fastq::stages::trim_reads(
+        &input_r1,
+        input_r2.as_deref(),
+        &effective_params,
+        case.plan.tool_id.as_str(),
+        &output_r1,
+        output_r2.as_deref(),
+        raw_backend_report.as_deref(),
+    )?;
+    if let Some(raw_backend_report) = raw_backend_report.as_ref() {
+        write_local_trim_backend_report(raw_backend_report, case.plan.tool_id.as_str(), &report)?;
+    }
+
+    report.input_r1 = case.r1.display().to_string();
+    report.input_r2 = case.r2.as_ref().map(|path| path.display().to_string());
+    report.output_r1 = path_relative_to_repo(repo_root, &output_r1);
+    report.output_r2 = output_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path));
+    report.raw_backend_report =
+        raw_backend_report.as_ref().map(|path| path_relative_to_repo(repo_root, path));
+    write_governed_trim_report(&report_path, &report)?;
+
+    let input_read_count_total = report.reads_in.unwrap_or(0);
+    let output_read_count_total = report.reads_out.unwrap_or(0);
+    let input_pair_count = report.pairs_in;
+    let output_pair_count = report.pairs_out;
+    let input_read_count_r2 = input_pair_count;
+    let output_read_count_r2 = output_pair_count;
+    let input_read_count_r1 =
+        input_read_count_total.saturating_sub(input_read_count_r2.unwrap_or(0));
+    let output_read_count_r1 =
+        output_read_count_total.saturating_sub(output_read_count_r2.unwrap_or(0));
+
+    Ok(LocalTrimReadsSmokeCaseReport {
+        sample_id: case.sample_id.clone(),
+        layout: if case.r2.is_some() {
+            LocalTrimReadsSmokeLayout::PairedEnd
+        } else {
+            LocalTrimReadsSmokeLayout::SingleEnd
+        },
+        input_r1: case.r1.display().to_string(),
+        input_r2: case.r2.as_ref().map(|path| path.display().to_string()),
+        input_read_count_total,
+        input_read_count_r1,
+        input_read_count_r2,
+        input_pair_count,
+        output_read_count_total,
+        output_read_count_r1,
+        output_read_count_r2,
+        output_pair_count,
+        read_count_not_greater_than_input: output_read_count_total <= input_read_count_total,
+        min_length: effective_params.min_len,
+        quality_cutoff: effective_params.q_cutoff,
+        trimmed_reads_r1: path_relative_to_repo(repo_root, &output_r1),
+        trimmed_reads_r2: output_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
+        report_json: path_relative_to_repo(repo_root, &report_path),
+        raw_backend_report: raw_backend_report
+            .as_ref()
+            .map(|path| path_relative_to_repo(repo_root, path)),
+    })
+}
+
+fn write_local_trim_backend_report(
+    path: &Path,
+    tool_id: &str,
+    report: &TrimReadsReportV1,
+) -> Result<()> {
+    match tool_id {
+        "fastp" => bijux_dna_infra::write_bytes(
+            path,
+            serde_json::json!({
+                "summary": {
+                    "before_filtering": {
+                        "total_reads": report.reads_in,
+                        "total_bases": report.bases_in,
+                    },
+                    "after_filtering": {
+                        "total_reads": report.reads_out,
+                        "total_bases": report.bases_out,
+                    }
+                },
+                "filtering_result": {
+                    "passed_filter_reads": report.reads_out,
+                    "too_short_reads": report
+                        .reads_in
+                        .zip(report.reads_out)
+                        .map(|(before, after)| before.saturating_sub(after)),
+                },
+                "adapter_cutting": {
+                    "adapter_trimmed_reads": report.reads_out,
+                },
+                "quality_cutoff": report.quality_cutoff,
+                "min_length": report.min_length,
+            })
+            .to_string(),
+        )
+        .with_context(|| format!("write local trim backend report {}", path.display())),
+        _ => Err(anyhow!(
+            "local-smoke fastq.trim_reads does not support backend report materialization for tool `{tool_id}`"
+        )),
+    }
+}
+
+fn resolve_plan_output_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+}
+
+fn required_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Result<PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == output_id)
+        .map(|artifact| artifact.path.clone())
+        .ok_or_else(|| {
+            anyhow!(
+                "trim_reads plan is missing governed output `{output_id}` for tool {}",
+                plan.tool_id.as_str()
+            )
+        })
+}
+
+fn optional_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Option<PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == output_id)
+        .map(|artifact| artifact.path.clone())
 }
 
 /// # Errors
