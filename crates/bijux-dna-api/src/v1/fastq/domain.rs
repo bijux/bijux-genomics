@@ -66,6 +66,18 @@ pub fn write_local_validate_reads_smoke_report() -> Result<PathBuf> {
     crate::internal::fastq::stages::validate_reads::write_local_validate_reads_smoke_report()
 }
 
+/// Materialize the governed local-smoke `fastq.profile_read_lengths` summary TSV.
+///
+/// The written summary artifact lives at `target/local-smoke/fastq.profile_read_lengths/read_lengths.tsv`
+/// under the active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_profile_read_lengths_smoke_summary() -> Result<PathBuf> {
+    crate::internal::fastq::stages::profile_read_lengths::write_local_profile_read_lengths_smoke_summary()
+}
+
 fn resolve_plan_dir(repo_root: &Path, out_dir: &Path) -> PathBuf {
     if out_dir.is_absolute() {
         out_dir.to_path_buf()
