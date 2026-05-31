@@ -409,8 +409,15 @@ fn materialize_local_profile_read_lengths_smoke_case(
     let r2 = case.r2.as_ref().map(|path| repo_root.join(path));
     let lengths = observe_read_lengths_inputs(&r1, r2.as_deref())?;
     validate_read_lengths_observation(&lengths)?;
-    let artifacts =
-        prepare_read_lengths_artifacts_from_plan(&case.plan, case.histogram_bins, &lengths)?;
+    let artifacts = resolve_local_read_lengths_artifacts(repo_root, &case.plan, case.histogram_bins)?;
+    if !artifacts.length_tsv.exists() || !artifacts.length_json.exists() {
+        write_length_outputs(
+            &artifacts.length_tsv,
+            &artifacts.length_json,
+            &lengths,
+            case.histogram_bins,
+        )?;
+    }
     let observation = ReadLengthsObservation { lengths, artifacts };
     let histogram = project_read_lengths_histogram(&observation);
     let metrics = metrics_from_lengths(&observation.lengths)?;
@@ -488,6 +495,20 @@ fn resolve_plan_dir(repo_root: &Path, out_dir: &Path) -> PathBuf {
     } else {
         repo_root.join(out_dir)
     }
+}
+
+fn resolve_local_read_lengths_artifacts(
+    repo_root: &Path,
+    plan: &StagePlanV1,
+    histogram_bins: u32,
+) -> Result<ReadLengthsArtifacts> {
+    let report_json = resolve_plan_dir(repo_root, required_output_path(plan, "report_json")?);
+    let length_tsv =
+        resolve_plan_dir(repo_root, required_output_path(plan, "length_distribution_tsv")?);
+    let length_json =
+        resolve_plan_dir(repo_root, required_output_path(plan, "length_distribution_json")?);
+    validate_read_lengths_artifact_paths(&report_json, &length_tsv, &length_json)?;
+    Ok(ReadLengthsArtifacts { report_json, length_tsv, length_json, histogram_bins })
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
