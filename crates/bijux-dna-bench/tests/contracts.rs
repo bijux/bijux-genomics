@@ -9,6 +9,8 @@ mod mod_contracts_bench_paths_rs;
 mod mod_contracts_contract_handshake_rs;
 #[path = "contracts/docs/docs_fixtures.rs"]
 mod mod_contracts_docs_fixtures_rs;
+#[path = "contracts/benching/fastq_local_stage_matrix.rs"]
+mod mod_contracts_fastq_local_stage_matrix_rs;
 #[path = "contracts/benching/gate.rs"]
 mod mod_contracts_gate_rs;
 #[path = "contracts/api/no_panics_in_public_api.rs"]
