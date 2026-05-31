@@ -1,0 +1,14 @@
+schema_version = "bijux.bench.fastq.local_detect_duplicates_premerge.v1"
+tool_id = "bijux_dna"
+threads = 1
+output_dir = "target/local-smoke/fastq.detect_duplicates_premerge"
+
+[[cases]]
+sample_id = "duplicate-hit-pe"
+r1 = "assets/toy/core-v1/fastq/duplicate_pairs_R1.fastq"
+r2 = "assets/toy/core-v1/fastq/duplicate_pairs_R2.fastq"
+
+[[cases]]
+sample_id = "duplicate-clear-pe"
+r1 = "assets/toy/core-v1/fastq/reads_1.fastq"
+r2 = "assets/toy/core-v1/fastq/reads_2.fastq"
