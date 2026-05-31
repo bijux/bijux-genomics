@@ -22,6 +22,8 @@ mod local_normalize_primers_smoke;
 mod local_profile_read_lengths_smoke;
 #[path = "plan/local_trim_polyg_tails_smoke.rs"]
 mod local_trim_polyg_tails_smoke;
+#[path = "plan/local_trim_reads_smoke.rs"]
+mod local_trim_reads_smoke;
 #[path = "plan/local_trim_terminal_damage_smoke.rs"]
 mod local_trim_terminal_damage_smoke;
 #[path = "plan/local_validate_reads_smoke.rs"]
