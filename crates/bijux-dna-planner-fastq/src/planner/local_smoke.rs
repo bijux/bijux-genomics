@@ -7,35 +7,37 @@ use bijux_dna_domain_fastq::banks::{
     adapter_bank_provenance_json, resolve_effective_adapters, AdapterSelection,
     DEFAULT_ADAPTER_PRESET,
 };
+use bijux_dna_domain_fastq::params::validate::{PairSyncPolicy, ValidationMode};
 use bijux_dna_domain_fastq::stages::ids::STAGE_DETECT_ADAPTERS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_DETECT_DUPLICATES_PREMERGE;
 use bijux_dna_domain_fastq::stages::ids::STAGE_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN;
+use bijux_dna_domain_fastq::stages::ids::STAGE_FILTER_READS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_PRIMERS;
-use bijux_dna_domain_fastq::params::validate::{PairSyncPolicy, ValidationMode};
 use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS;
-use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_READS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS;
+use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_READS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_TERMINAL_DAMAGE;
 use bijux_dna_domain_fastq::stages::ids::STAGE_VALIDATE_READS;
 use serde::Deserialize;
 
 use crate::selection::{
     allowed_tools_for_stage, load_fastq_domain_tool_execution_spec, select_detect_adapters_tools,
-    select_normalize_primers_tools, select_profile_read_lengths_tools, select_trim_tools,
-    select_validate_tools,
+    select_filter_tools, select_normalize_primers_tools, select_profile_read_lengths_tools,
+    select_trim_tools, select_validate_tools,
 };
 use crate::tool_adapters::fastq::detect_adapters::plan_with_options as plan_detect_adapters;
 use crate::tool_adapters::fastq::detect_duplicates_premerge::plan as plan_detect_duplicates_premerge;
 use crate::tool_adapters::fastq::estimate_library_complexity_prealign::plan as plan_estimate_library_complexity_prealign;
+use crate::tool_adapters::fastq::filter_reads::{plan_filter, FilterPlanOptions};
 use crate::tool_adapters::fastq::normalize_primers::{
     plan_with_options as plan_normalize_primers, NormalizePrimersPlanOptions,
 };
 use crate::tool_adapters::fastq::profile_read_lengths::plan_with_options as plan_profile_read_lengths;
-use crate::tool_adapters::fastq::trim_reads::{
-    plan_with_options as plan_trim_reads_with_options, TrimPlanOptions,
-};
 use crate::tool_adapters::fastq::trim_polyg_tails::{
     plan_trim_polyg_tails_with_options, TrimPolygPlanOptions,
+};
+use crate::tool_adapters::fastq::trim_reads::{
+    plan_with_options as plan_trim_reads_with_options, TrimPlanOptions,
 };
 use crate::tool_adapters::fastq::trim_terminal_damage::{
     plan_trim_terminal_damage_with_options, TrimTerminalDamagePlanOptions,
@@ -54,6 +56,8 @@ const LOCAL_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_CONFIG_PATH: &str =
     "configs/bench/local/fastq-estimate-library-complexity-prealign.toml";
 const DEFAULT_LOCAL_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_OUTPUT_DIR: &str =
     "target/local-smoke/fastq.estimate_library_complexity_prealign";
+const LOCAL_FILTER_READS_CONFIG_PATH: &str = "configs/bench/local/fastq-filter-reads.toml";
+const DEFAULT_LOCAL_FILTER_READS_OUTPUT_DIR: &str = "target/local-smoke/fastq.filter_reads";
 const LOCAL_NORMALIZE_PRIMERS_CONFIG_PATH: &str =
     "configs/bench/local/fastq-normalize-primers.toml";
 const DEFAULT_LOCAL_NORMALIZE_PRIMERS_OUTPUT_DIR: &str =
@@ -64,10 +68,8 @@ const DEFAULT_LOCAL_PROFILE_READ_LENGTHS_OUTPUT_DIR: &str =
     "target/local-smoke/fastq.profile_read_lengths";
 const LOCAL_TRIM_READS_CONFIG_PATH: &str = "configs/bench/local/fastq-trim-reads.toml";
 const DEFAULT_LOCAL_TRIM_READS_OUTPUT_DIR: &str = "target/local-smoke/fastq.trim_reads";
-const LOCAL_TRIM_POLYG_TAILS_CONFIG_PATH: &str =
-    "configs/bench/local/fastq-trim-polyg-tails.toml";
-const DEFAULT_LOCAL_TRIM_POLYG_TAILS_OUTPUT_DIR: &str =
-    "target/local-smoke/fastq.trim_polyg_tails";
+const LOCAL_TRIM_POLYG_TAILS_CONFIG_PATH: &str = "configs/bench/local/fastq-trim-polyg-tails.toml";
+const DEFAULT_LOCAL_TRIM_POLYG_TAILS_OUTPUT_DIR: &str = "target/local-smoke/fastq.trim_polyg_tails";
 const LOCAL_TRIM_TERMINAL_DAMAGE_CONFIG_PATH: &str =
     "configs/bench/local/fastq-trim-terminal-damage.toml";
 const DEFAULT_LOCAL_TRIM_TERMINAL_DAMAGE_OUTPUT_DIR: &str =
@@ -106,6 +108,16 @@ pub struct LocalEstimateLibraryComplexityPrealignSmokeCasePlan {
     pub r1: PathBuf,
     pub r2: Option<PathBuf>,
     pub kmer_size: u32,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalFilterReadsSmokeCasePlan {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub r2: Option<PathBuf>,
+    pub max_n_count: Option<u32>,
+    pub low_complexity_threshold: Option<f64>,
     pub plan: bijux_dna_stage_contract::StagePlanV1,
 }
 
@@ -200,6 +212,29 @@ struct LocalEstimateLibraryComplexityPrealignSmokeConfig {
     #[serde(default)]
     output_dir: Option<PathBuf>,
     cases: Vec<LocalEstimateLibraryComplexityPrealignSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalFilterReadsSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    max_n: Option<u32>,
+    #[serde(default)]
+    max_n_fraction: Option<f64>,
+    #[serde(default)]
+    max_n_count: Option<u32>,
+    #[serde(default)]
+    low_complexity_threshold: Option<f64>,
+    #[serde(default)]
+    entropy_threshold: Option<f64>,
+    #[serde(default)]
+    polyx_policy: Option<String>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalFilterReadsSmokeCase>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -307,6 +342,14 @@ struct LocalEstimateLibraryComplexityPrealignSmokeCase {
 }
 
 #[derive(Debug, Deserialize)]
+struct LocalFilterReadsSmokeCase {
+    sample_id: String,
+    r1: PathBuf,
+    #[serde(default)]
+    r2: Option<PathBuf>,
+}
+
+#[derive(Debug, Deserialize)]
 struct LocalNormalizePrimersSmokeCase {
     sample_id: String,
     r1: PathBuf,
@@ -389,13 +432,16 @@ pub fn local_detect_adapters_smoke_plans(
 
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_smoke_threads(&mut tool_spec, config.threads);
-    let output_root =
-        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DETECT_ADAPTERS_OUTPUT_DIR));
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DETECT_ADAPTERS_OUTPUT_DIR));
 
     config
         .cases
         .into_iter()
-        .map(|case| build_local_detect_adapters_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .map(|case| {
+            build_local_detect_adapters_smoke_case(repo_root, &tool_spec, &output_root, case)
+        })
         .collect()
 }
 
@@ -420,9 +466,9 @@ pub fn local_detect_duplicates_premerge_smoke_plans(
 
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_smoke_threads(&mut tool_spec, config.threads);
-    let output_root = config.output_dir.unwrap_or_else(|| {
-        PathBuf::from(DEFAULT_LOCAL_DETECT_DUPLICATES_PREMERGE_OUTPUT_DIR)
-    });
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DETECT_DUPLICATES_PREMERGE_OUTPUT_DIR));
 
     config
         .cases
@@ -482,6 +528,57 @@ pub fn local_estimate_library_complexity_prealign_smoke_plans(
 /// # Errors
 /// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
 /// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_filter_reads_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalFilterReadsSmokeCasePlan>> {
+    let config = load_local_filter_reads_smoke_config(repo_root)?;
+    ensure_unique_filter_reads_sample_ids(&config.cases)?;
+
+    let stage_id = StageId::new(STAGE_FILTER_READS.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    let normalized_tools = select_filter_tools(std::slice::from_ref(&config.tool_id))?;
+    if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
+        return Err(anyhow!(
+            "local-smoke fastq.filter_reads tool selection normalized unexpectedly: {:?}",
+            normalized_tools
+        ));
+    }
+
+    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_FILTER_READS_OUTPUT_DIR));
+    let plan_options = FilterPlanOptions {
+        threads: Some(tool_spec.resources.threads.max(1)),
+        max_n: config.max_n,
+        max_n_fraction: config.max_n_fraction,
+        max_n_count: config.max_n_count,
+        low_complexity_threshold: config.low_complexity_threshold,
+        entropy_threshold: config.entropy_threshold,
+        kmer_ref: None,
+        redundant_filters: Vec::new(),
+        polyx_policy: config.polyx_policy.clone(),
+    };
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| {
+            build_local_filter_reads_smoke_case(
+                repo_root,
+                &tool_spec,
+                &plan_options,
+                &output_root,
+                case,
+            )
+        })
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
 pub fn local_normalize_primers_smoke_plans(
     repo_root: &Path,
 ) -> Result<Vec<LocalNormalizePrimersSmokeCasePlan>> {
@@ -509,8 +606,9 @@ pub fn local_normalize_primers_smoke_plans(
 
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_smoke_threads(&mut tool_spec, config.threads);
-    let output_root =
-        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_NORMALIZE_PRIMERS_OUTPUT_DIR));
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_NORMALIZE_PRIMERS_OUTPUT_DIR));
     let plan_options = NormalizePrimersPlanOptions {
         primer_set_id: config.primer_set_id,
         marker_id: Some(config.marker_id),
@@ -561,10 +659,14 @@ pub fn local_trim_terminal_damage_smoke_plans(
 
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_smoke_threads(&mut tool_spec, config.threads);
-    let output_root =
-        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_TRIM_TERMINAL_DAMAGE_OUTPUT_DIR));
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_TRIM_TERMINAL_DAMAGE_OUTPUT_DIR));
     let damage_mode = config.damage_mode.parse().map_err(|error: String| {
-        anyhow!("invalid local-smoke fastq.trim_terminal_damage damage_mode `{}`: {error}", config.damage_mode)
+        anyhow!(
+            "invalid local-smoke fastq.trim_terminal_damage damage_mode `{}`: {error}",
+            config.damage_mode
+        )
     })?;
     let execution_policy =
         bijux_dna_domain_fastq::params::trim::parse_terminal_damage_execution_policy(
@@ -621,8 +723,9 @@ pub fn local_trim_polyg_tails_smoke_plans(
 
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_smoke_threads(&mut tool_spec, config.threads);
-    let output_root =
-        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_TRIM_POLYG_TAILS_OUTPUT_DIR));
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_TRIM_POLYG_TAILS_OUTPUT_DIR));
     let trim_polyg = config.trim_polyg.unwrap_or(true);
     let min_polyg_run = config.min_polyg_run.unwrap_or(10).max(1);
     let plan_options = TrimPolygPlanOptions {
@@ -649,9 +752,7 @@ pub fn local_trim_polyg_tails_smoke_plans(
 /// # Errors
 /// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
 /// exist, or stage plans cannot be built for the governed smoke cases.
-pub fn local_trim_reads_smoke_plans(
-    repo_root: &Path,
-) -> Result<Vec<LocalTrimReadsSmokeCasePlan>> {
+pub fn local_trim_reads_smoke_plans(repo_root: &Path) -> Result<Vec<LocalTrimReadsSmokeCasePlan>> {
     let config = load_local_trim_reads_smoke_config(repo_root)?;
     ensure_unique_trim_reads_sample_ids(&config.cases)?;
 
@@ -734,7 +835,12 @@ fn build_local_detect_adapters_smoke_case(
     options.threads = Some(tool_spec.resources.threads.max(1));
     let plan = plan_detect_adapters(tool_spec, &case.r1, case.r2.as_deref(), &out_dir, &options)?;
 
-    Ok(LocalDetectAdaptersSmokeCasePlan { sample_id: case.sample_id, r1: case.r1, r2: case.r2, plan })
+    Ok(LocalDetectAdaptersSmokeCasePlan {
+        sample_id: case.sample_id,
+        r1: case.r1,
+        r2: case.r2,
+        plan,
+    })
 }
 
 fn build_local_detect_duplicates_premerge_smoke_case(
@@ -761,8 +867,7 @@ fn build_local_detect_duplicates_premerge_smoke_case(
     }
 
     let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
-    let plan =
-        plan_detect_duplicates_premerge(tool_spec, &case.r1, case.r2.as_deref(), &out_dir)?;
+    let plan = plan_detect_duplicates_premerge(tool_spec, &case.r1, case.r2.as_deref(), &out_dir)?;
 
     Ok(LocalDetectDuplicatesPremergeSmokeCasePlan {
         sample_id: case.sample_id,
@@ -814,6 +919,45 @@ fn build_local_estimate_library_complexity_prealign_smoke_case(
     })
 }
 
+fn build_local_filter_reads_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    plan_options: &FilterPlanOptions,
+    output_root: &Path,
+    case: LocalFilterReadsSmokeCase,
+) -> Result<LocalFilterReadsSmokeCasePlan> {
+    let r1_abs = repo_root.join(&case.r1);
+    if !r1_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke fastq.filter_reads r1 fixture is missing: {}",
+            r1_abs.display()
+        ));
+    }
+    if let Some(r2) = case.r2.as_ref() {
+        let r2_abs = repo_root.join(r2);
+        if !r2_abs.is_file() {
+            return Err(anyhow!(
+                "local-smoke fastq.filter_reads r2 fixture is missing: {}",
+                r2_abs.display()
+            ));
+        }
+    }
+
+    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let plan = plan_filter(tool_spec, &case.r1, case.r2.as_deref(), &out_dir, plan_options)?;
+
+    Ok(LocalFilterReadsSmokeCasePlan {
+        sample_id: case.sample_id,
+        r1: case.r1,
+        r2: case.r2,
+        max_n_count: plan_options.max_n_count.or(plan_options.max_n),
+        low_complexity_threshold: plan_options
+            .low_complexity_threshold
+            .or(plan_options.entropy_threshold),
+        plan,
+    })
+}
+
 fn build_local_normalize_primers_smoke_case(
     repo_root: &Path,
     tool_spec: &ToolExecutionSpecV1,
@@ -839,13 +983,7 @@ fn build_local_normalize_primers_smoke_case(
     }
 
     let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
-    let plan = plan_normalize_primers(
-        tool_spec,
-        &case.r1,
-        case.r2.as_deref(),
-        &out_dir,
-        options,
-    )?;
+    let plan = plan_normalize_primers(tool_spec, &case.r1, case.r2.as_deref(), &out_dir, options)?;
 
     Ok(LocalNormalizePrimersSmokeCasePlan {
         sample_id: case.sample_id,
@@ -1122,9 +1260,8 @@ pub fn local_profile_read_lengths_smoke_plans(
     ensure_unique_profile_read_lengths_sample_ids(&config.cases)?;
 
     let stage_id = StageId::new(STAGE_PROFILE_READ_LENGTHS.as_str().to_string());
-    let tool_id = ToolId::try_from(config.tool_id.as_str()).map_err(|error| {
-        anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id)
-    })?;
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
     let normalized_tools =
         select_profile_read_lengths_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
@@ -1137,9 +1274,9 @@ pub fn local_profile_read_lengths_smoke_plans(
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_smoke_threads(&mut tool_spec, config.threads);
     let histogram_bins = config.histogram_bins.unwrap_or(100).max(1);
-    let output_root = config.output_dir.unwrap_or_else(|| {
-        PathBuf::from(DEFAULT_LOCAL_PROFILE_READ_LENGTHS_OUTPUT_DIR)
-    });
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_PROFILE_READ_LENGTHS_OUTPUT_DIR));
 
     config
         .cases
@@ -1245,9 +1382,7 @@ fn ensure_unique_normalize_primers_sample_ids(
     let mut seen = BTreeSet::new();
     for case in cases {
         if case.sample_id.trim().is_empty() {
-            return Err(anyhow!(
-                "local-smoke fastq.normalize_primers sample_id must not be empty"
-            ));
+            return Err(anyhow!("local-smoke fastq.normalize_primers sample_id must not be empty"));
         }
         if !seen.insert(case.sample_id.clone()) {
             return Err(anyhow!(
@@ -1283,9 +1418,7 @@ fn ensure_unique_trim_polyg_tails_sample_ids(cases: &[LocalTrimPolygTailsSmokeCa
     let mut seen = BTreeSet::new();
     for case in cases {
         if case.sample_id.trim().is_empty() {
-            return Err(anyhow!(
-                "local-smoke fastq.trim_polyg_tails sample_id must not be empty"
-            ));
+            return Err(anyhow!("local-smoke fastq.trim_polyg_tails sample_id must not be empty"));
         }
         if !seen.insert(case.sample_id.clone()) {
             return Err(anyhow!(
@@ -1306,6 +1439,22 @@ fn ensure_unique_trim_reads_sample_ids(cases: &[LocalTrimReadsSmokeCase]) -> Res
         if !seen.insert(case.sample_id.clone()) {
             return Err(anyhow!(
                 "duplicate local-smoke fastq.trim_reads sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_filter_reads_sample_ids(cases: &[LocalFilterReadsSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke fastq.filter_reads sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke fastq.filter_reads sample_id `{}`",
                 case.sample_id
             ));
         }
@@ -1337,9 +1486,7 @@ fn ensure_unique_detect_adapters_sample_ids(cases: &[LocalDetectAdaptersSmokeCas
     let mut seen = BTreeSet::new();
     for case in cases {
         if case.sample_id.trim().is_empty() {
-            return Err(anyhow!(
-                "local-smoke fastq.detect_adapters sample_id must not be empty"
-            ));
+            return Err(anyhow!("local-smoke fastq.detect_adapters sample_id must not be empty"));
         }
         if !seen.insert(case.sample_id.clone()) {
             return Err(anyhow!(
@@ -1358,9 +1505,7 @@ fn load_local_estimate_library_complexity_prealign_smoke_config(
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     let config: LocalEstimateLibraryComplexityPrealignSmokeConfig =
         toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
-    if config.schema_version
-        != "bijux.bench.fastq.local_estimate_library_complexity_prealign.v1"
-    {
+    if config.schema_version != "bijux.bench.fastq.local_estimate_library_complexity_prealign.v1" {
         return Err(anyhow!(
             "unsupported local-smoke fastq.estimate_library_complexity_prealign schema_version `{}`",
             config.schema_version
@@ -1369,6 +1514,25 @@ fn load_local_estimate_library_complexity_prealign_smoke_config(
     if config.cases.is_empty() {
         return Err(anyhow!(
             "local-smoke fastq.estimate_library_complexity_prealign must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_filter_reads_smoke_config(repo_root: &Path) -> Result<LocalFilterReadsSmokeConfig> {
+    let path = repo_root.join(LOCAL_FILTER_READS_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalFilterReadsSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.fastq.local_filter_reads.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke fastq.filter_reads schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke fastq.filter_reads must declare at least one governed case"
         ));
     }
     Ok(config)
@@ -1456,7 +1620,10 @@ fn load_local_trim_reads_smoke_config(repo_root: &Path) -> Result<LocalTrimReads
     Ok(config)
 }
 
-fn load_local_trim_reads_adapter_bank_context(repo_root: &Path, preset_name: &str) -> Result<serde_json::Value> {
+fn load_local_trim_reads_adapter_bank_context(
+    repo_root: &Path,
+    preset_name: &str,
+) -> Result<serde_json::Value> {
     let bank_path = repo_root.join(bijux_dna_domain_fastq::adapter_bank_path());
     let presets_path = repo_root.join(bijux_dna_domain_fastq::adapter_presets_path());
     let bank = bijux_dna_domain_fastq::load_adapter_bank(&bank_path)

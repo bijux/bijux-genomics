@@ -60,15 +60,15 @@ pub(crate) use layout_branching::apply_layout_branching;
 pub use local_readiness::local_index_reference_plan;
 pub use local_smoke::{
     local_detect_adapters_smoke_plans, local_detect_duplicates_premerge_smoke_plans,
-    local_estimate_library_complexity_prealign_smoke_plans,
+    local_estimate_library_complexity_prealign_smoke_plans, local_filter_reads_smoke_plans,
     local_normalize_primers_smoke_plans, local_profile_read_lengths_smoke_plans,
     local_trim_polyg_tails_smoke_plans, local_trim_reads_smoke_plans,
     local_trim_terminal_damage_smoke_plans, local_validate_reads_smoke_plans,
     LocalDetectAdaptersSmokeCasePlan, LocalDetectDuplicatesPremergeSmokeCasePlan,
-    LocalEstimateLibraryComplexityPrealignSmokeCasePlan, LocalProfileReadLengthsSmokeCasePlan,
-    LocalNormalizePrimersSmokeCasePlan, LocalTrimPolygTailsSmokeCasePlan,
-    LocalTrimReadsSmokeCasePlan, LocalTrimTerminalDamageSmokeCasePlan,
-    LocalValidateReadsSmokeCasePlan,
+    LocalEstimateLibraryComplexityPrealignSmokeCasePlan, LocalFilterReadsSmokeCasePlan,
+    LocalNormalizePrimersSmokeCasePlan, LocalProfileReadLengthsSmokeCasePlan,
+    LocalTrimPolygTailsSmokeCasePlan, LocalTrimReadsSmokeCasePlan,
+    LocalTrimTerminalDamageSmokeCasePlan, LocalValidateReadsSmokeCasePlan,
 };
 pub(crate) use quality_sampling::estimate_mean_q;
 pub use route_expansion::{expand_pipeline_stage_tool_routes, select_preprocess_toolsets};
