@@ -1,4 +1,5 @@
 use std::collections::{BTreeSet, HashMap};
+use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
@@ -17,7 +18,9 @@ use bijux_dna_core::contract::{ExecutionStep, ToolRegistry};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
+use bijux_dna_domain_fastq::params::edna::PrimerNormalizationEffectiveParams;
 use bijux_dna_domain_fastq::params::PairedMode;
+use bijux_dna_domain_fastq::stages::contract::normalize_primers as run_normalize_primers;
 use bijux_dna_domain_fastq::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
@@ -40,8 +43,57 @@ use crate::internal::fastq::stages::trim_bench_common::{
 };
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use serde::Serialize;
 
 const STAGE_ID: &str = "fastq.normalize_primers";
+const LOCAL_NORMALIZE_PRIMERS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.normalize_primers.local_smoke.report.v1";
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalNormalizePrimersSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    sample_id: String,
+    tool_id: String,
+    primer_set_id: String,
+    marker_id: Option<String>,
+    orientation_policy: String,
+    input_reads: u64,
+    matched_reads: u64,
+    unmatched_reads: u64,
+    output_reads: u64,
+    normalized_fastq_gz: String,
+    report_json: String,
+    primer_orientation_report: String,
+    primer_stats_json: String,
+    used_fallback: bool,
+}
+
+/// Materialize the governed local-smoke `fastq.normalize_primers` artifacts.
+///
+/// The written summary artifact lives at `target/local-smoke/fastq.normalize_primers/report.json`
+/// under the active repository root, alongside the top-level `normalized.fastq.gz`.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_normalize_primers_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases = bijux_dna_planner_fastq::stage_api::local_normalize_primers_smoke_plans(&repo_root)?;
+    let [case] = cases.as_slice() else {
+        return Err(anyhow!(
+            "local-smoke fastq.normalize_primers expects exactly one governed case, found {}",
+            cases.len()
+        ));
+    };
+
+    let output_root = repo_root.join("target/local-smoke/fastq.normalize_primers");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+    let report = materialize_local_normalize_primers_smoke_case(&repo_root, case, &output_root)?;
+    let report_path = output_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &report)?;
+    Ok(report_path)
+}
 
 /// Benchmark FASTQ primer normalization tools under governed contracts.
 ///
@@ -783,6 +835,88 @@ fn select_normalize_primers_benchmark_tools(
     Ok(tools)
 }
 
+fn materialize_local_normalize_primers_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalNormalizePrimersSmokeCasePlan,
+    output_root: &Path,
+) -> Result<LocalNormalizePrimersSmokeReport> {
+    let effective_params = serde_json::from_value::<PrimerNormalizationEffectiveParams>(
+        case.plan.effective_params.clone(),
+    )
+    .context("decode normalize primers local-smoke effective params")?;
+    let input_r1 = repo_root.join(&case.r1);
+    let output_r1 = resolve_repo_path(repo_root, &artifact_path(&case.plan, "normalized_reads_r1")?);
+    let report_json =
+        resolve_repo_path(repo_root, &artifact_path(&case.plan, "report_json")?);
+    let orientation_report = resolve_repo_path(
+        repo_root,
+        &artifact_path(&case.plan, "primer_orientation_report")?,
+    );
+    let primer_stats_json =
+        resolve_repo_path(repo_root, &artifact_path(&case.plan, "primer_stats_json")?);
+
+    for path in [&output_r1, &report_json, &orientation_report, &primer_stats_json] {
+        if let Some(parent) = path.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+
+    let input_reads = observe_fastq_record_count(&input_r1)?;
+    let mut report = run_normalize_primers(
+        &input_r1,
+        None,
+        &effective_params,
+        &output_r1,
+        None,
+        &orientation_report,
+        &primer_stats_json,
+        Some(&primer_stats_json),
+    )?;
+    report.tool_id = case.plan.tool_id.as_str().to_string();
+    report.input_r1 = case.r1.display().to_string();
+    report.input_r2 = case.r2.as_ref().map(|path| path.display().to_string());
+    report.output_r1 = path_relative_to_repo(repo_root, &output_r1);
+    report.output_r2 = None;
+    report.primer_orientation_report = path_relative_to_repo(repo_root, &orientation_report);
+    report.primer_stats_json = path_relative_to_repo(repo_root, &primer_stats_json);
+    report.raw_backend_report = Some(report.primer_stats_json.clone());
+    report.raw_backend_report_format = Some("cutadapt_json".to_string());
+    report.used_fallback = true;
+    bijux_dna_infra::atomic_write_json(&report_json, &report)?;
+
+    let top_level_output = output_root.join("normalized.fastq.gz");
+    std::fs::copy(&output_r1, &top_level_output).with_context(|| {
+        format!(
+            "copy normalize primers smoke output {} -> {}",
+            output_r1.display(),
+            top_level_output.display()
+        )
+    })?;
+
+    let matched_reads = report.primer_trimmed_reads.unwrap_or(0);
+    let output_reads = report.reads_out.unwrap_or(input_reads);
+    let unmatched_reads = input_reads.saturating_sub(matched_reads);
+
+    Ok(LocalNormalizePrimersSmokeReport {
+        schema_version: LOCAL_NORMALIZE_PRIMERS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        sample_id: case.sample_id.clone(),
+        tool_id: case.plan.tool_id.as_str().to_string(),
+        primer_set_id: report.primer_set_id.clone(),
+        marker_id: report.marker_id.clone(),
+        orientation_policy: report.orientation_policy.clone(),
+        input_reads,
+        matched_reads,
+        unmatched_reads,
+        output_reads,
+        normalized_fastq_gz: path_relative_to_repo(repo_root, &top_level_output),
+        report_json: path_relative_to_repo(repo_root, &report_json),
+        primer_orientation_report: report.primer_orientation_report.clone(),
+        primer_stats_json: report.primer_stats_json.clone(),
+        used_fallback: true,
+    })
+}
+
 fn artifact_path(
     plan: &bijux_dna_stage_contract::StagePlanV1,
     artifact_name: &str,
@@ -819,4 +953,50 @@ fn rounded_fraction_count(fraction: f64, total: u64) -> Option<u64> {
 
 fn u64_to_f64(value: u64) -> f64 {
     value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+fn resolve_repo_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root)
+        .unwrap_or(path)
+        .display()
+        .to_string()
+}
+
+fn observe_fastq_record_count(path: &Path) -> Result<u64> {
+    let file = std::fs::File::open(path)
+        .with_context(|| format!("open FASTQ record counter input {}", path.display()))?;
+    let mut line_count = 0_u64;
+    if path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
+    {
+        let reader = BufReader::new(flate2::read::MultiGzDecoder::new(file));
+        for line in reader.lines() {
+            line.with_context(|| format!("read FASTQ line from {}", path.display()))?;
+            line_count += 1;
+        }
+    } else {
+        let reader = BufReader::new(file);
+        for line in reader.lines() {
+            line.with_context(|| format!("read FASTQ line from {}", path.display()))?;
+            line_count += 1;
+        }
+    }
+    if line_count % 4 != 0 {
+        return Err(anyhow!(
+            "FASTQ record counter found non-multiple-of-four line count {} in {}",
+            line_count,
+            path.display()
+        ));
+    }
+    Ok(line_count / 4)
 }

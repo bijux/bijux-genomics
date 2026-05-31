@@ -117,6 +117,18 @@ pub fn write_local_estimate_library_complexity_prealign_smoke_report() -> Result
     crate::internal::fastq::stages::estimate_library_complexity_prealign::write_local_estimate_library_complexity_prealign_smoke_report()
 }
 
+/// Materialize the governed local-smoke `fastq.normalize_primers` artifacts.
+///
+/// The written summary artifact lives at `target/local-smoke/fastq.normalize_primers/report.json`
+/// under the active repository root, alongside the top-level `normalized.fastq.gz`.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_normalize_primers_smoke_report() -> Result<PathBuf> {
+    crate::internal::fastq::stages::normalize_primers::write_local_normalize_primers_smoke_report()
+}
+
 /// Materialize the governed local-smoke `fastq.trim_terminal_damage` artifacts.
 ///
 /// The written summary artifact lives at `target/local-smoke/fastq.trim_terminal_damage/metrics.json`
