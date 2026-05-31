@@ -90,6 +90,18 @@ pub fn write_local_detect_adapters_smoke_report() -> Result<PathBuf> {
     crate::internal::fastq::stages::detect_adapters::write_local_detect_adapters_smoke_report()
 }
 
+/// Materialize the governed local-smoke `fastq.filter_reads` artifacts.
+///
+/// The written summary artifact lives at `target/local-smoke/fastq.filter_reads/report.json`
+/// under the active repository root, alongside the top-level `filtered.fastq.gz`.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_filter_reads_smoke_report() -> Result<PathBuf> {
+    crate::internal::fastq::stages::filter_reads::write_local_filter_reads_smoke_report()
+}
+
 /// Materialize the governed local-smoke `fastq.trim_reads` report bundle.
 ///
 /// The written summary artifact lives at `target/local-smoke/fastq.trim_reads/report.json`
