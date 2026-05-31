@@ -1,0 +1,11 @@
+schema_version = "bijux.bench.fastq.local_trim_terminal_damage.v1"
+tool_id = "cutadapt"
+threads = 1
+damage_mode = "ancient"
+trim_5p_bases = 2
+trim_3p_bases = 1
+output_dir = "target/local-smoke/fastq.trim_terminal_damage"
+
+[[cases]]
+sample_id = "ancient-se"
+r1 = "assets/toy/core-v1/fastq/reads_with_adapter.fastq"
