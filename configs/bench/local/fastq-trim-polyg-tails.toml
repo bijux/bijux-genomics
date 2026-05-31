@@ -1,0 +1,10 @@
+schema_version = "bijux.bench.fastq.local_trim_polyg_tails.v1"
+tool_id = "fastp"
+threads = 1
+trim_polyg = true
+min_polyg_run = 6
+output_dir = "target/local-smoke/fastq.trim_polyg_tails"
+
+[[cases]]
+sample_id = "novaseq-se"
+r1 = "assets/toy/core-v1/fastq/reads_with_polyg.fastq"
