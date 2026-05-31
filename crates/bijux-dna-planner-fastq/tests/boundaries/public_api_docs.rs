@@ -68,6 +68,7 @@ fn public_api_docs_match_curated_exports() {
             "local_detect_duplicates_premerge_smoke_plans",
             "local_estimate_library_complexity_prealign_smoke_plans",
             "local_index_reference_plan",
+            "local_normalize_primers_smoke_plans",
             "local_profile_read_lengths_smoke_plans",
             "local_trim_terminal_damage_smoke_plans",
             "local_validate_reads_smoke_plans",
@@ -162,6 +163,10 @@ fn documented_stage_api_exports_remain_compilable() {
     ) -> anyhow::Result<
         Vec<bijux_dna_planner_fastq::LocalEstimateLibraryComplexityPrealignSmokeCasePlan>,
     > = bijux_dna_planner_fastq::stage_api::local_estimate_library_complexity_prealign_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalNormalizePrimersSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_normalize_primers_smoke_plans;
     let _: fn(
         &Path,
     )
