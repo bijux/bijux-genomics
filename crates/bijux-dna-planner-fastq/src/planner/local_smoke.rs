@@ -12,7 +12,6 @@ use serde::Deserialize;
 
 use crate::selection::{
     load_fastq_domain_tool_execution_spec, select_detect_adapters_tools,
-    select_detect_duplicates_premerge_tools,
     select_profile_read_lengths_tools, select_validate_tools,
 };
 use crate::tool_adapters::fastq::detect_adapters::plan_with_options as plan_detect_adapters;
@@ -194,12 +193,10 @@ pub fn local_detect_duplicates_premerge_smoke_plans(
     let stage_id = StageId::new(STAGE_DETECT_DUPLICATES_PREMERGE.as_str().to_string());
     let tool_id = ToolId::try_from(config.tool_id.as_str())
         .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
-    let normalized_tools =
-        select_detect_duplicates_premerge_tools(std::slice::from_ref(&config.tool_id))?;
-    if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
+    if tool_id.as_str() != "bijux_dna" {
         return Err(anyhow!(
-            "local-smoke fastq.detect_duplicates_premerge tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.detect_duplicates_premerge currently requires governed native tool_id `bijux_dna`, got `{}`",
+            tool_id.as_str()
         ));
     }
 

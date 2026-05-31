@@ -28,16 +28,6 @@ pub fn select_detect_adapters_tools(tools: &[String]) -> Result<Vec<String>> {
 }
 
 /// # Errors
-/// Returns an error if any requested duplicate-signal tool is not admitted for
-/// `fastq.detect_duplicates_premerge`.
-pub fn select_detect_duplicates_premerge_tools(tools: &[String]) -> Result<Vec<String>> {
-    let allowlist = crate::selection::allowed_tools_for_stage(
-        &bijux_dna_domain_fastq::stages::ids::STAGE_DETECT_DUPLICATES_PREMERGE,
-    );
-    select_tools_with_allowlist(tools, &allowlist)
-}
-
-/// # Errors
 /// Returns an error if any requested read-length profiling tool is not admitted for
 /// `fastq.profile_read_lengths`.
 pub fn select_profile_read_lengths_tools(tools: &[String]) -> Result<Vec<String>> {
