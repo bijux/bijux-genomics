@@ -64,6 +64,7 @@ fn public_api_docs_match_curated_exports() {
             "toolset_for_stage",
             "stage_tool_maturity",
             "benchmark_cohorts_for_stage",
+            "local_detect_adapters_smoke_plans",
             "local_index_reference_plan",
             "local_profile_read_lengths_smoke_plans",
             "local_validate_reads_smoke_plans",
@@ -144,6 +145,11 @@ fn documented_stage_api_exports_remain_compilable() {
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage;
     let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
         bijux_dna_planner_fastq::stage_api::local_index_reference_plan;
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalDetectAdaptersSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_detect_adapters_smoke_plans;
     let _: fn(
         &Path,
     )

@@ -54,6 +54,7 @@ The `stage_api` module is the curated compatibility surface for downstream stage
 - `toolset_for_stage`
 - `stage_tool_maturity`
 - `benchmark_cohorts_for_stage`
+- `local_detect_adapters_smoke_plans`
 - `local_index_reference_plan`
 - `local_profile_read_lengths_smoke_plans`
 - `local_validate_reads_smoke_plans`
