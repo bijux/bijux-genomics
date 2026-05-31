@@ -9,6 +9,7 @@ pub use crate::tool_adapters::stages::amplicon::normalize_primers;
 pub use crate::tool_adapters::stages::amplicon::remove_chimeras;
 pub use crate::tool_adapters::stages::pre::detect_adapters;
 pub use crate::tool_adapters::stages::pre::detect_duplicates_premerge;
+pub use crate::tool_adapters::stages::pre::estimate_library_complexity_prealign;
 pub use crate::tool_adapters::stages::pre::index_reference;
 pub use crate::tool_adapters::stages::pre::profile_overrepresented_sequences;
 pub use crate::tool_adapters::stages::pre::profile_read_lengths;
