@@ -34,6 +34,8 @@ mod mod_contracts_v1_fastq_local_index_reference_plan_rs;
 mod mod_contracts_v1_fastq_local_normalize_primers_smoke_rs;
 #[path = "contracts/v1_fastq_local_profile_read_lengths_smoke.rs"]
 mod mod_contracts_v1_fastq_local_profile_read_lengths_smoke_rs;
+#[path = "contracts/v1_fastq_local_profile_reads_smoke.rs"]
+mod mod_contracts_v1_fastq_local_profile_reads_smoke_rs;
 #[path = "contracts/v1_fastq_local_trim_polyg_tails_smoke.rs"]
 mod mod_contracts_v1_fastq_local_trim_polyg_tails_smoke_rs;
 #[path = "contracts/v1_fastq_local_trim_reads_smoke.rs"]
