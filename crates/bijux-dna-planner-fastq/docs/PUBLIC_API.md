@@ -59,6 +59,7 @@ The `stage_api` module is the curated compatibility surface for downstream stage
 - `local_estimate_library_complexity_prealign_smoke_plans`
 - `local_index_reference_plan`
 - `local_profile_read_lengths_smoke_plans`
+- `local_trim_terminal_damage_smoke_plans`
 - `local_validate_reads_smoke_plans`
 
 ## Stability Rules

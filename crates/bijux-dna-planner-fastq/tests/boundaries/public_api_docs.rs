@@ -69,6 +69,7 @@ fn public_api_docs_match_curated_exports() {
             "local_estimate_library_complexity_prealign_smoke_plans",
             "local_index_reference_plan",
             "local_profile_read_lengths_smoke_plans",
+            "local_trim_terminal_damage_smoke_plans",
             "local_validate_reads_smoke_plans",
         ]),
         "stage_api docs must match the curated compatibility surface"
@@ -166,6 +167,10 @@ fn documented_stage_api_exports_remain_compilable() {
     )
         -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalProfileReadLengthsSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_profile_read_lengths_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalTrimTerminalDamageSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_smoke_plans;
     let _: fn(
         &Path,
     )

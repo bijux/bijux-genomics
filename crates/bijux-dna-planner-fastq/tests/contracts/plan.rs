@@ -18,6 +18,8 @@ mod local_estimate_library_complexity_prealign_smoke;
 mod local_index_reference;
 #[path = "plan/local_profile_read_lengths_smoke.rs"]
 mod local_profile_read_lengths_smoke;
+#[path = "plan/local_trim_terminal_damage_smoke.rs"]
+mod local_trim_terminal_damage_smoke;
 #[path = "plan/local_validate_reads_smoke.rs"]
 mod local_validate_reads_smoke;
 #[path = "plan/merge_plan.rs"]
