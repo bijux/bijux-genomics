@@ -12,6 +12,8 @@ mod filter_plan;
 mod local_detect_adapters_smoke;
 #[path = "plan/local_detect_duplicates_premerge_smoke.rs"]
 mod local_detect_duplicates_premerge_smoke;
+#[path = "plan/local_estimate_library_complexity_prealign_smoke.rs"]
+mod local_estimate_library_complexity_prealign_smoke;
 #[path = "plan/local_index_reference.rs"]
 mod local_index_reference;
 #[path = "plan/local_profile_read_lengths_smoke.rs"]
