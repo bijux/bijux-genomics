@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::fastq::stages::trim_bench_common::{
@@ -27,7 +27,10 @@ use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::{
     params::{
-        detect_adapters::{AdapterEvidenceFormat, AdapterEvidenceScope, AdapterInspectionMode},
+        detect_adapters::{
+            AdapterEvidenceFormat, AdapterEvidenceScope, AdapterInspectionMode,
+            DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
+        },
         PairedMode,
     },
     DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION,
@@ -42,6 +45,77 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
+use serde::{Deserialize, Serialize};
+
+const LOCAL_DETECT_ADAPTERS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.detect_adapters.local_smoke.report.v1";
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+enum LocalDetectAdaptersSmokeStatus {
+    AdapterDetected,
+    BelowThreshold,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct LocalDetectAdaptersSmokeCaseReport {
+    sample_id: String,
+    layout: PairedMode,
+    input_r1: String,
+    input_r2: Option<String>,
+    adapter_status: LocalDetectAdaptersSmokeStatus,
+    candidate_adapter_count: u64,
+    adapter_trimmed_fraction: Option<f64>,
+    recommended_adapter_preset: Option<String>,
+    report_json: String,
+    adapter_evidence_dir: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct LocalDetectAdaptersSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    case_count: u64,
+    detected_case_count: u64,
+    below_threshold_case_count: u64,
+    cases: Vec<LocalDetectAdaptersSmokeCaseReport>,
+}
+
+/// Materialize the governed local-smoke `fastq.detect_adapters` report bundle.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, governed smoke plans are invalid,
+/// or the smoke artifacts cannot be written.
+pub fn write_local_detect_adapters_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases = bijux_dna_planner_fastq::stage_api::local_detect_adapters_smoke_plans(&repo_root)?;
+    let output_root = repo_root.join("target/local-smoke/fastq.detect_adapters");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+
+    let case_reports = cases
+        .iter()
+        .map(|case| materialize_local_detect_adapters_smoke_case(&repo_root, case))
+        .collect::<Result<Vec<_>>>()?;
+
+    let summary = LocalDetectAdaptersSmokeReport {
+        schema_version: LOCAL_DETECT_ADAPTERS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_DETECT_ADAPTERS.as_str().to_string(),
+        case_count: case_reports.len() as u64,
+        detected_case_count: case_reports
+            .iter()
+            .filter(|case| case.adapter_status == LocalDetectAdaptersSmokeStatus::AdapterDetected)
+            .count() as u64,
+        below_threshold_case_count: case_reports
+            .iter()
+            .filter(|case| case.adapter_status == LocalDetectAdaptersSmokeStatus::BelowThreshold)
+            .count() as u64,
+        cases: case_reports,
+    };
+
+    let report_path = output_root.join("adapters.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
+    Ok(report_path)
+}
 
 /// # Errors
 /// Returns an error if planning, execution, report parsing, or persistence fails.
@@ -110,6 +184,86 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
         bench_dir: setup.bench_inputs.bench_dir,
         explain: args.explain,
     })
+}
+
+fn materialize_local_detect_adapters_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalDetectAdaptersSmokeCasePlan,
+) -> Result<LocalDetectAdaptersSmokeCaseReport> {
+    let case_out_dir = resolve_plan_dir(repo_root, &case.plan.out_dir);
+    let report_json = case_out_dir.join("adapter_report.json");
+    let adapter_evidence_dir = case_out_dir.join("fastqc");
+    let raw_backend_report = adapter_evidence_dir.join("normalized_adapter_evidence.json");
+    bijux_dna_infra::ensure_dir(&adapter_evidence_dir)?;
+
+    let effective_params = DetectAdaptersEffectiveParams {
+        schema_version: DETECT_ADAPTERS_SCHEMA_VERSION.to_string(),
+        paired_mode: if case.r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+        threads: case.plan.resources.threads,
+        sample_reads: None,
+        inspection_mode: AdapterInspectionMode::EvidenceOnly,
+        report_only: true,
+        evidence_engine: case.plan.tool_id.as_str().to_string(),
+        evidence_scope: AdapterEvidenceScope::FullInput,
+        evidence_format: AdapterEvidenceFormat::FastqcSummary,
+        evidence_artifact_id: "report_json".to_string(),
+    };
+
+    let r1 = repo_root.join(&case.r1);
+    let r2 = case.r2.as_ref().map(|path| repo_root.join(path));
+    let report = bijux_dna_domain_fastq::stages::detect_adapters(
+        &r1,
+        r2.as_deref(),
+        &effective_params,
+        &report_json,
+        &adapter_evidence_dir,
+        Some(&raw_backend_report),
+    )?;
+    bijux_dna_infra::atomic_write_json(&report_json, &report)?;
+    write_local_detect_adapters_evidence(&raw_backend_report, &report)?;
+
+    Ok(LocalDetectAdaptersSmokeCaseReport {
+        sample_id: case.sample_id.clone(),
+        layout: if case.r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+        input_r1: case.r1.display().to_string(),
+        input_r2: case.r2.as_ref().map(|path| path.display().to_string()),
+        adapter_status: if report.candidate_adapter_count > 0 {
+            LocalDetectAdaptersSmokeStatus::AdapterDetected
+        } else {
+            LocalDetectAdaptersSmokeStatus::BelowThreshold
+        },
+        candidate_adapter_count: report.candidate_adapter_count,
+        adapter_trimmed_fraction: report.adapter_trimmed_fraction,
+        recommended_adapter_preset: report.recommended_adapter_preset.clone(),
+        report_json: path_relative_to_repo(repo_root, &report_json),
+        adapter_evidence_dir: path_relative_to_repo(repo_root, &adapter_evidence_dir),
+    })
+}
+
+fn write_local_detect_adapters_evidence(
+    evidence_path: &Path,
+    report: &DetectAdaptersReportV1,
+) -> Result<()> {
+    let evidence = serde_json::json!({
+        "schema_version": "bijux.fastq.detect_adapters.evidence.v1",
+        "candidate_adapter_count": report.candidate_adapter_count,
+        "adapter_trimmed_fraction": report.adapter_trimmed_fraction,
+        "recommended_adapter_preset": report.recommended_adapter_preset,
+        "detected_adapter_source": report.detected_adapter_source,
+    });
+    Ok(bijux_dna_infra::atomic_write_json(evidence_path, &evidence)?)
+}
+
+fn resolve_plan_dir(repo_root: &Path, out_dir: &Path) -> PathBuf {
+    if out_dir.is_absolute() {
+        out_dir.to_path_buf()
+    } else {
+        repo_root.join(out_dir)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
 
 fn select_detect_adapters_benchmark_tools(
