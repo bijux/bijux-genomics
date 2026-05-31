@@ -28,6 +28,7 @@ mod benchmark;
 mod graph_policy;
 mod layout_branching;
 mod local_readiness;
+mod local_smoke;
 mod quality_sampling;
 mod route_expansion;
 mod selection_planning;
@@ -57,6 +58,7 @@ use graph_policy::{
 };
 pub(crate) use layout_branching::apply_layout_branching;
 pub use local_readiness::local_index_reference_plan;
+pub use local_smoke::{local_validate_reads_smoke_plans, LocalValidateReadsSmokeCasePlan};
 pub(crate) use quality_sampling::estimate_mean_q;
 pub use route_expansion::{expand_pipeline_stage_tool_routes, select_preprocess_toolsets};
 pub use route_expansion::{StageToolSelection, ToolsetSelection};

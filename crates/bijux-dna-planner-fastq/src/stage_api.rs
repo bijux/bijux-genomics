@@ -328,6 +328,17 @@ pub fn local_index_reference_plan(
     crate::planner::local_index_reference_plan(repo_root)
 }
 
+/// Build the governed local-smoke `fastq.validate_reads` plans from repository-owned config.
+///
+/// # Errors
+/// Returns an error if the local-smoke config, governed FASTQ tool YAML, or local FASTQ fixtures
+/// cannot be resolved into deterministic `StagePlanV1` values.
+pub fn local_validate_reads_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::planner::LocalValidateReadsSmokeCasePlan>> {
+    crate::planner::local_validate_reads_smoke_plans(repo_root)
+}
+
 #[must_use]
 pub fn stage_tool_maturity(stage_id: &StageId, tool_id: &ToolId) -> Option<StageToolMaturityLevel> {
     let (_, runtime_normalization) = runtime_contract_levels(stage_id, tool_id);
