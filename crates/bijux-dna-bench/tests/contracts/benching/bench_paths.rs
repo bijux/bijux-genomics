@@ -27,3 +27,20 @@ fn bench_paths_point_to_crate_owned_suite_directory() {
         bundles.display()
     );
 }
+
+#[test]
+fn bench_paths_point_to_repository_owned_local_stage_matrix() {
+    let local_config = bijux_dna_bench::bench_local_config_dir();
+    let matrix = bijux_dna_bench::bench_fastq_local_stage_matrix_path();
+
+    assert!(
+        local_config.ends_with("configs/bench/local"),
+        "unexpected bench local config path: {}",
+        local_config.display()
+    );
+    assert!(
+        matrix.ends_with("configs/bench/local/fastq-stage-matrix.toml"),
+        "unexpected FASTQ local stage matrix path: {}",
+        matrix.display()
+    );
+}
