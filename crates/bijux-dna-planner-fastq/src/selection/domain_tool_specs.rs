@@ -74,9 +74,14 @@ pub(crate) fn load_fastq_domain_tool_execution_spec(
         ));
     }
 
-    let workspace_binary_entrypoint = workspace_binary_entrypoint(&parsed)?;
+    let workspace_binary_entrypoint = if parsed.command_template.is_empty() || parsed.container.is_none()
+    {
+        Some(workspace_binary_entrypoint(&parsed)?)
+    } else {
+        None
+    };
     let command_template = if parsed.command_template.is_empty() {
-        vec![workspace_binary_entrypoint.clone()]
+        vec![workspace_binary_entrypoint.clone().unwrap_or_else(|| parsed.tool_id.clone())]
     } else {
         parsed.command_template.clone()
     };
@@ -86,7 +91,7 @@ pub(crate) fn load_fastq_domain_tool_execution_spec(
             digest: container.digest,
         },
         None => ContainerImageRefV1 {
-            image: workspace_binary_entrypoint,
+            image: workspace_binary_entrypoint.unwrap_or_else(|| parsed.tool_id.clone()),
             digest: None,
         },
     };
@@ -150,6 +155,21 @@ mod tests {
         assert_eq!(spec.command.template, vec!["bijux-dna".to_string()]);
         assert_eq!(spec.image.image, "bijux-dna");
         assert!(spec.image.digest.is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn load_fastq_domain_tool_execution_spec_accepts_supported_container_stage() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("fastq.trim_terminal_damage".to_string());
+        let tool_id = ToolId::new("cutadapt");
+
+        let spec = load_fastq_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(spec.tool_id.as_str(), "cutadapt");
+        assert_eq!(spec.command.template[0], "cutadapt".to_string());
+        assert_eq!(spec.image.image, "bijuxdna/cutadapt");
+        assert!(spec.image.digest.is_some());
         Ok(())
     }
 }
