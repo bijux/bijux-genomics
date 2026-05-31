@@ -151,6 +151,17 @@ pub fn local_estimate_library_complexity_prealign_smoke_plans(
     crate::planner::local_estimate_library_complexity_prealign_smoke_plans(repo_root)
 }
 
+/// Build the governed local-smoke case plans for `fastq.normalize_primers`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_normalize_primers_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalNormalizePrimersSmokeCasePlan>> {
+    crate::planner::local_normalize_primers_smoke_plans(repo_root)
+}
+
 /// Build the governed local-smoke case plans for `fastq.trim_terminal_damage`.
 ///
 /// # Errors
