@@ -67,6 +67,7 @@ fn public_api_docs_match_curated_exports() {
             "local_detect_adapters_smoke_plans",
             "local_detect_duplicates_premerge_smoke_plans",
             "local_estimate_library_complexity_prealign_smoke_plans",
+            "local_filter_reads_smoke_plans",
             "local_index_reference_plan",
             "local_normalize_primers_smoke_plans",
             "local_profile_read_lengths_smoke_plans",
@@ -158,8 +159,9 @@ fn documented_stage_api_exports_remain_compilable() {
         bijux_dna_planner_fastq::stage_api::local_detect_adapters_smoke_plans;
     let _: fn(
         &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalDetectDuplicatesPremergeSmokeCasePlan>> =
-        bijux_dna_planner_fastq::stage_api::local_detect_duplicates_premerge_smoke_plans;
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalDetectDuplicatesPremergeSmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_detect_duplicates_premerge_smoke_plans;
     let _: fn(
         &Path,
     ) -> anyhow::Result<
@@ -167,25 +169,30 @@ fn documented_stage_api_exports_remain_compilable() {
     > = bijux_dna_planner_fastq::stage_api::local_estimate_library_complexity_prealign_smoke_plans;
     let _: fn(
         &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalNormalizePrimersSmokeCasePlan>> =
-        bijux_dna_planner_fastq::stage_api::local_normalize_primers_smoke_plans;
+    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalFilterReadsSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_filter_reads_smoke_plans;
     let _: fn(
         &Path,
     )
-        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalProfileReadLengthsSmokeCasePlan>> =
-        bijux_dna_planner_fastq::stage_api::local_profile_read_lengths_smoke_plans;
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalNormalizePrimersSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_normalize_primers_smoke_plans;
     let _: fn(
         &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalTrimPolygTailsSmokeCasePlan>> =
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalProfileReadLengthsSmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_profile_read_lengths_smoke_plans;
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalTrimPolygTailsSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_trim_polyg_tails_smoke_plans;
-    let _: fn(
-        &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalTrimReadsSmokeCasePlan>> =
+    let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalTrimReadsSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_trim_reads_smoke_plans;
     let _: fn(
         &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalTrimTerminalDamageSmokeCasePlan>> =
-        bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_smoke_plans;
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalTrimTerminalDamageSmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_smoke_plans;
     let _: fn(
         &Path,
     )

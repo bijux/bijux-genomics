@@ -14,6 +14,8 @@ mod local_detect_adapters_smoke;
 mod local_detect_duplicates_premerge_smoke;
 #[path = "plan/local_estimate_library_complexity_prealign_smoke.rs"]
 mod local_estimate_library_complexity_prealign_smoke;
+#[path = "plan/local_filter_reads_smoke.rs"]
+mod local_filter_reads_smoke;
 #[path = "plan/local_index_reference.rs"]
 mod local_index_reference;
 #[path = "plan/local_normalize_primers_smoke.rs"]
