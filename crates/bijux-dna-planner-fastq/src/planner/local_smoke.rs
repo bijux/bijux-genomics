@@ -13,6 +13,7 @@ use bijux_dna_domain_fastq::stages::ids::STAGE_DETECT_DUPLICATES_PREMERGE;
 use bijux_dna_domain_fastq::stages::ids::STAGE_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN;
 use bijux_dna_domain_fastq::stages::ids::STAGE_FILTER_READS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_PRIMERS;
+use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_READS;
@@ -23,7 +24,7 @@ use serde::Deserialize;
 use crate::selection::{
     allowed_tools_for_stage, load_fastq_domain_tool_execution_spec, select_detect_adapters_tools,
     select_filter_tools, select_normalize_primers_tools, select_profile_read_lengths_tools,
-    select_trim_tools, select_validate_tools,
+    select_stats_tools, select_trim_tools, select_validate_tools,
 };
 use crate::tool_adapters::fastq::detect_adapters::plan_with_options as plan_detect_adapters;
 use crate::tool_adapters::fastq::detect_duplicates_premerge::plan as plan_detect_duplicates_premerge;
@@ -33,6 +34,7 @@ use crate::tool_adapters::fastq::normalize_primers::{
     plan_with_options as plan_normalize_primers, NormalizePrimersPlanOptions,
 };
 use crate::tool_adapters::fastq::profile_read_lengths::plan_with_options as plan_profile_read_lengths;
+use crate::tool_adapters::fastq::profile_reads::plan_stats_with_threads;
 use crate::tool_adapters::fastq::trim_polyg_tails::{
     plan_trim_polyg_tails_with_options, TrimPolygPlanOptions,
 };
@@ -62,6 +64,8 @@ const LOCAL_NORMALIZE_PRIMERS_CONFIG_PATH: &str =
     "configs/bench/local/fastq-normalize-primers.toml";
 const DEFAULT_LOCAL_NORMALIZE_PRIMERS_OUTPUT_DIR: &str =
     "target/local-smoke/fastq.normalize_primers";
+const LOCAL_PROFILE_READS_CONFIG_PATH: &str = "configs/bench/local/fastq-profile-reads.toml";
+const DEFAULT_LOCAL_PROFILE_READS_OUTPUT_DIR: &str = "target/local-smoke/fastq.profile_reads";
 const LOCAL_PROFILE_READ_LENGTHS_CONFIG_PATH: &str =
     "configs/bench/local/fastq-profile-read-lengths.toml";
 const DEFAULT_LOCAL_PROFILE_READ_LENGTHS_OUTPUT_DIR: &str =
@@ -83,6 +87,14 @@ pub struct LocalProfileReadLengthsSmokeCasePlan {
     pub r1: PathBuf,
     pub r2: Option<PathBuf>,
     pub histogram_bins: u32,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalProfileReadsSmokeCasePlan {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub r2: Option<PathBuf>,
     pub plan: bijux_dna_stage_contract::StagePlanV1,
 }
 
@@ -262,6 +274,17 @@ struct LocalNormalizePrimersSmokeConfig {
 }
 
 #[derive(Debug, Deserialize)]
+struct LocalProfileReadsSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalProfileReadsSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
 struct LocalTrimTerminalDamageSmokeConfig {
     schema_version: String,
     tool_id: String,
@@ -351,6 +374,14 @@ struct LocalFilterReadsSmokeCase {
 
 #[derive(Debug, Deserialize)]
 struct LocalNormalizePrimersSmokeCase {
+    sample_id: String,
+    r1: PathBuf,
+    #[serde(default)]
+    r2: Option<PathBuf>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalProfileReadsSmokeCase {
     sample_id: String,
     r1: PathBuf,
     #[serde(default)]
@@ -1165,6 +1196,73 @@ pub fn local_validate_reads_smoke_plans(
         .collect()
 }
 
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_profile_reads_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalProfileReadsSmokeCasePlan>> {
+    let config = load_local_profile_reads_smoke_config(repo_root)?;
+    ensure_unique_profile_reads_sample_ids(&config.cases)?;
+
+    let stage_id = StageId::new(STAGE_PROFILE_READS.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    let normalized_tools = select_stats_tools(std::slice::from_ref(&config.tool_id))?;
+    if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
+        return Err(anyhow!(
+            "local-smoke fastq.profile_reads tool selection normalized unexpectedly: {:?}",
+            normalized_tools
+        ));
+    }
+
+    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_PROFILE_READS_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_profile_reads_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+fn build_local_profile_reads_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalProfileReadsSmokeCase,
+) -> Result<LocalProfileReadsSmokeCasePlan> {
+    let r1_abs = repo_root.join(&case.r1);
+    if !r1_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke fastq.profile_reads r1 fixture is missing: {}",
+            r1_abs.display()
+        ));
+    }
+    if let Some(r2) = case.r2.as_ref() {
+        let r2_abs = repo_root.join(r2);
+        if !r2_abs.is_file() {
+            return Err(anyhow!(
+                "local-smoke fastq.profile_reads r2 fixture is missing: {}",
+                r2_abs.display()
+            ));
+        }
+    }
+
+    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let plan = plan_stats_with_threads(
+        tool_spec,
+        &case.r1,
+        case.r2.as_deref(),
+        &out_dir,
+        Some(tool_spec.resources.threads.max(1)),
+    )?;
+
+    Ok(LocalProfileReadsSmokeCasePlan { sample_id: case.sample_id, r1: case.r1, r2: case.r2, plan })
+}
+
 fn build_local_validate_reads_smoke_case(
     repo_root: &Path,
     tool_spec: &ToolExecutionSpecV1,
@@ -1349,6 +1447,22 @@ fn ensure_unique_profile_read_lengths_sample_ids(
         if !seen.insert(case.sample_id.clone()) {
             return Err(anyhow!(
                 "duplicate local-smoke fastq.profile_read_lengths sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_profile_reads_sample_ids(cases: &[LocalProfileReadsSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke fastq.profile_reads sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke fastq.profile_reads sample_id `{}`",
                 case.sample_id
             ));
         }
@@ -1699,6 +1813,25 @@ fn load_local_profile_read_lengths_smoke_config(
     if config.cases.is_empty() {
         return Err(anyhow!(
             "local-smoke fastq.profile_read_lengths must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_profile_reads_smoke_config(repo_root: &Path) -> Result<LocalProfileReadsSmokeConfig> {
+    let path = repo_root.join(LOCAL_PROFILE_READS_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalProfileReadsSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.fastq.local_profile_reads.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke fastq.profile_reads schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke fastq.profile_reads must declare at least one governed case"
         ));
     }
     Ok(config)
