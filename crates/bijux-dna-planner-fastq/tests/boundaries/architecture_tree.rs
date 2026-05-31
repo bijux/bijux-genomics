@@ -48,6 +48,7 @@ fn planner_fastq_tree_matches_architecture_contract() {
             "benchmark.rs",
             "graph_policy.rs",
             "layout_branching.rs",
+            "local_readiness.rs",
             "mod.rs",
             "quality_sampling.rs",
             "route_expansion.rs",

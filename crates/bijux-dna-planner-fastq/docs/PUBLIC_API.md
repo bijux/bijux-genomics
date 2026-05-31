@@ -54,6 +54,7 @@ The `stage_api` module is the curated compatibility surface for downstream stage
 - `toolset_for_stage`
 - `stage_tool_maturity`
 - `benchmark_cohorts_for_stage`
+- `local_index_reference_plan`
 
 ## Stability Rules
 - Additions must be documented here and covered by boundary or contract tests.

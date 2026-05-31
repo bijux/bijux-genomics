@@ -8,6 +8,8 @@ mod cross_bam_catalog;
 mod domain_parity;
 #[path = "plan/filter_plan.rs"]
 mod filter_plan;
+#[path = "plan/local_index_reference.rs"]
+mod local_index_reference;
 #[path = "plan/merge_plan.rs"]
 mod merge_plan;
 #[path = "plan/no_parsing.rs"]
