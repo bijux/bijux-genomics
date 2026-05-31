@@ -24,6 +24,8 @@ mod mod_contracts_v1_dry_run_manifest_rs;
 mod mod_contracts_v1_fastq_local_index_reference_plan_rs;
 #[path = "contracts/v1_fastq_local_detect_adapters_smoke.rs"]
 mod mod_contracts_v1_fastq_local_detect_adapters_smoke_rs;
+#[path = "contracts/v1_fastq_local_detect_duplicates_premerge_smoke.rs"]
+mod mod_contracts_v1_fastq_local_detect_duplicates_premerge_smoke_rs;
 #[path = "contracts/v1_fastq_local_profile_read_lengths_smoke.rs"]
 mod mod_contracts_v1_fastq_local_profile_read_lengths_smoke_rs;
 #[path = "contracts/v1_fastq_local_validate_reads_smoke.rs"]
