@@ -1,0 +1,12 @@
+# schema_version = 1
+# owner = bijux-dna-planner-fastq
+# purpose = Governed local-ready plan input for fastq.index_reference.
+# authority = bijux-dna-planner-fastq
+# stability = evolving
+# last_updated = 2026-05-31
+
+schema_version = "bijux.bench.fastq.local_index_reference.v1"
+reference_fasta = "assets/reference/contaminants/references/phix174.fasta"
+tool_id = "bowtie2_build"
+threads = 4
+output_dir = "target/local-ready/fastq.index_reference"

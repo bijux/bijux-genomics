@@ -27,6 +27,7 @@ use crate::{
 mod benchmark;
 mod graph_policy;
 mod layout_branching;
+mod local_readiness;
 mod quality_sampling;
 mod route_expansion;
 mod selection_planning;
@@ -55,6 +56,7 @@ use graph_policy::{
     validate_select_stage_nodes,
 };
 pub(crate) use layout_branching::apply_layout_branching;
+pub use local_readiness::local_index_reference_plan;
 pub(crate) use quality_sampling::estimate_mean_q;
 pub use route_expansion::{expand_pipeline_stage_tool_routes, select_preprocess_toolsets};
 pub use route_expansion::{StageToolSelection, ToolsetSelection};

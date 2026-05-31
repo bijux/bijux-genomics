@@ -317,6 +317,17 @@ pub fn toolset_for_stage(stage_id: &StageId, mode: ToolsetExecutionMode) -> Vec<
     }
 }
 
+/// Build the governed local-ready `fastq.index_reference` plan from repository-owned config.
+///
+/// # Errors
+/// Returns an error if the local-ready config, local runtime profile, governed FASTQ tool YAML,
+/// or reference FASTA inputs cannot be resolved into a deterministic `StagePlanV1`.
+pub fn local_index_reference_plan(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> {
+    crate::planner::local_index_reference_plan(repo_root)
+}
+
 #[must_use]
 pub fn stage_tool_maturity(stage_id: &StageId, tool_id: &ToolId) -> Option<StageToolMaturityLevel> {
     let (_, runtime_normalization) = runtime_contract_levels(stage_id, tool_id);
