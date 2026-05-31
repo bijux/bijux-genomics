@@ -103,6 +103,20 @@ pub fn write_local_detect_duplicates_premerge_smoke_report() -> Result<PathBuf> 
     crate::internal::fastq::stages::detect_duplicates_premerge::write_local_detect_duplicates_premerge_smoke_report()
 }
 
+/// Materialize the governed local-smoke
+/// `fastq.estimate_library_complexity_prealign` report bundle.
+///
+/// The written summary artifact lives at
+/// `target/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json` under the
+/// active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_estimate_library_complexity_prealign_smoke_report() -> Result<PathBuf> {
+    crate::internal::fastq::stages::estimate_library_complexity_prealign::write_local_estimate_library_complexity_prealign_smoke_report()
+}
+
 fn resolve_plan_dir(repo_root: &Path, out_dir: &Path) -> PathBuf {
     if out_dir.is_absolute() {
         out_dir.to_path_buf()
