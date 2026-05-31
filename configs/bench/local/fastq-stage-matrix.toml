@@ -1,0 +1,116 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for local FASTQ benchmark-readiness coverage.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-05-31
+
+schema_version = "bijux.bench.fastq.local_stage_matrix.v1"
+
+[[stages]]
+stage_id = "fastq.index_reference"
+readiness_kind = "dry_run"
+
+[[stages]]
+stage_id = "fastq.validate_reads"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.profile_read_lengths"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.detect_adapters"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.detect_duplicates_premerge"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.estimate_library_complexity_prealign"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.trim_terminal_damage"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.normalize_primers"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.trim_polyg_tails"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.trim_reads"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.filter_reads"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.profile_reads"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.deplete_rrna"
+readiness_kind = "dry_or_smoke"
+
+[[stages]]
+stage_id = "fastq.merge_pairs"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.remove_duplicates"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.filter_low_complexity"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.deplete_host"
+readiness_kind = "dry_or_smoke"
+
+[[stages]]
+stage_id = "fastq.deplete_reference_contaminants"
+readiness_kind = "dry_or_smoke"
+
+[[stages]]
+stage_id = "fastq.correct_errors"
+readiness_kind = "dry_or_smoke"
+
+[[stages]]
+stage_id = "fastq.extract_umis"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.profile_overrepresented_sequences"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.report_qc"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.remove_chimeras"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.infer_asvs"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.cluster_otus"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.normalize_abundance"
+readiness_kind = "smoke"
+
+[[stages]]
+stage_id = "fastq.screen_taxonomy"
+readiness_kind = "dry_or_smoke"
