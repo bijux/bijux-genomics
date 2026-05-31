@@ -65,6 +65,7 @@ fn public_api_docs_match_curated_exports() {
             "stage_tool_maturity",
             "benchmark_cohorts_for_stage",
             "local_index_reference_plan",
+            "local_validate_reads_smoke_plans",
         ]),
         "stage_api docs must match the curated compatibility surface"
     );
@@ -142,6 +143,11 @@ fn documented_stage_api_exports_remain_compilable() {
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage;
     let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
         bijux_dna_planner_fastq::stage_api::local_index_reference_plan;
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalValidateReadsSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_validate_reads_smoke_plans;
 }
 
 fn markdown_list_after_heading(markdown: &str, heading: &str) -> BTreeSet<String> {
