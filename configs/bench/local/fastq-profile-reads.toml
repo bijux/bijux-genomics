@@ -1,0 +1,20 @@
+# schema_version = 1
+# owner = bijux-dna-planner-fastq
+# purpose = Governed local-smoke inputs for fastq.profile_reads.
+# authority = bijux-dna-planner-fastq
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.fastq.local_profile_reads.v1"
+tool_id = "seqkit_stats"
+threads = 4
+output_dir = "target/local-smoke/fastq.profile_reads"
+
+[[cases]]
+sample_id = "toy-se"
+r1 = "assets/toy/core-v1/fastq/reads_1.fastq"
+
+[[cases]]
+sample_id = "toy-pe"
+r1 = "assets/toy/core-v1/fastq/reads_1.fastq"
+r2 = "assets/toy/core-v1/fastq/reads_2.fastq"
