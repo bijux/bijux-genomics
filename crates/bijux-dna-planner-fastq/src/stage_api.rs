@@ -173,6 +173,17 @@ pub fn local_trim_terminal_damage_smoke_plans(
     crate::planner::local_trim_terminal_damage_smoke_plans(repo_root)
 }
 
+/// Build the governed local-smoke case plans for `fastq.trim_polyg_tails`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_trim_polyg_tails_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalTrimPolygTailsSmokeCasePlan>> {
+    crate::planner::local_trim_polyg_tails_smoke_plans(repo_root)
+}
+
 #[must_use]
 pub fn stage_tool_capability(stage_id: &StageId, tool_id: &ToolId) -> Option<StageToolCapability> {
     let (runtime_interpretation, runtime_normalization) =

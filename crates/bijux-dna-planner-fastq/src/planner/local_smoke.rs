@@ -9,6 +9,7 @@ use bijux_dna_domain_fastq::stages::ids::STAGE_ESTIMATE_LIBRARY_COMPLEXITY_PREAL
 use bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_PRIMERS;
 use bijux_dna_domain_fastq::params::validate::{PairSyncPolicy, ValidationMode};
 use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS;
+use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_TERMINAL_DAMAGE;
 use bijux_dna_domain_fastq::stages::ids::STAGE_VALIDATE_READS;
 use serde::Deserialize;
@@ -24,6 +25,9 @@ use crate::tool_adapters::fastq::normalize_primers::{
     plan_with_options as plan_normalize_primers, NormalizePrimersPlanOptions,
 };
 use crate::tool_adapters::fastq::profile_read_lengths::plan_with_options as plan_profile_read_lengths;
+use crate::tool_adapters::fastq::trim_polyg_tails::{
+    plan_trim_polyg_tails_with_options, TrimPolygPlanOptions,
+};
 use crate::tool_adapters::fastq::trim_terminal_damage::{
     plan_trim_terminal_damage_with_options, TrimTerminalDamagePlanOptions,
 };
@@ -49,6 +53,10 @@ const LOCAL_PROFILE_READ_LENGTHS_CONFIG_PATH: &str =
     "configs/bench/local/fastq-profile-read-lengths.toml";
 const DEFAULT_LOCAL_PROFILE_READ_LENGTHS_OUTPUT_DIR: &str =
     "target/local-smoke/fastq.profile_read_lengths";
+const LOCAL_TRIM_POLYG_TAILS_CONFIG_PATH: &str =
+    "configs/bench/local/fastq-trim-polyg-tails.toml";
+const DEFAULT_LOCAL_TRIM_POLYG_TAILS_OUTPUT_DIR: &str =
+    "target/local-smoke/fastq.trim_polyg_tails";
 const LOCAL_TRIM_TERMINAL_DAMAGE_CONFIG_PATH: &str =
     "configs/bench/local/fastq-trim-terminal-damage.toml";
 const DEFAULT_LOCAL_TRIM_TERMINAL_DAMAGE_OUTPUT_DIR: &str =
@@ -103,6 +111,15 @@ pub struct LocalTrimTerminalDamageSmokeCasePlan {
     pub sample_id: String,
     pub r1: PathBuf,
     pub r2: Option<PathBuf>,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalTrimPolygTailsSmokeCasePlan {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub r2: Option<PathBuf>,
+    pub min_polyg_run: u32,
     pub plan: bijux_dna_stage_contract::StagePlanV1,
 }
 
@@ -205,6 +222,21 @@ struct LocalTrimTerminalDamageSmokeConfig {
 }
 
 #[derive(Debug, Deserialize)]
+struct LocalTrimPolygTailsSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    trim_polyg: Option<bool>,
+    #[serde(default)]
+    min_polyg_run: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalTrimPolygTailsSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
 struct LocalDetectAdaptersSmokeCase {
     sample_id: String,
     r1: PathBuf,
@@ -238,6 +270,14 @@ struct LocalNormalizePrimersSmokeCase {
 
 #[derive(Debug, Deserialize)]
 struct LocalTrimTerminalDamageSmokeCase {
+    sample_id: String,
+    r1: PathBuf,
+    #[serde(default)]
+    r2: Option<PathBuf>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalTrimPolygTailsSmokeCase {
     sample_id: String,
     r1: PathBuf,
     #[serde(default)]
@@ -505,6 +545,53 @@ pub fn local_trim_terminal_damage_smoke_plans(
         .collect()
 }
 
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_trim_polyg_tails_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalTrimPolygTailsSmokeCasePlan>> {
+    let config = load_local_trim_polyg_tails_smoke_config(repo_root)?;
+    ensure_unique_trim_polyg_tails_sample_ids(&config.cases)?;
+
+    let stage_id = StageId::new(STAGE_TRIM_POLYG_TAILS.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(&stage_id).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke fastq.trim_polyg_tails tool_id `{}` is not admitted for {}",
+            tool_id.as_str(),
+            stage_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_TRIM_POLYG_TAILS_OUTPUT_DIR));
+    let trim_polyg = config.trim_polyg.unwrap_or(true);
+    let min_polyg_run = config.min_polyg_run.unwrap_or(10).max(1);
+    let plan_options = TrimPolygPlanOptions {
+        threads: Some(tool_spec.resources.threads.max(1)),
+        trim_polyg,
+        min_polyg_run,
+    };
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| {
+            build_local_trim_polyg_tails_smoke_case(
+                repo_root,
+                &tool_spec,
+                &plan_options,
+                &output_root,
+                case,
+            )
+        })
+        .collect()
+}
+
 fn build_local_detect_adapters_smoke_case(
     repo_root: &Path,
     tool_spec: &ToolExecutionSpecV1,
@@ -691,6 +778,48 @@ fn build_local_trim_terminal_damage_smoke_case(
         sample_id: case.sample_id,
         r1: case.r1,
         r2: case.r2,
+        plan,
+    })
+}
+
+fn build_local_trim_polyg_tails_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    options: &TrimPolygPlanOptions,
+    output_root: &Path,
+    case: LocalTrimPolygTailsSmokeCase,
+) -> Result<LocalTrimPolygTailsSmokeCasePlan> {
+    let r1_abs = repo_root.join(&case.r1);
+    if !r1_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke fastq.trim_polyg_tails r1 fixture is missing: {}",
+            r1_abs.display()
+        ));
+    }
+    if let Some(r2) = case.r2.as_ref() {
+        let r2_abs = repo_root.join(r2);
+        if !r2_abs.is_file() {
+            return Err(anyhow!(
+                "local-smoke fastq.trim_polyg_tails r2 fixture is missing: {}",
+                r2_abs.display()
+            ));
+        }
+    }
+
+    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let plan = plan_trim_polyg_tails_with_options(
+        tool_spec,
+        &case.r1,
+        case.r2.as_deref(),
+        &out_dir,
+        options,
+    )?;
+
+    Ok(LocalTrimPolygTailsSmokeCasePlan {
+        sample_id: case.sample_id,
+        r1: case.r1,
+        r2: case.r2,
+        min_polyg_run: options.min_polyg_run,
         plan,
     })
 }
@@ -989,6 +1118,24 @@ fn ensure_unique_trim_terminal_damage_sample_ids(
     Ok(())
 }
 
+fn ensure_unique_trim_polyg_tails_sample_ids(cases: &[LocalTrimPolygTailsSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!(
+                "local-smoke fastq.trim_polyg_tails sample_id must not be empty"
+            ));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke fastq.trim_polyg_tails sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn ensure_unique_detect_duplicates_premerge_sample_ids(
     cases: &[LocalDetectDuplicatesPremergeSmokeCase],
 ) -> Result<()> {
@@ -1087,6 +1234,27 @@ fn load_local_trim_terminal_damage_smoke_config(
     if config.cases.is_empty() {
         return Err(anyhow!(
             "local-smoke fastq.trim_terminal_damage must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_trim_polyg_tails_smoke_config(
+    repo_root: &Path,
+) -> Result<LocalTrimPolygTailsSmokeConfig> {
+    let path = repo_root.join(LOCAL_TRIM_POLYG_TAILS_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalTrimPolygTailsSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.fastq.local_trim_polyg_tails.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke fastq.trim_polyg_tails schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke fastq.trim_polyg_tails must declare at least one governed case"
         ));
     }
     Ok(config)
