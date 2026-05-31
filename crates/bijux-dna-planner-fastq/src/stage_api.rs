@@ -339,6 +339,17 @@ pub fn local_validate_reads_smoke_plans(
     crate::planner::local_validate_reads_smoke_plans(repo_root)
 }
 
+/// Build the governed local-smoke `fastq.detect_adapters` plans from repository-owned config.
+///
+/// # Errors
+/// Returns an error if the local-smoke config, governed FASTQ tool YAML, or local FASTQ fixtures
+/// cannot be resolved into deterministic `StagePlanV1` values.
+pub fn local_detect_adapters_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::planner::LocalDetectAdaptersSmokeCasePlan>> {
+    crate::planner::local_detect_adapters_smoke_plans(repo_root)
+}
+
 /// Build the governed local-smoke `fastq.profile_read_lengths` plans from repository-owned
 /// config.
 ///
