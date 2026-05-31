@@ -8,17 +8,21 @@ use bijux_dna_domain_fastq::stages::ids::STAGE_DETECT_DUPLICATES_PREMERGE;
 use bijux_dna_domain_fastq::stages::ids::STAGE_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN;
 use bijux_dna_domain_fastq::params::validate::{PairSyncPolicy, ValidationMode};
 use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS;
+use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_TERMINAL_DAMAGE;
 use bijux_dna_domain_fastq::stages::ids::STAGE_VALIDATE_READS;
 use serde::Deserialize;
 
 use crate::selection::{
-    load_fastq_domain_tool_execution_spec, select_detect_adapters_tools,
+    allowed_tools_for_stage, load_fastq_domain_tool_execution_spec, select_detect_adapters_tools,
     select_profile_read_lengths_tools, select_validate_tools,
 };
 use crate::tool_adapters::fastq::detect_adapters::plan_with_options as plan_detect_adapters;
 use crate::tool_adapters::fastq::detect_duplicates_premerge::plan as plan_detect_duplicates_premerge;
 use crate::tool_adapters::fastq::estimate_library_complexity_prealign::plan as plan_estimate_library_complexity_prealign;
 use crate::tool_adapters::fastq::profile_read_lengths::plan_with_options as plan_profile_read_lengths;
+use crate::tool_adapters::fastq::trim_terminal_damage::{
+    plan_trim_terminal_damage_with_options, TrimTerminalDamagePlanOptions,
+};
 use crate::tool_adapters::fastq::validate_reads::{
     default_plan_options_for_layout, plan_with_options, validation_mode_from_literal,
 };
@@ -37,6 +41,10 @@ const LOCAL_PROFILE_READ_LENGTHS_CONFIG_PATH: &str =
     "configs/bench/local/fastq-profile-read-lengths.toml";
 const DEFAULT_LOCAL_PROFILE_READ_LENGTHS_OUTPUT_DIR: &str =
     "target/local-smoke/fastq.profile_read_lengths";
+const LOCAL_TRIM_TERMINAL_DAMAGE_CONFIG_PATH: &str =
+    "configs/bench/local/fastq-trim-terminal-damage.toml";
+const DEFAULT_LOCAL_TRIM_TERMINAL_DAMAGE_OUTPUT_DIR: &str =
+    "target/local-smoke/fastq.trim_terminal_damage";
 const LOCAL_VALIDATE_READS_CONFIG_PATH: &str = "configs/bench/local/fastq-validate-reads.toml";
 const DEFAULT_LOCAL_VALIDATE_READS_OUTPUT_DIR: &str = "target/local-smoke/fastq.validate_reads";
 
@@ -71,6 +79,14 @@ pub struct LocalEstimateLibraryComplexityPrealignSmokeCasePlan {
     pub r1: PathBuf,
     pub r2: Option<PathBuf>,
     pub kmer_size: u32,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalTrimTerminalDamageSmokeCasePlan {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub r2: Option<PathBuf>,
     pub plan: bijux_dna_stage_contract::StagePlanV1,
 }
 
@@ -133,6 +149,22 @@ struct LocalEstimateLibraryComplexityPrealignSmokeConfig {
 }
 
 #[derive(Debug, Deserialize)]
+struct LocalTrimTerminalDamageSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    damage_mode: String,
+    #[serde(default)]
+    execution_policy: Option<String>,
+    trim_5p_bases: u32,
+    trim_3p_bases: u32,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalTrimTerminalDamageSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
 struct LocalDetectAdaptersSmokeCase {
     sample_id: String,
     r1: PathBuf,
@@ -150,6 +182,14 @@ struct LocalDetectDuplicatesPremergeSmokeCase {
 
 #[derive(Debug, Deserialize)]
 struct LocalEstimateLibraryComplexityPrealignSmokeCase {
+    sample_id: String,
+    r1: PathBuf,
+    #[serde(default)]
+    r2: Option<PathBuf>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalTrimTerminalDamageSmokeCase {
     sample_id: String,
     r1: PathBuf,
     #[serde(default)]
@@ -297,6 +337,66 @@ pub fn local_estimate_library_complexity_prealign_smoke_plans(
         .collect()
 }
 
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_trim_terminal_damage_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalTrimTerminalDamageSmokeCasePlan>> {
+    let config = load_local_trim_terminal_damage_smoke_config(repo_root)?;
+    ensure_unique_trim_terminal_damage_sample_ids(&config.cases)?;
+
+    let stage_id = StageId::new(STAGE_TRIM_TERMINAL_DAMAGE.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(&stage_id).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke fastq.trim_terminal_damage tool_id `{}` is not admitted for {}",
+            tool_id.as_str(),
+            stage_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_TRIM_TERMINAL_DAMAGE_OUTPUT_DIR));
+    let damage_mode = config.damage_mode.parse().map_err(|error: String| {
+        anyhow!("invalid local-smoke fastq.trim_terminal_damage damage_mode `{}`: {error}", config.damage_mode)
+    })?;
+    let execution_policy =
+        bijux_dna_domain_fastq::params::trim::parse_terminal_damage_execution_policy(
+            config.execution_policy.as_deref().unwrap_or("policy_derived"),
+        )
+        .ok_or_else(|| {
+            anyhow!(
+                "invalid local-smoke fastq.trim_terminal_damage execution_policy `{:?}`",
+                config.execution_policy
+            )
+        })?;
+    let plan_options = TrimTerminalDamagePlanOptions {
+        threads: Some(tool_spec.resources.threads.max(1)),
+        damage_mode,
+        execution_policy,
+        trim_5p_bases: config.trim_5p_bases,
+        trim_3p_bases: config.trim_3p_bases,
+    };
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| {
+            build_local_trim_terminal_damage_smoke_case(
+                repo_root,
+                &tool_spec,
+                &plan_options,
+                &output_root,
+                case,
+            )
+        })
+        .collect()
+}
+
 fn build_local_detect_adapters_smoke_case(
     repo_root: &Path,
     tool_spec: &ToolExecutionSpecV1,
@@ -401,6 +501,47 @@ fn build_local_estimate_library_complexity_prealign_smoke_case(
         r1: case.r1,
         r2: case.r2,
         kmer_size,
+        plan,
+    })
+}
+
+fn build_local_trim_terminal_damage_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    options: &TrimTerminalDamagePlanOptions,
+    output_root: &Path,
+    case: LocalTrimTerminalDamageSmokeCase,
+) -> Result<LocalTrimTerminalDamageSmokeCasePlan> {
+    let r1_abs = repo_root.join(&case.r1);
+    if !r1_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke fastq.trim_terminal_damage r1 fixture is missing: {}",
+            r1_abs.display()
+        ));
+    }
+    if let Some(r2) = case.r2.as_ref() {
+        let r2_abs = repo_root.join(r2);
+        if !r2_abs.is_file() {
+            return Err(anyhow!(
+                "local-smoke fastq.trim_terminal_damage r2 fixture is missing: {}",
+                r2_abs.display()
+            ));
+        }
+    }
+
+    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let plan = plan_trim_terminal_damage_with_options(
+        tool_spec,
+        &case.r1,
+        case.r2.as_deref(),
+        &out_dir,
+        options,
+    )?;
+
+    Ok(LocalTrimTerminalDamageSmokeCasePlan {
+        sample_id: case.sample_id,
+        r1: case.r1,
+        r2: case.r2,
         plan,
     })
 }
@@ -659,6 +800,26 @@ fn ensure_unique_estimate_library_complexity_prealign_sample_ids(
     Ok(())
 }
 
+fn ensure_unique_trim_terminal_damage_sample_ids(
+    cases: &[LocalTrimTerminalDamageSmokeCase],
+) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!(
+                "local-smoke fastq.trim_terminal_damage sample_id must not be empty"
+            ));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke fastq.trim_terminal_damage sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn ensure_unique_detect_duplicates_premerge_sample_ids(
     cases: &[LocalDetectDuplicatesPremergeSmokeCase],
 ) -> Result<()> {
@@ -715,6 +876,27 @@ fn load_local_estimate_library_complexity_prealign_smoke_config(
     if config.cases.is_empty() {
         return Err(anyhow!(
             "local-smoke fastq.estimate_library_complexity_prealign must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_trim_terminal_damage_smoke_config(
+    repo_root: &Path,
+) -> Result<LocalTrimTerminalDamageSmokeConfig> {
+    let path = repo_root.join(LOCAL_TRIM_TERMINAL_DAMAGE_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalTrimTerminalDamageSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.fastq.local_trim_terminal_damage.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke fastq.trim_terminal_damage schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke fastq.trim_terminal_damage must declare at least one governed case"
         ));
     }
     Ok(config)
