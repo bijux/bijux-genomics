@@ -1,0 +1,10 @@
+schema_version = "bijux.bench.fastq.local_filter_reads.v1"
+tool_id = "fastp"
+threads = 1
+max_n_count = 1
+low_complexity_threshold = 20.0
+output_dir = "target/local-smoke/fastq.filter_reads"
+
+[[cases]]
+sample_id = "n-and-complexity-se"
+r1 = "assets/toy/core-v1/fastq/reads_with_filter_signals.fastq"
