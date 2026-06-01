@@ -8,12 +8,15 @@ use crate::commands::benchmark::local_stage_commands::{
     render_local_stage_commands, BenchLocalStageArtifactEntry, BenchLocalStageCommandEntry,
 };
 use crate::commands::benchmark::local_stage_inventory::LocalStageReadinessKind;
+use crate::commands::benchmark::local_stage_result_manifest::{
+    validate_stage_result_manifest, BenchStageResultCommandV1, BenchStageResultManifestV1,
+    BenchStageResultOutputV1, BenchStageResultRuntimeV1, BenchStageResultStatus,
+    BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const LOCAL_STAGE_FAKE_RUN_MANIFEST_SCHEMA_VERSION: &str = "bijux.bench.local_stage_fake_runs.v1";
-const LOCAL_STAGE_FAKE_RUN_RESULT_SCHEMA_VERSION: &str =
-    "bijux.bench.local_stage_fake_run_result.v1";
 const LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_VERSION: &str =
     "bijux.bench.local_stage_fake_failures.v1";
 const LOCAL_STAGE_FAKE_FAILURE_RECORD_SCHEMA_VERSION: &str =
@@ -204,8 +207,10 @@ fn fake_run_stage_command(
     let created_output_count = outputs.iter().filter(|artifact| artifact.exists).count();
 
     let stage_manifest_path = stage_root.join("stage-result.json");
+    let stage_manifest = build_stage_result_manifest(command, &outputs);
+    validate_stage_result_manifest(&stage_manifest)?;
     let result = BenchLocalStageFakeRunResult {
-        schema_version: LOCAL_STAGE_FAKE_RUN_RESULT_SCHEMA_VERSION,
+        schema_version: BENCH_STAGE_RESULT_SCHEMA_VERSION,
         stage_id: command.stage_id.clone(),
         readiness_kind: command.readiness_kind,
         tool_id: command.tool_id.clone(),
@@ -215,8 +220,39 @@ fn fake_run_stage_command(
         created_output_count,
         outputs,
     };
-    bijux_dna_infra::atomic_write_json(&stage_manifest_path, &result)?;
+    bijux_dna_infra::atomic_write_json(&stage_manifest_path, &stage_manifest)?;
     Ok(result)
+}
+
+fn build_stage_result_manifest(
+    command: &BenchLocalStageCommandEntry,
+    outputs: &[BenchLocalStageFakeRunOutputEntry],
+) -> BenchStageResultManifestV1 {
+    BenchStageResultManifestV1 {
+        schema_version: BENCH_STAGE_RESULT_SCHEMA_VERSION.to_string(),
+        stage_id: command.stage_id.clone(),
+        tool: BenchStageResultToolV1 { id: command.tool_id.clone() },
+        command: BenchStageResultCommandV1 { rendered: command.command.clone() },
+        runtime: BenchStageResultRuntimeV1 {
+            mode: "fake_run".to_string(),
+            status: BenchStageResultStatus::Succeeded,
+            started_at: "1970-01-01T00:00:00Z".to_string(),
+            finished_at: "1970-01-01T00:00:01Z".to_string(),
+            elapsed_seconds: 1.0,
+            exit_code: 0,
+        },
+        outputs: outputs
+            .iter()
+            .map(|artifact| BenchStageResultOutputV1 {
+                artifact_id: artifact.artifact_id.clone(),
+                declared_path: artifact.declared_path.clone(),
+                realized_path: artifact.fake_run_path.clone(),
+                role: artifact.role.clone(),
+                optional: artifact.optional,
+                exists: artifact.exists,
+            })
+            .collect(),
+    }
 }
 
 fn fake_run_stage_failure(
