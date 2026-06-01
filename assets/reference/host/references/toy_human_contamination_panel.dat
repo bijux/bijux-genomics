@@ -1,0 +1,5 @@
+# Tiny governed population-AF panel placeholder for local contamination planning.
+# The planner treats this as a verifybamid2-style SVD resource path for command rendering.
+variant_id	contig	position	ref	alt	af
+toy-rs1	chr1	5	A	G	0.12
+toy-rs2	chr1	18	G	A	0.21
