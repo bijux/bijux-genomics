@@ -24,6 +24,7 @@ pub const BAM_MARKDUP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.markdup.v1";
 pub const BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.duplication_metrics.v1";
 pub const BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.complexity.v1";
 pub const BAM_COVERAGE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_summary.v1";
+pub const BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.insert_size.v1";
 pub const BAM_DUPLICATE_POLICY_SCHEMA_VERSION: &str = "bijux.bam.duplicate_policy.v1";
 pub const BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION: &str = "bijux.bam.advisory_boundary.v1";
 pub const BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION: &str = "bijux.bam.workflow_template.v1";
@@ -324,6 +325,33 @@ pub struct BamComplexitySummaryV1 {
     pub min_reads: u64,
     #[serde(default)]
     pub insufficient_data_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamInsertSizeSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub input_bam: PathBuf,
+    pub report_present: bool,
+    pub histogram_present: bool,
+    #[serde(default)]
+    pub median_insert_size: Option<f64>,
+    #[serde(default)]
+    pub mean_insert_size: Option<f64>,
+    #[serde(default)]
+    pub standard_deviation: Option<f64>,
+    #[serde(default)]
+    pub median_absolute_deviation: Option<f64>,
+    #[serde(default)]
+    pub min_insert_size: Option<u64>,
+    #[serde(default)]
+    pub max_insert_size: Option<u64>,
+    pub read_pairs: u64,
+    #[serde(default)]
+    pub pair_orientation_fr_fraction: Option<f64>,
+    #[serde(default)]
+    pub insufficient_pairs_reason: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -819,6 +847,7 @@ struct TinySamRecord {
     pos: u64,
     mapq: u8,
     cigar: String,
+    template_length: i64,
     seq: String,
     read_group_id: Option<String>,
 }
@@ -941,6 +970,13 @@ fn parse_tiny_sam(path: &Path) -> Result<TinySamDocument> {
                 break;
             }
         }
+        let template_length = fields[8].parse::<i64>().map_err(|error| {
+            anyhow!(
+                "malformed SAM record at line {}: invalid template length {} ({error})",
+                line_index + 1,
+                fields[8]
+            )
+        })?;
         document.records.push(TinySamRecord {
             qname: fields[0].to_string(),
             flag,
@@ -948,6 +984,7 @@ fn parse_tiny_sam(path: &Path) -> Result<TinySamDocument> {
             pos,
             mapq,
             cigar: fields[5].to_string(),
+            template_length,
             seq: fields[9].to_string(),
             read_group_id,
         });
@@ -1284,6 +1321,7 @@ fn alignment_record_with_flags(
         pos: hit.map(|result| result.position).unwrap_or(0),
         mapq: hit.map(|result| result.mapq).unwrap_or(0),
         cigar: hit.map(|result| result.cigar.clone()).unwrap_or_else(|| "*".to_string()),
+        template_length: 0,
         seq: "*".to_string(),
         read_group_id: Some(read_group_id.to_string()),
     }
@@ -1310,13 +1348,14 @@ fn write_tiny_sam_document(
     payload.push('\n');
     for record in records {
         payload.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t*\t0\t0\t{}\t*\tRG:Z:{}\n",
+            "{}\t{}\t{}\t{}\t{}\t{}\t*\t0\t{}\t{}\t*\tRG:Z:{}\n",
             record.qname,
             record.flag,
             record.rname,
             record.pos,
             record.mapq,
             record.cigar,
+            record.template_length,
             record.seq,
             record.read_group_id.as_deref().unwrap_or(&read_group.id)
         ));
@@ -1342,13 +1381,14 @@ fn write_tiny_sam_from_document(
     }
     for record in &document.records {
         payload.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t*\t0\t0\t{}\t*\tRG:Z:{}\n",
+            "{}\t{}\t{}\t{}\t{}\t{}\t*\t0\t{}\t{}\t*\tRG:Z:{}\n",
             record.qname,
             record.flag,
             record.rname,
             record.pos,
             record.mapq,
             record.cigar,
+            record.template_length,
             record.seq,
             record.read_group_id.as_deref().unwrap_or("unknown"),
         ));
@@ -2384,6 +2424,22 @@ pub fn filter_tiny_bam_by_mapq(
     })
 }
 
+/// Summarize insert-size observations for a tiny BAM/SAM fixture.
+///
+/// # Errors
+/// Returns an error if the input cannot be parsed.
+pub fn summarize_tiny_bam_insert_size(input_bam: &Path) -> Result<BamInsertSizeSummaryV1> {
+    let document = parse_tiny_sam(input_bam)?;
+    let metrics = tiny_insert_size_metrics(&document.records);
+    Ok(build_insert_size_summary(
+        "bam.insert_size",
+        input_bam,
+        true,
+        true,
+        metrics.as_ref(),
+    ))
+}
+
 /// Filter tiny BAM/SAM fixtures by minimum read length and emit retained length bounds.
 ///
 /// # Errors
@@ -2579,6 +2635,17 @@ pub fn summarize_tiny_bam_mapping(input_bam: &Path) -> Result<BamMappingSummaryV
     })
 }
 
+#[must_use]
+pub fn summarize_bam_insert_size(
+    stage_id: &str,
+    input_bam: &Path,
+    report_present: bool,
+    histogram_present: bool,
+    metrics: Option<&crate::metrics::InsertSizeMetricsV1>,
+) -> BamInsertSizeSummaryV1 {
+    build_insert_size_summary(stage_id, input_bam, report_present, histogram_present, metrics)
+}
+
 /// Summarize pre-QC core BAM metrics for a tiny BAM/SAM fixture.
 ///
 /// # Errors
@@ -2655,6 +2722,123 @@ fn idxstats_from_tiny_document(document: &TinySamDocument) -> crate::metrics::Id
         total_mapped: document.records.iter().filter(|record| record.is_mapped()).count() as u64,
         total_unmapped,
         reference_mismatch,
+    }
+}
+
+fn build_insert_size_summary(
+    stage_id: &str,
+    input_bam: &Path,
+    report_present: bool,
+    histogram_present: bool,
+    metrics: Option<&crate::metrics::InsertSizeMetricsV1>,
+) -> BamInsertSizeSummaryV1 {
+    let insufficient_pairs_reason = metrics.and_then(|metrics| {
+        if metrics.read_pairs == 0 {
+            Some("no_proper_pairs_with_observed_insert_size".to_string())
+        } else {
+            None
+        }
+    });
+    let populated_metrics = metrics.filter(|metrics| metrics.read_pairs > 0);
+
+    BamInsertSizeSummaryV1 {
+        schema_version: BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        report_present,
+        histogram_present,
+        median_insert_size: populated_metrics.map(|metrics| metrics.median_insert_size),
+        mean_insert_size: populated_metrics.map(|metrics| metrics.mean_insert_size),
+        standard_deviation: populated_metrics.map(|metrics| metrics.standard_deviation),
+        median_absolute_deviation: populated_metrics.map(|metrics| metrics.median_absolute_deviation),
+        min_insert_size: populated_metrics.map(|metrics| metrics.min_insert_size),
+        max_insert_size: populated_metrics.map(|metrics| metrics.max_insert_size),
+        read_pairs: metrics.map_or(0, |metrics| metrics.read_pairs),
+        pair_orientation_fr_fraction: populated_metrics
+            .map(|metrics| metrics.pair_orientation_fr_fraction),
+        insufficient_pairs_reason,
+    }
+}
+
+fn tiny_insert_size_metrics(
+    records: &[TinySamRecord],
+) -> Option<crate::metrics::InsertSizeMetricsV1> {
+    let insert_sizes = records
+        .iter()
+        .filter(|record| {
+            (record.flag & 0x1) != 0
+                && (record.flag & 0x2) != 0
+                && (record.flag & 0x4) == 0
+                && (record.flag & 0x8) == 0
+                && (record.flag & 0x40) != 0
+                && record.template_length > 0
+        })
+        .map(|record| u64::try_from(record.template_length).unwrap_or(0))
+        .filter(|insert_size| *insert_size > 0)
+        .collect::<Vec<_>>();
+    if insert_sizes.is_empty() {
+        return Some(crate::metrics::InsertSizeMetricsV1::empty());
+    }
+
+    let mut sorted_insert_sizes = insert_sizes.clone();
+    sorted_insert_sizes.sort_unstable();
+    let read_pairs = sorted_insert_sizes.len() as u64;
+    let mean_insert_size =
+        insert_sizes.iter().map(|value| *value as f64).sum::<f64>() / read_pairs as f64;
+    let median_insert_size = median_f64(
+        &sorted_insert_sizes.iter().map(|value| *value as f64).collect::<Vec<_>>(),
+    );
+    let deviations = sorted_insert_sizes
+        .iter()
+        .map(|value| (*value as f64 - median_insert_size).abs())
+        .collect::<Vec<_>>();
+    let standard_deviation = (insert_sizes
+        .iter()
+        .map(|value| {
+            let centered = *value as f64 - mean_insert_size;
+            centered * centered
+        })
+        .sum::<f64>()
+        / read_pairs as f64)
+        .sqrt();
+    let fr_pairs = records
+        .iter()
+        .filter(|record| {
+            (record.flag & 0x1) != 0
+                && (record.flag & 0x2) != 0
+                && (record.flag & 0x4) == 0
+                && (record.flag & 0x8) == 0
+                && (record.flag & 0x40) != 0
+                && record.template_length > 0
+                && (record.flag & 0x10) == 0
+                && (record.flag & 0x20) != 0
+        })
+        .count() as u64;
+
+    Some(crate::metrics::InsertSizeMetricsV1 {
+        median_insert_size,
+        mean_insert_size,
+        standard_deviation,
+        median_absolute_deviation: median_f64(&deviations),
+        min_insert_size: *sorted_insert_sizes.first().unwrap_or(&0),
+        max_insert_size: *sorted_insert_sizes.last().unwrap_or(&0),
+        read_pairs,
+        pair_orientation_fr_fraction: fr_pairs as f64 / read_pairs as f64,
+    })
+}
+
+fn median_f64(values: &[f64]) -> f64 {
+    if values.is_empty() {
+        return 0.0;
+    }
+
+    let mut sorted = values.to_vec();
+    sorted.sort_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal));
+    let middle = sorted.len() / 2;
+    if sorted.len() % 2 == 0 {
+        (sorted[middle - 1] + sorted[middle]) / 2.0
+    } else {
+        sorted[middle]
     }
 }
 
@@ -3918,6 +4102,31 @@ mod tests {
     }
 
     #[test]
+    fn bam_insert_size_summary_round_trips() {
+        let payload = BamInsertSizeSummaryV1 {
+            schema_version: BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.insert_size".to_string(),
+            input_bam: PathBuf::from("input.bam"),
+            report_present: true,
+            histogram_present: true,
+            median_insert_size: Some(20.0),
+            mean_insert_size: Some(21.666666666666668),
+            standard_deviation: Some(6.236095644623236),
+            median_absolute_deviation: Some(5.0),
+            min_insert_size: Some(15),
+            max_insert_size: Some(30),
+            read_pairs: 3,
+            pair_orientation_fr_fraction: Some(1.0),
+            insufficient_pairs_reason: None,
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize insert size summary");
+        let roundtrip: BamInsertSizeSummaryV1 =
+            serde_json::from_value(json).expect("roundtrip insert size summary");
+        assert_eq!(roundtrip, payload);
+    }
+
+    #[test]
     fn bam_filter_summary_round_trips() {
         let payload = BamFilterSummaryV1 {
             schema_version: BAM_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
@@ -4571,6 +4780,37 @@ r04\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
             summary.insufficient_data_reason.as_deref(),
             Some("insufficient_observed_unique_reads_for_complexity_extrapolation")
         );
+    }
+
+    #[test]
+    fn summarize_tiny_bam_insert_size_reports_paired_fragment_distribution() {
+        let temp = unique_temp_dir("bam-insert-size");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:200\n\
+@RG\tID:rg1\tSM:sampleA\n\
+pair001\t99\tchr1\t10\t60\t6M\t=\t24\t20\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+pair001\t147\tchr1\t24\t60\t6M\t=\t10\t-20\tTGCATG\tFFFFFF\tRG:Z:rg1\n\
+pair002\t99\tchr1\t40\t60\t6M\t=\t49\t15\tGATTAC\tFFFFFF\tRG:Z:rg1\n\
+pair002\t147\tchr1\t49\t60\t6M\t=\t40\t-15\tCTAATG\tFFFFFF\tRG:Z:rg1\n\
+pair003\t99\tchr1\t70\t60\t6M\t=\t94\t30\tCCCCGG\tFFFFFF\tRG:Z:rg1\n\
+pair003\t147\tchr1\t94\t60\t6M\t=\t70\t-30\tCCGGGG\tFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write insert size fixture");
+
+        let summary = summarize_tiny_bam_insert_size(&input).expect("summarize insert size");
+        assert_eq!(summary.stage_id, "bam.insert_size");
+        assert!(summary.report_present);
+        assert!(summary.histogram_present);
+        assert_eq!(summary.read_pairs, 3);
+        assert_eq!(summary.median_insert_size, Some(20.0));
+        assert_eq!(summary.mean_insert_size, Some(21.666666666666668));
+        assert_eq!(summary.min_insert_size, Some(15));
+        assert_eq!(summary.max_insert_size, Some(30));
+        assert_eq!(summary.pair_orientation_fr_fraction, Some(1.0));
+        assert_eq!(summary.insufficient_pairs_reason, None);
     }
 
     #[test]
