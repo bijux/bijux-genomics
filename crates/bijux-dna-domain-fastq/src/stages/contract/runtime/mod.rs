@@ -28,6 +28,7 @@ mod fastq_io;
 mod header_inspection;
 mod interleave_reads;
 mod layout_classification;
+mod merge_pairs;
 mod merge_suitability;
 mod normalize_read_names;
 mod output_normalization;
@@ -68,6 +69,8 @@ pub use header_inspection::{
 };
 pub use interleave_reads::interleave_reads;
 pub use layout_classification::{classify_layout, ensure_layout_is_coherent};
+#[allow(unused_imports)]
+pub use merge_pairs::merge_pairs;
 pub use merge_suitability::{assess_merge_suitability, MergeSuitability};
 pub use normalize_read_names::normalize_read_names;
 pub use output_normalization::{find_first_fastq, normalize_outputs, NormalizedOutputs};
