@@ -16,6 +16,8 @@ mod mod_contracts_v1_bam_local_align_plan_rs;
 mod mod_contracts_v1_bam_local_authenticity_smoke_rs;
 #[path = "contracts/v1_bam_local_complexity_smoke.rs"]
 mod mod_contracts_v1_bam_local_complexity_smoke_rs;
+#[path = "contracts/v1_bam_local_contamination_plan.rs"]
+mod mod_contracts_v1_bam_local_contamination_plan_rs;
 #[path = "contracts/v1_bam_local_coverage_smoke.rs"]
 mod mod_contracts_v1_bam_local_coverage_smoke_rs;
 #[path = "contracts/v1_bam_local_damage_smoke.rs"]
