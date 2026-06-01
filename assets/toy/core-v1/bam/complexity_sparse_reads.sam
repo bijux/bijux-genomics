@@ -1,0 +1,7 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chr1	LN:50
+@RG	ID:rg1	SM:sampleA
+cx01	0	chr1	1	40	6M	*	0	0	ACGTAC	FFFFFF	RG:Z:rg1
+cx02	0	chr1	1	40	6M	*	0	0	ACGTAC	FFFFFF	RG:Z:rg1
+cx03	0	chr1	7	40	6M	*	0	0	TTTTTT	FFFFFF	RG:Z:rg1
+cx04	4	*	0	0	*	*	0	0	NNNNNN	FFFFFF	RG:Z:rg1
