@@ -137,6 +137,9 @@ pub(crate) fn run_simulate_dag_watchdog(
         parse::BenchLocalDagWatchdogScenarioArg::NoGlobalWait => {
             LocalDagWatchdogScenario::NoGlobalWait
         }
+        parse::BenchLocalDagWatchdogScenarioArg::FailureIsolation => {
+            LocalDagWatchdogScenario::FailureIsolation
+        }
     };
     let output_path = match &args.output {
         Some(path) if path.is_absolute() => path.clone(),
