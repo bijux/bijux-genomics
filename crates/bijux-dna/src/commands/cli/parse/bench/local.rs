@@ -10,6 +10,8 @@ pub enum BenchLocalDomainArg {
 pub enum BenchLocalCommand {
     #[command(name = "list-stages")]
     ListStages(BenchLocalListStagesArgs),
+    #[command(name = "render-benchmark-summary")]
+    RenderBenchmarkSummary(BenchLocalRenderBenchmarkSummaryArgs),
     #[command(name = "check-manifest-completion")]
     CheckManifestCompletion(BenchLocalCheckManifestCompletionArgs),
     #[command(name = "check-output-completion")]
@@ -34,6 +36,18 @@ pub enum BenchLocalCommand {
 pub struct BenchLocalListStagesArgs {
     #[arg(long, value_enum)]
     pub domain: BenchLocalDomainArg,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderBenchmarkSummaryArgs {
+    #[arg(long)]
+    pub fake_run_root: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub output_json: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub output_markdown: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

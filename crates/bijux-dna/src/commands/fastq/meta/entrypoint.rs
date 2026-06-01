@@ -162,6 +162,11 @@ pub(crate) fn handle_meta_commands(
                             }
                         }
                     }
+                    cli::BenchLocalCommand::RenderBenchmarkSummary(args) => {
+                        crate::commands::benchmark::local_benchmark_summary::run_render_benchmark_summary(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::CheckManifestCompletion(args) => {
                         crate::commands::benchmark::local_stage_manifest_completion::run_check_manifest_completion(
                             &args,

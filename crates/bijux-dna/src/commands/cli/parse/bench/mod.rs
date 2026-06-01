@@ -31,8 +31,9 @@ pub use self::local::{
     BenchLocalCheckManifestCompletionArgs, BenchLocalCheckOutputCompletionArgs,
     BenchLocalCollectRuntimeMetricsArgs, BenchLocalCommand, BenchLocalDomainArg,
     BenchLocalFakeRunFailuresArgs, BenchLocalFakeRunStagesArgs, BenchLocalListStagesArgs,
-    BenchLocalMaterializeStageArgs, BenchLocalRenderStageCommandsArgs,
-    BenchLocalRenderToolComparisonTemplateArgs, BenchLocalValidateStageResultArgs,
+    BenchLocalMaterializeStageArgs, BenchLocalRenderBenchmarkSummaryArgs,
+    BenchLocalRenderStageCommandsArgs, BenchLocalRenderToolComparisonTemplateArgs,
+    BenchLocalValidateStageResultArgs,
 };
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
