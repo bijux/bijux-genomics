@@ -2,7 +2,8 @@ use std::fs;
 use std::path::PathBuf;
 
 use bijux_dna_domain_bam::{
-    BamStage, BAM_METRICS_CATALOG, BAM_PARAMS_CATALOG, BAM_STAGE_ID_CATALOG,
+    BamStage, BAM_LOCAL_BENCH_STAGE_ID_CATALOG, BAM_METRICS_CATALOG, BAM_PARAMS_CATALOG,
+    BAM_STAGE_ID_CATALOG,
 };
 
 #[test]
@@ -77,6 +78,7 @@ fn public_api_doc_names_exported_surface() -> anyhow::Result<()> {
         "stage_spec",
         "stage_specs",
         "BAM_STAGE_ID_CATALOG",
+        "BAM_LOCAL_BENCH_STAGE_ID_CATALOG",
         "BAM_PARAMS_CATALOG",
         "BAM_METRICS_CATALOG",
     ] {
@@ -106,6 +108,15 @@ fn stage_id_catalog_matches_stage_enum() {
     let mut expected: Vec<&str> = BamStage::all().iter().map(|stage| stage.as_str()).collect();
     expected.sort_unstable();
     assert_eq!(BAM_STAGE_ID_CATALOG, expected.as_slice());
+}
+
+#[test]
+fn local_benchmark_stage_catalog_matches_full_stage_catalog() {
+    assert_eq!(
+        BAM_LOCAL_BENCH_STAGE_ID_CATALOG,
+        BAM_STAGE_ID_CATALOG,
+        "BAM local benchmark stage catalog must cover every implemented BAM stage",
+    );
 }
 
 #[test]
