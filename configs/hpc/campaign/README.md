@@ -3,6 +3,7 @@
 These are baseline campaign profiles for Slurm dry-run and preflight validation.
 
 - `lunarc-small.toml`: Lunarc-oriented defaults.
+- `lunarc-fastq-bam-local-ready.toml`: Lunarc-oriented cross-domain dry-run profile that expects prepared corpus, database, and image roots.
 - `generic-small.toml`: generic Slurm defaults.
 - `cross-mini.toml`: cross-domain fixture with explicit handoff dependency.
 - `site-profiles/lunarc.toml`: Lunarc site defaults.

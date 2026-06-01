@@ -6,6 +6,7 @@ Files:
 - `configs/hpc/benchmark_sync_profiles.toml`
 - `configs/hpc/campaign/README.md`
 - `configs/hpc/campaign/lunarc-small.toml`
+- `configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml`
 - `configs/hpc/campaign/generic-small.toml`
 - `configs/hpc/campaign/cross-mini.toml`
 - `configs/hpc/rsync/index.md`
