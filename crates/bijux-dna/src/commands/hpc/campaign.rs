@@ -1933,8 +1933,8 @@ default_resource_template = "standard"
 encryption_recipients = ["alice"]
 
 [[jobs]]
-stage = "bam.sort"
-tool = "samtools"
+stage = "bam.align"
+tool = "bwa"
 sample = "sample-1"
 resource_template = "missing"
 "#;
@@ -1952,6 +1952,47 @@ resource_template = "missing"
             .iter()
             .any(|check| check.name.starts_with("job_template_present") && !check.ok));
         assert!(default_resource_template_map().contains_key("standard"));
+    }
+
+    #[test]
+    fn campaign_preflight_rejects_unknown_stage_ids() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_path = root.path().join("campaign.toml");
+        let config = r#"
+schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "mini"
+domain = "cross"
+
+[layout]
+corpora_root = "/shared/corpora"
+databases_root = "/shared/databases"
+images_root = "/shared/images"
+scratch_root = "/shared/scratch"
+logs_root = "/shared/logs"
+encrypted_results_root = "/shared/results"
+encrypted_code_root = "/shared/code"
+appraiser_imports_root = "/shared/imports"
+baselines_root = "/shared/baselines"
+
+[slurm]
+site_profile = "generic"
+
+[security]
+encryption_recipients = ["alice"]
+
+[[jobs]]
+name = "bam_sort_sample_1"
+stage = "bam.sort"
+tool = "samtools"
+sample = "sample-1"
+"#;
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
+
+        let err =
+            campaign_preflight(&config_path, None, None).expect_err("must reject stale stage");
+        assert!(err.to_string().contains("unknown stage `bam.sort`"));
     }
 
     #[test]
