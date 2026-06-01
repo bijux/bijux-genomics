@@ -4,7 +4,7 @@ pub mod haplogroups {
     use std::path::Path;
 
     use bijux_dna_core::prelude::{
-        ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
     };
     use bijux_dna_domain_bam::params::HaplogroupEffectiveParams;
     use bijux_dna_stage_contract::{StageIO, StagePlanV1};
@@ -17,6 +17,7 @@ pub mod haplogroups {
     pub fn plan(
         tool: &ToolExecutionSpecV1,
         bam: &Path,
+        bam_index: Option<&Path>,
         out_dir: &Path,
         params: &HaplogroupEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
@@ -24,6 +25,28 @@ pub mod haplogroups {
             bijux_dna_domain_bam::BamStage::Haplogroups,
             out_dir,
         );
+        let report = out_dir.join("haplogroups.json");
+        let summary = out_dir.join("haplogroups.summary.json");
+        let command = crate::tool_adapters::tools::downstream::haplogroups::args_with_outputs(
+            tool.tool_id.as_str(),
+            bam,
+            bam_index,
+            &report,
+            &summary,
+            params,
+        );
+        let mut inputs = vec![bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("bam"),
+            bam.to_path_buf(),
+            ArtifactRole::Bam,
+        )];
+        if let Some(bam_index) = bam_index {
+            inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("bam_bai"),
+                bam_index.to_path_buf(),
+                ArtifactRole::Index,
+            ));
+        }
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_instance_id: None,
@@ -31,21 +54,16 @@ pub mod haplogroups {
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
-            command: bijux_dna_core::prelude::CommandSpecV1 {
-                template: tool.command.template.to_vec(),
-            },
+            command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
-                    ArtifactId::from_static("bam"),
-                    bam.to_path_buf(),
-                    ArtifactRole::Bam,
-                )],
+                inputs,
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),
             params: serde_json::json!({
                 "bam": bam,
+                "bai": bam_index,
                 "reference_panel": params.reference_panel,
                 "reference_build": params.reference_build,
                 "min_coverage": params.min_coverage,

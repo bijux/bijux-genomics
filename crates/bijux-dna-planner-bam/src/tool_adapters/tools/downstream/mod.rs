@@ -6,6 +6,7 @@ pub mod authenticity_signal;
 pub mod contamination;
 pub mod gatk;
 pub mod genotyping;
+pub mod haplogroups;
 pub mod kinship;
 pub mod rxy;
 pub use contamination::{contammix, schmutzi, verifybamid2};

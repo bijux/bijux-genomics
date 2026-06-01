@@ -1879,6 +1879,38 @@ dockerfile = "containers/docker/arm64/Dockerfile.vsearch"
 apptainer_def = "containers/apptainer/shared/vsearch.def"
 require_labels = true
 
+[[tools]]
+id = "yleaf"
+tool_id = "yleaf"
+domain = "bam"
+domains = ["bam"]
+status = "experimental"
+stage_ids = ["bam.sex", "bam.haplogroups"]
+bindings = ["bam.haplogroups", "bam.sex"]
+tool_role = "transform"
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "https://github.com/genid/Yleaf"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "paper:https://academic.oup.com/mbe/article/35/5/1291/4922696"
+pinned_commit = "git:f3aae50653cb685a7c3d6e4c08aa170c47a85263"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/yleaf:latest-pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "yleaf --version"
+help_cmd = "yleaf --help"
+smoke_version_cmd = "yleaf --version"
+smoke_help_cmd = "yleaf --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "yleaf --help"
+expected_bin = "yleaf"
+expected_artifacts = ["haplogroup_report"]
+metrics_schema = "bijux.bam.sex.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.yleaf"
+
 [[stages]]
 id = "bam.align"
 required_tool_roles = ["aligner"]

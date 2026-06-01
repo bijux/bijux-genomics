@@ -1,0 +1,21 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-ready plan input for bam.haplogroups.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_haplogroups.v1"
+bam = "assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam"
+bai = "assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai"
+reference_fasta = "assets/reference/host/references/toy_human_y_reference.fasta"
+reference_panel_id = "toy-human-y-hg38"
+reference_panel = "assets/reference/host/references/toy_human_y_haplogroup_panel.tsv"
+tool_id = "yleaf"
+sample_id = "core-v1-haplogroups-y-panel-screen"
+reference_build = "hg38"
+population_scope = "human_y_haplogroup_panel"
+min_coverage = 2.0
+refuse_without_population_context = true
+threads = 2
+output_dir = "target/local-ready/bam.haplogroups"
