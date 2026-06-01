@@ -6,6 +6,8 @@ mod contract_handshake;
 mod local_align;
 #[path = "plan/local_filter_smoke.rs"]
 mod local_filter_smoke;
+#[path = "plan/local_length_filter_smoke.rs"]
+mod local_length_filter_smoke;
 #[path = "plan/local_mapping_summary_smoke.rs"]
 mod local_mapping_summary_smoke;
 #[path = "plan/local_mapq_filter_smoke.rs"]

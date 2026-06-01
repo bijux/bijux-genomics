@@ -79,6 +79,11 @@ fn documented_root_exports_remain_compilable() {
         &Path,
     ) -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalMapqFilterSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_mapq_filter_smoke_plans;
+    let _: fn(
+        &Path,
+    )
+        -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalLengthFilterSmokeCasePlan>> =
+        bijux_dna_planner_bam::stage_api::local_length_filter_smoke_plans;
     let _: &str = bijux_dna_planner_bam::tool_adapters::tools::catalog::TOOLS_NAMESPACE;
 }
 
