@@ -49,6 +49,7 @@ pub(crate) struct AmpliconCorpusFixtureManifest {
     pub(crate) reverse_primer_id: String,
     pub(crate) primer_fasta: PathBuf,
     pub(crate) primers_tsv_path: PathBuf,
+    pub(crate) expected_asvs_path: PathBuf,
     pub(crate) amplicon_governance_path: PathBuf,
     pub(crate) controls: Vec<AmpliconCorpusControl>,
     pub(crate) samples: Vec<AmpliconCorpusFixtureSample>,
@@ -105,6 +106,10 @@ pub(crate) struct AmpliconCorpusFixtureValidationReport {
     pub(crate) primer_fasta: String,
     pub(crate) primers_tsv_path: String,
     pub(crate) primer_table_row_count: usize,
+    pub(crate) expected_asvs_path: String,
+    pub(crate) expected_asv_row_count: usize,
+    pub(crate) expected_asv_present_row_count: usize,
+    pub(crate) expected_asv_absent_row_count: usize,
     pub(crate) amplicon_governance_path: String,
     pub(crate) sample_count: usize,
     pub(crate) control_count: usize,
@@ -134,6 +139,32 @@ struct AmpliconPrimerTableRow {
     orientation: String,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum AmpliconExpectedPresence {
+    Present,
+    Absent,
+}
+
+impl AmpliconExpectedPresence {
+    fn parse(value: &str) -> Result<Self> {
+        match value {
+            "present" => Ok(Self::Present),
+            "absent" => Ok(Self::Absent),
+            _ => Err(anyhow!(
+                "amplicon expected ASV presence must be `present` or `absent`, found `{value}`"
+            )),
+        }
+    }
+}
+
+#[derive(Debug)]
+struct AmpliconExpectedAsvRow {
+    asv_id: String,
+    sequence: String,
+    sample_id: String,
+    expected_presence: AmpliconExpectedPresence,
+}
+
 pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
     repo_root: &Path,
     manifest_path: &Path,
@@ -146,6 +177,8 @@ pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
 
     let primer_fasta_path = resolve_manifest_relative_path(manifest_dir, &manifest.primer_fasta);
     let primers_tsv_path = resolve_manifest_relative_path(manifest_dir, &manifest.primers_tsv_path);
+    let expected_asvs_path =
+        resolve_manifest_relative_path(manifest_dir, &manifest.expected_asvs_path);
     let amplicon_governance_path =
         resolve_manifest_relative_path(manifest_dir, &manifest.amplicon_governance_path);
     validate_amplicon_governance_contract(
@@ -161,15 +194,26 @@ pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
         &primers_tsv_path,
         &primer_fasta_records,
     )?;
+    let expected_asv_rows =
+        validate_expected_asvs_contract(repo_root, &manifest, &expected_asvs_path)?;
     let report_primer_fasta_path = primer_fasta_path
         .canonicalize()
         .with_context(|| format!("canonicalize {}", primer_fasta_path.display()))?;
     let report_primers_tsv_path = primers_tsv_path
         .canonicalize()
         .with_context(|| format!("canonicalize {}", primers_tsv_path.display()))?;
+    let report_expected_asvs_path = expected_asvs_path
+        .canonicalize()
+        .with_context(|| format!("canonicalize {}", expected_asvs_path.display()))?;
     let report_amplicon_governance_path = amplicon_governance_path
         .canonicalize()
         .with_context(|| format!("canonicalize {}", amplicon_governance_path.display()))?;
+    let expected_asv_present_row_count = expected_asv_rows
+        .iter()
+        .filter(|row| row.expected_presence == AmpliconExpectedPresence::Present)
+        .count();
+    let expected_asv_absent_row_count =
+        expected_asv_rows.len().saturating_sub(expected_asv_present_row_count);
 
     let samples = manifest
         .samples
@@ -203,6 +247,10 @@ pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
         primer_fasta: path_relative_to_repo(repo_root, &report_primer_fasta_path),
         primers_tsv_path: path_relative_to_repo(repo_root, &report_primers_tsv_path),
         primer_table_row_count: primer_table_rows.len(),
+        expected_asvs_path: path_relative_to_repo(repo_root, &report_expected_asvs_path),
+        expected_asv_row_count: expected_asv_rows.len(),
+        expected_asv_present_row_count,
+        expected_asv_absent_row_count,
         amplicon_governance_path: path_relative_to_repo(
             repo_root,
             &report_amplicon_governance_path,
@@ -265,6 +313,11 @@ fn validate_amplicon_corpus_fixture_manifest_contract(
     }
     if manifest.primers_tsv_path.as_os_str().is_empty() {
         return Err(anyhow!("amplicon corpus fixture must declare a non-empty `primers_tsv_path`"));
+    }
+    if manifest.expected_asvs_path.as_os_str().is_empty() {
+        return Err(anyhow!(
+            "amplicon corpus fixture must declare a non-empty `expected_asvs_path`"
+        ));
     }
     if manifest.amplicon_governance_path.as_os_str().is_empty() {
         return Err(anyhow!(
@@ -620,6 +673,136 @@ fn validate_primer_table_contract(
     Ok(rows)
 }
 
+fn validate_expected_asvs_contract(
+    repo_root: &Path,
+    manifest: &AmpliconCorpusFixtureManifest,
+    expected_asvs_path: &Path,
+) -> Result<Vec<AmpliconExpectedAsvRow>> {
+    if !expected_asvs_path.is_file() {
+        return Err(anyhow!(
+            "amplicon corpus fixture expected ASV table is missing: {}",
+            expected_asvs_path.display()
+        ));
+    }
+    let raw = fs::read_to_string(expected_asvs_path)
+        .with_context(|| format!("read {}", expected_asvs_path.display()))?;
+    let mut lines = raw.lines();
+    let header = lines.next().ok_or_else(|| {
+        anyhow!(
+            "amplicon corpus fixture expected ASV table is empty: {}",
+            expected_asvs_path.display()
+        )
+    })?;
+    if header != "asv_id\tsequence\tsample_id\texpected_presence" {
+        return Err(anyhow!(
+            "amplicon corpus fixture expected ASV table header is unexpected in {}",
+            expected_asvs_path.display()
+        ));
+    }
+    let rows = lines
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            let mut fields = line.split('\t');
+            let row = AmpliconExpectedAsvRow {
+                asv_id: fields
+                    .next()
+                    .ok_or_else(|| {
+                        anyhow!("missing asv_id field in {}", expected_asvs_path.display())
+                    })?
+                    .to_string(),
+                sequence: fields
+                    .next()
+                    .ok_or_else(|| {
+                        anyhow!("missing sequence field in {}", expected_asvs_path.display())
+                    })?
+                    .to_string(),
+                sample_id: fields
+                    .next()
+                    .ok_or_else(|| {
+                        anyhow!("missing sample_id field in {}", expected_asvs_path.display())
+                    })?
+                    .to_string(),
+                expected_presence: AmpliconExpectedPresence::parse(fields.next().ok_or_else(
+                    || {
+                        anyhow!(
+                            "missing expected_presence field in {}",
+                            expected_asvs_path.display()
+                        )
+                    },
+                )?)?,
+            };
+            if fields.next().is_some() {
+                return Err(anyhow!(
+                    "amplicon corpus fixture expected ASV row has too many columns in {}",
+                    expected_asvs_path.display()
+                ));
+            }
+            Ok(row)
+        })
+        .collect::<Result<Vec<_>>>()?;
+    if rows.is_empty() {
+        return Err(anyhow!(
+            "amplicon corpus fixture expected ASV table must declare at least one row in {}",
+            expected_asvs_path.display()
+        ));
+    }
+    let biological_sample_ids = manifest
+        .samples
+        .iter()
+        .filter(|sample| matches!(sample.sample_kind, AmpliconCorpusSampleKind::Biological))
+        .map(|sample| sample.sample_id.as_str())
+        .collect::<BTreeSet<_>>();
+    let manifest_relative_path = path_relative_to_repo(repo_root, expected_asvs_path);
+    let mut asv_sample_pairs = BTreeSet::new();
+    let mut present_rows = 0_usize;
+    for row in &rows {
+        if row.asv_id.trim().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus fixture expected ASV rows must declare a non-empty `asv_id` in {manifest_relative_path}"
+            ));
+        }
+        if row.sequence.trim().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus fixture expected ASV rows must declare a non-empty `sequence` in {manifest_relative_path}"
+            ));
+        }
+        if !row.sequence.chars().all(|ch| matches!(ch, 'A' | 'C' | 'G' | 'T' | 'N')) {
+            return Err(anyhow!(
+                "amplicon corpus fixture expected ASV sequence for `{}` must be uppercase DNA in {manifest_relative_path}",
+                row.asv_id
+            ));
+        }
+        if !biological_sample_ids.contains(row.sample_id.as_str()) {
+            return Err(anyhow!(
+                "amplicon corpus fixture expected ASV row `{}` references undeclared biological sample `{}` in {manifest_relative_path}",
+                row.asv_id,
+                row.sample_id
+            ));
+        }
+        if !asv_sample_pairs.insert((row.asv_id.as_str(), row.sample_id.as_str())) {
+            return Err(anyhow!(
+                "amplicon corpus fixture expected ASV table repeats (`{}`, `{}`) in {manifest_relative_path}",
+                row.asv_id,
+                row.sample_id
+            ));
+        }
+        if row.expected_presence == AmpliconExpectedPresence::Present {
+            present_rows = present_rows.saturating_add(1);
+        }
+    }
+    if present_rows == 0 {
+        return Err(anyhow!(
+            "amplicon corpus fixture expected ASV table must declare at least one `present` row in {manifest_relative_path}"
+        ));
+    }
+    if !rows.iter().any(|row| row.sample_id == "corpus-03-amplicon-se") {
+        return Err(anyhow!(
+            "amplicon corpus fixture expected ASV table must include sample `corpus-03-amplicon-se` in {manifest_relative_path}"
+        ));
+    }
+    Ok(rows)
+}
+
 fn validate_amplicon_corpus_fixture_sample(
     repo_root: &Path,
     manifest_dir: &Path,
@@ -707,6 +890,13 @@ mod tests {
             "tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv"
         );
         assert_eq!(report.primer_table_row_count, 1);
+        assert_eq!(
+            report.expected_asvs_path,
+            "tests/fixtures/corpora/corpus-03-amplicon-mini/expected_asvs.tsv"
+        );
+        assert_eq!(report.expected_asv_row_count, 3);
+        assert_eq!(report.expected_asv_present_row_count, 2);
+        assert_eq!(report.expected_asv_absent_row_count, 1);
         assert_eq!(report.sample_count, 4);
         assert_eq!(report.control_count, 1);
         assert!(report.valid);
