@@ -23,6 +23,18 @@ fn run_cli(args: &[&str]) -> std::process::Output {
         .expect("run cli")
 }
 
+fn run_cli_json(args: &[&str]) -> serde_json::Value {
+    let output = run_cli(args);
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+}
+
 #[test]
 fn bench_local_validate_slurm_shell_syntax_refuses_invalid_sbatch_syntax() {
     let fixture_root = tempfile::tempdir().expect("fixture root");
@@ -76,4 +88,52 @@ fn bench_local_validate_slurm_shell_syntax_refuses_invalid_sbatch_syntax() {
             }),
         "report must capture the bash -n syntax failure"
     );
+}
+
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_validate_slurm_shell_syntax_accepts_governed_fastq_and_bam_scripts() {
+    let fastq_render =
+        run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "fastq", "--json"]);
+    assert!(
+        fastq_render.status.success(),
+        "FASTQ render failed: {}\nstdout:\n{}\nstderr:\n{}",
+        fastq_render.status,
+        String::from_utf8_lossy(&fastq_render.stdout),
+        String::from_utf8_lossy(&fastq_render.stderr)
+    );
+
+    let bam_render =
+        run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "bam", "--json"]);
+    assert!(
+        bam_render.status.success(),
+        "BAM render failed: {}\nstdout:\n{}\nstderr:\n{}",
+        bam_render.status,
+        String::from_utf8_lossy(&bam_render.stdout),
+        String::from_utf8_lossy(&bam_render.stderr)
+    );
+
+    let payload = run_cli_json(&["bench", "local", "validate-slurm-shell-syntax", "--json"]);
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.local_slurm_shell_syntax.v1")
+    );
+    assert_eq!(
+        payload.get("root_path").and_then(serde_json::Value::as_str),
+        Some("target/slurm-dry-run")
+    );
+    assert_eq!(payload.get("script_count").and_then(serde_json::Value::as_u64), Some(51));
+    assert_eq!(payload.get("findings_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+
+    let scripts =
+        payload.get("scripts").and_then(serde_json::Value::as_array).expect("scripts array");
+    assert_eq!(scripts.len(), 51);
+    assert!(scripts.iter().all(|entry| {
+        entry.get("ok").and_then(serde_json::Value::as_bool) == Some(true)
+            && entry
+                .get("script_path")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|path| path.starts_with("target/slurm-dry-run/") && path.ends_with(".sbatch"))
+    }));
 }
