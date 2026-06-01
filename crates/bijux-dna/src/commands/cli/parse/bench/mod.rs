@@ -46,7 +46,10 @@ pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
     BenchCorpusFastqReportArgs, BenchPublicationTargetsArgs,
 };
-pub use self::readiness::{BenchReadinessCommand, BenchReadinessRenderFastqToolServingMapArgs};
+pub use self::readiness::{
+    BenchReadinessCommand, BenchReadinessRenderBamToolServingMapArgs,
+    BenchReadinessRenderFastqToolServingMapArgs,
+};
 pub use self::suite::BenchRunArgs;
 
 #[derive(Debug, Subcommand)]

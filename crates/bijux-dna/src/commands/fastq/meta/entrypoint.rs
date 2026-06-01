@@ -141,6 +141,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamToolServingMap(args) => {
+                        crate::commands::benchmark::readiness::tool_serving_map::run_render_bam_tool_serving_map(
+                            args,
+                        )?;
+                    }
                 },
                 BenchCommand::Local { command } => match command {
                     cli::BenchLocalCommand::ListStages(args) => {
