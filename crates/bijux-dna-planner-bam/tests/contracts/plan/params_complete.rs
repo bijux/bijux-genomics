@@ -210,6 +210,8 @@ fn contamination_params_complete() -> Result<()> {
     let plan = bijux_dna_planner_bam::tool_adapters::bam::contamination::plan(
         &dummy_tool("authentic"),
         Path::new("reads.bam"),
+        None,
+        None,
         Path::new("out"),
         &params,
     )?;

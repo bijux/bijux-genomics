@@ -8,6 +8,8 @@ mod local_align;
 mod local_authenticity_smoke;
 #[path = "plan/local_complexity_smoke.rs"]
 mod local_complexity_smoke;
+#[path = "plan/local_contamination.rs"]
+mod local_contamination;
 #[path = "plan/local_coverage_smoke.rs"]
 mod local_coverage_smoke;
 #[path = "plan/local_damage_smoke.rs"]

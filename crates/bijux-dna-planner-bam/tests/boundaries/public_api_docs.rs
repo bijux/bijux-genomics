@@ -64,6 +64,8 @@ fn documented_root_exports_remain_compilable() {
         bijux_dna_planner_bam::report_stage_step;
     let _: for<'a> fn(StagePlanRequest<'a>) -> Result<StagePlanV1> =
         bijux_dna_planner_bam::stage_api::plan_stage;
+    let _: fn(&Path) -> Result<StagePlanV1> =
+        bijux_dna_planner_bam::stage_api::local_contamination_plan;
     let _: fn(&Path) -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalValidateSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_validate_smoke_plans;
     let _: fn(&Path) -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalQcPreSmokeCasePlan>> =

@@ -202,6 +202,8 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     let contamination = bijux_dna_planner_bam::tool_adapters::bam::contamination::plan(
         &dummy_tool("authentic"),
         bam,
+        None,
+        None,
         out,
         &contamination_params,
     )?;
