@@ -1,9 +1,77 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use serde::Serialize;
 use serde_json::Value;
 
 const DEFAULT_LIBRARY_SIZE_REASON: &str = "tool_report_did_not_provide_library_size_estimate";
+const LOCAL_DUPLICATION_METRICS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.bam.duplication_metrics.local_smoke.report.v1";
+const LOCAL_DUPLICATION_METRICS_SMOKE_OBSERVATION_SCHEMA_VERSION: &str =
+    "bijux.bam.duplication_metrics.local_smoke.observation.v1";
+const LOCAL_DUPLICATION_METRICS_SMOKE_METRICS_SCHEMA_VERSION: &str =
+    "bijux.bam.duplication_metrics.local_smoke.metrics.v1";
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalDuplicationMetricsSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    sample_id: String,
+    expectation_matched: bool,
+    input_bam: String,
+    method: String,
+    examined_reads: u64,
+    duplicate_reads: u64,
+    duplicate_fraction: f64,
+    estimated_library_size: Option<u64>,
+    insufficient_library_size_reason: Option<String>,
+    duplication_report: String,
+    duplication_histogram: String,
+    duplication_summary: String,
+    duplication_policy: String,
+    stage_metrics: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalDuplicationMetricsObservation {
+    schema_version: String,
+    stage_id: String,
+    sample_id: String,
+    method: String,
+    source: String,
+    examined_reads: u64,
+    duplicate_reads: u64,
+    duplicate_fraction: f64,
+    estimated_library_size: Option<u64>,
+    insufficient_library_size_reason: Option<String>,
+}
+
+/// Materialize the governed local-smoke `bam.duplication_metrics` artifacts and top-level report.
+///
+/// The written report lives at `target/local-smoke/bam.duplication_metrics/duplication_metrics.json`
+/// under the active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, governed smoke plans are invalid,
+/// or the smoke artifacts cannot be written.
+pub fn write_local_duplication_metrics_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases =
+        bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(&repo_root)?;
+    let [case] = cases.as_slice() else {
+        return Err(anyhow!(
+            "local-smoke bam.duplication_metrics expects exactly one governed case, found {}",
+            cases.len()
+        ));
+    };
+
+    let output_root = repo_root.join("target/local-smoke/bam.duplication_metrics");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+    let report = materialize_local_duplication_metrics_smoke_case(&repo_root, case)?;
+    let report_path = output_root.join("duplication_metrics.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &report)?;
+    Ok(report_path)
+}
 
 /// Write durable typed duplication-metrics artifacts beside BAM stage outputs.
 ///
@@ -37,6 +105,92 @@ pub(crate) fn write_stage_duplication_policy(
     bijux_dna_infra::atomic_write_json(&path, &duplicate_policy_payload(plan))
         .with_context(|| format!("write {}", path.display()))?;
     Ok(path)
+}
+
+fn materialize_local_duplication_metrics_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_bam::stage_api::LocalDuplicationMetricsSmokeCasePlan,
+) -> Result<LocalDuplicationMetricsSmokeReport> {
+    let case_out_dir = resolve_plan_path(repo_root, &case.plan.out_dir);
+    bijux_dna_infra::ensure_dir(&case_out_dir)?;
+
+    let duplication_report_path = resolve_output_path(repo_root, &case.plan, "duplication_report")?;
+    let duplication_histogram_path =
+        resolve_output_path(repo_root, &case.plan, "duplication_histogram")?;
+    let duplication_summary_path = resolve_output_path(repo_root, &case.plan, "summary")?;
+    let stage_metrics_path = resolve_output_path(repo_root, &case.plan, "stage_metrics")?;
+    let duplication_policy_path = case_out_dir.join("duplication.policy.json");
+
+    let input_bam = repo_root.join(&case.bam);
+    let (mut summary, histogram) = bijux_dna_domain_bam::summarize_tiny_bam_duplication_metrics(
+        &input_bam,
+        case.plan.tool_id.as_str(),
+        json_string(case.plan.params.get("optical_duplicates")).as_deref(),
+        json_string(case.plan.params.get("umi_policy")).as_deref(),
+        json_string(case.plan.params.get("duplicate_action")).as_deref(),
+    )?;
+    summary.input_bam = relative_path(repo_root, &summary.input_bam);
+
+    let observation = LocalDuplicationMetricsObservation {
+        schema_version: LOCAL_DUPLICATION_METRICS_SMOKE_OBSERVATION_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.duplication_metrics".to_string(),
+        sample_id: case.sample_id.clone(),
+        method: summary.method.clone(),
+        source: path_relative_to_repo(repo_root, &duplication_histogram_path),
+        examined_reads: summary.examined_reads,
+        duplicate_reads: summary.duplicate_reads,
+        duplicate_fraction: summary.duplicate_fraction,
+        estimated_library_size: summary.estimated_library_size,
+        insufficient_library_size_reason: summary.insufficient_library_size_reason.clone(),
+    };
+
+    bijux_dna_infra::atomic_write_json(&duplication_report_path, &observation)?;
+    bijux_dna_infra::atomic_write_bytes(
+        &duplication_histogram_path,
+        render_family_histogram(&histogram).as_bytes(),
+    )?;
+    bijux_dna_infra::atomic_write_json(&duplication_summary_path, &summary)?;
+    let _policy = write_stage_duplication_policy(&case_out_dir, &case.plan)?;
+    bijux_dna_infra::atomic_write_json(
+        &stage_metrics_path,
+        &serde_json::json!({
+            "schema_version": LOCAL_DUPLICATION_METRICS_SMOKE_METRICS_SCHEMA_VERSION,
+            "stage_id": "bam.duplication_metrics",
+            "sample_id": case.sample_id,
+            "method": summary.method,
+            "examined_reads": summary.examined_reads,
+            "duplicate_reads": summary.duplicate_reads,
+            "duplicate_fraction": summary.duplicate_fraction,
+            "estimated_library_size": summary.estimated_library_size,
+            "insufficient_library_size_reason": summary.insufficient_library_size_reason,
+        }),
+    )?;
+
+    let expectation_matched = summary.examined_reads == case.expected_examined_reads
+        && summary.duplicate_reads == case.expected_duplicate_reads
+        && (summary.duplicate_fraction - case.expected_duplicate_fraction).abs() <= 1e-9
+        && summary.estimated_library_size == case.expected_estimated_library_size
+        && summary.insufficient_library_size_reason
+            == case.expected_insufficient_library_size_reason;
+
+    Ok(LocalDuplicationMetricsSmokeReport {
+        schema_version: LOCAL_DUPLICATION_METRICS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.duplication_metrics".to_string(),
+        sample_id: case.sample_id.clone(),
+        expectation_matched,
+        input_bam: path_relative_to_repo(repo_root, &input_bam),
+        method: summary.method.clone(),
+        examined_reads: summary.examined_reads,
+        duplicate_reads: summary.duplicate_reads,
+        duplicate_fraction: summary.duplicate_fraction,
+        estimated_library_size: summary.estimated_library_size,
+        insufficient_library_size_reason: summary.insufficient_library_size_reason.clone(),
+        duplication_report: path_relative_to_repo(repo_root, &duplication_report_path),
+        duplication_histogram: path_relative_to_repo(repo_root, &duplication_histogram_path),
+        duplication_summary: path_relative_to_repo(repo_root, &duplication_summary_path),
+        duplication_policy: path_relative_to_repo(repo_root, &duplication_policy_path),
+        stage_metrics: path_relative_to_repo(repo_root, &stage_metrics_path),
+    })
 }
 
 fn summarize_stage_duplication_metrics(
@@ -181,4 +335,48 @@ fn json_f64(value: Option<&Value>) -> Option<f64> {
         Some(Value::String(number)) => number.parse::<f64>().ok(),
         _ => None,
     }
+}
+
+fn render_family_histogram(histogram: &[(u64, u64)]) -> String {
+    let mut rendered = String::from("family_size\tfamily_count\n");
+    for (family_size, family_count) in histogram {
+        use std::fmt::Write as _;
+        let _ = writeln!(rendered, "{family_size}\t{family_count}");
+    }
+    rendered
+}
+
+fn resolve_output_path(
+    repo_root: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    output_id: &str,
+) -> Result<PathBuf> {
+    let path = plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == output_id)
+        .map(|artifact| artifact.path.clone())
+        .ok_or_else(|| {
+            anyhow!(
+                "bam.duplication_metrics local-smoke plan is missing governed output `{output_id}`"
+            )
+        })?;
+    Ok(resolve_plan_path(repo_root, &path))
+}
+
+fn resolve_plan_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn relative_path(repo_root: &Path, path: &Path) -> PathBuf {
+    path.strip_prefix(repo_root).unwrap_or(path).to_path_buf()
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    relative_path(repo_root, path).display().to_string()
 }
