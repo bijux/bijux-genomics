@@ -45,6 +45,10 @@ const LOCAL_ENDOGENOUS_CONTENT_CONFIG_PATH: &str =
     "configs/bench/local/bam-endogenous-content.toml";
 const DEFAULT_LOCAL_ENDOGENOUS_CONTENT_OUTPUT_DIR: &str =
     "target/local-smoke/bam.endogenous_content";
+const LOCAL_OVERLAP_CORRECTION_CONFIG_PATH: &str =
+    "configs/bench/local/bam-overlap-correction.toml";
+const DEFAULT_LOCAL_OVERLAP_CORRECTION_OUTPUT_DIR: &str =
+    "target/local-smoke/bam.overlap_correction";
 
 #[derive(Debug, Clone)]
 pub struct LocalValidateSmokeCasePlan {
@@ -220,6 +224,16 @@ pub struct LocalEndogenousContentSmokeCasePlan {
     pub plan: bijux_dna_stage_contract::StagePlanV1,
 }
 
+#[derive(Debug, Clone)]
+pub struct LocalOverlapCorrectionSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub expected_pair_count: u64,
+    pub expected_corrected_pairs: u64,
+    pub expected_corrected_overlap_bases: u64,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
 #[derive(Debug, Deserialize)]
 struct LocalValidateSmokeConfig {
     schema_version: String,
@@ -361,6 +375,17 @@ struct LocalEndogenousContentSmokeConfig {
     #[serde(default)]
     output_dir: Option<PathBuf>,
     cases: Vec<LocalEndogenousContentSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalOverlapCorrectionSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalOverlapCorrectionSmokeCase>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -524,6 +549,15 @@ struct LocalEndogenousContentSmokeCase {
     expected_mapped_reads: u64,
     expected_endogenous_fraction: f64,
     expected_method: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalOverlapCorrectionSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    expected_pair_count: u64,
+    expected_corrected_pairs: u64,
+    expected_corrected_overlap_bases: u64,
 }
 
 const fn default_expect_pass() -> bool {
@@ -866,9 +900,8 @@ pub fn local_insert_size_smoke_plans(
 
     let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_smoke_threads(&mut tool_spec, config.threads);
-    let output_root = config
-        .output_dir
-        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_INSERT_SIZE_OUTPUT_DIR));
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_INSERT_SIZE_OUTPUT_DIR));
 
     config
         .cases
@@ -897,9 +930,8 @@ pub fn local_gc_bias_smoke_plans(repo_root: &Path) -> Result<Vec<LocalGcBiasSmok
 
     let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_smoke_threads(&mut tool_spec, config.threads);
-    let output_root = config
-        .output_dir
-        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_GC_BIAS_OUTPUT_DIR));
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_GC_BIAS_OUTPUT_DIR));
 
     config
         .cases
@@ -939,6 +971,41 @@ pub fn local_endogenous_content_smoke_plans(
         .into_iter()
         .map(|case| {
             build_local_endogenous_content_smoke_case(repo_root, &tool_spec, &output_root, case)
+        })
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.overlap_correction` plans cannot be built.
+pub fn local_overlap_correction_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalOverlapCorrectionSmokeCasePlan>> {
+    let config = load_local_overlap_correction_smoke_config(repo_root)?;
+    ensure_unique_overlap_correction_sample_ids(&config.cases)?;
+
+    let stage = BamStage::OverlapCorrection;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.overlap_correction tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_OVERLAP_CORRECTION_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| {
+            build_local_overlap_correction_smoke_case(repo_root, &tool_spec, &output_root, case)
         })
         .collect()
 }
@@ -1787,8 +1854,13 @@ fn build_local_gc_bias_smoke_case(
         regime_mode: "advisory_and_enforced".to_string(),
     };
     let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
-    let plan =
-        crate::tool_adapters::bam::gc_bias::plan(tool_spec, &case.bam, &case.reference, &out_dir, &params)?;
+    let plan = crate::tool_adapters::bam::gc_bias::plan(
+        tool_spec,
+        &case.bam,
+        &case.reference,
+        &out_dir,
+        &params,
+    )?;
 
     Ok(LocalGcBiasSmokeCasePlan {
         sample_id: case.sample_id,
@@ -1847,10 +1919,7 @@ fn build_local_endogenous_content_smoke_case(
     };
     let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
     let plan = crate::tool_adapters::bam::endogenous_content::plan(
-        tool_spec,
-        &case.bam,
-        &out_dir,
-        &params,
+        tool_spec, &case.bam, &out_dir, &params,
     )?;
 
     Ok(LocalEndogenousContentSmokeCasePlan {
@@ -1861,6 +1930,49 @@ fn build_local_endogenous_content_smoke_case(
         expected_mapped_reads: case.expected_mapped_reads,
         expected_endogenous_fraction: case.expected_endogenous_fraction,
         expected_method: case.expected_method,
+        plan,
+    })
+}
+
+fn build_local_overlap_correction_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalOverlapCorrectionSmokeCase,
+) -> Result<LocalOverlapCorrectionSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.overlap_correction BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if case.expected_corrected_pairs > case.expected_pair_count {
+        return Err(anyhow!(
+            "local-smoke bam.overlap_correction case `{}` cannot declare corrected pairs greater than pair count",
+            case.sample_id
+        ));
+    }
+
+    let params = FilterEffectiveParams {
+        mapq_threshold: 0,
+        include_flags: Vec::new(),
+        exclude_flags: Vec::new(),
+        min_length: 0,
+        remove_duplicates: false,
+        base_quality_threshold: 20,
+    };
+    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let plan = crate::tool_adapters::bam::overlap_correction::plan(
+        tool_spec, &case.bam, &out_dir, &params,
+    )?;
+
+    Ok(LocalOverlapCorrectionSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        expected_pair_count: case.expected_pair_count,
+        expected_corrected_pairs: case.expected_corrected_pairs,
+        expected_corrected_overlap_bases: case.expected_corrected_overlap_bases,
         plan,
     })
 }
@@ -2067,13 +2179,29 @@ fn ensure_unique_endogenous_content_sample_ids(
     let mut seen = BTreeSet::new();
     for case in cases {
         if case.sample_id.trim().is_empty() {
-            return Err(anyhow!(
-                "local-smoke bam.endogenous_content sample_id must not be empty"
-            ));
+            return Err(anyhow!("local-smoke bam.endogenous_content sample_id must not be empty"));
         }
         if !seen.insert(case.sample_id.clone()) {
             return Err(anyhow!(
                 "duplicate local-smoke bam.endogenous_content sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_overlap_correction_sample_ids(
+    cases: &[LocalOverlapCorrectionSmokeCase],
+) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.overlap_correction sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.overlap_correction sample_id `{}`",
                 case.sample_id
             ));
         }
@@ -2273,9 +2401,7 @@ fn load_local_insert_size_smoke_config(repo_root: &Path) -> Result<LocalInsertSi
         ));
     }
     if config.cases.is_empty() {
-        return Err(anyhow!(
-            "local-smoke bam.insert_size must declare at least one governed case"
-        ));
+        return Err(anyhow!("local-smoke bam.insert_size must declare at least one governed case"));
     }
     Ok(config)
 }
@@ -2313,6 +2439,27 @@ fn load_local_endogenous_content_smoke_config(
     if config.cases.is_empty() {
         return Err(anyhow!(
             "local-smoke bam.endogenous_content must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_overlap_correction_smoke_config(
+    repo_root: &Path,
+) -> Result<LocalOverlapCorrectionSmokeConfig> {
+    let path = repo_root.join(LOCAL_OVERLAP_CORRECTION_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalOverlapCorrectionSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_overlap_correction.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.overlap_correction schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.overlap_correction must declare at least one governed case"
         ));
     }
     Ok(config)
