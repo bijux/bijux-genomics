@@ -184,6 +184,18 @@ pub fn local_profile_reads_smoke_plans(
     crate::planner::local_profile_reads_smoke_plans(repo_root)
 }
 
+/// Build the governed local-smoke case plans for
+/// `fastq.profile_overrepresented_sequences`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_profile_overrepresented_sequences_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalProfileOverrepresentedSequencesSmokeCasePlan>> {
+    crate::planner::local_profile_overrepresented_sequences_smoke_plans(repo_root)
+}
+
 /// Build the governed local-smoke case plans for `fastq.filter_reads`.
 ///
 /// # Errors

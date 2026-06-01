@@ -1,0 +1,9 @@
+schema_version = "bijux.bench.fastq.local_profile_overrepresented_sequences.v1"
+tool_id = "seqkit"
+threads = 1
+top_k = 5
+output_dir = "target/local-smoke/fastq.profile_overrepresented_sequences"
+
+[[cases]]
+sample_id = "known-repeat-se"
+r1 = "assets/toy/core-v1/fastq/reads_with_overrepresented_sequences.fastq"
