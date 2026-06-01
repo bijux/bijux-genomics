@@ -66,3 +66,47 @@ fn bench_local_render_slurm_scripts_fastq_json_reports_governed_27_stage_slice()
                 .is_some_and(|command| command.contains("bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq."))
     }));
 }
+
+#[test]
+fn bench_local_render_slurm_scripts_fastq_writes_bash_parseable_27_script_slice() {
+    let output = run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "fastq"]);
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let repo_root = support::repo_root().expect("repo root");
+    let output_root = repo_root.join("target/slurm-dry-run/fastq");
+    assert!(output_root.is_dir(), "FASTQ slurm dry-run root must exist");
+
+    let mut scripts = std::fs::read_dir(&output_root)
+        .expect("read output root")
+        .map(|entry| entry.expect("dir entry").path())
+        .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("sbatch"))
+        .collect::<Vec<_>>();
+    scripts.sort();
+
+    assert_eq!(scripts.len(), 27, "FASTQ dry-run root must contain 27 sbatch scripts");
+    for script in &scripts {
+        let syntax = Command::new("bash").arg("-n").arg(script).output().expect("run bash -n");
+        assert!(
+            syntax.status.success(),
+            "bash -n failed for {}: {}",
+            script.display(),
+            String::from_utf8_lossy(&syntax.stderr)
+        );
+    }
+
+    let validate_reads_script = output_root.join("fastq.validate_reads.sbatch");
+    let script_body =
+        std::fs::read_to_string(&validate_reads_script).expect("read validate script");
+    assert!(script_body.contains("#SBATCH --job-name=fastq-validate_reads"));
+    assert!(
+        script_body.contains(
+            "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.validate_reads"
+        )
+    );
+}
