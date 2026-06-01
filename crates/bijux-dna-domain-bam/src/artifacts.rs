@@ -20,6 +20,7 @@ pub const BAM_MAPPING_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapping_summary.
 pub const BAM_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.filter.v1";
 pub const BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapq_filter.v1";
 pub const BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.length_filter.v1";
+pub const BAM_MARKDUP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.markdup.v1";
 pub const BAM_COVERAGE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_summary.v1";
 pub const BAM_DUPLICATE_POLICY_SCHEMA_VERSION: &str = "bijux.bam.duplicate_policy.v1";
 pub const BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION: &str = "bijux.bam.advisory_boundary.v1";
@@ -248,6 +249,37 @@ pub struct BamLengthFilterSummaryV1 {
     pub observed_min_length: Option<u32>,
     #[serde(default)]
     pub observed_max_length: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamMarkdupSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub duplicate_action: String,
+    #[serde(default)]
+    pub optical_duplicates: Option<String>,
+    #[serde(default)]
+    pub umi_policy: Option<String>,
+    pub input_bam: PathBuf,
+    pub output_bam: PathBuf,
+    pub flagstat_before: BamFlagstatCountsV1,
+    pub flagstat_after: BamFlagstatCountsV1,
+    pub input_reads: u64,
+    pub output_reads: u64,
+    pub removed_reads: u64,
+    #[serde(default)]
+    pub duplicate_reads_before: Option<u64>,
+    #[serde(default)]
+    pub duplicate_reads_after: Option<u64>,
+    #[serde(default)]
+    pub newly_marked_reads: Option<u64>,
+    #[serde(default)]
+    pub duplicate_reads_removed: Option<u64>,
+    #[serde(default)]
+    pub duplicate_fraction_before: Option<f64>,
+    #[serde(default)]
+    pub duplicate_fraction_after: Option<f64>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -1981,6 +2013,74 @@ pub fn apply_duplicate_policy_tiny_bam(
     Ok((policy, comparison))
 }
 
+/// Build a typed markdup summary from before/after duplicate-marking counts.
+#[must_use]
+pub fn summarize_bam_markdup(
+    stage_id: &str,
+    input_bam: &Path,
+    output_bam: &Path,
+    duplicate_action: &str,
+    optical_duplicates: Option<&str>,
+    umi_policy: Option<&str>,
+    flagstat_before: BamFlagstatCountsV1,
+    flagstat_after: BamFlagstatCountsV1,
+) -> BamMarkdupSummaryV1 {
+    let input_reads = flagstat_before.total_reads.unwrap_or(0);
+    let output_reads = flagstat_after.total_reads.unwrap_or(0);
+    let removed_reads = input_reads.saturating_sub(output_reads);
+    let duplicate_reads_before = flagstat_before.duplicate_reads;
+    let duplicate_reads_after = flagstat_after.duplicate_reads;
+    let duplicate_fraction_before = match (duplicate_reads_before, flagstat_before.total_reads) {
+        (Some(duplicates), Some(total_reads)) if total_reads > 0 => {
+            Some(duplicates as f64 / total_reads as f64)
+        }
+        _ => None,
+    };
+    let duplicate_fraction_after = match (duplicate_reads_after, flagstat_after.total_reads) {
+        (Some(duplicates), Some(total_reads)) if total_reads > 0 => {
+            Some(duplicates as f64 / total_reads as f64)
+        }
+        _ => None,
+    };
+    let newly_marked_reads = if duplicate_action == "mark" {
+        match (duplicate_reads_before, duplicate_reads_after) {
+            (Some(before), Some(after)) if after >= before => Some(after - before),
+            _ => None,
+        }
+    } else {
+        None
+    };
+    let duplicate_reads_removed = if duplicate_action == "remove" {
+        match (flagstat_before.total_reads, flagstat_after.total_reads) {
+            (Some(before), Some(after)) if before >= after => Some(before - after),
+            _ => None,
+        }
+    } else {
+        None
+    };
+
+    BamMarkdupSummaryV1 {
+        schema_version: BAM_MARKDUP_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        duplicate_action: duplicate_action.to_string(),
+        optical_duplicates: optical_duplicates.map(ToOwned::to_owned),
+        umi_policy: umi_policy.map(ToOwned::to_owned),
+        input_bam: input_bam.to_path_buf(),
+        output_bam: output_bam.to_path_buf(),
+        flagstat_before,
+        flagstat_after,
+        input_reads,
+        output_reads,
+        removed_reads,
+        duplicate_reads_before,
+        duplicate_reads_after,
+        newly_marked_reads,
+        duplicate_reads_removed,
+        duplicate_fraction_before,
+        duplicate_fraction_after,
+    }
+}
+
 /// Filter tiny BAM/SAM fixtures by MAPQ and emit retained/removed evidence.
 ///
 /// # Errors
@@ -3351,6 +3451,45 @@ mod tests {
     }
 
     #[test]
+    fn bam_markdup_summary_round_trips() {
+        let payload = BamMarkdupSummaryV1 {
+            schema_version: BAM_MARKDUP_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.markdup".to_string(),
+            duplicate_action: "mark".to_string(),
+            optical_duplicates: Some("mark_only".to_string()),
+            umi_policy: Some("ignore".to_string()),
+            input_bam: PathBuf::from("input.bam"),
+            output_bam: PathBuf::from("marked.bam"),
+            flagstat_before: BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(3),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(0.75),
+            },
+            flagstat_after: BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(3),
+                duplicate_reads: Some(1),
+                mapped_fraction: Some(0.75),
+            },
+            input_reads: 4,
+            output_reads: 4,
+            removed_reads: 0,
+            duplicate_reads_before: Some(0),
+            duplicate_reads_after: Some(1),
+            newly_marked_reads: Some(1),
+            duplicate_reads_removed: None,
+            duplicate_fraction_before: Some(0.0),
+            duplicate_fraction_after: Some(0.25),
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize markdup summary");
+        let roundtrip: BamMarkdupSummaryV1 =
+            serde_json::from_value(json).expect("roundtrip markdup summary");
+        assert_eq!(roundtrip, payload);
+    }
+
+    #[test]
     fn bam_filter_summary_round_trips() {
         let payload = BamFilterSummaryV1 {
             schema_version: BAM_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
@@ -3885,6 +4024,58 @@ r03\t0\tchr1\t7\t40\t6M\t*\t0\t0\tTTTTTT\tFFFFFF\tRG:Z:rg1\n",
             .any(|note| note.contains("removed from output alignment")));
         let removed = parse_tiny_sam(&removed_output).expect("parse removed output");
         assert_eq!(removed.records.len(), 2);
+    }
+
+    #[test]
+    fn summarize_bam_markdup_tracks_marked_and_removed_counts() {
+        let marked = summarize_bam_markdup(
+            "bam.markdup",
+            Path::new("input.bam"),
+            Path::new("marked.bam"),
+            "mark",
+            Some("mark_only"),
+            Some("ignore"),
+            BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(3),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(0.75),
+            },
+            BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(3),
+                duplicate_reads: Some(1),
+                mapped_fraction: Some(0.75),
+            },
+        );
+        assert_eq!(marked.duplicate_reads_before, Some(0));
+        assert_eq!(marked.duplicate_reads_after, Some(1));
+        assert_eq!(marked.newly_marked_reads, Some(1));
+        assert_eq!(marked.duplicate_reads_removed, None);
+
+        let removed = summarize_bam_markdup(
+            "bam.markdup",
+            Path::new("input.bam"),
+            Path::new("deduped.bam"),
+            "remove",
+            Some("mark_only"),
+            Some("ignore"),
+            BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(3),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(0.75),
+            },
+            BamFlagstatCountsV1 {
+                total_reads: Some(3),
+                mapped_reads: Some(2),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(2.0 / 3.0),
+            },
+        );
+        assert_eq!(removed.removed_reads, 1);
+        assert_eq!(removed.newly_marked_reads, None);
+        assert_eq!(removed.duplicate_reads_removed, Some(1));
     }
 
     #[test]
