@@ -64,6 +64,10 @@ fn write_local_screen_taxonomy_plan_materializes_governed_target_output() -> Res
         payload["effective_params"]["emit_unclassified"],
         serde_json::json!(true)
     );
+    assert_eq!(
+        payload["params"]["unclassified_reads_r1"],
+        serde_json::json!("target/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq")
+    );
     assert!(
         payload["command"]["template"]
             .as_array()
@@ -73,6 +77,7 @@ fn write_local_screen_taxonomy_plan_materializes_governed_target_output() -> Res
                 script.contains("--db 'assets/reference/taxonomy/references/mock_community_taxonomy/kraken2'")
                     && script.contains("'target/local-ready/fastq.screen_taxonomy/kraken2.report.tsv'")
                     && script.contains("'target/local-ready/fastq.screen_taxonomy/kraken2.classifications.native.tsv'")
+                    && script.contains("--unclassified-out 'target/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq'")
             }),
         "local-ready taxonomy plan command must carry the governed taxonomy database root and report path"
     );
