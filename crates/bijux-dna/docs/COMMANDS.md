@@ -172,6 +172,11 @@ Visible aliases are part of the operator surface:
   `validate-slurm-script-bodies` writes `target/slurm-dry-run/no-placeholder-report.json` and
   refuses generated `.sbatch` bodies that still contain placeholder markers, fake `echo execute`
   payloads, unconditional `rc=0`, or missing `bijux-dna` command lines.
+- `bijux-dna bench local render-slurm-submit-manifest`
+  `render-slurm-submit-manifest` writes `target/slurm-dry-run/submit-manifest.json`, rendering the
+  governed FASTQ and BAM dry-run script slices first and then recording per-job job names, domain,
+  stage ownership, corpus and sample scope, resources, script path, log paths, declared outputs,
+  and derived dependencies.
 - `bijux-dna bench local render-benchmark-summary`
   `render-benchmark-summary` writes both `target/local-ready/benchmark-summary.json` and
   `target/local-ready/benchmark-summary.md`, summarizing governed fake-run readiness across all 51
