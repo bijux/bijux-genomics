@@ -172,6 +172,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateStageResult(args) => {
+                        crate::commands::benchmark::local_stage_result_manifest::run_validate_stage_result(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::MaterializeStage(args) => {
                         crate::commands::benchmark::local_stage_commands::run_materialize_stage(
                             &args,

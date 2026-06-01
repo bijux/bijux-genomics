@@ -14,6 +14,8 @@ pub enum BenchLocalCommand {
     CheckManifestCompletion(BenchLocalCheckManifestCompletionArgs),
     #[command(name = "check-output-completion")]
     CheckOutputCompletion(BenchLocalCheckOutputCompletionArgs),
+    #[command(name = "validate-stage-result")]
+    ValidateStageResult(BenchLocalValidateStageResultArgs),
     #[command(name = "materialize-stage")]
     MaterializeStage(BenchLocalMaterializeStageArgs),
     #[command(name = "fake-run-failures")]
@@ -56,6 +58,14 @@ pub struct BenchLocalCheckManifestCompletionArgs {
 pub struct BenchLocalMaterializeStageArgs {
     #[arg(long)]
     pub stage_id: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateStageResultArgs {
+    #[arg(long)]
+    pub manifest: std::path::PathBuf,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }
