@@ -14,6 +14,8 @@ mod mod_contracts_fastq_amplicon_governance_contract_rs;
 mod mod_contracts_v1_bam_local_align_plan_rs;
 #[path = "contracts/v1_bam_local_filter_smoke.rs"]
 mod mod_contracts_v1_bam_local_filter_smoke_rs;
+#[path = "contracts/v1_bam_local_length_filter_smoke.rs"]
+mod mod_contracts_v1_bam_local_length_filter_smoke_rs;
 #[path = "contracts/v1_bam_local_mapping_summary_smoke.rs"]
 mod mod_contracts_v1_bam_local_mapping_summary_smoke_rs;
 #[path = "contracts/v1_bam_local_mapq_filter_smoke.rs"]
