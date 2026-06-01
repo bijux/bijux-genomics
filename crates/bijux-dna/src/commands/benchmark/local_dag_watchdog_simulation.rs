@@ -432,7 +432,8 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 #[allow(clippy::expect_used)]
 mod tests {
     use super::{
-        simulate_dag_watchdog_path, LocalDagWatchdogScenario, DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH,
+        simulate_dag_watchdog_path, LocalDagWatchdogScenario,
+        DEFAULT_FAILURE_ISOLATION_REPORT_PATH, DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH,
     };
 
     fn repo_root() -> std::path::PathBuf {
@@ -488,6 +489,64 @@ mod tests {
                     && node.finish_second == 13
             }),
             "profile_read_lengths must remain the intentionally slow branch in the simulation"
+        );
+    }
+
+    #[test]
+    fn failure_isolation_simulation_keeps_unrelated_sample_work_running() {
+        let repo_root = repo_root();
+        let output_path = repo_root.join(DEFAULT_FAILURE_ISOLATION_REPORT_PATH);
+        let report = simulate_dag_watchdog_path(
+            &repo_root,
+            LocalDagWatchdogScenario::FailureIsolation,
+            &output_path,
+        )
+        .expect("simulate failure-isolation watchdog report");
+
+        assert_eq!(report.scenario, "failure_isolation");
+        assert_eq!(report.pipeline_id, "fastq-core-preprocess");
+        assert_eq!(report.sample_count, 2);
+        assert_eq!(report.node_count, 14);
+        assert_eq!(report.failed_sample_id.as_deref(), Some("sample_alpha"));
+        assert_eq!(report.failed_stage_id.as_deref(), Some("fastq.detect_adapters"));
+        assert_eq!(report.failure_second, Some(3));
+        assert!(report.failure_isolation_proven);
+        assert!(
+            report
+                .continued_unrelated_node_ids
+                .iter()
+                .any(|node_id| node_id == "sample_beta::fastq.trim_reads"),
+            "the unaffected sample must continue into trimming after the injected failure"
+        );
+        assert!(
+            report
+                .continued_unrelated_node_ids
+                .iter()
+                .any(|node_id| node_id == "sample_beta::fastq.report_qc"),
+            "the unaffected sample must continue all the way to downstream QC collation"
+        );
+        assert!(
+            report
+                .blocked_node_ids
+                .iter()
+                .any(|node_id| node_id == "sample_alpha::fastq.trim_reads"),
+            "the failed sample must block only its own dependent downstream work"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.node_id == "sample_alpha::fastq.detect_adapters"
+                    && node.status == "failed"
+                    && node.finish_second == 3
+            }),
+            "the injected failure must be recorded on the failed sample stage"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.node_id == "sample_beta::fastq.profile_reads"
+                    && node.status == "completed"
+                    && node.finish_second == 6
+            }),
+            "the unaffected sample must continue completing downstream work after the failure"
         );
     }
 }
