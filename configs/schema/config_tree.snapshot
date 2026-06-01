@@ -141,6 +141,7 @@ configs/lab/index.md
 configs/logging/index.md
 configs/logging/runtime.toml
 configs/pipelines/local/fastq-core-preprocess.toml
+configs/pipelines/local/fastq-paired-merge.toml
 configs/runtime/asset_hydration.toml
 configs/runtime/asset_locks.toml
 configs/runtime/cargo_build.toml
