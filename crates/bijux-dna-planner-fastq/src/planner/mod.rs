@@ -61,13 +61,15 @@ pub use local_readiness::{local_deplete_rrna_plan, local_index_reference_plan};
 pub use local_smoke::{
     local_detect_adapters_smoke_plans, local_detect_duplicates_premerge_smoke_plans,
     local_estimate_library_complexity_prealign_smoke_plans, local_filter_reads_smoke_plans,
-    local_normalize_primers_smoke_plans, local_profile_read_lengths_smoke_plans,
+    local_merge_pairs_smoke_plans, local_normalize_primers_smoke_plans,
+    local_profile_read_lengths_smoke_plans,
     local_profile_reads_smoke_plans, local_trim_polyg_tails_smoke_plans,
     local_trim_reads_smoke_plans, local_trim_terminal_damage_smoke_plans,
     local_validate_reads_smoke_plans, LocalDetectAdaptersSmokeCasePlan,
     LocalDetectDuplicatesPremergeSmokeCasePlan,
     LocalEstimateLibraryComplexityPrealignSmokeCasePlan, LocalFilterReadsSmokeCasePlan,
-    LocalNormalizePrimersSmokeCasePlan, LocalProfileReadLengthsSmokeCasePlan,
+    LocalMergePairsSmokeCasePlan, LocalNormalizePrimersSmokeCasePlan,
+    LocalProfileReadLengthsSmokeCasePlan,
     LocalProfileReadsSmokeCasePlan, LocalTrimPolygTailsSmokeCasePlan, LocalTrimReadsSmokeCasePlan,
     LocalTrimTerminalDamageSmokeCasePlan, LocalValidateReadsSmokeCasePlan,
 };
