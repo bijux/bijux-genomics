@@ -124,7 +124,7 @@ Visible aliases are part of the operator surface:
   `tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml` and
   `tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml` for declared sample identity,
   file-path integrity, source-path provenance, expected taxonomy-output contracts, primer and
-  control declarations, and modality-specific contract checks.
+  control declarations, amplicon primer-table contracts, and modality-specific contract checks.
 - `bijux-dna bench local validate-taxonomy-database-fixture`
   `validate-taxonomy-database-fixture` checks governed taxonomy database fixture manifests such as
   `tests/fixtures/databases/taxonomy-mini/manifest.toml` for declared taxa, lineage-table
