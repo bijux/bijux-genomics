@@ -421,3 +421,70 @@ fn bench_local_pipeline_dag_validates_bam_core_qc_contract() {
         "bam.coverage must show the mapping-summary and filtered-BAM handoff in the CLI validation report"
     );
 }
+
+#[test]
+fn bench_local_pipeline_dag_validates_bam_authenticity_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/bam-authenticity.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/bam-authenticity.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/bam-authenticity.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("bam-authenticity")
+    );
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-01-adna-damage-mini")
+    );
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(payload.get("edge_count").and_then(serde_json::Value::as_u64), Some(7));
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.sex")
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("coverage_report_json"))
+                    },
+                )
+        }),
+        "bam.sex must remain visible as a coverage-driven branch in the CLI validation report"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.authenticity")
+                && node
+                    .get("upstream_inputs")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|inputs| {
+                        inputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("mapping_summary_report_json"))
+                            && inputs.iter().any(|value| value.as_str() == Some("coverage_report_json"))
+                            && inputs.iter().any(|value| value.as_str() == Some("damage_report_json"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("contamination_report_json"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("complexity_report_json"))
+                            && !inputs.iter().any(|value| value.as_str() == Some("sex_report_json"))
+                    })
+        }),
+        "bam.authenticity must expose only the required upstream evidence in the CLI validation report"
+    );
+}
