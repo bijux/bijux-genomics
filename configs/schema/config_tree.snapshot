@@ -31,6 +31,7 @@ configs/bench/local/bam-recalibration.toml
 configs/bench/local/bam-sex.toml
 configs/bench/local/bam-stage-matrix.toml
 configs/bench/local/bam-validate.toml
+configs/bench/local/corpus-stage-compatibility.toml
 configs/bench/local/fastq-cluster-otus.toml
 configs/bench/local/fastq-correct-errors.toml
 configs/bench/local/fastq-deplete-host.toml
