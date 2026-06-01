@@ -1,0 +1,24 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.markdup.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_markdup.v1"
+tool_id = "samtools"
+threads = 4
+output_dir = "target/local-smoke/bam.markdup"
+
+[[cases]]
+sample_id = "core-v1-markdup-cluster"
+bam = "assets/toy/core-v1/bam/markdup_duplicate_cluster.sam"
+duplicate_action = "mark"
+optical_duplicates = "mark_only"
+umi_policy = "ignore"
+expected_input_reads = 4
+expected_output_reads = 4
+expected_removed_reads = 0
+expected_duplicate_reads_before = 0
+expected_duplicate_reads_after = 1
+expected_newly_marked_reads = 1
