@@ -343,6 +343,7 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::path::PathBuf;
 
+    #[cfg(feature = "bam_downstream")]
     use super::{
         render_local_benchmark_summary, BenchLocalBenchmarkReadinessStatus,
         DEFAULT_BENCHMARK_SUMMARY_JSON_PATH, DEFAULT_BENCHMARK_SUMMARY_MARKDOWN_PATH,

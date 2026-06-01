@@ -127,16 +127,19 @@ pub(crate) fn check_local_stage_manifest_completion(
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
     use std::path::PathBuf;
 
+    #[cfg(feature = "bam_downstream")]
     use super::{
         check_local_stage_manifest_completion, DEFAULT_MANIFEST_COMPLETION_REPORT_PATH,
         LOCAL_STAGE_MANIFEST_COMPLETION_REPORT_SCHEMA_VERSION,
     };
+    #[cfg(feature = "bam_downstream")]
     use crate::commands::benchmark::local_stage_fake_runs::{
         fake_run_local_stage_commands, DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT,
     };
+    #[cfg(feature = "bam_downstream")]
+    use std::fs;
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))

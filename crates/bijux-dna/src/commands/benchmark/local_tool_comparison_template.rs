@@ -171,6 +171,7 @@ fn sanitize_tsv(value: &str) -> String {
 mod tests {
     use std::path::PathBuf;
 
+    #[cfg(feature = "bam_downstream")]
     use super::{
         render_local_tool_comparison_template, DEFAULT_TOOL_COMPARISON_TEMPLATE_PATH,
         LOCAL_TOOL_COMPARISON_TEMPLATE_SCHEMA_VERSION,

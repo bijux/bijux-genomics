@@ -120,14 +120,17 @@ pub(crate) fn collect_local_stage_runtime_metrics(
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
     use std::path::PathBuf;
 
+    #[cfg(feature = "bam_downstream")]
     use super::{
         collect_local_stage_runtime_metrics, DEFAULT_RUNTIME_METRICS_REPORT_PATH,
         LOCAL_STAGE_RUNTIME_METRICS_REPORT_SCHEMA_VERSION,
     };
+    #[cfg(feature = "bam_downstream")]
     use crate::commands::benchmark::local_stage_fake_runs::fake_run_local_stage_commands;
+    #[cfg(feature = "bam_downstream")]
+    use std::fs;
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
