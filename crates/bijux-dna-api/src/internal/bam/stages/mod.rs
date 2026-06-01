@@ -8,6 +8,7 @@ pub(crate) mod endogenous_content;
 pub(crate) mod filter;
 pub(crate) mod gc_bias;
 pub(crate) mod insert_size;
+pub(crate) mod kinship;
 pub(crate) mod length_filter;
 pub(crate) mod mapping_summary;
 pub(crate) mod mapq_filter;

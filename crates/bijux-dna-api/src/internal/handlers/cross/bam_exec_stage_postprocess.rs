@@ -357,6 +357,8 @@ fn stage_postprocess(
                     "bam.kinship refusal: pseudo-haploid conversion path is not enabled in this runner"
                 ));
             }
+            #[cfg(feature = "bam_downstream")]
+            crate::internal::bam::stages::kinship::write_stage_kinship_artifacts(stage_dir, plan)?;
             let path = stage_dir.join("kinship.contract.json");
             bijux_dna_infra::atomic_write_json(
                 &path,

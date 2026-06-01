@@ -315,6 +315,19 @@ pub fn write_local_sex_smoke_report() -> Result<PathBuf> {
     crate::internal::bam::stages::sex::write_local_sex_smoke_report()
 }
 
+/// Materialize the governed local-smoke `bam.kinship` report bundle.
+///
+/// The written report artifact lives at `target/local-smoke/bam.kinship/kinship.json`
+/// under the active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+#[cfg(feature = "bam_downstream")]
+pub fn write_local_kinship_smoke_report() -> Result<PathBuf> {
+    crate::internal::bam::stages::kinship::write_local_kinship_smoke_report()
+}
+
 fn resolve_plan_dir(repo_root: &Path, out_dir: &Path) -> PathBuf {
     if out_dir.is_absolute() {
         out_dir.to_path_buf()
