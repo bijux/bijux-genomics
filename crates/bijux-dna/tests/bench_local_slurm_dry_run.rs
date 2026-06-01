@@ -35,6 +35,18 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
     serde_json::from_slice(&output.stdout).expect("parse stdout as json")
 }
 
+#[cfg(not(feature = "bam_downstream"))]
+#[test]
+fn bench_local_render_slurm_scripts_bam_requires_bam_downstream_feature() {
+    let output = run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "bam", "--json"]);
+    assert!(!output.status.success(), "command should fail without bam_downstream");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("requires the `bam_downstream` feature"),
+        "stderr must explain the BAM feature gate, got:\n{stderr}"
+    );
+}
+
 #[test]
 fn bench_local_render_slurm_scripts_fastq_json_reports_governed_27_stage_slice() {
     let payload =
