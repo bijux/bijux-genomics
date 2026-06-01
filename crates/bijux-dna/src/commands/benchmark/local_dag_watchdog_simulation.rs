@@ -801,7 +801,7 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 #[allow(clippy::expect_used)]
 mod tests {
     use super::{
-        simulate_dag_watchdog_path, LocalDagWatchdogScenario,
+        simulate_dag_watchdog_path, LocalDagWatchdogScenario, DEFAULT_COMPLETION_RULES_REPORT_PATH,
         DEFAULT_FAILURE_ISOLATION_REPORT_PATH, DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH,
         DEFAULT_PARTIAL_RESUME_REPORT_PATH,
     };
@@ -986,6 +986,62 @@ mod tests {
                     && node.finish_second == 4
             }),
             "missing downstream work must be planned after the invalidated node path"
+        );
+    }
+
+    #[test]
+    fn completion_rules_simulation_requires_zero_exit_outputs_and_manifest() {
+        let repo_root = repo_root();
+        let output_path = repo_root.join(DEFAULT_COMPLETION_RULES_REPORT_PATH);
+        let report = simulate_dag_watchdog_path(
+            &repo_root,
+            LocalDagWatchdogScenario::CompletionRules,
+            &output_path,
+        )
+        .expect("simulate completion-rules watchdog report");
+
+        assert_eq!(report.scenario, "completion_rules");
+        assert_eq!(report.pipeline_id, "fastq-core-preprocess");
+        assert_eq!(report.sample_count, 1);
+        assert_eq!(report.node_count, 5);
+        assert_eq!(report.completion_check_stage_id.as_deref(), Some("fastq.filter_reads"));
+        assert!(report.completion_rules_proven);
+        assert!(
+            report.completion_checks.iter().any(|check| {
+                check.case_id == "zero_exit_outputs_only"
+                    && check.exit_code == 0
+                    && check.declared_outputs_exist
+                    && !check.result_manifest_exists
+                    && !check.complete
+            }),
+            "zero exit with outputs alone must remain incomplete"
+        );
+        assert!(
+            report.completion_checks.iter().any(|check| {
+                check.case_id == "nonzero_exit_with_outputs_and_manifest"
+                    && check.exit_code != 0
+                    && check.declared_outputs_exist
+                    && check.result_manifest_exists
+                    && !check.complete
+            }),
+            "nonzero exit must refuse completion even if artifacts exist"
+        );
+        assert!(
+            report.completion_checks.iter().any(|check| {
+                check.case_id == "zero_exit_outputs_and_manifest"
+                    && check.exit_code == 0
+                    && check.declared_outputs_exist
+                    && check.result_manifest_exists
+                    && check.complete
+            }),
+            "completion should only be recorded when all governed requirements are satisfied"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.node_id == "sample_primary::fastq.filter_reads::zero_exit_outputs_only"
+                    && node.status == "incomplete"
+            }),
+            "the outputs-only case must remain explicitly incomplete in the node report"
         );
     }
 }
