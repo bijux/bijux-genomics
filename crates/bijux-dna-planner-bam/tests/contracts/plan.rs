@@ -10,6 +10,8 @@ mod local_complexity_smoke;
 mod local_coverage_smoke;
 #[path = "plan/local_duplication_metrics_smoke.rs"]
 mod local_duplication_metrics_smoke;
+#[path = "plan/local_endogenous_content_smoke.rs"]
+mod local_endogenous_content_smoke;
 #[path = "plan/local_filter_smoke.rs"]
 mod local_filter_smoke;
 #[path = "plan/local_gc_bias_smoke.rs"]
