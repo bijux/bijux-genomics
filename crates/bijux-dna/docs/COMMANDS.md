@@ -131,6 +131,10 @@ Visible aliases are part of the operator surface:
   `configs/bench/local/corpus-stage-compatibility.toml` against the governed 51-stage local FASTQ
   and BAM inventories, validates every referenced corpus fixture manifest, and reports which stages
   are covered by corpus-01, corpus-02, corpus-03, or an explicit planner-only reason.
+- `bijux-dna bench local render-corpus-skip-report`
+  `render-corpus-skip-report` writes `target/local-ready/corpus-skip-report.json`, enumerating
+  every incompatible corpus-fixture skip with its replacement corpus and keeping planner-only
+  stages explicit so no local stage disappears silently.
 - `bijux-dna bench local validate-taxonomy-database-fixture`
   `validate-taxonomy-database-fixture` checks governed taxonomy database fixture manifests such as
   `tests/fixtures/databases/taxonomy-mini/manifest.toml` for declared taxa, lineage-table
