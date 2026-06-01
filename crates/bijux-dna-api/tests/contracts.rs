@@ -14,6 +14,8 @@ mod mod_contracts_fastq_amplicon_governance_contract_rs;
 mod mod_contracts_v1_bam_local_align_plan_rs;
 #[path = "contracts/v1_bam_local_authenticity_smoke.rs"]
 mod mod_contracts_v1_bam_local_authenticity_smoke_rs;
+#[path = "contracts/v1_bam_local_bias_mitigation_smoke.rs"]
+mod mod_contracts_v1_bam_local_bias_mitigation_smoke_rs;
 #[path = "contracts/v1_bam_local_complexity_smoke.rs"]
 mod mod_contracts_v1_bam_local_complexity_smoke_rs;
 #[path = "contracts/v1_bam_local_contamination_plan.rs"]
