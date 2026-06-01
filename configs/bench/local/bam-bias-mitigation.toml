@@ -1,0 +1,15 @@
+schema_version = "bijux.bench.bam.local_bias_mitigation.v1"
+tool_id = "mapdamage2"
+threads = 2
+output_dir = "target/local-smoke/bam.bias_mitigation"
+
+[[cases]]
+sample_id = "core-v1-bias-mitigation-gc-window-ladder"
+bam = "assets/toy/core-v1/bam/bias_mitigation_gc_window_reads.sam"
+reference = "assets/toy/core-v1/bam/bias_mitigation_reference_windows.fasta"
+window_size = 10
+gc_bias_correction = true
+map_bias_correction = false
+expected_metric_name = "gc_bias_score"
+expected_pre_mitigation_metric = 0.25
+expected_post_mitigation_metric = 0.125
