@@ -1,0 +1,22 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.duplication_metrics.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_duplication_metrics.v1"
+tool_id = "samtools"
+threads = 4
+output_dir = "target/local-smoke/bam.duplication_metrics"
+
+[[cases]]
+sample_id = "core-v1-duplicate-observation"
+bam = "assets/toy/core-v1/bam/duplication_metrics_duplicate_cluster.sam"
+optical_duplicates = "mark_only"
+umi_policy = "ignore"
+duplicate_action = "mark"
+expected_examined_reads = 3
+expected_duplicate_reads = 1
+expected_duplicate_fraction = 0.3333333333333333
+expected_insufficient_library_size_reason = "tiny_smoke_duplicate_observation_is_insufficient_for_library_size_estimate"
