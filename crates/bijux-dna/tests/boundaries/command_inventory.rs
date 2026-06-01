@@ -91,6 +91,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench local check-manifest-completion",
     "bijux-dna bench local check-output-completion",
     "bijux-dna bench local collect-runtime-metrics",
+    "bijux-dna bench local render-tool-comparison-template",
     "bijux-dna bench local validate-stage-result",
     "bijux-dna bench local materialize-stage",
     "bijux-dna bench local fake-run-failures",
