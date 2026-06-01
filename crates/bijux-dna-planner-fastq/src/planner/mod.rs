@@ -58,7 +58,8 @@ use graph_policy::{
 };
 pub(crate) use layout_branching::apply_layout_branching;
 pub use local_readiness::{
-    local_deplete_host_plan, local_deplete_rrna_plan, local_index_reference_plan,
+    local_deplete_host_plan, local_deplete_reference_contaminants_plan,
+    local_deplete_rrna_plan, local_index_reference_plan,
 };
 pub use local_smoke::{
     local_detect_adapters_smoke_plans, local_detect_duplicates_premerge_smoke_plans,

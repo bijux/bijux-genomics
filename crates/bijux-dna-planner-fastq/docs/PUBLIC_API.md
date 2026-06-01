@@ -55,6 +55,7 @@ The `stage_api` module is the curated compatibility surface for downstream stage
 - `stage_tool_maturity`
 - `benchmark_cohorts_for_stage`
 - `local_deplete_host_plan`
+- `local_deplete_reference_contaminants_plan`
 - `local_deplete_rrna_plan`
 - `local_detect_adapters_smoke_plans`
 - `local_detect_duplicates_premerge_smoke_plans`
