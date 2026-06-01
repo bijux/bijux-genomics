@@ -1,0 +1,51 @@
+schema_version = "bijux.bench.fastq_corpus_fixture.v1"
+corpus_id = "corpus-01-mini"
+species = "Homo sapiens"
+description = "Tiny human and aDNA-like FASTQ fixture with two single-end and two paired-end samples for local benchmark contract checks."
+compression = "gzip"
+
+[[samples]]
+sample_id = "adna_like_se_compact"
+cohort = "adna_like"
+layout = "se"
+r1_path = "normalized/adna_like_se_compact_R1.fastq.gz"
+expected_read_count_r1 = 2
+expected_read_count_total = 2
+source_paths = ["assets/toy/core-v1/fastq/reads_1.fastq"]
+
+[[samples]]
+sample_id = "human_like_se_compact"
+cohort = "human_like"
+layout = "se"
+r1_path = "normalized/human_like_se_compact_R1.fastq.gz"
+expected_read_count_r1 = 2
+expected_read_count_total = 2
+source_paths = ["assets/toy/core-v1/fastq/reads_2.fastq"]
+
+[[samples]]
+sample_id = "adna_like_pe_trim_signals"
+cohort = "adna_like"
+layout = "pe"
+r1_path = "normalized/adna_like_pe_trim_signals_R1.fastq.gz"
+r2_path = "normalized/adna_like_pe_trim_signals_R2.fastq.gz"
+expected_read_count_r1 = 2
+expected_read_count_r2 = 2
+expected_read_count_total = 4
+source_paths = [
+  "assets/toy/core-v1/fastq/reads_with_trim_signals_R1.fastq",
+  "assets/toy/core-v1/fastq/reads_with_trim_signals_R2.fastq",
+]
+
+[[samples]]
+sample_id = "human_like_pe_merge_overlap"
+cohort = "human_like"
+layout = "pe"
+r1_path = "normalized/human_like_pe_merge_overlap_R1.fastq.gz"
+r2_path = "normalized/human_like_pe_merge_overlap_R2.fastq.gz"
+expected_read_count_r1 = 2
+expected_read_count_r2 = 2
+expected_read_count_total = 4
+source_paths = [
+  "assets/toy/core-v1/fastq/reads_with_merge_overlap_R1.fastq",
+  "assets/toy/core-v1/fastq/reads_with_merge_overlap_R2.fastq",
+]
