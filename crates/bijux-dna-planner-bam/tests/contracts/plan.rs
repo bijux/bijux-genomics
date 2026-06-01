@@ -6,6 +6,8 @@ mod contract_handshake;
 mod local_align;
 #[path = "plan/local_authenticity_smoke.rs"]
 mod local_authenticity_smoke;
+#[path = "plan/local_bias_mitigation_smoke.rs"]
+mod local_bias_mitigation_smoke;
 #[path = "plan/local_complexity_smoke.rs"]
 mod local_complexity_smoke;
 #[path = "plan/local_contamination.rs"]
