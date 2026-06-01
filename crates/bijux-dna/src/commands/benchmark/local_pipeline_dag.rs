@@ -529,4 +529,64 @@ mod tests {
             "normalize_abundance must consume the clustered OTU table"
         );
     }
+
+    #[test]
+    fn fastq_umi_pipeline_dag_tracks_downstream_umi_consumers() {
+        let repo_root = repo_root();
+        let config_path = repo_root.join("configs/pipelines/local/fastq-umi.toml");
+        let output_path = repo_root.join("target/local-ready/pipeline-dag/fastq-umi.json");
+        let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect("validate umi local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "fastq-umi");
+        assert_eq!(report.domain, "fastq");
+        assert_eq!(report.default_corpus_id, "corpus-01-mini");
+        assert_eq!(report.node_count, 8);
+        assert_eq!(report.edge_count, 13);
+        assert!(report.acyclic);
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "fastq.extract_umis"
+                    && node.outputs
+                        == vec![
+                            "umi_tagged_reads_r1",
+                            "umi_tagged_reads_r2",
+                            "umi_extraction_report",
+                        ]
+            }),
+            "extract_umis must emit UMI-tagged reads and the governed extraction report"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "fastq.remove_duplicates"
+                    && node.upstream_inputs
+                        == vec!["filtered_umi_reads_r1", "filtered_umi_reads_r2"]
+                    && node.outputs
+                        == vec![
+                            "deduplicated_umi_reads_r1",
+                            "deduplicated_umi_reads_r2",
+                            "duplicate_classes_tsv",
+                            "duplicate_provenance_json",
+                            "deduplication_report",
+                        ]
+            }),
+            "remove_duplicates must consume filtered UMI-tagged reads and expose duplicate-aware outputs"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "fastq.report_qc"
+                    && node.upstream_inputs
+                        == vec![
+                            "validation_report",
+                            "umi_extraction_report",
+                            "duplicate_signal_report",
+                            "trim_metrics",
+                            "filter_metrics",
+                            "deduplication_report",
+                            "deduplicated_profile",
+                        ]
+            }),
+            "report_qc must collate UMI extraction and duplicate-aware preprocessing metrics"
+        );
+    }
 }
