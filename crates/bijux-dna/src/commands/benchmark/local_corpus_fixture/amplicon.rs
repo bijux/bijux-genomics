@@ -1,0 +1,548 @@
+use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
+use std::io::{BufRead, BufReader};
+use std::path::{Path, PathBuf};
+
+use anyhow::{anyhow, Context, Result};
+use serde::{Deserialize, Serialize};
+
+use super::fastq::{
+    count_fastq_gz_reads, validate_fastq_fixture_path, FastqCorpusFixtureCompression,
+};
+use super::{path_relative_to_repo, resolve_manifest_relative_path};
+
+pub(crate) const DEFAULT_CORPUS_03_AMPLICON_MANIFEST_PATH: &str =
+    "tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml";
+pub(crate) const AMPLICON_CORPUS_FIXTURE_SCHEMA_VERSION: &str =
+    "bijux.bench.amplicon_corpus_fixture.v1";
+const AMPLICON_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
+    "bijux.bench.amplicon_corpus_fixture_validation.v1";
+
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub(crate) enum AmpliconCorpusSampleKind {
+    Biological,
+    Control,
+}
+
+impl AmpliconCorpusSampleKind {
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Biological => "biological",
+            Self::Control => "control",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct AmpliconCorpusFixtureManifest {
+    pub(crate) schema_version: String,
+    pub(crate) corpus_id: String,
+    pub(crate) assay_id: String,
+    pub(crate) marker_id: String,
+    pub(crate) target_region: String,
+    pub(crate) description: String,
+    pub(crate) compression: FastqCorpusFixtureCompression,
+    pub(crate) primer_set_id: String,
+    pub(crate) forward_primer_id: String,
+    pub(crate) reverse_primer_id: String,
+    pub(crate) primer_fasta: PathBuf,
+    pub(crate) amplicon_governance_path: PathBuf,
+    pub(crate) controls: Vec<AmpliconCorpusControl>,
+    pub(crate) samples: Vec<AmpliconCorpusFixtureSample>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct AmpliconCorpusControl {
+    pub(crate) sample_id: String,
+    pub(crate) control_kind: String,
+    pub(crate) purpose: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct AmpliconCorpusFixtureSample {
+    pub(crate) sample_id: String,
+    pub(crate) sample_kind: AmpliconCorpusSampleKind,
+    pub(crate) fastq_path: PathBuf,
+    pub(crate) expected_read_count: u64,
+    pub(crate) source_paths: Vec<PathBuf>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct AmpliconCorpusControlValidationReport {
+    pub(crate) sample_id: String,
+    pub(crate) control_kind: String,
+    pub(crate) purpose: String,
+    pub(crate) valid: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct AmpliconCorpusFixtureSampleValidationReport {
+    pub(crate) sample_id: String,
+    pub(crate) sample_kind: String,
+    pub(crate) fastq_path: String,
+    pub(crate) source_paths: Vec<String>,
+    pub(crate) observed_read_count: u64,
+    pub(crate) valid: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct AmpliconCorpusFixtureValidationReport {
+    pub(crate) schema_version: &'static str,
+    pub(crate) manifest_path: String,
+    pub(crate) corpus_id: String,
+    pub(crate) assay_id: String,
+    pub(crate) marker_id: String,
+    pub(crate) target_region: String,
+    pub(crate) compression: String,
+    pub(crate) primer_set_id: String,
+    pub(crate) forward_primer_id: String,
+    pub(crate) reverse_primer_id: String,
+    pub(crate) primer_fasta: String,
+    pub(crate) amplicon_governance_path: String,
+    pub(crate) sample_count: usize,
+    pub(crate) control_count: usize,
+    pub(crate) valid: bool,
+    pub(crate) controls: Vec<AmpliconCorpusControlValidationReport>,
+    pub(crate) samples: Vec<AmpliconCorpusFixtureSampleValidationReport>,
+}
+
+#[derive(Debug, Deserialize)]
+struct AmpliconGovernanceDocument {
+    markers: BTreeMap<String, AmpliconGovernanceMarker>,
+}
+
+#[derive(Debug, Deserialize)]
+struct AmpliconGovernanceMarker {
+    primer_set_id: String,
+    primer_fasta: PathBuf,
+    applicable_assays: Vec<String>,
+}
+
+pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> Result<AmpliconCorpusFixtureValidationReport> {
+    let manifest = load_amplicon_corpus_fixture_manifest_path(manifest_path)?;
+    let manifest_dir = manifest_path.parent().ok_or_else(|| {
+        anyhow!("fixture manifest has no parent directory: {}", manifest_path.display())
+    })?;
+    validate_amplicon_corpus_fixture_manifest_contract(&manifest)?;
+
+    let primer_fasta_path = resolve_manifest_relative_path(manifest_dir, &manifest.primer_fasta);
+    let amplicon_governance_path =
+        resolve_manifest_relative_path(manifest_dir, &manifest.amplicon_governance_path);
+    validate_amplicon_governance_contract(
+        repo_root,
+        &manifest,
+        &primer_fasta_path,
+        &amplicon_governance_path,
+    )?;
+    validate_primer_fasta_headers(&manifest, &primer_fasta_path)?;
+    let report_primer_fasta_path = primer_fasta_path
+        .canonicalize()
+        .with_context(|| format!("canonicalize {}", primer_fasta_path.display()))?;
+    let report_amplicon_governance_path = amplicon_governance_path
+        .canonicalize()
+        .with_context(|| format!("canonicalize {}", amplicon_governance_path.display()))?;
+
+    let samples = manifest
+        .samples
+        .iter()
+        .map(|sample| {
+            validate_amplicon_corpus_fixture_sample(repo_root, manifest_dir, &manifest, sample)
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let controls = manifest
+        .controls
+        .iter()
+        .map(|control| AmpliconCorpusControlValidationReport {
+            sample_id: control.sample_id.clone(),
+            control_kind: control.control_kind.clone(),
+            purpose: control.purpose.clone(),
+            valid: true,
+        })
+        .collect::<Vec<_>>();
+
+    Ok(AmpliconCorpusFixtureValidationReport {
+        schema_version: AMPLICON_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION,
+        manifest_path: path_relative_to_repo(repo_root, manifest_path),
+        corpus_id: manifest.corpus_id,
+        assay_id: manifest.assay_id,
+        marker_id: manifest.marker_id,
+        target_region: manifest.target_region,
+        compression: manifest.compression.as_str().to_string(),
+        primer_set_id: manifest.primer_set_id,
+        forward_primer_id: manifest.forward_primer_id,
+        reverse_primer_id: manifest.reverse_primer_id,
+        primer_fasta: path_relative_to_repo(repo_root, &report_primer_fasta_path),
+        amplicon_governance_path: path_relative_to_repo(
+            repo_root,
+            &report_amplicon_governance_path,
+        ),
+        sample_count: samples.len(),
+        control_count: controls.len(),
+        valid: true,
+        controls,
+        samples,
+    })
+}
+
+fn load_amplicon_corpus_fixture_manifest_path(
+    manifest_path: &Path,
+) -> Result<AmpliconCorpusFixtureManifest> {
+    let raw = fs::read_to_string(manifest_path)
+        .with_context(|| format!("read {}", manifest_path.display()))?;
+    toml::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))
+}
+
+fn validate_amplicon_corpus_fixture_manifest_contract(
+    manifest: &AmpliconCorpusFixtureManifest,
+) -> Result<()> {
+    if manifest.schema_version != AMPLICON_CORPUS_FIXTURE_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "unsupported amplicon corpus fixture schema `{}`",
+            manifest.schema_version
+        ));
+    }
+    if manifest.corpus_id.trim().is_empty() {
+        return Err(anyhow!("amplicon corpus fixture must declare a non-empty `corpus_id`"));
+    }
+    if manifest.assay_id.trim().is_empty() {
+        return Err(anyhow!("amplicon corpus fixture must declare a non-empty `assay_id`"));
+    }
+    if manifest.marker_id.trim().is_empty() {
+        return Err(anyhow!("amplicon corpus fixture must declare a non-empty `marker_id`"));
+    }
+    if manifest.target_region.trim().is_empty() {
+        return Err(anyhow!("amplicon corpus fixture must declare a non-empty `target_region`"));
+    }
+    if manifest.description.trim().is_empty() {
+        return Err(anyhow!("amplicon corpus fixture must declare a non-empty `description`"));
+    }
+    if manifest.primer_set_id.trim().is_empty() {
+        return Err(anyhow!("amplicon corpus fixture must declare a non-empty `primer_set_id`"));
+    }
+    if manifest.forward_primer_id.trim().is_empty() {
+        return Err(anyhow!(
+            "amplicon corpus fixture must declare a non-empty `forward_primer_id`"
+        ));
+    }
+    if manifest.reverse_primer_id.trim().is_empty() {
+        return Err(anyhow!(
+            "amplicon corpus fixture must declare a non-empty `reverse_primer_id`"
+        ));
+    }
+    if manifest.primer_fasta.as_os_str().is_empty() {
+        return Err(anyhow!("amplicon corpus fixture must declare a non-empty `primer_fasta`"));
+    }
+    if manifest.amplicon_governance_path.as_os_str().is_empty() {
+        return Err(anyhow!(
+            "amplicon corpus fixture must declare a non-empty `amplicon_governance_path`"
+        ));
+    }
+    if manifest.controls.is_empty() {
+        return Err(anyhow!("amplicon corpus fixture must declare at least one control"));
+    }
+    if manifest.samples.is_empty() {
+        return Err(anyhow!("amplicon corpus fixture must declare at least one sample"));
+    }
+
+    let mut sample_ids = BTreeSet::new();
+    let mut biological_sample_count = 0_usize;
+    let mut control_sample_ids = BTreeSet::new();
+    for sample in &manifest.samples {
+        if sample.sample_id.trim().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus fixture samples must declare a non-empty `sample_id`"
+            ));
+        }
+        if !sample_ids.insert(sample.sample_id.clone()) {
+            return Err(anyhow!(
+                "amplicon corpus fixture repeats sample_id `{}`",
+                sample.sample_id
+            ));
+        }
+        if sample.expected_read_count == 0 {
+            return Err(anyhow!(
+                "amplicon corpus fixture sample `{}` must declare a positive `expected_read_count`",
+                sample.sample_id
+            ));
+        }
+        if sample.source_paths.is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus fixture sample `{}` must declare at least one `source_paths` entry",
+                sample.sample_id
+            ));
+        }
+        match sample.sample_kind {
+            AmpliconCorpusSampleKind::Biological => {
+                biological_sample_count = biological_sample_count.saturating_add(1);
+            }
+            AmpliconCorpusSampleKind::Control => {
+                control_sample_ids.insert(sample.sample_id.as_str());
+            }
+        }
+    }
+    if biological_sample_count == 0 {
+        return Err(anyhow!("amplicon corpus fixture must declare at least one biological sample"));
+    }
+
+    let declared_sample_ids =
+        manifest.samples.iter().map(|sample| sample.sample_id.as_str()).collect::<BTreeSet<_>>();
+    let mut declared_controls = BTreeSet::new();
+    for control in &manifest.controls {
+        if control.sample_id.trim().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus fixture controls must declare a non-empty `sample_id`"
+            ));
+        }
+        if !declared_controls.insert(control.sample_id.as_str()) {
+            return Err(anyhow!(
+                "amplicon corpus fixture repeats control sample_id `{}`",
+                control.sample_id
+            ));
+        }
+        if !declared_sample_ids.contains(control.sample_id.as_str()) {
+            return Err(anyhow!(
+                "amplicon corpus fixture control `{}` does not match a declared sample",
+                control.sample_id
+            ));
+        }
+        if !control_sample_ids.contains(control.sample_id.as_str()) {
+            return Err(anyhow!(
+                "amplicon corpus fixture control `{}` must reference a sample with `sample_kind = \"control\"`",
+                control.sample_id
+            ));
+        }
+        if control.control_kind.trim().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus fixture control `{}` must declare a non-empty `control_kind`",
+                control.sample_id
+            ));
+        }
+        if control.purpose.trim().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus fixture control `{}` must declare a non-empty `purpose`",
+                control.sample_id
+            ));
+        }
+    }
+
+    for sample in &manifest.samples {
+        if matches!(sample.sample_kind, AmpliconCorpusSampleKind::Control)
+            && !declared_controls.contains(sample.sample_id.as_str())
+        {
+            return Err(anyhow!(
+                "amplicon corpus fixture control sample `{}` must also appear in `controls`",
+                sample.sample_id
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+fn validate_amplicon_governance_contract(
+    repo_root: &Path,
+    manifest: &AmpliconCorpusFixtureManifest,
+    primer_fasta_path: &Path,
+    amplicon_governance_path: &Path,
+) -> Result<()> {
+    if !primer_fasta_path.is_file() {
+        return Err(anyhow!(
+            "amplicon corpus fixture primer FASTA is missing: {}",
+            primer_fasta_path.display()
+        ));
+    }
+    if !amplicon_governance_path.is_file() {
+        return Err(anyhow!(
+            "amplicon corpus fixture governance file is missing: {}",
+            amplicon_governance_path.display()
+        ));
+    }
+
+    let raw = fs::read_to_string(amplicon_governance_path)
+        .with_context(|| format!("read {}", amplicon_governance_path.display()))?;
+    let governance: AmpliconGovernanceDocument = toml::from_str(&raw)
+        .with_context(|| format!("parse {}", amplicon_governance_path.display()))?;
+    let marker = governance.markers.get(&manifest.marker_id).ok_or_else(|| {
+        anyhow!(
+            "amplicon governance does not declare marker `{}` in {}",
+            manifest.marker_id,
+            amplicon_governance_path.display()
+        )
+    })?;
+    if marker.primer_set_id != manifest.primer_set_id {
+        return Err(anyhow!(
+            "amplicon corpus fixture marker `{}` expects primer set `{}` but manifest declared `{}`",
+            manifest.marker_id,
+            marker.primer_set_id,
+            manifest.primer_set_id
+        ));
+    }
+    if !marker.applicable_assays.iter().any(|assay| assay == &manifest.assay_id) {
+        return Err(anyhow!(
+            "amplicon corpus fixture assay `{}` is not allowed for marker `{}`",
+            manifest.assay_id,
+            manifest.marker_id
+        ));
+    }
+    let governed_primer_fasta = if marker.primer_fasta.is_absolute() {
+        marker.primer_fasta.clone()
+    } else {
+        repo_root.join(&marker.primer_fasta)
+    };
+    let manifest_primer_fasta = primer_fasta_path
+        .canonicalize()
+        .with_context(|| format!("canonicalize {}", primer_fasta_path.display()))?;
+    let governed_primer_fasta = governed_primer_fasta
+        .canonicalize()
+        .with_context(|| format!("canonicalize {}", governed_primer_fasta.display()))?;
+    if governed_primer_fasta != manifest_primer_fasta {
+        return Err(anyhow!(
+            "amplicon corpus fixture primer FASTA `{}` does not match governance path `{}` for marker `{}`",
+            manifest_primer_fasta.display(),
+            governed_primer_fasta.display(),
+            manifest.marker_id
+        ));
+    }
+    Ok(())
+}
+
+fn validate_primer_fasta_headers(
+    manifest: &AmpliconCorpusFixtureManifest,
+    primer_fasta_path: &Path,
+) -> Result<()> {
+    let file = fs::File::open(primer_fasta_path)
+        .with_context(|| format!("open {}", primer_fasta_path.display()))?;
+    let reader = BufReader::new(file);
+    let mut headers = BTreeSet::new();
+    for line in reader.lines() {
+        let line = line.with_context(|| format!("read {}", primer_fasta_path.display()))?;
+        if let Some(header) = line.strip_prefix('>') {
+            headers.insert(header.trim().to_string());
+        }
+    }
+    if !headers.contains(&manifest.forward_primer_id) {
+        return Err(anyhow!(
+            "amplicon corpus fixture forward primer `{}` is missing from {}",
+            manifest.forward_primer_id,
+            primer_fasta_path.display()
+        ));
+    }
+    if !headers.contains(&manifest.reverse_primer_id) {
+        return Err(anyhow!(
+            "amplicon corpus fixture reverse primer `{}` is missing from {}",
+            manifest.reverse_primer_id,
+            primer_fasta_path.display()
+        ));
+    }
+    Ok(())
+}
+
+fn validate_amplicon_corpus_fixture_sample(
+    repo_root: &Path,
+    manifest_dir: &Path,
+    manifest: &AmpliconCorpusFixtureManifest,
+    sample: &AmpliconCorpusFixtureSample,
+) -> Result<AmpliconCorpusFixtureSampleValidationReport> {
+    let fastq_path = resolve_manifest_relative_path(manifest_dir, &sample.fastq_path);
+    validate_fastq_fixture_path(
+        &fastq_path,
+        manifest.compression,
+        &sample.sample_id,
+        "fastq_path",
+    )?;
+    let observed_read_count = count_fastq_gz_reads(&fastq_path)?;
+    if observed_read_count != sample.expected_read_count {
+        return Err(anyhow!(
+            "amplicon corpus fixture sample `{}` expected {} reads but observed {}",
+            sample.sample_id,
+            sample.expected_read_count,
+            observed_read_count
+        ));
+    }
+    let source_paths = sample
+        .source_paths
+        .iter()
+        .map(|path| {
+            let absolute = if path.is_absolute() { path.clone() } else { repo_root.join(path) };
+            if !absolute.is_file() {
+                return Err(anyhow!(
+                    "amplicon corpus fixture sample `{}` source path is missing: {}",
+                    sample.sample_id,
+                    absolute.display()
+                ));
+            }
+            Ok(path_relative_to_repo(repo_root, &absolute))
+        })
+        .collect::<Result<Vec<_>>>()?;
+
+    Ok(AmpliconCorpusFixtureSampleValidationReport {
+        sample_id: sample.sample_id.clone(),
+        sample_kind: sample.sample_kind.as_str().to_string(),
+        fastq_path: path_relative_to_repo(repo_root, &fastq_path),
+        source_paths,
+        observed_read_count,
+        valid: true,
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::{
+        validate_amplicon_corpus_fixture_manifest_path,
+        AMPLICON_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION,
+        DEFAULT_CORPUS_03_AMPLICON_MANIFEST_PATH,
+    };
+
+    fn repo_root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .expect("canonicalize repo root")
+    }
+
+    #[test]
+    fn corpus_03_amplicon_fixture_manifest_validates_primer_and_control_contract() {
+        let root = repo_root();
+        let report = validate_amplicon_corpus_fixture_manifest_path(
+            &root,
+            &root.join(DEFAULT_CORPUS_03_AMPLICON_MANIFEST_PATH),
+        )
+        .expect("validate corpus-03 amplicon fixture manifest");
+
+        assert_eq!(report.schema_version, AMPLICON_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION);
+        assert_eq!(report.corpus_id, "corpus-03-amplicon-mini");
+        assert_eq!(report.assay_id, "amplicon_standard");
+        assert_eq!(report.marker_id, "16S");
+        assert_eq!(report.target_region, "bacterial_16s_rrna_full_length");
+        assert_eq!(report.primer_set_id, "16S_universal_v1");
+        assert_eq!(report.forward_primer_id, "16S_27F");
+        assert_eq!(report.reverse_primer_id, "16S_1492R");
+        assert_eq!(report.sample_count, 4);
+        assert_eq!(report.control_count, 1);
+        assert!(report.valid);
+        assert!(report.controls.iter().any(|control| {
+            control.sample_id == "chimera-control-se"
+                && control.control_kind == "chimera_positive"
+                && control.valid
+        }));
+        assert!(report.samples.iter().any(|sample| {
+            sample.sample_id == "amplicon-16s-se"
+                && sample.sample_kind == "biological"
+                && sample.observed_read_count == 3
+        }));
+        assert!(report.samples.iter().any(|sample| {
+            sample.sample_id == "chimera-control-se"
+                && sample.sample_kind == "control"
+                && sample.observed_read_count == 3
+        }));
+    }
+}
