@@ -1,0 +1,8 @@
+schema_version = "bijux.bench.fastq.local_normalize_abundance.v1"
+tool_id = "seqkit"
+method = "relative_abundance"
+output_dir = "target/local-smoke/fastq.normalize_abundance"
+
+[[cases]]
+sample_id = "core-v1-otu-table"
+abundance_table = "assets/toy/core-v1/tables/otu_abundance_small.tsv"
