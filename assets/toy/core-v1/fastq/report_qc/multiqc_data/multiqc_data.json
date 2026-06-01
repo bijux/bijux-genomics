@@ -1,0 +1,12 @@
+{
+  "report_saved_raw_data": true,
+  "sample_names": [
+    "toy-se"
+  ],
+  "module_names": [
+    "fastqc",
+    "seqkit_stats",
+    "fastqvalidator",
+    "summary"
+  ]
+}

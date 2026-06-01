@@ -1,0 +1,8 @@
+{
+  "schema_version": "bijux.fastq.validate.local_smoke.report.v1",
+  "stage_id": "fastq.validate_reads",
+  "tool_id": "fastqvalidator",
+  "sample_id": "toy-se",
+  "strict_pass": true,
+  "validated_reads_r1": 8
+}

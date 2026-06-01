@@ -1,0 +1,8 @@
+{
+  "schema_version": "bijux.fastq.detect_adapters.report.v1",
+  "stage_id": "fastq.detect_adapters",
+  "tool_id": "fastqc",
+  "sample_id": "toy-se",
+  "adapter_content_max": 0.125,
+  "adapter_content_mean": 0.041667
+}
