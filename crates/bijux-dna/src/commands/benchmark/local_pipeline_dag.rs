@@ -465,4 +465,35 @@ mod tests {
             "filter_reads must consume the merged and unmerged merge-pairs outputs"
         );
     }
+
+    #[test]
+    fn fastq_edna_taxonomy_pipeline_dag_tracks_taxonomy_assets_and_outputs() {
+        let repo_root = repo_root();
+        let config_path = repo_root.join("configs/pipelines/local/fastq-edna-taxonomy.toml");
+        let output_path =
+            repo_root.join("target/local-ready/pipeline-dag/fastq-edna-taxonomy.json");
+        let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect("validate edna taxonomy local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "fastq-edna-taxonomy");
+        assert_eq!(report.domain, "fastq");
+        assert_eq!(report.default_corpus_id, "corpus-02-edna-mini");
+        assert_eq!(report.node_count, 7);
+        assert_eq!(report.edge_count, 12);
+        assert!(report.acyclic);
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "fastq.screen_taxonomy"
+                    && node.external_inputs
+                        == vec!["taxonomy_database.root", "taxonomy_expected_truth_table"]
+                    && node.outputs
+                        == vec![
+                            "taxonomy_classification",
+                            "unclassified_reads",
+                            "taxonomy_summary",
+                        ]
+            }),
+            "screen_taxonomy must carry governed taxonomy assets and explicit classified plus unclassified outputs"
+        );
+    }
 }
