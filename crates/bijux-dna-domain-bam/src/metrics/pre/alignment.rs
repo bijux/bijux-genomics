@@ -86,7 +86,7 @@ pub fn parse_samtools_stats(
     Ok((fragment, mapq))
 }
 
-fn summarize_length_hist(hist: &[(u32, u64)]) -> FragmentLengthSummaryV1 {
+pub(crate) fn summarize_length_hist(hist: &[(u32, u64)]) -> FragmentLengthSummaryV1 {
     if hist.is_empty() {
         return FragmentLengthSummaryV1::empty();
     }
@@ -119,7 +119,7 @@ fn summarize_length_hist(hist: &[(u32, u64)]) -> FragmentLengthSummaryV1 {
     FragmentLengthSummaryV1 { mean, median, p10, p90, short_fraction }
 }
 
-fn summarize_mapq_hist(hist: &[(u8, u64)]) -> MapqSummaryV1 {
+pub(crate) fn summarize_mapq_hist(hist: &[(u8, u64)]) -> MapqSummaryV1 {
     if hist.is_empty() {
         return MapqSummaryV1::empty();
     }

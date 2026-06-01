@@ -50,8 +50,9 @@ pub use artifacts::{
     execute_pmd_authenticity_advisory, filter_tiny_bam_by_mapq,
     merge_tiny_bam_with_conflict_refusal, propagate_bam_sample_identity,
     required_bam_bench_corpus_scenarios, sort_and_index_tiny_bam, summarize_tiny_bam_coverage,
-    summarize_tiny_bam_mapping, BamAdnaWorkflowV1, BamAdvisoryBoundaryV1, BamAlignmentProvenanceV1,
-    BamAlignmentStrategyV1, BamAlignmentSuitabilityV1, BamArtifactEntryV1, BamArtifactInventoryV1,
+    summarize_tiny_bam_mapping, summarize_tiny_bam_qc_pre, BamAdnaWorkflowV1,
+    BamAdvisoryBoundaryV1, BamAlignmentProvenanceV1, BamAlignmentStrategyV1,
+    BamAlignmentSuitabilityV1, BamArtifactEntryV1, BamArtifactInventoryV1,
     BamAuthenticityAdvisoryV1, BamBenchCorpusDatasetManifestEntryV1, BamBenchCorpusManifestV1,
     BamBenchDatasetScenarioV1, BamContaminationEvidenceV1, BamContaminationToolContractV1,
     BamContaminationWorkflowV1, BamCoverageRegimeClassV1, BamCoverageRegimeV1,
@@ -59,7 +60,7 @@ pub use artifacts::{
     BamDuplicateMethodMetricsV1, BamDuplicatePolicyV1, BamEndogenousContentEstimateV1,
     BamFlagstatCountsV1, BamHaplogroupReadinessV1, BamInputOriginV1, BamInputScaleV1,
     BamKinshipPrerequisitesV1, BamMappingSummaryV1, BamMapqFilterSummaryV1, BamMapqRegimeV1,
-    BamMergeCompatibilityV1, BamMergeInputIdentityV1, BamPostAlignmentChainV1,
+    BamMergeCompatibilityV1, BamMergeInputIdentityV1, BamPostAlignmentChainV1, BamQcPreSummaryV1,
     BamReadGroupMappingCountV1, BamReferenceAssetIdentityV1, BamReferencePreflightV1,
     BamSampleIdentityV1, BamScientificReportContractV1, BamScientificReportIdV1,
     BamSexInferenceEvidenceV1, BamStageResourcePlanV1, BamValidationSummaryV1, BamWorkflowModeV1,
@@ -73,10 +74,11 @@ pub use artifacts::{
     BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION, BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION,
     BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION, BAM_MAPPING_SUMMARY_SCHEMA_VERSION,
     BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION, BAM_MERGE_COMPATIBILITY_SCHEMA_VERSION,
-    BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION, BAM_REFERENCE_PREFLIGHT_SCHEMA_VERSION,
-    BAM_RESOURCE_PLAN_SCHEMA_VERSION, BAM_SAMPLE_IDENTITY_SCHEMA_VERSION,
-    BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION, BAM_SEX_EVIDENCE_SCHEMA_VERSION,
-    BAM_VALIDATION_SUMMARY_SCHEMA_VERSION, BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
+    BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION, BAM_QC_PRE_SUMMARY_SCHEMA_VERSION,
+    BAM_REFERENCE_PREFLIGHT_SCHEMA_VERSION, BAM_RESOURCE_PLAN_SCHEMA_VERSION,
+    BAM_SAMPLE_IDENTITY_SCHEMA_VERSION, BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION,
+    BAM_SEX_EVIDENCE_SCHEMA_VERSION, BAM_VALIDATION_SUMMARY_SCHEMA_VERSION,
+    BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
 };
 pub use invariants::bam_invariant_specs;
 pub use stage_specs::{
@@ -85,8 +87,8 @@ pub use stage_specs::{
     BamStage, BamStageContract, BamStageSpec, StageSpec, STAGE_PREFIX,
 };
 pub use types::{
-    BamInvariantsPreset, BAM_LOCAL_BENCH_STAGE_ID_CATALOG, BAM_METRICS_CATALOG,
-    BAM_PARAMS_CATALOG, BAM_STAGE_ID_CATALOG,
+    BamInvariantsPreset, BAM_LOCAL_BENCH_STAGE_ID_CATALOG, BAM_METRICS_CATALOG, BAM_PARAMS_CATALOG,
+    BAM_STAGE_ID_CATALOG,
 };
 
 #[allow(clippy::struct_excessive_bools)]

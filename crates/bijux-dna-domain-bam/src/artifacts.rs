@@ -15,6 +15,7 @@ pub const BAM_SAMPLE_IDENTITY_SCHEMA_VERSION: &str = "bijux.bam.sample_identity.
 pub const BAM_REFERENCE_PREFLIGHT_SCHEMA_VERSION: &str = "bijux.bam.reference_preflight.v1";
 pub const BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION: &str = "bijux.bam.alignment_provenance.v1";
 pub const BAM_VALIDATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.validate.v1";
+pub const BAM_QC_PRE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.qc_pre.v1";
 pub const BAM_MAPPING_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapping_summary.v1";
 pub const BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapq_filter.v1";
 pub const BAM_COVERAGE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_summary.v1";
@@ -135,6 +136,22 @@ pub struct BamValidationSummaryV1 {
     pub validation_report_present: bool,
     #[serde(default)]
     pub refusal_codes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct BamQcPreSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub input_bam: PathBuf,
+    pub total_reads: u64,
+    pub mapped_reads: u64,
+    pub unmapped_reads: u64,
+    pub duplicate_flagged_reads: u64,
+    pub contig_summary: Vec<crate::metrics::IdxstatsContigV1>,
+    pub reference_mismatch: bool,
+    pub fragment_length: crate::metrics::FragmentLengthSummaryV1,
+    pub mapq: crate::metrics::MapqSummaryV1,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -2041,6 +2058,85 @@ pub fn summarize_tiny_bam_mapping(input_bam: &Path) -> Result<BamMappingSummaryV
     })
 }
 
+/// Summarize pre-QC core BAM metrics for a tiny BAM/SAM fixture.
+///
+/// # Errors
+/// Returns an error if the input cannot be parsed.
+pub fn summarize_tiny_bam_qc_pre(input_bam: &Path) -> Result<BamQcPreSummaryV1> {
+    let document = parse_tiny_sam(input_bam)?;
+    let flagstat = flagstat_from_records(&document.records);
+    let idxstats = idxstats_from_tiny_document(&document);
+
+    let mut read_length_histogram = HashMap::<u32, u64>::new();
+    let mut mapq_histogram = HashMap::<u8, u64>::new();
+    for record in document.records.iter().filter(|record| record.is_mapped()) {
+        let read_length = u32::try_from(record.seq.len()).unwrap_or(u32::MAX);
+        *read_length_histogram.entry(read_length).or_insert(0) += 1;
+        *mapq_histogram.entry(record.mapq).or_insert(0) += 1;
+    }
+    let mut read_length_histogram = read_length_histogram.into_iter().collect::<Vec<_>>();
+    read_length_histogram.sort_by_key(|(length, _)| *length);
+    let mut mapq_histogram = mapq_histogram.into_iter().collect::<Vec<_>>();
+    mapq_histogram.sort_by_key(|(mapq, _)| *mapq);
+
+    Ok(BamQcPreSummaryV1 {
+        schema_version: BAM_QC_PRE_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.qc_pre".to_string(),
+        input_bam: input_bam.to_path_buf(),
+        total_reads: flagstat.total_reads.unwrap_or(0),
+        mapped_reads: flagstat.mapped_reads.unwrap_or(0),
+        unmapped_reads: flagstat
+            .total_reads
+            .unwrap_or(0)
+            .saturating_sub(flagstat.mapped_reads.unwrap_or(0)),
+        duplicate_flagged_reads: flagstat.duplicate_reads.unwrap_or(0),
+        contig_summary: idxstats.contigs.clone(),
+        reference_mismatch: idxstats.reference_mismatch,
+        fragment_length: crate::metrics::pre::alignment::summarize_length_hist(
+            &read_length_histogram,
+        ),
+        mapq: crate::metrics::pre::alignment::summarize_mapq_hist(&mapq_histogram),
+    })
+}
+
+fn idxstats_from_tiny_document(document: &TinySamDocument) -> crate::metrics::IdxstatsSummaryV1 {
+    let mut contigs = document
+        .references
+        .iter()
+        .map(|reference| crate::metrics::IdxstatsContigV1 {
+            contig: reference.clone(),
+            length: document.reference_lengths.get(reference).copied().unwrap_or(0),
+            mapped: 0,
+            unmapped: 0,
+        })
+        .collect::<Vec<_>>();
+    let mut contig_index = HashMap::<String, usize>::new();
+    for (index, contig) in contigs.iter().enumerate() {
+        contig_index.insert(contig.contig.clone(), index);
+    }
+
+    let mut total_unmapped = 0_u64;
+    let mut reference_mismatch = false;
+    for record in &document.records {
+        if record.is_mapped() {
+            if let Some(index) = contig_index.get(&record.rname).copied() {
+                contigs[index].mapped = contigs[index].mapped.saturating_add(1);
+            } else {
+                reference_mismatch = true;
+            }
+        } else {
+            total_unmapped = total_unmapped.saturating_add(1);
+        }
+    }
+
+    crate::metrics::IdxstatsSummaryV1 {
+        contigs,
+        total_mapped: document.records.iter().filter(|record| record.is_mapped()).count() as u64,
+        total_unmapped,
+        reference_mismatch,
+    }
+}
+
 /// Summarize tiny BAM/SAM coverage and classify coverage regime from depth/breadth signals.
 ///
 /// # Errors
@@ -3595,6 +3691,37 @@ r03\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg2\n",
         assert_eq!(summary.read_group_breakdown[0].mapped_reads, 2);
         assert_eq!(summary.read_group_breakdown[1].read_group_id, "rg2");
         assert_eq!(summary.read_group_breakdown[1].mapped_reads, 1);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_qc_pre_reports_core_counts_and_contigs() {
+        let temp = unique_temp_dir("bam-qc-pre-summary");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:100\n\
+@SQ\tSN:chr2\tLN:80\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t5\t60\t8M\t*\t0\t0\tACGTACGT\tFFFFFFFF\tRG:Z:rg1\n\
+r02\t1024\tchr1\t20\t25\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchr2\t10\t10\t8M\t*\t0\t0\tCCGGAATT\tFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write qc_pre fixture");
+
+        let summary = summarize_tiny_bam_qc_pre(&input).expect("summarize qc_pre");
+        assert_eq!(summary.total_reads, 3);
+        assert_eq!(summary.mapped_reads, 3);
+        assert_eq!(summary.unmapped_reads, 0);
+        assert_eq!(summary.duplicate_flagged_reads, 1);
+        assert_eq!(summary.contig_summary.len(), 2);
+        assert_eq!(summary.contig_summary[0].contig, "chr1");
+        assert_eq!(summary.contig_summary[0].mapped, 2);
+        assert_eq!(summary.contig_summary[1].contig, "chr2");
+        assert_eq!(summary.contig_summary[1].mapped, 1);
+        assert!(!summary.reference_mismatch);
+        assert_eq!(summary.fragment_length.mean, 8.0);
+        assert_eq!(summary.mapq.histogram, vec![(10, 1), (25, 1), (60, 1)]);
     }
 
     #[test]
