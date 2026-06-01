@@ -7,12 +7,12 @@ use anyhow::{anyhow, Context, Result};
 use flate2::read::MultiGzDecoder;
 use serde::{Deserialize, Serialize};
 
-use crate::commands::cli::parse;
-use crate::commands::cli::render;
+use super::{path_relative_to_repo, resolve_manifest_relative_path};
 
 pub(crate) const DEFAULT_CORPUS_01_MINI_MANIFEST_PATH: &str =
     "tests/fixtures/corpora/corpus-01-mini/manifest.toml";
-const FASTQ_CORPUS_FIXTURE_SCHEMA_VERSION: &str = "bijux.bench.fastq_corpus_fixture.v1";
+pub(crate) const FASTQ_CORPUS_FIXTURE_SCHEMA_VERSION: &str =
+    "bijux.bench.fastq_corpus_fixture.v1";
 const FASTQ_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.fastq_corpus_fixture_validation.v1";
 
@@ -103,24 +103,6 @@ pub(crate) struct FastqCorpusFixtureValidationReport {
     pub(crate) paired_end_sample_count: usize,
     pub(crate) valid: bool,
     pub(crate) samples: Vec<FastqCorpusFixtureSampleValidationReport>,
-}
-
-pub(crate) fn run_validate_corpus_fixture(
-    args: &parse::BenchLocalValidateCorpusFixtureArgs,
-) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let manifest_path = if args.manifest.is_absolute() {
-        args.manifest.clone()
-    } else {
-        repo_root.join(&args.manifest)
-    };
-    let report = validate_fastq_corpus_fixture_manifest_path(&repo_root, &manifest_path)?;
-    if args.json {
-        render::json::print_pretty(&report)?;
-    } else {
-        println!("{}", report.manifest_path);
-    }
-    Ok(())
 }
 
 pub(crate) fn validate_fastq_corpus_fixture_manifest_path(
@@ -404,18 +386,6 @@ fn count_fastq_gz_reads(path: &Path) -> Result<u64> {
         count = count.saturating_add(1);
     }
     Ok(count)
-}
-
-fn resolve_manifest_relative_path(manifest_dir: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        manifest_dir.join(path)
-    }
-}
-
-fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
 
 #[cfg(test)]
