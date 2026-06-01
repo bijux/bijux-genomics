@@ -22,6 +22,7 @@ const LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_VERSION: &str =
 enum LocalPipelineDagDomain {
     Fastq,
     Bam,
+    Cross,
 }
 
 impl LocalPipelineDagDomain {
@@ -29,13 +30,7 @@ impl LocalPipelineDagDomain {
         match self {
             Self::Fastq => "fastq",
             Self::Bam => "bam",
-        }
-    }
-
-    fn inventory_domain(self) -> BenchLocalDomain {
-        match self {
-            Self::Fastq => BenchLocalDomain::Fastq,
-            Self::Bam => BenchLocalDomain::Bam,
+            Self::Cross => "cross",
         }
     }
 }
@@ -154,12 +149,7 @@ fn validate_pipeline_dag(
 ) -> Result<LocalPipelineDagValidationReport> {
     validate_pipeline_contract(config)?;
 
-    let inventory = load_local_stage_inventory(repo_root, config.domain.inventory_domain())?;
-    let inventory_index = inventory
-        .stages
-        .into_iter()
-        .map(|stage| (stage.stage_id, stage.readiness_kind))
-        .collect::<BTreeMap<_, _>>();
+    let inventory_index = load_pipeline_inventory_index(repo_root, config.domain)?;
 
     let mut seen_node_ids = BTreeSet::new();
     let mut seen_stage_ids = BTreeSet::new();
@@ -334,6 +324,27 @@ fn validate_pipeline_dag(
     })
 }
 
+fn load_pipeline_inventory_index(
+    repo_root: &Path,
+    domain: LocalPipelineDagDomain,
+) -> Result<BTreeMap<String, LocalStageReadinessKind>> {
+    let mut inventory_index = BTreeMap::new();
+    let inventory_domains = match domain {
+        LocalPipelineDagDomain::Fastq => vec![BenchLocalDomain::Fastq],
+        LocalPipelineDagDomain::Bam => vec![BenchLocalDomain::Bam],
+        LocalPipelineDagDomain::Cross => vec![BenchLocalDomain::Fastq, BenchLocalDomain::Bam],
+    };
+
+    for inventory_domain in inventory_domains {
+        let inventory = load_local_stage_inventory(repo_root, inventory_domain)?;
+        for stage in inventory.stages {
+            inventory_index.insert(stage.stage_id, stage.readiness_kind);
+        }
+    }
+
+    Ok(inventory_index)
+}
+
 fn validate_pipeline_contract(config: &LocalPipelineDagConfig) -> Result<()> {
     if config.schema_version != LOCAL_PIPELINE_DAG_SCHEMA_VERSION {
         return Err(anyhow!("unsupported local pipeline DAG schema `{}`", config.schema_version));
@@ -385,12 +396,73 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 #[allow(clippy::expect_used)]
 mod tests {
     use super::{validate_pipeline_dag_path, DEFAULT_FASTQ_CORE_PREPROCESS_PIPELINE_CONFIG_PATH};
+    use std::fs;
 
     fn repo_root() -> std::path::PathBuf {
         std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../..")
             .canonicalize()
             .expect("canonicalize repo root")
+    }
+
+    #[test]
+    fn cross_pipeline_dag_can_mix_fastq_and_bam_inventory_nodes() {
+        let repo_root = repo_root();
+        let tempdir = tempfile::tempdir().expect("tempdir");
+        let config_path = tempdir.path().join("fastq-to-bam-cross.toml");
+        fs::write(
+            &config_path,
+            r#"
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "fastq-to-bam-cross"
+domain = "cross"
+summary = "Cross-domain proof that local pipeline validation can mix governed FASTQ and BAM stages."
+default_corpus_id = "corpus-01-mini"
+
+[[nodes]]
+node_id = "fastq.validate_reads"
+stage_id = "fastq.validate_reads"
+readiness_kind = "smoke"
+summary = "Validate governed FASTQ inputs before alignment."
+depends_on = []
+external_inputs = ["corpus.raw_fastq_reads"]
+upstream_inputs = []
+outputs = ["validated_reads_r1_path", "validated_reads_r2_path", "validation_report"]
+
+[[nodes]]
+node_id = "bam.align"
+stage_id = "bam.align"
+readiness_kind = "dry_or_smoke"
+summary = "Align validated FASTQ paths against the governed BAM alignment contracts."
+depends_on = ["fastq.validate_reads"]
+external_inputs = [
+  "alignment_reference_fasta_contract",
+  "alignment_reference_index_contract",
+  "alignment_read_group_contract",
+]
+upstream_inputs = ["validated_reads_r1_path", "validated_reads_r2_path"]
+outputs = ["align_bam", "align_bai", "align_metrics"]
+"#,
+        )
+        .expect("write cross config");
+
+        let output_path = tempdir.path().join("fastq-to-bam-cross.json");
+        let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect("validate cross local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "fastq-to-bam-cross");
+        assert_eq!(report.domain, "cross");
+        assert_eq!(report.node_count, 2);
+        assert_eq!(report.edge_count, 1);
+        assert!(report.acyclic);
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.align"
+                    && node.upstream_inputs
+                        == vec!["validated_reads_r1_path", "validated_reads_r2_path"]
+            }),
+            "cross DAG validation must admit BAM alignment consumers of governed FASTQ path outputs"
+        );
     }
 
     #[test]
