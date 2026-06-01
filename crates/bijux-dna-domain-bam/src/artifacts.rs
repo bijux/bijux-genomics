@@ -8,7 +8,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::metrics::{authenticity_score, BamMetricsV1, SexConfidenceClass};
-use crate::params::ReadGroupSpec;
+use crate::params::{FilterEffectiveParams, ReadGroupSpec};
 
 pub const BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION: &str = "bijux.bam.artifact_inventory.v1";
 pub const BAM_SAMPLE_IDENTITY_SCHEMA_VERSION: &str = "bijux.bam.sample_identity.v1";
@@ -17,6 +17,7 @@ pub const BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION: &str = "bijux.bam.alignment_p
 pub const BAM_VALIDATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.validate.v1";
 pub const BAM_QC_PRE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.qc_pre.v1";
 pub const BAM_MAPPING_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapping_summary.v1";
+pub const BAM_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.filter.v1";
 pub const BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapq_filter.v1";
 pub const BAM_COVERAGE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_summary.v1";
 pub const BAM_DUPLICATE_POLICY_SCHEMA_VERSION: &str = "bijux.bam.duplicate_policy.v1";
@@ -183,6 +184,22 @@ pub struct BamMappingSummaryV1 {
     pub mapq_histogram: Vec<(u8, u64)>,
     #[serde(default)]
     pub read_group_breakdown: Vec<BamReadGroupMappingCountV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamFilterSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub input_bam: PathBuf,
+    pub output_bam: PathBuf,
+    pub flagstat_before: BamFlagstatCountsV1,
+    pub flagstat_after: BamFlagstatCountsV1,
+    pub input_reads: u64,
+    pub kept_reads: u64,
+    pub removed_reads: u64,
+    #[serde(default)]
+    pub active_filters: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -1997,6 +2014,97 @@ pub fn filter_tiny_bam_by_mapq(
     })
 }
 
+/// Filter tiny BAM/SAM fixtures with the general BAM filter semantics used by `bam.filter`.
+///
+/// # Errors
+/// Returns an error if input parsing fails or output writing fails.
+pub fn filter_tiny_bam(
+    input_bam: &Path,
+    output_bam: &Path,
+    params: &FilterEffectiveParams,
+) -> Result<BamFilterSummaryV1> {
+    let input = parse_tiny_sam(input_bam)?;
+    let include_mask = params.include_flags.iter().fold(0_u16, |mask, flag| mask | flag);
+    let mut exclude_flags = params.exclude_flags.clone();
+    if params.remove_duplicates && !exclude_flags.contains(&0x400_u16) {
+        exclude_flags.push(0x400_u16);
+    }
+    let exclude_mask = exclude_flags.iter().fold(0_u16, |mask, flag| mask | flag);
+
+    let filtered_records = input
+        .records
+        .iter()
+        .filter(|record| {
+            if include_mask != 0 && (record.flag & include_mask) != include_mask {
+                return false;
+            }
+            if exclude_mask != 0 && (record.flag & exclude_mask) != 0 {
+                return false;
+            }
+            if params.mapq_threshold > 0 && record.mapq < params.mapq_threshold {
+                return false;
+            }
+            if params.min_length > 0
+                && u32::try_from(record.seq.len()).unwrap_or(u32::MAX) < params.min_length
+            {
+                return false;
+            }
+            true
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+
+    let output = TinySamDocument {
+        sort_order: input.sort_order.clone(),
+        references: input.references.clone(),
+        reference_lengths: input.reference_lengths.clone(),
+        read_groups: input.read_groups.clone(),
+        read_group_samples: input.read_group_samples.clone(),
+        records: filtered_records.clone(),
+    };
+    write_tiny_sam_from_document(
+        output_bam,
+        &output,
+        input.sort_order.as_deref().unwrap_or("unsorted"),
+    )?;
+
+    let flagstat_before = flagstat_from_records(&input.records);
+    let flagstat_after = flagstat_from_records(&filtered_records);
+    let input_reads = flagstat_before.total_reads.unwrap_or(input.records.len() as u64);
+    let kept_reads = flagstat_after.total_reads.unwrap_or(filtered_records.len() as u64);
+    let removed_reads = input_reads.saturating_sub(kept_reads);
+
+    let mut active_filters = Vec::new();
+    if params.mapq_threshold > 0 {
+        active_filters.push("mapq_threshold".to_string());
+    }
+    if include_mask != 0 {
+        active_filters.push("include_flags".to_string());
+    }
+    if !params.exclude_flags.is_empty() {
+        active_filters.push("exclude_flags".to_string());
+    }
+    if params.min_length > 0 {
+        active_filters.push("min_length".to_string());
+    }
+    if params.remove_duplicates {
+        active_filters.push("remove_duplicates".to_string());
+    }
+
+    Ok(BamFilterSummaryV1 {
+        schema_version: BAM_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.filter".to_string(),
+        input_bam: input_bam.to_path_buf(),
+        output_bam: output_bam.to_path_buf(),
+        flagstat_before,
+        flagstat_after,
+        input_reads,
+        kept_reads,
+        removed_reads,
+        active_filters,
+    })
+}
+
 /// Summarize mapping status for a tiny BAM/SAM fixture with MAPQ and read-group breakdown.
 ///
 /// # Errors
@@ -3135,6 +3243,42 @@ mod tests {
     }
 
     #[test]
+    fn bam_filter_summary_round_trips() {
+        let payload = BamFilterSummaryV1 {
+            schema_version: BAM_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.filter".to_string(),
+            input_bam: PathBuf::from("input.bam"),
+            output_bam: PathBuf::from("filtered.bam"),
+            flagstat_before: BamFlagstatCountsV1 {
+                total_reads: Some(5),
+                mapped_reads: Some(4),
+                duplicate_reads: Some(1),
+                mapped_fraction: Some(0.8),
+            },
+            flagstat_after: BamFlagstatCountsV1 {
+                total_reads: Some(1),
+                mapped_reads: Some(1),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(1.0),
+            },
+            input_reads: 5,
+            kept_reads: 1,
+            removed_reads: 4,
+            active_filters: vec![
+                "mapq_threshold".to_string(),
+                "exclude_flags".to_string(),
+                "min_length".to_string(),
+                "remove_duplicates".to_string(),
+            ],
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize filter summary");
+        let roundtrip: BamFilterSummaryV1 =
+            serde_json::from_value(json).expect("roundtrip filter summary");
+        assert_eq!(roundtrip, payload);
+    }
+
+    #[test]
     fn bam_sample_identity_prefers_declared_and_read_group_defaults() {
         let read_group = ReadGroupSpec {
             id: "rg1".to_string(),
@@ -3660,6 +3804,55 @@ r03\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
 
         let filtered = parse_tiny_sam(&output).expect("parse filtered output");
         assert_eq!(filtered.records.len(), 2);
+    }
+
+    #[test]
+    fn filter_tiny_bam_tracks_active_filters_and_removed_reads() {
+        let temp = unique_temp_dir("bam-filter");
+        let input = temp.join("input.sam");
+        let output = temp.join("filtered.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:100\n\
+@RG\tID:rg1\tSM:sampleA\n\
+good001\t0\tchr1\t1\t60\t8M\t*\t0\t0\tACGTACGT\tFFFFFFFF\tRG:Z:rg1\n\
+lowq001\t0\tchr1\t10\t10\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\n\
+short001\t0\tchr1\t20\t60\t6M\t*\t0\t0\tGATTAC\tFFFFFF\tRG:Z:rg1\n\
+dup001\t1024\tchr1\t30\t60\t8M\t*\t0\t0\tCCCCGGGG\tFFFFFFFF\tRG:Z:rg1\n\
+unmap001\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNNNN\tFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write filter fixture");
+
+        let summary = filter_tiny_bam(
+            &input,
+            &output,
+            &FilterEffectiveParams {
+                mapq_threshold: 20,
+                include_flags: Vec::new(),
+                exclude_flags: vec![4],
+                min_length: 8,
+                remove_duplicates: true,
+                base_quality_threshold: 20,
+            },
+        )
+        .expect("filter BAM");
+        assert_eq!(summary.input_reads, 5);
+        assert_eq!(summary.kept_reads, 1);
+        assert_eq!(summary.removed_reads, 4);
+        assert_eq!(
+            summary.active_filters,
+            vec![
+                "mapq_threshold".to_string(),
+                "exclude_flags".to_string(),
+                "min_length".to_string(),
+                "remove_duplicates".to_string(),
+            ]
+        );
+
+        let filtered = parse_tiny_sam(&output).expect("parse filtered output");
+        assert_eq!(filtered.records.len(), 1);
+        assert_eq!(filtered.records[0].qname, "good001");
     }
 
     #[test]
