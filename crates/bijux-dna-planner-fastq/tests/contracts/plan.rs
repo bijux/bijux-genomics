@@ -34,12 +34,14 @@ mod local_index_reference;
 mod local_merge_pairs_smoke;
 #[path = "plan/local_normalize_primers_smoke.rs"]
 mod local_normalize_primers_smoke;
-#[path = "plan/local_profile_read_lengths_smoke.rs"]
-mod local_profile_read_lengths_smoke;
 #[path = "plan/local_profile_overrepresented_sequences_smoke.rs"]
 mod local_profile_overrepresented_sequences_smoke;
+#[path = "plan/local_profile_read_lengths_smoke.rs"]
+mod local_profile_read_lengths_smoke;
 #[path = "plan/local_profile_reads_smoke.rs"]
 mod local_profile_reads_smoke;
+#[path = "plan/local_remove_chimeras_smoke.rs"]
+mod local_remove_chimeras_smoke;
 #[path = "plan/local_remove_duplicates_smoke.rs"]
 mod local_remove_duplicates_smoke;
 #[path = "plan/local_trim_polyg_tails_smoke.rs"]
