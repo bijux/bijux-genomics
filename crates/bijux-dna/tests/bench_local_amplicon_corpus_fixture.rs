@@ -75,6 +75,19 @@ fn bench_local_validate_amplicon_corpus_fixture_json_reports_governed_corpus_03_
         Some("tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv")
     );
     assert_eq!(payload.get("primer_table_row_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(
+        payload.get("expected_asvs_path").and_then(serde_json::Value::as_str),
+        Some("tests/fixtures/corpora/corpus-03-amplicon-mini/expected_asvs.tsv")
+    );
+    assert_eq!(payload.get("expected_asv_row_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(
+        payload.get("expected_asv_present_row_count").and_then(serde_json::Value::as_u64),
+        Some(2)
+    );
+    assert_eq!(
+        payload.get("expected_asv_absent_row_count").and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
     assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(payload.get("control_count").and_then(serde_json::Value::as_u64), Some(1));
     assert!(payload.get("valid").and_then(serde_json::Value::as_bool) == Some(true));
