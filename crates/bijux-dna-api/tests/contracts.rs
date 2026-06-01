@@ -20,6 +20,8 @@ mod mod_contracts_v1_bam_local_coverage_smoke_rs;
 mod mod_contracts_v1_bam_local_duplication_metrics_smoke_rs;
 #[path = "contracts/v1_bam_local_filter_smoke.rs"]
 mod mod_contracts_v1_bam_local_filter_smoke_rs;
+#[path = "contracts/v1_bam_local_gc_bias_smoke.rs"]
+mod mod_contracts_v1_bam_local_gc_bias_smoke_rs;
 #[path = "contracts/v1_bam_local_insert_size_smoke.rs"]
 mod mod_contracts_v1_bam_local_insert_size_smoke_rs;
 #[path = "contracts/v1_bam_local_length_filter_smoke.rs"]

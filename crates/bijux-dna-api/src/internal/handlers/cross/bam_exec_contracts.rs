@@ -288,6 +288,55 @@ MEDIAN_INSERT_SIZE\tMODE_INSERT_SIZE\tMEDIAN_ABSOLUTE_DEVIATION\tMIN_INSERT_SIZE
     }
 
     #[test]
+    fn gc_bias_postprocess_emits_typed_summary() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let stage_dir = temp.path().join("gc_bias");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        bijux_dna_infra::atomic_write_bytes(
+            &stage_dir.join("gc_bias.metrics.txt"),
+            b"## htsjdk.samtools.metrics.StringHeader\n\
+# picard CollectGcBiasMetrics synthetic fixture\n\
+## METRICS CLASS\tpicard.analysis.GcBiasMetrics\n\
+ACCUMULATION_LEVEL\tREADS_USED\tWINDOW_SIZE\tTOTAL_CLUSTERS\tALIGNED_READS\tAT_DROPOUT\tGC_DROPOUT\tWINDOWS\tREAD_STARTS\n\
+ALL_READS\tALL\t10\t4\t4\t25.0\t25.0\t3\t4\n\
+",
+        )?;
+        bijux_dna_infra::atomic_write_bytes(
+            &stage_dir.join("gc_bias.plot.pdf"),
+            b"%PDF-1.4\n",
+        )?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::GcBias);
+        plan.io.inputs[0].path = stage_dir.join("input.bam");
+        plan.io.inputs.push(ArtifactRef::required(
+            ArtifactId::new("reference"),
+            stage_dir.join("reference.fasta"),
+            ArtifactRole::Reference,
+        ));
+        stage_postprocess(
+            bijux_dna_planner_bam::stage_api::BamStage::GcBias,
+            &stage_dir,
+            &plan,
+        )?;
+        let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            stage_dir.join("gc_bias.summary.json"),
+        )?)?;
+        assert_eq!(
+            payload.get("schema_version").and_then(serde_json::Value::as_str),
+            Some("bijux.bam.gc_bias.v1")
+        );
+        assert_eq!(payload.get("report_present").and_then(serde_json::Value::as_bool), Some(true));
+        assert_eq!(payload.get("plot_present").and_then(serde_json::Value::as_bool), Some(true));
+        assert_eq!(payload.get("total_clusters").and_then(serde_json::Value::as_u64), Some(4));
+        assert_eq!(payload.get("aligned_reads").and_then(serde_json::Value::as_u64), Some(4));
+        assert_eq!(payload.get("windows").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(payload.get("read_starts").and_then(serde_json::Value::as_u64), Some(4));
+        assert_eq!(payload.get("at_dropout").and_then(serde_json::Value::as_f64), Some(25.0));
+        assert_eq!(payload.get("gc_dropout").and_then(serde_json::Value::as_f64), Some(25.0));
+        assert_eq!(payload.get("gc_bias_score").and_then(serde_json::Value::as_f64), Some(0.25));
+        Ok(())
+    }
+
+    #[test]
     fn damage_and_authenticity_postprocess_emit_composite_artifacts() -> Result<()> {
         let temp = tempfile::tempdir()?;
         let bam_root = temp.path().join("bam");
