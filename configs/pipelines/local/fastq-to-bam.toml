@@ -1,0 +1,76 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for the local FASTQ-to-BAM cross-domain DAG.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "fastq-to-bam"
+domain = "cross"
+summary = "Cross-domain FASTQ-to-BAM DAG for governed preprocessing path outputs, BAM alignment, and downstream BAM QC handoffs."
+default_corpus_id = "corpus-01-mini"
+
+[[nodes]]
+node_id = "fastq.validate_reads"
+stage_id = "fastq.validate_reads"
+readiness_kind = "smoke"
+summary = "Validate governed FASTQ inputs before adapter detection, trimming, and downstream alignment consume path-level read handoffs."
+depends_on = []
+external_inputs = ["corpus.raw_fastq_reads"]
+upstream_inputs = []
+outputs = ["validated_reads_r1_path", "validated_reads_r2_path", "validation_report"]
+
+[[nodes]]
+node_id = "fastq.detect_adapters"
+stage_id = "fastq.detect_adapters"
+readiness_kind = "smoke"
+summary = "Detect adapter signal from the governed validated FASTQ path outputs before trimming rewrites the read files."
+depends_on = ["fastq.validate_reads"]
+external_inputs = []
+upstream_inputs = ["validated_reads_r1_path", "validated_reads_r2_path"]
+outputs = ["adapter_report"]
+
+[[nodes]]
+node_id = "fastq.trim_reads"
+stage_id = "fastq.trim_reads"
+readiness_kind = "smoke"
+summary = "Trim governed FASTQ inputs into explicit R1 and R2 path outputs that become the BAM alignment inputs."
+depends_on = ["fastq.validate_reads", "fastq.detect_adapters"]
+external_inputs = []
+upstream_inputs = ["validated_reads_r1_path", "validated_reads_r2_path", "adapter_report"]
+outputs = ["trimmed_reads_r1_path", "trimmed_reads_r2_path", "trim_metrics"]
+
+[[nodes]]
+node_id = "bam.align"
+stage_id = "bam.align"
+readiness_kind = "dry_or_smoke"
+summary = "Align the governed trimmed FASTQ path outputs against the BAM reference and read-group contracts."
+depends_on = ["fastq.trim_reads"]
+external_inputs = [
+  "alignment_reference_fasta_contract",
+  "alignment_reference_index_contract",
+  "alignment_read_group_contract",
+]
+upstream_inputs = ["trimmed_reads_r1_path", "trimmed_reads_r2_path"]
+outputs = ["align_bam", "align_bai", "align_metrics"]
+
+[[nodes]]
+node_id = "bam.qc_pre"
+stage_id = "bam.qc_pre"
+readiness_kind = "smoke"
+summary = "Collect governed BAM pre-QC metrics from the aligned BAM artifacts before mapping summary interpretation."
+depends_on = ["bam.align"]
+external_inputs = []
+upstream_inputs = ["align_bam", "align_bai", "align_metrics"]
+outputs = ["qc_pre_flagstat", "qc_pre_idxstats", "qc_pre_stats", "qc_pre_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.mapping_summary"
+stage_id = "bam.mapping_summary"
+readiness_kind = "smoke"
+summary = "Summarize mapping from the aligned BAM while carrying forward the governed pre-QC measurement context."
+depends_on = ["bam.align", "bam.qc_pre"]
+external_inputs = []
+upstream_inputs = ["align_bam", "qc_pre_flagstat", "qc_pre_idxstats", "qc_pre_stats"]
+outputs = ["mapping_summary_report_json", "mapping_summary_stage_metrics"]
