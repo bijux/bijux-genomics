@@ -182,6 +182,19 @@ pub fn write_local_profile_reads_smoke_report() -> Result<PathBuf> {
     crate::internal::fastq::stages::profile_reads::write_local_profile_reads_smoke_report()
 }
 
+/// Materialize the governed local-smoke `fastq.profile_overrepresented_sequences` summary TSV.
+///
+/// The written summary artifact lives at
+/// `target/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv`
+/// under the active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_profile_overrepresented_sequences_smoke_summary() -> Result<PathBuf> {
+    crate::internal::fastq::stages::profile_overrepresented_sequences::write_local_profile_overrepresented_sequences_smoke_summary()
+}
+
 /// Materialize the governed local-smoke `fastq.detect_adapters` report bundle.
 ///
 /// The written summary artifact lives at `target/local-smoke/fastq.detect_adapters/adapters.json`
