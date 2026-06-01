@@ -123,6 +123,11 @@ Visible aliases are part of the operator surface:
   `tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml` and
   `tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml` for declared sample identity,
   file-path integrity, source-path provenance, and modality-specific contract checks.
+- `bijux-dna bench local validate-taxonomy-database-fixture`
+  `validate-taxonomy-database-fixture` checks governed taxonomy database fixture manifests such as
+  `tests/fixtures/databases/taxonomy-mini/manifest.toml` for declared taxa, lineage-table
+  consistency, sequence-index paths, classifier-compatibility claims, source-manifest integrity,
+  and backend bundle shape.
 - `bijux-dna bench local render-benchmark-summary`
   `render-benchmark-summary` writes both `target/local-ready/benchmark-summary.json` and
   `target/local-ready/benchmark-summary.md`, summarizing governed fake-run readiness across all 51
