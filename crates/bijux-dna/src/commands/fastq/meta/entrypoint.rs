@@ -146,6 +146,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderOrphanTools(args) => {
+                        crate::commands::benchmark::readiness::orphan_tools::run_render_orphan_tools(
+                            args,
+                        )?;
+                    }
                 },
                 BenchCommand::Local { command } => match command {
                     cli::BenchLocalCommand::ListStages(args) => {

@@ -49,6 +49,7 @@ pub use self::publication::{
 pub use self::readiness::{
     BenchReadinessCommand, BenchReadinessRenderBamToolServingMapArgs,
     BenchReadinessRenderFastqToolServingMapArgs,
+    BenchReadinessRenderOrphanToolsArgs,
 };
 pub use self::suite::BenchRunArgs;
 
