@@ -44,6 +44,7 @@ pub const BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.damage_evidence.
 pub const BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION: &str = "bijux.bam.authenticity_advisory.v1";
 pub const BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.contamination_evidence.v1";
 pub const BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION: &str = "bijux.bam.endogenous_content.v1";
+pub const BAM_SEX_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.sex_summary.v1";
 pub const BAM_SEX_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.sex_evidence.v1";
 pub const BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION: &str = "bijux.bam.haplogroup_readiness.v1";
 pub const BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION: &str = "bijux.bam.kinship_prerequisites.v1";
@@ -722,6 +723,35 @@ pub struct BamOverlapCorrectionSummaryV1 {
     pub corrected_pairs: Option<u64>,
     #[serde(default)]
     pub corrected_overlap_bases: Option<u64>,
+    #[serde(default)]
+    pub insufficiency_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamSexSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    pub input_bam: PathBuf,
+    pub reference_fasta: PathBuf,
+    #[serde(default)]
+    pub chromosome_system: Option<String>,
+    #[serde(default)]
+    pub minimum_y_sites: Option<u32>,
+    pub x_contig: String,
+    pub y_contig: String,
+    pub autosomal_contigs: Vec<String>,
+    pub x_coverage: f64,
+    pub y_coverage: f64,
+    pub autosomal_coverage: f64,
+    pub x_covered_sites: u64,
+    pub y_covered_sites: u64,
+    #[serde(default)]
+    pub x_to_y_ratio: Option<f64>,
+    pub call: SexConfidenceClass,
+    pub confidence: f64,
+    pub status: String,
     #[serde(default)]
     pub insufficiency_reason: Option<String>,
 }
@@ -3689,6 +3719,151 @@ pub fn summarize_tiny_bam_endogenous_content(
     ))
 }
 
+/// Summarize sex-inference coverage signals from a tiny SAM/BAM fixture plus reference context.
+///
+/// # Errors
+/// Returns an error if the tiny fixture or reference FASTA cannot be parsed.
+pub fn summarize_tiny_bam_sex(
+    input_bam: &Path,
+    reference_fasta: &Path,
+    method: &str,
+    chromosome_system: Option<&str>,
+    minimum_y_sites: Option<u32>,
+) -> Result<BamSexSummaryV1> {
+    let document = parse_tiny_sam(input_bam)?;
+    let references = parse_tiny_reference_fasta(reference_fasta)?;
+    let reference_lengths = references
+        .iter()
+        .map(|reference| (reference.name.clone(), usize::max(reference.sequence.len(), 1)))
+        .collect::<HashMap<_, _>>();
+    let contig_order = if document.references.is_empty() {
+        references.iter().map(|reference| reference.name.clone()).collect::<Vec<_>>()
+    } else {
+        document.references.clone()
+    };
+    let coverage_vectors = tiny_coverage_vectors(&document);
+    let x_contig = find_named_contig(&contig_order, &reference_lengths, &["chrX", "X"]);
+    let y_contig = find_named_contig(&contig_order, &reference_lengths, &["chrY", "Y"]);
+    let autosomal_contigs = contig_order
+        .iter()
+        .filter(|contig| {
+            Some(contig.as_str()) != x_contig.as_deref()
+                && Some(contig.as_str()) != y_contig.as_deref()
+                && !is_mitochondrial_contig(contig)
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+
+    let x_contig_name = x_contig.clone().unwrap_or_else(|| "unknown_x".to_string());
+    let y_contig_name = y_contig.clone().unwrap_or_else(|| "unknown_y".to_string());
+    let x_depths =
+        coverage_vector_for_contig(&coverage_vectors, &reference_lengths, x_contig_name.as_str());
+    let y_depths =
+        coverage_vector_for_contig(&coverage_vectors, &reference_lengths, y_contig_name.as_str());
+    let autosomal_depths = autosomal_contigs
+        .iter()
+        .flat_map(|contig| {
+            coverage_vector_for_contig(&coverage_vectors, &reference_lengths, contig)
+        })
+        .collect::<Vec<_>>();
+
+    let x_coverage = mean_coverage(&x_depths);
+    let y_coverage = mean_coverage(&y_depths);
+    let autosomal_coverage = mean_coverage(&autosomal_depths);
+    let x_covered_sites = covered_sites(&x_depths);
+    let y_covered_sites = covered_sites(&y_depths);
+    let required_y_sites = u64::from(minimum_y_sites.unwrap_or(1));
+    let insufficiency_reason =
+        if x_contig.is_none() || y_contig.is_none() || autosomal_contigs.is_empty() {
+            Some("insufficient_chromosomes".to_string())
+        } else if autosomal_coverage <= 0.0 {
+            Some("insufficient_coverage".to_string())
+        } else if y_covered_sites < required_y_sites {
+            Some("insufficient_y_sites".to_string())
+        } else {
+            None
+        };
+    let x_to_y_ratio = if y_coverage > 0.0 { Some(x_coverage / y_coverage) } else { None };
+    let (call, confidence) = if insufficiency_reason.is_some() {
+        (SexConfidenceClass::Insufficient, 0.0)
+    } else {
+        let x_normalized = x_coverage / autosomal_coverage;
+        let y_normalized = y_coverage / autosomal_coverage;
+        if y_normalized >= 0.25 && x_normalized <= 0.75 {
+            (SexConfidenceClass::Male, 0.9)
+        } else if y_normalized <= 0.05 && x_normalized >= 0.75 {
+            (SexConfidenceClass::Female, 0.9)
+        } else {
+            (SexConfidenceClass::Ambiguous, 0.5)
+        }
+    };
+
+    Ok(BamSexSummaryV1 {
+        schema_version: BAM_SEX_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.sex".to_string(),
+        method: method.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        reference_fasta: reference_fasta.to_path_buf(),
+        chromosome_system: chromosome_system.map(ToOwned::to_owned),
+        minimum_y_sites,
+        x_contig: x_contig_name,
+        y_contig: y_contig_name,
+        autosomal_contigs,
+        x_coverage,
+        y_coverage,
+        autosomal_coverage,
+        x_covered_sites,
+        y_covered_sites,
+        x_to_y_ratio,
+        call,
+        confidence,
+        status: insufficiency_reason.clone().unwrap_or_else(|| "ok".to_string()),
+        insufficiency_reason,
+    })
+}
+
+fn find_named_contig(
+    contig_order: &[String],
+    reference_lengths: &HashMap<String, usize>,
+    aliases: &[&str],
+) -> Option<String> {
+    for alias in aliases {
+        if contig_order.iter().any(|contig| contig == alias)
+            || reference_lengths.contains_key(*alias)
+        {
+            return Some((*alias).to_string());
+        }
+    }
+    None
+}
+
+fn coverage_vector_for_contig(
+    coverage_vectors: &HashMap<String, Vec<u32>>,
+    reference_lengths: &HashMap<String, usize>,
+    contig: &str,
+) -> Vec<u32> {
+    coverage_vectors.get(contig).cloned().unwrap_or_else(|| {
+        let length = reference_lengths.get(contig).copied().unwrap_or(1);
+        vec![0; usize::max(length, 1)]
+    })
+}
+
+fn mean_coverage(depths: &[u32]) -> f64 {
+    if depths.is_empty() {
+        0.0
+    } else {
+        depths.iter().map(|depth| f64::from(*depth)).sum::<f64>() / depths.len() as f64
+    }
+}
+
+fn covered_sites(depths: &[u32]) -> u64 {
+    depths.iter().filter(|depth| **depth > 0).count() as u64
+}
+
+fn is_mitochondrial_contig(contig: &str) -> bool {
+    matches!(contig, "M" | "MT" | "chrM" | "chrMT")
+}
+
 fn build_endogenous_content_estimate(
     stage_id: &str,
     method: &str,
@@ -5699,6 +5874,79 @@ r03\t0\tchr2\t10\t10\t8M\t*\t0\t0\tCCGGAATT\tFFFFFFFF\tRG:Z:rg1\n",
         assert!(!summary.reference_mismatch);
         assert_eq!(summary.fragment_length.mean, 8.0);
         assert_eq!(summary.mapq.histogram, vec![(10, 1), (25, 1), (60, 1)]);
+    }
+
+    #[test]
+    fn bam_sex_summary_round_trips() {
+        let summary = BamSexSummaryV1 {
+            schema_version: BAM_SEX_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.sex".to_string(),
+            method: "rxy".to_string(),
+            input_bam: PathBuf::from("input.sam"),
+            reference_fasta: PathBuf::from("reference.fasta"),
+            chromosome_system: Some("xy".to_string()),
+            minimum_y_sites: Some(5),
+            x_contig: "chrX".to_string(),
+            y_contig: "chrY".to_string(),
+            autosomal_contigs: vec!["chr1".to_string()],
+            x_coverage: 0.5,
+            y_coverage: 0.5,
+            autosomal_coverage: 1.0,
+            x_covered_sites: 10,
+            y_covered_sites: 10,
+            x_to_y_ratio: Some(1.0),
+            call: SexConfidenceClass::Male,
+            confidence: 0.9,
+            status: "ok".to_string(),
+            insufficiency_reason: None,
+        };
+        let encoded = serde_json::to_string(&summary).expect("serialize sex summary");
+        let decoded: BamSexSummaryV1 =
+            serde_json::from_str(&encoded).expect("deserialize sex summary");
+        assert_eq!(decoded, summary);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_sex_reports_xy_autosome_male_call() {
+        let temp = unique_temp_dir("bam-sex-summary");
+        let input = temp.join("input.sam");
+        let reference = temp.join("reference.fasta");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:20\n\
+@SQ\tSN:chrX\tLN:20\n\
+@SQ\tSN:chrY\tLN:20\n\
+@RG\tID:rg1\tSM:sampleA\n\
+auto1\t0\tchr1\t1\t60\t10M\t*\t0\t0\tACGTACGTAC\tFFFFFFFFFF\tRG:Z:rg1\n\
+auto2\t0\tchr1\t11\t60\t10M\t*\t0\t0\tGTACGTACGT\tFFFFFFFFFF\tRG:Z:rg1\n\
+x1\t0\tchrX\t1\t60\t10M\t*\t0\t0\tTTTTCCCCAA\tFFFFFFFFFF\tRG:Z:rg1\n\
+y1\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write sex fixture");
+        std::fs::write(
+            &reference,
+            ">chr1\nACGTACGTACGTACGTACGT\n>chrX\nTTTTCCCCAAAAGGGGTTTT\n>chrY\nGGGGAAAATTTTCCCCGGGG\n",
+        )
+        .expect("write reference fixture");
+
+        let summary = summarize_tiny_bam_sex(&input, &reference, "rxy", Some("xy"), Some(5))
+            .expect("summarize sex");
+        assert_eq!(summary.stage_id, "bam.sex");
+        assert_eq!(summary.method, "rxy");
+        assert_eq!(summary.x_contig, "chrX");
+        assert_eq!(summary.y_contig, "chrY");
+        assert_eq!(summary.autosomal_contigs, vec!["chr1"]);
+        assert!((summary.x_coverage - 0.5).abs() <= 1e-9);
+        assert!((summary.y_coverage - 0.5).abs() <= 1e-9);
+        assert!((summary.autosomal_coverage - 1.0).abs() <= 1e-9);
+        assert_eq!(summary.x_covered_sites, 10);
+        assert_eq!(summary.y_covered_sites, 10);
+        assert_eq!(summary.x_to_y_ratio, Some(1.0));
+        assert_eq!(summary.call, SexConfidenceClass::Male);
+        assert!((summary.confidence - 0.9).abs() <= 1e-9);
+        assert_eq!(summary.status, "ok");
+        assert_eq!(summary.insufficiency_reason, None);
     }
 
     #[test]
