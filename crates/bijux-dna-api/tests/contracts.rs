@@ -16,6 +16,8 @@ mod mod_contracts_v1_bam_local_align_plan_rs;
 mod mod_contracts_v1_bam_local_filter_smoke_rs;
 #[path = "contracts/v1_bam_local_mapping_summary_smoke.rs"]
 mod mod_contracts_v1_bam_local_mapping_summary_smoke_rs;
+#[path = "contracts/v1_bam_local_mapq_filter_smoke.rs"]
+mod mod_contracts_v1_bam_local_mapq_filter_smoke_rs;
 #[path = "contracts/v1_bam_local_qc_pre_smoke.rs"]
 mod mod_contracts_v1_bam_local_qc_pre_smoke_rs;
 #[path = "contracts/v1_bam_local_validate_smoke.rs"]
