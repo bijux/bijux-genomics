@@ -8,6 +8,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) mod bam;
+pub(crate) mod damage;
 pub(crate) mod fastq;
 
 #[derive(Debug, Deserialize)]
@@ -37,6 +38,15 @@ pub(crate) fn run_validate_corpus_fixture(
         }
         bam::BAM_CORPUS_FIXTURE_SCHEMA_VERSION => {
             let report = bam::validate_bam_corpus_fixture_manifest_path(&repo_root, &manifest_path)?;
+            if args.json {
+                render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.manifest_path);
+            }
+        }
+        damage::BAM_DAMAGE_FIXTURE_SCHEMA_VERSION => {
+            let report =
+                damage::validate_bam_damage_fixture_manifest_path(&repo_root, &manifest_path)?;
             if args.json {
                 render::json::print_pretty(&report)?;
             } else {
