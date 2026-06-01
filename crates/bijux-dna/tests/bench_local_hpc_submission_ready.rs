@@ -1,0 +1,165 @@
+#![allow(clippy::expect_used)]
+
+use std::process::Command;
+
+#[cfg(feature = "bam_downstream")]
+use std::fs;
+
+#[path = "contracts/banks/bank_fixtures.rs"]
+mod support;
+
+#[cfg(feature = "bam_downstream")]
+fn run_cargo_cli_json(args: &[&str], features: Option<&str>) -> serde_json::Value {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    let mut command = Command::new("cargo");
+    command
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(["run", "-q", "-p", "bijux-dna"]);
+    if let Some(features) = features {
+        command.args(["--features", features]);
+    }
+    command.args(["--"]).args(args);
+    let output = command.output().expect("run cargo cli");
+
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+}
+
+fn run_cargo_cli(args: &[&str], features: Option<&str>) -> std::process::Output {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    let mut command = Command::new("cargo");
+    command
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(["run", "-q", "-p", "bijux-dna"]);
+    if let Some(features) = features {
+        command.args(["--features", features]);
+    }
+    command.args(["--"]).args(args);
+    command.output().expect("run cargo cli")
+}
+
+#[test]
+fn bench_local_validate_hpc_submission_ready_refuses_without_bam_downstream() {
+    let output =
+        run_cargo_cli(&["bench", "local", "validate-hpc-submission-ready", "--json"], None);
+
+    assert!(
+        !output.status.success(),
+        "command should fail without bam_downstream\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("requires the `bam_downstream` feature"),
+        "stderr must explain the bam_downstream requirement, got:\n{stderr}"
+    );
+}
+
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_validate_hpc_submission_ready_reports_clean_repo_gate() {
+    let payload = run_cargo_cli_json(
+        &["bench", "local", "validate-hpc-submission-ready", "--json"],
+        Some("bam_downstream"),
+    );
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.local_hpc_submission_ready.v1")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/HPC_SUBMISSION_READY.json")
+    );
+    assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(99));
+    assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(99));
+    assert_eq!(payload.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+    assert!(
+        payload
+            .get("failing_goal_ids")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|goal_ids| goal_ids.is_empty()),
+        "successful readiness gate must not report failing goal ids"
+    );
+
+    let checks = payload.get("checks").and_then(serde_json::Value::as_array).expect("checks array");
+    assert_eq!(checks.len(), 99);
+    assert!(
+        checks.iter().any(|check| {
+            check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(56)
+                && check.get("ok").and_then(serde_json::Value::as_bool) == Some(true)
+                && check.get("output_path").and_then(serde_json::Value::as_str)
+                    == Some("target/local-fake-runs/stages")
+        }),
+        "goal 56 must report the governed fake-run output root"
+    );
+    assert!(
+        checks.iter().any(|check| {
+            check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(91)
+                && check
+                    .get("detail")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some_and(|detail| detail.contains("cross-hpc-mini"))
+        }),
+        "goal 91 must report the validated HPC campaign profile ids"
+    );
+    assert!(
+        checks.iter().any(|check| {
+            check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(99)
+                && check
+                    .get("detail")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some_and(|detail| detail.contains("planned 4 jobs"))
+        }),
+        "goal 99 must report the governed LUNARC local-ready dry-run summary"
+    );
+}
+
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_validate_hpc_submission_ready_writes_governed_report_path() {
+    let _payload = run_cargo_cli_json(
+        &["bench", "local", "validate-hpc-submission-ready", "--json"],
+        Some("bam_downstream"),
+    );
+
+    let repo_root = support::repo_root().expect("repo root");
+    let report_path = repo_root.join("target/local-ready/HPC_SUBMISSION_READY.json");
+    assert!(report_path.is_file(), "HPC submission readiness report must exist");
+
+    let report =
+        serde_json::from_slice::<serde_json::Value>(&fs::read(&report_path).expect("read report"))
+            .expect("parse report");
+    assert_eq!(
+        report.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/HPC_SUBMISSION_READY.json")
+    );
+    assert_eq!(report.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(0));
+}
