@@ -62,6 +62,7 @@ pub(crate) fn render_local_slurm_scripts(
     domain: BenchLocalDomain,
     output_root: PathBuf,
 ) -> Result<BenchLocalSlurmDryRunReport> {
+    validate_slurm_dry_run_domain_support(domain)?;
     let command_entries = collect_local_stage_command_entries(repo_root, Some(domain))?;
     let absolute_output_root =
         if output_root.is_absolute() { output_root } else { repo_root.join(output_root) };
@@ -80,6 +81,21 @@ pub(crate) fn render_local_slurm_scripts(
         script_count: scripts.len(),
         scripts,
     })
+}
+
+#[cfg(feature = "bam_downstream")]
+fn validate_slurm_dry_run_domain_support(_domain: BenchLocalDomain) -> Result<()> {
+    Ok(())
+}
+
+#[cfg(not(feature = "bam_downstream"))]
+fn validate_slurm_dry_run_domain_support(domain: BenchLocalDomain) -> Result<()> {
+    match domain {
+        BenchLocalDomain::Fastq => Ok(()),
+        BenchLocalDomain::Bam => Err(anyhow::anyhow!(
+            "domain `bam` requires the `bam_downstream` feature; rerun with `cargo run -p bijux-dna --features bam_downstream -- bench local render-slurm-scripts --domain bam`"
+        )),
+    }
 }
 
 fn write_slurm_script(
