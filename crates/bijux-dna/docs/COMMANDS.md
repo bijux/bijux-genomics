@@ -130,7 +130,8 @@ Visible aliases are part of the operator surface:
   status fields.
 - `bijux-dna bench local validate-stage-result`
   `validate-stage-result` loads one `stage-result.json` manifest and fails unless the required
-  `command`, `tool`, `runtime`, and `outputs` contract fields are present and valid.
+  `command`, `tool`, `runtime`, `resource_metrics`, and `outputs` contract fields are present and
+  valid. `resource_metrics.source` must be one of `measured`, `estimated`, or `not_available`.
 - `bijux-dna bench local materialize-stage`
 - `bijux-dna bench local fake-run-failures`
   `fake-run-failures` writes non-zero stage failure records under
@@ -138,7 +139,8 @@ Visible aliases are part of the operator surface:
   missing for each failed stage.
 - `bijux-dna bench local fake-run-stages`
   `fake-run-stages` mirrors every declared benchmark-stage output under
-  `target/local-fake-runs/stages/` and writes a fake-run manifest for all governed stages.
+  `target/local-fake-runs/stages/` and writes a fake-run manifest for all governed stages,
+  including estimated `resource_metrics` derived from governed thread and memory ceilings.
 - `bijux-dna bench local render-stage-commands`
   `render-stage-commands` writes both `target/local-ready/rendered-stage-commands.sh` and the
   machine-readable companion `target/local-ready/rendered-stage-commands.json`.
