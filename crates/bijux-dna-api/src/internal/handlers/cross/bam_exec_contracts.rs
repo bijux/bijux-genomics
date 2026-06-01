@@ -77,15 +77,11 @@ mod tests {
             validate_dir.join("validation.summary.json"),
         )?)?;
         assert_eq!(
-            validate_summary
-                .get("schema_version")
-                .and_then(serde_json::Value::as_str),
+            validate_summary.get("schema_version").and_then(serde_json::Value::as_str),
             Some("bijux.bam.validate.v1")
         );
         assert_eq!(
-            validate_summary
-                .get("bam_index")
-                .and_then(serde_json::Value::as_str),
+            validate_summary.get("bam_index").and_then(serde_json::Value::as_str),
             Some(validate_index.to_string_lossy().as_ref())
         );
 
@@ -115,10 +111,45 @@ mod tests {
             mapping_dir.join("mapping_summary.json"),
         )?)?;
         assert_eq!(
-            mapping_summary
-                .get("schema_version")
-                .and_then(serde_json::Value::as_str),
+            mapping_summary.get("schema_version").and_then(serde_json::Value::as_str),
             Some("bijux.bam.mapping_summary.v1")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn qc_pre_postprocess_emits_core_summary_outputs() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let stage_dir = temp.path().join("qc_pre");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        bijux_dna_infra::atomic_write_bytes(
+            &stage_dir.join("flagstat.txt"),
+            b"3 + 0 in total (QC-passed reads + QC-failed reads)\n3 + 0 mapped (100.00% : N/A)\n1 + 0 duplicates\n",
+        )?;
+        bijux_dna_infra::atomic_write_bytes(
+            &stage_dir.join("idxstats.txt"),
+            b"chr1\t100\t2\t0\nchr2\t80\t1\t0\n",
+        )?;
+        bijux_dna_infra::atomic_write_bytes(
+            &stage_dir.join("samtools_stats.txt"),
+            b"RL\t8\t3\nMQ\t10\t1\nMQ\t25\t1\nMQ\t60\t1\n",
+        )?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::QcPre);
+        plan.io.inputs[0].path = stage_dir.join("input.sam");
+        stage_postprocess(bijux_dna_planner_bam::stage_api::BamStage::QcPre, &stage_dir, &plan)?;
+        let summary: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(stage_dir.join("qc_pre.summary.json"))?)?;
+        assert_eq!(summary["stage_id"], serde_json::json!("bam.qc_pre"));
+        assert_eq!(summary["total_reads"], serde_json::json!(3));
+        assert_eq!(summary["mapped_reads"], serde_json::json!(3));
+        assert_eq!(summary["unmapped_reads"], serde_json::json!(0));
+        assert_eq!(summary["duplicate_flagged_reads"], serde_json::json!(1));
+        assert_eq!(
+            summary["contig_summary"],
+            serde_json::json!([
+                {"contig":"chr1","length":100,"mapped":2,"unmapped":0},
+                {"contig":"chr2","length":80,"mapped":1,"unmapped":0}
+            ])
         );
         Ok(())
     }
@@ -149,27 +180,16 @@ mod tests {
             stage_dir.join("mapq_filter.summary.json"),
         )?)?;
         assert_eq!(
-            payload
-                .get("schema_version")
-                .and_then(serde_json::Value::as_str),
+            payload.get("schema_version").and_then(serde_json::Value::as_str),
             Some("bijux.bam.mapq_filter.v1")
         );
+        assert_eq!(payload.get("mapq_threshold").and_then(serde_json::Value::as_u64), Some(30));
         assert_eq!(
-            payload
-                .get("mapq_threshold")
-                .and_then(serde_json::Value::as_u64),
-            Some(30)
-        );
-        assert_eq!(
-            payload
-                .get("mapped_reads_removed")
-                .and_then(serde_json::Value::as_u64),
+            payload.get("mapped_reads_removed").and_then(serde_json::Value::as_u64),
             Some(6)
         );
         assert_eq!(
-            payload
-                .get("mapped_fraction_retained")
-                .and_then(serde_json::Value::as_f64),
+            payload.get("mapped_fraction_retained").and_then(serde_json::Value::as_f64),
             Some(0.6)
         );
         Ok(())
@@ -212,9 +232,7 @@ mod tests {
             authenticity_dir.join("authenticity.json"),
         )?)?;
         assert_eq!(
-            canonical
-                .get("schema_version")
-                .and_then(serde_json::Value::as_str),
+            canonical.get("schema_version").and_then(serde_json::Value::as_str),
             Some("bijux.bam.authenticity.v1")
         );
         assert!(authenticity_dir.join("advisory_boundary.json").exists());
@@ -229,7 +247,8 @@ mod tests {
         bijux_dna_infra::ensure_dir(&dup_dir)?;
         bijux_dna_infra::ensure_dir(&markdup_dir)?;
 
-        let mut dup_plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::DuplicationMetrics);
+        let mut dup_plan =
+            mock_plan(bijux_dna_planner_bam::stage_api::BamStage::DuplicationMetrics);
         dup_plan.params = serde_json::json!({
             "optical_duplicates": "mark_only",
             "umi_policy": "ignore",
@@ -240,9 +259,9 @@ mod tests {
             &dup_dir,
             &dup_plan,
         )?;
-        let duplication_policy: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
-            dup_dir.join("duplication.policy.json"),
-        )?)?;
+        let duplication_policy: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(dup_dir.join("duplication.policy.json"))?,
+        )?;
         assert_eq!(
             duplication_policy.get("schema_version").and_then(serde_json::Value::as_str),
             Some("bijux.bam.duplicate_policy.v1")
@@ -292,9 +311,7 @@ mod tests {
         ) else {
             panic!("align must require reference");
         };
-        assert!(err
-            .to_string()
-            .contains("requires resolved reference fasta"));
+        assert!(err.to_string().contains("requires resolved reference fasta"));
 
         let ref_fa = temp.path().join("ref.fa");
         let ref_fai = temp.path().join("ref.fa.fai");
@@ -347,7 +364,10 @@ mod tests {
         std::fs::write(&bam, b"@HD\tVN:1.6\tSO:coordinate\n")?;
         std::fs::write(&bam_index, b"bai")?;
         std::fs::write(&ref_fa, b">chr1\nACGT\n>chrX\nACGT\n>chrY\nACGT\n>chrM\nACGT\n")?;
-        std::fs::write(&ref_fai, b"chr1\t4\t0\t4\t5\nchrX\t4\t10\t4\t5\nchrY\t4\t20\t4\t5\nchrM\t4\t30\t4\t5\n")?;
+        std::fs::write(
+            &ref_fai,
+            b"chr1\t4\t0\t4\t5\nchrX\t4\t10\t4\t5\nchrY\t4\t20\t4\t5\nchrM\t4\t30\t4\t5\n",
+        )?;
 
         enforce_stage_refusal_rules(
             bijux_dna_planner_bam::stage_api::BamStage::Validate,
@@ -399,7 +419,8 @@ mod tests {
                 "run_id": "run-a"
             }
         });
-        let identity = write_bam_sample_identity_manifest(temp.path(), &plan, Some(&bam), Some("preserve"))?;
+        let identity =
+            write_bam_sample_identity_manifest(temp.path(), &plan, Some(&bam), Some("preserve"))?;
         assert_eq!(identity.sample_id, "sample-a");
         assert_eq!(identity.lane_id.as_deref(), Some("L001"));
         assert_eq!(identity.subject_id.as_deref(), Some("subject-a"));
@@ -430,12 +451,11 @@ mod tests {
             temp.path().join("reference_preflight.json"),
         )?)?;
         assert_eq!(payload.get("passes").and_then(serde_json::Value::as_bool), Some(true));
-        assert!(payload
-            .get("required_assets")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|assets| assets.iter().any(|asset| {
+        assert!(payload.get("required_assets").and_then(serde_json::Value::as_array).is_some_and(
+            |assets| assets.iter().any(|asset| {
                 asset.get("asset_kind").and_then(serde_json::Value::as_str) == Some("bwa_index")
-            })));
+            })
+        ));
         Ok(())
     }
 
@@ -460,15 +480,13 @@ mod tests {
                 "run_id": "run-a"
             }
         });
-        let identity = write_bam_sample_identity_manifest(temp.path(), &plan, None, Some("regenerate"))?;
+        let identity =
+            write_bam_sample_identity_manifest(temp.path(), &plan, None, Some("regenerate"))?;
         write_bam_alignment_provenance(temp.path(), &plan, identity)?;
         let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
             temp.path().join("alignment_provenance.json"),
         )?)?;
-        assert_eq!(
-            payload.get("seed_length").and_then(serde_json::Value::as_u64),
-            Some(21)
-        );
+        assert_eq!(payload.get("seed_length").and_then(serde_json::Value::as_u64), Some(21));
         assert_eq!(
             payload.pointer("/sample_identity/sample_id").and_then(serde_json::Value::as_str),
             Some("sample-a")
@@ -511,25 +529,18 @@ mod tests {
         let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
         write_bam_invariants(&stage_dir, stage, &bam, Some(&bam_index), None)?;
         write_tool_wrapper_contract(&stage_dir, stage, &plan, &step)?;
-        let invariants: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
-            stage_dir.join("bam_invariants.json"),
-        )?)?;
+        let invariants: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(stage_dir.join("bam_invariants.json"))?)?;
         assert_eq!(
-            invariants
-                .get("schema_version")
-                .and_then(serde_json::Value::as_str),
+            invariants.get("schema_version").and_then(serde_json::Value::as_str),
             Some("bijux.bam.invariants.v1")
         );
         assert_eq!(
-            invariants
-                .get("sort_order")
-                .and_then(serde_json::Value::as_str),
+            invariants.get("sort_order").and_then(serde_json::Value::as_str),
             Some("coordinate")
         );
         assert_eq!(
-            invariants
-                .pointer("/read_groups/status")
-                .and_then(serde_json::Value::as_str),
+            invariants.pointer("/read_groups/status").and_then(serde_json::Value::as_str),
             Some("present")
         );
         Ok(())
@@ -554,7 +565,10 @@ mod tests {
                 {"path": bam_index, "sha256": index_hash}
             ]
         });
-        bijux_dna_infra::atomic_write_json(&stage_dir.join("stage_loss_accounting.json"), &accounting)?;
+        bijux_dna_infra::atomic_write_json(
+            &stage_dir.join("stage_loss_accounting.json"),
+            &accounting,
+        )?;
         let plan = mock_plan(stage);
         write_bam_output_contract(stage, &plan, &stage_dir)?;
 
@@ -597,10 +611,7 @@ mod tests {
             ],
         };
         write_alignment_regime_validation(temp.path(), AlignmentRegime::Adna, "bwa", &step)?;
-        assert!(temp
-            .path()
-            .join("alignment_regime_validation.json")
-            .exists());
+        assert!(temp.path().join("alignment_regime_validation.json").exists());
         Ok(())
     }
 
@@ -619,23 +630,14 @@ mod tests {
             temp.path().join("duplicate_policy_split.json"),
         )?)?;
         assert_eq!(
-            payload
-                .get("selected_executor")
-                .and_then(serde_json::Value::as_str),
+            payload.get("selected_executor").and_then(serde_json::Value::as_str),
             Some("bam.collapse")
         );
         assert_eq!(
-            payload
-                .pointer("/modes/bam.collapse/supported")
-                .and_then(serde_json::Value::as_bool),
+            payload.pointer("/modes/bam.collapse/supported").and_then(serde_json::Value::as_bool),
             Some(false)
         );
-        assert_eq!(
-            payload
-                .get("library_type")
-                .and_then(serde_json::Value::as_str),
-            Some("ssdna")
-        );
+        assert_eq!(payload.get("library_type").and_then(serde_json::Value::as_str), Some("ssdna"));
         Ok(())
     }
 
@@ -669,15 +671,11 @@ mod tests {
             stage_dir.join("contamination.stratified.json"),
         )?)?;
         assert_eq!(
-            stratified
-                .get("schema_version")
-                .and_then(serde_json::Value::as_str),
+            stratified.get("schema_version").and_then(serde_json::Value::as_str),
             Some("bijux.bam.contamination_stratified.v1")
         );
         assert_eq!(
-            stratified
-                .get("global_estimate")
-                .and_then(serde_json::Value::as_f64),
+            stratified.get("global_estimate").and_then(serde_json::Value::as_f64),
             Some(0.07)
         );
         Ok(())
@@ -701,9 +699,7 @@ mod tests {
         ) else {
             panic!("verifybamid2 should fail without AF reference");
         };
-        assert!(err
-            .to_string()
-            .contains("requires population AF reference panel"));
+        assert!(err.to_string().contains("requires population AF reference panel"));
         Ok(())
     }
 
@@ -757,9 +753,7 @@ mod tests {
             endogenous_dir.join("endogenous.content.json"),
         )?)?;
         assert_eq!(
-            endogenous
-                .get("competitive_mapping_enabled")
-                .and_then(serde_json::Value::as_bool),
+            endogenous.get("competitive_mapping_enabled").and_then(serde_json::Value::as_bool),
             Some(true)
         );
         Ok(())
@@ -781,10 +775,7 @@ mod tests {
         )?;
         write_bam_qc_aggregator_tsv(&bam_root)?;
         let raw = std::fs::read_to_string(bam_root.join("bam_qc.tsv"))?;
-        assert!(raw
-            .lines()
-            .next()
-            .is_some_and(|line| line.contains("stage")));
+        assert!(raw.lines().next().is_some_and(|line| line.contains("stage")));
         assert!(raw.contains("mapping_summary"));
         Ok(())
     }
@@ -830,27 +821,19 @@ mod tests {
             let stage_payload: serde_json::Value =
                 serde_json::from_str(&std::fs::read_to_string(stage_metrics_path)?)?;
             assert_eq!(
-                payload
-                    .pointer("/metrics/schema_version")
-                    .and_then(serde_json::Value::as_str),
+                payload.pointer("/metrics/schema_version").and_then(serde_json::Value::as_str),
                 Some("bijux.bam.metrics.normalized.v1")
             );
             assert_eq!(
-                stage_payload
-                    .get("schema_version")
-                    .and_then(serde_json::Value::as_str),
+                stage_payload.get("schema_version").and_then(serde_json::Value::as_str),
                 Some("bijux.bam.metrics.normalized.v1")
             );
             assert_eq!(
-                payload
-                    .pointer("/metrics/stage_id")
-                    .and_then(serde_json::Value::as_str),
+                payload.pointer("/metrics/stage_id").and_then(serde_json::Value::as_str),
                 Some(stage.as_str())
             );
             assert_eq!(
-                stage_payload
-                    .get("stage_id")
-                    .and_then(serde_json::Value::as_str),
+                stage_payload.get("stage_id").and_then(serde_json::Value::as_str),
                 Some(stage.as_str())
             );
             assert!(payload.pointer("/metrics/normalized_keys").is_some());
@@ -930,11 +913,9 @@ mod tests {
             &result,
         )?;
         assert!(stage_dir.join("bam_invariants.json").exists());
-        assert!(
-            bijux_dna_runtime::recording::run_artifacts_dir_for_out(&stage_dir)
-                .join("metrics.json")
-                .exists()
-        );
+        assert!(bijux_dna_runtime::recording::run_artifacts_dir_for_out(&stage_dir)
+            .join("metrics.json")
+            .exists());
         Ok(())
     }
 }

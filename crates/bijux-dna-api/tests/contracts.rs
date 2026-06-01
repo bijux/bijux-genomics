@@ -10,6 +10,12 @@
 // Auto-generated test aggregator for contracts
 #[path = "contracts/fastq_amplicon_governance_contract.rs"]
 mod mod_contracts_fastq_amplicon_governance_contract_rs;
+#[path = "contracts/v1_bam_local_align_plan.rs"]
+mod mod_contracts_v1_bam_local_align_plan_rs;
+#[path = "contracts/v1_bam_local_qc_pre_smoke.rs"]
+mod mod_contracts_v1_bam_local_qc_pre_smoke_rs;
+#[path = "contracts/v1_bam_local_validate_smoke.rs"]
+mod mod_contracts_v1_bam_local_validate_smoke_rs;
 #[path = "contracts/v1_cross_contract_spine.rs"]
 mod mod_contracts_v1_cross_contract_spine_rs;
 #[path = "contracts/v1_cross_explain_roundtrip.rs"]
@@ -20,10 +26,6 @@ mod mod_contracts_v1_cross_profile_contracts_rs;
 mod mod_contracts_v1_cross_public_contract_rs;
 #[path = "contracts/v1_dry_run_manifest.rs"]
 mod mod_contracts_v1_dry_run_manifest_rs;
-#[path = "contracts/v1_bam_local_align_plan.rs"]
-mod mod_contracts_v1_bam_local_align_plan_rs;
-#[path = "contracts/v1_bam_local_validate_smoke.rs"]
-mod mod_contracts_v1_bam_local_validate_smoke_rs;
 #[path = "contracts/v1_fastq_local_cluster_otus_smoke.rs"]
 mod mod_contracts_v1_fastq_local_cluster_otus_smoke_rs;
 #[path = "contracts/v1_fastq_local_correct_errors_smoke.rs"]
@@ -34,8 +36,6 @@ mod mod_contracts_v1_fastq_local_deplete_host_plan_rs;
 mod mod_contracts_v1_fastq_local_deplete_reference_contaminants_plan_rs;
 #[path = "contracts/v1_fastq_local_deplete_rrna_plan.rs"]
 mod mod_contracts_v1_fastq_local_deplete_rrna_plan_rs;
-#[path = "contracts/v1_fastq_local_screen_taxonomy_plan.rs"]
-mod mod_contracts_v1_fastq_local_screen_taxonomy_plan_rs;
 #[path = "contracts/v1_fastq_local_detect_adapters_smoke.rs"]
 mod mod_contracts_v1_fastq_local_detect_adapters_smoke_rs;
 #[path = "contracts/v1_fastq_local_detect_duplicates_premerge_smoke.rs"]
@@ -68,6 +68,8 @@ mod mod_contracts_v1_fastq_local_profile_reads_smoke_rs;
 mod mod_contracts_v1_fastq_local_remove_chimeras_smoke_rs;
 #[path = "contracts/v1_fastq_local_remove_duplicates_smoke.rs"]
 mod mod_contracts_v1_fastq_local_remove_duplicates_smoke_rs;
+#[path = "contracts/v1_fastq_local_screen_taxonomy_plan.rs"]
+mod mod_contracts_v1_fastq_local_screen_taxonomy_plan_rs;
 #[path = "contracts/v1_fastq_local_trim_polyg_tails_smoke.rs"]
 mod mod_contracts_v1_fastq_local_trim_polyg_tails_smoke_rs;
 #[path = "contracts/v1_fastq_local_trim_reads_smoke.rs"]
