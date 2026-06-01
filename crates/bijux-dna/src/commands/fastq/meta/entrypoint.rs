@@ -172,6 +172,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::CollectRuntimeMetrics(args) => {
+                        crate::commands::benchmark::local_stage_runtime_metrics::run_collect_runtime_metrics(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateStageResult(args) => {
                         crate::commands::benchmark::local_stage_result_manifest::run_validate_stage_result(
                             &args,

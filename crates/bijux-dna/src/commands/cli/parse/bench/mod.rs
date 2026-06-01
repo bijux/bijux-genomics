@@ -28,9 +28,10 @@ pub use self::fastq::{
     BenchFastqTrimTerminalDamageArgs, BenchFastqUmiArgs, BenchFastqValidateArgs,
 };
 pub use self::local::{
-    BenchLocalCheckManifestCompletionArgs, BenchLocalCheckOutputCompletionArgs, BenchLocalCommand,
-    BenchLocalDomainArg, BenchLocalFakeRunFailuresArgs, BenchLocalFakeRunStagesArgs,
-    BenchLocalListStagesArgs, BenchLocalMaterializeStageArgs, BenchLocalRenderStageCommandsArgs,
+    BenchLocalCheckManifestCompletionArgs, BenchLocalCheckOutputCompletionArgs,
+    BenchLocalCollectRuntimeMetricsArgs, BenchLocalCommand, BenchLocalDomainArg,
+    BenchLocalFakeRunFailuresArgs, BenchLocalFakeRunStagesArgs, BenchLocalListStagesArgs,
+    BenchLocalMaterializeStageArgs, BenchLocalRenderStageCommandsArgs,
     BenchLocalValidateStageResultArgs,
 };
 pub use self::publication::{
