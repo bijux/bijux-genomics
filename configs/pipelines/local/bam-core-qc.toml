@@ -1,0 +1,67 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for the local BAM core QC DAG.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "bam-core-qc"
+domain = "bam"
+summary = "Core BAM QC DAG for governed validation, pre-QC metrics, mapping summary, filtering, and coverage collation."
+default_corpus_id = "corpus-01-bam-mini"
+
+[[nodes]]
+node_id = "bam.validate"
+stage_id = "bam.validate"
+readiness_kind = "smoke"
+summary = "Validate the governed aligned BAM inputs before downstream BAM QC consumes the dataset."
+depends_on = []
+external_inputs = ["corpus.aligned_bam", "corpus.aligned_bai", "corpus.reference_fasta"]
+upstream_inputs = []
+outputs = ["validation_report"]
+
+[[nodes]]
+node_id = "bam.qc_pre"
+stage_id = "bam.qc_pre"
+readiness_kind = "smoke"
+summary = "Collect governed pre-QC BAM metrics once validation has established the aligned input contract."
+depends_on = ["bam.validate"]
+external_inputs = ["corpus.aligned_bam"]
+upstream_inputs = ["validation_report"]
+outputs = ["qc_pre_flagstat", "qc_pre_idxstats", "qc_pre_stats", "qc_pre_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.mapping_summary"
+stage_id = "bam.mapping_summary"
+readiness_kind = "smoke"
+summary = "Derive the governed mapping summary after pre-QC metrics have established the BAM measurement context."
+depends_on = ["bam.qc_pre"]
+external_inputs = ["corpus.aligned_bam"]
+upstream_inputs = ["qc_pre_flagstat", "qc_pre_idxstats", "qc_pre_stats"]
+outputs = ["mapping_summary_report_json", "mapping_summary_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.filter"
+stage_id = "bam.filter"
+readiness_kind = "dry_or_smoke"
+summary = "Filter the governed BAM after pre-QC metrics have confirmed the aligned input state."
+depends_on = ["bam.qc_pre"]
+external_inputs = ["corpus.aligned_bam"]
+upstream_inputs = ["qc_pre_flagstat", "qc_pre_idxstats", "qc_pre_stats"]
+outputs = [
+  "filtered_bam",
+  "filtered_bai",
+  "filter_report_json",
+  "filter_stage_metrics",
+]
+
+[[nodes]]
+node_id = "bam.coverage"
+stage_id = "bam.coverage"
+readiness_kind = "smoke"
+summary = "Measure governed coverage from the filtered BAM while carrying forward the mapping context needed to interpret region depth."
+depends_on = ["bam.mapping_summary", "bam.filter"]
+external_inputs = ["coverage_region_contract"]
+upstream_inputs = ["mapping_summary_report_json", "filtered_bam", "filtered_bai"]
+outputs = ["coverage_report_json", "coverage_stage_metrics"]
