@@ -488,3 +488,99 @@ fn bench_local_pipeline_dag_validates_bam_authenticity_contract() {
         "bam.authenticity must expose only the required upstream evidence in the CLI validation report"
     );
 }
+
+#[test]
+fn bench_local_pipeline_dag_validates_bam_genotyping_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/bam-genotyping.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/bam-genotyping.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/bam-genotyping.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("bam-genotyping")
+    );
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-01-bam-mini")
+    );
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("edge_count").and_then(serde_json::Value::as_u64), Some(5));
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.recalibration")
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("filtered_bam"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("coverage_report_json"))
+                    },
+                )
+                && node.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |outputs| {
+                        outputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("recalibrated_bam"))
+                            && outputs.iter().any(|value| {
+                                value.as_str() == Some("recalibration_summary_json")
+                            })
+                    },
+                )
+        }),
+        "bam.recalibration must expose the coverage-gated summary and recalibrated BAM outputs in the CLI validation report"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
+                && node.get("readiness_kind").and_then(serde_json::Value::as_str)
+                    == Some("dry_or_smoke")
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("filtered_bam"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("filtered_bai"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("recalibrated_bam"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("recalibrated_bai"))
+                            && inputs.iter().any(|value| {
+                                value.as_str() == Some("recalibration_summary_json")
+                            })
+                    },
+                )
+                && node
+                    .get("external_inputs")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|inputs| {
+                        inputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("genotyping_reference_contract"))
+                            && inputs.iter().any(|value| {
+                                value.as_str() == Some("candidate_sites_vcf_contract")
+                            })
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("target_regions_contract"))
+                    })
+        }),
+        "bam.genotyping must expose the filtered fallback path, recalibrated run path, and governed genotyping contracts"
+    );
+}
