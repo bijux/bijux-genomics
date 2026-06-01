@@ -43,6 +43,11 @@ const LOCAL_INSERT_SIZE_CONFIG_PATH: &str = "configs/bench/local/bam-insert-size
 const DEFAULT_LOCAL_INSERT_SIZE_OUTPUT_DIR: &str = "target/local-smoke/bam.insert_size";
 const LOCAL_GC_BIAS_CONFIG_PATH: &str = "configs/bench/local/bam-gc-bias.toml";
 const DEFAULT_LOCAL_GC_BIAS_OUTPUT_DIR: &str = "target/local-smoke/bam.gc_bias";
+#[cfg(feature = "bam_downstream")]
+const LOCAL_BIAS_MITIGATION_CONFIG_PATH: &str = "configs/bench/local/bam-bias-mitigation.toml";
+#[cfg(feature = "bam_downstream")]
+const DEFAULT_LOCAL_BIAS_MITIGATION_OUTPUT_DIR: &str =
+    "target/local-smoke/bam.bias_mitigation";
 const LOCAL_ENDOGENOUS_CONTENT_CONFIG_PATH: &str =
     "configs/bench/local/bam-endogenous-content.toml";
 const DEFAULT_LOCAL_ENDOGENOUS_CONTENT_OUTPUT_DIR: &str =
@@ -217,6 +222,19 @@ pub struct LocalGcBiasSmokeCasePlan {
     pub reference: PathBuf,
     pub window_size: u32,
     pub expected_rows: Vec<LocalGcBiasSmokeExpectedRow>,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[cfg(feature = "bam_downstream")]
+#[derive(Debug, Clone)]
+pub struct LocalBiasMitigationSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub reference: PathBuf,
+    pub window_size: u32,
+    pub expected_metric_name: String,
+    pub expected_pre_mitigation_metric: f64,
+    pub expected_post_mitigation_metric: f64,
     pub plan: bijux_dna_stage_contract::StagePlanV1,
 }
 
@@ -421,6 +439,18 @@ struct LocalGcBiasSmokeConfig {
     #[serde(default)]
     output_dir: Option<PathBuf>,
     cases: Vec<LocalGcBiasSmokeCase>,
+}
+
+#[cfg(feature = "bam_downstream")]
+#[derive(Debug, Deserialize)]
+struct LocalBiasMitigationSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalBiasMitigationSmokeCase>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -628,6 +658,20 @@ struct LocalGcBiasSmokeCase {
     reference: PathBuf,
     window_size: u32,
     expected_rows: Vec<LocalGcBiasSmokeExpectedRow>,
+}
+
+#[cfg(feature = "bam_downstream")]
+#[derive(Debug, Deserialize)]
+struct LocalBiasMitigationSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    reference: PathBuf,
+    window_size: u32,
+    gc_bias_correction: bool,
+    map_bias_correction: bool,
+    expected_metric_name: String,
+    expected_pre_mitigation_metric: f64,
+    expected_post_mitigation_metric: f64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -1073,6 +1117,42 @@ pub fn local_gc_bias_smoke_plans(repo_root: &Path) -> Result<Vec<LocalGcBiasSmok
         .cases
         .into_iter()
         .map(|case| build_local_gc_bias_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.bias_mitigation` plans cannot be built.
+#[cfg(feature = "bam_downstream")]
+pub fn local_bias_mitigation_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalBiasMitigationSmokeCasePlan>> {
+    let config = load_local_bias_mitigation_smoke_config(repo_root)?;
+    ensure_unique_bias_mitigation_sample_ids(&config.cases)?;
+
+    let stage = BamStage::BiasMitigation;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_BIAS_MITIGATION_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| {
+            build_local_bias_mitigation_smoke_case(repo_root, &tool_spec, &output_root, case)
+        })
         .collect()
 }
 
@@ -2455,6 +2535,82 @@ fn build_local_sex_smoke_case(
     })
 }
 
+#[cfg(feature = "bam_downstream")]
+fn build_local_bias_mitigation_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalBiasMitigationSmokeCase,
+) -> Result<LocalBiasMitigationSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    let reference_abs = repo_root.join(&case.reference);
+    if !reference_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation reference fixture is missing: {}",
+            reference_abs.display()
+        ));
+    }
+    if case.window_size == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` must declare window_size greater than zero",
+            case.sample_id
+        ));
+    }
+    if case.expected_metric_name.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` must declare a non-empty expected_metric_name",
+            case.sample_id
+        ));
+    }
+    if case.expected_pre_mitigation_metric < 0.0 || case.expected_post_mitigation_metric < 0.0 {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` must keep expected metrics non-negative",
+            case.sample_id
+        ));
+    }
+    if case.expected_post_mitigation_metric > case.expected_pre_mitigation_metric {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` must not raise the expected post-mitigation metric above the pre-mitigation metric",
+            case.sample_id
+        ));
+    }
+
+    let params = bijux_dna_domain_bam::params::BiasMitigationEffectiveParams {
+        gc_bias_correction: case.gc_bias_correction,
+        map_bias_correction: case.map_bias_correction,
+    };
+    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let mut plan =
+        crate::tool_adapters::bam::bias_mitigation::plan(tool_spec, &case.bam, &out_dir, &params)?;
+    plan.io.inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+        ArtifactId::from_static("reference"),
+        case.reference.clone(),
+        ArtifactRole::Reference,
+    ));
+    let plan_params = plan.params.as_object_mut().ok_or_else(|| {
+        anyhow!("local-smoke bam.bias_mitigation planner params must serialize as an object")
+    })?;
+    plan_params.insert("reference".to_string(), serde_json::json!(case.reference));
+    plan_params.insert("window_size".to_string(), serde_json::json!(case.window_size));
+
+    Ok(LocalBiasMitigationSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        reference: case.reference,
+        window_size: case.window_size,
+        expected_metric_name: case.expected_metric_name,
+        expected_pre_mitigation_metric: case.expected_pre_mitigation_metric,
+        expected_post_mitigation_metric: case.expected_post_mitigation_metric,
+        plan,
+    })
+}
+
 fn hydrate_smoke_threads(tool_spec: &mut ToolExecutionSpecV1, threads: Option<u32>) {
     if let Some(threads) = threads {
         tool_spec.resources.threads = threads.max(1);
@@ -2673,6 +2829,23 @@ fn ensure_unique_gc_bias_sample_ids(cases: &[LocalGcBiasSmokeCase]) -> Result<()
         if !seen.insert(case.sample_id.clone()) {
             return Err(anyhow!(
                 "duplicate local-smoke bam.gc_bias sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+#[cfg(feature = "bam_downstream")]
+fn ensure_unique_bias_mitigation_sample_ids(cases: &[LocalBiasMitigationSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.bias_mitigation sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.bias_mitigation sample_id `{}`",
                 case.sample_id
             ));
         }
@@ -2939,6 +3112,28 @@ fn load_local_gc_bias_smoke_config(repo_root: &Path) -> Result<LocalGcBiasSmokeC
     }
     if config.cases.is_empty() {
         return Err(anyhow!("local-smoke bam.gc_bias must declare at least one governed case"));
+    }
+    Ok(config)
+}
+
+#[cfg(feature = "bam_downstream")]
+fn load_local_bias_mitigation_smoke_config(
+    repo_root: &Path,
+) -> Result<LocalBiasMitigationSmokeConfig> {
+    let path = repo_root.join(LOCAL_BIAS_MITIGATION_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalBiasMitigationSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_bias_mitigation.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.bias_mitigation schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation must declare at least one governed case"
+        ));
     }
     Ok(config)
 }
