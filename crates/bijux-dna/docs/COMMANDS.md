@@ -126,6 +126,11 @@ Visible aliases are part of the operator surface:
   file-path integrity, source-path provenance, expected taxonomy-output contracts, primer and
   control declarations, amplicon primer-table, expected-ASV, and chimera-control contracts, and
   modality-specific contract checks.
+- `bijux-dna bench local validate-corpus-stage-compatibility`
+  `validate-corpus-stage-compatibility` checks
+  `configs/bench/local/corpus-stage-compatibility.toml` against the governed 51-stage local FASTQ
+  and BAM inventories, validates every referenced corpus fixture manifest, and reports which stages
+  are covered by corpus-01, corpus-02, corpus-03, or an explicit planner-only reason.
 - `bijux-dna bench local validate-taxonomy-database-fixture`
   `validate-taxonomy-database-fixture` checks governed taxonomy database fixture manifests such as
   `tests/fixtures/databases/taxonomy-mini/manifest.toml` for declared taxa, lineage-table
