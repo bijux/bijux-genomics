@@ -256,8 +256,8 @@ pub fn depth_args(
     summary: &Path,
     regions: Option<&BedRegions>,
 ) -> Vec<String> {
-    let regions_arg = regions
-        .map_or_else(String::new, |regions| format!("-b {} ", regions.as_path().display()));
+    let regions_arg =
+        regions.map_or_else(String::new, |regions| format!("-b {} ", regions.as_path().display()));
     let command = format!(
         "samtools depth -a {regions_arg}{bam} > {depth} && \
 awk '{{sum+=$3; if($3>0) cov++}} END {{mean=(NR>0)?sum/NR:0; print \"total\", NR, cov, mean}}' {depth} > {summary}",

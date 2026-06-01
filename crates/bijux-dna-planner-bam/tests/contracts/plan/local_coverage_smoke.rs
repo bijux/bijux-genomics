@@ -27,10 +27,7 @@ fn local_coverage_smoke_plans_use_governed_target_windows_fixture() -> Result<()
     assert_eq!(case.plan.tool_id.as_str(), "samtools");
     assert_eq!(case.plan.resources.threads, 4);
     assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/coverage_target_windows.sam"));
-    assert_eq!(
-        case.regions,
-        PathBuf::from("assets/toy/core-v1/bam/coverage_target_windows.bed")
-    );
+    assert_eq!(case.regions, PathBuf::from("assets/toy/core-v1/bam/coverage_target_windows.bed"));
     assert_eq!(case.depth_thresholds, vec![1, 5]);
     assert_eq!(case.expected_coverage_regime, "low_pass");
     assert_eq!(case.expected_rows.len(), 2);
@@ -82,7 +79,7 @@ fn local_coverage_smoke_plans_use_governed_target_windows_fixture() -> Result<()
 fn local_coverage_smoke_stage_api_surface_stays_callable() {
     let _: fn(
         &Path,
-    ) -> anyhow::Result<
-        Vec<bijux_dna_planner_bam::stage_api::LocalCoverageSmokeCasePlan>,
-    > = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans;
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalCoverageSmokeCasePlan>> =
+        bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans;
 }

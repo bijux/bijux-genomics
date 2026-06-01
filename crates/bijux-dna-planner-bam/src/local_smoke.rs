@@ -5,8 +5,8 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::prelude::{StageId, ToolExecutionSpecV1, ToolId};
 use bijux_dna_domain_bam::{
     params::{
-        ComplexityEffectiveParams, CoverageEffectiveParams, DuplicateAction,
-        FilterEffectiveParams, MarkDupEffectiveParams, OpticalDuplicatePolicy, UmiPolicy,
+        ComplexityEffectiveParams, CoverageEffectiveParams, DuplicateAction, FilterEffectiveParams,
+        MarkDupEffectiveParams, OpticalDuplicatePolicy, UmiPolicy,
     },
     types::BedRegions,
     BamStage,

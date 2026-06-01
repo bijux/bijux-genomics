@@ -2666,7 +2666,8 @@ pub fn summarize_tiny_bam_coverage(
     input_bam: &Path,
     depth_thresholds: &[u32],
 ) -> Result<BamCoverageSummaryV1> {
-    summarize_tiny_bam_coverage_regions(input_bam, None, depth_thresholds).map(|(summary, _)| summary)
+    summarize_tiny_bam_coverage_regions(input_bam, None, depth_thresholds)
+        .map(|(summary, _)| summary)
 }
 
 /// Summarize tiny BAM/SAM coverage over optional BED regions with per-region depth observations.
@@ -2717,11 +2718,7 @@ pub fn summarize_tiny_bam_coverage_regions(
         let covered_bases = window.iter().filter(|depth| **depth >= 1).count() as u64;
         let depth_sum = window.iter().map(|depth| u64::from(*depth)).sum::<u64>();
         let mean_depth = if length > 0 { depth_sum as f64 / length as f64 } else { 0.0 };
-        let breadth_1x = if length > 0 {
-            covered_bases as f64 / length as f64
-        } else {
-            0.0
-        };
+        let breadth_1x = if length > 0 { covered_bases as f64 / length as f64 } else { 0.0 };
 
         total_positions += length;
         total_covered_bases += covered_bases;
@@ -2740,11 +2737,8 @@ pub fn summarize_tiny_bam_coverage_regions(
 
     let mean_depth =
         if total_positions > 0 { total_depth_sum as f64 / total_positions as f64 } else { 0.0 };
-    let breadth_1x = if total_positions > 0 {
-        total_covered_bases as f64 / total_positions as f64
-    } else {
-        0.0
-    };
+    let breadth_1x =
+        if total_positions > 0 { total_covered_bases as f64 / total_positions as f64 } else { 0.0 };
     let regime = classify_bam_coverage_regime(mean_depth, breadth_1x);
 
     Ok((
@@ -4793,9 +4787,8 @@ r03\t0\tchr2\t2\t45\t3M\t*\t0\t0\tGGA\tFFF\tRG:Z:rg1\n",
         std::fs::write(&regions, "chr1\t0\t6\tchr1_window\nchr2\t1\t5\tchr2_window\n")
             .expect("write coverage regions");
 
-        let (summary, rows) =
-            summarize_tiny_bam_coverage_regions(&input, Some(&regions), &[1, 5])
-                .expect("summarize coverage regions");
+        let (summary, rows) = summarize_tiny_bam_coverage_regions(&input, Some(&regions), &[1, 5])
+            .expect("summarize coverage regions");
         assert_eq!(summary.stage_id, "bam.coverage");
         assert_eq!(summary.depth_thresholds, vec![1, 5]);
         assert_eq!(summary.coverage_regime.as_deref(), Some("low_pass"));
