@@ -11,6 +11,7 @@ configs/bench/local/bam-complexity.toml
 configs/bench/local/bam-coverage.toml
 configs/bench/local/bam-duplication-metrics.toml
 configs/bench/local/bam-filter.toml
+configs/bench/local/bam-insert-size.toml
 configs/bench/local/bam-length-filter.toml
 configs/bench/local/bam-mapping-summary.toml
 configs/bench/local/bam-mapq-filter.toml
