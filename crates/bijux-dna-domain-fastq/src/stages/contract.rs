@@ -13,7 +13,7 @@ pub use runtime::{
     ensure_umi_headers, estimate_library_complexity_prealign, extract_umis,
     filter_low_complexity, find_first_fastq,
     infer_asvs, inspect_headers, interleave_reads, log_header_warnings, materialize_qc_manifest,
-    merge_pairs,
+    merge_pairs, profile_overrepresented_sequences,
     normalize_abundance, normalize_outputs, normalize_primers, normalize_read_names,
     preflight_stage, prepare_adapter_bank, prepare_host_reference_bundle, prepare_primer_bank,
     remove_chimeras, remove_duplicates, repair_pairs, screen_taxonomy, subsample_reads,
