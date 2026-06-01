@@ -5,6 +5,8 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "0.940"
 install_kind: "container"
+container:
+  image: "bijuxdna/angsd"
 license: "GPL-3.0"
 citation: "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4"
 stage_ids: ["bam.sex","bam.kinship"]

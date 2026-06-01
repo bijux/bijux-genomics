@@ -230,6 +230,22 @@ mod tests {
     }
 
     #[test]
+    fn load_bam_domain_tool_execution_spec_accepts_supported_angsd_genotyping_stage() -> Result<()>
+    {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("bam.genotyping".to_string());
+        let tool_id = ToolId::new("angsd");
+
+        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(spec.tool_id.as_str(), "angsd");
+        assert_eq!(spec.command.template, vec!["angsd".to_string()]);
+        assert_eq!(spec.image.image, "bijuxdna/angsd");
+        assert!(spec.image.digest.is_none());
+        Ok(())
+    }
+
+    #[test]
     fn load_bam_domain_tool_planning_spec_tolerates_missing_container_metadata() -> Result<()> {
         let repo_root = repo_root();
         let stage_id = StageId::new("bam.validate".to_string());
