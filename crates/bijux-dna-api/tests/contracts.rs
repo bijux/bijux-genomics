@@ -48,6 +48,8 @@ mod mod_contracts_v1_fastq_local_index_reference_plan_rs;
 mod mod_contracts_v1_fastq_local_infer_asvs_smoke_rs;
 #[path = "contracts/v1_fastq_local_merge_pairs_smoke.rs"]
 mod mod_contracts_v1_fastq_local_merge_pairs_smoke_rs;
+#[path = "contracts/v1_fastq_local_normalize_abundance_smoke.rs"]
+mod mod_contracts_v1_fastq_local_normalize_abundance_smoke_rs;
 #[path = "contracts/v1_fastq_local_normalize_primers_smoke.rs"]
 mod mod_contracts_v1_fastq_local_normalize_primers_smoke_rs;
 #[path = "contracts/v1_fastq_local_profile_overrepresented_sequences_smoke.rs"]
