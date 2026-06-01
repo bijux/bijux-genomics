@@ -5,7 +5,11 @@ pub use crate::qc_contract::{
     governed_qc_output_ids_for_stage, governed_qc_producer_stage_ids,
 };
 pub use crate::selection::args;
-pub use crate::selection::{allowed_tools_for_stage, default_tool_for_stage};
+pub use crate::selection::{
+    allowed_tools_for_stage, default_tool_for_stage, load_fastq_domain_tool_contract_metadata,
+    load_fastq_domain_tool_execution_spec, FastqDomainToolContractMetadata,
+    FastqDomainToolSupportLevel,
+};
 pub use crate::tool_adapters::fastq;
 pub use crate::tool_adapters::fastq::StageInfo;
 pub use crate::STAGE_REPORT_AGGREGATE;
