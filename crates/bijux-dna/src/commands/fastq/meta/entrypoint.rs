@@ -172,6 +172,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RenderCorpusSkipReport(args) => {
+                        crate::commands::benchmark::local_corpus_skip_report::run_render_corpus_skip_report(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateTaxonomyDatabaseFixture(args) => {
                         crate::commands::benchmark::local_taxonomy_database_fixture::run_validate_taxonomy_database_fixture(
                             &args,

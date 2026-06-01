@@ -14,6 +14,8 @@ pub enum BenchLocalCommand {
     ValidateCorpusFixture(BenchLocalValidateCorpusFixtureArgs),
     #[command(name = "validate-corpus-stage-compatibility")]
     ValidateCorpusStageCompatibility(BenchLocalValidateCorpusStageCompatibilityArgs),
+    #[command(name = "render-corpus-skip-report")]
+    RenderCorpusSkipReport(BenchLocalRenderCorpusSkipReportArgs),
     #[command(name = "validate-taxonomy-database-fixture")]
     ValidateTaxonomyDatabaseFixture(BenchLocalValidateTaxonomyDatabaseFixtureArgs),
     #[command(name = "render-benchmark-summary")]
@@ -58,6 +60,16 @@ pub struct BenchLocalValidateCorpusFixtureArgs {
 pub struct BenchLocalValidateCorpusStageCompatibilityArgs {
     #[arg(long)]
     pub matrix: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderCorpusSkipReportArgs {
+    #[arg(long)]
+    pub matrix: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

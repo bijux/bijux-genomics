@@ -32,9 +32,10 @@ pub use self::local::{
     BenchLocalCollectRuntimeMetricsArgs, BenchLocalCommand, BenchLocalDomainArg,
     BenchLocalFakeRunFailuresArgs, BenchLocalFakeRunStagesArgs, BenchLocalListStagesArgs,
     BenchLocalMaterializeStageArgs, BenchLocalRenderBenchmarkSummaryArgs,
-    BenchLocalRenderStageCommandsArgs, BenchLocalRenderToolComparisonTemplateArgs,
-    BenchLocalValidateCorpusFixtureArgs, BenchLocalValidateCorpusStageCompatibilityArgs,
-    BenchLocalValidateStageResultArgs, BenchLocalValidateTaxonomyDatabaseFixtureArgs,
+    BenchLocalRenderCorpusSkipReportArgs, BenchLocalRenderStageCommandsArgs,
+    BenchLocalRenderToolComparisonTemplateArgs, BenchLocalValidateCorpusFixtureArgs,
+    BenchLocalValidateCorpusStageCompatibilityArgs, BenchLocalValidateStageResultArgs,
+    BenchLocalValidateTaxonomyDatabaseFixtureArgs,
 };
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
