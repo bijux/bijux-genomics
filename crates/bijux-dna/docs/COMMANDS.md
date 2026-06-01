@@ -116,6 +116,8 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench corpus-fastq-publication-status`
 - `bijux-dna bench corpus-fastq-published-dossiers`
 - `bijux-dna bench local list-stages`
+- `bijux-dna bench local materialize-stage`
+- `bijux-dna bench local render-stage-commands`
 - `bijux-dna bench schema`
 - `bijux-dna bench fastq trim-reads`
 - `bijux-dna bench fastq trim-polyg-tails`
