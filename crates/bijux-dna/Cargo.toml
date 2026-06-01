@@ -13,6 +13,8 @@ path = "src/bin/bijux-dna.rs"
 [dependencies]
 bijux-dna-api.workspace = true
 bijux-dna-analyze.workspace = true
+bijux-dna-core.workspace = true
+bijux-dna-domain-fastq.workspace = true
 bijux-dna-domain-compiler.workspace = true
 bijux-dna-infra.workspace = true
 bijux-dna-db-ena.workspace = true

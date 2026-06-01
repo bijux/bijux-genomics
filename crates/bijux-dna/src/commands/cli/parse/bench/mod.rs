@@ -27,7 +27,10 @@ pub use self::fastq::{
     BenchFastqStatsArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
     BenchFastqTrimTerminalDamageArgs, BenchFastqUmiArgs, BenchFastqValidateArgs,
 };
-pub use self::local::{BenchLocalCommand, BenchLocalDomainArg, BenchLocalListStagesArgs};
+pub use self::local::{
+    BenchLocalCommand, BenchLocalDomainArg, BenchLocalListStagesArgs,
+    BenchLocalMaterializeStageArgs, BenchLocalRenderStageCommandsArgs,
+};
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
     BenchCorpusFastqReportArgs, BenchPublicationTargetsArgs,

@@ -162,6 +162,16 @@ pub(crate) fn handle_meta_commands(
                             }
                         }
                     }
+                    cli::BenchLocalCommand::MaterializeStage(args) => {
+                        crate::commands::benchmark::local_stage_commands::run_materialize_stage(
+                            &args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderStageCommands(args) => {
+                        crate::commands::benchmark::local_stage_commands::run_render_stage_commands(
+                            &args,
+                        )?;
+                    }
                 },
                 BenchCommand::CorpusFastq(args) => {
                     crate::commands::benchmark_corpus_fastq::run_benchmark_corpus_fastq(cli, args)?;
