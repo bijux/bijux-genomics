@@ -109,6 +109,31 @@ pub fn write_local_deplete_reference_contaminants_plan() -> Result<PathBuf> {
     Ok(plan_path)
 }
 
+/// Materialize the governed local-smoke `fastq.correct_errors` dry-run plan.
+///
+/// The written artifact lives at `target/local-smoke/fastq.correct_errors/plan.json` under the
+/// active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, the plan count is not exactly one, or the plan artifact cannot be written.
+pub fn write_local_correct_errors_smoke_plan() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let plans = bijux_dna_planner_fastq::stage_api::local_correct_errors_smoke_plans(&repo_root)?;
+    let [case] = plans.as_slice() else {
+        return Err(anyhow!(
+            "expected exactly one governed local-smoke fastq.correct_errors plan, found {}",
+            plans.len()
+        ));
+    };
+
+    let plan_dir = repo_root.join("target/local-smoke/fastq.correct_errors");
+    bijux_dna_infra::ensure_dir(&plan_dir)?;
+    let plan_path = plan_dir.join("plan.json");
+    bijux_dna_infra::atomic_write_json(&plan_path, &case.plan)?;
+    Ok(plan_path)
+}
+
 /// Materialize the governed local-smoke `fastq.validate_reads` report bundle.
 ///
 /// The written summary artifact lives at `target/local-smoke/fastq.validate_reads/report.json`
