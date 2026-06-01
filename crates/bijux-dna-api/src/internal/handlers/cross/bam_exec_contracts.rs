@@ -188,6 +188,9 @@ mod tests {
             payload.get("mapped_reads_removed").and_then(serde_json::Value::as_u64),
             Some(6)
         );
+        assert_eq!(payload.get("input_reads").and_then(serde_json::Value::as_u64), Some(20));
+        assert_eq!(payload.get("kept_reads").and_then(serde_json::Value::as_u64), Some(12));
+        assert_eq!(payload.get("removed_reads").and_then(serde_json::Value::as_u64), Some(8));
         assert_eq!(
             payload.get("mapped_fraction_retained").and_then(serde_json::Value::as_f64),
             Some(0.6)

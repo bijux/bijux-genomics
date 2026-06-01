@@ -193,6 +193,9 @@ fn stage_postprocess(
                     (Some(before), Some(after)) if before > 0 => Some(after as f64 / before as f64),
                     _ => None,
                 };
+            let input_reads = flagstat_before.total_reads.unwrap_or(0);
+            let kept_reads = flagstat_after.total_reads.unwrap_or(0);
+            let removed_reads = input_reads.saturating_sub(kept_reads);
             let payload = bijux_dna_domain_bam::BamMapqFilterSummaryV1 {
                 schema_version: bijux_dna_domain_bam::BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION
                     .to_string(),
@@ -207,6 +210,9 @@ fn stage_postprocess(
                 output_bam,
                 flagstat_before,
                 flagstat_after,
+                input_reads,
+                kept_reads,
+                removed_reads,
                 mapped_reads_removed,
                 mapped_fraction_retained,
             };
