@@ -32,7 +32,7 @@ pub use self::local::{
     BenchLocalCollectRuntimeMetricsArgs, BenchLocalCommand, BenchLocalDomainArg,
     BenchLocalFakeRunFailuresArgs, BenchLocalFakeRunStagesArgs, BenchLocalListStagesArgs,
     BenchLocalMaterializeStageArgs, BenchLocalRenderStageCommandsArgs,
-    BenchLocalValidateStageResultArgs,
+    BenchLocalRenderToolComparisonTemplateArgs, BenchLocalValidateStageResultArgs,
 };
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,

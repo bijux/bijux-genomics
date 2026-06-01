@@ -177,6 +177,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RenderToolComparisonTemplate(args) => {
+                        crate::commands::benchmark::local_tool_comparison_template::run_render_tool_comparison_template(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateStageResult(args) => {
                         crate::commands::benchmark::local_stage_result_manifest::run_validate_stage_result(
                             &args,

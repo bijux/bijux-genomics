@@ -16,6 +16,8 @@ pub enum BenchLocalCommand {
     CheckOutputCompletion(BenchLocalCheckOutputCompletionArgs),
     #[command(name = "collect-runtime-metrics")]
     CollectRuntimeMetrics(BenchLocalCollectRuntimeMetricsArgs),
+    #[command(name = "render-tool-comparison-template")]
+    RenderToolComparisonTemplate(BenchLocalRenderToolComparisonTemplateArgs),
     #[command(name = "validate-stage-result")]
     ValidateStageResult(BenchLocalValidateStageResultArgs),
     #[command(name = "materialize-stage")]
@@ -58,6 +60,16 @@ pub struct BenchLocalCheckManifestCompletionArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalCollectRuntimeMetricsArgs {
+    #[arg(long)]
+    pub fake_run_root: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderToolComparisonTemplateArgs {
     #[arg(long)]
     pub fake_run_root: Option<std::path::PathBuf>,
     #[arg(long)]
