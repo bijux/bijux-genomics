@@ -18,8 +18,6 @@ mod local_deplete_host;
 mod local_deplete_reference_contaminants;
 #[path = "plan/local_deplete_rrna.rs"]
 mod local_deplete_rrna;
-#[path = "plan/local_screen_taxonomy.rs"]
-mod local_screen_taxonomy;
 #[path = "plan/local_detect_adapters_smoke.rs"]
 mod local_detect_adapters_smoke;
 #[path = "plan/local_detect_duplicates_premerge_smoke.rs"]
@@ -48,12 +46,14 @@ mod local_profile_overrepresented_sequences_smoke;
 mod local_profile_read_lengths_smoke;
 #[path = "plan/local_profile_reads_smoke.rs"]
 mod local_profile_reads_smoke;
-#[path = "plan/local_report_qc_smoke.rs"]
-mod local_report_qc_smoke;
 #[path = "plan/local_remove_chimeras_smoke.rs"]
 mod local_remove_chimeras_smoke;
 #[path = "plan/local_remove_duplicates_smoke.rs"]
 mod local_remove_duplicates_smoke;
+#[path = "plan/local_report_qc_smoke.rs"]
+mod local_report_qc_smoke;
+#[path = "plan/local_screen_taxonomy.rs"]
+mod local_screen_taxonomy;
 #[path = "plan/local_trim_polyg_tails_smoke.rs"]
 mod local_trim_polyg_tails_smoke;
 #[path = "plan/local_trim_reads_smoke.rs"]

@@ -28,7 +28,8 @@ fn local_report_qc_smoke_plan_uses_governed_qc_fixture_bundle() -> Result<()> {
         .unwrap_or_else(|| panic!("detect_adapters governed QC input missing"));
     assert_eq!(
         detect_adapters.path,
-        repo_root.join("assets/toy/core-v1/fastq/report_qc/contributors/detect_adapters.report.json")
+        repo_root
+            .join("assets/toy/core-v1/fastq/report_qc/contributors/detect_adapters.report.json")
     );
 
     let manifest_output = plan
