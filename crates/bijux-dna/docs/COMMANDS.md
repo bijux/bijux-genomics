@@ -128,6 +128,11 @@ Visible aliases are part of the operator surface:
   `collect-runtime-metrics` writes `target/local-ready/runtime-metrics.json` by reading validated
   fake-run `stage-result.json` manifests and extracting per-stage start, end, elapsed, exit, and
   status fields.
+- `bijux-dna bench local render-tool-comparison-template`
+  `render-tool-comparison-template` writes
+  `target/local-ready/tool-comparison-template.tsv` with one governed row per local benchmark
+  stage/tool, carrying runtime, memory, output-metric placeholder, status, and failure-reason
+  columns.
 - `bijux-dna bench local validate-stage-result`
   `validate-stage-result` loads one `stage-result.json` manifest and fails unless the required
   `command`, `tool`, `runtime`, `resource_metrics`, and `outputs` contract fields are present and
