@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -16,6 +16,9 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
+use bijux_dna_domain_fastq::params::quality::filter_low_complexity::{
+    FilterLowComplexityEffectiveParams, FILTER_LOW_COMPLEXITY_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::{
     FilterLowComplexityReportV1, PairedMode, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,
 };
@@ -41,6 +44,144 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_FILTER_LOW_COMPLEXITY,
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
+use serde::Serialize;
+
+const LOCAL_FILTER_LOW_COMPLEXITY_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.filter_low_complexity.local_smoke.report.v1";
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalFilterLowComplexitySmokeReport {
+    schema_version: String,
+    stage_id: String,
+    sample_id: String,
+    planned_tool_id: String,
+    report_tool_id: String,
+    entropy_threshold: f64,
+    polyx_threshold: Option<u32>,
+    input_reads: u64,
+    reads_removed_low_complexity: u64,
+    output_reads: u64,
+    filtered_fastq_gz: String,
+    case_report_json: String,
+    raw_backend_report: String,
+}
+
+#[derive(Debug, Clone, serde::Deserialize)]
+struct PlannedFilterLowComplexityEffectiveParams {
+    paired_mode: PairedMode,
+    threads: u32,
+    entropy_threshold: f64,
+    polyx_threshold: Option<u32>,
+}
+
+/// Materialize the governed local-smoke `fastq.filter_low_complexity` artifacts.
+///
+/// The written summary artifact lives at
+/// `target/local-smoke/fastq.filter_low_complexity/report.json` under the active repository root,
+/// alongside the top-level `filtered.fastq.gz`.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_filter_low_complexity_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases =
+        bijux_dna_planner_fastq::stage_api::local_filter_low_complexity_smoke_plans(&repo_root)?;
+    let [case] = cases.as_slice() else {
+        return Err(anyhow!(
+            "local-smoke fastq.filter_low_complexity expects exactly one governed case, found {}",
+            cases.len()
+        ));
+    };
+
+    let output_root = repo_root.join("target/local-smoke/fastq.filter_low_complexity");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+    let summary =
+        materialize_local_filter_low_complexity_smoke_case(&repo_root, case, &output_root)?;
+    let report_path = output_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
+    Ok(report_path)
+}
+
+fn materialize_local_filter_low_complexity_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalFilterLowComplexitySmokeCasePlan,
+    output_root: &Path,
+) -> Result<LocalFilterLowComplexitySmokeReport> {
+    let planned_effective_params = serde_json::from_value::<
+        PlannedFilterLowComplexityEffectiveParams,
+    >(case.plan.effective_params.clone())
+    .context("decode filter low-complexity local-smoke effective params")?;
+    let effective_params = FilterLowComplexityEffectiveParams {
+        schema_version: FILTER_LOW_COMPLEXITY_SCHEMA_VERSION.to_string(),
+        paired_mode: planned_effective_params.paired_mode,
+        threads: planned_effective_params.threads,
+        entropy_threshold: planned_effective_params.entropy_threshold,
+        polyx_threshold: planned_effective_params.polyx_threshold,
+    };
+    let input_r1 = repo_root.join(&case.r1);
+    let input_r2 = case.r2.as_ref().map(|path| repo_root.join(path));
+    let output_r1 = resolve_output_path(
+        repo_root,
+        &required_plan_output_path(&case.plan, "filtered_fastq_r1")?,
+    );
+    let output_r2 = optional_plan_output_path(&case.plan, "filtered_fastq_r2")
+        .map(|path| resolve_output_path(repo_root, &path));
+    let case_report_json = resolve_output_path(
+        repo_root,
+        &required_plan_output_path(&case.plan, "filter_report_json")?,
+    );
+    let raw_backend_report = resolve_output_path(
+        repo_root,
+        &required_plan_param_path(&case.plan, "raw_backend_report")?,
+    );
+
+    for path in [&output_r1, &case_report_json, &raw_backend_report] {
+        if let Some(parent) = path.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+    if let Some(output_r2) = output_r2.as_ref() {
+        if let Some(parent) = output_r2.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+
+    let report = bijux_dna_domain_fastq::stages::contract::filter_low_complexity(
+        &input_r1,
+        input_r2.as_deref(),
+        &effective_params,
+        &output_r1,
+        output_r2.as_deref(),
+        &case_report_json,
+        Some(&raw_backend_report),
+    )?;
+
+    let top_level_filtered = output_root.join("filtered.fastq.gz");
+    std::fs::copy(&output_r1, &top_level_filtered).with_context(|| {
+        format!(
+            "copy local filter-low-complexity smoke output from {} to {}",
+            output_r1.display(),
+            top_level_filtered.display()
+        )
+    })?;
+
+    Ok(LocalFilterLowComplexitySmokeReport {
+        schema_version: LOCAL_FILTER_LOW_COMPLEXITY_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_FILTER_LOW_COMPLEXITY.as_str().to_string(),
+        sample_id: case.sample_id.clone(),
+        planned_tool_id: case.plan.tool_id.as_str().to_string(),
+        report_tool_id: report.tool_id.clone(),
+        entropy_threshold: effective_params.entropy_threshold,
+        polyx_threshold: effective_params.polyx_threshold,
+        input_reads: report.reads_in,
+        reads_removed_low_complexity: report.reads_removed_low_complexity,
+        output_reads: report.reads_out,
+        filtered_fastq_gz: path_relative_to_repo(repo_root, &top_level_filtered),
+        case_report_json: path_relative_to_repo(repo_root, &case_report_json),
+        raw_backend_report: path_relative_to_repo(repo_root, &raw_backend_report),
+    })
+}
 
 /// # Errors
 /// Returns an error if planning, execution, metrics derivation, or persistence fails.
@@ -665,4 +806,47 @@ fn combine_seqkit_metrics(
 
 fn u64_to_f64(value: u64) -> f64 {
     value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+fn resolve_output_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+}
+
+fn required_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Result<PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == output_id)
+        .map(|artifact| artifact.path.clone())
+        .ok_or_else(|| {
+            anyhow!("local filter-low-complexity smoke plan missing output `{output_id}`")
+        })
+}
+
+fn optional_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Option<PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == output_id)
+        .map(|artifact| artifact.path.clone())
+}
+
+fn required_plan_param_path(plan: &StagePlanV1, param_name: &str) -> Result<PathBuf> {
+    let Some(value) = plan.params.get(param_name) else {
+        return Err(anyhow!("local filter-low-complexity smoke plan missing param `{param_name}`"));
+    };
+    let Some(path) = value.as_str() else {
+        return Err(anyhow!(
+            "local filter-low-complexity smoke plan param `{param_name}` must be a string path"
+        ));
+    };
+    Ok(PathBuf::from(path))
 }
