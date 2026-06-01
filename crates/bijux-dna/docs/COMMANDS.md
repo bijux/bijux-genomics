@@ -116,6 +116,10 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench corpus-fastq-publication-status`
 - `bijux-dna bench corpus-fastq-published-dossiers`
 - `bijux-dna bench local list-stages`
+- `bijux-dna bench local check-output-completion`
+  `check-output-completion` writes `target/local-ready/output-completion-report.json` and marks a
+  stage complete only when every declared fake-run output exists under the selected
+  `target/local-fake-runs/stages/` tree.
 - `bijux-dna bench local materialize-stage`
 - `bijux-dna bench local fake-run-failures`
   `fake-run-failures` writes non-zero stage failure records under
