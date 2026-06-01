@@ -19,9 +19,10 @@ use bijux_dna_domain_fastq::stages::ids::STAGE_FILTER_LOW_COMPLEXITY;
 use bijux_dna_domain_fastq::stages::ids::STAGE_FILTER_READS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_MERGE_PAIRS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_PRIMERS;
-use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES;
+use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS;
+use bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_CHIMERAS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_DUPLICATES;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_READS;
@@ -33,8 +34,9 @@ use crate::selection::{
     allowed_tools_for_stage, load_fastq_domain_tool_execution_spec, select_correct_tools,
     select_detect_adapters_tools, select_filter_low_complexity_tools, select_filter_tools,
     select_merge_tools, select_normalize_primers_tools, select_profile_overrepresented_tools,
-    select_profile_read_lengths_tools, select_remove_duplicates_tools, select_stats_tools,
-    select_trim_tools, select_umi_tools, select_validate_tools,
+    select_profile_read_lengths_tools, select_remove_chimeras_tools,
+    select_remove_duplicates_tools, select_stats_tools, select_trim_tools, select_umi_tools,
+    select_validate_tools,
 };
 use crate::tool_adapters::fastq::correct_errors::plan_correct_with_options;
 use crate::tool_adapters::fastq::detect_adapters::plan_with_options as plan_detect_adapters;
@@ -49,9 +51,10 @@ use crate::tool_adapters::fastq::merge_pairs::{plan_merge_with_options, MergePla
 use crate::tool_adapters::fastq::normalize_primers::{
     plan_with_options as plan_normalize_primers, NormalizePrimersPlanOptions,
 };
-use crate::tool_adapters::fastq::profile_read_lengths::plan_with_options as plan_profile_read_lengths;
 use crate::tool_adapters::fastq::profile_overrepresented_sequences::plan_with_options as plan_profile_overrepresented_sequences_with_options;
+use crate::tool_adapters::fastq::profile_read_lengths::plan_with_options as plan_profile_read_lengths;
 use crate::tool_adapters::fastq::profile_reads::plan_stats_with_threads;
+use crate::tool_adapters::fastq::remove_chimeras::plan as plan_remove_chimeras;
 use crate::tool_adapters::fastq::remove_duplicates::{
     dedup_mode_from_literal, plan_deduplicate_with_options, RemoveDuplicatesPlanOptions,
 };
@@ -108,6 +111,8 @@ const LOCAL_REMOVE_DUPLICATES_CONFIG_PATH: &str =
     "configs/bench/local/fastq-remove-duplicates.toml";
 const DEFAULT_LOCAL_REMOVE_DUPLICATES_OUTPUT_DIR: &str =
     "target/local-smoke/fastq.remove_duplicates";
+const LOCAL_REMOVE_CHIMERAS_CONFIG_PATH: &str = "configs/bench/local/fastq-remove-chimeras.toml";
+const DEFAULT_LOCAL_REMOVE_CHIMERAS_OUTPUT_DIR: &str = "target/local-smoke/fastq.remove_chimeras";
 const LOCAL_TRIM_READS_CONFIG_PATH: &str = "configs/bench/local/fastq-trim-reads.toml";
 const DEFAULT_LOCAL_TRIM_READS_OUTPUT_DIR: &str = "target/local-smoke/fastq.trim_reads";
 const LOCAL_TRIM_POLYG_TAILS_CONFIG_PATH: &str = "configs/bench/local/fastq-trim-polyg-tails.toml";
@@ -227,6 +232,13 @@ pub struct LocalRemoveDuplicatesSmokeCasePlan {
     pub r1: PathBuf,
     pub dedup_mode: bijux_dna_domain_fastq::params::remove_duplicates::DedupMode,
     pub keep_order: bool,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalRemoveChimerasSmokeCasePlan {
+    pub sample_id: String,
+    pub reads: PathBuf,
     pub plan: bijux_dna_stage_contract::StagePlanV1,
 }
 
@@ -434,6 +446,17 @@ struct LocalRemoveDuplicatesSmokeConfig {
 }
 
 #[derive(Debug, Deserialize)]
+struct LocalRemoveChimerasSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalRemoveChimerasSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
 struct LocalNormalizePrimersSmokeConfig {
     schema_version: String,
     tool_id: String,
@@ -603,6 +626,12 @@ struct LocalMergePairsSmokeCase {
 struct LocalRemoveDuplicatesSmokeCase {
     sample_id: String,
     r1: PathBuf,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalRemoveChimerasSmokeCase {
+    sample_id: String,
+    reads: PathBuf,
 }
 
 #[derive(Debug, Deserialize)]
@@ -1096,6 +1125,41 @@ pub fn local_remove_duplicates_smoke_plans(
                 &output_root,
                 case,
             )
+        })
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_remove_chimeras_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalRemoveChimerasSmokeCasePlan>> {
+    let config = load_local_remove_chimeras_smoke_config(repo_root)?;
+    ensure_unique_remove_chimeras_sample_ids(&config.cases)?;
+
+    let stage_id = StageId::new(STAGE_REMOVE_CHIMERAS.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    let normalized_tools = select_remove_chimeras_tools(std::slice::from_ref(&config.tool_id))?;
+    if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
+        return Err(anyhow!(
+            "local-smoke fastq.remove_chimeras tool selection normalized unexpectedly: {:?}",
+            normalized_tools
+        ));
+    }
+
+    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_REMOVE_CHIMERAS_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| {
+            build_local_remove_chimeras_smoke_case(repo_root, &tool_spec, &output_root, case)
         })
         .collect()
 }
@@ -1779,6 +1843,26 @@ fn build_local_remove_duplicates_smoke_case(
     })
 }
 
+fn build_local_remove_chimeras_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalRemoveChimerasSmokeCase,
+) -> Result<LocalRemoveChimerasSmokeCasePlan> {
+    let reads_abs = repo_root.join(&case.reads);
+    if !reads_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke fastq.remove_chimeras reads fixture is missing: {}",
+            reads_abs.display()
+        ));
+    }
+
+    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let plan = plan_remove_chimeras(tool_spec, &case.reads, None, &out_dir)?;
+
+    Ok(LocalRemoveChimerasSmokeCasePlan { sample_id: case.sample_id, reads: case.reads, plan })
+}
+
 fn build_local_trim_reads_smoke_case(
     repo_root: &Path,
     tool_spec: &ToolExecutionSpecV1,
@@ -2383,6 +2467,22 @@ fn ensure_unique_remove_duplicates_sample_ids(
     Ok(())
 }
 
+fn ensure_unique_remove_chimeras_sample_ids(cases: &[LocalRemoveChimerasSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke fastq.remove_chimeras sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke fastq.remove_chimeras sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn ensure_unique_normalize_primers_sample_ids(
     cases: &[LocalNormalizePrimersSmokeCase],
 ) -> Result<()> {
@@ -2581,6 +2681,27 @@ fn load_local_remove_duplicates_smoke_config(
     if config.cases.is_empty() {
         return Err(anyhow!(
             "local-smoke fastq.remove_duplicates must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_remove_chimeras_smoke_config(
+    repo_root: &Path,
+) -> Result<LocalRemoveChimerasSmokeConfig> {
+    let path = repo_root.join(LOCAL_REMOVE_CHIMERAS_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalRemoveChimerasSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.fastq.local_remove_chimeras.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke fastq.remove_chimeras schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke fastq.remove_chimeras must declare at least one governed case"
         ));
     }
     Ok(config)
@@ -2818,9 +2939,7 @@ fn load_local_profile_overrepresented_sequences_smoke_config(
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     let config: LocalProfileOverrepresentedSequencesSmokeConfig =
         toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
-    if config.schema_version
-        != "bijux.bench.fastq.local_profile_overrepresented_sequences.v1"
-    {
+    if config.schema_version != "bijux.bench.fastq.local_profile_overrepresented_sequences.v1" {
         return Err(anyhow!(
             "unsupported local-smoke fastq.profile_overrepresented_sequences schema_version `{}`",
             config.schema_version

@@ -240,6 +240,17 @@ pub fn local_remove_duplicates_smoke_plans(
     crate::planner::local_remove_duplicates_smoke_plans(repo_root)
 }
 
+/// Build the governed local-smoke case plans for `fastq.remove_chimeras`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_remove_chimeras_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalRemoveChimerasSmokeCasePlan>> {
+    crate::planner::local_remove_chimeras_smoke_plans(repo_root)
+}
+
 /// Build the governed local-smoke case plans for `fastq.normalize_primers`.
 ///
 /// # Errors
