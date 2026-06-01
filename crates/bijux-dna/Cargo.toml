@@ -29,6 +29,7 @@ toml = { workspace = true }
 sha2 = { workspace = true }
 tar.workspace = true
 flate2.workspace = true
+schemars.workspace = true
 
 [features]
 bam_downstream = ["bijux-dna-api/bam_downstream"]
