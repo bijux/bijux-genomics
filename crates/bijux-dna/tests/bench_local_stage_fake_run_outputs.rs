@@ -59,6 +59,33 @@ fn bench_local_fake_run_stages_writes_stage_manifests_and_declared_outputs() {
             .get("stage_manifest_path")
             .and_then(serde_json::Value::as_str)
             .expect("stage manifest path");
-        assert!(repo_root.join(stage_manifest_path).is_file(), "stage manifest must exist");
+        let stage_manifest_bytes =
+            std::fs::read(repo_root.join(stage_manifest_path)).expect("read stage manifest");
+        let stage_manifest: serde_json::Value =
+            serde_json::from_slice(&stage_manifest_bytes).expect("parse stage manifest");
+        assert_eq!(
+            stage_manifest
+                .get("resource_metrics")
+                .and_then(|metrics| metrics.get("source"))
+                .and_then(serde_json::Value::as_str),
+            Some("estimated"),
+            "fake-run stage manifests must carry explicit resource metric provenance"
+        );
+        assert!(
+            stage_manifest
+                .get("resource_metrics")
+                .and_then(|metrics| metrics.get("memory_mb"))
+                .and_then(serde_json::Value::as_f64)
+                .is_some_and(|memory_mb| memory_mb >= 1.0),
+            "fake-run stage manifests must expose estimated memory ceilings"
+        );
+        assert!(
+            stage_manifest
+                .get("resource_metrics")
+                .and_then(|metrics| metrics.get("cpu_threads"))
+                .and_then(serde_json::Value::as_u64)
+                .is_some_and(|threads| threads >= 1),
+            "fake-run stage manifests must expose estimated cpu thread ceilings"
+        );
     }
 }
