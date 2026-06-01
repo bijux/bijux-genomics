@@ -23,8 +23,29 @@ fn run_cli(args: &[&str]) -> std::process::Output {
         .expect("run cli")
 }
 
+#[cfg(feature = "bam_downstream")]
+fn run_bam_downstream_cli(args: &[&str]) -> std::process::Output {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    Command::new("cargo")
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(["run", "-q", "-p", "bijux-dna", "--features", "bam_downstream", "--"])
+        .args(args)
+        .output()
+        .expect("run cargo cli with bam_downstream")
+}
+
+#[cfg(feature = "bam_downstream")]
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
-    let output = run_cli(args);
+    let output = run_bam_downstream_cli(args);
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -93,8 +114,14 @@ fn bench_local_validate_slurm_shell_syntax_refuses_invalid_sbatch_syntax() {
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_validate_slurm_shell_syntax_accepts_governed_fastq_and_bam_scripts() {
-    let fastq_render =
-        run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "fastq", "--json"]);
+    let fastq_render = run_bam_downstream_cli(&[
+        "bench",
+        "local",
+        "render-slurm-scripts",
+        "--domain",
+        "fastq",
+        "--json",
+    ]);
     assert!(
         fastq_render.status.success(),
         "FASTQ render failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -103,8 +130,14 @@ fn bench_local_validate_slurm_shell_syntax_accepts_governed_fastq_and_bam_script
         String::from_utf8_lossy(&fastq_render.stderr)
     );
 
-    let bam_render =
-        run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "bam", "--json"]);
+    let bam_render = run_bam_downstream_cli(&[
+        "bench",
+        "local",
+        "render-slurm-scripts",
+        "--domain",
+        "bam",
+        "--json",
+    ]);
     assert!(
         bam_render.status.success(),
         "BAM render failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -141,12 +174,24 @@ fn bench_local_validate_slurm_shell_syntax_accepts_governed_fastq_and_bam_script
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_validate_slurm_shell_syntax_writes_governed_report_path() {
-    let fastq_render =
-        run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "fastq", "--json"]);
+    let fastq_render = run_bam_downstream_cli(&[
+        "bench",
+        "local",
+        "render-slurm-scripts",
+        "--domain",
+        "fastq",
+        "--json",
+    ]);
     assert!(fastq_render.status.success(), "FASTQ render must succeed before syntax validation");
 
-    let bam_render =
-        run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "bam", "--json"]);
+    let bam_render = run_bam_downstream_cli(&[
+        "bench",
+        "local",
+        "render-slurm-scripts",
+        "--domain",
+        "bam",
+        "--json",
+    ]);
     assert!(bam_render.status.success(), "BAM render must succeed before syntax validation");
 
     let payload = run_cli_json(&["bench", "local", "validate-slurm-shell-syntax", "--json"]);
