@@ -947,7 +947,7 @@ ALL_READS\tALL\t10\t4\t4\t25.0\t25.0\t3\t4\n\
             b"10 + 0 in total (QC-passed reads + QC-failed reads)\n6 + 0 mapped (60.00% : N/A)\n",
         )?;
         let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::EndogenousContent);
-        plan.params = serde_json::json!({ "competitive_mapping": true });
+        plan.params = serde_json::json!({ "host_reference_scope": "human_host" });
         stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::EndogenousContent,
             &endogenous_dir,
@@ -957,9 +957,30 @@ ALL_READS\tALL\t10\t4\t4\t25.0\t25.0\t3\t4\n\
             endogenous_dir.join("endogenous.content.json"),
         )?)?;
         assert_eq!(
-            endogenous.get("competitive_mapping_enabled").and_then(serde_json::Value::as_bool),
-            Some(true)
+            endogenous.get("method").and_then(serde_json::Value::as_str),
+            Some("mapped_fraction_from_flagstat")
         );
+        assert_eq!(
+            endogenous.get("mapped_reads").and_then(serde_json::Value::as_u64),
+            Some(6)
+        );
+        assert_eq!(
+            endogenous.get("total_reads").and_then(serde_json::Value::as_u64),
+            Some(10)
+        );
+        assert_eq!(
+            endogenous
+                .get("endogenous_fraction")
+                .and_then(serde_json::Value::as_f64),
+            Some(0.6)
+        );
+        assert_eq!(
+            endogenous
+                .get("host_reference_scope")
+                .and_then(serde_json::Value::as_str),
+            Some("human_host")
+        );
+        assert!(endogenous_dir.join("endogenous.summary.json").exists());
         Ok(())
     }
 
