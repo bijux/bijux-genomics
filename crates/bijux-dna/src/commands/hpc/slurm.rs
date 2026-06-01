@@ -1823,15 +1823,15 @@ tool = "seqkit_v2"
 sample = "sample-1"
 
 [[jobs]]
-name = "bam_sort_sample1"
-stage = "bam.sort"
-tool = "samtools"
+name = "bam_align_sample1"
+stage = "bam.align"
+tool = "bwa"
 sample = "sample-1"
 depends_on = ["fastq_validate_sample1"]
 
 [[jobs]]
-name = "vcf_validate_sample2"
-stage = "vcf.validate"
+name = "vcf_stats_sample2"
+stage = "vcf.stats"
 tool = "bcftools"
 sample = "sample-2"
 "#,
@@ -1971,7 +1971,7 @@ array_task = 7
         })
         .expect("submit domain");
         assert_eq!(report.jobs.len(), 1);
-        assert_eq!(report.jobs[0].stage, "bam.sort");
+        assert_eq!(report.jobs[0].stage, "bam.align");
     }
 
     #[test]
