@@ -7,6 +7,7 @@ use serde::Deserialize;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
+pub(crate) mod bam;
 pub(crate) mod fastq;
 
 #[derive(Debug, Deserialize)]
@@ -28,6 +29,14 @@ pub(crate) fn run_validate_corpus_fixture(
         fastq::FASTQ_CORPUS_FIXTURE_SCHEMA_VERSION => {
             let report =
                 fastq::validate_fastq_corpus_fixture_manifest_path(&repo_root, &manifest_path)?;
+            if args.json {
+                render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.manifest_path);
+            }
+        }
+        bam::BAM_CORPUS_FIXTURE_SCHEMA_VERSION => {
+            let report = bam::validate_bam_corpus_fixture_manifest_path(&repo_root, &manifest_path)?;
             if args.json {
                 render::json::print_pretty(&report)?;
             } else {
