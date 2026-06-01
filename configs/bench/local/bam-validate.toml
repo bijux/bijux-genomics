@@ -1,0 +1,24 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.validate.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_validate.v1"
+tool_id = "samtools"
+threads = 4
+output_dir = "target/local-smoke/bam.validate"
+
+[[cases]]
+sample_id = "core-v1-coordinate-pass"
+bam = "assets/toy/core-v1/bam/validation_pass.sam"
+bam_index = "assets/toy/core-v1/bam/validation_pass.sam.bai"
+reference_fasta = "assets/toy/core-v1/bam/validation_reference.fasta"
+expect_pass = true
+
+[[cases]]
+sample_id = "core-v1-malformed-refusal"
+bam = "assets/toy/core-v1/bam/validation_malformed.sam"
+expect_pass = false
+required_refusal_codes = ["malformed_alignment_record"]
