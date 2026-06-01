@@ -119,7 +119,8 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local validate-corpus-fixture`
   `validate-corpus-fixture` checks governed corpus fixture manifests such as
   `tests/fixtures/corpora/corpus-01-mini/manifest.toml` and
-  `tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml` for declared sample identity,
+  `tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml` and
+  `tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml` for declared sample identity,
   file-path integrity, source-path provenance, and modality-specific contract checks.
 - `bijux-dna bench local render-benchmark-summary`
   `render-benchmark-summary` writes both `target/local-ready/benchmark-summary.json` and
