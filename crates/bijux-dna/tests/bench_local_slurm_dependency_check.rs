@@ -170,3 +170,86 @@ fn bench_local_validate_slurm_dependencies_refuses_duplicated_dependency_locatio
         "job findings must name the duplicated dependency"
     );
 }
+
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_validate_slurm_dependencies_reports_governed_submit_manifest_source() {
+    let _manifest = run_cargo_cli_json(
+        &["bench", "local", "render-slurm-submit-manifest", "--json"],
+        Some("bam_downstream"),
+    );
+    let payload = run_cargo_cli_json(
+        &["bench", "local", "validate-slurm-dependencies", "--json"],
+        Some("bam_downstream"),
+    );
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.local_slurm_dependency_check.v1")
+    );
+    assert_eq!(
+        payload.get("root_path").and_then(serde_json::Value::as_str),
+        Some("target/slurm-dry-run")
+    );
+    assert_eq!(
+        payload.get("manifest_path").and_then(serde_json::Value::as_str),
+        Some("target/slurm-dry-run/submit-manifest.json")
+    );
+    assert_eq!(
+        payload.get("report_path").and_then(serde_json::Value::as_str),
+        Some("target/slurm-dry-run/dependency-check.json")
+    );
+    assert_eq!(payload.get("job_count").and_then(serde_json::Value::as_u64), Some(51));
+    assert_eq!(
+        payload.get("manifest_dependency_count").and_then(serde_json::Value::as_u64),
+        Some(0)
+    );
+    assert_eq!(
+        payload.get("script_header_dependency_count").and_then(serde_json::Value::as_u64),
+        Some(0)
+    );
+    assert_eq!(payload.get("findings_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+
+    let jobs = payload.get("jobs").and_then(serde_json::Value::as_array).expect("jobs array");
+    assert_eq!(jobs.len(), 51);
+    assert!(jobs.iter().all(|job| {
+        job.get("dependency_source").and_then(serde_json::Value::as_str) == Some("none")
+            && job
+                .get("manifest_dependencies")
+                .and_then(serde_json::Value::as_array)
+                .is_some_and(|dependencies| dependencies.is_empty())
+            && job
+                .get("script_header_dependencies")
+                .and_then(serde_json::Value::as_array)
+                .is_some_and(|dependencies| dependencies.is_empty())
+            && job.get("script_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
+                path.starts_with("target/slurm-dry-run/") && path.ends_with(".sbatch")
+            })
+    }));
+}
+
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_validate_slurm_dependencies_writes_governed_report_path() {
+    let _manifest = run_cargo_cli_json(
+        &["bench", "local", "render-slurm-submit-manifest", "--json"],
+        Some("bam_downstream"),
+    );
+    let _payload = run_cargo_cli_json(
+        &["bench", "local", "validate-slurm-dependencies", "--json"],
+        Some("bam_downstream"),
+    );
+
+    let repo_root = support::repo_root().expect("repo root");
+    let report_path = repo_root.join("target/slurm-dry-run/dependency-check.json");
+    assert!(report_path.is_file(), "dependency report must exist");
+
+    let report =
+        serde_json::from_slice::<serde_json::Value>(&fs::read(&report_path).expect("read report"))
+            .expect("parse report");
+    assert_eq!(
+        report.get("report_path").and_then(serde_json::Value::as_str),
+        Some("target/slurm-dry-run/dependency-check.json")
+    );
+}
