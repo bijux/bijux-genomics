@@ -22,4 +22,6 @@ pub use domain::{
     write_local_qc_pre_smoke_report, write_local_sex_smoke_report,
     write_local_validate_smoke_report,
 };
+#[cfg(feature = "bam_downstream")]
+pub use domain::write_local_bias_mitigation_smoke_report;
 pub use feature_flags::downstream_enabled;

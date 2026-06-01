@@ -388,15 +388,9 @@ fn stage_postprocess(
         }
         bijux_dna_planner_bam::stage_api::BamStage::BiasMitigation => {
             write_udg_metadata(stage_dir, plan)?;
-            let path = stage_dir.join("bias_mitigation.policy.json");
-            bijux_dna_infra::atomic_write_json(
-                &path,
-                &serde_json::json!({
-                    "gc_bias_correction": plan.params.get("gc_bias_correction").cloned(),
-                    "map_bias_correction": plan.params.get("map_bias_correction").cloned(),
-                }),
-            )
-            .with_context(|| format!("write {}", path.display()))?;
+            crate::internal::bam::stages::bias_mitigation::write_stage_bias_mitigation_artifacts(
+                stage_dir, plan,
+            )?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::EndogenousContent => {
             crate::internal::bam::stages::endogenous_content::write_stage_endogenous_content_artifacts(stage_dir, plan)?;

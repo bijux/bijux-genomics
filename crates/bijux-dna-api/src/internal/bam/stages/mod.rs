@@ -1,3 +1,4 @@
+pub(crate) mod bias_mitigation;
 pub(crate) mod authenticity;
 pub(crate) mod complexity;
 pub(crate) mod coverage;

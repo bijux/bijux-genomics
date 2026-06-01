@@ -149,6 +149,20 @@ pub fn write_local_gc_bias_smoke_summary() -> Result<PathBuf> {
     crate::internal::bam::stages::gc_bias::write_local_gc_bias_smoke_summary()
 }
 
+/// Materialize the governed local-smoke `bam.bias_mitigation` report bundle.
+///
+/// The written report artifact lives at
+/// `target/local-smoke/bam.bias_mitigation/bias_mitigation.json`
+/// under the active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+#[cfg(feature = "bam_downstream")]
+pub fn write_local_bias_mitigation_smoke_report() -> Result<PathBuf> {
+    crate::internal::bam::stages::bias_mitigation::write_local_bias_mitigation_smoke_report()
+}
+
 /// Materialize the governed local-smoke `bam.endogenous_content` report bundle.
 ///
 /// The written report artifact lives at
