@@ -496,4 +496,37 @@ mod tests {
             "screen_taxonomy must carry governed taxonomy assets and explicit classified plus unclassified outputs"
         );
     }
+
+    #[test]
+    fn fastq_amplicon_pipeline_dag_tracks_amplicon_handoffs() {
+        let repo_root = repo_root();
+        let config_path = repo_root.join("configs/pipelines/local/fastq-amplicon.toml");
+        let output_path = repo_root.join("target/local-ready/pipeline-dag/fastq-amplicon.json");
+        let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect("validate amplicon local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "fastq-amplicon");
+        assert_eq!(report.domain, "fastq");
+        assert_eq!(report.default_corpus_id, "corpus-03-amplicon-mini");
+        assert_eq!(report.node_count, 7);
+        assert_eq!(report.edge_count, 12);
+        assert!(report.acyclic);
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "fastq.cluster_otus"
+                    && node.upstream_inputs
+                        == vec!["normalized_amplicon_reads", "non_chimeric_representatives"]
+                    && node.outputs == vec!["otu_table", "otu_representatives"]
+            }),
+            "cluster_otus must consume normalized reads plus non-chimeric representatives"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "fastq.normalize_abundance"
+                    && node.upstream_inputs == vec!["otu_table"]
+                    && node.outputs == vec!["normalized_abundance_table"]
+            }),
+            "normalize_abundance must consume the clustered OTU table"
+        );
+    }
 }
