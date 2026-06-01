@@ -311,6 +311,7 @@ fn haplogroups_params_complete() -> Result<()> {
     let plan = bijux_dna_planner_bam::tool_adapters::bam::haplogroups::plan(
         &dummy_tool("haplogrep"),
         Path::new("reads.bam"),
+        None,
         Path::new("out"),
         &params,
     )?;

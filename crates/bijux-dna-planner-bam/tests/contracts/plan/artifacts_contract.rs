@@ -266,6 +266,7 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
         let haplogroups = bijux_dna_planner_bam::tool_adapters::bam::haplogroups::plan(
             &dummy_tool("yleaf"),
             bam,
+            None,
             out,
             &haplo_params,
         )?;

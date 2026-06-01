@@ -24,6 +24,8 @@ mod local_endogenous_content_smoke;
 mod local_filter_smoke;
 #[path = "plan/local_gc_bias_smoke.rs"]
 mod local_gc_bias_smoke;
+#[path = "plan/local_haplogroups.rs"]
+mod local_haplogroups;
 #[path = "plan/local_insert_size_smoke.rs"]
 mod local_insert_size_smoke;
 #[path = "plan/local_length_filter_smoke.rs"]
