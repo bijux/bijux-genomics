@@ -8,6 +8,7 @@ configs/bench/index.md
 configs/bench/knobs.toml
 configs/bench/local/bam-align.toml
 configs/bench/local/bam-filter.toml
+configs/bench/local/bam-length-filter.toml
 configs/bench/local/bam-mapping-summary.toml
 configs/bench/local/bam-mapq-filter.toml
 configs/bench/local/bam-qc-pre.toml

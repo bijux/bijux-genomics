@@ -1,0 +1,21 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.length_filter.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_length_filter.v1"
+tool_id = "samtools"
+threads = 4
+output_dir = "target/local-smoke/bam.length_filter"
+
+[[cases]]
+sample_id = "core-v1-length-threshold"
+bam = "assets/toy/core-v1/bam/length_threshold_ladder.sam"
+min_length = 8
+expected_input_reads = 4
+expected_kept_reads = 3
+expected_removed_reads = 1
+expected_observed_min_length = 8
+expected_observed_max_length = 12
