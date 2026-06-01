@@ -1,0 +1,23 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-ready plan input for bam.contamination.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_contamination.v1"
+bam = "assets/toy/core-v1/bam/contamination_panel_screen.sam"
+bai = "assets/toy/core-v1/bam/contamination_panel_screen.sam.bai"
+reference_fasta = "assets/reference/host/references/toy_host_reference.fasta"
+reference_panels = ["assets/reference/host/references/toy_human_contamination_panel.dat"]
+tool_id = "verifybamid2"
+sample_id = "core-v1-contamination-panel-screen"
+scope = "nuclear"
+prior = 0.02
+sex_specific = false
+assumptions = "toy host reference with governed population-af panel for local contamination planning"
+chromosome_system = "xy"
+minimum_mean_coverage = 0.5
+emit_confidence_caveats = true
+threads = 2
+output_dir = "target/local-ready/bam.contamination"
