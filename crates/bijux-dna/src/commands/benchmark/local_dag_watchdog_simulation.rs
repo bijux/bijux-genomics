@@ -590,8 +590,8 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 #[allow(clippy::expect_used)]
 mod tests {
     use super::{
-        simulate_dag_watchdog_path, LocalDagWatchdogScenario,
-        DEFAULT_FAILURE_ISOLATION_REPORT_PATH, DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH,
+        simulate_dag_watchdog_path, LocalDagWatchdogScenario, DEFAULT_FAILURE_ISOLATION_REPORT_PATH,
+        DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH, DEFAULT_PARTIAL_RESUME_REPORT_PATH,
     };
 
     fn repo_root() -> std::path::PathBuf {
@@ -705,6 +705,75 @@ mod tests {
                     && node.finish_second == 6
             }),
             "the unaffected sample must continue completing downstream work after the failure"
+        );
+    }
+
+    #[test]
+    fn partial_resume_simulation_reuses_valid_nodes_and_replans_only_missing_or_invalid_work() {
+        let repo_root = repo_root();
+        let output_path = repo_root.join(DEFAULT_PARTIAL_RESUME_REPORT_PATH);
+        let report = simulate_dag_watchdog_path(
+            &repo_root,
+            LocalDagWatchdogScenario::PartialResume,
+            &output_path,
+        )
+        .expect("simulate partial-resume watchdog report");
+
+        assert_eq!(report.scenario, "partial_resume");
+        assert_eq!(report.pipeline_id, "fastq-core-preprocess");
+        assert_eq!(report.sample_count, 1);
+        assert_eq!(report.node_count, 7);
+        assert!(report.partial_resume_proven);
+        assert_eq!(
+            report.reused_valid_node_ids,
+            vec![
+                "fastq.validate_reads".to_string(),
+                "fastq.profile_read_lengths".to_string(),
+                "fastq.detect_adapters".to_string(),
+            ]
+        );
+        assert_eq!(report.invalid_node_ids, vec!["fastq.trim_reads".to_string()]);
+        assert_eq!(
+            report.missing_node_ids,
+            vec![
+                "fastq.filter_reads".to_string(),
+                "fastq.profile_reads".to_string(),
+                "fastq.report_qc".to_string(),
+            ]
+        );
+        assert_eq!(
+            report.planned_node_ids,
+            vec![
+                "fastq.trim_reads".to_string(),
+                "fastq.filter_reads".to_string(),
+                "fastq.profile_reads".to_string(),
+                "fastq.report_qc".to_string(),
+            ]
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.node_id == "fastq.detect_adapters"
+                    && node.status == "reused"
+                    && node.duration_seconds == 0
+            }),
+            "a valid completed upstream node must be reused without replanning"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.node_id == "fastq.trim_reads"
+                    && node.status == "planned"
+                    && node.start_second == 0
+                    && node.finish_second == 1
+            }),
+            "the invalid node must be replanned"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.node_id == "fastq.report_qc"
+                    && node.status == "planned"
+                    && node.finish_second == 4
+            }),
+            "missing downstream work must be planned after the invalidated node path"
         );
     }
 }
