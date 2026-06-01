@@ -48,6 +48,8 @@ mod local_profile_overrepresented_sequences_smoke;
 mod local_profile_read_lengths_smoke;
 #[path = "plan/local_profile_reads_smoke.rs"]
 mod local_profile_reads_smoke;
+#[path = "plan/local_report_qc_smoke.rs"]
+mod local_report_qc_smoke;
 #[path = "plan/local_remove_chimeras_smoke.rs"]
 mod local_remove_chimeras_smoke;
 #[path = "plan/local_remove_duplicates_smoke.rs"]
