@@ -272,3 +272,80 @@ fn bench_local_pipeline_dag_validates_fastq_amplicon_contract() {
         "normalize_abundance must expose the OTU-to-abundance handoff"
     );
 }
+
+#[test]
+fn bench_local_pipeline_dag_validates_fastq_umi_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/fastq-umi.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/fastq-umi.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/fastq-umi.json")
+    );
+    assert_eq!(payload.get("pipeline_id").and_then(serde_json::Value::as_str), Some("fastq-umi"));
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-01-mini")
+    );
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("edge_count").and_then(serde_json::Value::as_u64), Some(13));
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.extract_umis")
+                && node.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |outputs| {
+                        outputs.iter().any(|value| value.as_str() == Some("umi_tagged_reads_r1"))
+                            && outputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("umi_tagged_reads_r2"))
+                            && outputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("umi_extraction_report"))
+                    },
+                )
+        }),
+        "extract_umis must expose UMI-tagged read outputs in the CLI validation report"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.remove_duplicates")
+                && node
+                    .get("upstream_inputs")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|inputs| {
+                        inputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("filtered_umi_reads_r1"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("filtered_umi_reads_r2"))
+                    })
+                && node
+                    .get("outputs")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|outputs| {
+                        outputs.iter().any(|value| {
+                            value.as_str() == Some("deduplicated_umi_reads_r1")
+                        }) && outputs.iter().any(|value| {
+                            value.as_str() == Some("deduplicated_umi_reads_r2")
+                        }) && outputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("deduplication_report"))
+                    })
+        }),
+        "remove_duplicates must show the duplicate-aware UMI read handoff in the CLI validation report"
+    );
+}
