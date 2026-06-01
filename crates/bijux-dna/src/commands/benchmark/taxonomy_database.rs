@@ -17,31 +17,31 @@ const REQUIRED_BACKEND_DIRS: &[&str] =
     &["kraken2", "krakenuniq", "centrifuge", "kaiju", "taxonomy"];
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
-struct BackendRootDigest {
-    backend: String,
-    path: String,
-    digest: String,
-    size_bytes: u64,
+pub(crate) struct BackendRootDigest {
+    pub(crate) backend: String,
+    pub(crate) path: String,
+    pub(crate) digest: String,
+    pub(crate) size_bytes: u64,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
-struct ScreenTaxonomyDatabaseLineagePayload {
-    schema_version: String,
-    generated_at_utc: String,
-    database_catalog_id: String,
-    database_artifact_id: String,
-    database_namespace: String,
-    database_scope: String,
-    database_root: String,
-    database_digest: String,
-    database_size_bytes: u64,
-    source_manifest: String,
-    source_manifest_digest: String,
-    source_record_count: usize,
-    source_records: Vec<serde_json::Value>,
-    backend_roots: Vec<BackendRootDigest>,
-    bootstrap_report: Option<String>,
-    bootstrap_report_digest: Option<String>,
+pub(crate) struct ScreenTaxonomyDatabaseLineagePayload {
+    pub(crate) schema_version: String,
+    pub(crate) generated_at_utc: String,
+    pub(crate) database_catalog_id: String,
+    pub(crate) database_artifact_id: String,
+    pub(crate) database_namespace: String,
+    pub(crate) database_scope: String,
+    pub(crate) database_root: String,
+    pub(crate) database_digest: String,
+    pub(crate) database_size_bytes: u64,
+    pub(crate) source_manifest: String,
+    pub(crate) source_manifest_digest: String,
+    pub(crate) source_record_count: usize,
+    pub(crate) source_records: Vec<serde_json::Value>,
+    pub(crate) backend_roots: Vec<BackendRootDigest>,
+    pub(crate) bootstrap_report: Option<String>,
+    pub(crate) bootstrap_report_digest: Option<String>,
 }
 
 pub(crate) fn run_write_screen_taxonomy_database_lineage(
@@ -215,7 +215,7 @@ fn resolve_lineage_json(cwd: &Path, database_root: &Path, path: Option<&Path>) -
     path.map_or_else(|| database_root.join("lineage.json"), |item| absolutize(cwd, item))
 }
 
-fn build_lineage_payload(
+pub(crate) fn build_lineage_payload(
     database_root: &Path,
     source_manifest: &Path,
     bootstrap_report: Option<&Path>,

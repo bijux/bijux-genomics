@@ -12,6 +12,8 @@ pub enum BenchLocalCommand {
     ListStages(BenchLocalListStagesArgs),
     #[command(name = "validate-corpus-fixture")]
     ValidateCorpusFixture(BenchLocalValidateCorpusFixtureArgs),
+    #[command(name = "validate-taxonomy-database-fixture")]
+    ValidateTaxonomyDatabaseFixture(BenchLocalValidateTaxonomyDatabaseFixtureArgs),
     #[command(name = "render-benchmark-summary")]
     RenderBenchmarkSummary(BenchLocalRenderBenchmarkSummaryArgs),
     #[command(name = "check-manifest-completion")]
@@ -44,6 +46,14 @@ pub struct BenchLocalListStagesArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalValidateCorpusFixtureArgs {
+    #[arg(long)]
+    pub manifest: std::path::PathBuf,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateTaxonomyDatabaseFixtureArgs {
     #[arg(long)]
     pub manifest: std::path::PathBuf,
     #[arg(long, default_value_t = false)]

@@ -167,6 +167,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateTaxonomyDatabaseFixture(args) => {
+                        crate::commands::benchmark::local_taxonomy_database_fixture::run_validate_taxonomy_database_fixture(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RenderBenchmarkSummary(args) => {
                         crate::commands::benchmark::local_benchmark_summary::run_render_benchmark_summary(
                             &args,
