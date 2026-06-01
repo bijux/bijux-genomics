@@ -57,7 +57,23 @@ fn bench_local_validate_edna_corpus_fixture_json_reports_governed_corpus_02_cont
         payload.get("community_id").and_then(serde_json::Value::as_str),
         Some("mock_community_taxonomy")
     );
+    assert_eq!(
+        payload.get("expected_taxa_path").and_then(serde_json::Value::as_str),
+        Some("tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv")
+    );
     assert_eq!(payload.get("expected_taxa_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(
+        payload.get("expected_taxa_output_row_count").and_then(serde_json::Value::as_u64),
+        Some(6)
+    );
+    assert_eq!(
+        payload.get("expected_present_row_count").and_then(serde_json::Value::as_u64),
+        Some(3)
+    );
+    assert_eq!(
+        payload.get("expected_absent_row_count").and_then(serde_json::Value::as_u64),
+        Some(3)
+    );
     assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(2));
     assert!(payload.get("valid").and_then(serde_json::Value::as_bool) == Some(true));
     assert!(payload.get("expected_taxa").and_then(serde_json::Value::as_array).is_some_and(
