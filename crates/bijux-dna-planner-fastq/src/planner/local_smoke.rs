@@ -16,6 +16,7 @@ use bijux_dna_domain_fastq::stages::ids::STAGE_MERGE_PAIRS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_PRIMERS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS;
+use bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_DUPLICATES;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_READS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_TERMINAL_DAMAGE;
@@ -25,8 +26,8 @@ use serde::Deserialize;
 use crate::selection::{
     allowed_tools_for_stage, load_fastq_domain_tool_execution_spec, select_detect_adapters_tools,
     select_filter_tools, select_merge_tools, select_normalize_primers_tools,
-    select_profile_read_lengths_tools, select_stats_tools, select_trim_tools,
-    select_validate_tools,
+    select_profile_read_lengths_tools, select_remove_duplicates_tools, select_stats_tools,
+    select_trim_tools, select_validate_tools,
 };
 use crate::tool_adapters::fastq::detect_adapters::plan_with_options as plan_detect_adapters;
 use crate::tool_adapters::fastq::detect_duplicates_premerge::plan as plan_detect_duplicates_premerge;
@@ -38,6 +39,9 @@ use crate::tool_adapters::fastq::normalize_primers::{
 };
 use crate::tool_adapters::fastq::profile_read_lengths::plan_with_options as plan_profile_read_lengths;
 use crate::tool_adapters::fastq::profile_reads::plan_stats_with_threads;
+use crate::tool_adapters::fastq::remove_duplicates::{
+    dedup_mode_from_literal, plan_deduplicate_with_options, RemoveDuplicatesPlanOptions,
+};
 use crate::tool_adapters::fastq::trim_polyg_tails::{
     plan_trim_polyg_tails_with_options, TrimPolygPlanOptions,
 };
@@ -75,6 +79,10 @@ const LOCAL_PROFILE_READ_LENGTHS_CONFIG_PATH: &str =
     "configs/bench/local/fastq-profile-read-lengths.toml";
 const DEFAULT_LOCAL_PROFILE_READ_LENGTHS_OUTPUT_DIR: &str =
     "target/local-smoke/fastq.profile_read_lengths";
+const LOCAL_REMOVE_DUPLICATES_CONFIG_PATH: &str =
+    "configs/bench/local/fastq-remove-duplicates.toml";
+const DEFAULT_LOCAL_REMOVE_DUPLICATES_OUTPUT_DIR: &str =
+    "target/local-smoke/fastq.remove_duplicates";
 const LOCAL_TRIM_READS_CONFIG_PATH: &str = "configs/bench/local/fastq-trim-reads.toml";
 const DEFAULT_LOCAL_TRIM_READS_OUTPUT_DIR: &str = "target/local-smoke/fastq.trim_reads";
 const LOCAL_TRIM_POLYG_TAILS_CONFIG_PATH: &str = "configs/bench/local/fastq-trim-polyg-tails.toml";
@@ -146,6 +154,15 @@ pub struct LocalMergePairsSmokeCasePlan {
     pub merge_overlap: u32,
     pub min_length: u32,
     pub unmerged_read_policy: bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalRemoveDuplicatesSmokeCasePlan {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub dedup_mode: bijux_dna_domain_fastq::params::remove_duplicates::DedupMode,
+    pub keep_order: bool,
     pub plan: bijux_dna_stage_contract::StagePlanV1,
 }
 
@@ -283,6 +300,21 @@ struct LocalMergePairsSmokeConfig {
 }
 
 #[derive(Debug, Deserialize)]
+struct LocalRemoveDuplicatesSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    dedup_mode: Option<String>,
+    #[serde(default)]
+    keep_order: Option<bool>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalRemoveDuplicatesSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
 struct LocalNormalizePrimersSmokeConfig {
     schema_version: String,
     tool_id: String,
@@ -410,6 +442,12 @@ struct LocalMergePairsSmokeCase {
     sample_id: String,
     r1: PathBuf,
     r2: PathBuf,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalRemoveDuplicatesSmokeCase {
+    sample_id: String,
+    r1: PathBuf,
 }
 
 #[derive(Debug, Deserialize)]
@@ -688,6 +726,61 @@ pub fn local_merge_pairs_smoke_plans(
         .into_iter()
         .map(|case| {
             build_local_merge_pairs_smoke_case(
+                repo_root,
+                &tool_spec,
+                &plan_options,
+                &output_root,
+                case,
+            )
+        })
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_remove_duplicates_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalRemoveDuplicatesSmokeCasePlan>> {
+    let config = load_local_remove_duplicates_smoke_config(repo_root)?;
+    ensure_unique_remove_duplicates_sample_ids(&config.cases)?;
+
+    let stage_id = StageId::new(STAGE_REMOVE_DUPLICATES.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    let normalized_tools = select_remove_duplicates_tools(std::slice::from_ref(&config.tool_id))?;
+    if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
+        return Err(anyhow!(
+            "local-smoke fastq.remove_duplicates tool selection normalized unexpectedly: {:?}",
+            normalized_tools
+        ));
+    }
+    if !crate::stage_api::tool_supports_input_layout(&stage_id, &tool_id, false) {
+        return Err(anyhow!(
+            "local-smoke fastq.remove_duplicates tool_id `{}` does not support governed single-end smoke inputs",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let dedup_mode =
+        dedup_mode_from_literal(config.dedup_mode.as_deref().unwrap_or("exact"))?;
+    let keep_order = config.keep_order.unwrap_or(true);
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_REMOVE_DUPLICATES_OUTPUT_DIR));
+    let plan_options = RemoveDuplicatesPlanOptions {
+        dedup_mode: dedup_mode.clone(),
+        keep_order,
+        threads_override: Some(tool_spec.resources.threads.max(1)),
+    };
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| {
+            build_local_remove_duplicates_smoke_case(
                 repo_root,
                 &tool_spec,
                 &plan_options,
@@ -1234,6 +1327,33 @@ fn build_local_merge_pairs_smoke_case(
     })
 }
 
+fn build_local_remove_duplicates_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    options: &RemoveDuplicatesPlanOptions,
+    output_root: &Path,
+    case: LocalRemoveDuplicatesSmokeCase,
+) -> Result<LocalRemoveDuplicatesSmokeCasePlan> {
+    let r1_abs = repo_root.join(&case.r1);
+    if !r1_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke fastq.remove_duplicates r1 fixture is missing: {}",
+            r1_abs.display()
+        ));
+    }
+
+    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let plan = plan_deduplicate_with_options(tool_spec, &case.r1, None, &out_dir, options)?;
+
+    Ok(LocalRemoveDuplicatesSmokeCasePlan {
+        sample_id: case.sample_id,
+        r1: case.r1,
+        dedup_mode: options.dedup_mode.clone(),
+        keep_order: options.keep_order,
+        plan,
+    })
+}
+
 fn build_local_trim_reads_smoke_case(
     repo_root: &Path,
     tool_spec: &ToolExecutionSpecV1,
@@ -1633,6 +1753,24 @@ fn ensure_unique_merge_pairs_sample_ids(cases: &[LocalMergePairsSmokeCase]) -> R
     Ok(())
 }
 
+fn ensure_unique_remove_duplicates_sample_ids(cases: &[LocalRemoveDuplicatesSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!(
+                "local-smoke fastq.remove_duplicates sample_id must not be empty"
+            ));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke fastq.remove_duplicates sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn ensure_unique_normalize_primers_sample_ids(
     cases: &[LocalNormalizePrimersSmokeCase],
 ) -> Result<()> {
@@ -1790,6 +1928,27 @@ fn load_local_merge_pairs_smoke_config(repo_root: &Path) -> Result<LocalMergePai
     if config.cases.is_empty() {
         return Err(anyhow!(
             "local-smoke fastq.merge_pairs must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_remove_duplicates_smoke_config(
+    repo_root: &Path,
+) -> Result<LocalRemoveDuplicatesSmokeConfig> {
+    let path = repo_root.join(LOCAL_REMOVE_DUPLICATES_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalRemoveDuplicatesSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.fastq.local_remove_duplicates.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke fastq.remove_duplicates schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke fastq.remove_duplicates must declare at least one governed case"
         ));
     }
     Ok(config)

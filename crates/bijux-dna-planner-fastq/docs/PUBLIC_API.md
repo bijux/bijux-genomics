@@ -64,6 +64,7 @@ The `stage_api` module is the curated compatibility surface for downstream stage
 - `local_normalize_primers_smoke_plans`
 - `local_profile_read_lengths_smoke_plans`
 - `local_profile_reads_smoke_plans`
+- `local_remove_duplicates_smoke_plans`
 - `local_trim_polyg_tails_smoke_plans`
 - `local_trim_reads_smoke_plans`
 - `local_trim_terminal_damage_smoke_plans`
