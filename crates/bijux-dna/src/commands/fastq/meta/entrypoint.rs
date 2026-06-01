@@ -162,6 +162,11 @@ pub(crate) fn handle_meta_commands(
                             }
                         }
                     }
+                    cli::BenchLocalCommand::ValidatePipelineDag(args) => {
+                        crate::commands::benchmark::local_pipeline_dag::run_validate_pipeline_dag(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateCorpusFixture(args) => {
                         crate::commands::benchmark::local_corpus_fixture::run_validate_corpus_fixture(
                             &args,

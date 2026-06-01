@@ -34,8 +34,8 @@ pub use self::local::{
     BenchLocalMaterializeStageArgs, BenchLocalRenderBenchmarkSummaryArgs,
     BenchLocalRenderCorpusSkipReportArgs, BenchLocalRenderStageCommandsArgs,
     BenchLocalRenderToolComparisonTemplateArgs, BenchLocalValidateCorpusFixtureArgs,
-    BenchLocalValidateCorpusStageCompatibilityArgs, BenchLocalValidateStageResultArgs,
-    BenchLocalValidateTaxonomyDatabaseFixtureArgs,
+    BenchLocalValidateCorpusStageCompatibilityArgs, BenchLocalValidatePipelineDagArgs,
+    BenchLocalValidateStageResultArgs, BenchLocalValidateTaxonomyDatabaseFixtureArgs,
 };
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,

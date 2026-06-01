@@ -10,6 +10,8 @@ pub enum BenchLocalDomainArg {
 pub enum BenchLocalCommand {
     #[command(name = "list-stages")]
     ListStages(BenchLocalListStagesArgs),
+    #[command(name = "validate-pipeline-dag")]
+    ValidatePipelineDag(BenchLocalValidatePipelineDagArgs),
     #[command(name = "validate-corpus-fixture")]
     ValidateCorpusFixture(BenchLocalValidateCorpusFixtureArgs),
     #[command(name = "validate-corpus-stage-compatibility")]
@@ -44,6 +46,16 @@ pub enum BenchLocalCommand {
 pub struct BenchLocalListStagesArgs {
     #[arg(long, value_enum)]
     pub domain: BenchLocalDomainArg,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidatePipelineDagArgs {
+    #[arg(long)]
+    pub config: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }
