@@ -96,12 +96,7 @@ pub(crate) fn validate_stage_result_manifest_path(
     repo_root: &Path,
     manifest_path: &Path,
 ) -> Result<BenchStageResultValidationReport> {
-    let raw = fs::read_to_string(manifest_path)
-        .with_context(|| format!("read {}", manifest_path.display()))?;
-    let manifest: BenchStageResultManifestV1 = serde_json::from_str(&raw)
-        .map_err(|err| anyhow!("parse {}: {err}", manifest_path.display()))?;
-    validate_stage_result_manifest(&manifest)
-        .with_context(|| format!("validate {}", manifest_path.display()))?;
+    let manifest = load_validated_stage_result_manifest_path(manifest_path)?;
     Ok(BenchStageResultValidationReport {
         schema_version: BENCH_STAGE_RESULT_VALIDATION_SCHEMA_VERSION,
         manifest_path: path_relative_to_repo(repo_root, manifest_path),
@@ -111,6 +106,18 @@ pub(crate) fn validate_stage_result_manifest_path(
         status: manifest.runtime.status,
         valid: true,
     })
+}
+
+pub(crate) fn load_validated_stage_result_manifest_path(
+    manifest_path: &Path,
+) -> Result<BenchStageResultManifestV1> {
+    let raw = fs::read_to_string(manifest_path)
+        .with_context(|| format!("read {}", manifest_path.display()))?;
+    let manifest: BenchStageResultManifestV1 = serde_json::from_str(&raw)
+        .map_err(|err| anyhow!("parse {}: {err}", manifest_path.display()))?;
+    validate_stage_result_manifest(&manifest)
+        .with_context(|| format!("validate {}", manifest_path.display()))?;
+    Ok(manifest)
 }
 
 pub(crate) fn validate_stage_result_manifest(manifest: &BenchStageResultManifestV1) -> Result<()> {
