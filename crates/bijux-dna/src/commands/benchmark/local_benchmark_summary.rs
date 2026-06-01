@@ -141,7 +141,9 @@ pub(crate) fn render_local_benchmark_summary(
         }
     }
 
-    fake_run_local_stage_commands(repo_root, absolute_fake_run_root.clone())?;
+    if !absolute_fake_run_root.exists() {
+        fake_run_local_stage_commands(repo_root, absolute_fake_run_root.clone())?;
+    }
     let manifest_completion = check_local_stage_manifest_completion(
         repo_root,
         absolute_fake_run_root.clone(),
