@@ -6521,6 +6521,117 @@ y1\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n",
     }
 
     #[test]
+    fn bam_kinship_summary_round_trips() {
+        let summary = BamKinshipSummaryV1 {
+            schema_version: BAM_KINSHIP_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.kinship".to_string(),
+            method: "king".to_string(),
+            input_bam: PathBuf::from("input.sam"),
+            reference_panel: "toy_human_relatedness_panel".to_string(),
+            reference_build: "grch38".to_string(),
+            population_scope: "human_diploid_panel".to_string(),
+            min_overlap_snps: 6,
+            requires_cohort_context: true,
+            sample_count: 2,
+            observed_max_overlap_snps: 6,
+            pair_count: 1,
+            status: "ok".to_string(),
+            insufficiency_reason: None,
+            pairwise_results: vec![BamKinshipPairResultV1 {
+                sample_a: "sample_a".to_string(),
+                sample_b: "sample_b".to_string(),
+                overlap_snps: 6,
+                matching_sites: 5,
+                mismatch_sites: 1,
+                concordance: 0.833333,
+                kinship_coefficient: 0.416667,
+                relationship_label: "first_degree".to_string(),
+            }],
+        };
+        let encoded = serde_json::to_string(&summary).expect("serialize kinship summary");
+        let decoded: BamKinshipSummaryV1 =
+            serde_json::from_str(&encoded).expect("deserialize kinship summary");
+        assert_eq!(decoded, summary);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_kinship_reports_valid_pairs_and_overlap_refusal() {
+        let temp = unique_temp_dir("bam-kinship-summary");
+        let insufficient_input = temp.join("insufficient.sam");
+        let valid_input = temp.join("valid.sam");
+        std::fs::write(
+            &insufficient_input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:20\n\
+@RG\tID:rg_a\tSM:sample_a\n\
+@RG\tID:rg_b\tSM:sample_b\n\
+pair_a\t0\tchr1\t1\t60\t4M\t*\t0\t0\tACGT\tFFFF\tRG:Z:rg_a\n\
+pair_b\t0\tchr1\t1\t60\t4M\t*\t0\t0\tACGA\tFFFF\tRG:Z:rg_b\n",
+        )
+        .expect("write insufficient kinship fixture");
+        std::fs::write(
+            &valid_input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:20\n\
+@RG\tID:rg_a\tSM:sample_a\n\
+@RG\tID:rg_b\tSM:sample_b\n\
+pair_a\t0\tchr1\t1\t60\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg_a\n\
+pair_b\t0\tchr1\t1\t60\t6M\t*\t0\t0\tACGTTC\tFFFFFF\tRG:Z:rg_b\n",
+        )
+        .expect("write valid kinship fixture");
+
+        let insufficient = summarize_tiny_bam_kinship(
+            &insufficient_input,
+            "king",
+            "toy_human_relatedness_panel",
+            "grch38",
+            "human_diploid_panel",
+            5,
+            true,
+        )
+        .expect("summarize insufficient kinship");
+        assert_eq!(insufficient.stage_id, "bam.kinship");
+        assert_eq!(insufficient.method, "king");
+        assert_eq!(insufficient.sample_count, 2);
+        assert_eq!(insufficient.observed_max_overlap_snps, 4);
+        assert_eq!(insufficient.pair_count, 0);
+        assert_eq!(insufficient.status, "insufficient");
+        assert_eq!(
+            insufficient.insufficiency_reason.as_deref(),
+            Some("insufficient_overlap_snps")
+        );
+        assert!(insufficient.pairwise_results.is_empty());
+
+        let valid = summarize_tiny_bam_kinship(
+            &valid_input,
+            "king",
+            "toy_human_relatedness_panel",
+            "grch38",
+            "human_diploid_panel",
+            6,
+            true,
+        )
+        .expect("summarize valid kinship");
+        assert_eq!(valid.stage_id, "bam.kinship");
+        assert_eq!(valid.method, "king");
+        assert_eq!(valid.sample_count, 2);
+        assert_eq!(valid.observed_max_overlap_snps, 6);
+        assert_eq!(valid.pair_count, 1);
+        assert_eq!(valid.status, "ok");
+        assert_eq!(valid.insufficiency_reason, None);
+        assert_eq!(valid.pairwise_results.len(), 1);
+        let pair = &valid.pairwise_results[0];
+        assert_eq!(pair.sample_a, "sample_a");
+        assert_eq!(pair.sample_b, "sample_b");
+        assert_eq!(pair.overlap_snps, 6);
+        assert_eq!(pair.matching_sites, 5);
+        assert_eq!(pair.mismatch_sites, 1);
+        assert!((pair.concordance - 0.833333).abs() <= 1e-9);
+        assert!((pair.kinship_coefficient - 0.416667).abs() <= 1e-9);
+        assert_eq!(pair.relationship_label, "first_degree");
+    }
+
+    #[test]
     fn summarize_tiny_bam_coverage_classifies_regime_from_depth_and_breadth() {
         let temp = unique_temp_dir("bam-coverage-summary");
         let input = temp.join("input.sam");
