@@ -149,9 +149,10 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local simulate-dag-watchdog`
   `simulate-dag-watchdog` writes governed DAG scheduling simulations such as
   `target/local-ready/dag-sim/no-global-wait.json` and
-  `target/local-ready/dag-sim/failure-isolation.json`, proving that dependency-ready nodes can
-  start without a global branch barrier and that one failed sample-stage does not block unrelated
-  sample work while reusing the validated local pipeline DAG contracts.
+  `target/local-ready/dag-sim/failure-isolation.json` and
+  `target/local-ready/dag-sim/partial-resume.json`, proving that dependency-ready nodes can start
+  without a global branch barrier, that one failed sample-stage does not block unrelated sample
+  work, and that valid completed nodes are reused while only missing or invalid work is replanned.
 - `bijux-dna bench local render-corpus-skip-report`
   `render-corpus-skip-report` writes `target/local-ready/corpus-skip-report.json`, enumerating
   every incompatible corpus-fixture skip with its replacement corpus and keeping planner-only
