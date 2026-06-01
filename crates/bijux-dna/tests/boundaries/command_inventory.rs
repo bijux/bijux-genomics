@@ -103,6 +103,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench local materialize-stage",
     "bijux-dna bench local fake-run-failures",
     "bijux-dna bench local fake-run-stages",
+    "bijux-dna bench local render-slurm-scripts",
     "bijux-dna bench local render-stage-commands",
     "bijux-dna bench schema",
     "bijux-dna bench fastq trim-reads",
