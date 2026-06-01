@@ -8,7 +8,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::metrics::{authenticity_score, BamMetricsV1, SexConfidenceClass};
-use crate::params::{FilterEffectiveParams, ReadGroupSpec};
+use crate::params::{BqsrMode, FilterEffectiveParams, ReadGroupSpec, RecalibrationSkipCriteria};
 
 pub const BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION: &str = "bijux.bam.artifact_inventory.v1";
 pub const BAM_SAMPLE_IDENTITY_SCHEMA_VERSION: &str = "bijux.bam.sample_identity.v1";
@@ -26,8 +26,8 @@ pub const BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.complexity.v1
 pub const BAM_COVERAGE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_summary.v1";
 pub const BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.insert_size.v1";
 pub const BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.gc_bias.v1";
-pub const BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION: &str =
-    "bijux.bam.bias_mitigation_summary.v1";
+pub const BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.bias_mitigation_summary.v1";
+pub const BAM_RECALIBRATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.recalibration.v1";
 pub const BAM_OVERLAP_CORRECTION_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.overlap_correction.v1";
 pub const BAM_DUPLICATE_POLICY_SCHEMA_VERSION: &str = "bijux.bam.duplicate_policy.v1";
 pub const BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION: &str = "bijux.bam.advisory_boundary.v1";
@@ -417,6 +417,33 @@ pub struct BamBiasMitigationSummaryV1 {
     pub mitigation_projection_basis: Option<String>,
     #[serde(default)]
     pub insufficient_metric_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamRecalibrationCoverageGateV1 {
+    pub min_mean_coverage: f64,
+    pub min_breadth_1x: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamRecalibrationSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub input_bam: PathBuf,
+    #[serde(default)]
+    pub reference_fasta: Option<PathBuf>,
+    pub known_sites: Vec<PathBuf>,
+    pub requested_mode: BqsrMode,
+    pub effective_mode: BqsrMode,
+    pub status: String,
+    pub reason: String,
+    pub coverage_gate: BamRecalibrationCoverageGateV1,
+    pub observed_mean_coverage: f64,
+    pub observed_breadth_1x: f64,
+    pub output_bam_present: bool,
+    pub recalibration_report_present: bool,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -2614,8 +2641,8 @@ pub fn summarize_tiny_bam_bias_mitigation(
 ) -> Result<BamBiasMitigationSummaryV1> {
     let (gc_bias_summary, _) = summarize_tiny_bam_gc_bias(input_bam, reference_fasta, window_size)?;
     let pre_mitigation_metric = Some(gc_bias_summary.gc_bias_score);
-    let post_mitigation_metric =
-        pre_mitigation_metric.map(|metric| project_bias_metric(metric, gc_bias_correction, map_bias_correction));
+    let post_mitigation_metric = pre_mitigation_metric
+        .map(|metric| project_bias_metric(metric, gc_bias_correction, map_bias_correction));
     Ok(summarize_bam_bias_mitigation(
         "bam.bias_mitigation",
         input_bam,
@@ -2630,6 +2657,53 @@ pub fn summarize_tiny_bam_bias_mitigation(
         Some("policy_projection".to_string()),
         gc_bias_summary.insufficient_reference_reason,
     ))
+}
+
+/// Summarize recalibration readiness and effective run-or-skip status for a tiny BAM/SAM fixture.
+///
+/// # Errors
+/// Returns an error if the input alignment cannot be parsed.
+pub fn summarize_tiny_bam_recalibration(
+    input_bam: &Path,
+    reference_fasta: Option<&Path>,
+    known_sites: &[PathBuf],
+    requested_mode: BqsrMode,
+    effective_mode: BqsrMode,
+    skip_criteria: &RecalibrationSkipCriteria,
+    output_bam_present: bool,
+    recalibration_report_present: bool,
+) -> Result<BamRecalibrationSummaryV1> {
+    let coverage = summarize_tiny_bam_coverage(input_bam, &[1])?;
+    let observed_mean_coverage = coverage.mean_depth.unwrap_or(0.0);
+    let observed_breadth_1x = coverage.regime.as_ref().map_or(0.0, |regime| regime.breadth_1x);
+    let coverage_below_gate = observed_mean_coverage < skip_criteria.min_mean_coverage
+        || observed_breadth_1x < skip_criteria.min_breadth_1x;
+    let (status, reason) = match effective_mode {
+        BqsrMode::Skip if coverage_below_gate => ("skipped", "coverage_below_gate"),
+        BqsrMode::Skip => ("skipped", "requested_skip_mode"),
+        BqsrMode::EmitOnly => ("emitted_only", "emit_only_requested"),
+        BqsrMode::Standard => ("ready_to_run", "coverage_gate_passed"),
+    };
+
+    Ok(BamRecalibrationSummaryV1 {
+        schema_version: BAM_RECALIBRATION_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.recalibration".to_string(),
+        input_bam: input_bam.to_path_buf(),
+        reference_fasta: reference_fasta.map(Path::to_path_buf),
+        known_sites: known_sites.to_vec(),
+        requested_mode,
+        effective_mode,
+        status: status.to_string(),
+        reason: reason.to_string(),
+        coverage_gate: BamRecalibrationCoverageGateV1 {
+            min_mean_coverage: skip_criteria.min_mean_coverage,
+            min_breadth_1x: skip_criteria.min_breadth_1x,
+        },
+        observed_mean_coverage,
+        observed_breadth_1x,
+        output_bam_present,
+        recalibration_report_present,
+    })
 }
 
 /// Filter tiny BAM/SAM fixtures by minimum read length and emit retained length bounds.
@@ -2884,11 +2958,8 @@ pub fn summarize_bam_bias_mitigation(
     insufficient_metric_reason: Option<String>,
 ) -> BamBiasMitigationSummaryV1 {
     let mitigation_actions = bias_mitigation_actions(gc_bias_correction, map_bias_correction);
-    let consumed_metrics = if pre_mitigation_metric.is_some() {
-        vec![metric_name.to_string()]
-    } else {
-        Vec::new()
-    };
+    let consumed_metrics =
+        if pre_mitigation_metric.is_some() { vec![metric_name.to_string()] } else { Vec::new() };
     let metric_delta = pre_mitigation_metric
         .zip(post_mitigation_metric)
         .map(|(pre_metric, post_metric)| round_metric(pre_metric - post_metric));
@@ -5857,15 +5928,9 @@ bias100_001\t0\tchrbias\t21\t60\t10M\t*\t0\t0\tCCCCCGGGGG\tFFFFFFFFFF\tRG:Z:rg1\
         )
         .expect("write bias-mitigation fixture");
 
-        let summary = summarize_tiny_bam_bias_mitigation(
-            &input,
-            &reference,
-            "mapdamage2",
-            10,
-            true,
-            false,
-        )
-        .expect("summarize bias mitigation");
+        let summary =
+            summarize_tiny_bam_bias_mitigation(&input, &reference, "mapdamage2", 10, true, false)
+                .expect("summarize bias mitigation");
         assert_eq!(summary.schema_version, BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION);
         assert_eq!(summary.stage_id, "bam.bias_mitigation");
         assert_eq!(summary.reference_fasta, Some(reference));
@@ -5879,10 +5944,7 @@ bias100_001\t0\tchrbias\t21\t60\t10M\t*\t0\t0\tCCCCCGGGGG\tFFFFFFFFFF\tRG:Z:rg1\
         assert_eq!(summary.pre_mitigation_metric, Some(0.25));
         assert_eq!(summary.post_mitigation_metric, Some(0.125));
         assert_eq!(summary.metric_delta, Some(0.125));
-        assert_eq!(
-            summary.mitigation_projection_basis.as_deref(),
-            Some("policy_projection")
-        );
+        assert_eq!(summary.mitigation_projection_basis.as_deref(), Some("policy_projection"));
         assert_eq!(summary.insufficient_metric_reason, None);
     }
 
@@ -5910,6 +5972,71 @@ bias100_001\t0\tchrbias\t21\t60\t10M\t*\t0\t0\tCCCCCGGGGG\tFFFFFFFFFF\tRG:Z:rg1\
         let restored: BamBiasMitigationSummaryV1 =
             serde_json::from_value(json).expect("deserialize bias-mitigation summary");
         assert_eq!(restored, summary);
+    }
+
+    #[test]
+    fn bam_recalibration_summary_round_trips() {
+        let summary = BamRecalibrationSummaryV1 {
+            schema_version: BAM_RECALIBRATION_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.recalibration".to_string(),
+            input_bam: PathBuf::from("input.sam"),
+            reference_fasta: Some(PathBuf::from("reference.fasta")),
+            known_sites: vec![PathBuf::from("known_sites.vcf")],
+            requested_mode: BqsrMode::Standard,
+            effective_mode: BqsrMode::Skip,
+            status: "skipped".to_string(),
+            reason: "coverage_below_gate".to_string(),
+            coverage_gate: BamRecalibrationCoverageGateV1 {
+                min_mean_coverage: 0.1,
+                min_breadth_1x: 0.05,
+            },
+            observed_mean_coverage: 0.024,
+            observed_breadth_1x: 0.024,
+            output_bam_present: true,
+            recalibration_report_present: true,
+        };
+        let json = serde_json::to_value(&summary).expect("serialize recalibration summary");
+        let restored: BamRecalibrationSummaryV1 =
+            serde_json::from_value(json).expect("deserialize recalibration summary");
+        assert_eq!(restored, summary);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_recalibration_reports_coverage_gate_skip() {
+        let temp = unique_temp_dir("bam-recalibration-summary");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:1000\n\
+skip1\t0\tchr1\t1\t60\t12M\t*\t0\t0\tACGTTGCAACGT\tFFFFFFFFFFFF\n\
+skip2\t0\tchr1\t50\t60\t12M\t*\t0\t0\tTGCATGCATGCA\tFFFFFFFFFFFF\n",
+        )
+        .expect("write recalibration fixture");
+
+        let summary = summarize_tiny_bam_recalibration(
+            &input,
+            Some(Path::new("reference.fasta")),
+            &[PathBuf::from("known_sites.vcf")],
+            BqsrMode::Standard,
+            BqsrMode::Skip,
+            &RecalibrationSkipCriteria { min_mean_coverage: 0.1, min_breadth_1x: 0.05 },
+            true,
+            true,
+        )
+        .expect("summarize recalibration");
+        assert_eq!(summary.stage_id, "bam.recalibration");
+        assert_eq!(summary.requested_mode, BqsrMode::Standard);
+        assert_eq!(summary.effective_mode, BqsrMode::Skip);
+        assert_eq!(summary.status, "skipped");
+        assert_eq!(summary.reason, "coverage_below_gate");
+        assert!((summary.observed_mean_coverage - 0.024).abs() <= 1e-9);
+        assert!((summary.observed_breadth_1x - 0.024).abs() <= 1e-9);
+        assert_eq!(summary.coverage_gate.min_mean_coverage, 0.1);
+        assert_eq!(summary.coverage_gate.min_breadth_1x, 0.05);
+        assert_eq!(summary.known_sites, vec![PathBuf::from("known_sites.vcf")]);
+        assert!(summary.output_bam_present);
+        assert!(summary.recalibration_report_present);
     }
 
     #[test]
