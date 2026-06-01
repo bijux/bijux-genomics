@@ -1056,6 +1056,7 @@ pub fn write_campaign_profiles(out_dir: &Path) -> Result<Vec<PathBuf>> {
         .with_context(|| format!("create {}", out_dir.display()))?;
 
     let lunarc_path = out_dir.join("lunarc-small.toml");
+    let lunarc_local_ready_path = out_dir.join("lunarc-fastq-bam-local-ready.toml");
     let generic_path = out_dir.join("generic-small.toml");
     let cross_path = out_dir.join("cross-mini.toml");
 
@@ -1103,6 +1104,92 @@ stage = "fastq.validate_reads"
 tool = "seqkit_v2"
 sample = "sample_0001"
 resource_template = "standard"
+"#;
+
+    let lunarc_local_ready = r#"schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "adna-equus-caballus-local-ready"
+domain = "cross"
+description = "Lunarc local dry-run profile for prepared FASTQ-to-BAM horse benchmarking"
+
+[layout]
+corpora_root = "/mnt/shared/bijux/corpora"
+databases_root = "/mnt/shared/bijux/databases"
+images_root = "/mnt/shared/bijux/images"
+scratch_root = "/mnt/shared/bijux/scratch"
+logs_root = "/mnt/shared/bijux/logs"
+encrypted_results_root = "/mnt/shared/bijux/results"
+encrypted_code_root = "/mnt/shared/bijux/code"
+appraiser_imports_root = "/mnt/shared/bijux/appraiser-imports"
+baselines_root = "/mnt/shared/bijux/baselines"
+
+[slurm]
+site_profile = "lunarc"
+default_resource_template = "fastq_small"
+retry_attempts = 2
+retry_backoff_seconds = 30
+retry_on_exit_codes = [137, 143]
+
+[resources]
+default = "fastq_small"
+
+[resources.templates.fastq_small]
+cpus = 8
+mem_gb = 24
+walltime = "01:00:00"
+scratch_gb = 32
+
+[resources.templates.bam_align]
+cpus = 16
+mem_gb = 64
+walltime = "04:00:00"
+scratch_gb = 128
+
+[resources.templates.bam_qc]
+cpus = 8
+mem_gb = 24
+walltime = "01:00:00"
+scratch_gb = 48
+
+[resources.stage_defaults]
+fastq = "fastq_small"
+bam = "bam_qc"
+
+[security]
+encryption_backend = "mock-envelope-v1"
+encryption_recipients = ["bio-team"]
+encrypt_operator_outputs = false
+env_file = "configs/hpc/.env"
+
+[[jobs]]
+name = "fastq_validate_adna_equus_caballus_0001"
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "adna_equus_caballus_0001"
+
+[[jobs]]
+name = "fastq_trim_adna_equus_caballus_0001"
+stage = "fastq.trim_reads"
+tool = "fastp"
+sample = "adna_equus_caballus_0001"
+depends_on = ["fastq_validate_adna_equus_caballus_0001"]
+
+[[jobs]]
+name = "bam_align_adna_equus_caballus_0001"
+stage = "bam.align"
+tool = "bwa"
+sample = "adna_equus_caballus_0001"
+depends_on = ["fastq_trim_adna_equus_caballus_0001"]
+resource_template = "bam_align"
+
+[[jobs]]
+name = "bam_qc_pre_adna_equus_caballus_0001"
+stage = "bam.qc_pre"
+tool = "samtools"
+sample = "adna_equus_caballus_0001"
+depends_on = ["bam_align_adna_equus_caballus_0001"]
+resource_template = "bam_qc"
 "#;
 
     let generic = r#"schema_version = "bijux.hpc.campaign.v1"
@@ -1202,12 +1289,17 @@ depends_on = ["fastq_validate_sample_0001"]
 
     bijux_dna_api::v1::api::run::atomic_write_bytes(&lunarc_path, lunarc.as_bytes())
         .with_context(|| format!("write {}", lunarc_path.display()))?;
+    bijux_dna_api::v1::api::run::atomic_write_bytes(
+        &lunarc_local_ready_path,
+        lunarc_local_ready.as_bytes(),
+    )
+    .with_context(|| format!("write {}", lunarc_local_ready_path.display()))?;
     bijux_dna_api::v1::api::run::atomic_write_bytes(&generic_path, generic.as_bytes())
         .with_context(|| format!("write {}", generic_path.display()))?;
     bijux_dna_api::v1::api::run::atomic_write_bytes(&cross_path, cross.as_bytes())
         .with_context(|| format!("write {}", cross_path.display()))?;
 
-    Ok(vec![lunarc_path, generic_path, cross_path])
+    Ok(vec![lunarc_path, lunarc_local_ready_path, generic_path, cross_path])
 }
 
 pub fn campaign_preflight(
@@ -2387,12 +2479,46 @@ sample = "sample-1"
     fn write_campaign_profiles_emits_expected_files() {
         let root = tempfile::tempdir().expect("tempdir");
         let written = write_campaign_profiles(root.path()).expect("write profiles");
-        assert_eq!(written.len(), 3);
+        assert_eq!(written.len(), 4);
         assert!(written.iter().any(|path| path.ends_with("lunarc-small.toml")));
+        assert!(written.iter().any(|path| path.ends_with("lunarc-fastq-bam-local-ready.toml")));
         assert!(written.iter().any(|path| path.ends_with("generic-small.toml")));
         assert!(written.iter().any(|path| path.ends_with("cross-mini.toml")));
         for path in written {
             assert!(path.is_file());
         }
+    }
+
+    #[test]
+    fn lunarc_fastq_bam_local_ready_profile_expands_prepared_roots_and_jobs() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let written = write_campaign_profiles(root.path()).expect("write profiles");
+        let config_path = written
+            .into_iter()
+            .find(|path| path.ends_with("lunarc-fastq-bam-local-ready.toml"))
+            .expect("local-ready profile");
+
+        let report = campaign_dry_run(
+            &config_path,
+            Some(root.path().join("missing.env").as_path()),
+            Some(root.path().join("missing.policy").as_path()),
+        )
+        .expect("dry run");
+
+        assert_eq!(report.campaign_id, "adna-equus-caballus-local-ready");
+        assert_eq!(report.domain, "cross");
+        assert_eq!(report.layout.corpora_root, "/mnt/shared/bijux/corpora");
+        assert_eq!(report.layout.databases_root, "/mnt/shared/bijux/databases");
+        assert_eq!(report.layout.images_root, "/mnt/shared/bijux/images");
+        assert_eq!(report.resolved_slurm.site_profile, "lunarc");
+        assert_eq!(report.resolved_slurm.partition, "main");
+        assert_eq!(report.resolved_slurm.qos, "normal");
+        assert_eq!(report.planned_jobs.len(), 4);
+        assert_eq!(report.planned_jobs[0].stage, "fastq.validate_reads");
+        assert_eq!(report.planned_jobs[1].stage, "fastq.trim_reads");
+        assert_eq!(report.planned_jobs[2].stage, "bam.align");
+        assert_eq!(report.planned_jobs[3].stage, "bam.qc_pre");
+        assert_eq!(report.planned_jobs[2].resource_template, "bam_align");
+        assert_eq!(report.planned_jobs[3].resource_template, "bam_qc");
     }
 }
