@@ -10,7 +10,8 @@ use crate::commands::benchmark::local_stage_commands::{
 use crate::commands::benchmark::local_stage_inventory::LocalStageReadinessKind;
 use crate::commands::benchmark::local_stage_result_manifest::{
     validate_stage_result_manifest, BenchStageResultCommandV1, BenchStageResultManifestV1,
-    BenchStageResultOutputV1, BenchStageResultRuntimeV1, BenchStageResultStatus,
+    BenchStageResultOutputV1, BenchStageResultResourceMetricSource,
+    BenchStageResultResourceMetricsV1, BenchStageResultRuntimeV1, BenchStageResultStatus,
     BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
 use crate::commands::cli::parse;
@@ -240,6 +241,11 @@ fn build_stage_result_manifest(
             finished_at: "1970-01-01T00:00:01Z".to_string(),
             elapsed_seconds: 1.0,
             exit_code: 0,
+        },
+        resource_metrics: BenchStageResultResourceMetricsV1 {
+            source: BenchStageResultResourceMetricSource::Estimated,
+            memory_mb: Some(f64::from(command.memory_mb)),
+            cpu_threads: Some(command.threads),
         },
         outputs: outputs
             .iter()
