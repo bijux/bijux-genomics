@@ -282,6 +282,19 @@ pub fn write_local_infer_asvs_smoke_report() -> Result<PathBuf> {
     crate::internal::fastq::stages::infer_asvs::write_local_infer_asvs_smoke_report()
 }
 
+/// Materialize the governed local-smoke `fastq.cluster_otus` artifacts.
+///
+/// The written primary artifact lives at `target/local-smoke/fastq.cluster_otus/otu_table.tsv`
+/// under the active repository root, alongside the top-level `otu_representatives.fasta` and
+/// `report.json`.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_cluster_otus_smoke_report() -> Result<PathBuf> {
+    crate::internal::fastq::stages::cluster_otus::write_local_cluster_otus_smoke_report()
+}
+
 /// Materialize the governed local-smoke `fastq.trim_reads` report bundle.
 ///
 /// The written summary artifact lives at `target/local-smoke/fastq.trim_reads/report.json`
