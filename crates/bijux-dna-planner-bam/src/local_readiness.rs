@@ -107,11 +107,12 @@ pub fn local_align_plan(repo_root: &Path) -> Result<bijux_dna_stage_contract::St
         &tool_spec,
         &config.input_r1,
         config.input_r2.as_deref(),
-        &config.reference_fasta,
+        &reference_fasta_abs,
         &config.sample_id,
         &params,
         &out_dir,
     )?;
+    normalize_plan_path(&mut plan, &reference_fasta_abs, &config.reference_fasta);
 
     push_required_input(
         &mut plan,
@@ -160,6 +161,32 @@ fn push_required_input(
     ));
 }
 
+fn normalize_plan_path(
+    plan: &mut bijux_dna_stage_contract::StagePlanV1,
+    from: &Path,
+    to: &Path,
+) {
+    for artifact in &mut plan.io.inputs {
+        if artifact.path == from {
+            artifact.path = to.to_path_buf();
+        }
+    }
+
+    if let Some(params) = plan.params.as_object_mut() {
+        if params.get("reference") == Some(&serde_json::json!(from)) {
+            params.insert("reference".to_string(), serde_json::json!(to));
+        }
+    }
+
+    let from = from.display().to_string();
+    let to = to.display().to_string();
+    for entry in &mut plan.command.template {
+        if entry.contains(&from) {
+            *entry = entry.replace(&from, &to);
+        }
+    }
+}
+
 fn hydrate_local_profile_defaults(
     tool_spec: &mut ToolExecutionSpecV1,
     configured_threads: Option<u32>,
@@ -167,10 +194,8 @@ fn hydrate_local_profile_defaults(
 ) {
     let threads = configured_threads.unwrap_or(local_profile.default_threads).max(1);
     tool_spec.resources.threads = threads;
-    if tool_spec.resources.mem_gb == 0 {
-        tool_spec.resources.mem_gb = local_profile.default_mem_gb.max(1);
-        tool_spec.resources.tmp_gb = local_profile.default_mem_gb.max(1);
-    }
+    tool_spec.resources.mem_gb = local_profile.default_mem_gb.max(1);
+    tool_spec.resources.tmp_gb = local_profile.default_mem_gb.max(1);
 }
 
 fn load_local_align_plan_config(repo_root: &Path) -> Result<LocalAlignPlanConfig> {

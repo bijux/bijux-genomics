@@ -1883,7 +1883,7 @@ require_labels = true
 id = "bam.align"
 required_tool_roles = ["aligner"]
 primary_tools = ["bwa"]
-optional_alternatives = []
+optional_alternatives = ["bowtie2"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -2382,4 +2382,3 @@ planned_out_of_scope = []
 default_rationale = "Validation default has broad FASTQ format coverage."
 requires_validation = false
 requires_reporting = false
-
