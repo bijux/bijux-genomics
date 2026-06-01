@@ -1,0 +1,89 @@
+#![allow(clippy::expect_used)]
+
+use std::process::Command;
+
+#[path = "contracts/banks/bank_fixtures.rs"]
+mod support;
+
+fn run_cli_json(args: &[&str]) -> serde_json::Value {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(args)
+        .output()
+        .expect("run cli");
+
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+}
+
+#[test]
+fn bench_local_pipeline_dag_validates_fastq_core_preprocess_contract() {
+    let payload = run_cli_json(&["bench", "local", "validate-pipeline-dag", "--json"]);
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.local_pipeline_dag_validation.v1")
+    );
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/fastq-core-preprocess.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/fastq-core-preprocess.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("fastq-core-preprocess")
+    );
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-01-mini")
+    );
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(payload.get("edge_count").and_then(serde_json::Value::as_u64), Some(12));
+    assert_eq!(payload.get("acyclic").and_then(serde_json::Value::as_bool), Some(true));
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.trim_reads")
+                && node.get("depends_on").and_then(serde_json::Value::as_array).is_some_and(
+                    |deps| {
+                        deps.iter().any(|dep| dep.as_str() == Some("fastq.validate_reads"))
+                            && deps.iter().any(|dep| dep.as_str() == Some("fastq.detect_adapters"))
+                    },
+                )
+        }),
+        "trim_reads must depend on validation and adapter detection"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.report_qc")
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|input| input.as_str() == Some("validation_report"))
+                            && inputs.iter().any(|input| input.as_str() == Some("filtered_profile"))
+                    },
+                )
+        }),
+        "report_qc must collate governed upstream preprocessing metrics"
+    );
+}
