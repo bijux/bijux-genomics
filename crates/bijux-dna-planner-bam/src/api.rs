@@ -28,7 +28,9 @@ pub mod stage_api {
     };
     #[cfg(feature = "bam_downstream")]
     pub use crate::local_smoke::{
-        local_bias_mitigation_smoke_plans, LocalBiasMitigationSmokeCasePlan,
+        local_bias_mitigation_smoke_plans, local_kinship_smoke_plans,
+        LocalBiasMitigationSmokeCasePlan, LocalKinshipSmokeCasePlan,
+        LocalKinshipSmokeExpectedPair,
     };
     pub use crate::report_stage::report_stage_step;
     pub use crate::selection::{allowed_tools_for_stage, default_tool_for_stage};
