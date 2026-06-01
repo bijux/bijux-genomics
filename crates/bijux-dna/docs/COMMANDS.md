@@ -134,6 +134,13 @@ Visible aliases are part of the operator surface:
   Each row carries `domain`, `tool_id`, `decision`, `declared_stage_ids`, `benchmark_stage_ids`,
   and `reason`, and every orphan row is forced into an explicit disposition:
   `register_to_stage`, `remove_from_scope`, or `future_tool`.
+- `bijux-dna bench readiness render-undercovered-stages`
+  `render-undercovered-stages` writes `target/bench-readiness/undercovered-stages.tsv` with one
+  governed row per benchmark stage that admits multiple tool options in the domain tool contracts
+  but currently registers only one tool in the benchmark serving map. Each row carries `domain`,
+  `stage_id`, `valid_tool_count`, `registered_tool_count`, `valid_tool_ids`,
+  `registered_tool_ids`, `missing_tool_ids`, and `reason` so single-backend benchmark gaps remain
+  visible before HPC campaign hardening.
 - `bijux-dna bench local list-stages`
 - `bijux-dna bench local validate-hpc-submission-ready`
   `validate-hpc-submission-ready` writes `target/local-ready/HPC_SUBMISSION_READY.json` and
