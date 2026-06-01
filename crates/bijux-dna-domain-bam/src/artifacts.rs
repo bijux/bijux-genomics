@@ -19,6 +19,7 @@ pub const BAM_QC_PRE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.qc_pre.v1";
 pub const BAM_MAPPING_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapping_summary.v1";
 pub const BAM_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.filter.v1";
 pub const BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapq_filter.v1";
+pub const BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.length_filter.v1";
 pub const BAM_COVERAGE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_summary.v1";
 pub const BAM_DUPLICATE_POLICY_SCHEMA_VERSION: &str = "bijux.bam.duplicate_policy.v1";
 pub const BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION: &str = "bijux.bam.advisory_boundary.v1";
@@ -228,6 +229,25 @@ pub struct BamMapqFilterSummaryV1 {
     pub mapped_reads_removed: Option<u64>,
     #[serde(default)]
     pub mapped_fraction_retained: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamLengthFilterSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub min_length_threshold: u32,
+    pub input_bam: PathBuf,
+    pub output_bam: PathBuf,
+    pub flagstat_before: BamFlagstatCountsV1,
+    pub flagstat_after: BamFlagstatCountsV1,
+    pub input_reads: u64,
+    pub kept_reads: u64,
+    pub removed_reads: u64,
+    #[serde(default)]
+    pub observed_min_length: Option<u32>,
+    #[serde(default)]
+    pub observed_max_length: Option<u32>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -2023,6 +2043,49 @@ pub fn filter_tiny_bam_by_mapq(
     })
 }
 
+/// Filter tiny BAM/SAM fixtures by minimum read length and emit retained length bounds.
+///
+/// # Errors
+/// Returns an error if input parsing fails or output writing fails.
+pub fn filter_tiny_bam_by_length(
+    input_bam: &Path,
+    output_bam: &Path,
+    min_length_threshold: u32,
+) -> Result<BamLengthFilterSummaryV1> {
+    let params = FilterEffectiveParams {
+        mapq_threshold: 0,
+        include_flags: Vec::new(),
+        exclude_flags: Vec::new(),
+        min_length: min_length_threshold,
+        remove_duplicates: false,
+        base_quality_threshold: 20,
+    };
+    let summary = filter_tiny_bam(input_bam, output_bam, &params)?;
+    let output = parse_tiny_sam(output_bam)?;
+    let observed_lengths = output
+        .records
+        .iter()
+        .map(|record| u32::try_from(record.seq.len()).unwrap_or(u32::MAX))
+        .collect::<Vec<_>>();
+    let observed_min_length = observed_lengths.iter().min().copied();
+    let observed_max_length = observed_lengths.iter().max().copied();
+
+    Ok(BamLengthFilterSummaryV1 {
+        schema_version: BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.length_filter".to_string(),
+        min_length_threshold,
+        input_bam: input_bam.to_path_buf(),
+        output_bam: output_bam.to_path_buf(),
+        flagstat_before: summary.flagstat_before,
+        flagstat_after: summary.flagstat_after,
+        input_reads: summary.input_reads,
+        kept_reads: summary.kept_reads,
+        removed_reads: summary.removed_reads,
+        observed_min_length,
+        observed_max_length,
+    })
+}
+
 /// Filter tiny BAM/SAM fixtures with the general BAM filter semantics used by `bam.filter`.
 ///
 /// # Errors
@@ -3255,6 +3318,39 @@ mod tests {
     }
 
     #[test]
+    fn bam_length_filter_summary_round_trips() {
+        let payload = BamLengthFilterSummaryV1 {
+            schema_version: BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.length_filter".to_string(),
+            min_length_threshold: 8,
+            input_bam: PathBuf::from("input.bam"),
+            output_bam: PathBuf::from("filtered.bam"),
+            flagstat_before: BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(3),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(0.75),
+            },
+            flagstat_after: BamFlagstatCountsV1 {
+                total_reads: Some(3),
+                mapped_reads: Some(2),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(2.0 / 3.0),
+            },
+            input_reads: 4,
+            kept_reads: 3,
+            removed_reads: 1,
+            observed_min_length: Some(8),
+            observed_max_length: Some(12),
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize length filter summary");
+        let roundtrip: BamLengthFilterSummaryV1 =
+            serde_json::from_value(json).expect("roundtrip length filter summary");
+        assert_eq!(roundtrip, payload);
+    }
+
+    #[test]
     fn bam_filter_summary_round_trips() {
         let payload = BamFilterSummaryV1 {
             schema_version: BAM_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
@@ -3868,6 +3964,36 @@ unmap001\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNNNN\tFFFFFFFF\tRG:Z:rg1\n",
         let filtered = parse_tiny_sam(&output).expect("parse filtered output");
         assert_eq!(filtered.records.len(), 1);
         assert_eq!(filtered.records[0].qname, "good001");
+    }
+
+    #[test]
+    fn filter_tiny_bam_by_length_tracks_retained_length_bounds() {
+        let temp = unique_temp_dir("bam-length-filter");
+        let input = temp.join("input.sam");
+        let output = temp.join("filtered.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:100\n\
+@RG\tID:rg1\tSM:sampleA\n\
+len12\t0\tchr1\t1\t60\t12M\t*\t0\t0\tACGTACGTACGT\tFFFFFFFFFFFF\tRG:Z:rg1\n\
+len8\t0\tchr1\t20\t60\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\n\
+len5\t0\tchr1\t35\t60\t5M\t*\t0\t0\tGATTA\tFFFFF\tRG:Z:rg1\n\
+unmapped10\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNNNNNN\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write length filter fixture");
+
+        let summary = filter_tiny_bam_by_length(&input, &output, 8).expect("filter by length");
+        assert_eq!(summary.min_length_threshold, 8);
+        assert_eq!(summary.input_reads, 4);
+        assert_eq!(summary.kept_reads, 3);
+        assert_eq!(summary.removed_reads, 1);
+        assert_eq!(summary.observed_min_length, Some(8));
+        assert_eq!(summary.observed_max_length, Some(12));
+
+        let filtered = parse_tiny_sam(&output).expect("parse filtered output");
+        assert_eq!(filtered.records.len(), 3);
+        assert!(!filtered.records.iter().any(|record| record.qname == "len5"));
     }
 
     #[test]
