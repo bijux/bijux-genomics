@@ -334,11 +334,20 @@ ALL_READS\tALL\t10\t4\t4\t25.0\t25.0\t3\t4\n\
         let temp = tempfile::tempdir()?;
         let bam_root = temp.path().join("bam");
         let damage_dir = bam_root.join("damage");
+        let contamination_dir = bam_root.join("contamination");
+        let complexity_dir = bam_root.join("complexity");
+        let coverage_dir = bam_root.join("coverage");
+        let mapping_dir = bam_root.join("mapping_summary");
         let authenticity_dir = bam_root.join("authenticity");
         bijux_dna_infra::ensure_dir(&damage_dir)?;
+        bijux_dna_infra::ensure_dir(&contamination_dir)?;
+        bijux_dna_infra::ensure_dir(&complexity_dir)?;
+        bijux_dna_infra::ensure_dir(&coverage_dir)?;
+        bijux_dna_infra::ensure_dir(&mapping_dir)?;
         bijux_dna_infra::ensure_dir(&authenticity_dir)?;
+        let input_bam = damage_dir.join("in.bam");
         bijux_dna_infra::atomic_write_bytes(
-            &damage_dir.join("in.bam"),
+            &input_bam,
             b"@HD\tVN:1.6\tSO:coordinate\n\
 @SQ\tSN:chranc\tLN:120\n\
 @RG\tID:rg1\tSM:sampleA\n\
@@ -386,15 +395,65 @@ r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFF
             Some(0.15)
         );
 
+        let mapping_summary = bijux_dna_domain_bam::summarize_tiny_bam_mapping(&input_bam)?;
+        bijux_dna_infra::atomic_write_json(
+            &mapping_dir.join("mapping_summary.json"),
+            &mapping_summary,
+        )?;
+        let complexity_summary =
+            bijux_dna_domain_bam::summarize_tiny_bam_complexity(&input_bam, "preseq", 3, &[6, 12])?;
+        bijux_dna_infra::atomic_write_json(
+            &complexity_dir.join("complexity.summary.json"),
+            &complexity_summary,
+        )?;
+        let coverage_summary =
+            bijux_dna_domain_bam::summarize_tiny_bam_coverage(&input_bam, &[1, 5, 10])?;
+        bijux_dna_infra::atomic_write_json(
+            &coverage_dir.join("coverage.regime.json"),
+            &coverage_summary.regime.expect("coverage regime"),
+        )?;
+        bijux_dna_infra::atomic_write_json(
+            &contamination_dir.join("contamination.summary.json"),
+            &serde_json::json!({
+                "method": "mitochondrial_panel_screen",
+                "estimate": 0.03,
+                "ci_low": 0.01,
+                "ci_high": 0.05,
+                "assumptions": ["test contamination summary"],
+            }),
+        )?;
+
+        let mut authenticity_plan =
+            mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Authenticity);
+        authenticity_plan.io.inputs[0].path = input_bam.clone();
         stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::Authenticity,
             &authenticity_dir,
-            &mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Authenticity),
+            &authenticity_plan,
         )?;
         let authenticity: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
             authenticity_dir.join("authenticity_composite.json"),
         )?)?;
-        assert!(authenticity.get("composite_score").is_some());
+        assert_eq!(
+            authenticity.get("schema_version").and_then(serde_json::Value::as_str),
+            Some("bijux.bam.authenticity.composition.v1")
+        );
+        assert_eq!(
+            authenticity
+                .get("consumed_metrics")
+                .and_then(|value| value.get("damage"))
+                .and_then(|value| value.get("available"))
+                .and_then(serde_json::Value::as_bool),
+            Some(true)
+        );
+        assert_eq!(
+            authenticity
+                .get("consumed_metrics")
+                .and_then(|value| value.get("contamination"))
+                .and_then(|value| value.get("available"))
+                .and_then(serde_json::Value::as_bool),
+            Some(true)
+        );
         let canonical: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
             authenticity_dir.join("authenticity.json"),
         )?)?;
@@ -402,7 +461,9 @@ r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFF
             canonical.get("schema_version").and_then(serde_json::Value::as_str),
             Some("bijux.bam.authenticity.v1")
         );
+        assert!(authenticity_dir.join("authenticity.summary.json").exists());
         assert!(authenticity_dir.join("advisory_boundary.json").exists());
+        assert!(authenticity_dir.join("stage.metrics.json").exists());
         Ok(())
     }
 
