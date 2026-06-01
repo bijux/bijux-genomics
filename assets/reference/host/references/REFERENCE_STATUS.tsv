@@ -1,0 +1,2 @@
+reference_id	path	reference_scope	format	status	notes
+toy_host_reference	assets/reference/host/references/toy_host_reference	local_ready_host_depletion	bowtie2_index	governed	Tiny governed Bowtie2 index prefix for local-ready host depletion planning, derived from the Bowtie2 example lambda-virus reference and restricted to local path-resolution proof.
