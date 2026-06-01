@@ -135,3 +135,55 @@ pub(crate) fn load_local_stage_inventory(
         stages,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::{load_local_stage_inventory, BenchLocalDomain, LocalStageReadinessKind};
+
+    fn repo_root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .expect("canonicalize repo root")
+    }
+
+    #[test]
+    fn fastq_local_stage_inventory_matches_governed_count() {
+        let inventory = load_local_stage_inventory(&repo_root(), BenchLocalDomain::Fastq)
+            .expect("load FASTQ local stage inventory");
+
+        assert_eq!(inventory.domain, "fastq");
+        assert_eq!(inventory.stage_matrix_path, "configs/bench/local/fastq-stage-matrix.toml");
+        assert_eq!(inventory.stage_count, 27);
+        assert_eq!(inventory.stages.len(), 27);
+        assert!(
+            inventory
+                .stages
+                .iter()
+                .any(|stage| stage.stage_id == "fastq.screen_taxonomy"
+                    && stage.readiness_kind == LocalStageReadinessKind::DryOrSmoke),
+            "FASTQ local inventory must retain governed mixed readiness coverage"
+        );
+    }
+
+    #[test]
+    fn bam_local_stage_inventory_matches_governed_count() {
+        let inventory = load_local_stage_inventory(&repo_root(), BenchLocalDomain::Bam)
+            .expect("load BAM local stage inventory");
+
+        assert_eq!(inventory.domain, "bam");
+        assert_eq!(inventory.stage_matrix_path, "configs/bench/local/bam-stage-matrix.toml");
+        assert_eq!(inventory.stage_count, 24);
+        assert_eq!(inventory.stages.len(), 24);
+        assert!(
+            inventory
+                .stages
+                .iter()
+                .any(|stage| stage.stage_id == "bam.align"
+                    && stage.readiness_kind == LocalStageReadinessKind::DryOrSmoke),
+            "BAM local inventory must retain governed mixed readiness coverage"
+        );
+    }
+}
