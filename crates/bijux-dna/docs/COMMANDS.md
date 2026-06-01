@@ -134,6 +134,13 @@ Visible aliases are part of the operator surface:
   Each row carries `domain`, `tool_id`, `decision`, `declared_stage_ids`, `benchmark_stage_ids`,
   and `reason`, and every orphan row is forced into an explicit disposition:
   `register_to_stage`, `remove_from_scope`, or `future_tool`.
+- `bijux-dna bench readiness render-missing-benchmark-pairs`
+  `render-missing-benchmark-pairs` writes
+  `target/bench-readiness/missing-benchmark-pairs.tsv` with one governed row per FASTQ or BAM
+  stage-tool pair that is admitted by the domain contracts but missing from the current benchmark
+  matrix. Each row carries `domain`, `stage_id`, `tool_id`, `support_status`,
+  `registered_tool_ids`, and `reason` so compatible pairs cannot disappear silently before
+  readiness review.
 - `bijux-dna bench readiness render-undercovered-stages`
   `render-undercovered-stages` writes `target/bench-readiness/undercovered-stages.tsv` with one
   governed row per benchmark stage that admits multiple tool options in the domain tool contracts
