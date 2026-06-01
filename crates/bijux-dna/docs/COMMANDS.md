@@ -115,6 +115,11 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench corpus-fastq-report`
 - `bijux-dna bench corpus-fastq-publication-status`
 - `bijux-dna bench corpus-fastq-published-dossiers`
+- `bijux-dna bench readiness render-fastq-tool-serving-map`
+  `render-fastq-tool-serving-map` writes `target/bench-readiness/fastq-tool-serving-map.tsv`
+  with one governed row per FASTQ stage-tool binding in the 27-stage benchmark slice, carrying
+  `tool_id`, `stage_id`, `support_status`, `adapter_status`, `parser_status`, and `corpus_status`
+  from the real FASTQ governance contracts and local corpus-compatibility matrix.
 - `bijux-dna bench local list-stages`
 - `bijux-dna bench local validate-hpc-submission-ready`
   `validate-hpc-submission-ready` writes `target/local-ready/HPC_SUBMISSION_READY.json` and
