@@ -17,6 +17,12 @@ outputs:
   - name: "screen_report_tsv"
     data_type: "tsv"
     cardinality: "Many"
+  - name: "unclassified_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "unclassified_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
 metrics_parser: "kraken2_v1"
 constraints:
   runtime: "local"
@@ -31,6 +37,8 @@ execution_contract:
   expected_outputs:
     - "classification_report_json"
     - "screen_report_tsv"
+    - "unclassified_reads_r1"
+    - "unclassified_reads_r2"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 
@@ -51,8 +59,10 @@ stage_contracts:
     expected_artifacts:
       - "screen_report_tsv"
       - "classification_report_json"
-    notes: "Raw classifier summaries are preserved in screen_report_tsv while classification_report_json carries the governed taxonomy report contract."
-expected_artifacts: ["classification_report_json", "screen_report_tsv"]
+      - "unclassified_reads_r1"
+      - "unclassified_reads_r2"
+    notes: "Raw classifier summaries are preserved in screen_report_tsv while classification_report_json carries the governed taxonomy report contract. When emit_unclassified is enabled, Kraken2 can also preserve the unresolved reads in unclassified_reads_*."
+expected_artifacts: ["classification_report_json", "screen_report_tsv", "unclassified_reads_r1", "unclassified_reads_r2"]
 metrics_schema_id: "bijux.fastq.classify.v1"
 metrics_schema: "bijux.fastq.classify.v1"
 version_cmd: "kraken2 --version"
