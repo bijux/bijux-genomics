@@ -167,6 +167,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::FakeRunStages(args) => {
+                        crate::commands::benchmark::local_stage_fake_runs::run_fake_run_stages(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RenderStageCommands(args) => {
                         crate::commands::benchmark::local_stage_commands::run_render_stage_commands(
                             &args,

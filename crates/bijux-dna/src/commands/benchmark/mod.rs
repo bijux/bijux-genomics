@@ -3,6 +3,7 @@ pub(crate) mod corpus_fastq;
 pub(crate) mod corpus_metadata;
 pub(crate) mod fastq_bench;
 pub(crate) mod local_stage_commands;
+pub(crate) mod local_stage_fake_runs;
 pub(crate) mod local_stage_inventory;
 pub(crate) mod publication;
 pub(crate) mod repo_checks;

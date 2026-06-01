@@ -12,6 +12,8 @@ pub enum BenchLocalCommand {
     ListStages(BenchLocalListStagesArgs),
     #[command(name = "materialize-stage")]
     MaterializeStage(BenchLocalMaterializeStageArgs),
+    #[command(name = "fake-run-stages")]
+    FakeRunStages(BenchLocalFakeRunStagesArgs),
     #[command(name = "render-stage-commands")]
     RenderStageCommands(BenchLocalRenderStageCommandsArgs),
 }
@@ -28,6 +30,14 @@ pub struct BenchLocalListStagesArgs {
 pub struct BenchLocalMaterializeStageArgs {
     #[arg(long)]
     pub stage_id: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalFakeRunStagesArgs {
+    #[arg(long)]
+    pub output_root: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }
