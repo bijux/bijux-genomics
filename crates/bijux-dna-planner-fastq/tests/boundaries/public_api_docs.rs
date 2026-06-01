@@ -69,6 +69,7 @@ fn public_api_docs_match_curated_exports() {
             "local_deplete_host_plan",
             "local_deplete_reference_contaminants_plan",
             "local_deplete_rrna_plan",
+            "local_screen_taxonomy_plan",
             "local_detect_adapters_smoke_plans",
             "local_detect_duplicates_premerge_smoke_plans",
             "local_estimate_library_complexity_prealign_smoke_plans",
@@ -175,6 +176,8 @@ fn documented_stage_api_exports_remain_compilable() {
         bijux_dna_planner_fastq::stage_api::local_deplete_reference_contaminants_plan;
     let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
         bijux_dna_planner_fastq::stage_api::local_deplete_rrna_plan;
+    let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
+        bijux_dna_planner_fastq::stage_api::local_screen_taxonomy_plan;
     let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
         bijux_dna_planner_fastq::stage_api::local_index_reference_plan;
     let _: fn(
