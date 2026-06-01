@@ -8,6 +8,8 @@ mod local_align;
 mod local_filter_smoke;
 #[path = "plan/local_mapping_summary_smoke.rs"]
 mod local_mapping_summary_smoke;
+#[path = "plan/local_mapq_filter_smoke.rs"]
+mod local_mapq_filter_smoke;
 #[path = "plan/local_qc_pre_smoke.rs"]
 mod local_qc_pre_smoke;
 #[path = "plan/local_validate_smoke.rs"]

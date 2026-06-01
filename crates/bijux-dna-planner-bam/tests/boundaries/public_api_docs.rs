@@ -70,10 +70,15 @@ fn documented_root_exports_remain_compilable() {
         bijux_dna_planner_bam::stage_api::local_qc_pre_smoke_plans;
     let _: fn(
         &Path,
-    ) -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalMappingSummarySmokeCasePlan>> =
+    )
+        -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalMappingSummarySmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_mapping_summary_smoke_plans;
     let _: fn(&Path) -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalFilterSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_filter_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalMapqFilterSmokeCasePlan>> =
+        bijux_dna_planner_bam::stage_api::local_mapq_filter_smoke_plans;
     let _: &str = bijux_dna_planner_bam::tool_adapters::tools::catalog::TOOLS_NAMESPACE;
 }
 
