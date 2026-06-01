@@ -624,6 +624,11 @@ pub mod length_filter {
                     "length_filter",
                 ),
         };
+        if let Some(summary_output) =
+            plan.io.outputs.iter_mut().find(|artifact| artifact.name.as_str() == "summary")
+        {
+            summary_output.path = summary.clone();
+        }
         plan.params = serde_json::json!({
             "bam": bam,
             "action": "length_filter",
