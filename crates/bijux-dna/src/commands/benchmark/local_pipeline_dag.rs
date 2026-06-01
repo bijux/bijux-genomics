@@ -589,4 +589,59 @@ mod tests {
             "report_qc must collate UMI extraction and duplicate-aware preprocessing metrics"
         );
     }
+
+    #[test]
+    fn bam_core_qc_pipeline_dag_tracks_qc_summary_filter_and_coverage_handoffs() {
+        let repo_root = repo_root();
+        let config_path = repo_root.join("configs/pipelines/local/bam-core-qc.toml");
+        let output_path = repo_root.join("target/local-ready/pipeline-dag/bam-core-qc.json");
+        let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect("validate bam core qc local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "bam-core-qc");
+        assert_eq!(report.domain, "bam");
+        assert_eq!(report.default_corpus_id, "corpus-01-bam-mini");
+        assert_eq!(report.node_count, 5);
+        assert_eq!(report.edge_count, 5);
+        assert!(report.acyclic);
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.qc_pre"
+                    && node.upstream_inputs == vec!["validation_report"]
+                    && node.outputs
+                        == vec![
+                            "qc_pre_flagstat",
+                            "qc_pre_idxstats",
+                            "qc_pre_stats",
+                            "qc_pre_stage_metrics",
+                        ]
+            }),
+            "bam.qc_pre must consume validation output and expose governed pre-QC metric artifacts"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.filter"
+                    && node.readiness_kind == "dry_or_smoke"
+                    && node.upstream_inputs
+                        == vec!["qc_pre_flagstat", "qc_pre_idxstats", "qc_pre_stats"]
+                    && node.outputs
+                        == vec![
+                            "filtered_bam",
+                            "filtered_bai",
+                            "filter_report_json",
+                            "filter_stage_metrics",
+                        ]
+            }),
+            "bam.filter must consume pre-QC outputs and expose the filtered BAM handoff"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.coverage"
+                    && node.upstream_inputs
+                        == vec!["mapping_summary_report_json", "filtered_bam", "filtered_bai"]
+                    && node.external_inputs == vec!["coverage_region_contract"]
+            }),
+            "bam.coverage must consume both mapping summary context and filtered BAM outputs"
+        );
+    }
 }
