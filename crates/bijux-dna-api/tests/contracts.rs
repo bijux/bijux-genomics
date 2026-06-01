@@ -46,6 +46,8 @@ mod mod_contracts_v1_bam_local_markdup_smoke_rs;
 mod mod_contracts_v1_bam_local_overlap_correction_smoke_rs;
 #[path = "contracts/v1_bam_local_qc_pre_smoke.rs"]
 mod mod_contracts_v1_bam_local_qc_pre_smoke_rs;
+#[path = "contracts/v1_bam_local_recalibration_smoke.rs"]
+mod mod_contracts_v1_bam_local_recalibration_smoke_rs;
 #[path = "contracts/v1_bam_local_sex_smoke.rs"]
 mod mod_contracts_v1_bam_local_sex_smoke_rs;
 #[path = "contracts/v1_bam_local_validate_smoke.rs"]
