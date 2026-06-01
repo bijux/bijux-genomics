@@ -199,6 +199,11 @@ Visible aliases are part of the operator surface:
   `fake-run-stages` mirrors every declared benchmark-stage output under
   `target/local-fake-runs/stages/` and writes a fake-run manifest for all governed stages,
   including estimated `resource_metrics` derived from governed thread and memory ceilings.
+- `bijux-dna bench local render-slurm-scripts`
+  `render-slurm-scripts` writes one governed `.sbatch` file per selected local benchmark stage
+  under `target/slurm-dry-run/<domain>/`, using the real stage materialization command,
+  governed thread and memory ceilings, and a domain-scoped stage inventory slice such as the
+  27-stage FASTQ local benchmark matrix.
 - `bijux-dna bench local render-stage-commands`
   `render-stage-commands` writes both `target/local-ready/rendered-stage-commands.sh` and the
   machine-readable companion `target/local-ready/rendered-stage-commands.json`.
