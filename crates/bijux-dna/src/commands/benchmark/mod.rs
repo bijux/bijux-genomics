@@ -10,6 +10,7 @@ pub(crate) mod local_dag_watchdog_simulation;
 pub(crate) mod local_pipeline_dag;
 pub(crate) mod local_slurm_dependency_check;
 pub(crate) mod local_slurm_dry_run;
+pub(crate) mod local_slurm_run_paths;
 pub(crate) mod local_slurm_script_bodies;
 pub(crate) mod local_slurm_shell_syntax;
 pub(crate) mod local_slurm_submit_manifest;
