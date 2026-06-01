@@ -1,0 +1,30 @@
+schema_version = "bijux.bench.taxonomy_database_fixture.v1"
+database_id = "taxonomy-mini"
+description = "Tiny governed taxonomy directory bundle for local taxonomy dry-run and fixture-validation checks."
+lineage_table_path = "lineage.tsv"
+source_manifest_path = "source/panel_manifest.json"
+sequence_index_path = "kraken2/hash.k2d"
+expected_classifier_compatibility = ["kraken2"]
+limitations = [
+  "This bundle is a tiny governed fixture for local validation and lineage checks, not a production taxonomy database.",
+  "Placeholder backend roots beyond Kraken2 satisfy fixture-bundle shape for dry-run validation and must not be interpreted as runnable classifier indexes.",
+]
+source_paths = [
+  "assets/reference/taxonomy/references/mock_community_taxonomy/lineage.tsv",
+  "assets/reference/taxonomy/references/mock_community_taxonomy/kraken2/DB_STATUS.tsv",
+]
+
+[[taxa]]
+taxon_id = 561
+name = "Escherichia coli"
+rank = "species"
+
+[[taxa]]
+taxon_id = 28901
+name = "Salmonella enterica"
+rank = "species"
+
+[[taxa]]
+taxon_id = 28890
+name = "Halobacterium salinarum"
+rank = "species"
