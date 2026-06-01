@@ -644,4 +644,57 @@ mod tests {
             "bam.coverage must consume both mapping summary context and filtered BAM outputs"
         );
     }
+
+    #[test]
+    fn bam_authenticity_pipeline_dag_tracks_only_required_authenticity_evidence() {
+        let repo_root = repo_root();
+        let config_path = repo_root.join("configs/pipelines/local/bam-authenticity.toml");
+        let output_path = repo_root.join("target/local-ready/pipeline-dag/bam-authenticity.json");
+        let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect("validate bam authenticity local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "bam-authenticity");
+        assert_eq!(report.domain, "bam");
+        assert_eq!(report.default_corpus_id, "corpus-01-adna-damage-mini");
+        assert_eq!(report.node_count, 7);
+        assert_eq!(report.edge_count, 7);
+        assert!(report.acyclic);
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.sex"
+                    && node.upstream_inputs == vec!["coverage_report_json"]
+                    && node.external_inputs == vec!["corpus.aligned_bam", "sex_reference_contract"]
+            }),
+            "bam.sex must stay explicit as a coverage-driven diagnostic branch"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.authenticity"
+                    && node.upstream_inputs
+                        == vec![
+                            "mapping_summary_report_json",
+                            "coverage_report_json",
+                            "damage_report_json",
+                            "contamination_report_json",
+                            "complexity_report_json",
+                        ]
+                    && node.depends_on
+                        == vec![
+                            "bam.mapping_summary",
+                            "bam.coverage",
+                            "bam.damage",
+                            "bam.contamination",
+                            "bam.complexity",
+                        ]
+            }),
+            "bam.authenticity must depend only on the governed metrics it currently consumes"
+        );
+        assert!(
+            report.nodes.iter().all(|node| {
+                node.stage_id != "bam.authenticity"
+                    || !node.upstream_inputs.iter().any(|input| input == "sex_report_json")
+            }),
+            "bam.authenticity must not claim bam.sex as a required upstream metric"
+        );
+    }
 }
