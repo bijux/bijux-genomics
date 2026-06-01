@@ -117,9 +117,10 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench corpus-fastq-published-dossiers`
 - `bijux-dna bench local list-stages`
 - `bijux-dna bench local validate-corpus-fixture`
-  `validate-corpus-fixture` checks a governed FASTQ corpus fixture manifest such as
-  `tests/fixtures/corpora/corpus-01-mini/manifest.toml` for sample IDs, layout, gzip FASTQ
-  paths, source-path provenance, and expected read-count agreement.
+  `validate-corpus-fixture` checks governed corpus fixture manifests such as
+  `tests/fixtures/corpora/corpus-01-mini/manifest.toml` and
+  `tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml` for declared sample identity,
+  file-path integrity, source-path provenance, and modality-specific contract checks.
 - `bijux-dna bench local render-benchmark-summary`
   `render-benchmark-summary` writes both `target/local-ready/benchmark-summary.json` and
   `target/local-ready/benchmark-summary.md`, summarizing governed fake-run readiness across all 51
