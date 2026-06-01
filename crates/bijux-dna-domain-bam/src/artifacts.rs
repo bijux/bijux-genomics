@@ -22,6 +22,7 @@ pub const BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapq_filter.
 pub const BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.length_filter.v1";
 pub const BAM_MARKDUP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.markdup.v1";
 pub const BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.duplication_metrics.v1";
+pub const BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.complexity.v1";
 pub const BAM_COVERAGE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_summary.v1";
 pub const BAM_DUPLICATE_POLICY_SCHEMA_VERSION: &str = "bijux.bam.duplicate_policy.v1";
 pub const BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION: &str = "bijux.bam.advisory_boundary.v1";
@@ -303,6 +304,26 @@ pub struct BamDuplicationMetricsSummaryV1 {
     pub umi_policy: Option<String>,
     #[serde(default)]
     pub duplicate_action: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamComplexitySummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    pub input_bam: PathBuf,
+    pub observed_total_reads: u64,
+    pub observed_unique_reads: u64,
+    #[serde(default)]
+    pub projected_unique_reads: Vec<(u64, u64)>,
+    #[serde(default)]
+    pub estimated_unique_reads: Option<u64>,
+    #[serde(default)]
+    pub saturation_estimate: Option<f64>,
+    pub min_reads: u64,
+    #[serde(default)]
+    pub insufficient_data_reason: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -2179,6 +2200,115 @@ pub fn summarize_tiny_bam_duplication_metrics(
     Ok((summary, family_histogram))
 }
 
+/// Build a typed complexity summary from observed and projected unique-read counts.
+#[must_use]
+pub fn summarize_bam_complexity(
+    stage_id: &str,
+    method: &str,
+    input_bam: &Path,
+    observed_total_reads: u64,
+    complexity: &crate::metrics::ComplexityMetricsV1,
+    min_reads: u64,
+    insufficient_data_reason: Option<&str>,
+) -> BamComplexitySummaryV1 {
+    let estimated_unique_reads = if insufficient_data_reason.is_none() {
+        complexity
+            .projected_reads
+            .last()
+            .map(|(_, projected_unique_reads)| *projected_unique_reads)
+            .or(Some(complexity.observed_reads))
+    } else {
+        None
+    };
+    let saturation_estimate = if insufficient_data_reason.is_none() {
+        saturation_estimate_from_curve(&complexity.projected_reads)
+            .or(Some(complexity.saturation_estimate))
+    } else {
+        None
+    };
+    BamComplexitySummaryV1 {
+        schema_version: BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        method: method.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        observed_total_reads,
+        observed_unique_reads: complexity.observed_reads,
+        projected_unique_reads: complexity.projected_reads.clone(),
+        estimated_unique_reads,
+        saturation_estimate,
+        min_reads,
+        insufficient_data_reason: insufficient_data_reason.map(ToOwned::to_owned),
+    }
+}
+
+/// Observe BAM library complexity on a tiny BAM/SAM fixture with deterministic extrapolation.
+///
+/// # Errors
+/// Returns an error if input parsing fails.
+pub fn summarize_tiny_bam_complexity(
+    input_bam: &Path,
+    method: &str,
+    min_reads: u64,
+    projection_points: &[u64],
+) -> Result<BamComplexitySummaryV1> {
+    let input = parse_tiny_sam(input_bam)?;
+    let mut observed = HashMap::<String, u64>::new();
+    for record in input.records.iter().filter(|record| record.is_mapped()) {
+        let key = format!("{}:{}:{}:{}", record.rname, record.pos, record.cigar, record.seq);
+        *observed.entry(key).or_insert(0) += 1;
+    }
+
+    let observed_total_reads = observed.values().copied().sum::<u64>();
+    let observed_unique_reads = observed.len() as u64;
+    let mut projected_unique_reads = vec![(observed_total_reads, observed_unique_reads)];
+    let insufficient_data_reason = if observed_unique_reads < min_reads {
+        Some("insufficient_observed_unique_reads_for_complexity_extrapolation")
+    } else {
+        let unique_fraction = if observed_total_reads > 0 {
+            observed_unique_reads as f64 / observed_total_reads as f64
+        } else {
+            0.0
+        };
+        for point in projection_points.iter().copied().filter(|point| *point > observed_total_reads)
+        {
+            let projected_increment =
+                ((point - observed_total_reads) as f64 * unique_fraction).round() as u64;
+            projected_unique_reads.push((point, observed_unique_reads + projected_increment));
+        }
+        None
+    };
+    let saturation_estimate =
+        saturation_estimate_from_curve(&projected_unique_reads).unwrap_or(0.0);
+    let complexity = crate::metrics::ComplexityMetricsV1 {
+        observed_reads: observed_unique_reads,
+        projected_reads: projected_unique_reads,
+        saturation_estimate,
+    };
+    Ok(summarize_bam_complexity(
+        "bam.complexity",
+        method,
+        input_bam,
+        observed_total_reads,
+        &complexity,
+        min_reads,
+        insufficient_data_reason,
+    ))
+}
+
+fn saturation_estimate_from_curve(projected_unique_reads: &[(u64, u64)]) -> Option<f64> {
+    if projected_unique_reads.len() < 2 {
+        return None;
+    }
+    let (x0, y0) = projected_unique_reads.first().copied()?;
+    let (x1, y1) = projected_unique_reads.last().copied()?;
+    if x1 > x0 && y1 > 0 {
+        let gain = (y1.saturating_sub(y0)) as f64 / (x1 - x0) as f64;
+        Some((1.0 - gain).clamp(0.0, 1.0))
+    } else {
+        Some(0.0)
+    }
+}
+
 /// Filter tiny BAM/SAM fixtures by MAPQ and emit retained/removed evidence.
 ///
 /// # Errors
@@ -3614,6 +3744,30 @@ mod tests {
     }
 
     #[test]
+    fn bam_complexity_summary_round_trips() {
+        let payload = BamComplexitySummaryV1 {
+            schema_version: BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.complexity".to_string(),
+            method: "preseq".to_string(),
+            input_bam: PathBuf::from("input.bam"),
+            observed_total_reads: 3,
+            observed_unique_reads: 2,
+            projected_unique_reads: vec![(3, 2)],
+            estimated_unique_reads: None,
+            saturation_estimate: None,
+            min_reads: 3,
+            insufficient_data_reason: Some(
+                "insufficient_observed_unique_reads_for_complexity_extrapolation".to_string(),
+            ),
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize complexity summary");
+        let roundtrip: BamComplexitySummaryV1 =
+            serde_json::from_value(json).expect("roundtrip complexity summary");
+        assert_eq!(roundtrip, payload);
+    }
+
+    #[test]
     fn bam_filter_summary_round_trips() {
         let payload = BamFilterSummaryV1 {
             schema_version: BAM_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
@@ -4236,6 +4390,37 @@ r04\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
             Some("tiny_smoke_duplicate_observation_is_insufficient_for_library_size_estimate")
         );
         assert_eq!(histogram, vec![(1, 1), (2, 1)]);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_complexity_reports_insufficient_unique_read_support() {
+        let temp = unique_temp_dir("bam-complexity");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:50\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t1\t40\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchr1\t1\t40\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchr1\t7\t40\t6M\t*\t0\t0\tTTTTTT\tFFFFFF\tRG:Z:rg1\n\
+r04\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write complexity fixture");
+
+        let summary = summarize_tiny_bam_complexity(&input, "preseq", 3, &[6, 12])
+            .expect("summarize complexity");
+        assert_eq!(summary.method, "preseq");
+        assert_eq!(summary.observed_total_reads, 3);
+        assert_eq!(summary.observed_unique_reads, 2);
+        assert_eq!(summary.projected_unique_reads, vec![(3, 2)]);
+        assert_eq!(summary.estimated_unique_reads, None);
+        assert_eq!(summary.saturation_estimate, None);
+        assert_eq!(summary.min_reads, 3);
+        assert_eq!(
+            summary.insufficient_data_reason.as_deref(),
+            Some("insufficient_observed_unique_reads_for_complexity_extrapolation")
+        );
     }
 
     #[test]
