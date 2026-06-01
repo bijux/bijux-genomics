@@ -13,4 +13,5 @@ pub(crate) mod mapq_filter;
 pub(crate) mod markdup;
 pub(crate) mod overlap_correction;
 pub(crate) mod qc_pre;
+pub(crate) mod sex;
 pub(crate) mod validate;
