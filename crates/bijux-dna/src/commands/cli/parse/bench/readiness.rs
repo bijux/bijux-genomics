@@ -8,6 +8,8 @@ pub enum BenchReadinessCommand {
     RenderBamToolServingMap(BenchReadinessRenderBamToolServingMapArgs),
     #[command(name = "render-orphan-tools")]
     RenderOrphanTools(BenchReadinessRenderOrphanToolsArgs),
+    #[command(name = "render-undercovered-stages")]
+    RenderUndercoveredStages(BenchReadinessRenderUndercoveredStagesArgs),
 }
 
 #[derive(Debug, Args)]
@@ -28,6 +30,14 @@ pub struct BenchReadinessRenderBamToolServingMapArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderOrphanToolsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderUndercoveredStagesArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

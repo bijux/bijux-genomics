@@ -151,6 +151,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderUndercoveredStages(args) => {
+                        crate::commands::benchmark::readiness::undercovered_stages::run_render_undercovered_stages(
+                            args,
+                        )?;
+                    }
                 },
                 BenchCommand::Local { command } => match command {
                     cli::BenchLocalCommand::ListStages(args) => {
