@@ -1,0 +1,20 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.endogenous_content.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_endogenous_content.v1"
+tool_id = "samtools"
+threads = 2
+output_dir = "target/local-smoke/bam.endogenous_content"
+
+[[cases]]
+sample_id = "core-v1-endogenous-partial-mapping"
+bam = "assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam"
+host_reference_scope = "human_host"
+expected_total_reads = 5
+expected_mapped_reads = 3
+expected_endogenous_fraction = 0.6
+expected_method = "mapped_fraction_from_flagstat"
