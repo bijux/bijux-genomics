@@ -16,7 +16,8 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str = "target/local-ready/rendered-stage-commands.sh";
-const DEFAULT_RUNTIME_METRICS_REPORT_PATH: &str = "target/local-ready/runtime-metrics.json";
+pub(crate) const DEFAULT_RUNTIME_METRICS_REPORT_PATH: &str =
+    "target/local-ready/runtime-metrics.json";
 const LOCAL_STAGE_RUNTIME_METRICS_REPORT_SCHEMA_VERSION: &str =
     "bijux.bench.local_runtime_metrics.v1";
 
