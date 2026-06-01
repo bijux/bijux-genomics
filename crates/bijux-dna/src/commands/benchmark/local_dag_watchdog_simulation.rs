@@ -12,27 +12,52 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH: &str =
     "target/local-ready/dag-sim/no-global-wait.json";
+pub(crate) const DEFAULT_FAILURE_ISOLATION_REPORT_PATH: &str =
+    "target/local-ready/dag-sim/failure-isolation.json";
 const LOCAL_DAG_WATCHDOG_SIMULATION_SCHEMA_VERSION: &str =
     "bijux.bench.local_dag_watchdog_simulation.v1";
 const FASTQ_CORE_PREPROCESS_PIPELINE_REPORT_PATH: &str =
     "target/local-ready/pipeline-dag/fastq-core-preprocess.json";
 const NO_GLOBAL_WAIT_SLOW_BRANCH_STAGE_ID: &str = "fastq.profile_read_lengths";
+const FAILURE_ISOLATION_FAILED_SAMPLE_ID: &str = "sample_alpha";
+const FAILURE_ISOLATION_CONTINUED_SAMPLE_ID: &str = "sample_beta";
+const FAILURE_ISOLATION_FAILED_STAGE_ID: &str = "fastq.detect_adapters";
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum LocalDagWatchdogScenario {
     NoGlobalWait,
+    FailureIsolation,
 }
 
 impl LocalDagWatchdogScenario {
     fn as_str(self) -> &'static str {
         match self {
             Self::NoGlobalWait => "no_global_wait",
+            Self::FailureIsolation => "failure_isolation",
         }
     }
 
     fn default_output_relative_path(self) -> &'static str {
         match self {
             Self::NoGlobalWait => DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH,
+            Self::FailureIsolation => DEFAULT_FAILURE_ISOLATION_REPORT_PATH,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum LocalDagWatchdogNodeStatus {
+    Completed,
+    Failed,
+    Blocked,
+}
+
+impl LocalDagWatchdogNodeStatus {
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Completed => "completed",
+            Self::Failed => "failed",
+            Self::Blocked => "blocked",
         }
     }
 }
@@ -40,7 +65,9 @@ impl LocalDagWatchdogScenario {
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct LocalDagWatchdogSimulationNode {
     pub(crate) node_id: String,
+    pub(crate) sample_id: String,
     pub(crate) stage_id: String,
+    pub(crate) status: String,
     pub(crate) dependency_count: usize,
     pub(crate) depends_on: Vec<String>,
     pub(crate) start_second: u64,
@@ -57,11 +84,18 @@ pub(crate) struct LocalDagWatchdogSimulationReport {
     pub(crate) output_path: String,
     pub(crate) pipeline_id: String,
     pub(crate) node_count: usize,
+    pub(crate) sample_count: usize,
     pub(crate) simulated_makespan_seconds: u64,
     pub(crate) slow_branch_stage_id: String,
     pub(crate) slow_branch_finish_second: u64,
     pub(crate) ready_while_slow_branch_running_stage_ids: Vec<String>,
     pub(crate) no_global_wait_proven: bool,
+    pub(crate) failed_sample_id: Option<String>,
+    pub(crate) failed_stage_id: Option<String>,
+    pub(crate) failure_second: Option<u64>,
+    pub(crate) continued_unrelated_node_ids: Vec<String>,
+    pub(crate) blocked_node_ids: Vec<String>,
+    pub(crate) failure_isolation_proven: bool,
     pub(crate) nodes: Vec<LocalDagWatchdogSimulationNode>,
 }
 
@@ -78,6 +112,13 @@ pub(crate) fn simulate_dag_watchdog_path(
         LocalDagWatchdogScenario::NoGlobalWait => {
             build_no_global_wait_report(repo_root, &config_path, &dag_report_path, output_path, &dag_report)?
         }
+        LocalDagWatchdogScenario::FailureIsolation => build_failure_isolation_report(
+            repo_root,
+            &config_path,
+            &dag_report_path,
+            output_path,
+            &dag_report,
+        )?,
     };
 
     if let Some(parent) = output_path.parent() {
@@ -136,7 +177,9 @@ fn build_no_global_wait_report(
         stage_finish_times.insert(node.stage_id.clone(), finish_second);
         nodes.push(LocalDagWatchdogSimulationNode {
             node_id: node.node_id.clone(),
+            sample_id: "sample_primary".to_string(),
             stage_id: node.stage_id.clone(),
+            status: LocalDagWatchdogNodeStatus::Completed.as_str().to_string(),
             dependency_count: node.dependency_count,
             depends_on: node.depends_on.clone(),
             start_second,
@@ -186,11 +229,168 @@ fn build_no_global_wait_report(
         output_path: path_relative_to_repo(repo_root, output_path),
         pipeline_id: dag_report.pipeline_id.clone(),
         node_count: nodes.len(),
+        sample_count: 1,
         simulated_makespan_seconds,
         slow_branch_stage_id: NO_GLOBAL_WAIT_SLOW_BRANCH_STAGE_ID.to_string(),
         slow_branch_finish_second,
         ready_while_slow_branch_running_stage_ids,
         no_global_wait_proven,
+        failed_sample_id: None,
+        failed_stage_id: None,
+        failure_second: None,
+        continued_unrelated_node_ids: Vec::new(),
+        blocked_node_ids: Vec::new(),
+        failure_isolation_proven: false,
+        nodes,
+    })
+}
+
+fn build_failure_isolation_report(
+    repo_root: &Path,
+    config_path: &Path,
+    dag_report_path: &Path,
+    output_path: &Path,
+    dag_report: &crate::commands::benchmark::local_pipeline_dag::LocalPipelineDagValidationReport,
+) -> Result<LocalDagWatchdogSimulationReport> {
+    let sample_ids = [
+        FAILURE_ISOLATION_FAILED_SAMPLE_ID,
+        FAILURE_ISOLATION_CONTINUED_SAMPLE_ID,
+    ];
+    let mut nodes = Vec::with_capacity(dag_report.nodes.len() * sample_ids.len());
+    let mut finish_times = BTreeMap::<String, u64>::new();
+    let mut status_index = BTreeMap::<String, LocalDagWatchdogNodeStatus>::new();
+
+    for sample_id in sample_ids {
+        for node in &dag_report.nodes {
+            let qualified_node_id = format!("{sample_id}::{}", node.node_id);
+            let qualified_dependencies = node
+                .depends_on
+                .iter()
+                .map(|dependency| format!("{sample_id}::{dependency}"))
+                .collect::<Vec<_>>();
+            let dependency_statuses = qualified_dependencies
+                .iter()
+                .filter_map(|dependency| status_index.get(dependency).copied())
+                .collect::<Vec<_>>();
+            let dependency_failed = dependency_statuses
+                .iter()
+                .any(|status| matches!(status, LocalDagWatchdogNodeStatus::Failed | LocalDagWatchdogNodeStatus::Blocked));
+
+            let (status, start_second, finish_second, duration_seconds) =
+                if sample_id == FAILURE_ISOLATION_FAILED_SAMPLE_ID
+                    && node.stage_id == FAILURE_ISOLATION_FAILED_STAGE_ID
+                {
+                    let start_second = qualified_dependencies
+                        .iter()
+                        .filter_map(|dependency| finish_times.get(dependency).copied())
+                        .max()
+                        .unwrap_or(0);
+                    let duration_seconds = failure_isolation_duration_seconds(&node.stage_id);
+                    (
+                        LocalDagWatchdogNodeStatus::Failed,
+                        start_second,
+                        start_second + duration_seconds,
+                        duration_seconds,
+                    )
+                } else if dependency_failed {
+                    (LocalDagWatchdogNodeStatus::Blocked, 0, 0, 0)
+                } else {
+                    let start_second = qualified_dependencies
+                        .iter()
+                        .filter_map(|dependency| finish_times.get(dependency).copied())
+                        .max()
+                        .unwrap_or(0);
+                    let duration_seconds = failure_isolation_duration_seconds(&node.stage_id);
+                    (
+                        LocalDagWatchdogNodeStatus::Completed,
+                        start_second,
+                        start_second + duration_seconds,
+                        duration_seconds,
+                    )
+                };
+
+            finish_times.insert(qualified_node_id.clone(), finish_second);
+            status_index.insert(qualified_node_id.clone(), status);
+            nodes.push(LocalDagWatchdogSimulationNode {
+                node_id: qualified_node_id,
+                sample_id: sample_id.to_string(),
+                stage_id: node.stage_id.clone(),
+                status: status.as_str().to_string(),
+                dependency_count: node.dependency_count,
+                depends_on: qualified_dependencies,
+                start_second,
+                finish_second,
+                duration_seconds,
+            });
+        }
+    }
+
+    let Some(failed_node) = nodes.iter().find(|node| {
+        node.sample_id == FAILURE_ISOLATION_FAILED_SAMPLE_ID
+            && node.stage_id == FAILURE_ISOLATION_FAILED_STAGE_ID
+            && node.status == LocalDagWatchdogNodeStatus::Failed.as_str()
+    }) else {
+        return Err(anyhow!(
+            "failure-isolation scenario did not produce the injected failed node"
+        ));
+    };
+
+    let failure_second = failed_node.finish_second;
+    let continued_unrelated_node_ids = nodes
+        .iter()
+        .filter(|node| {
+            node.sample_id == FAILURE_ISOLATION_CONTINUED_SAMPLE_ID
+                && node.status == LocalDagWatchdogNodeStatus::Completed.as_str()
+                && node.finish_second > failure_second
+        })
+        .map(|node| node.node_id.clone())
+        .collect::<Vec<_>>();
+    let blocked_node_ids = nodes
+        .iter()
+        .filter(|node| {
+            node.sample_id == FAILURE_ISOLATION_FAILED_SAMPLE_ID
+                && node.status == LocalDagWatchdogNodeStatus::Blocked.as_str()
+        })
+        .map(|node| node.node_id.clone())
+        .collect::<Vec<_>>();
+    let failure_isolation_proven = continued_unrelated_node_ids
+        .iter()
+        .any(|node_id| node_id == "sample_beta::fastq.trim_reads")
+        && continued_unrelated_node_ids
+            .iter()
+            .any(|node_id| node_id == "sample_beta::fastq.report_qc")
+        && blocked_node_ids
+            .iter()
+            .any(|node_id| node_id == "sample_alpha::fastq.trim_reads");
+
+    if !failure_isolation_proven {
+        return Err(anyhow!(
+            "failure-isolation simulation did not show unrelated sample work continuing after the injected failure"
+        ));
+    }
+
+    let simulated_makespan_seconds = nodes.iter().map(|node| node.finish_second).max().unwrap_or(0);
+
+    Ok(LocalDagWatchdogSimulationReport {
+        schema_version: LOCAL_DAG_WATCHDOG_SIMULATION_SCHEMA_VERSION,
+        scenario: LocalDagWatchdogScenario::FailureIsolation.as_str().to_string(),
+        config_path: path_relative_to_repo(repo_root, config_path),
+        dag_report_path: path_relative_to_repo(repo_root, dag_report_path),
+        output_path: path_relative_to_repo(repo_root, output_path),
+        pipeline_id: dag_report.pipeline_id.clone(),
+        node_count: nodes.len(),
+        sample_count: sample_ids.len(),
+        simulated_makespan_seconds,
+        slow_branch_stage_id: String::new(),
+        slow_branch_finish_second: 0,
+        ready_while_slow_branch_running_stage_ids: Vec::new(),
+        no_global_wait_proven: false,
+        failed_sample_id: Some(FAILURE_ISOLATION_FAILED_SAMPLE_ID.to_string()),
+        failed_stage_id: Some(FAILURE_ISOLATION_FAILED_STAGE_ID.to_string()),
+        failure_second: Some(failure_second),
+        continued_unrelated_node_ids,
+        blocked_node_ids,
+        failure_isolation_proven,
         nodes,
     })
 }
@@ -199,6 +399,19 @@ fn no_global_wait_duration_seconds(stage_id: &str) -> u64 {
     match stage_id {
         "fastq.validate_reads" => 1,
         "fastq.profile_read_lengths" => 12,
+        "fastq.detect_adapters" => 2,
+        "fastq.trim_reads" => 1,
+        "fastq.filter_reads" => 1,
+        "fastq.profile_reads" => 1,
+        "fastq.report_qc" => 1,
+        _ => 1,
+    }
+}
+
+fn failure_isolation_duration_seconds(stage_id: &str) -> u64 {
+    match stage_id {
+        "fastq.validate_reads" => 1,
+        "fastq.profile_read_lengths" => 6,
         "fastq.detect_adapters" => 2,
         "fastq.trim_reads" => 1,
         "fastq.filter_reads" => 1,
