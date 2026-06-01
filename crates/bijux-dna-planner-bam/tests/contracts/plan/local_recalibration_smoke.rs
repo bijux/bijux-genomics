@@ -1,0 +1,128 @@
+use anyhow::Result;
+use std::path::{Path, PathBuf};
+
+fn repo_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root"))
+        .to_path_buf()
+}
+
+#[test]
+fn local_recalibration_smoke_plans_use_governed_skip_case() -> Result<()> {
+    let repo_root = repo_root();
+    let plans = bijux_dna_planner_bam::stage_api::local_recalibration_smoke_plans(&repo_root)?;
+    assert_eq!(
+        plans.len(),
+        1,
+        "governed local-smoke config must keep exactly one BAM recalibration case"
+    );
+
+    let case = plans
+        .iter()
+        .find(|case| case.sample_id == "core-v1-recalibration-low-coverage-skip")
+        .unwrap_or_else(|| panic!("governed BAM recalibration case missing"));
+    assert_eq!(case.plan.stage_id.as_str(), "bam.recalibration");
+    assert_eq!(case.plan.tool_id.as_str(), "gatk");
+    assert_eq!(case.plan.resources.threads, 2);
+    assert_eq!(
+        case.bam,
+        PathBuf::from("assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam")
+    );
+    assert_eq!(
+        case.reference,
+        PathBuf::from("assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta")
+    );
+    assert_eq!(
+        case.known_sites,
+        vec![PathBuf::from("assets/toy/core-v1/vcf/recalibration_known_sites.vcf")]
+    );
+    assert_eq!(case.requested_mode, bijux_dna_domain_bam::params::BqsrMode::Standard);
+    assert_eq!(case.effective_mode, bijux_dna_domain_bam::params::BqsrMode::Skip);
+    assert_eq!(case.min_mean_coverage, 0.1);
+    assert_eq!(case.min_breadth_1x, 0.05);
+    assert!((case.observed_mean_coverage - 0.024).abs() <= 1e-9);
+    assert!((case.observed_breadth_1x - 0.024).abs() <= 1e-9);
+    assert_eq!(case.expected_status, "skipped");
+    assert_eq!(case.expected_reason, "coverage_below_gate");
+    assert_eq!(
+        case.plan.out_dir,
+        PathBuf::from(
+            "target/local-smoke/bam.recalibration/core-v1-recalibration-low-coverage-skip/gatk"
+        )
+    );
+    assert_eq!(
+        case.plan.params["bam"],
+        serde_json::json!("assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam")
+    );
+    assert_eq!(
+        case.plan.params["reference"],
+        serde_json::json!("assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta")
+    );
+    assert_eq!(
+        case.plan.params["known_sites"],
+        serde_json::json!(["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"])
+    );
+    assert_eq!(case.plan.params["requested_mode"], serde_json::json!("standard"));
+    assert_eq!(case.plan.params["mode"], serde_json::json!("skip"));
+    assert_eq!(case.plan.params["status"], serde_json::json!("skipped"));
+    assert_eq!(case.plan.params["decision_reason"], serde_json::json!("coverage_below_gate"));
+    assert_eq!(case.plan.params["observed_mean_coverage"], serde_json::json!(0.024));
+    assert_eq!(case.plan.params["observed_breadth_1x"], serde_json::json!(0.024));
+
+    let input_names = case
+        .plan
+        .io
+        .inputs
+        .iter()
+        .map(|artifact| artifact.name.as_str().to_string())
+        .collect::<Vec<_>>();
+    assert_eq!(input_names, vec!["bam", "reference"]);
+
+    let output_names = case
+        .plan
+        .io
+        .outputs
+        .iter()
+        .map(|artifact| artifact.name.as_str().to_string())
+        .collect::<Vec<_>>();
+    assert_eq!(
+        output_names,
+        vec!["recal_bam", "recal_bai", "recal_report", "summary", "stage_metrics"]
+    );
+
+    let summary_output = case
+        .plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "summary")
+        .unwrap_or_else(|| panic!("recalibration summary output missing from BAM plan"));
+    assert_eq!(
+        summary_output.path,
+        PathBuf::from(
+            "target/local-smoke/bam.recalibration/core-v1-recalibration-low-coverage-skip/gatk/recal.summary.json"
+        )
+    );
+
+    let command = case
+        .plan
+        .command
+        .template
+        .get(2)
+        .unwrap_or_else(|| panic!("recalibration plan shell command missing"));
+    assert!(command.contains("status=skipped"));
+    assert!(command.contains("reason=requested_skip_mode"));
+
+    Ok(())
+}
+
+#[test]
+fn local_recalibration_smoke_stage_api_surface_stays_callable() {
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_bam::stage_api::LocalRecalibrationSmokeCasePlan>,
+    > = bijux_dna_planner_bam::stage_api::local_recalibration_smoke_plans;
+}

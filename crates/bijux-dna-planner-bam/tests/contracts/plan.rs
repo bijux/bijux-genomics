@@ -38,6 +38,8 @@ mod local_markdup_smoke;
 mod local_overlap_correction_smoke;
 #[path = "plan/local_qc_pre_smoke.rs"]
 mod local_qc_pre_smoke;
+#[path = "plan/local_recalibration_smoke.rs"]
+mod local_recalibration_smoke;
 #[path = "plan/local_sex_smoke.rs"]
 mod local_sex_smoke;
 #[path = "plan/local_validate_smoke.rs"]
