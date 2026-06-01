@@ -103,6 +103,17 @@ fn stage_postprocess(
             bijux_dna_infra::atomic_write_json(&summary, &payload)
                 .with_context(|| format!("write {}", summary.display()))?;
         }
+        bijux_dna_planner_bam::stage_api::BamStage::QcPre => {
+            let input_bam = plan
+                .io
+                .inputs
+                .iter()
+                .find(|artifact| artifact.role == bijux_dna_core::contract::ArtifactRole::Bam)
+                .map_or_else(|| stage_dir.join("in.bam"), |artifact| artifact.path.clone());
+            crate::internal::bam::stages::qc_pre::write_stage_qc_pre_summary(
+                stage_dir, &input_bam,
+            )?;
+        }
         bijux_dna_planner_bam::stage_api::BamStage::MappingSummary => {
             let flagstat = stage_dir.join("flagstat.txt");
             let stats = stage_dir.join("samtools_stats.txt");
@@ -151,9 +162,12 @@ fn stage_postprocess(
         }
         bijux_dna_planner_bam::stage_api::BamStage::MapqFilter => {
             let flagstat_before: bijux_dna_domain_bam::BamFlagstatCountsV1 =
-                serde_json::from_value(parse_flagstat_counts(&stage_dir.join("flagstat.before.txt"))?)?;
-            let flagstat_after: bijux_dna_domain_bam::BamFlagstatCountsV1 =
-                serde_json::from_value(parse_flagstat_counts(&stage_dir.join("flagstat.after.txt"))?)?;
+                serde_json::from_value(parse_flagstat_counts(
+                    &stage_dir.join("flagstat.before.txt"),
+                )?)?;
+            let flagstat_after: bijux_dna_domain_bam::BamFlagstatCountsV1 = serde_json::from_value(
+                parse_flagstat_counts(&stage_dir.join("flagstat.after.txt"))?,
+            )?;
             let input_bam = plan
                 .io
                 .inputs
@@ -165,23 +179,20 @@ fn stage_postprocess(
                 .outputs
                 .iter()
                 .find(|artifact| {
-                    artifact.role == bijux_dna_core::contract::ArtifactRole::Bam && !artifact.optional
+                    artifact.role == bijux_dna_core::contract::ArtifactRole::Bam
+                        && !artifact.optional
                 })
                 .map_or_else(|| stage_dir.join("filtered.bam"), |artifact| artifact.path.clone());
-            let mapped_reads_removed = match (
-                flagstat_before.mapped_reads,
-                flagstat_after.mapped_reads,
-            ) {
-                (Some(before), Some(after)) if before >= after => Some(before - after),
-                _ => None,
-            };
-            let mapped_fraction_retained = match (
-                flagstat_before.mapped_reads,
-                flagstat_after.mapped_reads,
-            ) {
-                (Some(before), Some(after)) if before > 0 => Some(after as f64 / before as f64),
-                _ => None,
-            };
+            let mapped_reads_removed =
+                match (flagstat_before.mapped_reads, flagstat_after.mapped_reads) {
+                    (Some(before), Some(after)) if before >= after => Some(before - after),
+                    _ => None,
+                };
+            let mapped_fraction_retained =
+                match (flagstat_before.mapped_reads, flagstat_after.mapped_reads) {
+                    (Some(before), Some(after)) if before > 0 => Some(after as f64 / before as f64),
+                    _ => None,
+                };
             let payload = bijux_dna_domain_bam::BamMapqFilterSummaryV1 {
                 schema_version: bijux_dna_domain_bam::BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION
                     .to_string(),
@@ -227,7 +238,7 @@ fn stage_postprocess(
                 duplicate_action: json_string(plan.params.get("duplicate_action")),
                 policy_scope: "observation_only".to_string(),
                 library_semantics: vec![
-                    "reports duplicate burden without mutating BAM outputs".to_string(),
+                    "reports duplicate burden without mutating BAM outputs".to_string()
                 ],
                 comparison_ready_with: vec!["picard".to_string(), "samtools".to_string()],
             };
@@ -444,16 +455,10 @@ fn stage_postprocess(
             .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Contamination => {
-            let tool_scope = plan
-                .params
-                .get("tool_scope")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or("both");
-            let logical_scope = plan
-                .params
-                .get("scope")
-                .cloned()
-                .unwrap_or_else(|| serde_json::json!("both"));
+            let tool_scope =
+                plan.params.get("tool_scope").and_then(serde_json::Value::as_str).unwrap_or("both");
+            let logical_scope =
+                plan.params.get("scope").cloned().unwrap_or_else(|| serde_json::json!("both"));
             let path = stage_dir.join("contamination_modes.json");
             bijux_dna_infra::atomic_write_json(
                 &path,
