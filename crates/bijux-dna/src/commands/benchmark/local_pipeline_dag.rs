@@ -883,4 +883,57 @@ outputs = ["align_bam", "align_bai", "align_metrics"]
             "overlap insufficiency must stay local to bam.kinship instead of blocking unrelated BAM stages"
         );
     }
+
+    #[test]
+    fn fastq_to_bam_pipeline_dag_maps_trimmed_fastq_paths_into_bam_alignment() {
+        let repo_root = repo_root();
+        let config_path = repo_root.join("configs/pipelines/local/fastq-to-bam.toml");
+        let output_path = repo_root.join("target/local-ready/pipeline-dag/fastq-to-bam.json");
+        let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect("validate fastq-to-bam local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "fastq-to-bam");
+        assert_eq!(report.domain, "cross");
+        assert_eq!(report.default_corpus_id, "corpus-01-mini");
+        assert_eq!(report.node_count, 6);
+        assert_eq!(report.edge_count, 7);
+        assert!(report.acyclic);
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "fastq.trim_reads"
+                    && node.outputs
+                        == vec![
+                            "trimmed_reads_r1_path",
+                            "trimmed_reads_r2_path",
+                            "trim_metrics",
+                        ]
+            }),
+            "fastq.trim_reads must emit explicit R1 and R2 path outputs for cross-domain alignment"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.align"
+                    && node.readiness_kind == "dry_or_smoke"
+                    && node.depends_on == vec!["fastq.trim_reads"]
+                    && node.upstream_inputs
+                        == vec!["trimmed_reads_r1_path", "trimmed_reads_r2_path"]
+                    && node.external_inputs
+                        == vec![
+                            "alignment_reference_fasta_contract",
+                            "alignment_reference_index_contract",
+                            "alignment_read_group_contract",
+                        ]
+            }),
+            "bam.align must consume the governed trimmed FASTQ path handoff and alignment contracts"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.mapping_summary"
+                    && node.depends_on == vec!["bam.align", "bam.qc_pre"]
+                    && node.upstream_inputs
+                        == vec!["align_bam", "qc_pre_flagstat", "qc_pre_idxstats", "qc_pre_stats"]
+            }),
+            "bam.mapping_summary must consume both alignment output and BAM pre-QC context"
+        );
+    }
 }
