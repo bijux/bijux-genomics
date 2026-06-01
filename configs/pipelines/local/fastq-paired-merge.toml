@@ -1,0 +1,105 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for the local FASTQ paired-end merge DAG.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "fastq-paired-merge"
+domain = "fastq"
+summary = "Paired-end FASTQ DAG for validation, adapter-aware trimming, pair merging, downstream filtering of merged and unmerged reads, and QC collation."
+default_corpus_id = "corpus-01-mini"
+
+[[nodes]]
+node_id = "fastq.validate_reads"
+stage_id = "fastq.validate_reads"
+readiness_kind = "smoke"
+summary = "Validate the governed paired-end FASTQ inputs before merge-path preprocessing."
+depends_on = []
+external_inputs = ["corpus.raw_paired_fastq_reads"]
+upstream_inputs = []
+outputs = ["validated_paired_reads", "validation_report"]
+
+[[nodes]]
+node_id = "fastq.detect_adapters"
+stage_id = "fastq.detect_adapters"
+readiness_kind = "smoke"
+summary = "Detect adapter signal on the validated paired reads."
+depends_on = ["fastq.validate_reads"]
+external_inputs = []
+upstream_inputs = ["validated_paired_reads"]
+outputs = ["adapter_report"]
+
+[[nodes]]
+node_id = "fastq.trim_reads"
+stage_id = "fastq.trim_reads"
+readiness_kind = "smoke"
+summary = "Trim validated paired reads using the governed adapter-detection evidence."
+depends_on = ["fastq.validate_reads", "fastq.detect_adapters"]
+external_inputs = []
+upstream_inputs = ["validated_paired_reads", "adapter_report"]
+outputs = ["trimmed_paired_reads", "trim_metrics"]
+
+[[nodes]]
+node_id = "fastq.merge_pairs"
+stage_id = "fastq.merge_pairs"
+readiness_kind = "smoke"
+summary = "Merge overlapping paired reads and preserve explicit unmerged read-pair outputs."
+depends_on = ["fastq.trim_reads"]
+external_inputs = []
+upstream_inputs = ["trimmed_paired_reads"]
+outputs = ["merged_reads", "unmerged_r1_reads", "unmerged_r2_reads", "merge_metrics"]
+
+[[nodes]]
+node_id = "fastq.filter_reads"
+stage_id = "fastq.filter_reads"
+readiness_kind = "smoke"
+summary = "Filter the merged output and the retained unmerged read pairs as one governed downstream handoff."
+depends_on = ["fastq.merge_pairs"]
+external_inputs = []
+upstream_inputs = ["merged_reads", "unmerged_r1_reads", "unmerged_r2_reads"]
+outputs = [
+  "filtered_merged_reads",
+  "filtered_unmerged_r1_reads",
+  "filtered_unmerged_r2_reads",
+  "filter_metrics",
+]
+
+[[nodes]]
+node_id = "fastq.profile_reads"
+stage_id = "fastq.profile_reads"
+readiness_kind = "smoke"
+summary = "Profile the filtered merge-path outputs before QC collation."
+depends_on = ["fastq.filter_reads"]
+external_inputs = []
+upstream_inputs = [
+  "filtered_merged_reads",
+  "filtered_unmerged_r1_reads",
+  "filtered_unmerged_r2_reads",
+]
+outputs = ["filtered_merge_profile"]
+
+[[nodes]]
+node_id = "fastq.report_qc"
+stage_id = "fastq.report_qc"
+readiness_kind = "smoke"
+summary = "Collate validation, adapter, trim, merge, filter, and profile metrics for the paired-end merge path."
+depends_on = [
+  "fastq.validate_reads",
+  "fastq.detect_adapters",
+  "fastq.trim_reads",
+  "fastq.merge_pairs",
+  "fastq.filter_reads",
+  "fastq.profile_reads",
+]
+external_inputs = []
+upstream_inputs = [
+  "validation_report",
+  "adapter_report",
+  "trim_metrics",
+  "merge_metrics",
+  "filter_metrics",
+  "filtered_merge_profile",
+]
+outputs = ["qc_bundle"]
