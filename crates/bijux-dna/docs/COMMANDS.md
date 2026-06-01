@@ -128,6 +128,12 @@ Visible aliases are part of the operator surface:
   matrix. Rows remain visible when a BAM tool binding is governed by stage metadata but lacks a BAM
   tool contract (`missing_contract`) or is admitted by stage metadata but not by the BAM tool YAML
   (`mismatched_contract`).
+- `bijux-dna bench readiness render-orphan-tools`
+  `render-orphan-tools` writes `target/bench-readiness/orphan-tools.tsv` with one governed row per
+  FASTQ or BAM tool contract that exists in scope but serves no currently rendered benchmark stage.
+  Each row carries `domain`, `tool_id`, `decision`, `declared_stage_ids`, `benchmark_stage_ids`,
+  and `reason`, and every orphan row is forced into an explicit disposition:
+  `register_to_stage`, `remove_from_scope`, or `future_tool`.
 - `bijux-dna bench local list-stages`
 - `bijux-dna bench local validate-hpc-submission-ready`
   `validate-hpc-submission-ready` writes `target/local-ready/HPC_SUBMISSION_READY.json` and
