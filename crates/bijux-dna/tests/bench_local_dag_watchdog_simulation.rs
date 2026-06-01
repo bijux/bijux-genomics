@@ -178,3 +178,89 @@ fn bench_local_dag_watchdog_simulation_writes_failure_isolation_report() {
         "the failed sample must block only its own dependent downstream work"
     );
 }
+
+#[test]
+fn bench_local_dag_watchdog_simulation_writes_partial_resume_report() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "simulate-dag-watchdog",
+        "--scenario",
+        "partial-resume",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.local_dag_watchdog_simulation.v1")
+    );
+    assert_eq!(
+        payload.get("scenario").and_then(serde_json::Value::as_str),
+        Some("partial_resume")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/dag-sim/partial-resume.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("fastq-core-preprocess")
+    );
+    assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(
+        payload
+            .get("partial_resume_proven")
+            .and_then(serde_json::Value::as_bool),
+        Some(true)
+    );
+
+    let reused_nodes = payload
+        .get("reused_valid_node_ids")
+        .and_then(serde_json::Value::as_array)
+        .expect("reused_valid_node_ids array");
+    assert!(
+        reused_nodes
+            .iter()
+            .any(|value| value.as_str() == Some("fastq.detect_adapters")),
+        "valid completed nodes must be reported as reused"
+    );
+
+    let invalid_nodes = payload
+        .get("invalid_node_ids")
+        .and_then(serde_json::Value::as_array)
+        .expect("invalid_node_ids array");
+    assert_eq!(invalid_nodes.len(), 1);
+    assert_eq!(
+        invalid_nodes[0].as_str(),
+        Some("fastq.trim_reads"),
+        "the governed invalid node must be replanned"
+    );
+
+    let missing_nodes = payload
+        .get("missing_node_ids")
+        .and_then(serde_json::Value::as_array)
+        .expect("missing_node_ids array");
+    assert!(
+        missing_nodes
+            .iter()
+            .any(|value| value.as_str() == Some("fastq.filter_reads")),
+        "downstream missing work must stay explicit in the report"
+    );
+
+    let planned_nodes = payload
+        .get("planned_node_ids")
+        .and_then(serde_json::Value::as_array)
+        .expect("planned_node_ids array");
+    assert!(
+        planned_nodes
+            .iter()
+            .any(|value| value.as_str() == Some("fastq.trim_reads")),
+        "the invalid node must appear in the planned set"
+    );
+    assert!(
+        planned_nodes
+            .iter()
+            .any(|value| value.as_str() == Some("fastq.report_qc")),
+        "missing downstream work must appear in the planned set"
+    );
+}
