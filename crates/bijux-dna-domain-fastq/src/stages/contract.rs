@@ -15,7 +15,8 @@ pub use runtime::{
     merge_pairs,
     normalize_abundance, normalize_outputs, normalize_primers, normalize_read_names,
     preflight_stage, prepare_adapter_bank, prepare_host_reference_bundle, prepare_primer_bank,
-    remove_chimeras, repair_pairs, screen_taxonomy, subsample_reads, trim_reads, validate_reads,
+    remove_chimeras, remove_duplicates, repair_pairs, screen_taxonomy, subsample_reads,
+    trim_reads, validate_reads,
     verify_assets, verify_chunked_preprocess_equivalence, DemultiplexRule, HeaderInspection,
     LaneInput, MergeSuitability, NormalizedOutputs, SubsampleTarget,
 };

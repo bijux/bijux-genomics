@@ -40,6 +40,7 @@ mod qc_manifest;
 mod repair_pairs;
 mod screen_taxonomy;
 mod subsample_reads;
+mod remove_duplicates;
 mod trim_reads;
 mod validate_reads;
 
@@ -80,6 +81,7 @@ pub use prepare_primer_bank::prepare_primer_bank;
 pub use provenance_snapshot::capture_provenance_snapshot;
 pub use qc_manifest::materialize_qc_manifest;
 pub use repair_pairs::repair_pairs;
+pub use remove_duplicates::remove_duplicates;
 pub use screen_taxonomy::screen_taxonomy;
 pub use subsample_reads::{subsample_reads, SubsampleTarget};
 pub use trim_reads::trim_reads;
