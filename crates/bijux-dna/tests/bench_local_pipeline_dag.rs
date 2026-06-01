@@ -208,3 +208,67 @@ fn bench_local_pipeline_dag_validates_fastq_edna_taxonomy_contract() {
         "screen_taxonomy must expose governed taxonomy assets plus classification and unclassified outputs"
     );
 }
+
+#[test]
+fn bench_local_pipeline_dag_validates_fastq_amplicon_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/fastq-amplicon.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/fastq-amplicon.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/fastq-amplicon.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("fastq-amplicon")
+    );
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-03-amplicon-mini")
+    );
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.cluster_otus")
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("normalized_amplicon_reads"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("non_chimeric_representatives"))
+                    },
+                )
+        }),
+        "cluster_otus must show normalized-read and non-chimeric representative handoffs"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.normalize_abundance")
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| inputs.iter().any(|value| value.as_str() == Some("otu_table")),
+                )
+                && node.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |outputs| {
+                        outputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("normalized_abundance_table"))
+                    },
+                )
+        }),
+        "normalize_abundance must expose the OTU-to-abundance handoff"
+    );
+}
