@@ -140,6 +140,7 @@ configs/lab/config_example.toml
 configs/lab/index.md
 configs/logging/index.md
 configs/logging/runtime.toml
+configs/pipelines/local/fastq-amplicon.toml
 configs/pipelines/local/fastq-core-preprocess.toml
 configs/pipelines/local/fastq-edna-taxonomy.toml
 configs/pipelines/local/fastq-paired-merge.toml
