@@ -1,4 +1,5 @@
 pub(crate) mod filter;
+pub(crate) mod length_filter;
 pub(crate) mod mapping_summary;
 pub(crate) mod mapq_filter;
 pub(crate) mod qc_pre;

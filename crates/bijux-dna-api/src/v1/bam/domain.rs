@@ -57,6 +57,18 @@ pub fn write_local_filter_smoke_report() -> Result<PathBuf> {
     crate::internal::bam::stages::filter::write_local_filter_smoke_report()
 }
 
+/// Materialize the governed local-smoke `bam.length_filter` report bundle.
+///
+/// The written report artifact lives at `target/local-smoke/bam.length_filter/length_filter.json`
+/// under the active repository root, alongside the curated top-level `length_filtered.bam`.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_length_filter_smoke_report() -> Result<PathBuf> {
+    crate::internal::bam::stages::length_filter::write_local_length_filter_smoke_report()
+}
+
 /// Materialize the governed local-smoke `bam.mapq_filter` report bundle.
 ///
 /// The written report artifact lives at `target/local-smoke/bam.mapq_filter/mapq_filter.json`
