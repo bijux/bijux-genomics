@@ -1,0 +1,20 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.damage.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_damage.v1"
+tool_id = "pydamage"
+threads = 2
+output_dir = "target/local-smoke/bam.damage"
+
+[[cases]]
+sample_id = "core-v1-damage-short-fragments"
+bam = "assets/toy/core-v1/bam/damage_short_fragments.sam"
+expected_terminal_c_to_t_5p = 0.18
+expected_terminal_g_to_a_3p = 0.11
+expected_short_fragment_fraction = 1.0
+expected_damage_signal = "moderate"
+expected_strict_profile_upgraded = false
