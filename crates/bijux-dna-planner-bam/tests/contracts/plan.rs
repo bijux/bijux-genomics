@@ -26,6 +26,8 @@ mod local_mapping_summary_smoke;
 mod local_mapq_filter_smoke;
 #[path = "plan/local_markdup_smoke.rs"]
 mod local_markdup_smoke;
+#[path = "plan/local_overlap_correction_smoke.rs"]
+mod local_overlap_correction_smoke;
 #[path = "plan/local_qc_pre_smoke.rs"]
 mod local_qc_pre_smoke;
 #[path = "plan/local_validate_smoke.rs"]
