@@ -139,6 +139,17 @@ pub fn filter_tools_for_input_layout(
     bijux_dna_domain_fastq::filter_tools_for_input_layout(stage_id, tool_ids, paired_end)
 }
 
+/// Build the governed local-smoke case plans for `fastq.correct_errors`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_correct_errors_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalCorrectErrorsSmokeCasePlan>> {
+    crate::planner::local_correct_errors_smoke_plans(repo_root)
+}
+
 /// Build the governed local-smoke case plans for
 /// `fastq.estimate_library_complexity_prealign`.
 ///
