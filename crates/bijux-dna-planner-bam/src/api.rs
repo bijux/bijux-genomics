@@ -8,8 +8,9 @@ use bijux_dna_stage_contract::StagePlanV1;
 pub mod stage_api {
     pub use crate::local_readiness::local_align_plan;
     pub use crate::local_smoke::{
-        local_filter_smoke_plans, local_mapping_summary_smoke_plans, local_mapq_filter_smoke_plans,
-        local_qc_pre_smoke_plans, local_validate_smoke_plans, LocalFilterSmokeCasePlan,
+        local_filter_smoke_plans, local_length_filter_smoke_plans,
+        local_mapping_summary_smoke_plans, local_mapq_filter_smoke_plans, local_qc_pre_smoke_plans,
+        local_validate_smoke_plans, LocalFilterSmokeCasePlan, LocalLengthFilterSmokeCasePlan,
         LocalMappingSummarySmokeCasePlan, LocalMapqFilterSmokeCasePlan, LocalQcPreSmokeCasePlan,
         LocalValidateSmokeCasePlan,
     };
