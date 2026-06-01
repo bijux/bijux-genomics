@@ -90,6 +90,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench local list-stages",
     "bijux-dna bench local validate-corpus-fixture",
     "bijux-dna bench local validate-corpus-stage-compatibility",
+    "bijux-dna bench local render-corpus-skip-report",
     "bijux-dna bench local validate-taxonomy-database-fixture",
     "bijux-dna bench local render-benchmark-summary",
     "bijux-dna bench local check-manifest-completion",
