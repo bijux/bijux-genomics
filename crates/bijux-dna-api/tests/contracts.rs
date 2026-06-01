@@ -28,6 +28,8 @@ mod mod_contracts_v1_fastq_local_detect_duplicates_premerge_smoke_rs;
 mod mod_contracts_v1_fastq_local_deplete_rrna_plan_rs;
 #[path = "contracts/v1_fastq_local_deplete_host_plan.rs"]
 mod mod_contracts_v1_fastq_local_deplete_host_plan_rs;
+#[path = "contracts/v1_fastq_local_deplete_reference_contaminants_plan.rs"]
+mod mod_contracts_v1_fastq_local_deplete_reference_contaminants_plan_rs;
 #[path = "contracts/v1_fastq_local_estimate_library_complexity_prealign_smoke.rs"]
 mod mod_contracts_v1_fastq_local_estimate_library_complexity_prealign_smoke_rs;
 #[path = "contracts/v1_fastq_local_filter_low_complexity_smoke.rs"]
