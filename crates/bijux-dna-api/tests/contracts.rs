@@ -22,6 +22,8 @@ mod mod_contracts_v1_cross_public_contract_rs;
 mod mod_contracts_v1_dry_run_manifest_rs;
 #[path = "contracts/v1_fastq_local_detect_adapters_smoke.rs"]
 mod mod_contracts_v1_fastq_local_detect_adapters_smoke_rs;
+#[path = "contracts/v1_fastq_local_correct_errors_smoke.rs"]
+mod mod_contracts_v1_fastq_local_correct_errors_smoke_rs;
 #[path = "contracts/v1_fastq_local_detect_duplicates_premerge_smoke.rs"]
 mod mod_contracts_v1_fastq_local_detect_duplicates_premerge_smoke_rs;
 #[path = "contracts/v1_fastq_local_deplete_rrna_plan.rs"]
