@@ -1143,8 +1143,8 @@ encrypt_operator_outputs = false
 env_file = "configs/hpc/.env"
 
 [[jobs]]
-stage = "vcf.validate"
-tool = "bcftools_v1_20"
+stage = "vcf.stats"
+tool = "bcftools"
 sample = "cohort_01"
 resource_template = "standard"
 "#;
@@ -1193,9 +1193,9 @@ tool = "seqkit_v2"
 sample = "sample_0001"
 
 [[jobs]]
-name = "bam_sort_sample_0001"
-stage = "bam.sort"
-tool = "samtools_v1_20"
+name = "bam_align_sample_0001"
+stage = "bam.align"
+tool = "bwa"
 sample = "sample_0001"
 depends_on = ["fastq_validate_sample_0001"]
 "#;

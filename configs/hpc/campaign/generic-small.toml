@@ -3,7 +3,7 @@
 # purpose = Generic small HPC campaign profile for portable Slurm execution
 # authority = platform
 # stability = stable
-# last_updated = 2026-05-02
+# last_updated = 2026-06-01
 schema_version = "bijux.hpc.campaign.v1"
 
 [campaign]
@@ -42,7 +42,7 @@ encrypt_operator_outputs = false
 env_file = "configs/hpc/.env"
 
 [[jobs]]
-stage = "vcf.validate"
-tool = "bcftools_v1_20"
+stage = "vcf.stats"
+tool = "bcftools"
 sample = "cohort_01"
 resource_template = "standard"
