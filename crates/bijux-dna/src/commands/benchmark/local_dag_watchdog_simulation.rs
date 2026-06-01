@@ -211,3 +211,67 @@ fn no_global_wait_duration_seconds(stage_id: &str) -> u64 {
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use super::{
+        simulate_dag_watchdog_path, LocalDagWatchdogScenario, DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH,
+    };
+
+    fn repo_root() -> std::path::PathBuf {
+        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .expect("canonicalize repo root")
+    }
+
+    #[test]
+    fn no_global_wait_simulation_proves_ready_nodes_do_not_wait_for_a_slow_branch() {
+        let repo_root = repo_root();
+        let output_path = repo_root.join(DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH);
+        let report = simulate_dag_watchdog_path(
+            &repo_root,
+            LocalDagWatchdogScenario::NoGlobalWait,
+            &output_path,
+        )
+        .expect("simulate no-global-wait watchdog report");
+
+        assert_eq!(report.scenario, "no_global_wait");
+        assert_eq!(report.pipeline_id, "fastq-core-preprocess");
+        assert_eq!(report.node_count, 7);
+        assert_eq!(report.slow_branch_stage_id, "fastq.profile_read_lengths");
+        assert_eq!(report.slow_branch_finish_second, 13);
+        assert!(report.no_global_wait_proven);
+        assert!(
+            report
+                .ready_while_slow_branch_running_stage_ids
+                .iter()
+                .any(|stage_id| stage_id == "fastq.trim_reads"),
+            "trim_reads must be allowed to start while the slow profiling branch is still running"
+        );
+        assert!(
+            report
+                .ready_while_slow_branch_running_stage_ids
+                .iter()
+                .any(|stage_id| stage_id == "fastq.filter_reads"),
+            "filter_reads must stay unblocked by the unrelated slow profiling branch"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "fastq.trim_reads"
+                    && node.start_second == 3
+                    && node.finish_second == 4
+            }),
+            "trim_reads should start as soon as validate_reads and detect_adapters are done"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "fastq.profile_read_lengths"
+                    && node.start_second == 1
+                    && node.finish_second == 13
+            }),
+            "profile_read_lengths must remain the intentionally slow branch in the simulation"
+        );
+    }
+}
