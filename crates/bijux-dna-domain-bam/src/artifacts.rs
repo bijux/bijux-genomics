@@ -26,6 +26,7 @@ pub const BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.complexity.v1
 pub const BAM_COVERAGE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_summary.v1";
 pub const BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.insert_size.v1";
 pub const BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.gc_bias.v1";
+pub const BAM_OVERLAP_CORRECTION_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.overlap_correction.v1";
 pub const BAM_DUPLICATE_POLICY_SCHEMA_VERSION: &str = "bijux.bam.duplicate_policy.v1";
 pub const BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION: &str = "bijux.bam.advisory_boundary.v1";
 pub const BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION: &str = "bijux.bam.workflow_template.v1";
@@ -703,6 +704,26 @@ pub struct BamEndogenousContentEstimateV1 {
     pub postalignment_meaning: String,
     #[serde(default)]
     pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamOverlapCorrectionSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    pub input_bam: PathBuf,
+    pub output_bam: PathBuf,
+    pub flagstat_before: BamFlagstatCountsV1,
+    pub flagstat_after: BamFlagstatCountsV1,
+    #[serde(default)]
+    pub pair_count: Option<u64>,
+    #[serde(default)]
+    pub corrected_pairs: Option<u64>,
+    #[serde(default)]
+    pub corrected_overlap_bases: Option<u64>,
+    #[serde(default)]
+    pub insufficiency_reason: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -2469,13 +2490,7 @@ pub fn filter_tiny_bam_by_mapq(
 pub fn summarize_tiny_bam_insert_size(input_bam: &Path) -> Result<BamInsertSizeSummaryV1> {
     let document = parse_tiny_sam(input_bam)?;
     let metrics = tiny_insert_size_metrics(&document.records);
-    Ok(build_insert_size_summary(
-        "bam.insert_size",
-        input_bam,
-        true,
-        true,
-        metrics.as_ref(),
-    ))
+    Ok(build_insert_size_summary("bam.insert_size", input_bam, true, true, metrics.as_ref()))
 }
 
 /// Summarize GC-bias observations for a tiny BAM/SAM fixture and reference FASTA.
@@ -2864,7 +2879,8 @@ fn build_insert_size_summary(
         median_insert_size: populated_metrics.map(|metrics| metrics.median_insert_size),
         mean_insert_size: populated_metrics.map(|metrics| metrics.mean_insert_size),
         standard_deviation: populated_metrics.map(|metrics| metrics.standard_deviation),
-        median_absolute_deviation: populated_metrics.map(|metrics| metrics.median_absolute_deviation),
+        median_absolute_deviation: populated_metrics
+            .map(|metrics| metrics.median_absolute_deviation),
         min_insert_size: populated_metrics.map(|metrics| metrics.min_insert_size),
         max_insert_size: populated_metrics.map(|metrics| metrics.max_insert_size),
         read_pairs: metrics.map_or(0, |metrics| metrics.read_pairs),
@@ -2908,21 +2924,15 @@ fn tiny_gc_bias_rows(
 
     let total_windows = windows_by_gc_bin.values().sum::<u64>();
     let total_read_starts = read_starts_by_gc_bin.values().sum::<u64>();
-    let mean_read_starts_per_window = if total_windows > 0 {
-        total_read_starts as f64 / total_windows as f64
-    } else {
-        0.0
-    };
+    let mean_read_starts_per_window =
+        if total_windows > 0 { total_read_starts as f64 / total_windows as f64 } else { 0.0 };
 
     let mut rows = windows_by_gc_bin
         .into_iter()
         .map(|(gc_bin, windows)| {
             let read_starts = read_starts_by_gc_bin.get(&gc_bin).copied().unwrap_or(0);
-            let per_window_read_starts = if windows > 0 {
-                read_starts as f64 / windows as f64
-            } else {
-                0.0
-            };
+            let per_window_read_starts =
+                if windows > 0 { read_starts as f64 / windows as f64 } else { 0.0 };
             let normalized_coverage = if mean_read_starts_per_window > 0.0 {
                 per_window_read_starts / mean_read_starts_per_window
             } else {
@@ -2936,15 +2946,10 @@ fn tiny_gc_bias_rows(
 }
 
 fn gc_bin_for_sequence(sequence: &str) -> u8 {
-    let gc_bases = sequence
-        .bytes()
-        .filter(|base| matches!(base.to_ascii_uppercase(), b'G' | b'C'))
-        .count();
-    let gc_fraction = if sequence.is_empty() {
-        0.0
-    } else {
-        gc_bases as f64 / sequence.len() as f64
-    };
+    let gc_bases =
+        sequence.bytes().filter(|base| matches!(base.to_ascii_uppercase(), b'G' | b'C')).count();
+    let gc_fraction =
+        if sequence.is_empty() { 0.0 } else { gc_bases as f64 / sequence.len() as f64 };
     (gc_fraction * 100.0).round() as u8
 }
 
@@ -2996,9 +3001,8 @@ fn tiny_insert_size_metrics(
     let read_pairs = sorted_insert_sizes.len() as u64;
     let mean_insert_size =
         insert_sizes.iter().map(|value| *value as f64).sum::<f64>() / read_pairs as f64;
-    let median_insert_size = median_f64(
-        &sorted_insert_sizes.iter().map(|value| *value as f64).collect::<Vec<_>>(),
-    );
+    let median_insert_size =
+        median_f64(&sorted_insert_sizes.iter().map(|value| *value as f64).collect::<Vec<_>>());
     let deviations = sorted_insert_sizes
         .iter()
         .map(|value| (*value as f64 - median_insert_size).abs())
@@ -3660,11 +3664,8 @@ fn build_endogenous_content_estimate(
     prealignment_fraction: Option<f64>,
     host_reference_scope: Option<&str>,
 ) -> BamEndogenousContentEstimateV1 {
-    let postalignment_fraction = if total_reads > 0 {
-        mapped_reads as f64 / total_reads as f64
-    } else {
-        0.0
-    };
+    let postalignment_fraction =
+        if total_reads > 0 { mapped_reads as f64 / total_reads as f64 } else { 0.0 };
     let mut caveats = vec![
         "postalignment endogenous fraction reflects reference-dependent mapping behavior"
             .to_string(),
@@ -3700,6 +3701,220 @@ fn build_endogenous_content_estimate(
             .to_string(),
         caveats,
     }
+}
+
+/// Summarize overlap-correction outputs with explicit paired-read sufficiency.
+#[must_use]
+pub fn summarize_bam_overlap_correction(
+    stage_id: &str,
+    method: &str,
+    input_bam: &Path,
+    output_bam: &Path,
+    flagstat_before: BamFlagstatCountsV1,
+    flagstat_after: BamFlagstatCountsV1,
+    pair_count: Option<u64>,
+    corrected_pairs: Option<u64>,
+    corrected_overlap_bases: Option<u64>,
+    insufficiency_reason: Option<&str>,
+) -> BamOverlapCorrectionSummaryV1 {
+    BamOverlapCorrectionSummaryV1 {
+        schema_version: BAM_OVERLAP_CORRECTION_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        method: method.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        output_bam: output_bam.to_path_buf(),
+        flagstat_before,
+        flagstat_after,
+        pair_count,
+        corrected_pairs,
+        corrected_overlap_bases,
+        insufficiency_reason: insufficiency_reason.map(ToOwned::to_owned),
+    }
+}
+
+/// Apply deterministic overlap correction to a tiny SAM/BAM fixture and summarize the result.
+///
+/// # Errors
+/// Returns an error if the input cannot be parsed or the corrected output cannot be written.
+pub fn correct_tiny_bam_overlaps(
+    input_bam: &Path,
+    output_bam: &Path,
+    method: &str,
+) -> Result<BamOverlapCorrectionSummaryV1> {
+    let input = parse_tiny_sam(input_bam)?;
+    let mut corrected_records = input.records.clone();
+
+    for pair in candidate_overlap_pairs(&input.records) {
+        if pair.overlap_bases == 0 {
+            continue;
+        }
+        trim_overlap_record(&mut corrected_records[pair.right_index], pair.overlap_bases);
+    }
+
+    let output = TinySamDocument {
+        sort_order: input.sort_order.clone(),
+        references: input.references.clone(),
+        reference_lengths: input.reference_lengths.clone(),
+        read_groups: input.read_groups.clone(),
+        read_group_samples: input.read_group_samples.clone(),
+        records: corrected_records.clone(),
+    };
+    write_tiny_sam_from_document(
+        output_bam,
+        &output,
+        input.sort_order.as_deref().unwrap_or("unsorted"),
+    )?;
+
+    let metrics = overlap_correction_metrics(&input.records, &corrected_records);
+    let insufficiency_reason =
+        if metrics.pair_count == 0 { Some("paired_read_pairs_required") } else { None };
+
+    Ok(summarize_bam_overlap_correction(
+        "bam.overlap_correction",
+        method,
+        input_bam,
+        output_bam,
+        flagstat_from_records(&input.records),
+        flagstat_from_records(&corrected_records),
+        Some(metrics.pair_count),
+        Some(metrics.corrected_pairs),
+        Some(metrics.corrected_overlap_bases),
+        insufficiency_reason,
+    ))
+}
+
+/// Summarize an existing tiny overlap-correction output bundle by comparing input/output pairs.
+///
+/// # Errors
+/// Returns an error if either tiny alignment fixture cannot be parsed.
+pub fn summarize_tiny_bam_overlap_correction_outputs(
+    input_bam: &Path,
+    output_bam: &Path,
+    method: &str,
+) -> Result<BamOverlapCorrectionSummaryV1> {
+    let input = parse_tiny_sam(input_bam)?;
+    let output = parse_tiny_sam(output_bam)?;
+    let metrics = overlap_correction_metrics(&input.records, &output.records);
+    let insufficiency_reason =
+        if metrics.pair_count == 0 { Some("paired_read_pairs_required") } else { None };
+    Ok(summarize_bam_overlap_correction(
+        "bam.overlap_correction",
+        method,
+        input_bam,
+        output_bam,
+        flagstat_from_records(&input.records),
+        flagstat_from_records(&output.records),
+        Some(metrics.pair_count),
+        Some(metrics.corrected_pairs),
+        Some(metrics.corrected_overlap_bases),
+        insufficiency_reason,
+    ))
+}
+
+#[derive(Debug, Clone, Copy)]
+struct TinyOverlapPair {
+    left_index: usize,
+    right_index: usize,
+    overlap_bases: u64,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct OverlapCorrectionMetrics {
+    pair_count: u64,
+    corrected_pairs: u64,
+    corrected_overlap_bases: u64,
+}
+
+fn candidate_overlap_pairs(records: &[TinySamRecord]) -> Vec<TinyOverlapPair> {
+    let mut pairs = Vec::<TinyOverlapPair>::new();
+    let mut grouped = HashMap::<String, Vec<usize>>::new();
+    for (index, record) in records.iter().enumerate() {
+        grouped.entry(record.qname.clone()).or_default().push(index);
+    }
+
+    for indexes in grouped.values() {
+        if indexes.len() != 2 {
+            continue;
+        }
+        let left = indexes[0];
+        let right = indexes[1];
+        let left_record = &records[left];
+        let right_record = &records[right];
+        if !tiny_overlap_pair_is_candidate(left_record, right_record) {
+            continue;
+        }
+        let (left_index, right_index) =
+            if left_record.pos <= right_record.pos { (left, right) } else { (right, left) };
+        let left_end = record_alignment_end(&records[left_index]);
+        let right_start = records[right_index].pos;
+        let overlap_bases = if right_start <= left_end {
+            left_end.saturating_sub(right_start).saturating_add(1)
+        } else {
+            0
+        };
+        pairs.push(TinyOverlapPair { left_index, right_index, overlap_bases });
+    }
+
+    pairs.sort_by_key(|pair| {
+        (
+            records[pair.left_index].rname.as_str(),
+            records[pair.left_index].pos,
+            records[pair.left_index].qname.as_str(),
+        )
+    });
+    pairs
+}
+
+fn tiny_overlap_pair_is_candidate(left: &TinySamRecord, right: &TinySamRecord) -> bool {
+    (left.flag & 0x1) != 0
+        && (right.flag & 0x1) != 0
+        && (left.flag & 0x2) != 0
+        && (right.flag & 0x2) != 0
+        && (left.flag & 0x4) == 0
+        && (right.flag & 0x4) == 0
+        && (left.flag & 0x8) == 0
+        && (right.flag & 0x8) == 0
+        && left.rname == right.rname
+}
+
+fn record_alignment_end(record: &TinySamRecord) -> u64 {
+    record.pos + u64::max(record.seq.len() as u64, 1) - 1
+}
+
+fn trim_overlap_record(record: &mut TinySamRecord, overlap_bases: u64) {
+    if overlap_bases == 0 {
+        return;
+    }
+    let current_len = u64::max(record.seq.len() as u64, 1);
+    let new_len = current_len.saturating_sub(overlap_bases).max(1);
+    let keep_len = usize::try_from(new_len).unwrap_or(1);
+    record.seq.truncate(keep_len);
+    record.cigar = format!("{keep_len}M");
+}
+
+fn overlap_correction_metrics(
+    input_records: &[TinySamRecord],
+    output_records: &[TinySamRecord],
+) -> OverlapCorrectionMetrics {
+    let input_pairs = candidate_overlap_pairs(input_records);
+    let mut pair_count = 0_u64;
+    let mut corrected_pairs = 0_u64;
+    let mut corrected_overlap_bases = 0_u64;
+
+    for pair in &input_pairs {
+        pair_count += 1;
+        let input_total_bases = input_records[pair.left_index].seq.len() as i64
+            + input_records[pair.right_index].seq.len() as i64;
+        let output_total_bases = output_records[pair.left_index].seq.len() as i64
+            + output_records[pair.right_index].seq.len() as i64;
+        let delta = input_total_bases.saturating_sub(output_total_bases);
+        if delta > 0 {
+            corrected_pairs += 1;
+            corrected_overlap_bases += u64::try_from(delta).unwrap_or(0);
+        }
+    }
+
+    OverlapCorrectionMetrics { pair_count, corrected_pairs, corrected_overlap_bases }
 }
 
 /// Evaluate sex-inference evidence with PAR-aware and coverage/ploidy guardrails.
@@ -4643,6 +4858,76 @@ mod tests {
         assert!((summary.endogenous_fraction - 0.6).abs() < 1e-9);
         assert_eq!(summary.prealignment_fraction, Some(0.60));
         assert_eq!(summary.host_reference_scope.as_deref(), Some("human_host"));
+    }
+
+    #[test]
+    fn bam_overlap_correction_summary_round_trips() {
+        let summary = summarize_bam_overlap_correction(
+            "bam.overlap_correction",
+            "bamutil",
+            Path::new("input.bam"),
+            Path::new("overlap.corrected.bam"),
+            BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(4),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(1.0),
+            },
+            BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(4),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(1.0),
+            },
+            Some(2),
+            Some(1),
+            Some(7),
+            None,
+        );
+        let json = serde_json::to_value(&summary).expect("serialize overlap correction summary");
+        let round_trip: BamOverlapCorrectionSummaryV1 =
+            serde_json::from_value(json).expect("deserialize overlap correction summary");
+        assert_eq!(round_trip, summary);
+    }
+
+    #[test]
+    fn correct_tiny_bam_overlaps_reports_pair_count_and_trimmed_bases() {
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("unix epoch")
+            .as_nanos();
+        let temp = std::env::temp_dir().join(format!("bijux-overlap-correction-{unique}"));
+        std::fs::create_dir_all(&temp).expect("create temp dir");
+        let input = temp.join("input.sam");
+        let output = temp.join("overlap.corrected.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:100\n\
+@RG\tID:rg1\tSM:sampleA\n\
+pair_overlap\t99\tchr1\t10\t60\t12M\t=\t15\t17\tACGTACGTACGT\tFFFFFFFFFFFF\tRG:Z:rg1\n\
+pair_overlap\t147\tchr1\t15\t60\t12M\t=\t10\t-17\tTTTTCCCCAAAA\tFFFFFFFFFFFF\tRG:Z:rg1\n\
+pair_spaced\t99\tchr1\t40\t60\t10M\t=\t55\t25\tGGGGAAAACC\tFFFFFFFFFF\tRG:Z:rg1\n\
+pair_spaced\t147\tchr1\t55\t60\t10M\t=\t40\t-25\tCCCCAAAAGG\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write overlap input");
+
+        let summary =
+            correct_tiny_bam_overlaps(&input, &output, "bamutil").expect("correct overlaps");
+        assert_eq!(summary.method, "bamutil");
+        assert_eq!(summary.pair_count, Some(2));
+        assert_eq!(summary.corrected_pairs, Some(1));
+        assert_eq!(summary.corrected_overlap_bases, Some(7));
+        assert_eq!(summary.insufficiency_reason, None);
+
+        let written = summarize_tiny_bam_overlap_correction_outputs(&input, &output, "bamutil")
+            .expect("summarize overlap output");
+        assert_eq!(written.pair_count, Some(2));
+        assert_eq!(written.corrected_pairs, Some(1));
+        assert_eq!(written.corrected_overlap_bases, Some(7));
+        assert_eq!(written.insufficiency_reason, None);
+
+        std::fs::remove_dir_all(&temp).expect("remove temp dir");
     }
 
     #[test]
