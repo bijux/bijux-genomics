@@ -1,0 +1,16 @@
+schema_version = "bijux.bench.fastq.local_extract_umis.v1"
+tool_id = "umi_tools"
+threads = 1
+umi_pattern = "NNNN"
+extraction_location = "read1_prefix"
+read_name_transform = "append_to_header"
+failed_extraction_policy = "retain_unmodified"
+grouping_policy = "pair_aware"
+downstream_dedup_policy = "sequence_identity_recommended"
+downstream_propagation = "header_and_report"
+output_dir = "target/local-smoke/fastq.extract_umis"
+
+[[cases]]
+sample_id = "known-prefix-pe"
+r1 = "assets/toy/core-v1/fastq/reads_with_known_umis_R1.fastq"
+r2 = "assets/toy/core-v1/fastq/reads_with_known_umis_R2.fastq"
