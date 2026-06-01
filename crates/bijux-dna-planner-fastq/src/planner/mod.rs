@@ -62,8 +62,8 @@ pub use local_readiness::{
     local_index_reference_plan,
 };
 pub use local_smoke::{
-    local_correct_errors_smoke_plans, local_detect_adapters_smoke_plans,
-    local_detect_duplicates_premerge_smoke_plans,
+    local_cluster_otus_smoke_plans, local_correct_errors_smoke_plans,
+    local_detect_adapters_smoke_plans, local_detect_duplicates_premerge_smoke_plans,
     local_estimate_library_complexity_prealign_smoke_plans, local_extract_umis_smoke_plans,
     local_filter_low_complexity_smoke_plans, local_filter_reads_smoke_plans,
     local_infer_asvs_smoke_plans, local_merge_pairs_smoke_plans,
@@ -72,8 +72,8 @@ pub use local_smoke::{
     local_remove_chimeras_smoke_plans, local_remove_duplicates_smoke_plans,
     local_trim_polyg_tails_smoke_plans, local_trim_reads_smoke_plans,
     local_trim_terminal_damage_smoke_plans, local_validate_reads_smoke_plans,
-    LocalCorrectErrorsSmokeCasePlan, LocalDetectAdaptersSmokeCasePlan,
-    LocalDetectDuplicatesPremergeSmokeCasePlan,
+    LocalClusterOtusSmokeCasePlan, LocalCorrectErrorsSmokeCasePlan,
+    LocalDetectAdaptersSmokeCasePlan, LocalDetectDuplicatesPremergeSmokeCasePlan,
     LocalEstimateLibraryComplexityPrealignSmokeCasePlan, LocalExtractUmisSmokeCasePlan,
     LocalFilterLowComplexitySmokeCasePlan, LocalFilterReadsSmokeCasePlan,
     LocalInferAsvsSmokeCasePlan, LocalMergePairsSmokeCasePlan, LocalNormalizePrimersSmokeCasePlan,

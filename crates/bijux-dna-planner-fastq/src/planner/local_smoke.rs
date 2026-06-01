@@ -10,6 +10,7 @@ use bijux_dna_domain_fastq::banks::{
 use bijux_dna_domain_fastq::params::correct::QualityEncoding;
 use bijux_dna_domain_fastq::params::umi::{UmiFailedExtractionPolicy, UmiReadNameTransform};
 use bijux_dna_domain_fastq::params::validate::{PairSyncPolicy, ValidationMode};
+use bijux_dna_domain_fastq::stages::ids::STAGE_CLUSTER_OTUS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_CORRECT_ERRORS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_DETECT_ADAPTERS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_DETECT_DUPLICATES_PREMERGE;
@@ -32,12 +33,16 @@ use bijux_dna_domain_fastq::stages::ids::STAGE_VALIDATE_READS;
 use serde::Deserialize;
 
 use crate::selection::{
-    allowed_tools_for_stage, load_fastq_domain_tool_execution_spec, select_correct_tools,
-    select_detect_adapters_tools, select_filter_low_complexity_tools, select_filter_tools,
-    select_infer_asvs_tools, select_merge_tools, select_normalize_primers_tools,
-    select_profile_overrepresented_tools, select_profile_read_lengths_tools,
-    select_remove_chimeras_tools, select_remove_duplicates_tools, select_stats_tools,
-    select_trim_tools, select_umi_tools, select_validate_tools,
+    allowed_tools_for_stage, load_fastq_domain_tool_execution_spec, select_cluster_otus_tools,
+    select_correct_tools, select_detect_adapters_tools, select_filter_low_complexity_tools,
+    select_filter_tools, select_infer_asvs_tools, select_merge_tools,
+    select_normalize_primers_tools, select_profile_overrepresented_tools,
+    select_profile_read_lengths_tools, select_remove_chimeras_tools,
+    select_remove_duplicates_tools, select_stats_tools, select_trim_tools, select_umi_tools,
+    select_validate_tools,
+};
+use crate::tool_adapters::fastq::cluster_otus::{
+    plan_with_options as plan_cluster_otus_with_options, ClusterOtusPlanOptions,
 };
 use crate::tool_adapters::fastq::correct_errors::plan_correct_with_options;
 use crate::tool_adapters::fastq::detect_adapters::plan_with_options as plan_detect_adapters;
@@ -95,6 +100,8 @@ const DEFAULT_LOCAL_FILTER_LOW_COMPLEXITY_OUTPUT_DIR: &str =
     "target/local-smoke/fastq.filter_low_complexity";
 const LOCAL_FILTER_READS_CONFIG_PATH: &str = "configs/bench/local/fastq-filter-reads.toml";
 const DEFAULT_LOCAL_FILTER_READS_OUTPUT_DIR: &str = "target/local-smoke/fastq.filter_reads";
+const LOCAL_CLUSTER_OTUS_CONFIG_PATH: &str = "configs/bench/local/fastq-cluster-otus.toml";
+const DEFAULT_LOCAL_CLUSTER_OTUS_OUTPUT_DIR: &str = "target/local-smoke/fastq.cluster_otus";
 const LOCAL_INFER_ASVS_CONFIG_PATH: &str = "configs/bench/local/fastq-infer-asvs.toml";
 const DEFAULT_LOCAL_INFER_ASVS_OUTPUT_DIR: &str = "target/local-smoke/fastq.infer_asvs";
 const LOCAL_MERGE_PAIRS_CONFIG_PATH: &str = "configs/bench/local/fastq-merge-pairs.toml";
@@ -228,6 +235,14 @@ pub struct LocalInferAsvsSmokeCasePlan {
     pub denoising_method: String,
     pub pooling_mode: String,
     pub chimera_policy: String,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalClusterOtusSmokeCasePlan {
+    pub sample_id: String,
+    pub reads: PathBuf,
+    pub otu_identity: f64,
     pub plan: bijux_dna_stage_contract::StagePlanV1,
 }
 
@@ -427,6 +442,19 @@ struct LocalFilterLowComplexitySmokeConfig {
     #[serde(default)]
     output_dir: Option<PathBuf>,
     cases: Vec<LocalFilterLowComplexitySmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalClusterOtusSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    otu_identity: Option<f64>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalClusterOtusSmokeCase>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -646,6 +674,12 @@ struct LocalFilterLowComplexitySmokeCase {
     r1: PathBuf,
     #[serde(default)]
     r2: Option<PathBuf>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalClusterOtusSmokeCase {
+    sample_id: String,
+    reads: PathBuf,
 }
 
 #[derive(Debug, Deserialize)]
@@ -1109,6 +1143,50 @@ pub fn local_infer_asvs_smoke_plans(repo_root: &Path) -> Result<Vec<LocalInferAs
         .into_iter()
         .map(|case| {
             build_local_infer_asvs_smoke_case(
+                repo_root,
+                &tool_spec,
+                &plan_options,
+                &output_root,
+                case,
+            )
+        })
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_cluster_otus_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalClusterOtusSmokeCasePlan>> {
+    let config = load_local_cluster_otus_smoke_config(repo_root)?;
+    ensure_unique_cluster_otus_sample_ids(&config.cases)?;
+
+    let stage_id = StageId::new(STAGE_CLUSTER_OTUS.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    let normalized_tools = select_cluster_otus_tools(std::slice::from_ref(&config.tool_id))?;
+    if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
+        return Err(anyhow!(
+            "local-smoke fastq.cluster_otus tool selection normalized unexpectedly: {:?}",
+            normalized_tools
+        ));
+    }
+    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let mut plan_options = ClusterOtusPlanOptions::baseline();
+    plan_options.threads = Some(tool_spec.resources.threads.max(1));
+    if let Some(otu_identity) = config.otu_identity {
+        plan_options.otu_identity = otu_identity;
+    }
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_CLUSTER_OTUS_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| {
+            build_local_cluster_otus_smoke_case(
                 repo_root,
                 &tool_spec,
                 &plan_options,
@@ -1780,6 +1858,32 @@ fn build_local_infer_asvs_smoke_case(
         denoising_method: options.denoising_method.clone(),
         pooling_mode: options.pooling_mode.clone(),
         chimera_policy: options.chimera_policy.clone(),
+        plan,
+    })
+}
+
+fn build_local_cluster_otus_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    options: &ClusterOtusPlanOptions,
+    output_root: &Path,
+    case: LocalClusterOtusSmokeCase,
+) -> Result<LocalClusterOtusSmokeCasePlan> {
+    let reads_abs = repo_root.join(&case.reads);
+    if !reads_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke fastq.cluster_otus reads fixture is missing: {}",
+            reads_abs.display()
+        ));
+    }
+
+    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let plan = plan_cluster_otus_with_options(tool_spec, &case.reads, None, &out_dir, options)?;
+
+    Ok(LocalClusterOtusSmokeCasePlan {
+        sample_id: case.sample_id,
+        reads: case.reads,
+        otu_identity: options.otu_identity,
         plan,
     })
 }
@@ -2571,6 +2675,22 @@ fn ensure_unique_infer_asvs_sample_ids(cases: &[LocalInferAsvsSmokeCase]) -> Res
     Ok(())
 }
 
+fn ensure_unique_cluster_otus_sample_ids(cases: &[LocalClusterOtusSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke fastq.cluster_otus sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke fastq.cluster_otus sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn ensure_unique_merge_pairs_sample_ids(cases: &[LocalMergePairsSmokeCase]) -> Result<()> {
     let mut seen = BTreeSet::new();
     for case in cases {
@@ -2798,6 +2918,25 @@ fn load_local_infer_asvs_smoke_config(repo_root: &Path) -> Result<LocalInferAsvs
     if config.cases.is_empty() {
         return Err(anyhow!(
             "local-smoke fastq.infer_asvs must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_cluster_otus_smoke_config(repo_root: &Path) -> Result<LocalClusterOtusSmokeConfig> {
+    let path = repo_root.join(LOCAL_CLUSTER_OTUS_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalClusterOtusSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.fastq.local_cluster_otus.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke fastq.cluster_otus schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke fastq.cluster_otus must declare at least one governed case"
         ));
     }
     Ok(config)
