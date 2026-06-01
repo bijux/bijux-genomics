@@ -136,7 +136,8 @@ Visible aliases are part of the operator surface:
   `configs/pipelines/local/fastq-core-preprocess.toml` and
   `configs/pipelines/local/fastq-paired-merge.toml` and
   `configs/pipelines/local/fastq-edna-taxonomy.toml` and
-  `configs/pipelines/local/fastq-amplicon.toml`, writes a validation report under
+  `configs/pipelines/local/fastq-amplicon.toml` and
+  `configs/pipelines/local/fastq-umi.toml`, writes a validation report under
   `target/local-ready/pipeline-dag/`, proves the DAG is acyclic, and verifies that every node is
   inventory-aligned with declared inputs, outputs, and dependency handoffs.
 - `bijux-dna bench local render-corpus-skip-report`
