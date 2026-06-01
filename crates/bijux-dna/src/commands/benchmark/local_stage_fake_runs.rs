@@ -401,6 +401,10 @@ pub(crate) fn stage_fake_run_output_path(stage_root: &Path, declared_path: &str)
     stage_root.join("declared-outputs").join(declared_path)
 }
 
+pub(crate) fn stage_fake_run_manifest_path(stage_root: &Path) -> PathBuf {
+    stage_root.join("stage-result.json")
+}
+
 pub(crate) fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }

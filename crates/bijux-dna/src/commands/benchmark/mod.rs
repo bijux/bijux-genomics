@@ -5,6 +5,7 @@ pub(crate) mod fastq_bench;
 pub(crate) mod local_stage_commands;
 pub(crate) mod local_stage_fake_runs;
 pub(crate) mod local_stage_inventory;
+pub(crate) mod local_stage_manifest_completion;
 pub(crate) mod local_stage_output_completion;
 pub(crate) mod publication;
 pub(crate) mod repo_checks;
