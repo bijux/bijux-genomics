@@ -1,0 +1,10 @@
+schema_version = "bijux.bench.fastq.local_remove_duplicates.v1"
+tool_id = "clumpify"
+threads = 1
+dedup_mode = "exact"
+keep_order = true
+output_dir = "target/local-smoke/fastq.remove_duplicates"
+
+[[cases]]
+sample_id = "duplicate-hit-se"
+r1 = "assets/toy/core-v1/fastq/reads_with_duplicates.fastq"
