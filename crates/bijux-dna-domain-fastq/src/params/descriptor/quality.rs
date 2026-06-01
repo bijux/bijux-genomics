@@ -64,7 +64,7 @@ pub(super) const STAGE_PARAM_DESCRIPTORS: &[(&StageId, StageParamDescriptor)] = 
         &STAGE_FILTER_LOW_COMPLEXITY,
         StageParamDescriptor {
             param_type_id: "fastq.filter_low_complexity",
-            schema_version: "bijux.fastq.params.filter_low_complexity.v1",
+            schema_version: quality::filter_low_complexity::FILTER_LOW_COMPLEXITY_SCHEMA_VERSION,
         },
     ),
     (

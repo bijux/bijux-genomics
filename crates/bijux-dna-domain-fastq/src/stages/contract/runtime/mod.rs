@@ -24,6 +24,7 @@ mod detect_instrument_artifacts;
 mod edna_branch;
 mod estimate_library_complexity_prealign;
 mod extract_umis;
+mod filter_low_complexity;
 mod fastq_io;
 mod header_inspection;
 mod interleave_reads;
@@ -65,6 +66,7 @@ pub use edna_branch::{
 };
 pub use estimate_library_complexity_prealign::estimate_library_complexity_prealign;
 pub use extract_umis::extract_umis;
+pub use filter_low_complexity::filter_low_complexity;
 pub use header_inspection::{
     ensure_umi_headers, inspect_headers, log_header_warnings, HeaderInspection,
 };
