@@ -1,0 +1,8 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chrHost	LN:80
+@RG	ID:rg1	SM:core-v1-endogenous-content
+r001	0	chrHost	1	42	6M	*	0	0	ACGTAC	FFFFFF	RG:Z:rg1
+r002	0	chrHost	12	35	6M	*	0	0	TGCATG	FFFFFF	RG:Z:rg1
+r003	0	chrHost	24	28	6M	*	0	0	GATTAC	FFFFFF	RG:Z:rg1
+r004	4	*	0	0	*	*	0	0	NNNNNN	FFFFFF	RG:Z:rg1
+r005	4	*	0	0	*	*	0	0	NNNNNN	FFFFFF	RG:Z:rg1
