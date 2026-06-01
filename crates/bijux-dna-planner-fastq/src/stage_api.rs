@@ -217,6 +217,17 @@ pub fn local_trim_reads_smoke_plans(
     crate::planner::local_trim_reads_smoke_plans(repo_root)
 }
 
+/// Build the governed local-ready dry-run plan for `fastq.deplete_rrna`.
+///
+/// # Errors
+/// Returns an error if the governed local-ready config is invalid, the configured input or rRNA
+/// reference is missing, or the stage plan cannot be built.
+pub fn local_deplete_rrna_plan(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> {
+    crate::planner::local_deplete_rrna_plan(repo_root)
+}
+
 #[must_use]
 pub fn stage_tool_capability(stage_id: &StageId, tool_id: &ToolId) -> Option<StageToolCapability> {
     let (runtime_interpretation, runtime_normalization) =

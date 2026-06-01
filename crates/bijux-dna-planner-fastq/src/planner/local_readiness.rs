@@ -3,20 +3,38 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::prelude::{StageId, ToolExecutionSpecV1, ToolId};
 use bijux_dna_domain_fastq::stages::ids::STAGE_INDEX_REFERENCE;
+use bijux_dna_domain_fastq::STAGE_DEPLETE_RRNA;
 use serde::Deserialize;
 
-use crate::selection::{load_fastq_domain_tool_execution_spec, select_index_reference_tools};
+use crate::selection::{
+    load_fastq_domain_tool_execution_spec, select_deplete_rrna_tools, select_index_reference_tools,
+};
+use crate::tool_adapters::fastq::deplete_rrna::plan_rrna_with_options;
 use crate::tool_adapters::fastq::index_reference::plan_with_options;
-use crate::IndexReferenceStageParams;
+use crate::{DepleteRrnaStageParams, IndexReferenceStageParams};
 
 const LOCAL_INDEX_REFERENCE_CONFIG_PATH: &str = "configs/bench/local/fastq-index-reference.toml";
+const LOCAL_DEPLETE_RRNA_CONFIG_PATH: &str = "configs/bench/local/fastq-deplete-rrna.toml";
 const LOCAL_RUNTIME_PROFILE_PATH: &str = "configs/runtime/profiles/local.toml";
 const DEFAULT_LOCAL_INDEX_REFERENCE_OUTPUT_DIR: &str = "target/local-ready/fastq.index_reference";
+const DEFAULT_LOCAL_DEPLETE_RRNA_OUTPUT_DIR: &str = "target/local-ready/fastq.deplete_rrna";
 
 #[derive(Debug, Deserialize)]
 struct LocalIndexReferencePlanConfig {
     schema_version: String,
     reference_fasta: PathBuf,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalDepleteRrnaPlanConfig {
+    schema_version: String,
+    input_r1: PathBuf,
+    rrna_db: PathBuf,
     tool_id: String,
     #[serde(default)]
     threads: Option<u32>,
@@ -59,7 +77,7 @@ pub fn local_index_reference_plan(
     }
 
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
-    hydrate_local_profile_defaults(&mut tool_spec, &config, &local_profile);
+    hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
     let out_dir = config
         .output_dir
         .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_INDEX_REFERENCE_OUTPUT_DIR));
@@ -72,13 +90,66 @@ pub fn local_index_reference_plan(
     )
 }
 
+/// # Errors
+/// Returns an error if the governed local-ready config or runtime profile cannot be read, the
+/// configured reads/database/tool triple is invalid, or the stage plan cannot be built.
+pub fn local_deplete_rrna_plan(repo_root: &Path) -> Result<bijux_dna_stage_contract::StagePlanV1> {
+    let config = load_local_deplete_rrna_plan_config(repo_root)?;
+    let local_profile = load_local_runtime_profile(repo_root)?;
+    let stage_id = StageId::new(STAGE_DEPLETE_RRNA.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-ready tool_id `{}`: {error}", config.tool_id))?;
+
+    let normalized_tools = select_deplete_rrna_tools(std::slice::from_ref(&config.tool_id))?;
+    if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
+        return Err(anyhow!(
+            "local-ready fastq.deplete_rrna tool selection normalized unexpectedly: {:?}",
+            normalized_tools
+        ));
+    }
+
+    let input_r1_abs = repo_root.join(&config.input_r1);
+    if !input_r1_abs.is_file() {
+        return Err(anyhow!(
+            "local-ready fastq.deplete_rrna input FASTQ is missing: {}",
+            input_r1_abs.display()
+        ));
+    }
+
+    let rrna_db_abs = repo_root.join(&config.rrna_db);
+    if !rrna_db_abs.is_file() {
+        return Err(anyhow!(
+            "local-ready fastq.deplete_rrna rRNA reference is missing: {}",
+            rrna_db_abs.display()
+        ));
+    }
+
+    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
+    let out_dir = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DEPLETE_RRNA_OUTPUT_DIR));
+
+    plan_rrna_with_options(
+        &tool_spec,
+        &config.input_r1,
+        None,
+        &out_dir,
+        &DepleteRrnaStageParams {
+            rrna_db: config.rrna_db.display().to_string(),
+            min_identity: DepleteRrnaStageParams::baseline().min_identity,
+            threads: Some(tool_spec.resources.threads.max(1)),
+        },
+    )
+}
+
 fn hydrate_local_profile_defaults(
     tool_spec: &mut ToolExecutionSpecV1,
-    config: &LocalIndexReferencePlanConfig,
+    configured_threads: Option<u32>,
     local_profile: &LocalRuntimeProfile,
 ) {
     let use_profile_memory_defaults = constraints_are_default(&tool_spec.resources);
-    let threads = config.threads.unwrap_or(local_profile.default_threads).max(1);
+    let threads = configured_threads.unwrap_or(local_profile.default_threads).max(1);
     if use_profile_memory_defaults {
         tool_spec.resources.mem_gb = local_profile.default_mem_gb.max(1);
         tool_spec.resources.tmp_gb = local_profile.default_mem_gb.max(1);
@@ -106,6 +177,20 @@ fn load_local_index_reference_plan_config(
     if config.schema_version != "bijux.bench.fastq.local_index_reference.v1" {
         return Err(anyhow!(
             "unsupported local-ready fastq.index_reference schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_deplete_rrna_plan_config(repo_root: &Path) -> Result<LocalDepleteRrnaPlanConfig> {
+    let path = repo_root.join(LOCAL_DEPLETE_RRNA_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalDepleteRrnaPlanConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.fastq.local_deplete_rrna.v1" {
+        return Err(anyhow!(
+            "unsupported local-ready fastq.deplete_rrna schema_version `{}`",
             config.schema_version
         ));
     }
