@@ -5,6 +5,8 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "0.7.17"
 install_kind: "container"
+container:
+  image: "bijuxdna/bwa"
 license: "GPL-3.0"
 citation: "paper:https://academic.oup.com/bioinformatics/article/25/14/1754/225615"
 stage_ids: ["bam.align"]
