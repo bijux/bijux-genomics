@@ -2,14 +2,17 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_core::contract::ArtifactRef;
 use bijux_dna_core::prelude::{StageId, ToolExecutionSpecV1, ToolId};
 use bijux_dna_domain_fastq::banks::{
     adapter_bank_provenance_json, resolve_effective_adapters, AdapterSelection,
     DEFAULT_ADAPTER_PRESET,
 };
 use bijux_dna_domain_fastq::params::correct::QualityEncoding;
+use bijux_dna_domain_fastq::params::qc_post::{QcAggregationEngine, QcAggregationScope};
 use bijux_dna_domain_fastq::params::umi::{UmiFailedExtractionPolicy, UmiReadNameTransform};
 use bijux_dna_domain_fastq::params::validate::{PairSyncPolicy, ValidationMode};
+use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::stages::ids::STAGE_CLUSTER_OTUS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_CORRECT_ERRORS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_DETECT_ADAPTERS;
@@ -31,6 +34,7 @@ use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_READS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_TERMINAL_DAMAGE;
 use bijux_dna_domain_fastq::stages::ids::STAGE_VALIDATE_READS;
+use bijux_dna_domain_fastq::GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION;
 use serde::Deserialize;
 
 use crate::selection::{
@@ -71,6 +75,7 @@ use crate::tool_adapters::fastq::remove_chimeras::plan as plan_remove_chimeras;
 use crate::tool_adapters::fastq::remove_duplicates::{
     dedup_mode_from_literal, plan_deduplicate_with_options, RemoveDuplicatesPlanOptions,
 };
+use crate::tool_adapters::fastq::report_qc::plan_qc_post_with_qc_inputs;
 use crate::tool_adapters::fastq::trim_polyg_tails::{
     plan_trim_polyg_tails_with_options, TrimPolygPlanOptions,
 };
@@ -120,6 +125,8 @@ const DEFAULT_LOCAL_NORMALIZE_PRIMERS_OUTPUT_DIR: &str =
     "target/local-smoke/fastq.normalize_primers";
 const LOCAL_PROFILE_READS_CONFIG_PATH: &str = "configs/bench/local/fastq-profile-reads.toml";
 const DEFAULT_LOCAL_PROFILE_READS_OUTPUT_DIR: &str = "target/local-smoke/fastq.profile_reads";
+const LOCAL_REPORT_QC_CONFIG_PATH: &str = "configs/bench/local/fastq-report-qc.toml";
+const DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR: &str = "target/local-smoke/fastq.report_qc";
 const LOCAL_PROFILE_OVERREPRESENTED_SEQUENCES_CONFIG_PATH: &str =
     "configs/bench/local/fastq-profile-overrepresented-sequences.toml";
 const DEFAULT_LOCAL_PROFILE_OVERREPRESENTED_SEQUENCES_OUTPUT_DIR: &str =
@@ -332,6 +339,20 @@ pub struct LocalValidateReadsSmokeCasePlan {
     pub validation_mode: ValidationMode,
     pub pair_sync_policy: PairSyncPolicy,
     pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalReportQcSmokePlanConfig {
+    schema_version: String,
+    tool_id: String,
+    fixture_root: PathBuf,
+    manifest_template: PathBuf,
+    #[serde(default)]
+    aggregation_engine: Option<String>,
+    #[serde(default)]
+    aggregation_scope: Option<String>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -2317,6 +2338,72 @@ pub fn local_profile_reads_smoke_plans(
 }
 
 /// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the governed QC manifest cannot
+/// be resolved against the fixture bundle, or the stage plan cannot be built.
+pub fn local_report_qc_smoke_plan(
+    repo_root: &Path,
+) -> Result<bijux_dna_stage_contract::StagePlanV1> {
+    let config = load_local_report_qc_smoke_plan_config(repo_root)?;
+    let stage_id = StageId::new("fastq.report_qc".to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    let normalized_tools = crate::tool_adapters::fastq::report_qc::normalize_qc_post_tool_list(
+        std::slice::from_ref(&config.tool_id),
+    )?;
+    if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
+        return Err(anyhow!(
+            "local-smoke fastq.report_qc tool selection normalized unexpectedly: {:?}",
+            normalized_tools
+        ));
+    }
+
+    let manifest_path = repo_root.join(&config.manifest_template);
+    let raw_manifest = std::fs::read_to_string(&manifest_path)
+        .with_context(|| format!("read {}", manifest_path.display()))?;
+    let mut manifest: bijux_dna_domain_fastq::GovernedQcInputsManifestV1 =
+        serde_json::from_str(&raw_manifest)
+            .with_context(|| format!("parse {}", manifest_path.display()))?;
+    if manifest.schema_version != GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "{} declares `{}` but `{}` is required",
+            manifest_path.display(),
+            manifest.schema_version,
+            GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION
+        ));
+    }
+
+    let fixture_root = repo_root.join(&config.fixture_root);
+    if !fixture_root.is_dir() {
+        return Err(anyhow!(
+            "local-smoke fastq.report_qc fixture_root is missing: {}",
+            fixture_root.display()
+        ));
+    }
+
+    rebase_governed_qc_inputs(&mut manifest.qc_inputs, &fixture_root)?;
+    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, None);
+    let aggregation_engine =
+        parse_local_report_qc_aggregation_engine(config.aggregation_engine.as_deref())?;
+    let aggregation_scope =
+        parse_local_report_qc_aggregation_scope(config.aggregation_scope.as_deref())?;
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR));
+
+    plan_qc_post_with_qc_inputs(
+        &tool_spec,
+        &manifest.qc_inputs,
+        &output_root,
+        std::collections::BTreeMap::new(),
+        PairedMode::SingleEnd,
+        aggregation_engine,
+        aggregation_scope,
+        None,
+        None,
+    )
+}
+
+/// # Errors
 /// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
 /// exist, or stage plans cannot be built for the governed smoke cases.
 pub fn local_profile_overrepresented_sequences_smoke_plans(
@@ -2482,6 +2569,56 @@ fn hydrate_smoke_threads(tool_spec: &mut ToolExecutionSpecV1, threads: Option<u3
     } else {
         tool_spec.resources.threads = tool_spec.resources.threads.max(1);
     }
+}
+
+fn parse_local_report_qc_aggregation_engine(value: Option<&str>) -> Result<QcAggregationEngine> {
+    match value.unwrap_or("multiqc") {
+        "auto" | "multiqc" => Ok(QcAggregationEngine::Multiqc),
+        other => {
+            Err(anyhow!("unsupported local-smoke fastq.report_qc aggregation_engine `{other}`"))
+        }
+    }
+}
+
+fn parse_local_report_qc_aggregation_scope(value: Option<&str>) -> Result<QcAggregationScope> {
+    match value.unwrap_or("governed_qc_artifacts") {
+        "governed_qc_artifacts" => Ok(QcAggregationScope::GovernedQcArtifacts),
+        other => {
+            Err(anyhow!("unsupported local-smoke fastq.report_qc aggregation_scope `{other}`"))
+        }
+    }
+}
+
+fn rebase_governed_qc_inputs(qc_inputs: &mut [ArtifactRef], fixture_root: &Path) -> Result<()> {
+    for qc_input in qc_inputs {
+        let source = fixture_root.join(&qc_input.path);
+        if !source.is_file() {
+            return Err(anyhow!(
+                "local-smoke fastq.report_qc governed QC input is missing: {}",
+                source.display()
+            ));
+        }
+        qc_input.path = source;
+    }
+    Ok(())
+}
+
+fn load_local_report_qc_smoke_plan_config(
+    repo_root: &Path,
+) -> Result<LocalReportQcSmokePlanConfig> {
+    let config_path = repo_root.join(LOCAL_REPORT_QC_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&config_path)
+        .with_context(|| format!("read {}", config_path.display()))?;
+    let config: LocalReportQcSmokePlanConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", config_path.display()))?;
+    if config.schema_version != "bijux.bench.fastq.local_report_qc.v1" {
+        return Err(anyhow!(
+            "{} declares unexpected schema_version `{}`",
+            config_path.display(),
+            config.schema_version
+        ));
+    }
+    Ok(config)
 }
 
 fn ensure_unique_sample_ids(cases: &[LocalValidateReadsSmokeCase]) -> Result<()> {

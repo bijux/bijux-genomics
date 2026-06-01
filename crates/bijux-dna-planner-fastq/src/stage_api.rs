@@ -184,6 +184,17 @@ pub fn local_profile_reads_smoke_plans(
     crate::planner::local_profile_reads_smoke_plans(repo_root)
 }
 
+/// Build the governed local-smoke plan for `fastq.report_qc`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture bundle cannot be
+/// resolved into governed QC inputs, or the stage plan cannot be built.
+pub fn local_report_qc_smoke_plan(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> {
+    crate::planner::local_report_qc_smoke_plan(repo_root)
+}
+
 /// Build the governed local-smoke case plans for
 /// `fastq.profile_overrepresented_sequences`.
 ///
