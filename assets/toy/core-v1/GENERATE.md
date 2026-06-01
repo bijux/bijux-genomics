@@ -16,6 +16,7 @@ Generated via `cargo run -p bijux-dna-dev -- assets run refresh-toy`.
 - `bam/qc_pre_core_metrics.sam`
 - `bam/mapping_summary_partial_mapping.sam`
 - `bam/filter_mixed_constraints.sam`
+- `bam/mapq_threshold_ladder.sam`
 - `bam/validation_reference.fasta`
 - `bam/validation_pass.sam`
 - `bam/validation_pass.sam.bai`
