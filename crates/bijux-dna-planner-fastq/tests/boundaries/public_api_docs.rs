@@ -74,6 +74,7 @@ fn public_api_docs_match_curated_exports() {
             "local_normalize_primers_smoke_plans",
             "local_profile_read_lengths_smoke_plans",
             "local_profile_reads_smoke_plans",
+            "local_remove_duplicates_smoke_plans",
             "local_trim_polyg_tails_smoke_plans",
             "local_trim_reads_smoke_plans",
             "local_trim_terminal_damage_smoke_plans",
@@ -194,6 +195,10 @@ fn documented_stage_api_exports_remain_compilable() {
         &Path,
     ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalProfileReadsSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_profile_reads_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalRemoveDuplicatesSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_remove_duplicates_smoke_plans;
     let _: fn(
         &Path,
     )

@@ -28,6 +28,8 @@ mod local_normalize_primers_smoke;
 mod local_profile_read_lengths_smoke;
 #[path = "plan/local_profile_reads_smoke.rs"]
 mod local_profile_reads_smoke;
+#[path = "plan/local_remove_duplicates_smoke.rs"]
+mod local_remove_duplicates_smoke;
 #[path = "plan/local_trim_polyg_tails_smoke.rs"]
 mod local_trim_polyg_tails_smoke;
 #[path = "plan/local_trim_reads_smoke.rs"]
