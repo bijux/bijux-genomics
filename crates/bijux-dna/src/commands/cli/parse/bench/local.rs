@@ -30,6 +30,8 @@ pub enum BenchLocalCommand {
     RenderCorpusSkipReport(BenchLocalRenderCorpusSkipReportArgs),
     #[command(name = "validate-taxonomy-database-fixture")]
     ValidateTaxonomyDatabaseFixture(BenchLocalValidateTaxonomyDatabaseFixtureArgs),
+    #[command(name = "validate-slurm-shell-syntax")]
+    ValidateSlurmShellSyntax(BenchLocalValidateSlurmShellSyntaxArgs),
     #[command(name = "validate-slurm-script-bodies")]
     ValidateSlurmScriptBodies(BenchLocalValidateSlurmScriptBodiesArgs),
     #[command(name = "render-benchmark-summary")]
@@ -114,6 +116,16 @@ pub struct BenchLocalRenderCorpusSkipReportArgs {
 pub struct BenchLocalValidateTaxonomyDatabaseFixtureArgs {
     #[arg(long)]
     pub manifest: std::path::PathBuf,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateSlurmShellSyntaxArgs {
+    #[arg(long)]
+    pub root: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

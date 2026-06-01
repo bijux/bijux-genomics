@@ -192,6 +192,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateSlurmShellSyntax(args) => {
+                        crate::commands::benchmark::local_slurm_shell_syntax::run_validate_slurm_shell_syntax(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateSlurmScriptBodies(args) => {
                         crate::commands::benchmark::local_slurm_script_bodies::run_validate_slurm_script_bodies(
                             &args,
