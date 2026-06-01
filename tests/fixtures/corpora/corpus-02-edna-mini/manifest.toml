@@ -3,6 +3,7 @@ corpus_id = "corpus-02-edna-mini"
 community_id = "mock_community_taxonomy"
 description = "Tiny synthetic eDNA FASTQ fixture with two single-end mock-community samples for local taxonomy and microbiome contract checks."
 compression = "gzip"
+expected_taxa_path = "expected_taxa.tsv"
 
 [[expected_taxa]]
 taxon_id = 561
