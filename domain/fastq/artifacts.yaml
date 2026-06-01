@@ -129,6 +129,8 @@ artifact_ids:
   - trimmed_reads
   - trimmed_reads_r1
   - trimmed_reads_r2
+  - unclassified_reads_r1
+  - unclassified_reads_r2
   - unmerged_reads_r1
   - unmerged_reads_r2
   - umi_reads_r1
