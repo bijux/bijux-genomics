@@ -50,6 +50,8 @@ pub(crate) struct AmpliconCorpusFixtureManifest {
     pub(crate) primer_fasta: PathBuf,
     pub(crate) primers_tsv_path: PathBuf,
     pub(crate) expected_asvs_path: PathBuf,
+    pub(crate) chimera_controls_fasta_path: PathBuf,
+    pub(crate) chimera_expectations_path: PathBuf,
     pub(crate) amplicon_governance_path: PathBuf,
     pub(crate) controls: Vec<AmpliconCorpusControl>,
     pub(crate) samples: Vec<AmpliconCorpusFixtureSample>,
@@ -110,6 +112,11 @@ pub(crate) struct AmpliconCorpusFixtureValidationReport {
     pub(crate) expected_asv_row_count: usize,
     pub(crate) expected_asv_present_row_count: usize,
     pub(crate) expected_asv_absent_row_count: usize,
+    pub(crate) chimera_controls_fasta_path: String,
+    pub(crate) chimera_expectations_path: String,
+    pub(crate) chimera_expectation_row_count: usize,
+    pub(crate) chimera_expected_present_row_count: usize,
+    pub(crate) chimera_expected_absent_row_count: usize,
     pub(crate) amplicon_governance_path: String,
     pub(crate) sample_count: usize,
     pub(crate) control_count: usize,
@@ -165,6 +172,14 @@ struct AmpliconExpectedAsvRow {
     expected_presence: AmpliconExpectedPresence,
 }
 
+#[derive(Debug)]
+struct AmpliconExpectedChimeraRow {
+    chimera_id: String,
+    sequence: String,
+    sample_id: String,
+    expected_presence: AmpliconExpectedPresence,
+}
+
 pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
     repo_root: &Path,
     manifest_path: &Path,
@@ -179,6 +194,10 @@ pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
     let primers_tsv_path = resolve_manifest_relative_path(manifest_dir, &manifest.primers_tsv_path);
     let expected_asvs_path =
         resolve_manifest_relative_path(manifest_dir, &manifest.expected_asvs_path);
+    let chimera_controls_fasta_path =
+        resolve_manifest_relative_path(manifest_dir, &manifest.chimera_controls_fasta_path);
+    let chimera_expectations_path =
+        resolve_manifest_relative_path(manifest_dir, &manifest.chimera_expectations_path);
     let amplicon_governance_path =
         resolve_manifest_relative_path(manifest_dir, &manifest.amplicon_governance_path);
     validate_amplicon_governance_contract(
@@ -196,6 +215,14 @@ pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
     )?;
     let expected_asv_rows =
         validate_expected_asvs_contract(repo_root, &manifest, &expected_asvs_path)?;
+    let chimera_control_records = load_fasta_records(&chimera_controls_fasta_path)?;
+    let chimera_expectation_rows = validate_chimera_expectations_contract(
+        repo_root,
+        &manifest,
+        &chimera_controls_fasta_path,
+        &chimera_expectations_path,
+        &chimera_control_records,
+    )?;
     let report_primer_fasta_path = primer_fasta_path
         .canonicalize()
         .with_context(|| format!("canonicalize {}", primer_fasta_path.display()))?;
@@ -205,6 +232,12 @@ pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
     let report_expected_asvs_path = expected_asvs_path
         .canonicalize()
         .with_context(|| format!("canonicalize {}", expected_asvs_path.display()))?;
+    let report_chimera_controls_fasta_path = chimera_controls_fasta_path
+        .canonicalize()
+        .with_context(|| format!("canonicalize {}", chimera_controls_fasta_path.display()))?;
+    let report_chimera_expectations_path = chimera_expectations_path
+        .canonicalize()
+        .with_context(|| format!("canonicalize {}", chimera_expectations_path.display()))?;
     let report_amplicon_governance_path = amplicon_governance_path
         .canonicalize()
         .with_context(|| format!("canonicalize {}", amplicon_governance_path.display()))?;
@@ -214,6 +247,12 @@ pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
         .count();
     let expected_asv_absent_row_count =
         expected_asv_rows.len().saturating_sub(expected_asv_present_row_count);
+    let chimera_expected_present_row_count = chimera_expectation_rows
+        .iter()
+        .filter(|row| row.expected_presence == AmpliconExpectedPresence::Present)
+        .count();
+    let chimera_expected_absent_row_count =
+        chimera_expectation_rows.len().saturating_sub(chimera_expected_present_row_count);
 
     let samples = manifest
         .samples
@@ -251,6 +290,17 @@ pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
         expected_asv_row_count: expected_asv_rows.len(),
         expected_asv_present_row_count,
         expected_asv_absent_row_count,
+        chimera_controls_fasta_path: path_relative_to_repo(
+            repo_root,
+            &report_chimera_controls_fasta_path,
+        ),
+        chimera_expectations_path: path_relative_to_repo(
+            repo_root,
+            &report_chimera_expectations_path,
+        ),
+        chimera_expectation_row_count: chimera_expectation_rows.len(),
+        chimera_expected_present_row_count,
+        chimera_expected_absent_row_count,
         amplicon_governance_path: path_relative_to_repo(
             repo_root,
             &report_amplicon_governance_path,
@@ -317,6 +367,16 @@ fn validate_amplicon_corpus_fixture_manifest_contract(
     if manifest.expected_asvs_path.as_os_str().is_empty() {
         return Err(anyhow!(
             "amplicon corpus fixture must declare a non-empty `expected_asvs_path`"
+        ));
+    }
+    if manifest.chimera_controls_fasta_path.as_os_str().is_empty() {
+        return Err(anyhow!(
+            "amplicon corpus fixture must declare a non-empty `chimera_controls_fasta_path`"
+        ));
+    }
+    if manifest.chimera_expectations_path.as_os_str().is_empty() {
+        return Err(anyhow!(
+            "amplicon corpus fixture must declare a non-empty `chimera_expectations_path`"
         ));
     }
     if manifest.amplicon_governance_path.as_os_str().is_empty() {
@@ -497,27 +557,7 @@ fn validate_primer_fasta_headers(
     manifest: &AmpliconCorpusFixtureManifest,
     primer_fasta_path: &Path,
 ) -> Result<BTreeMap<String, String>> {
-    let file = fs::File::open(primer_fasta_path)
-        .with_context(|| format!("open {}", primer_fasta_path.display()))?;
-    let reader = BufReader::new(file);
-    let mut sequences = BTreeMap::new();
-    let mut current_header: Option<String> = None;
-    let mut current_sequence = String::new();
-    for line in reader.lines() {
-        let line = line.with_context(|| format!("read {}", primer_fasta_path.display()))?;
-        if let Some(header) = line.strip_prefix('>') {
-            if let Some(previous_header) = current_header.take() {
-                sequences.insert(previous_header, current_sequence.clone());
-                current_sequence.clear();
-            }
-            current_header = Some(header.trim().to_string());
-        } else if !line.trim().is_empty() {
-            current_sequence.push_str(line.trim());
-        }
-    }
-    if let Some(previous_header) = current_header.take() {
-        sequences.insert(previous_header, current_sequence);
-    }
+    let sequences = load_fasta_records(primer_fasta_path)?;
     if !sequences.contains_key(&manifest.forward_primer_id) {
         return Err(anyhow!(
             "amplicon corpus fixture forward primer `{}` is missing from {}",
@@ -531,6 +571,36 @@ fn validate_primer_fasta_headers(
             manifest.reverse_primer_id,
             primer_fasta_path.display()
         ));
+    }
+    Ok(sequences)
+}
+
+fn load_fasta_records(path: &Path) -> Result<BTreeMap<String, String>> {
+    if !path.is_file() {
+        return Err(anyhow!("FASTA fixture is missing: {}", path.display()));
+    }
+    let file = fs::File::open(path).with_context(|| format!("open {}", path.display()))?;
+    let reader = BufReader::new(file);
+    let mut sequences = BTreeMap::new();
+    let mut current_header: Option<String> = None;
+    let mut current_sequence = String::new();
+    for line in reader.lines() {
+        let line = line.with_context(|| format!("read {}", path.display()))?;
+        if let Some(header) = line.strip_prefix('>') {
+            if let Some(previous_header) = current_header.take() {
+                sequences.insert(previous_header, current_sequence.clone());
+                current_sequence.clear();
+            }
+            current_header = Some(header.trim().to_string());
+        } else if !line.trim().is_empty() {
+            current_sequence.push_str(line.trim());
+        }
+    }
+    if let Some(previous_header) = current_header.take() {
+        sequences.insert(previous_header, current_sequence);
+    }
+    if sequences.is_empty() {
+        return Err(anyhow!("FASTA fixture must declare at least one record: {}", path.display()));
     }
     Ok(sequences)
 }
@@ -803,6 +873,152 @@ fn validate_expected_asvs_contract(
     Ok(rows)
 }
 
+fn validate_chimera_expectations_contract(
+    repo_root: &Path,
+    manifest: &AmpliconCorpusFixtureManifest,
+    chimera_controls_fasta_path: &Path,
+    chimera_expectations_path: &Path,
+    chimera_control_records: &BTreeMap<String, String>,
+) -> Result<Vec<AmpliconExpectedChimeraRow>> {
+    if !chimera_expectations_path.is_file() {
+        return Err(anyhow!(
+            "amplicon corpus fixture chimera expectation table is missing: {}",
+            chimera_expectations_path.display()
+        ));
+    }
+    let raw = fs::read_to_string(chimera_expectations_path)
+        .with_context(|| format!("read {}", chimera_expectations_path.display()))?;
+    let mut lines = raw.lines();
+    let header = lines.next().ok_or_else(|| {
+        anyhow!(
+            "amplicon corpus fixture chimera expectation table is empty: {}",
+            chimera_expectations_path.display()
+        )
+    })?;
+    if header != "chimera_id\tsequence\tsample_id\texpected_presence" {
+        return Err(anyhow!(
+            "amplicon corpus fixture chimera expectation table header is unexpected in {}",
+            chimera_expectations_path.display()
+        ));
+    }
+    let rows = lines
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            let mut fields = line.split('\t');
+            let row = AmpliconExpectedChimeraRow {
+                chimera_id: fields
+                    .next()
+                    .ok_or_else(|| {
+                        anyhow!(
+                            "missing chimera_id field in {}",
+                            chimera_expectations_path.display()
+                        )
+                    })?
+                    .to_string(),
+                sequence: fields
+                    .next()
+                    .ok_or_else(|| {
+                        anyhow!("missing sequence field in {}", chimera_expectations_path.display())
+                    })?
+                    .to_string(),
+                sample_id: fields
+                    .next()
+                    .ok_or_else(|| {
+                        anyhow!(
+                            "missing sample_id field in {}",
+                            chimera_expectations_path.display()
+                        )
+                    })?
+                    .to_string(),
+                expected_presence: AmpliconExpectedPresence::parse(fields.next().ok_or_else(
+                    || {
+                        anyhow!(
+                            "missing expected_presence field in {}",
+                            chimera_expectations_path.display()
+                        )
+                    },
+                )?)?,
+            };
+            if fields.next().is_some() {
+                return Err(anyhow!(
+                    "amplicon corpus fixture chimera expectation row has too many columns in {}",
+                    chimera_expectations_path.display()
+                ));
+            }
+            Ok(row)
+        })
+        .collect::<Result<Vec<_>>>()?;
+    if rows.is_empty() {
+        return Err(anyhow!(
+            "amplicon corpus fixture chimera expectation table must declare at least one row in {}",
+            chimera_expectations_path.display()
+        ));
+    }
+    let control_sample_ids = manifest
+        .samples
+        .iter()
+        .filter(|sample| matches!(sample.sample_kind, AmpliconCorpusSampleKind::Control))
+        .map(|sample| sample.sample_id.as_str())
+        .collect::<BTreeSet<_>>();
+    let manifest_relative_path = path_relative_to_repo(repo_root, chimera_expectations_path);
+    let chimera_fasta_relative_path = path_relative_to_repo(repo_root, chimera_controls_fasta_path);
+    let mut chimera_sample_pairs = BTreeSet::new();
+    let mut present_rows = 0_usize;
+    for row in &rows {
+        if row.chimera_id.trim().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus fixture chimera expectation rows must declare a non-empty `chimera_id` in {manifest_relative_path}"
+            ));
+        }
+        if row.sequence.trim().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus fixture chimera expectation rows must declare a non-empty `sequence` in {manifest_relative_path}"
+            ));
+        }
+        if !row.sequence.chars().all(|ch| matches!(ch, 'A' | 'C' | 'G' | 'T' | 'N')) {
+            return Err(anyhow!(
+                "amplicon corpus fixture chimera expectation sequence for `{}` must be uppercase DNA in {manifest_relative_path}",
+                row.chimera_id
+            ));
+        }
+        if !control_sample_ids.contains(row.sample_id.as_str()) {
+            return Err(anyhow!(
+                "amplicon corpus fixture chimera expectation row `{}` references undeclared control sample `{}` in {manifest_relative_path}",
+                row.chimera_id,
+                row.sample_id
+            ));
+        }
+        if !chimera_sample_pairs.insert((row.chimera_id.as_str(), row.sample_id.as_str())) {
+            return Err(anyhow!(
+                "amplicon corpus fixture chimera expectation table repeats (`{}`, `{}`) in {manifest_relative_path}",
+                row.chimera_id,
+                row.sample_id
+            ));
+        }
+        if row.expected_presence == AmpliconExpectedPresence::Present {
+            present_rows = present_rows.saturating_add(1);
+            let fasta_sequence = chimera_control_records.get(&row.chimera_id).ok_or_else(|| {
+                anyhow!(
+                    "amplicon corpus fixture expected chimera `{}` is missing from {chimera_fasta_relative_path}",
+                    row.chimera_id
+                )
+            })?;
+            if fasta_sequence != &row.sequence {
+                return Err(anyhow!(
+                    "amplicon corpus fixture chimera expectation sequence for `{}` does not match {chimera_fasta_relative_path}",
+                    row.chimera_id
+                ));
+            }
+        }
+    }
+    if present_rows == 0 {
+        return Err(anyhow!(
+            "amplicon corpus fixture chimera expectation table must declare at least one `present` row in {manifest_relative_path}"
+        ));
+    }
+    Ok(rows)
+}
+
 fn validate_amplicon_corpus_fixture_sample(
     repo_root: &Path,
     manifest_dir: &Path,
@@ -897,6 +1113,17 @@ mod tests {
         assert_eq!(report.expected_asv_row_count, 3);
         assert_eq!(report.expected_asv_present_row_count, 2);
         assert_eq!(report.expected_asv_absent_row_count, 1);
+        assert_eq!(
+            report.chimera_controls_fasta_path,
+            "tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_controls.fasta"
+        );
+        assert_eq!(
+            report.chimera_expectations_path,
+            "tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv"
+        );
+        assert_eq!(report.chimera_expectation_row_count, 1);
+        assert_eq!(report.chimera_expected_present_row_count, 1);
+        assert_eq!(report.chimera_expected_absent_row_count, 0);
         assert_eq!(report.sample_count, 4);
         assert_eq!(report.control_count, 1);
         assert!(report.valid);
