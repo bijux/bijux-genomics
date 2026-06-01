@@ -79,6 +79,39 @@ fn bench_local_render_slurm_scripts_fastq_json_reports_governed_27_stage_slice()
     }));
 }
 
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_render_slurm_scripts_bam_json_reports_governed_24_stage_slice() {
+    let payload =
+        run_cli_json(&["bench", "local", "render-slurm-scripts", "--domain", "bam", "--json"]);
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.local_slurm_dry_run.v1")
+    );
+    assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("bam"));
+    assert_eq!(
+        payload.get("output_root").and_then(serde_json::Value::as_str),
+        Some("target/slurm-dry-run/bam")
+    );
+    assert_eq!(payload.get("script_count").and_then(serde_json::Value::as_u64), Some(24));
+    let scripts =
+        payload.get("scripts").and_then(serde_json::Value::as_array).expect("scripts array");
+    assert_eq!(scripts.len(), 24);
+    assert!(scripts.iter().all(|entry| {
+        entry.get("stage_id").and_then(serde_json::Value::as_str).is_some()
+            && entry.get("tool_id").and_then(serde_json::Value::as_str).is_some()
+            && entry
+                .get("script_path")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|path| path.starts_with("target/slurm-dry-run/bam/") && path.ends_with(".sbatch"))
+            && entry
+                .get("command")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|command| command.contains("bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam."))
+    }));
+}
+
 #[test]
 fn bench_local_render_slurm_scripts_fastq_writes_bash_parseable_27_script_slice() {
     let output = run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "fastq"]);
