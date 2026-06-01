@@ -21,6 +21,18 @@ pub fn write_local_align_plan() -> Result<PathBuf> {
     Ok(plan_path)
 }
 
+/// Materialize the governed local-smoke `bam.validate` report bundle.
+///
+/// The written summary artifact lives at `target/local-smoke/bam.validate/validation.json`
+/// under the active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_validate_smoke_report() -> Result<PathBuf> {
+    crate::internal::bam::stages::validate::write_local_validate_smoke_report()
+}
+
 fn resolve_plan_dir(repo_root: &Path, out_dir: &Path) -> PathBuf {
     if out_dir.is_absolute() {
         out_dir.to_path_buf()

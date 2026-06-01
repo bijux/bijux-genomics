@@ -10,5 +10,5 @@ pub mod feature_flags;
 pub(crate) mod plan;
 pub(crate) mod stage_planning;
 
-pub use domain::write_local_align_plan;
+pub use domain::{write_local_align_plan, write_local_validate_smoke_report};
 pub use feature_flags::downstream_enabled;
