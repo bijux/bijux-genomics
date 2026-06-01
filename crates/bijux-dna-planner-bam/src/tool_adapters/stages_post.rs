@@ -325,7 +325,12 @@ pub mod coverage {
                     depth_path.clone(),
                     ArtifactRole::ReportJson,
                 ));
-                crate::tool_adapters::tools::samtools::depth_args(bam, &depth_path, &summary_path)
+                crate::tool_adapters::tools::samtools::depth_args(
+                    bam,
+                    &depth_path,
+                    &summary_path,
+                    params.regions.as_ref(),
+                )
             }
             _ => crate::tool_adapters::tools::mosdepth::args(bam, &prefix, params),
         };
