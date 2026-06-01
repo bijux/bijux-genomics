@@ -6,10 +6,48 @@ use bijux_dna_core::prelude::{
 };
 use serde::Deserialize;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BamDomainToolSupportLevel {
+    Supported,
+    Planned,
+}
+
+impl BamDomainToolSupportLevel {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Supported => "supported",
+            Self::Planned => "planned",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BamDomainToolContractMetadata {
+    pub tool_id: ToolId,
+    pub support_level: BamDomainToolSupportLevel,
+    pub stage_ids: Vec<StageId>,
+    pub planned_stage_ids: Vec<StageId>,
+}
+
+impl BamDomainToolContractMetadata {
+    #[must_use]
+    pub fn pair_support_level(&self, stage_id: &StageId) -> BamDomainToolSupportLevel {
+        if self.planned_stage_ids.iter().any(|candidate| candidate == stage_id)
+            || self.support_level == BamDomainToolSupportLevel::Planned
+        {
+            BamDomainToolSupportLevel::Planned
+        } else {
+            BamDomainToolSupportLevel::Supported
+        }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 struct DomainToolYaml {
     tool_id: String,
     default_version: String,
+    status: String,
     #[serde(default)]
     container: Option<DomainToolContainer>,
     #[serde(default)]
@@ -38,9 +76,49 @@ struct DomainToolContainer {
 }
 
 /// # Errors
+/// Returns an error if the governed BAM domain tool YAML cannot be read or omits required
+/// support metadata.
+pub fn load_bam_domain_tool_contract_metadata(
+    repo_root: &Path,
+    tool_id: &ToolId,
+) -> Result<BamDomainToolContractMetadata> {
+    let parsed = load_domain_tool_yaml(repo_root, tool_id)?;
+    let support_level = match parsed.status.as_str() {
+        "supported" => BamDomainToolSupportLevel::Supported,
+        "planned" => BamDomainToolSupportLevel::Planned,
+        other => {
+            return Err(anyhow!(
+                "governed BAM tool yaml {} declares unsupported status `{other}`",
+                tool_id.as_str()
+            ))
+        }
+    };
+
+    let stage_ids = parsed
+        .stage_ids
+        .iter()
+        .cloned()
+        .map(StageId::new)
+        .collect::<Vec<_>>();
+    let planned_stage_ids = parsed
+        .planned_stage_ids
+        .iter()
+        .cloned()
+        .map(StageId::new)
+        .collect::<Vec<_>>();
+
+    Ok(BamDomainToolContractMetadata {
+        tool_id: tool_id.clone(),
+        support_level,
+        stage_ids,
+        planned_stage_ids,
+    })
+}
+
+/// # Errors
 /// Returns an error if the governed BAM domain tool YAML cannot be read, does not match the
 /// requested stage/tool pair, or omits required execution-spec fields.
-pub(crate) fn load_bam_domain_tool_execution_spec(
+pub fn load_bam_domain_tool_execution_spec(
     repo_root: &Path,
     stage_id: &StageId,
     tool_id: &ToolId,
@@ -52,7 +130,7 @@ pub(crate) fn load_bam_domain_tool_execution_spec(
 /// Returns an error if the governed BAM domain tool YAML cannot be read or does not match the
 /// requested stage/tool pair. Unlike the execution-spec loader, this planning-only variant
 /// tolerates tool records that omit container metadata.
-pub(crate) fn load_bam_domain_tool_planning_spec(
+pub fn load_bam_domain_tool_planning_spec(
     repo_root: &Path,
     stage_id: &StageId,
     tool_id: &ToolId,
@@ -66,21 +144,8 @@ fn load_bam_domain_tool_spec_inner(
     tool_id: &ToolId,
     allow_placeholder_image: bool,
 ) -> Result<ToolExecutionSpecV1> {
-    let yaml_path =
-        repo_root.join("domain").join("bam").join("tools").join(format!("{tool_id}.yaml"));
-    let raw = std::fs::read_to_string(&yaml_path)
-        .with_context(|| format!("read governed tool yaml {}", yaml_path.display()))?;
-    let parsed: DomainToolYaml = bijux_dna_infra::formats::parse_yaml(&raw)
-        .with_context(|| format!("parse governed tool yaml {}", yaml_path.display()))?;
-
-    if parsed.tool_id != tool_id.as_str() {
-        return Err(anyhow!(
-            "governed tool yaml {} declares tool_id {}, expected {}",
-            yaml_path.display(),
-            parsed.tool_id,
-            tool_id.as_str()
-        ));
-    }
+    let parsed = load_domain_tool_yaml(repo_root, tool_id)?;
+    let yaml_path = repo_root.join("domain").join("bam").join("tools").join(format!("{tool_id}.yaml"));
 
     let mut admitted_stage_ids = parsed.stage_ids.clone();
     if let Some(single_stage_id) = parsed.stage_id.as_ref() {
@@ -169,9 +234,32 @@ fn workspace_binary_entrypoint(parsed: &DomainToolYaml) -> Result<String> {
         })
 }
 
+fn load_domain_tool_yaml(repo_root: &Path, tool_id: &ToolId) -> Result<DomainToolYaml> {
+    let yaml_path =
+        repo_root.join("domain").join("bam").join("tools").join(format!("{tool_id}.yaml"));
+    let raw = std::fs::read_to_string(&yaml_path)
+        .with_context(|| format!("read governed tool yaml {}", yaml_path.display()))?;
+    let parsed: DomainToolYaml = bijux_dna_infra::formats::parse_yaml(&raw)
+        .with_context(|| format!("parse governed tool yaml {}", yaml_path.display()))?;
+
+    if parsed.tool_id != tool_id.as_str() {
+        return Err(anyhow!(
+            "governed tool yaml {} declares tool_id {}, expected {}",
+            yaml_path.display(),
+            parsed.tool_id,
+            tool_id.as_str()
+        ));
+    }
+
+    Ok(parsed)
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{load_bam_domain_tool_execution_spec, load_bam_domain_tool_planning_spec};
+    use super::{
+        load_bam_domain_tool_contract_metadata, load_bam_domain_tool_execution_spec,
+        load_bam_domain_tool_planning_spec, BamDomainToolSupportLevel,
+    };
     use anyhow::Result;
     use bijux_dna_core::prelude::{StageId, ToolId};
     use std::path::{Path, PathBuf};
@@ -196,6 +284,54 @@ mod tests {
         assert_eq!(spec.command.template, vec!["bwa".to_string()]);
         assert_eq!(spec.image.image, "bijuxdna/bwa");
         assert!(spec.image.digest.is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn load_bam_domain_tool_contract_metadata_reads_supported_stage_status() -> Result<()> {
+        let repo_root = repo_root();
+        let tool_id = ToolId::new("samtools");
+
+        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
+
+        assert_eq!(metadata.tool_id.as_str(), "samtools");
+        assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Supported);
+        assert!(
+            metadata.stage_ids.iter().any(|stage_id| stage_id.as_str() == "bam.validate"),
+            "samtools metadata must retain direct BAM stage admissions"
+        );
+        assert!(
+            metadata.planned_stage_ids.iter().any(|stage_id| stage_id.as_str() == "bam.align"),
+            "samtools metadata must retain planned-only BAM stage admissions"
+        );
+        assert_eq!(
+            metadata
+                .pair_support_level(&StageId::new("bam.align".to_string()))
+                .as_str(),
+            "planned"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn load_bam_domain_tool_contract_metadata_reads_planned_tool_status() -> Result<()> {
+        let repo_root = repo_root();
+        let tool_id = ToolId::new("picard");
+
+        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
+
+        assert_eq!(metadata.tool_id.as_str(), "picard");
+        assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Planned);
+        assert!(
+            metadata.stage_ids.iter().any(|stage_id| stage_id.as_str() == "bam.gc_bias"),
+            "picard metadata must retain admitted BAM stages"
+        );
+        assert_eq!(
+            metadata
+                .pair_support_level(&StageId::new("bam.gc_bias".to_string()))
+                .as_str(),
+            "planned"
+        );
         Ok(())
     }
 
