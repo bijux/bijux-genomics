@@ -165,6 +165,10 @@ Visible aliases are part of the operator surface:
   `tests/fixtures/databases/taxonomy-mini/manifest.toml` for declared taxa, lineage-table
   consistency, sequence-index paths, classifier-compatibility claims, source-manifest integrity,
   and backend bundle shape.
+- `bijux-dna bench local validate-slurm-script-bodies`
+  `validate-slurm-script-bodies` writes `target/slurm-dry-run/no-placeholder-report.json` and
+  refuses generated `.sbatch` bodies that still contain placeholder markers, fake `echo execute`
+  payloads, unconditional `rc=0`, or missing `bijux-dna` command lines.
 - `bijux-dna bench local render-benchmark-summary`
   `render-benchmark-summary` writes both `target/local-ready/benchmark-summary.json` and
   `target/local-ready/benchmark-summary.md`, summarizing governed fake-run readiness across all 51
