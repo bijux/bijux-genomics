@@ -8,6 +8,7 @@ configs/bench/index.md
 configs/bench/knobs.toml
 configs/bench/local/bam-align.toml
 configs/bench/local/bam-authenticity.toml
+configs/bench/local/bam-bias-mitigation.toml
 configs/bench/local/bam-complexity.toml
 configs/bench/local/bam-contamination.toml
 configs/bench/local/bam-coverage.toml
