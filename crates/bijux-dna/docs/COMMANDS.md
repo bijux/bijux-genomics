@@ -148,8 +148,10 @@ Visible aliases are part of the operator surface:
   mixed FASTQ-to-BAM path handoffs for cross-domain DAGs.
 - `bijux-dna bench local simulate-dag-watchdog`
   `simulate-dag-watchdog` writes governed DAG scheduling simulations such as
-  `target/local-ready/dag-sim/no-global-wait.json`, proving that dependency-ready nodes can start
-  without a global branch barrier while reusing the validated local pipeline DAG contracts.
+  `target/local-ready/dag-sim/no-global-wait.json` and
+  `target/local-ready/dag-sim/failure-isolation.json`, proving that dependency-ready nodes can
+  start without a global branch barrier and that one failed sample-stage does not block unrelated
+  sample work while reusing the validated local pipeline DAG contracts.
 - `bijux-dna bench local render-corpus-skip-report`
   `render-corpus-skip-report` writes `target/local-ready/corpus-skip-report.json`, enumerating
   every incompatible corpus-fixture skip with its replacement corpus and keeping planner-only
