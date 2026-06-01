@@ -12,6 +12,7 @@ pub use runtime::{
     detect_instrument_artifacts, ensure_assets_verified, ensure_layout_is_coherent,
     ensure_umi_headers, estimate_library_complexity_prealign, extract_umis, find_first_fastq,
     infer_asvs, inspect_headers, interleave_reads, log_header_warnings, materialize_qc_manifest,
+    merge_pairs,
     normalize_abundance, normalize_outputs, normalize_primers, normalize_read_names,
     preflight_stage, prepare_adapter_bank, prepare_host_reference_bundle, prepare_primer_bank,
     remove_chimeras, repair_pairs, screen_taxonomy, subsample_reads, trim_reads, validate_reads,

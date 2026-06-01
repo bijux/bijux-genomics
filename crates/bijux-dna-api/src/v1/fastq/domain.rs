@@ -132,6 +132,19 @@ pub fn write_local_filter_reads_smoke_report() -> Result<PathBuf> {
     crate::internal::fastq::stages::filter_reads::write_local_filter_reads_smoke_report()
 }
 
+/// Materialize the governed local-smoke `fastq.merge_pairs` artifacts.
+///
+/// The written summary artifact lives at `target/local-smoke/fastq.merge_pairs/report.json`
+/// under the active repository root, alongside top-level `merged.fastq.gz` and `unmerged/`
+/// outputs.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_merge_pairs_smoke_report() -> Result<PathBuf> {
+    crate::internal::fastq::stages::merge_pairs::write_local_merge_pairs_smoke_report()
+}
+
 /// Materialize the governed local-smoke `fastq.trim_reads` report bundle.
 ///
 /// The written summary artifact lives at `target/local-smoke/fastq.trim_reads/report.json`

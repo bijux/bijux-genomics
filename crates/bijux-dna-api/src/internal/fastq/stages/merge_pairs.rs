@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -18,7 +18,7 @@ use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::metrics::ratio_u64;
-use bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy;
+use bijux_dna_domain_fastq::params::merge::{MergeEffectiveParams, UnmergedReadPolicy};
 use bijux_dna_domain_fastq::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, ensure_dir, hash_file_sha256};
@@ -44,6 +44,31 @@ use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_MERGE_PAIRS,
 };
+use serde::Serialize;
+
+const LOCAL_MERGE_PAIRS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.merge_pairs.local_smoke.report.v1";
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalMergePairsSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    sample_id: String,
+    planned_tool_id: String,
+    report_tool_id: String,
+    merge_overlap: u32,
+    min_length: u32,
+    input_pair_count: u64,
+    merged_count: u64,
+    unmerged_r1_count: u64,
+    unmerged_r2_count: u64,
+    discarded_count: u64,
+    merged_fastq_gz: String,
+    unmerged_r1_fastq_gz: Option<String>,
+    unmerged_r2_fastq_gz: Option<String>,
+    case_report_json: String,
+    raw_backend_report: Option<String>,
+}
 
 fn parse_unmerged_read_policy(raw: Option<&str>) -> Result<UnmergedReadPolicy> {
     match raw.unwrap_or("emit_unmerged_pairs") {
@@ -105,6 +130,198 @@ fn validate_merge_output_paths(outputs: &MergePlanOutputs<'_>) -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn materialize_local_merge_pairs_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalMergePairsSmokeCasePlan,
+    output_root: &Path,
+) -> Result<LocalMergePairsSmokeReport> {
+    let effective_params = serde_json::from_value::<MergeEffectiveParams>(case.plan.effective_params.clone())
+        .context("decode merge pairs local-smoke effective params")?;
+    let input_r1 = repo_root.join(&case.r1);
+    let input_r2 = repo_root.join(&case.r2);
+    let case_merged_reads =
+        resolve_output_path(repo_root, required_plan_output_path(&case.plan, "merged_reads")?);
+    let case_report_json =
+        resolve_output_path(repo_root, required_plan_output_path(&case.plan, "report_json")?);
+    let case_unmerged_r1 = optional_plan_output_path(&case.plan, "unmerged_reads_r1")
+        .map(|path| resolve_output_path(repo_root, path));
+    let case_unmerged_r2 = optional_plan_output_path(&case.plan, "unmerged_reads_r2")
+        .map(|path| resolve_output_path(repo_root, path));
+    let case_raw_backend_report = optional_plan_param_path(&case.plan, "raw_backend_report_txt")
+        .map(|path| resolve_output_path(repo_root, &path));
+
+    for path in [&case_merged_reads, &case_report_json] {
+        if let Some(parent) = path.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+    for path in [
+        case_unmerged_r1.as_ref(),
+        case_unmerged_r2.as_ref(),
+        case_raw_backend_report.as_ref(),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        if let Some(parent) = path.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+
+    let mut report = bijux_dna_domain_fastq::stages::contract::merge_pairs(
+        &input_r1,
+        &input_r2,
+        &effective_params,
+        &case_merged_reads,
+        case_unmerged_r1.as_deref(),
+        case_unmerged_r2.as_deref(),
+        &case_report_json,
+        case_raw_backend_report.as_deref(),
+    )?;
+
+    report.input_r1 = case.r1.display().to_string();
+    report.input_r2 = case.r2.display().to_string();
+    report.merged_reads = path_relative_to_repo(repo_root, &case_merged_reads);
+    report.unmerged_reads_r1 =
+        case_unmerged_r1.as_ref().map(|path| path_relative_to_repo(repo_root, path));
+    report.unmerged_reads_r2 =
+        case_unmerged_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path));
+    report.raw_backend_report = case_raw_backend_report
+        .as_ref()
+        .map(|path| path_relative_to_repo(repo_root, path));
+    write_governed_merge_report(&case_report_json, &report)?;
+
+    let top_level_merged = output_root.join("merged.fastq.gz");
+    copy_fastq_artifact(&case_merged_reads, &top_level_merged)?;
+    let top_level_unmerged_r1 = case_unmerged_r1.as_ref().map(|_| output_root.join("unmerged/R1.fastq.gz"));
+    let top_level_unmerged_r2 = case_unmerged_r2.as_ref().map(|_| output_root.join("unmerged/R2.fastq.gz"));
+    if let (Some(source), Some(destination)) = (case_unmerged_r1.as_ref(), top_level_unmerged_r1.as_ref()) {
+        copy_fastq_artifact(source, destination)?;
+    }
+    if let (Some(source), Some(destination)) = (case_unmerged_r2.as_ref(), top_level_unmerged_r2.as_ref()) {
+        copy_fastq_artifact(source, destination)?;
+    }
+
+    let input_pair_count = report.reads_r1.min(report.reads_r2);
+    let merged_count = report.reads_merged.min(input_pair_count);
+    let unmerged_count = report.reads_unmerged.min(input_pair_count.saturating_sub(merged_count));
+    let discarded_count = input_pair_count.saturating_sub(merged_count + unmerged_count);
+
+    Ok(LocalMergePairsSmokeReport {
+        schema_version: LOCAL_MERGE_PAIRS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_MERGE_PAIRS.as_str().to_string(),
+        sample_id: case.sample_id.clone(),
+        planned_tool_id: case.plan.tool_id.as_str().to_string(),
+        report_tool_id: report.tool_id,
+        merge_overlap: effective_params.merge_overlap.unwrap_or(case.merge_overlap),
+        min_length: effective_params.min_len.unwrap_or(case.min_length),
+        input_pair_count,
+        merged_count,
+        unmerged_r1_count: unmerged_count,
+        unmerged_r2_count: unmerged_count,
+        discarded_count,
+        merged_fastq_gz: path_relative_to_repo(repo_root, &top_level_merged),
+        unmerged_r1_fastq_gz: top_level_unmerged_r1
+            .as_ref()
+            .map(|path| path_relative_to_repo(repo_root, path)),
+        unmerged_r2_fastq_gz: top_level_unmerged_r2
+            .as_ref()
+            .map(|path| path_relative_to_repo(repo_root, path)),
+        case_report_json: path_relative_to_repo(repo_root, &case_report_json),
+        raw_backend_report: case_raw_backend_report
+            .as_ref()
+            .map(|path| path_relative_to_repo(repo_root, path)),
+    })
+}
+
+fn optional_plan_output_path<'a>(plan: &'a StagePlanV1, artifact_name: &str) -> Option<&'a Path> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_name)
+        .map(|artifact| artifact.path.as_path())
+}
+
+fn optional_plan_param_path(plan: &StagePlanV1, key: &str) -> Option<PathBuf> {
+    plan.params
+        .get(key)
+        .and_then(serde_json::Value::as_str)
+        .map(PathBuf::from)
+}
+
+fn resolve_output_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root)
+        .unwrap_or(path)
+        .display()
+        .to_string()
+}
+
+fn copy_fastq_artifact(source: &Path, destination: &Path) -> Result<()> {
+    if let Some(parent) = destination.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+    let source_is_gz = is_gzip_path(source);
+    let destination_is_gz = is_gzip_path(destination);
+    if source_is_gz == destination_is_gz {
+        std::fs::copy(source, destination).with_context(|| {
+            format!(
+                "copy local merge smoke artifact from {} to {}",
+                source.display(),
+                destination.display()
+            )
+        })?;
+        return Ok(());
+    }
+
+    let input = std::fs::File::open(source)
+        .with_context(|| format!("open local merge smoke artifact {}", source.display()))?;
+    let output = std::fs::File::create(destination)
+        .with_context(|| format!("create local merge smoke artifact {}", destination.display()))?;
+
+    if destination_is_gz {
+        let mut reader: Box<dyn std::io::Read> = if source_is_gz {
+            Box::new(flate2::read::MultiGzDecoder::new(input))
+        } else {
+            Box::new(std::io::BufReader::new(input))
+        };
+        let mut writer =
+            flate2::write::GzEncoder::new(output, flate2::Compression::default());
+        std::io::copy(&mut reader, &mut writer).with_context(|| {
+            format!(
+                "compress local merge smoke artifact from {} to {}",
+                source.display(),
+                destination.display()
+            )
+        })?;
+        writer.finish()?;
+    } else {
+        let mut reader = flate2::read::MultiGzDecoder::new(input);
+        let mut writer = std::io::BufWriter::new(output);
+        std::io::copy(&mut reader, &mut writer).with_context(|| {
+            format!(
+                "decompress local merge smoke artifact from {} to {}",
+                source.display(),
+                destination.display()
+            )
+        })?;
+    }
+    Ok(())
+}
+
+fn is_gzip_path(path: &Path) -> bool {
+    path.extension()
+        .and_then(|extension| extension.to_str())
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("gz"))
 }
 
 /// Benchmark FASTQ read-merging tools under governed stage contracts.
@@ -199,6 +416,36 @@ struct MergeToolPlan {
 struct MergePlanOutputs<'a> {
     merged_reads: &'a Path,
     report_json: &'a Path,
+}
+
+/// Materialize the governed local-smoke `fastq.merge_pairs` artifacts.
+///
+/// The written summary artifact lives at `target/local-smoke/fastq.merge_pairs/report.json`
+/// under the active repository root, alongside top-level `merged.fastq.gz` and `unmerged/`
+/// outputs.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_merge_pairs_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases = bijux_dna_planner_fastq::stage_api::local_merge_pairs_smoke_plans(&repo_root)?;
+    let [case] = cases.as_slice() else {
+        return Err(anyhow!(
+            "local-smoke fastq.merge_pairs expects exactly one governed case, found {}",
+            cases.len()
+        ));
+    };
+
+    let output_root = repo_root.join("target/local-smoke/fastq.merge_pairs");
+    let unmerged_root = output_root.join("unmerged");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+    bijux_dna_infra::ensure_dir(&unmerged_root)?;
+
+    let summary = materialize_local_merge_pairs_smoke_case(&repo_root, case, &output_root)?;
+    let report_path = output_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
+    Ok(report_path)
 }
 
 struct MergeRecordInputs<'a, S: ::std::hash::BuildHasher> {
