@@ -144,6 +144,7 @@ configs/pipelines/local/fastq-amplicon.toml
 configs/pipelines/local/fastq-core-preprocess.toml
 configs/pipelines/local/fastq-edna-taxonomy.toml
 configs/pipelines/local/fastq-paired-merge.toml
+configs/pipelines/local/fastq-umi.toml
 configs/runtime/asset_hydration.toml
 configs/runtime/asset_locks.toml
 configs/runtime/cargo_build.toml
