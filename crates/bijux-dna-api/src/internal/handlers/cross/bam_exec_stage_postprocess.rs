@@ -252,20 +252,59 @@ fn stage_postprocess(
                 .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Markdup => {
+            let flagstat_before: bijux_dna_domain_bam::BamFlagstatCountsV1 =
+                serde_json::from_value(parse_flagstat_counts(
+                    &stage_dir.join("flagstat.before.txt"),
+                )?)?;
+            let flagstat_after: bijux_dna_domain_bam::BamFlagstatCountsV1 = serde_json::from_value(
+                parse_flagstat_counts(&stage_dir.join("flagstat.after.txt"))?,
+            )?;
             let library_type = plan
                 .params
                 .get("library_type")
                 .and_then(serde_json::Value::as_str)
                 .unwrap_or("dsdna");
+            let input_bam = plan
+                .io
+                .inputs
+                .iter()
+                .find(|artifact| artifact.role == bijux_dna_core::contract::ArtifactRole::Bam)
+                .map_or_else(|| stage_dir.join("in.bam"), |artifact| artifact.path.clone());
+            let output_bam = plan
+                .io
+                .outputs
+                .iter()
+                .find(|artifact| {
+                    artifact.role == bijux_dna_core::contract::ArtifactRole::Bam
+                        && !artifact.optional
+                })
+                .map_or_else(|| stage_dir.join("markdup.bam"), |artifact| artifact.path.clone());
+            let duplicate_action = json_string(plan.params.get("duplicate_action"))
+                .unwrap_or_else(|| "mark".to_string());
+            let optical_duplicates = json_string(plan.params.get("optical_duplicates"));
+            let umi_policy = json_string(plan.params.get("umi_policy"));
+            let summary = bijux_dna_domain_bam::summarize_bam_markdup(
+                stage.as_str(),
+                &input_bam,
+                &output_bam,
+                &duplicate_action,
+                optical_duplicates.as_deref(),
+                umi_policy.as_deref(),
+                flagstat_before,
+                flagstat_after,
+            );
+            let summary_path = stage_dir.join("markdup.summary.json");
+            bijux_dna_infra::atomic_write_json(&summary_path, &summary)
+                .with_context(|| format!("write {}", summary_path.display()))?;
             let path = stage_dir.join("markdup.policy.json");
             let payload = bijux_dna_domain_bam::BamDuplicatePolicyV1 {
                 schema_version: bijux_dna_domain_bam::BAM_DUPLICATE_POLICY_SCHEMA_VERSION
                     .to_string(),
                 stage_id: stage.as_str().to_string(),
                 library_type: Some(library_type.to_string()),
-                optical_duplicates: json_string(plan.params.get("optical_duplicates")),
-                umi_policy: json_string(plan.params.get("umi_policy")),
-                duplicate_action: json_string(plan.params.get("duplicate_action")),
+                optical_duplicates,
+                umi_policy,
+                duplicate_action: Some(duplicate_action),
                 policy_scope: "pcr_vs_optical".to_string(),
                 library_semantics: vec![
                     "dsdna: PCR and optical duplicate marking or removal is the default interpretation"
