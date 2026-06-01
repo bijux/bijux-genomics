@@ -116,6 +116,13 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench corpus-fastq-publication-status`
 - `bijux-dna bench corpus-fastq-published-dossiers`
 - `bijux-dna bench local list-stages`
+- `bijux-dna bench local validate-hpc-submission-ready`
+  `validate-hpc-submission-ready` writes `target/local-ready/HPC_SUBMISSION_READY.json` and
+  reruns the governed local readiness proof slice end to end: stage matrices, numbered FASTQ and
+  BAM local smoke or plan artifacts, benchmark harness fake-run checks, mini corpus fixtures,
+  pipeline DAG validations, watchdog simulations, HPC campaign profile dry-runs, and SLURM dry-run
+  validation. It fails only after writing the report, and reports the exact failing goal IDs when
+  any governed surface regresses.
 - `bijux-dna bench local validate-corpus-fixture`
   `validate-corpus-fixture` checks governed corpus fixture manifests such as
   `tests/fixtures/corpora/corpus-01-mini/manifest.toml` and
