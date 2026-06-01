@@ -351,6 +351,85 @@ fn bench_local_pipeline_dag_validates_fastq_umi_contract() {
 }
 
 #[test]
+fn bench_local_pipeline_dag_validates_fastq_to_bam_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/fastq-to-bam.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/fastq-to-bam.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/fastq-to-bam.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("fastq-to-bam")
+    );
+    assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("cross"));
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-01-mini")
+    );
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(6));
+    assert_eq!(payload.get("edge_count").and_then(serde_json::Value::as_u64), Some(7));
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("trimmed_reads_r1_path"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("trimmed_reads_r2_path"))
+                    },
+                )
+                && node
+                    .get("external_inputs")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|inputs| {
+                        inputs.iter().any(|value| {
+                            value.as_str() == Some("alignment_reference_fasta_contract")
+                        }) && inputs.iter().any(|value| {
+                            value.as_str() == Some("alignment_reference_index_contract")
+                        }) && inputs.iter().any(|value| {
+                            value.as_str() == Some("alignment_read_group_contract")
+                        })
+                    })
+        }),
+        "bam.align must consume trimmed FASTQ path outputs plus the governed alignment contracts"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.mapping_summary")
+                && node.get("depends_on").and_then(serde_json::Value::as_array).is_some_and(
+                    |deps| {
+                        deps.iter().any(|value| value.as_str() == Some("bam.align"))
+                            && deps.iter().any(|value| value.as_str() == Some("bam.qc_pre"))
+                    },
+                )
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("align_bam"))
+                            && inputs.iter().any(|value| value.as_str() == Some("qc_pre_flagstat"))
+                    },
+                )
+        }),
+        "bam.mapping_summary must stay downstream of alignment and governed BAM pre-QC artifacts"
+    );
+}
+
+#[test]
 fn bench_local_pipeline_dag_validates_bam_core_qc_contract() {
     let payload = run_cli_json(&[
         "bench",
