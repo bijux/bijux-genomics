@@ -4,6 +4,8 @@ mod artifacts_contract;
 mod contract_handshake;
 #[path = "plan/local_align.rs"]
 mod local_align;
+#[path = "plan/local_duplication_metrics_smoke.rs"]
+mod local_duplication_metrics_smoke;
 #[path = "plan/local_filter_smoke.rs"]
 mod local_filter_smoke;
 #[path = "plan/local_length_filter_smoke.rs"]
