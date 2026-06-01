@@ -1,5 +1,5 @@
-pub(crate) mod bias_mitigation;
 pub(crate) mod authenticity;
+pub(crate) mod bias_mitigation;
 pub(crate) mod complexity;
 pub(crate) mod coverage;
 pub(crate) mod damage;
@@ -14,5 +14,6 @@ pub(crate) mod mapq_filter;
 pub(crate) mod markdup;
 pub(crate) mod overlap_correction;
 pub(crate) mod qc_pre;
+pub(crate) mod recalibration;
 pub(crate) mod sex;
 pub(crate) mod validate;

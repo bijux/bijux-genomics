@@ -316,16 +316,9 @@ fn stage_postprocess(
             crate::internal::bam::stages::gc_bias::write_stage_gc_bias_summary(stage_dir, plan)?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Recalibration => {
-            let path = stage_dir.join("recalibration.applicability.json");
-            bijux_dna_infra::atomic_write_json(
-                &path,
-                &serde_json::json!({
-                    "mode": plan.params.get("mode").cloned(),
-                    "known_sites": plan.params.get("known_sites").cloned(),
-                    "default_policy": "modern_only",
-                }),
-            )
-            .with_context(|| format!("write {}", path.display()))?;
+            crate::internal::bam::stages::recalibration::write_stage_recalibration_summary(
+                stage_dir, plan,
+            )?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Genotyping => {
             let handoff = stage_dir.join("bam_to_vcf_handoff_contract.json");

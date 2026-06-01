@@ -10,6 +10,8 @@ pub mod feature_flags;
 pub(crate) mod plan;
 pub(crate) mod stage_planning;
 
+#[cfg(feature = "bam_downstream")]
+pub use domain::write_local_bias_mitigation_smoke_report;
 pub use domain::{
     write_local_align_plan, write_local_authenticity_smoke_report,
     write_local_complexity_smoke_report, write_local_contamination_plan,
@@ -19,9 +21,7 @@ pub use domain::{
     write_local_insert_size_smoke_report, write_local_length_filter_smoke_report,
     write_local_mapping_summary_smoke_summary, write_local_mapq_filter_smoke_report,
     write_local_markdup_smoke_report, write_local_overlap_correction_smoke_report,
-    write_local_qc_pre_smoke_report, write_local_sex_smoke_report,
-    write_local_validate_smoke_report,
+    write_local_qc_pre_smoke_report, write_local_recalibration_smoke_report,
+    write_local_sex_smoke_report, write_local_validate_smoke_report,
 };
-#[cfg(feature = "bam_downstream")]
-pub use domain::write_local_bias_mitigation_smoke_report;
 pub use feature_flags::downstream_enabled;
