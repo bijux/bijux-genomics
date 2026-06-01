@@ -74,6 +74,7 @@ fn public_api_docs_match_curated_exports() {
             "local_estimate_library_complexity_prealign_smoke_plans",
             "local_filter_low_complexity_smoke_plans",
             "local_filter_reads_smoke_plans",
+            "local_cluster_otus_smoke_plans",
             "local_infer_asvs_smoke_plans",
             "local_index_reference_plan",
             "local_merge_pairs_smoke_plans",
@@ -195,6 +196,10 @@ fn documented_stage_api_exports_remain_compilable() {
     ) -> anyhow::Result<
         Vec<bijux_dna_planner_fastq::LocalFilterLowComplexitySmokeCasePlan>,
     > = bijux_dna_planner_fastq::stage_api::local_filter_low_complexity_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalClusterOtusSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_cluster_otus_smoke_plans;
     let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalInferAsvsSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_infer_asvs_smoke_plans;
     let _: fn(

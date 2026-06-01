@@ -8,6 +8,8 @@ mod cross_bam_catalog;
 mod domain_parity;
 #[path = "plan/filter_plan.rs"]
 mod filter_plan;
+#[path = "plan/local_cluster_otus_smoke.rs"]
+mod local_cluster_otus_smoke;
 #[path = "plan/local_correct_errors_smoke.rs"]
 mod local_correct_errors_smoke;
 #[path = "plan/local_deplete_host.rs"]
