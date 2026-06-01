@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
 use crate::commands::benchmark::local_stage_commands::{
@@ -14,7 +14,12 @@ use crate::commands::cli::render;
 const LOCAL_STAGE_FAKE_RUN_MANIFEST_SCHEMA_VERSION: &str = "bijux.bench.local_stage_fake_runs.v1";
 const LOCAL_STAGE_FAKE_RUN_RESULT_SCHEMA_VERSION: &str =
     "bijux.bench.local_stage_fake_run_result.v1";
+const LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_VERSION: &str =
+    "bijux.bench.local_stage_fake_failures.v1";
+const LOCAL_STAGE_FAKE_FAILURE_RECORD_SCHEMA_VERSION: &str =
+    "bijux.bench.local_stage_fake_failure_record.v1";
 const DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT: &str = "target/local-fake-runs/stages";
+const DEFAULT_LOCAL_STAGE_FAKE_FAILURE_ROOT: &str = "target/local-fake-runs/failures";
 const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str = "target/local-ready/rendered-stage-commands.sh";
 
 #[derive(Debug, Clone, Serialize)]
@@ -49,6 +54,38 @@ pub(crate) struct BenchLocalStageFakeRunManifest {
     pub(crate) stages: Vec<BenchLocalStageFakeRunResult>,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct BenchLocalStageFakeFailureOutputEntry {
+    pub(crate) artifact_id: String,
+    pub(crate) declared_path: String,
+    pub(crate) expected_fake_run_path: String,
+    pub(crate) role: String,
+    pub(crate) optional: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct BenchLocalStageFakeFailureRecord {
+    pub(crate) schema_version: &'static str,
+    pub(crate) stage_id: String,
+    pub(crate) readiness_kind: LocalStageReadinessKind,
+    pub(crate) tool_id: String,
+    pub(crate) command: String,
+    pub(crate) exit_code: i32,
+    pub(crate) stderr_path: String,
+    pub(crate) failure_record_path: String,
+    pub(crate) failed_output_count: usize,
+    pub(crate) failed_outputs: Vec<BenchLocalStageFakeFailureOutputEntry>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct BenchLocalStageFakeFailureManifest {
+    pub(crate) schema_version: &'static str,
+    pub(crate) failure_root: String,
+    pub(crate) source_stage_command_manifest_path: String,
+    pub(crate) stage_count: usize,
+    pub(crate) failures: Vec<BenchLocalStageFakeFailureRecord>,
+}
+
 pub(crate) fn run_fake_run_stages(args: &parse::BenchLocalFakeRunStagesArgs) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let manifest = fake_run_local_stage_commands(
@@ -61,6 +98,24 @@ pub(crate) fn run_fake_run_stages(args: &parse::BenchLocalFakeRunStagesArgs) -> 
         render::json::print_pretty(&manifest)?;
     } else {
         println!("{}", manifest.fake_run_root);
+    }
+    Ok(())
+}
+
+pub(crate) fn run_fake_run_failures(args: &parse::BenchLocalFakeRunFailuresArgs) -> Result<()> {
+    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let manifest = fake_run_local_stage_failures(
+        &repo_root,
+        args.output_root
+            .clone()
+            .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_STAGE_FAKE_FAILURE_ROOT)),
+        &args.stage_ids,
+        args.exit_code,
+    )?;
+    if args.json {
+        render::json::print_pretty(&manifest)?;
+    } else {
+        println!("{}", manifest.failure_root);
     }
     Ok(())
 }
@@ -95,6 +150,44 @@ pub(crate) fn fake_run_local_stage_commands(
     Ok(manifest)
 }
 
+pub(crate) fn fake_run_local_stage_failures(
+    repo_root: &Path,
+    output_root: PathBuf,
+    stage_ids: &[String],
+    exit_code: i32,
+) -> Result<BenchLocalStageFakeFailureManifest> {
+    let source_manifest = render_local_stage_commands(
+        repo_root,
+        PathBuf::from(DEFAULT_RENDERED_STAGE_COMMANDS_PATH),
+    )?;
+    let commands = select_stage_commands(&source_manifest.commands, stage_ids)?;
+    let absolute_output_root =
+        if output_root.is_absolute() { output_root } else { repo_root.join(&output_root) };
+    fs::create_dir_all(&absolute_output_root)
+        .with_context(|| format!("create {}", absolute_output_root.display()))?;
+
+    let mut failures = Vec::with_capacity(commands.len());
+    for command in commands {
+        failures.push(fake_run_stage_failure(
+            repo_root,
+            &absolute_output_root,
+            command,
+            exit_code,
+        )?);
+    }
+
+    let manifest_path = absolute_output_root.join("manifest.json");
+    let manifest = BenchLocalStageFakeFailureManifest {
+        schema_version: LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_VERSION,
+        failure_root: path_relative_to_repo(repo_root, &absolute_output_root),
+        source_stage_command_manifest_path: source_manifest.manifest_output_path,
+        stage_count: failures.len(),
+        failures,
+    };
+    bijux_dna_infra::atomic_write_json(&manifest_path, &manifest)?;
+    Ok(manifest)
+}
+
 fn fake_run_stage_command(
     repo_root: &Path,
     fake_run_root: &Path,
@@ -124,6 +217,57 @@ fn fake_run_stage_command(
     };
     bijux_dna_infra::atomic_write_json(&stage_manifest_path, &result)?;
     Ok(result)
+}
+
+fn fake_run_stage_failure(
+    repo_root: &Path,
+    failure_root: &Path,
+    command: &BenchLocalStageCommandEntry,
+    exit_code: i32,
+) -> Result<BenchLocalStageFakeFailureRecord> {
+    let stage_root = failure_root.join(&command.stage_id);
+    fs::create_dir_all(&stage_root).with_context(|| format!("create {}", stage_root.display()))?;
+
+    let failed_outputs = command
+        .outputs
+        .iter()
+        .map(|artifact| BenchLocalStageFakeFailureOutputEntry {
+            artifact_id: artifact.artifact_id.clone(),
+            declared_path: artifact.path.clone(),
+            expected_fake_run_path: path_relative_to_repo(
+                repo_root,
+                &stage_root.join("declared-outputs").join(&artifact.path),
+            ),
+            role: artifact.role.clone(),
+            optional: artifact.optional,
+        })
+        .collect::<Vec<_>>();
+
+    let stderr_path = stage_root.join("stderr.txt");
+    let failure_record_path = stage_root.join("failure.json");
+    fs::write(
+        &stderr_path,
+        format!(
+            "fake local benchmark failure\nstage_id={}\ntool_id={}\nexit_code={exit_code}\ncommand={}\n",
+            command.stage_id, command.tool_id, command.command
+        ),
+    )
+    .with_context(|| format!("write {}", stderr_path.display()))?;
+
+    let record = BenchLocalStageFakeFailureRecord {
+        schema_version: LOCAL_STAGE_FAKE_FAILURE_RECORD_SCHEMA_VERSION,
+        stage_id: command.stage_id.clone(),
+        readiness_kind: command.readiness_kind,
+        tool_id: command.tool_id.clone(),
+        command: command.command.clone(),
+        exit_code,
+        stderr_path: path_relative_to_repo(repo_root, &stderr_path),
+        failure_record_path: path_relative_to_repo(repo_root, &failure_record_path),
+        failed_output_count: failed_outputs.len(),
+        failed_outputs,
+    };
+    bijux_dna_infra::atomic_write_json(&failure_record_path, &record)?;
+    Ok(record)
 }
 
 fn fake_run_output_entry(
@@ -225,6 +369,34 @@ fn binary_output_extension(path: &Path) -> bool {
         .is_some_and(|ext| matches!(ext, "bam" | "bai" | "bcf" | "gz" | "pdf" | "zip"))
 }
 
+fn select_stage_commands<'a>(
+    commands: &'a [BenchLocalStageCommandEntry],
+    stage_ids: &[String],
+) -> Result<Vec<&'a BenchLocalStageCommandEntry>> {
+    if stage_ids.is_empty() {
+        return Ok(commands.iter().collect());
+    }
+
+    let selected = commands
+        .iter()
+        .filter(|command| stage_ids.iter().any(|stage_id| stage_id == &command.stage_id))
+        .collect::<Vec<_>>();
+    if selected.len() != stage_ids.len() {
+        let known = commands.iter().map(|command| command.stage_id.as_str()).collect::<Vec<_>>();
+        let missing = stage_ids
+            .iter()
+            .filter(|stage_id| !known.contains(&stage_id.as_str()))
+            .cloned()
+            .collect::<Vec<_>>();
+        return Err(anyhow!(
+            "unknown local benchmark stage id(s): {}; known stages: {}",
+            missing.join(", "),
+            known.join(", ")
+        ));
+    }
+    Ok(selected)
+}
+
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
@@ -233,7 +405,10 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::path::PathBuf;
 
-    use super::{fake_run_local_stage_commands, DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT};
+    use super::{
+        fake_run_local_stage_commands, fake_run_local_stage_failures,
+        DEFAULT_LOCAL_STAGE_FAKE_FAILURE_ROOT, DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT,
+    };
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -265,6 +440,30 @@ mod tests {
         }));
     }
 
+    #[cfg(feature = "bam_downstream")]
+    #[test]
+    fn fake_run_local_stage_failures_cover_governed_51_stage_slice() {
+        let root = repo_root();
+        let failures = fake_run_local_stage_failures(
+            &root,
+            PathBuf::from(DEFAULT_LOCAL_STAGE_FAKE_FAILURE_ROOT),
+            &[],
+            1,
+        )
+        .expect("fake-run local stage failures");
+
+        assert_eq!(failures.schema_version, "bijux.bench.local_stage_fake_failures.v1");
+        assert_eq!(failures.failure_root, "target/local-fake-runs/failures");
+        assert_eq!(failures.stage_count, 51);
+        assert_eq!(failures.failures.len(), 51);
+        assert!(failures.failures.iter().all(|failure| {
+            failure.exit_code == 1
+                && failure.failed_output_count >= 1
+                && root.join(&failure.stderr_path).is_file()
+                && root.join(&failure.failure_record_path).is_file()
+        }));
+    }
+
     #[cfg(not(feature = "bam_downstream"))]
     #[test]
     fn fake_run_local_stage_commands_explain_downstream_feature_requirement() {
@@ -272,6 +471,24 @@ mod tests {
         let error =
             fake_run_local_stage_commands(&root, PathBuf::from(DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT))
                 .expect_err("fake-run without bam_downstream should explain the missing feature");
+
+        assert!(
+            error.to_string().contains("requires the `bam_downstream` feature"),
+            "missing-feature error should stay explicit: {error:#}"
+        );
+    }
+
+    #[cfg(not(feature = "bam_downstream"))]
+    #[test]
+    fn fake_run_local_stage_failures_explain_downstream_feature_requirement() {
+        let root = repo_root();
+        let error = fake_run_local_stage_failures(
+            &root,
+            PathBuf::from(DEFAULT_LOCAL_STAGE_FAKE_FAILURE_ROOT),
+            &[],
+            1,
+        )
+        .expect_err("fake-run failures without bam_downstream should explain the missing feature");
 
         assert!(
             error.to_string().contains("requires the `bam_downstream` feature"),
