@@ -41,10 +41,7 @@ fn bench_local_dag_watchdog_simulation_writes_no_global_wait_report() {
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.local_dag_watchdog_simulation.v1")
     );
-    assert_eq!(
-        payload.get("scenario").and_then(serde_json::Value::as_str),
-        Some("no_global_wait")
-    );
+    assert_eq!(payload.get("scenario").and_then(serde_json::Value::as_str), Some("no_global_wait"));
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
         Some("configs/pipelines/local/fastq-core-preprocess.toml")
@@ -63,21 +60,15 @@ fn bench_local_dag_watchdog_simulation_writes_no_global_wait_report() {
     );
     assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(
-        payload
-            .get("slow_branch_stage_id")
-            .and_then(serde_json::Value::as_str),
+        payload.get("slow_branch_stage_id").and_then(serde_json::Value::as_str),
         Some("fastq.profile_read_lengths")
     );
     assert_eq!(
-        payload
-            .get("slow_branch_finish_second")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("slow_branch_finish_second").and_then(serde_json::Value::as_u64),
         Some(13)
     );
     assert_eq!(
-        payload
-            .get("no_global_wait_proven")
-            .and_then(serde_json::Value::as_bool),
+        payload.get("no_global_wait_proven").and_then(serde_json::Value::as_bool),
         Some(true)
     );
 
@@ -86,15 +77,11 @@ fn bench_local_dag_watchdog_simulation_writes_no_global_wait_report() {
         .and_then(serde_json::Value::as_array)
         .expect("ready_while_slow_branch_running_stage_ids array");
     assert!(
-        ready_nodes
-            .iter()
-            .any(|value| value.as_str() == Some("fastq.trim_reads")),
+        ready_nodes.iter().any(|value| value.as_str() == Some("fastq.trim_reads")),
         "trim_reads must be reported as ready while the slow branch is still running"
     );
     assert!(
-        ready_nodes
-            .iter()
-            .any(|value| value.as_str() == Some("fastq.filter_reads")),
+        ready_nodes.iter().any(|value| value.as_str() == Some("fastq.filter_reads")),
         "filter_reads must be reported as ready while the slow branch is still running"
     );
 }
@@ -128,25 +115,16 @@ fn bench_local_dag_watchdog_simulation_writes_failure_isolation_report() {
     );
     assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
-        payload
-            .get("failed_sample_id")
-            .and_then(serde_json::Value::as_str),
+        payload.get("failed_sample_id").and_then(serde_json::Value::as_str),
         Some("sample_alpha")
     );
     assert_eq!(
-        payload
-            .get("failed_stage_id")
-            .and_then(serde_json::Value::as_str),
+        payload.get("failed_stage_id").and_then(serde_json::Value::as_str),
         Some("fastq.detect_adapters")
     );
+    assert_eq!(payload.get("failure_second").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(
-        payload.get("failure_second").and_then(serde_json::Value::as_u64),
-        Some(3)
-    );
-    assert_eq!(
-        payload
-            .get("failure_isolation_proven")
-            .and_then(serde_json::Value::as_bool),
+        payload.get("failure_isolation_proven").and_then(serde_json::Value::as_bool),
         Some(true)
     );
 
@@ -155,15 +133,11 @@ fn bench_local_dag_watchdog_simulation_writes_failure_isolation_report() {
         .and_then(serde_json::Value::as_array)
         .expect("continued_unrelated_node_ids array");
     assert!(
-        continued_nodes
-            .iter()
-            .any(|value| value.as_str() == Some("sample_beta::fastq.trim_reads")),
+        continued_nodes.iter().any(|value| value.as_str() == Some("sample_beta::fastq.trim_reads")),
         "the unaffected sample must continue trimming after the injected failure"
     );
     assert!(
-        continued_nodes
-            .iter()
-            .any(|value| value.as_str() == Some("sample_beta::fastq.report_qc")),
+        continued_nodes.iter().any(|value| value.as_str() == Some("sample_beta::fastq.report_qc")),
         "the unaffected sample must continue through downstream QC after the injected failure"
     );
 
@@ -172,9 +146,7 @@ fn bench_local_dag_watchdog_simulation_writes_failure_isolation_report() {
         .and_then(serde_json::Value::as_array)
         .expect("blocked_node_ids array");
     assert!(
-        blocked_nodes
-            .iter()
-            .any(|value| value.as_str() == Some("sample_alpha::fastq.trim_reads")),
+        blocked_nodes.iter().any(|value| value.as_str() == Some("sample_alpha::fastq.trim_reads")),
         "the failed sample must block only its own dependent downstream work"
     );
 }
@@ -194,10 +166,7 @@ fn bench_local_dag_watchdog_simulation_writes_partial_resume_report() {
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.local_dag_watchdog_simulation.v1")
     );
-    assert_eq!(
-        payload.get("scenario").and_then(serde_json::Value::as_str),
-        Some("partial_resume")
-    );
+    assert_eq!(payload.get("scenario").and_then(serde_json::Value::as_str), Some("partial_resume"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/local-ready/dag-sim/partial-resume.json")
@@ -208,9 +177,7 @@ fn bench_local_dag_watchdog_simulation_writes_partial_resume_report() {
     );
     assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
-        payload
-            .get("partial_resume_proven")
-            .and_then(serde_json::Value::as_bool),
+        payload.get("partial_resume_proven").and_then(serde_json::Value::as_bool),
         Some(true)
     );
 
@@ -219,9 +186,7 @@ fn bench_local_dag_watchdog_simulation_writes_partial_resume_report() {
         .and_then(serde_json::Value::as_array)
         .expect("reused_valid_node_ids array");
     assert!(
-        reused_nodes
-            .iter()
-            .any(|value| value.as_str() == Some("fastq.detect_adapters")),
+        reused_nodes.iter().any(|value| value.as_str() == Some("fastq.detect_adapters")),
         "valid completed nodes must be reported as reused"
     );
 
@@ -241,9 +206,7 @@ fn bench_local_dag_watchdog_simulation_writes_partial_resume_report() {
         .and_then(serde_json::Value::as_array)
         .expect("missing_node_ids array");
     assert!(
-        missing_nodes
-            .iter()
-            .any(|value| value.as_str() == Some("fastq.filter_reads")),
+        missing_nodes.iter().any(|value| value.as_str() == Some("fastq.filter_reads")),
         "downstream missing work must stay explicit in the report"
     );
 
@@ -252,15 +215,80 @@ fn bench_local_dag_watchdog_simulation_writes_partial_resume_report() {
         .and_then(serde_json::Value::as_array)
         .expect("planned_node_ids array");
     assert!(
-        planned_nodes
-            .iter()
-            .any(|value| value.as_str() == Some("fastq.trim_reads")),
+        planned_nodes.iter().any(|value| value.as_str() == Some("fastq.trim_reads")),
         "the invalid node must appear in the planned set"
     );
     assert!(
-        planned_nodes
-            .iter()
-            .any(|value| value.as_str() == Some("fastq.report_qc")),
+        planned_nodes.iter().any(|value| value.as_str() == Some("fastq.report_qc")),
         "missing downstream work must appear in the planned set"
+    );
+}
+
+#[test]
+fn bench_local_dag_watchdog_simulation_writes_completion_rules_report() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "simulate-dag-watchdog",
+        "--scenario",
+        "completion-rules",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.local_dag_watchdog_simulation.v1")
+    );
+    assert_eq!(
+        payload.get("scenario").and_then(serde_json::Value::as_str),
+        Some("completion_rules")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/dag-sim/completion-rules.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("fastq-core-preprocess")
+    );
+    assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(
+        payload.get("completion_check_stage_id").and_then(serde_json::Value::as_str),
+        Some("fastq.filter_reads")
+    );
+    assert_eq!(
+        payload.get("completion_rules_proven").and_then(serde_json::Value::as_bool),
+        Some(true)
+    );
+
+    let completion_checks = payload
+        .get("completion_checks")
+        .and_then(serde_json::Value::as_array)
+        .expect("completion_checks array");
+    assert!(
+        completion_checks.iter().any(|value| {
+            value.get("case_id").and_then(serde_json::Value::as_str)
+                == Some("zero_exit_outputs_only")
+                && value.get("exit_code").and_then(serde_json::Value::as_i64) == Some(0)
+                && value.get("declared_outputs_exist").and_then(serde_json::Value::as_bool)
+                    == Some(true)
+                && value.get("result_manifest_exists").and_then(serde_json::Value::as_bool)
+                    == Some(false)
+                && value.get("complete").and_then(serde_json::Value::as_bool) == Some(false)
+        }),
+        "zero exit with outputs alone must remain incomplete"
+    );
+    assert!(
+        completion_checks.iter().any(|value| {
+            value.get("case_id").and_then(serde_json::Value::as_str)
+                == Some("zero_exit_outputs_and_manifest")
+                && value.get("declared_outputs_exist").and_then(serde_json::Value::as_bool)
+                    == Some(true)
+                && value.get("result_manifest_exists").and_then(serde_json::Value::as_bool)
+                    == Some(true)
+                && value.get("complete").and_then(serde_json::Value::as_bool) == Some(true)
+        }),
+        "only the all-requirements case should be complete"
     );
 }
