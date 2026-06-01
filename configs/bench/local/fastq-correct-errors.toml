@@ -1,0 +1,11 @@
+schema_version = "bijux.bench.fastq.local_correct_errors.v1"
+tool_id = "rcorrector"
+threads = 1
+quality_encoding = "phred33"
+conservative_mode = false
+output_dir = "target/local-smoke/fastq.correct_errors"
+
+[[cases]]
+sample_id = "paired-dry-run"
+r1 = "assets/toy/core-v1/fastq/reads_1.fastq"
+r2 = "assets/toy/core-v1/fastq/reads_2.fastq"
