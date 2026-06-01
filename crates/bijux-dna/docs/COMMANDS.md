@@ -120,6 +120,14 @@ Visible aliases are part of the operator surface:
   with one governed row per FASTQ stage-tool binding in the 27-stage benchmark slice, carrying
   `tool_id`, `stage_id`, `support_status`, `adapter_status`, `parser_status`, and `corpus_status`
   from the real FASTQ governance contracts and local corpus-compatibility matrix.
+- `bijux-dna bench readiness render-bam-tool-serving-map`
+  `render-bam-tool-serving-map` writes `target/bench-readiness/bam-tool-serving-map.tsv`
+  with one governed row per BAM stage-tool binding in the 24-stage benchmark slice, carrying
+  `tool_id`, `stage_id`, `support_status`, `adapter_status`, `parser_status`, and `corpus_status`
+  from the real BAM stage catalog, tool contracts, planner admission, and local corpus-compatibility
+  matrix. Rows remain visible when a BAM tool binding is governed by stage metadata but lacks a BAM
+  tool contract (`missing_contract`) or is admitted by stage metadata but not by the BAM tool YAML
+  (`mismatched_contract`).
 - `bijux-dna bench local list-stages`
 - `bijux-dna bench local validate-hpc-submission-ready`
   `validate-hpc-submission-ready` writes `target/local-ready/HPC_SUBMISSION_READY.json` and
