@@ -10,14 +10,15 @@ pub mod stage_api {
     pub use crate::local_smoke::{
         local_complexity_smoke_plans, local_coverage_smoke_plans,
         local_duplication_metrics_smoke_plans, local_filter_smoke_plans,
-        local_insert_size_smoke_plans, local_length_filter_smoke_plans,
+        local_gc_bias_smoke_plans, local_insert_size_smoke_plans, local_length_filter_smoke_plans,
         local_mapping_summary_smoke_plans, local_mapq_filter_smoke_plans,
         local_markdup_smoke_plans, local_qc_pre_smoke_plans, local_validate_smoke_plans,
         LocalComplexitySmokeCasePlan, LocalCoverageSmokeCasePlan, LocalCoverageSmokeExpectedRow,
         LocalDuplicationMetricsSmokeCasePlan, LocalFilterSmokeCasePlan,
-        LocalInsertSizeSmokeCasePlan, LocalLengthFilterSmokeCasePlan,
-        LocalMappingSummarySmokeCasePlan, LocalMapqFilterSmokeCasePlan,
-        LocalMarkdupSmokeCasePlan, LocalQcPreSmokeCasePlan, LocalValidateSmokeCasePlan,
+        LocalGcBiasSmokeCasePlan, LocalGcBiasSmokeExpectedRow, LocalInsertSizeSmokeCasePlan,
+        LocalLengthFilterSmokeCasePlan, LocalMappingSummarySmokeCasePlan,
+        LocalMapqFilterSmokeCasePlan, LocalMarkdupSmokeCasePlan, LocalQcPreSmokeCasePlan,
+        LocalValidateSmokeCasePlan,
     };
     pub use crate::report_stage::report_stage_step;
     pub use crate::selection::{allowed_tools_for_stage, default_tool_for_stage};
