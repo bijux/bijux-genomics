@@ -11,6 +11,7 @@ pub enum BenchLocalDagWatchdogScenarioArg {
     NoGlobalWait,
     FailureIsolation,
     PartialResume,
+    CompletionRules,
 }
 
 #[derive(Debug, Subcommand)]

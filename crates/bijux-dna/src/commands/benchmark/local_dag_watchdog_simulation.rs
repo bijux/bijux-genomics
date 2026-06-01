@@ -200,6 +200,9 @@ pub(crate) fn run_simulate_dag_watchdog(
         parse::BenchLocalDagWatchdogScenarioArg::PartialResume => {
             LocalDagWatchdogScenario::PartialResume
         }
+        parse::BenchLocalDagWatchdogScenarioArg::CompletionRules => {
+            LocalDagWatchdogScenario::CompletionRules
+        }
     };
     let output_path = match &args.output {
         Some(path) if path.is_absolute() => path.clone(),
