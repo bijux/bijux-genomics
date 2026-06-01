@@ -30,6 +30,8 @@ mod mod_contracts_v1_fastq_local_deplete_host_plan_rs;
 mod mod_contracts_v1_fastq_local_deplete_reference_contaminants_plan_rs;
 #[path = "contracts/v1_fastq_local_deplete_rrna_plan.rs"]
 mod mod_contracts_v1_fastq_local_deplete_rrna_plan_rs;
+#[path = "contracts/v1_fastq_local_screen_taxonomy_plan.rs"]
+mod mod_contracts_v1_fastq_local_screen_taxonomy_plan_rs;
 #[path = "contracts/v1_fastq_local_detect_adapters_smoke.rs"]
 mod mod_contracts_v1_fastq_local_detect_adapters_smoke_rs;
 #[path = "contracts/v1_fastq_local_detect_duplicates_premerge_smoke.rs"]
