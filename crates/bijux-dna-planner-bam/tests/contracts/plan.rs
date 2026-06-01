@@ -12,6 +12,8 @@ mod local_coverage_smoke;
 mod local_duplication_metrics_smoke;
 #[path = "plan/local_filter_smoke.rs"]
 mod local_filter_smoke;
+#[path = "plan/local_gc_bias_smoke.rs"]
+mod local_gc_bias_smoke;
 #[path = "plan/local_insert_size_smoke.rs"]
 mod local_insert_size_smoke;
 #[path = "plan/local_length_filter_smoke.rs"]
