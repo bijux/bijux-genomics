@@ -6,7 +6,7 @@ use bijux_dna_domain_bam::params::{
     AlignEffectiveParams, ContaminationEffectiveParams, ContaminationScope, ReadGroupSpec,
 };
 #[cfg(feature = "bam_downstream")]
-use bijux_dna_domain_bam::params::HaplogroupEffectiveParams;
+use bijux_dna_domain_bam::params::{GenotypingEffectiveParams, HaplogroupEffectiveParams};
 use bijux_dna_domain_bam::{bam_alignment_strategy_for_tool, BamStage};
 use serde::Deserialize;
 
@@ -15,10 +15,14 @@ use crate::selection::{allowed_tools_for_stage, load_bam_domain_tool_execution_s
 const LOCAL_ALIGN_CONFIG_PATH: &str = "configs/bench/local/bam-align.toml";
 const LOCAL_CONTAMINATION_CONFIG_PATH: &str = "configs/bench/local/bam-contamination.toml";
 #[cfg(feature = "bam_downstream")]
+const LOCAL_GENOTYPING_CONFIG_PATH: &str = "configs/bench/local/bam-genotyping.toml";
+#[cfg(feature = "bam_downstream")]
 const LOCAL_HAPLOGROUPS_CONFIG_PATH: &str = "configs/bench/local/bam-haplogroups.toml";
 const LOCAL_RUNTIME_PROFILE_PATH: &str = "configs/runtime/profiles/local.toml";
 const DEFAULT_LOCAL_ALIGN_OUTPUT_DIR: &str = "target/local-ready/bam.align";
 const DEFAULT_LOCAL_CONTAMINATION_OUTPUT_DIR: &str = "target/local-ready/bam.contamination";
+#[cfg(feature = "bam_downstream")]
+const DEFAULT_LOCAL_GENOTYPING_OUTPUT_DIR: &str = "target/local-ready/bam.genotyping";
 #[cfg(feature = "bam_downstream")]
 const DEFAULT_LOCAL_HAPLOGROUPS_OUTPUT_DIR: &str = "target/local-ready/bam.haplogroups";
 
@@ -60,6 +64,27 @@ struct LocalContaminationPlanConfig {
     minimum_mean_coverage: Option<f64>,
     #[serde(default = "default_emit_confidence_caveats")]
     emit_confidence_caveats: bool,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+}
+
+#[cfg(feature = "bam_downstream")]
+#[derive(Debug, Deserialize)]
+struct LocalGenotypingPlanConfig {
+    schema_version: String,
+    bam: PathBuf,
+    bai: PathBuf,
+    reference_fasta: PathBuf,
+    sites_vcf: PathBuf,
+    regions: PathBuf,
+    tool_id: String,
+    sample_id: String,
+    #[serde(default)]
+    min_posterior: Option<f64>,
+    #[serde(default)]
+    min_call_rate: Option<f64>,
     #[serde(default)]
     threads: Option<u32>,
     #[serde(default)]
@@ -304,6 +329,78 @@ pub fn local_contamination_plan(repo_root: &Path) -> Result<bijux_dna_stage_cont
 
 /// # Errors
 /// Returns an error if the governed local-ready config or runtime profile cannot be read, the
+/// configured BAM/reference/sites/tool tuple is invalid, or the genotyping plan cannot be built.
+#[cfg(feature = "bam_downstream")]
+pub fn local_genotyping_plan(repo_root: &Path) -> Result<bijux_dna_stage_contract::StagePlanV1> {
+    let config = load_local_genotyping_plan_config(repo_root)?;
+    if config.schema_version != "bijux.bench.bam.local_genotyping.v1" {
+        return Err(anyhow!(
+            "unexpected local-ready bam.genotyping schema_version `{}`",
+            config.schema_version
+        ));
+    }
+
+    let local_profile = load_local_runtime_profile(repo_root)?;
+    let stage = BamStage::Genotyping;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-ready tool_id `{}`: {error}", config.tool_id))?;
+
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-ready bam.genotyping tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let bam_abs = repo_root.join(&config.bam);
+    ensure_required_file(&bam_abs, "local-ready bam.genotyping bam")?;
+    let bai_abs = repo_root.join(&config.bai);
+    ensure_required_file(&bai_abs, "local-ready bam.genotyping bai")?;
+    let reference_abs = repo_root.join(&config.reference_fasta);
+    ensure_required_file(&reference_abs, "local-ready bam.genotyping reference FASTA")?;
+    let sites_abs = repo_root.join(&config.sites_vcf);
+    ensure_required_file(&sites_abs, "local-ready bam.genotyping sites VCF")?;
+    let regions_abs = repo_root.join(&config.regions);
+    ensure_required_file(&regions_abs, "local-ready bam.genotyping regions list")?;
+
+    let mut tool_spec = load_bam_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
+    let out_dir =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_GENOTYPING_OUTPUT_DIR));
+    let params = GenotypingEffectiveParams {
+        caller: tool_id.as_str().to_string(),
+        min_posterior: config.min_posterior,
+        min_call_rate: config.min_call_rate,
+    };
+    let params_json = serde_json::to_value(&params)
+        .map_err(|error| anyhow!("local-ready bam.genotyping params must serialize: {error}"))?;
+    crate::tool_policy::enforce(stage, tool_id.as_str(), Some(&params_json), Some(&reference_abs))?;
+
+    let mut plan = crate::tool_adapters::stages_downstream::genotyping::plan_with_context(
+        &tool_spec,
+        &config.bam,
+        crate::tool_adapters::stages_downstream::genotyping::GenotypingPlanContext {
+            bam_index: Some(config.bai.as_path()),
+            reference: Some(config.reference_fasta.as_path()),
+            sites: Some(config.sites_vcf.as_path()),
+            regions: Some(config.regions.as_path()),
+        },
+        &out_dir,
+        &params,
+    )?;
+    let params = plan
+        .params
+        .as_object_mut()
+        .ok_or_else(|| anyhow!("bam.genotyping local-ready plan params must be a JSON object"))?;
+    params.insert("sample_id".to_string(), serde_json::json!(config.sample_id));
+    params.insert("tool".to_string(), serde_json::json!(tool_id.as_str()));
+
+    Ok(plan)
+}
+
+/// # Errors
+/// Returns an error if the governed local-ready config or runtime profile cannot be read, the
 /// configured BAM/reference/panel/tool tuple is invalid, or the haplogroups plan cannot be built.
 #[cfg(feature = "bam_downstream")]
 pub fn local_haplogroups_plan(repo_root: &Path) -> Result<bijux_dna_stage_contract::StagePlanV1> {
@@ -453,6 +550,13 @@ fn load_local_align_plan_config(repo_root: &Path) -> Result<LocalAlignPlanConfig
 
 fn load_local_contamination_plan_config(repo_root: &Path) -> Result<LocalContaminationPlanConfig> {
     let path = repo_root.join(LOCAL_CONTAMINATION_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+}
+
+#[cfg(feature = "bam_downstream")]
+fn load_local_genotyping_plan_config(repo_root: &Path) -> Result<LocalGenotypingPlanConfig> {
+    let path = repo_root.join(LOCAL_GENOTYPING_CONFIG_PATH);
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
 }

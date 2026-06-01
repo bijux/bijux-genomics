@@ -8,7 +8,7 @@ use bijux_dna_stage_contract::StagePlanV1;
 pub mod stage_api {
     pub use crate::local_readiness::{local_align_plan, local_contamination_plan};
     #[cfg(feature = "bam_downstream")]
-    pub use crate::local_readiness::local_haplogroups_plan;
+    pub use crate::local_readiness::{local_genotyping_plan, local_haplogroups_plan};
     pub use crate::local_smoke::{
         local_authenticity_smoke_plans, local_complexity_smoke_plans, local_coverage_smoke_plans,
         local_damage_smoke_plans, local_duplication_metrics_smoke_plans,
