@@ -137,3 +137,37 @@ fn bench_local_validate_slurm_shell_syntax_accepts_governed_fastq_and_bam_script
                 .is_some_and(|path| path.starts_with("target/slurm-dry-run/") && path.ends_with(".sbatch"))
     }));
 }
+
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_validate_slurm_shell_syntax_writes_governed_report_path() {
+    let fastq_render =
+        run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "fastq", "--json"]);
+    assert!(fastq_render.status.success(), "FASTQ render must succeed before syntax validation");
+
+    let bam_render =
+        run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "bam", "--json"]);
+    assert!(bam_render.status.success(), "BAM render must succeed before syntax validation");
+
+    let payload = run_cli_json(&["bench", "local", "validate-slurm-shell-syntax", "--json"]);
+    assert_eq!(
+        payload.get("report_path").and_then(serde_json::Value::as_str),
+        Some("target/slurm-dry-run/bash-n-report.json")
+    );
+
+    let repo_root = support::repo_root().expect("repo root");
+    let report_path = repo_root.join("target/slurm-dry-run/bash-n-report.json");
+    assert!(report_path.is_file(), "governed bash-n report must exist on disk");
+
+    let written_payload: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&report_path).expect("read governed report"))
+            .expect("parse governed report");
+    assert_eq!(
+        written_payload.get("script_count").and_then(serde_json::Value::as_u64),
+        Some(51)
+    );
+    assert_eq!(
+        written_payload.get("ok").and_then(serde_json::Value::as_bool),
+        Some(true)
+    );
+}
