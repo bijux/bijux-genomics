@@ -18,6 +18,8 @@ mod local_deplete_rrna;
 mod local_estimate_library_complexity_prealign_smoke;
 #[path = "plan/local_filter_reads_smoke.rs"]
 mod local_filter_reads_smoke;
+#[path = "plan/local_merge_pairs_smoke.rs"]
+mod local_merge_pairs_smoke;
 #[path = "plan/local_index_reference.rs"]
 mod local_index_reference;
 #[path = "plan/local_normalize_primers_smoke.rs"]
