@@ -14,8 +14,9 @@ use crate::commands::cli::{
     SlurmSubmitCrossArgs, SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
 };
 use crate::commands::hpc::{
-    campaign_dry_run, decrypt_bundle, sha256_hex, sidecar_path_for, write_encrypted_bundle,
-    BundleDecryptRequest, BundleWriteRequest, CampaignDryRunReport, PlannedJob,
+    campaign_dry_run, decrypt_bundle, foundation_lock_path, sha256_hex, sidecar_path_for,
+    write_encrypted_bundle, BundleDecryptRequest, BundleWriteRequest, CampaignDryRunReport,
+    PlannedJob,
 };
 
 const SLURM_SUBMISSION_SCHEMA_VERSION: &str = "bijux.hpc.slurm.submission.v1";
@@ -299,6 +300,36 @@ fn script_path_for(log_path: &Path) -> PathBuf {
     script
 }
 
+fn prepared_root_lock_path(root: &str) -> String {
+    foundation_lock_path(Path::new(root)).display().to_string()
+}
+
+fn prepared_root_shell_block(report: &CampaignDryRunReport) -> String {
+    let corpora_root = shell_quote(&report.layout.corpora_root);
+    let databases_root = shell_quote(&report.layout.databases_root);
+    let images_root = shell_quote(&report.layout.images_root);
+    let corpora_lock = shell_quote(&prepared_root_lock_path(&report.layout.corpora_root));
+    let databases_lock = shell_quote(&prepared_root_lock_path(&report.layout.databases_root));
+    let images_lock = shell_quote(&prepared_root_lock_path(&report.layout.images_root));
+    format!(
+        "export BIJUX_CORPORA_ROOT={corpora_root}\n\
+export BIJUX_DATABASES_ROOT={databases_root}\n\
+export BIJUX_IMAGES_ROOT={images_root}\n\
+export BIJUX_CORPORA_PREPARE_LOCK={corpora_lock}\n\
+export BIJUX_DATABASES_PREPARE_LOCK={databases_lock}\n\
+export BIJUX_IMAGES_PREPARE_LOCK={images_lock}\n\
+for bijux_prepare_lock in \\\n\
+  \"$BIJUX_CORPORA_PREPARE_LOCK\" \\\n\
+  \"$BIJUX_DATABASES_PREPARE_LOCK\" \\\n\
+  \"$BIJUX_IMAGES_PREPARE_LOCK\"; do\n\
+  if [ ! -f \"$bijux_prepare_lock\" ]; then\n\
+    echo \"missing prepared foundation lock: $bijux_prepare_lock\" >&2\n\
+    exit 97\n\
+  fi\n\
+done\n"
+    )
+}
+
 fn ensure_parent(path: &Path) -> Result<()> {
     let Some(parent) = path.parent() else {
         return Err(anyhow!("path has no parent: {}", path.display()));
@@ -470,9 +501,9 @@ fn build_code_bundle(
             },
         },
         "locks": {
-            "corpus_lock": "deferred_to_prepare_corpus",
-            "database_lock": "deferred_to_prepare_database",
-            "image_lock": "deferred_to_prepare_apptainer",
+            "corpus_lock": prepared_root_lock_path(&report.layout.corpora_root),
+            "database_lock": prepared_root_lock_path(&report.layout.databases_root),
+            "image_lock": prepared_root_lock_path(&report.layout.images_root),
             "tool_lock": "deferred_to_runtime_registry_capture",
         },
         "plan": {
@@ -597,9 +628,10 @@ fn build_slurm_script(
         .map(ToString::to_string)
         .collect::<Vec<_>>()
         .join(",");
+    let prepared_root_block = prepared_root_shell_block(report);
 
     format!(
-        "#!/usr/bin/env bash\nset -euo pipefail\n\n#SBATCH --job-name={}\n#SBATCH --cpus-per-task={}\n#SBATCH --mem={}G\n#SBATCH --time={}\n#SBATCH --partition={}\n#SBATCH --qos={}\n{}{}\n# Campaign: {}\n# Domain: {}\n# Stage: {}\n# Tool: {}\n# Sample: {}\n# Script path: {}\n\nexport BIJUX_RUN_CONTEXT=hpc\nexport BIJUX_ARRAY_TASK=${{SLURM_ARRAY_TASK_ID:-{}}}\nexport BIJUX_SCRATCH_DIR={}\nexport BIJUX_SCRATCH_IN=$BIJUX_SCRATCH_DIR/in\nexport BIJUX_SCRATCH_OUT=$BIJUX_SCRATCH_DIR/out\nmkdir -p \"$BIJUX_SCRATCH_IN\" \"$BIJUX_SCRATCH_OUT\"\ncleanup() {{\n  rm -rf \"$BIJUX_SCRATCH_DIR\"\n}}\ntrap cleanup EXIT\n\nif [ -f {} ]; then\n  set -a\n  # shellcheck disable=SC1090\n  . {}\n  set +a\nfi\n\nretry_attempts={}\nretry_backoff_seconds={}\nretry_codes=\",{},\"\nattempt=1\nwhile true; do\n  # Placeholder command until full stage runner integration is finalized.\n  echo \\\"execute stage {} tool {} sample {} array_task=$BIJUX_ARRAY_TASK scratch=$BIJUX_SCRATCH_DIR attempt=$attempt\\\"\n  rc=0\n  if [ \"$rc\" -eq 0 ]; then\n    break\n  fi\n  if [ \"$attempt\" -ge \"$retry_attempts\" ]; then\n    exit \"$rc\"\n  fi\n  if [[ \"$retry_codes\" == *\",$rc,\"* ]]; then\n    sleep \"$retry_backoff_seconds\"\n    attempt=$((attempt + 1))\n    continue\n  fi\n  exit \"$rc\"\ndone\n",
+        "#!/usr/bin/env bash\nset -euo pipefail\n\n#SBATCH --job-name={}\n#SBATCH --cpus-per-task={}\n#SBATCH --mem={}G\n#SBATCH --time={}\n#SBATCH --partition={}\n#SBATCH --qos={}\n{}{}\n# Campaign: {}\n# Domain: {}\n# Stage: {}\n# Tool: {}\n# Sample: {}\n# Script path: {}\n\nexport BIJUX_RUN_CONTEXT=hpc\nexport BIJUX_ARRAY_TASK=${{SLURM_ARRAY_TASK_ID:-{}}}\n{}\nexport BIJUX_SCRATCH_DIR={}\nexport BIJUX_SCRATCH_IN=$BIJUX_SCRATCH_DIR/in\nexport BIJUX_SCRATCH_OUT=$BIJUX_SCRATCH_DIR/out\nmkdir -p \"$BIJUX_SCRATCH_IN\" \"$BIJUX_SCRATCH_OUT\"\ncleanup() {{\n  rm -rf \"$BIJUX_SCRATCH_DIR\"\n}}\ntrap cleanup EXIT\n\nif [ -f {} ]; then\n  set -a\n  # shellcheck disable=SC1090\n  . {}\n  set +a\nfi\n\nretry_attempts={}\nretry_backoff_seconds={}\nretry_codes=\",{},\"\nattempt=1\nwhile true; do\n  # Placeholder command until full stage runner integration is finalized.\n  echo \\\"execute stage {} tool {} sample {} array_task=$BIJUX_ARRAY_TASK scratch=$BIJUX_SCRATCH_DIR attempt=$attempt\\\"\n  rc=0\n  if [ \"$rc\" -eq 0 ]; then\n    break\n  fi\n  if [ \"$attempt\" -ge \"$retry_attempts\" ]; then\n    exit \"$rc\"\n  fi\n  if [[ \"$retry_codes\" == *\",$rc,\"* ]]; then\n    sleep \"$retry_backoff_seconds\"\n    attempt=$((attempt + 1))\n    continue\n  fi\n  exit \"$rc\"\ndone\n",
         shell_quote(&job.name),
         job.planned.resources.cpus,
         job.planned.resources.mem_gb,
@@ -615,6 +647,7 @@ fn build_slurm_script(
         job.planned.sample,
         script_path.display(),
         job.planned.array_task.unwrap_or(0),
+        prepared_root_block,
         shell_quote(&job.planned.outputs.scratch_dir),
         shell_quote(&report.env_file_path),
         shell_quote(&report.env_file_path),
@@ -1847,6 +1880,40 @@ sample = "sample-2"
         write_campaign_with_security(root, "mock-envelope-v1", false)
     }
 
+    fn write_layout_policy(root: &std::path::Path) -> std::path::PathBuf {
+        for name in [
+            "corpora",
+            "databases",
+            "images",
+            "scratch",
+            "logs",
+            "results",
+            "code",
+            "imports",
+            "baselines",
+        ] {
+            bijux_dna_infra::ensure_dir(root.join(name)).expect("create dir");
+        }
+        let policy_path = root.join("layout.policy.toml");
+        let policy = format!(
+            r#"
+[layout]
+corpora_root = "{root}/corpora"
+databases_root = "{root}/databases"
+images_root = "{root}/images"
+scratch_root = "{root}/scratch"
+logs_root = "{root}/logs"
+encrypted_results_root = "{root}/results"
+encrypted_code_root = "{root}/code"
+appraiser_imports_root = "{root}/imports"
+baselines_root = "{root}/baselines"
+"#,
+            root = root.display()
+        );
+        bijux_dna_infra::write_bytes(&policy_path, policy).expect("write layout policy");
+        policy_path
+    }
+
     #[test]
     fn submit_stage_benchmark_filters_rows() {
         let root = tempfile::tempdir().expect("tempdir");
@@ -2109,6 +2176,138 @@ array_task = 7
             std::fs::read_to_string(&report.jobs[1].script_path).expect("read script 2");
         assert!(second_script.contains("set -euo pipefail"));
         assert!(second_script.contains("#SBATCH --dependency=afterok:mock-0001"));
+    }
+
+    #[test]
+    fn submit_campaign_scripts_export_prepared_foundation_roots_for_local_ready_profile() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let profiles_dir = root.path().join("campaign-profiles");
+        let written =
+            crate::commands::hpc::write_campaign_profiles(&profiles_dir).expect("write profiles");
+        let config = written
+            .into_iter()
+            .find(|path| path.ends_with("lunarc-fastq-bam-local-ready.toml"))
+            .expect("local-ready profile");
+        let env_path = root.path().join("campaign.env");
+        let policy_path = write_layout_policy(root.path());
+        bijux_dna_infra::write_bytes(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n")
+            .expect("write env");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&env_path).expect("env metadata").permissions();
+            perms.set_mode(0o600);
+            std::fs::set_permissions(&env_path, perms).expect("set env perms");
+        }
+
+        let prep = crate::commands::hpc::prepare_foundation(
+            &config,
+            Some(&env_path),
+            Some(&policy_path),
+            false,
+        )
+        .expect("prepare foundation");
+        assert!(prep.actions.iter().all(|action| action.action == "prepared"));
+
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: Some(env_path),
+            user_policies: Some(policy_path),
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+        assert_eq!(report.jobs.len(), 4);
+
+        let corpora_root = root.path().join("corpora").display().to_string();
+        let databases_root = root.path().join("databases").display().to_string();
+        let images_root = root.path().join("images").display().to_string();
+        let corpora_lock =
+            root.path().join("corpora/.bijux.prepare.lock.json").display().to_string();
+        let databases_lock =
+            root.path().join("databases/.bijux.prepare.lock.json").display().to_string();
+        let images_lock = root.path().join("images/.bijux.prepare.lock.json").display().to_string();
+
+        for job in &report.jobs {
+            let script = std::fs::read_to_string(&job.script_path).expect("read script");
+            assert!(script.contains(&format!("export BIJUX_CORPORA_ROOT={corpora_root}")));
+            assert!(script.contains(&format!("export BIJUX_DATABASES_ROOT={databases_root}")));
+            assert!(script.contains(&format!("export BIJUX_IMAGES_ROOT={images_root}")));
+            assert!(script.contains(&format!("export BIJUX_CORPORA_PREPARE_LOCK={corpora_lock}")));
+            assert!(
+                script.contains(&format!("export BIJUX_DATABASES_PREPARE_LOCK={databases_lock}"))
+            );
+            assert!(script.contains(&format!("export BIJUX_IMAGES_PREPARE_LOCK={images_lock}")));
+            assert!(script.contains("missing prepared foundation lock"));
+            assert!(!script.contains("apptainer build"));
+            assert!(!script.contains("singularity build"));
+        }
+    }
+
+    #[test]
+    fn submit_campaign_code_bundle_records_prepared_foundation_locks_for_local_ready_profile() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let profiles_dir = root.path().join("campaign-profiles");
+        let written =
+            crate::commands::hpc::write_campaign_profiles(&profiles_dir).expect("write profiles");
+        let config = written
+            .into_iter()
+            .find(|path| path.ends_with("lunarc-fastq-bam-local-ready.toml"))
+            .expect("local-ready profile");
+        let env_path = root.path().join("campaign.env");
+        let policy_path = write_layout_policy(root.path());
+        bijux_dna_infra::write_bytes(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n")
+            .expect("write env");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&env_path).expect("env metadata").permissions();
+            perms.set_mode(0o600);
+            std::fs::set_permissions(&env_path, perms).expect("set env perms");
+        }
+
+        crate::commands::hpc::prepare_foundation(
+            &config,
+            Some(&env_path),
+            Some(&policy_path),
+            false,
+        )
+        .expect("prepare foundation");
+
+        let report = submit_campaign(&SlurmSubmitCampaignArgs {
+            config,
+            env_file: Some(env_path),
+            user_policies: Some(policy_path),
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit campaign");
+
+        let (_sidecar, plaintext) = super::decrypt_bundle(&BundleDecryptRequest {
+            bundle_path: std::path::Path::new(&report.jobs[0].code_path),
+            sidecar_path: None,
+            identity_files: &[],
+        })
+        .expect("decrypt code bundle");
+        let json: serde_json::Value = serde_json::from_slice(&plaintext).expect("parse code");
+        let locks = json.get("locks").expect("locks");
+        let corpora_lock =
+            root.path().join("corpora/.bijux.prepare.lock.json").display().to_string();
+        let databases_lock =
+            root.path().join("databases/.bijux.prepare.lock.json").display().to_string();
+        let images_lock = root.path().join("images/.bijux.prepare.lock.json").display().to_string();
+        assert_eq!(
+            locks.get("corpus_lock").and_then(|value| value.as_str()),
+            Some(corpora_lock.as_str())
+        );
+        assert_eq!(
+            locks.get("database_lock").and_then(|value| value.as_str()),
+            Some(databases_lock.as_str())
+        );
+        assert_eq!(
+            locks.get("image_lock").and_then(|value| value.as_str()),
+            Some(images_lock.as_str())
+        );
     }
 
     #[test]
