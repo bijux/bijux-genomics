@@ -1,0 +1,20 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.qc_pre.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_qc_pre.v1"
+tool_id = "samtools"
+threads = 4
+output_dir = "target/local-smoke/bam.qc_pre"
+
+[[cases]]
+sample_id = "core-v1-duplicate-contigs"
+bam = "assets/toy/core-v1/bam/qc_pre_core_metrics.sam"
+expected_total_reads = 3
+expected_mapped_reads = 3
+expected_unmapped_reads = 0
+expected_duplicate_flagged_reads = 1
+expected_contigs = ["chr1", "chr2"]
