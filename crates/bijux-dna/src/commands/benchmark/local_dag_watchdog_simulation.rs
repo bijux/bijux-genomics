@@ -16,6 +16,8 @@ pub(crate) const DEFAULT_FAILURE_ISOLATION_REPORT_PATH: &str =
     "target/local-ready/dag-sim/failure-isolation.json";
 pub(crate) const DEFAULT_PARTIAL_RESUME_REPORT_PATH: &str =
     "target/local-ready/dag-sim/partial-resume.json";
+pub(crate) const DEFAULT_COMPLETION_RULES_REPORT_PATH: &str =
+    "target/local-ready/dag-sim/completion-rules.json";
 const LOCAL_DAG_WATCHDOG_SIMULATION_SCHEMA_VERSION: &str =
     "bijux.bench.local_dag_watchdog_simulation.v1";
 const FASTQ_CORE_PREPROCESS_PIPELINE_REPORT_PATH: &str =
@@ -27,12 +29,14 @@ const FAILURE_ISOLATION_FAILED_STAGE_ID: &str = "fastq.detect_adapters";
 const PARTIAL_RESUME_INVALID_NODE_ID: &str = "fastq.trim_reads";
 const PARTIAL_RESUME_MISSING_NODE_IDS: &[&str] =
     &["fastq.filter_reads", "fastq.profile_reads", "fastq.report_qc"];
+const COMPLETION_RULES_STAGE_ID: &str = "fastq.filter_reads";
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum LocalDagWatchdogScenario {
     NoGlobalWait,
     FailureIsolation,
     PartialResume,
+    CompletionRules,
 }
 
 impl LocalDagWatchdogScenario {
@@ -41,6 +45,7 @@ impl LocalDagWatchdogScenario {
             Self::NoGlobalWait => "no_global_wait",
             Self::FailureIsolation => "failure_isolation",
             Self::PartialResume => "partial_resume",
+            Self::CompletionRules => "completion_rules",
         }
     }
 
@@ -49,6 +54,7 @@ impl LocalDagWatchdogScenario {
             Self::NoGlobalWait => DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH,
             Self::FailureIsolation => DEFAULT_FAILURE_ISOLATION_REPORT_PATH,
             Self::PartialResume => DEFAULT_PARTIAL_RESUME_REPORT_PATH,
+            Self::CompletionRules => DEFAULT_COMPLETION_RULES_REPORT_PATH,
         }
     }
 }
@@ -60,6 +66,7 @@ enum LocalDagWatchdogNodeStatus {
     Blocked,
     Reused,
     Planned,
+    Incomplete,
 }
 
 impl LocalDagWatchdogNodeStatus {
@@ -70,6 +77,7 @@ impl LocalDagWatchdogNodeStatus {
             Self::Blocked => "blocked",
             Self::Reused => "reused",
             Self::Planned => "planned",
+            Self::Incomplete => "incomplete",
         }
     }
 }
@@ -85,6 +93,17 @@ pub(crate) struct LocalDagWatchdogSimulationNode {
     pub(crate) start_second: u64,
     pub(crate) finish_second: u64,
     pub(crate) duration_seconds: u64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct LocalDagWatchdogCompletionCheck {
+    pub(crate) case_id: String,
+    pub(crate) node_id: String,
+    pub(crate) stage_id: String,
+    pub(crate) exit_code: i32,
+    pub(crate) declared_outputs_exist: bool,
+    pub(crate) result_manifest_exists: bool,
+    pub(crate) complete: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -113,6 +132,9 @@ pub(crate) struct LocalDagWatchdogSimulationReport {
     pub(crate) missing_node_ids: Vec<String>,
     pub(crate) planned_node_ids: Vec<String>,
     pub(crate) partial_resume_proven: bool,
+    pub(crate) completion_check_stage_id: Option<String>,
+    pub(crate) completion_checks: Vec<LocalDagWatchdogCompletionCheck>,
+    pub(crate) completion_rules_proven: bool,
     pub(crate) nodes: Vec<LocalDagWatchdogSimulationNode>,
 }
 
@@ -126,9 +148,13 @@ pub(crate) fn simulate_dag_watchdog_path(
     let dag_report = validate_pipeline_dag_path(repo_root, &config_path, &dag_report_path)?;
 
     let report = match scenario {
-        LocalDagWatchdogScenario::NoGlobalWait => {
-            build_no_global_wait_report(repo_root, &config_path, &dag_report_path, output_path, &dag_report)?
-        }
+        LocalDagWatchdogScenario::NoGlobalWait => build_no_global_wait_report(
+            repo_root,
+            &config_path,
+            &dag_report_path,
+            output_path,
+            &dag_report,
+        )?,
         LocalDagWatchdogScenario::FailureIsolation => build_failure_isolation_report(
             repo_root,
             &config_path,
@@ -137,6 +163,13 @@ pub(crate) fn simulate_dag_watchdog_path(
             &dag_report,
         )?,
         LocalDagWatchdogScenario::PartialResume => build_partial_resume_report(
+            repo_root,
+            &config_path,
+            &dag_report_path,
+            output_path,
+            &dag_report,
+        )?,
+        LocalDagWatchdogScenario::CompletionRules => build_completion_rules_report(
             repo_root,
             &config_path,
             &dag_report_path,
@@ -276,6 +309,9 @@ fn build_no_global_wait_report(
         missing_node_ids: Vec::new(),
         planned_node_ids: Vec::new(),
         partial_resume_proven: false,
+        completion_check_stage_id: None,
+        completion_checks: Vec::new(),
+        completion_rules_proven: false,
         nodes,
     })
 }
@@ -287,10 +323,7 @@ fn build_failure_isolation_report(
     output_path: &Path,
     dag_report: &crate::commands::benchmark::local_pipeline_dag::LocalPipelineDagValidationReport,
 ) -> Result<LocalDagWatchdogSimulationReport> {
-    let sample_ids = [
-        FAILURE_ISOLATION_FAILED_SAMPLE_ID,
-        FAILURE_ISOLATION_CONTINUED_SAMPLE_ID,
-    ];
+    let sample_ids = [FAILURE_ISOLATION_FAILED_SAMPLE_ID, FAILURE_ISOLATION_CONTINUED_SAMPLE_ID];
     let mut nodes = Vec::with_capacity(dag_report.nodes.len() * sample_ids.len());
     let mut finish_times = BTreeMap::<String, u64>::new();
     let mut status_index = BTreeMap::<String, LocalDagWatchdogNodeStatus>::new();
@@ -307,42 +340,45 @@ fn build_failure_isolation_report(
                 .iter()
                 .filter_map(|dependency| status_index.get(dependency).copied())
                 .collect::<Vec<_>>();
-            let dependency_failed = dependency_statuses
-                .iter()
-                .any(|status| matches!(status, LocalDagWatchdogNodeStatus::Failed | LocalDagWatchdogNodeStatus::Blocked));
+            let dependency_failed = dependency_statuses.iter().any(|status| {
+                matches!(
+                    status,
+                    LocalDagWatchdogNodeStatus::Failed | LocalDagWatchdogNodeStatus::Blocked
+                )
+            });
 
-            let (status, start_second, finish_second, duration_seconds) =
-                if sample_id == FAILURE_ISOLATION_FAILED_SAMPLE_ID
-                    && node.stage_id == FAILURE_ISOLATION_FAILED_STAGE_ID
-                {
-                    let start_second = qualified_dependencies
-                        .iter()
-                        .filter_map(|dependency| finish_times.get(dependency).copied())
-                        .max()
-                        .unwrap_or(0);
-                    let duration_seconds = failure_isolation_duration_seconds(&node.stage_id);
-                    (
-                        LocalDagWatchdogNodeStatus::Failed,
-                        start_second,
-                        start_second + duration_seconds,
-                        duration_seconds,
-                    )
-                } else if dependency_failed {
-                    (LocalDagWatchdogNodeStatus::Blocked, 0, 0, 0)
-                } else {
-                    let start_second = qualified_dependencies
-                        .iter()
-                        .filter_map(|dependency| finish_times.get(dependency).copied())
-                        .max()
-                        .unwrap_or(0);
-                    let duration_seconds = failure_isolation_duration_seconds(&node.stage_id);
-                    (
-                        LocalDagWatchdogNodeStatus::Completed,
-                        start_second,
-                        start_second + duration_seconds,
-                        duration_seconds,
-                    )
-                };
+            let (status, start_second, finish_second, duration_seconds) = if sample_id
+                == FAILURE_ISOLATION_FAILED_SAMPLE_ID
+                && node.stage_id == FAILURE_ISOLATION_FAILED_STAGE_ID
+            {
+                let start_second = qualified_dependencies
+                    .iter()
+                    .filter_map(|dependency| finish_times.get(dependency).copied())
+                    .max()
+                    .unwrap_or(0);
+                let duration_seconds = failure_isolation_duration_seconds(&node.stage_id);
+                (
+                    LocalDagWatchdogNodeStatus::Failed,
+                    start_second,
+                    start_second + duration_seconds,
+                    duration_seconds,
+                )
+            } else if dependency_failed {
+                (LocalDagWatchdogNodeStatus::Blocked, 0, 0, 0)
+            } else {
+                let start_second = qualified_dependencies
+                    .iter()
+                    .filter_map(|dependency| finish_times.get(dependency).copied())
+                    .max()
+                    .unwrap_or(0);
+                let duration_seconds = failure_isolation_duration_seconds(&node.stage_id);
+                (
+                    LocalDagWatchdogNodeStatus::Completed,
+                    start_second,
+                    start_second + duration_seconds,
+                    duration_seconds,
+                )
+            };
 
             finish_times.insert(qualified_node_id.clone(), finish_second);
             status_index.insert(qualified_node_id.clone(), status);
@@ -365,9 +401,7 @@ fn build_failure_isolation_report(
             && node.stage_id == FAILURE_ISOLATION_FAILED_STAGE_ID
             && node.status == LocalDagWatchdogNodeStatus::Failed.as_str()
     }) else {
-        return Err(anyhow!(
-            "failure-isolation scenario did not produce the injected failed node"
-        ));
+        return Err(anyhow!("failure-isolation scenario did not produce the injected failed node"));
     };
 
     let failure_second = failed_node.finish_second;
@@ -394,9 +428,7 @@ fn build_failure_isolation_report(
         && continued_unrelated_node_ids
             .iter()
             .any(|node_id| node_id == "sample_beta::fastq.report_qc")
-        && blocked_node_ids
-            .iter()
-            .any(|node_id| node_id == "sample_alpha::fastq.trim_reads");
+        && blocked_node_ids.iter().any(|node_id| node_id == "sample_alpha::fastq.trim_reads");
 
     if !failure_isolation_proven {
         return Err(anyhow!(
@@ -431,6 +463,9 @@ fn build_failure_isolation_report(
         missing_node_ids: Vec::new(),
         planned_node_ids: Vec::new(),
         partial_resume_proven: false,
+        completion_check_stage_id: None,
+        completion_checks: Vec::new(),
+        completion_rules_proven: false,
         nodes,
     })
 }
@@ -469,9 +504,9 @@ fn build_partial_resume_report(
             if reused_valid_node_ids.iter().any(|node_id| node_id == &node.node_id) {
                 (LocalDagWatchdogNodeStatus::Reused, 0, 0, 0)
             } else if planned_node_ids.iter().any(|node_id| node_id == &node.node_id) {
-                let start_second = *plan_start_index
-                    .get(&node.node_id)
-                    .ok_or_else(|| anyhow!("partial-resume plan index missing `{}`", node.node_id))?;
+                let start_second = *plan_start_index.get(&node.node_id).ok_or_else(|| {
+                    anyhow!("partial-resume plan index missing `{}`", node.node_id)
+                })?;
                 let duration_seconds = partial_resume_duration_seconds(&node.stage_id);
                 (
                     LocalDagWatchdogNodeStatus::Planned,
@@ -542,6 +577,179 @@ fn build_partial_resume_report(
         missing_node_ids,
         planned_node_ids,
         partial_resume_proven,
+        completion_check_stage_id: None,
+        completion_checks: Vec::new(),
+        completion_rules_proven: false,
+        nodes,
+    })
+}
+
+fn build_completion_rules_report(
+    repo_root: &Path,
+    config_path: &Path,
+    dag_report_path: &Path,
+    output_path: &Path,
+    dag_report: &crate::commands::benchmark::local_pipeline_dag::LocalPipelineDagValidationReport,
+) -> Result<LocalDagWatchdogSimulationReport> {
+    let dag_node = dag_report
+        .nodes
+        .iter()
+        .find(|node| node.stage_id == COMPLETION_RULES_STAGE_ID)
+        .ok_or_else(|| {
+            anyhow!("completion-rules scenario requires stage `{COMPLETION_RULES_STAGE_ID}`")
+        })?;
+
+    let completion_checks = vec![
+        LocalDagWatchdogCompletionCheck {
+            case_id: "zero_exit_missing_outputs_and_manifest".to_string(),
+            node_id: format!(
+                "sample_primary::{}::{}",
+                COMPLETION_RULES_STAGE_ID, "zero_exit_missing_outputs_and_manifest"
+            ),
+            stage_id: COMPLETION_RULES_STAGE_ID.to_string(),
+            exit_code: 0,
+            declared_outputs_exist: false,
+            result_manifest_exists: false,
+            complete: false,
+        },
+        LocalDagWatchdogCompletionCheck {
+            case_id: "zero_exit_outputs_only".to_string(),
+            node_id: format!(
+                "sample_primary::{}::{}",
+                COMPLETION_RULES_STAGE_ID, "zero_exit_outputs_only"
+            ),
+            stage_id: COMPLETION_RULES_STAGE_ID.to_string(),
+            exit_code: 0,
+            declared_outputs_exist: true,
+            result_manifest_exists: false,
+            complete: false,
+        },
+        LocalDagWatchdogCompletionCheck {
+            case_id: "zero_exit_manifest_only".to_string(),
+            node_id: format!(
+                "sample_primary::{}::{}",
+                COMPLETION_RULES_STAGE_ID, "zero_exit_manifest_only"
+            ),
+            stage_id: COMPLETION_RULES_STAGE_ID.to_string(),
+            exit_code: 0,
+            declared_outputs_exist: false,
+            result_manifest_exists: true,
+            complete: false,
+        },
+        LocalDagWatchdogCompletionCheck {
+            case_id: "nonzero_exit_with_outputs_and_manifest".to_string(),
+            node_id: format!(
+                "sample_primary::{}::{}",
+                COMPLETION_RULES_STAGE_ID, "nonzero_exit_with_outputs_and_manifest"
+            ),
+            stage_id: COMPLETION_RULES_STAGE_ID.to_string(),
+            exit_code: 17,
+            declared_outputs_exist: true,
+            result_manifest_exists: true,
+            complete: false,
+        },
+        LocalDagWatchdogCompletionCheck {
+            case_id: "zero_exit_outputs_and_manifest".to_string(),
+            node_id: format!(
+                "sample_primary::{}::{}",
+                COMPLETION_RULES_STAGE_ID, "zero_exit_outputs_and_manifest"
+            ),
+            stage_id: COMPLETION_RULES_STAGE_ID.to_string(),
+            exit_code: 0,
+            declared_outputs_exist: true,
+            result_manifest_exists: true,
+            complete: true,
+        },
+    ];
+
+    let nodes = completion_checks
+        .iter()
+        .enumerate()
+        .map(|(index, check)| {
+            let status = if check.complete {
+                LocalDagWatchdogNodeStatus::Completed
+            } else if check.exit_code == 0 {
+                LocalDagWatchdogNodeStatus::Incomplete
+            } else {
+                LocalDagWatchdogNodeStatus::Failed
+            };
+            LocalDagWatchdogSimulationNode {
+                node_id: check.node_id.clone(),
+                sample_id: "sample_primary".to_string(),
+                stage_id: check.stage_id.clone(),
+                status: status.as_str().to_string(),
+                dependency_count: dag_node.dependency_count,
+                depends_on: dag_node.depends_on.clone(),
+                start_second: index as u64,
+                finish_second: index as u64 + 1,
+                duration_seconds: 1,
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let completion_rules_proven = completion_checks.iter().all(|check| {
+        check.complete
+            == (check.exit_code == 0
+                && check.declared_outputs_exist
+                && check.result_manifest_exists)
+    }) && completion_checks
+        .iter()
+        .any(|check| check.exit_code == 0 && !check.declared_outputs_exist && !check.complete)
+        && completion_checks.iter().any(|check| {
+            check.exit_code == 0
+                && check.declared_outputs_exist
+                && !check.result_manifest_exists
+                && !check.complete
+        })
+        && completion_checks.iter().any(|check| {
+            check.exit_code != 0
+                && check.declared_outputs_exist
+                && check.result_manifest_exists
+                && !check.complete
+        })
+        && completion_checks.iter().any(|check| {
+            check.exit_code == 0
+                && check.declared_outputs_exist
+                && check.result_manifest_exists
+                && check.complete
+        });
+
+    if !completion_rules_proven {
+        return Err(anyhow!(
+            "completion-rules simulation did not prove that completion requires zero exit code, declared outputs, and a result manifest"
+        ));
+    }
+
+    let simulated_makespan_seconds = nodes.iter().map(|node| node.finish_second).max().unwrap_or(0);
+
+    Ok(LocalDagWatchdogSimulationReport {
+        schema_version: LOCAL_DAG_WATCHDOG_SIMULATION_SCHEMA_VERSION,
+        scenario: LocalDagWatchdogScenario::CompletionRules.as_str().to_string(),
+        config_path: path_relative_to_repo(repo_root, config_path),
+        dag_report_path: path_relative_to_repo(repo_root, dag_report_path),
+        output_path: path_relative_to_repo(repo_root, output_path),
+        pipeline_id: dag_report.pipeline_id.clone(),
+        node_count: nodes.len(),
+        sample_count: 1,
+        simulated_makespan_seconds,
+        slow_branch_stage_id: String::new(),
+        slow_branch_finish_second: 0,
+        ready_while_slow_branch_running_stage_ids: Vec::new(),
+        no_global_wait_proven: false,
+        failed_sample_id: None,
+        failed_stage_id: None,
+        failure_second: None,
+        continued_unrelated_node_ids: Vec::new(),
+        blocked_node_ids: Vec::new(),
+        failure_isolation_proven: false,
+        reused_valid_node_ids: Vec::new(),
+        invalid_node_ids: Vec::new(),
+        missing_node_ids: Vec::new(),
+        planned_node_ids: Vec::new(),
+        partial_resume_proven: false,
+        completion_check_stage_id: Some(COMPLETION_RULES_STAGE_ID.to_string()),
+        completion_checks,
+        completion_rules_proven,
         nodes,
     })
 }
@@ -590,8 +798,9 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 #[allow(clippy::expect_used)]
 mod tests {
     use super::{
-        simulate_dag_watchdog_path, LocalDagWatchdogScenario, DEFAULT_FAILURE_ISOLATION_REPORT_PATH,
-        DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH, DEFAULT_PARTIAL_RESUME_REPORT_PATH,
+        simulate_dag_watchdog_path, LocalDagWatchdogScenario,
+        DEFAULT_FAILURE_ISOLATION_REPORT_PATH, DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH,
+        DEFAULT_PARTIAL_RESUME_REPORT_PATH,
     };
 
     fn repo_root() -> std::path::PathBuf {
