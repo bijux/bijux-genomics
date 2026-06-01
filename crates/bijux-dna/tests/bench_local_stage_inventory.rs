@@ -65,13 +65,22 @@ fn bench_local_stage_inventory_bam_json_reports_governed_24_stage_slice() {
     );
 }
 
+#[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_json_reports_governed_51_command_slice() {
     let payload = run_cli_json(&["bench", "local", "render-stage-commands", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.local_stage_commands.v1")
+        Some("bijux.bench.local_stage_commands.v2")
+    );
+    assert_eq!(
+        payload.get("script_output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/rendered-stage-commands.sh")
+    );
+    assert_eq!(
+        payload.get("manifest_output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/rendered-stage-commands.json")
     );
     assert_eq!(payload.get("command_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(
@@ -84,8 +93,32 @@ fn bench_local_render_stage_commands_json_reports_governed_51_command_slice() {
             .and_then(serde_json::Value::as_array)
             .expect("commands array")
             .iter()
-            .any(|entry| entry.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("fastq.report_qc")),
+            .all(|entry| {
+                entry.get("stage_id").and_then(serde_json::Value::as_str).is_some()
+                    && entry.get("tool_id").and_then(serde_json::Value::as_str).is_some()
+                    && entry.get("threads").and_then(serde_json::Value::as_u64).is_some()
+                    && entry.get("memory_mb").and_then(serde_json::Value::as_u64).is_some()
+                    && entry.get("command").and_then(serde_json::Value::as_str).is_some()
+                    && entry
+                        .get("inputs")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|inputs| !inputs.is_empty())
+                    && entry
+                        .get("outputs")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|outputs| !outputs.is_empty())
+            }),
+        "every rendered command row must carry tool, IO, resource, and command fields"
+    );
+    assert!(
+        payload
+            .get("commands")
+            .and_then(serde_json::Value::as_array)
+            .expect("commands array")
+            .iter()
+            .any(|entry| {
+                entry.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.report_qc")
+            }),
         "rendered command inventory must include the governed report_qc stage"
     );
 }
@@ -111,6 +144,7 @@ fn bench_local_materialize_stage_report_qc_json_writes_governed_smoke_bundle() {
     );
 }
 
+#[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
@@ -138,7 +172,9 @@ fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
     );
 
     let script_path = repo_root.join("target/local-ready/rendered-stage-commands.sh");
+    let manifest_path = repo_root.join("target/local-ready/rendered-stage-commands.json");
     assert!(script_path.is_file(), "rendered script must exist");
+    assert!(manifest_path.is_file(), "rendered JSON manifest must exist");
 
     let syntax = Command::new("bash").arg("-n").arg(&script_path).output().expect("run bash -n");
     assert!(syntax.status.success(), "bash -n failed: {}", String::from_utf8_lossy(&syntax.stderr));
