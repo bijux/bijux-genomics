@@ -281,6 +281,14 @@ mod tests {
             "umi_policy": "use_tag",
             "duplicate_action": "remove"
         });
+        bijux_dna_infra::atomic_write_bytes(
+            &markdup_dir.join("flagstat.before.txt"),
+            b"10 + 0 in total (QC-passed reads + QC-failed reads)\n8 + 0 mapped (80.00% : N/A)\n2 + 0 duplicates\n",
+        )?;
+        bijux_dna_infra::atomic_write_bytes(
+            &markdup_dir.join("flagstat.after.txt"),
+            b"8 + 0 in total (QC-passed reads + QC-failed reads)\n7 + 0 mapped (87.50% : N/A)\n1 + 0 duplicates\n",
+        )?;
         stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::Markdup,
             &markdup_dir,
@@ -297,6 +305,19 @@ mod tests {
             markdup_policy.get("policy_scope").and_then(serde_json::Value::as_str),
             Some("pcr_vs_optical")
         );
+        let markdup_summary: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            markdup_dir.join("markdup.summary.json"),
+        )?)?;
+        assert_eq!(
+            markdup_summary.get("schema_version").and_then(serde_json::Value::as_str),
+            Some("bijux.bam.markdup.v1")
+        );
+        assert_eq!(
+            markdup_summary.get("duplicate_action").and_then(serde_json::Value::as_str),
+            Some("remove")
+        );
+        assert_eq!(markdup_summary.get("removed_reads"), Some(&serde_json::json!(2)));
+        assert_eq!(markdup_summary.get("duplicate_reads_removed"), Some(&serde_json::json!(2)));
         Ok(())
     }
 
