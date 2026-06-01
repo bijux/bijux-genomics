@@ -470,6 +470,19 @@ pub struct BamCoverageSummaryV1 {
     pub depth_thresholds: Vec<u32>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamCoverageRegionSummaryV1 {
+    pub region_id: String,
+    pub contig: String,
+    pub start: u64,
+    pub end: u64,
+    pub length: u64,
+    pub mean_depth: f64,
+    pub breadth_1x: f64,
+    pub covered_bases: u64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BamAlignmentProvenanceV1 {
@@ -2653,7 +2666,112 @@ pub fn summarize_tiny_bam_coverage(
     input_bam: &Path,
     depth_thresholds: &[u32],
 ) -> Result<BamCoverageSummaryV1> {
+    summarize_tiny_bam_coverage_regions(input_bam, None, depth_thresholds).map(|(summary, _)| summary)
+}
+
+/// Summarize tiny BAM/SAM coverage over optional BED regions with per-region depth observations.
+///
+/// # Errors
+/// Returns an error if input parsing fails or the BED regions file is malformed.
+pub fn summarize_tiny_bam_coverage_regions(
+    input_bam: &Path,
+    regions_path: Option<&Path>,
+    depth_thresholds: &[u32],
+) -> Result<(BamCoverageSummaryV1, Vec<BamCoverageRegionSummaryV1>)> {
     let document = parse_tiny_sam(input_bam)?;
+    let coverage_vectors = tiny_coverage_vectors(&document);
+    let regions = regions_path
+        .map(parse_tiny_bed_regions)
+        .transpose()?
+        .unwrap_or_else(|| default_tiny_coverage_regions(&document, &coverage_vectors));
+    if regions.is_empty() {
+        return Err(anyhow!("bam.coverage region summary requires at least one region"));
+    }
+
+    let mut region_summaries = Vec::with_capacity(regions.len());
+    let mut total_positions = 0_u64;
+    let mut total_covered_bases = 0_u64;
+    let mut total_depth_sum = 0_u64;
+
+    for region in regions {
+        let Some(depths) = coverage_vectors.get(&region.contig) else {
+            return Err(anyhow!(
+                "bam.coverage region `{}` references unknown contig `{}`",
+                region.region_id,
+                region.contig
+            ));
+        };
+        if region.end as usize > depths.len() {
+            return Err(anyhow!(
+                "bam.coverage region `{}` extends beyond contig `{}` length {}",
+                region.region_id,
+                region.contig,
+                depths.len()
+            ));
+        }
+
+        let start = region.start.saturating_sub(1) as usize;
+        let end = region.end as usize;
+        let window = &depths[start..end];
+        let length = window.len() as u64;
+        let covered_bases = window.iter().filter(|depth| **depth >= 1).count() as u64;
+        let depth_sum = window.iter().map(|depth| u64::from(*depth)).sum::<u64>();
+        let mean_depth = if length > 0 { depth_sum as f64 / length as f64 } else { 0.0 };
+        let breadth_1x = if length > 0 {
+            covered_bases as f64 / length as f64
+        } else {
+            0.0
+        };
+
+        total_positions += length;
+        total_covered_bases += covered_bases;
+        total_depth_sum += depth_sum;
+        region_summaries.push(BamCoverageRegionSummaryV1 {
+            region_id: region.region_id,
+            contig: region.contig,
+            start: region.start,
+            end: region.end,
+            length,
+            mean_depth,
+            breadth_1x,
+            covered_bases,
+        });
+    }
+
+    let mean_depth =
+        if total_positions > 0 { total_depth_sum as f64 / total_positions as f64 } else { 0.0 };
+    let breadth_1x = if total_positions > 0 {
+        total_covered_bases as f64 / total_positions as f64
+    } else {
+        0.0
+    };
+    let regime = classify_bam_coverage_regime(mean_depth, breadth_1x);
+
+    Ok((
+        BamCoverageSummaryV1 {
+            schema_version: BAM_COVERAGE_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.coverage".to_string(),
+            has_mosdepth_summary: false,
+            has_samtools_depth: true,
+            mean_depth: Some(mean_depth),
+            coverage_regime: Some(regime.regime_id.clone()),
+            coverage_family: Some(regime.enforced_label.clone()),
+            regime: Some(regime),
+            depth_thresholds: depth_thresholds.to_vec(),
+        },
+        region_summaries,
+    ))
+}
+
+#[derive(Debug, Clone)]
+struct TinyCoverageRegion {
+    region_id: String,
+    contig: String,
+    start: u64,
+    end: u64,
+}
+
+fn tiny_coverage_vectors(document: &TinySamDocument) -> HashMap<String, Vec<u32>> {
     let mut inferred_lengths = HashMap::<String, u64>::new();
     for record in document.records.iter().filter(|record| record.is_mapped()) {
         let end = record.pos + u64::max(record.seq.len() as u64, 1) - 1;
@@ -2681,36 +2799,74 @@ pub fn summarize_tiny_bam_coverage(
         }
     }
 
-    let mut total_positions = 0_u64;
-    let mut covered_positions = 0_u64;
-    let mut depth_sum = 0_u64;
-    for depths in coverage_vectors.values() {
-        total_positions += depths.len() as u64;
-        for depth in depths {
-            depth_sum += *depth as u64;
-            if *depth >= 1 {
-                covered_positions += 1;
-            }
+    coverage_vectors
+}
+
+fn default_tiny_coverage_regions(
+    document: &TinySamDocument,
+    coverage_vectors: &HashMap<String, Vec<u32>>,
+) -> Vec<TinyCoverageRegion> {
+    document
+        .references
+        .iter()
+        .filter_map(|reference| {
+            coverage_vectors.get(reference).map(|depths| TinyCoverageRegion {
+                region_id: reference.clone(),
+                contig: reference.clone(),
+                start: 1,
+                end: depths.len() as u64,
+            })
+        })
+        .collect()
+}
+
+fn parse_tiny_bed_regions(path: &Path) -> Result<Vec<TinyCoverageRegion>> {
+    let raw = std::fs::read_to_string(path)?;
+    let mut regions = Vec::new();
+    for (index, line) in raw.lines().enumerate() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
         }
+        let fields = trimmed.split('\t').collect::<Vec<_>>();
+        if fields.len() < 3 {
+            return Err(anyhow!(
+                "bam.coverage BED line {} must declare contig, start, and end",
+                index + 1
+            ));
+        }
+        let contig = fields[0].trim();
+        if contig.is_empty() {
+            return Err(anyhow!("bam.coverage BED line {} has empty contig", index + 1));
+        }
+        let start_zero_based = fields[1].parse::<u64>().map_err(|error| {
+            anyhow!("bam.coverage BED line {} has invalid start: {error}", index + 1)
+        })?;
+        let end_exclusive = fields[2].parse::<u64>().map_err(|error| {
+            anyhow!("bam.coverage BED line {} has invalid end: {error}", index + 1)
+        })?;
+        if end_exclusive <= start_zero_based {
+            return Err(anyhow!(
+                "bam.coverage BED line {} must keep end greater than start",
+                index + 1
+            ));
+        }
+        let start = start_zero_based + 1;
+        let end = end_exclusive;
+        let region_id = fields.get(3).map_or_else(
+            || format!("{contig}:{start}-{end}"),
+            |name| {
+                let trimmed = name.trim();
+                if trimmed.is_empty() {
+                    format!("{contig}:{start}-{end}")
+                } else {
+                    trimmed.to_string()
+                }
+            },
+        );
+        regions.push(TinyCoverageRegion { region_id, contig: contig.to_string(), start, end });
     }
-
-    let mean_depth =
-        if total_positions > 0 { depth_sum as f64 / total_positions as f64 } else { 0.0 };
-    let breadth_1x =
-        if total_positions > 0 { covered_positions as f64 / total_positions as f64 } else { 0.0 };
-    let regime = classify_bam_coverage_regime(mean_depth, breadth_1x);
-
-    Ok(BamCoverageSummaryV1 {
-        schema_version: BAM_COVERAGE_SUMMARY_SCHEMA_VERSION.to_string(),
-        stage_id: "bam.coverage".to_string(),
-        has_mosdepth_summary: false,
-        has_samtools_depth: true,
-        mean_depth: Some(mean_depth),
-        coverage_regime: Some(regime.regime_id.clone()),
-        coverage_family: Some(regime.enforced_label.clone()),
-        regime: Some(regime),
-        depth_thresholds: depth_thresholds.to_vec(),
-    })
+    Ok(regions)
 }
 
 #[must_use]
@@ -4616,6 +4772,62 @@ r02\t0\tchr1\t11\t45\t10M\t*\t0\t0\tTTTTGGGGCC\tFFFFFFFFFF\tRG:Z:rg1\n",
         let regime = summary.regime.expect("coverage regime");
         assert_eq!(regime.regime_class, BamCoverageRegimeClassV1::LowPass);
         assert!((regime.breadth_1x - 1.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_coverage_regions_reports_region_level_depth_and_breadth() {
+        let temp = unique_temp_dir("bam-coverage-regions");
+        let input = temp.join("input.sam");
+        let regions = temp.join("regions.bed");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:12\n\
+@SQ\tSN:chr2\tLN:8\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t1\t45\t4M\t*\t0\t0\tACGT\tFFFF\tRG:Z:rg1\n\
+r02\t0\tchr1\t3\t45\t4M\t*\t0\t0\tTTAA\tFFFF\tRG:Z:rg1\n\
+r03\t0\tchr2\t2\t45\t3M\t*\t0\t0\tGGA\tFFF\tRG:Z:rg1\n",
+        )
+        .expect("write coverage fixture");
+        std::fs::write(&regions, "chr1\t0\t6\tchr1_window\nchr2\t1\t5\tchr2_window\n")
+            .expect("write coverage regions");
+
+        let (summary, rows) =
+            summarize_tiny_bam_coverage_regions(&input, Some(&regions), &[1, 5])
+                .expect("summarize coverage regions");
+        assert_eq!(summary.stage_id, "bam.coverage");
+        assert_eq!(summary.depth_thresholds, vec![1, 5]);
+        assert_eq!(summary.coverage_regime.as_deref(), Some("low_pass"));
+        assert_eq!(rows.len(), 2);
+        assert_eq!(
+            rows,
+            vec![
+                BamCoverageRegionSummaryV1 {
+                    region_id: "chr1_window".to_string(),
+                    contig: "chr1".to_string(),
+                    start: 1,
+                    end: 6,
+                    length: 6,
+                    mean_depth: 4.0 / 3.0,
+                    breadth_1x: 1.0,
+                    covered_bases: 6,
+                },
+                BamCoverageRegionSummaryV1 {
+                    region_id: "chr2_window".to_string(),
+                    contig: "chr2".to_string(),
+                    start: 2,
+                    end: 5,
+                    length: 4,
+                    mean_depth: 0.75,
+                    breadth_1x: 0.75,
+                    covered_bases: 3,
+                },
+            ]
+        );
+        assert!((summary.mean_depth.expect("mean depth") - 1.1).abs() <= 1e-9);
+        let regime = summary.regime.expect("coverage regime");
+        assert!((regime.breadth_1x - 0.9).abs() <= 1e-9);
     }
 
     #[test]
