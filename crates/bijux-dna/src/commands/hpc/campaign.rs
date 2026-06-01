@@ -962,6 +962,66 @@ fn load_env_map(
     }
 }
 
+fn workspace_root_for_campaign_stage_catalog(start: &Path) -> Option<PathBuf> {
+    let mut cursor =
+        if start.is_dir() { start.to_path_buf() } else { start.parent()?.to_path_buf() };
+    loop {
+        let domain_dir = cursor.join("domain");
+        let registry = bijux_dna_infra::configs_file(&cursor, "ci/registry/tool_registry.toml");
+        if domain_dir.is_dir() && registry.is_file() {
+            return Some(cursor);
+        }
+        let parent = cursor.parent()?.to_path_buf();
+        cursor = parent;
+    }
+}
+
+fn campaign_stage_catalog(root: &Path) -> Result<BTreeSet<String>> {
+    let mut stage_ids = BTreeSet::new();
+    for domain in ["fastq", "bam", "vcf"] {
+        let stages_dir = root.join("domain").join(domain).join("stages");
+        for entry in std::fs::read_dir(&stages_dir)
+            .with_context(|| format!("read {}", stages_dir.display()))?
+        {
+            let path = entry?.path();
+            if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+                continue;
+            }
+            let Some(stem) = path.file_stem().and_then(|value| value.to_str()) else {
+                continue;
+            };
+            if stem.starts_with('_') {
+                continue;
+            }
+            stage_ids.insert(format!("{domain}.{stem}"));
+        }
+    }
+    Ok(stage_ids)
+}
+
+fn validate_campaign_job_stage_ids(config_path: &Path, config: &CampaignConfig) -> Result<()> {
+    let workspace_root = workspace_root_for_campaign_stage_catalog(config_path).or_else(|| {
+        std::env::current_dir().ok().and_then(|cwd| workspace_root_for_campaign_stage_catalog(&cwd))
+    });
+    let workspace_root = workspace_root.ok_or_else(|| {
+        anyhow!(
+            "unable to locate workspace root for stage catalog validation from {}",
+            config_path.display()
+        )
+    })?;
+    let known_stage_ids = campaign_stage_catalog(&workspace_root)?;
+    for job in &config.jobs {
+        if !known_stage_ids.contains(&job.stage) {
+            return Err(anyhow!(
+                "campaign job `{}` references unknown stage `{}`",
+                job.name.as_deref().unwrap_or("<unnamed>"),
+                job.stage
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn resolve_campaign_config(
     config_path: &Path,
     env_file_policy: Option<&Path>,
@@ -969,6 +1029,7 @@ fn resolve_campaign_config(
 ) -> Result<(CampaignConfig, ResolvedSlurm, ResolutionMetadata)> {
     let (mut config, _) = load_campaign_config_raw(config_path)?;
     merge_site_profile_file(&mut config, config_path)?;
+    validate_campaign_job_stage_ids(config_path, &config)?;
 
     let policy_path = user_policy_path
         .map(Path::to_path_buf)
