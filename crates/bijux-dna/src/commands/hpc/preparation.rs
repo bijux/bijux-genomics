@@ -336,9 +336,9 @@ tool = "seqkit_v2"
 sample = "sample-1"
 
 [[jobs]]
-name = "bam_sort"
-stage = "bam.sort"
-tool = "samtools"
+name = "bam_align"
+stage = "bam.align"
+tool = "bwa"
 sample = "sample-1"
 depends_on = ["fastq_validate"]
 "#,
@@ -354,7 +354,7 @@ depends_on = ["fastq_validate"]
         let bam_node = graph
             .nodes
             .iter()
-            .find(|node| node.kind == "planned_job" && node.path.contains("bam.sort"))
+            .find(|node| node.kind == "planned_job" && node.path.contains("bam.align"))
             .expect("bam node");
         assert!(bam_node.depends_on.iter().any(|dep| dep.starts_with("dryrun-0001")));
     }
