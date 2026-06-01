@@ -162,6 +162,11 @@ pub(crate) fn handle_meta_commands(
                             }
                         }
                     }
+                    cli::BenchLocalCommand::SimulateDagWatchdog(args) => {
+                        crate::commands::benchmark::local_dag_watchdog_simulation::run_simulate_dag_watchdog(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidatePipelineDag(args) => {
                         crate::commands::benchmark::local_pipeline_dag::run_validate_pipeline_dag(
                             &args,

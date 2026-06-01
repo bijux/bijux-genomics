@@ -6,10 +6,17 @@ pub enum BenchLocalDomainArg {
     Bam,
 }
 
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum BenchLocalDagWatchdogScenarioArg {
+    NoGlobalWait,
+}
+
 #[derive(Debug, Subcommand)]
 pub enum BenchLocalCommand {
     #[command(name = "list-stages")]
     ListStages(BenchLocalListStagesArgs),
+    #[command(name = "simulate-dag-watchdog")]
+    SimulateDagWatchdog(BenchLocalSimulateDagWatchdogArgs),
     #[command(name = "validate-pipeline-dag")]
     ValidatePipelineDag(BenchLocalValidatePipelineDagArgs),
     #[command(name = "validate-corpus-fixture")]
@@ -46,6 +53,16 @@ pub enum BenchLocalCommand {
 pub struct BenchLocalListStagesArgs {
     #[arg(long, value_enum)]
     pub domain: BenchLocalDomainArg,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalSimulateDagWatchdogArgs {
+    #[arg(long, value_enum, default_value_t = BenchLocalDagWatchdogScenarioArg::NoGlobalWait)]
+    pub scenario: BenchLocalDagWatchdogScenarioArg,
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

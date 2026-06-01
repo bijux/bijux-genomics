@@ -7,6 +7,8 @@ use serde::Serialize;
 use crate::commands::benchmark::local_pipeline_dag::{
     validate_pipeline_dag_path, DEFAULT_FASTQ_CORE_PREPROCESS_PIPELINE_CONFIG_PATH,
 };
+use crate::commands::cli::parse;
+use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH: &str =
     "target/local-ready/dag-sim/no-global-wait.json";
@@ -84,6 +86,29 @@ pub(crate) fn simulate_dag_watchdog_path(
     bijux_dna_infra::atomic_write_json(output_path, &report)
         .with_context(|| format!("write {}", output_path.display()))?;
     Ok(report)
+}
+
+pub(crate) fn run_simulate_dag_watchdog(
+    args: &parse::BenchLocalSimulateDagWatchdogArgs,
+) -> Result<()> {
+    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let scenario = match args.scenario {
+        parse::BenchLocalDagWatchdogScenarioArg::NoGlobalWait => {
+            LocalDagWatchdogScenario::NoGlobalWait
+        }
+    };
+    let output_path = match &args.output {
+        Some(path) if path.is_absolute() => path.clone(),
+        Some(path) => repo_root.join(path),
+        None => repo_root.join(scenario.default_output_relative_path()),
+    };
+    let report = simulate_dag_watchdog_path(&repo_root, scenario, &output_path)?;
+    if args.json {
+        render::json::print_pretty(&report)?;
+    } else {
+        println!("{}", report.output_path);
+    }
+    Ok(())
 }
 
 fn build_no_global_wait_report(
