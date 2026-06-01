@@ -1,0 +1,21 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.mapq_filter.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_mapq_filter.v1"
+tool_id = "samtools"
+threads = 4
+output_dir = "target/local-smoke/bam.mapq_filter"
+
+[[cases]]
+sample_id = "core-v1-mapq-threshold"
+bam = "assets/toy/core-v1/bam/mapq_threshold_ladder.sam"
+mapq_threshold = 30
+expected_input_reads = 4
+expected_kept_reads = 3
+expected_removed_reads = 1
+expected_mapped_reads_removed = 1
+expected_mapped_fraction_retained = 0.6666666666666666
