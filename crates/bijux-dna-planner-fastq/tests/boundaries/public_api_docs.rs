@@ -77,6 +77,7 @@ fn public_api_docs_match_curated_exports() {
             "local_index_reference_plan",
             "local_merge_pairs_smoke_plans",
             "local_normalize_primers_smoke_plans",
+            "local_profile_overrepresented_sequences_smoke_plans",
             "local_profile_read_lengths_smoke_plans",
             "local_profile_reads_smoke_plans",
             "local_remove_duplicates_smoke_plans",
@@ -203,6 +204,11 @@ fn documented_stage_api_exports_remain_compilable() {
     )
         -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalNormalizePrimersSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_normalize_primers_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalProfileOverrepresentedSequencesSmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_profile_overrepresented_sequences_smoke_plans;
     let _: fn(
         &Path,
     ) -> anyhow::Result<
