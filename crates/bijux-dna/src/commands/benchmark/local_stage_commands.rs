@@ -13,8 +13,7 @@ use bijux_dna_stage_contract::StagePlanV1;
 use serde::{Deserialize, Serialize};
 
 use crate::commands::benchmark::local_stage_inventory::{
-    load_local_stage_inventory, BenchLocalDomain, BenchLocalStageInventoryEntry,
-    LocalStageReadinessKind,
+    load_local_stage_inventory, BenchLocalDomain, LocalStageReadinessKind,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -43,6 +42,13 @@ pub(crate) struct BenchLocalStageCommandEntry {
     pub(crate) threads: u32,
     pub(crate) memory_mb: u32,
     pub(crate) command: String,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct BenchLocalStagePlanBundle {
+    pub(crate) stage_id: String,
+    pub(crate) readiness_kind: LocalStageReadinessKind,
+    pub(crate) plans: Vec<StagePlanV1>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -290,6 +296,16 @@ pub(crate) fn collect_local_stage_command_entries(
     repo_root: &Path,
     domain: Option<BenchLocalDomain>,
 ) -> Result<Vec<BenchLocalStageCommandEntry>> {
+    collect_local_stage_plan_bundles(repo_root, domain)?
+        .into_iter()
+        .map(|bundle| build_local_stage_command_entry(repo_root, bundle))
+        .collect()
+}
+
+pub(crate) fn collect_local_stage_plan_bundles(
+    repo_root: &Path,
+    domain: Option<BenchLocalDomain>,
+) -> Result<Vec<BenchLocalStagePlanBundle>> {
     let domains = match domain {
         Some(domain) => vec![domain],
         None => vec![BenchLocalDomain::Fastq, BenchLocalDomain::Bam],
@@ -301,19 +317,25 @@ pub(crate) fn collect_local_stage_command_entries(
         .collect::<Result<Vec<_>>>()?
         .into_iter()
         .flat_map(|inventory| inventory.stages)
-        .map(|stage| build_local_stage_command_entry(repo_root, stage))
+        .map(|stage| {
+            Ok(BenchLocalStagePlanBundle {
+                stage_id: stage.stage_id.clone(),
+                readiness_kind: stage.readiness_kind,
+                plans: local_stage_plans(repo_root, &stage.stage_id)?,
+            })
+        })
         .collect()
 }
 
 fn build_local_stage_command_entry(
     repo_root: &Path,
-    stage: BenchLocalStageInventoryEntry,
+    bundle: BenchLocalStagePlanBundle,
 ) -> Result<BenchLocalStageCommandEntry> {
-    let plans = local_stage_plans(repo_root, &stage.stage_id)?;
+    let plans = bundle.plans;
     if plans.is_empty() {
         return Err(anyhow!(
             "local benchmark stage `{}` did not yield any governed plans",
-            stage.stage_id
+            bundle.stage_id
         ));
     }
 
@@ -324,7 +346,7 @@ fn build_local_stage_command_entry(
         if plan.tool_id != plans[0].tool_id {
             return Err(anyhow!(
                 "local benchmark stage `{}` mixes tool_ids `{}` and `{}` across governed plans",
-                stage.stage_id,
+                bundle.stage_id,
                 plans[0].tool_id.as_str(),
                 plan.tool_id.as_str()
             ));
@@ -332,28 +354,28 @@ fn build_local_stage_command_entry(
         if plan.resources.threads.max(1) != threads {
             return Err(anyhow!(
                 "local benchmark stage `{}` mixes thread counts `{threads}` and `{}` across governed plans",
-                stage.stage_id,
+                bundle.stage_id,
                 plan.resources.threads.max(1)
             ));
         }
         if plan.resources.mem_gb.max(1) * 1024 != memory_mb {
             return Err(anyhow!(
                 "local benchmark stage `{}` mixes memory ceilings `{memory_mb}` and `{}` MB across governed plans",
-                stage.stage_id,
+                bundle.stage_id,
                 plan.resources.mem_gb.max(1) * 1024
             ));
         }
     }
 
     Ok(BenchLocalStageCommandEntry {
-        stage_id: stage.stage_id.clone(),
-        readiness_kind: stage.readiness_kind,
+        stage_id: bundle.stage_id.clone(),
+        readiness_kind: bundle.readiness_kind,
         tool_id,
         inputs: aggregate_plan_artifacts(repo_root, &plans, |plan| &plan.io.inputs),
         outputs: aggregate_plan_artifacts(repo_root, &plans, |plan| &plan.io.outputs),
         threads,
         memory_mb,
-        command: rendered_stage_materialize_command(&stage.stage_id),
+        command: rendered_stage_materialize_command(&bundle.stage_id),
     })
 }
 

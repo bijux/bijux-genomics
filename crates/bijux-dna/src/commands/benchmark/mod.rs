@@ -11,6 +11,7 @@ pub(crate) mod local_pipeline_dag;
 pub(crate) mod local_slurm_dry_run;
 pub(crate) mod local_slurm_shell_syntax;
 pub(crate) mod local_slurm_script_bodies;
+pub(crate) mod local_slurm_submit_manifest;
 pub(crate) mod local_stage_commands;
 pub(crate) mod local_stage_fake_runs;
 pub(crate) mod local_stage_inventory;

@@ -202,6 +202,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RenderSlurmSubmitManifest(args) => {
+                        crate::commands::benchmark::local_slurm_submit_manifest::run_render_slurm_submit_manifest(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RenderBenchmarkSummary(args) => {
                         crate::commands::benchmark::local_benchmark_summary::run_render_benchmark_summary(
                             &args,
