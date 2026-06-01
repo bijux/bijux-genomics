@@ -71,6 +71,18 @@ pub fn write_local_duplication_metrics_smoke_report() -> Result<PathBuf> {
     )
 }
 
+/// Materialize the governed local-smoke `bam.complexity` report bundle.
+///
+/// The written report artifact lives at `target/local-smoke/bam.complexity/complexity.json`
+/// under the active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_complexity_smoke_report() -> Result<PathBuf> {
+    crate::internal::bam::stages::complexity::write_local_complexity_smoke_report()
+}
+
 /// Materialize the governed local-smoke `bam.length_filter` report bundle.
 ///
 /// The written report artifact lives at `target/local-smoke/bam.length_filter/length_filter.json`

@@ -1,3 +1,4 @@
+pub(crate) mod complexity;
 pub(crate) mod duplication_metrics;
 pub(crate) mod filter;
 pub(crate) mod length_filter;

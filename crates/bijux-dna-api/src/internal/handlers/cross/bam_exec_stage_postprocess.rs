@@ -221,6 +221,9 @@ fn stage_postprocess(
                 .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Complexity => {
+            crate::internal::bam::stages::complexity::write_stage_complexity_summary(
+                stage_dir, plan,
+            )?;
             let path = stage_dir.join("complexity.artifacts.json");
             bijux_dna_infra::atomic_write_json(
                 &path,

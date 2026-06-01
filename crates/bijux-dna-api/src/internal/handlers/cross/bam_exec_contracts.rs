@@ -199,6 +199,44 @@ mod tests {
     }
 
     #[test]
+    fn complexity_postprocess_emits_typed_summary() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let stage_dir = temp.path().join("complexity");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        bijux_dna_infra::atomic_write_bytes(&stage_dir.join("preseq.txt"), b"3\t2\n")?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Complexity);
+        plan.params = serde_json::json!({ "min_reads": 3, "projection_points": [6, 12] });
+        plan.io.inputs[0].path = stage_dir.join("input.bam");
+        stage_postprocess(
+            bijux_dna_planner_bam::stage_api::BamStage::Complexity,
+            &stage_dir,
+            &plan,
+        )?;
+        let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            stage_dir.join("complexity.summary.json"),
+        )?)?;
+        assert_eq!(
+            payload.get("schema_version").and_then(serde_json::Value::as_str),
+            Some("bijux.bam.complexity.v1")
+        );
+        assert_eq!(payload.get("method").and_then(serde_json::Value::as_str), Some("samtools"));
+        assert_eq!(
+            payload.get("observed_total_reads").and_then(serde_json::Value::as_u64),
+            Some(3)
+        );
+        assert_eq!(
+            payload.get("observed_unique_reads").and_then(serde_json::Value::as_u64),
+            Some(2)
+        );
+        assert_eq!(
+            payload.get("insufficient_data_reason").and_then(serde_json::Value::as_str),
+            Some("insufficient_observed_unique_reads_for_complexity_extrapolation")
+        );
+        assert!(stage_dir.join("complexity.artifacts.json").exists());
+        Ok(())
+    }
+
+    #[test]
     fn damage_and_authenticity_postprocess_emit_composite_artifacts() -> Result<()> {
         let temp = tempfile::tempdir()?;
         let bam_root = temp.path().join("bam");
