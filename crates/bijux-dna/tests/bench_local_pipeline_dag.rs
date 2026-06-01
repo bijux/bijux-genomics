@@ -584,3 +584,99 @@ fn bench_local_pipeline_dag_validates_bam_genotyping_contract() {
         "bam.genotyping must expose the filtered fallback path, recalibrated run path, and governed genotyping contracts"
     );
 }
+
+#[test]
+fn bench_local_pipeline_dag_validates_bam_kinship_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/bam-kinship.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/bam-kinship.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/bam-kinship.json")
+    );
+    assert_eq!(payload.get("pipeline_id").and_then(serde_json::Value::as_str), Some("bam-kinship"));
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-01-bam-mini")
+    );
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("edge_count").and_then(serde_json::Value::as_u64), Some(4));
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.overlap_correction")
+                && node.get("readiness_kind").and_then(serde_json::Value::as_str)
+                    == Some("dry_or_smoke")
+                && node.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |outputs| {
+                        outputs.iter().any(|value| {
+                            value.as_str() == Some("overlap_correction_summary_json")
+                        }) && outputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("overlap_corrected_bam"))
+                    },
+                )
+        }),
+        "bam.overlap_correction must expose the overlap-sufficiency summary and corrected BAM outputs in the CLI validation report"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.kinship")
+                && node.get("readiness_kind").and_then(serde_json::Value::as_str)
+                    == Some("smoke")
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| {
+                            value.as_str() == Some("overlap_corrected_bam")
+                        }) && inputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("overlap_corrected_bai"))
+                            && inputs.iter().any(|value| {
+                                value.as_str() == Some("overlap_correction_summary_json")
+                            })
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("genotyping_report_json"))
+                    },
+                )
+                && node
+                    .get("external_inputs")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|inputs| {
+                        inputs.iter().any(|value| {
+                            value.as_str() == Some("kinship_reference_panel_contract")
+                        }) && inputs.iter().any(|value| {
+                            value.as_str() == Some("kinship_population_scope_contract")
+                        }) && inputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("kinship_pairing_contract"))
+                    })
+        }),
+        "bam.kinship must expose governed overlap and genotype-readiness requirements in the CLI validation report"
+    );
+    assert!(
+        nodes.iter().all(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.kinship")
+                || !node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("overlap_correction_summary_json"))
+                    },
+                )
+        }),
+        "overlap insufficiency must stay local to bam.kinship in the CLI validation report"
+    );
+}
