@@ -33,8 +33,8 @@ pub use self::local::{
     BenchLocalFakeRunFailuresArgs, BenchLocalFakeRunStagesArgs, BenchLocalListStagesArgs,
     BenchLocalMaterializeStageArgs, BenchLocalRenderBenchmarkSummaryArgs,
     BenchLocalRenderStageCommandsArgs, BenchLocalRenderToolComparisonTemplateArgs,
-    BenchLocalValidateCorpusFixtureArgs, BenchLocalValidateStageResultArgs,
-    BenchLocalValidateTaxonomyDatabaseFixtureArgs,
+    BenchLocalValidateCorpusFixtureArgs, BenchLocalValidateCorpusStageCompatibilityArgs,
+    BenchLocalValidateStageResultArgs, BenchLocalValidateTaxonomyDatabaseFixtureArgs,
 };
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,

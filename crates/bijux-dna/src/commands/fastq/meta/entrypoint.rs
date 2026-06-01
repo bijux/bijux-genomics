@@ -167,6 +167,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateCorpusStageCompatibility(args) => {
+                        crate::commands::benchmark::local_corpus_stage_compatibility::run_validate_corpus_stage_compatibility(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateTaxonomyDatabaseFixture(args) => {
                         crate::commands::benchmark::local_taxonomy_database_fixture::run_validate_taxonomy_database_fixture(
                             &args,
