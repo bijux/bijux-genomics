@@ -428,4 +428,41 @@ mod tests {
             "report_qc must consume the governed upstream preprocessing metrics"
         );
     }
+
+    #[test]
+    fn fastq_paired_merge_pipeline_dag_tracks_merged_and_unmerged_handoffs() {
+        let repo_root = repo_root();
+        let config_path = repo_root.join("configs/pipelines/local/fastq-paired-merge.toml");
+        let output_path = repo_root.join("target/local-ready/pipeline-dag/fastq-paired-merge.json");
+        let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect("validate paired merge local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "fastq-paired-merge");
+        assert_eq!(report.domain, "fastq");
+        assert_eq!(report.default_corpus_id, "corpus-01-mini");
+        assert_eq!(report.node_count, 7);
+        assert_eq!(report.edge_count, 12);
+        assert!(report.acyclic);
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "fastq.merge_pairs"
+                    && node.outputs
+                        == vec![
+                            "merged_reads",
+                            "unmerged_r1_reads",
+                            "unmerged_r2_reads",
+                            "merge_metrics",
+                        ]
+            }),
+            "merge_pairs must declare merged and unmerged outputs explicitly"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "fastq.filter_reads"
+                    && node.upstream_inputs
+                        == vec!["merged_reads", "unmerged_r1_reads", "unmerged_r2_reads"]
+            }),
+            "filter_reads must consume the merged and unmerged merge-pairs outputs"
+        );
+    }
 }
