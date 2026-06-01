@@ -155,3 +155,47 @@ fn bench_local_render_slurm_scripts_fastq_writes_bash_parseable_27_script_slice(
         )
     );
 }
+
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_render_slurm_scripts_bam_writes_bash_parseable_24_script_slice() {
+    let output = run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "bam"]);
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let repo_root = support::repo_root().expect("repo root");
+    let output_root = repo_root.join("target/slurm-dry-run/bam");
+    assert!(output_root.is_dir(), "BAM slurm dry-run root must exist");
+
+    let mut scripts = std::fs::read_dir(&output_root)
+        .expect("read output root")
+        .map(|entry| entry.expect("dir entry").path())
+        .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("sbatch"))
+        .collect::<Vec<_>>();
+    scripts.sort();
+
+    assert_eq!(scripts.len(), 24, "BAM dry-run root must contain 24 sbatch scripts");
+    for script in &scripts {
+        let syntax = Command::new("bash").arg("-n").arg(script).output().expect("run bash -n");
+        assert!(
+            syntax.status.success(),
+            "bash -n failed for {}: {}",
+            script.display(),
+            String::from_utf8_lossy(&syntax.stderr)
+        );
+    }
+
+    let genotyping_script = output_root.join("bam.genotyping.sbatch");
+    let script_body = std::fs::read_to_string(&genotyping_script).expect("read genotyping script");
+    assert!(script_body.contains("#SBATCH --job-name=bam-genotyping"));
+    assert!(
+        script_body.contains(
+            "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.genotyping"
+        )
+    );
+}
