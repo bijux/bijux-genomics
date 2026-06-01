@@ -1,0 +1,5 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chr1	LN:100
+@RG	ID:rg-human	SM:human_like_validation
+human_pair_001	99	chr1	5	60	8M	=	17	20	ACGTACGT	FFFFFFFF	RG:Z:rg-human
+human_pair_001	147	chr1	17	60	8M	=	5	-20	TTGGAACC	FFFFFFFF	RG:Z:rg-human
