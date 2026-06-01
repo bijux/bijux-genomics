@@ -118,6 +118,8 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local list-stages`
 - `bijux-dna bench local materialize-stage`
 - `bijux-dna bench local render-stage-commands`
+  `render-stage-commands` writes both `target/local-ready/rendered-stage-commands.sh` and the
+  machine-readable companion `target/local-ready/rendered-stage-commands.json`.
 - `bijux-dna bench schema`
 - `bijux-dna bench fastq trim-reads`
 - `bijux-dna bench fastq trim-polyg-tails`
