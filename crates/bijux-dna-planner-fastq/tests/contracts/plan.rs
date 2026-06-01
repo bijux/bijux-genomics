@@ -16,6 +16,8 @@ mod local_detect_duplicates_premerge_smoke;
 mod local_deplete_rrna;
 #[path = "plan/local_estimate_library_complexity_prealign_smoke.rs"]
 mod local_estimate_library_complexity_prealign_smoke;
+#[path = "plan/local_filter_low_complexity_smoke.rs"]
+mod local_filter_low_complexity_smoke;
 #[path = "plan/local_filter_reads_smoke.rs"]
 mod local_filter_reads_smoke;
 #[path = "plan/local_merge_pairs_smoke.rs"]
