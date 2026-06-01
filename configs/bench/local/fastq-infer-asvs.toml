@@ -1,0 +1,8 @@
+schema_version = "bijux.bench.fastq.local_infer_asvs.v1"
+tool_id = "dada2"
+threads = 1
+output_dir = "target/local-smoke/fastq.infer_asvs"
+
+[[cases]]
+sample_id = "corpus-03-amplicon-se"
+reads = "assets/toy/corpus-03-amplicon-mini/fastq/merged_amplicon_reads.fastq"
