@@ -18,6 +18,7 @@ bijux-dna-domain-fastq.workspace = true
 bijux-dna-domain-compiler.workspace = true
 bijux-dna-infra.workspace = true
 bijux-dna-db-ena.workspace = true
+bijux-dna-stages-fastq.workspace = true
 bijux-dna-stage-contract.workspace = true
 anyhow = { workspace = true }
 clap = { workspace = true }

@@ -135,6 +135,13 @@ pub(crate) fn handle_meta_commands(
                         args,
                     )?;
                 }
+                BenchCommand::Readiness { command } => match command {
+                    cli::BenchReadinessCommand::RenderFastqToolServingMap(args) => {
+                        crate::commands::benchmark::readiness::tool_serving_map::run_render_fastq_tool_serving_map(
+                            args,
+                        )?;
+                    }
+                },
                 BenchCommand::Local { command } => match command {
                     cli::BenchLocalCommand::ListStages(args) => {
                         let cwd = std::env::current_dir()?;

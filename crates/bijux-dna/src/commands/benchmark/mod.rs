@@ -25,6 +25,7 @@ pub(crate) mod local_stage_runtime_metrics;
 pub(crate) mod local_taxonomy_database_fixture;
 pub(crate) mod local_tool_comparison_template;
 pub(crate) mod publication;
+pub(crate) mod readiness;
 pub(crate) mod repo_checks;
 pub(crate) mod stage_catalog;
 pub(crate) mod suite;

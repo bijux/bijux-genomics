@@ -7,6 +7,7 @@ mod corpus_fastq;
 mod fastq;
 mod local;
 mod publication;
+mod readiness;
 mod suite;
 
 pub use self::config::{
@@ -45,6 +46,7 @@ pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
     BenchCorpusFastqReportArgs, BenchPublicationTargetsArgs,
 };
+pub use self::readiness::{BenchReadinessCommand, BenchReadinessRenderFastqToolServingMapArgs};
 pub use self::suite::BenchRunArgs;
 
 #[derive(Debug, Subcommand)]
@@ -75,6 +77,10 @@ pub enum BenchCommand {
     CorpusFastqPublicationStatus(BenchCorpusFastqPublicationStatusArgs),
     #[command(name = "corpus-fastq-published-dossiers")]
     CorpusFastqPublishedDossiers(BenchCorpusFastqPublishedDossiersArgs),
+    Readiness {
+        #[command(subcommand)]
+        command: BenchReadinessCommand,
+    },
     Local {
         #[command(subcommand)]
         command: BenchLocalCommand,
