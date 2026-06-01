@@ -36,6 +36,8 @@ mod local_index_reference;
 mod local_infer_asvs_smoke;
 #[path = "plan/local_merge_pairs_smoke.rs"]
 mod local_merge_pairs_smoke;
+#[path = "plan/local_normalize_abundance_smoke.rs"]
+mod local_normalize_abundance_smoke;
 #[path = "plan/local_normalize_primers_smoke.rs"]
 mod local_normalize_primers_smoke;
 #[path = "plan/local_profile_overrepresented_sequences_smoke.rs"]
