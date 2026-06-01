@@ -23,6 +23,26 @@ fn run_cli(args: &[&str]) -> std::process::Output {
         .expect("run cli")
 }
 
+#[cfg(not(feature = "bam_downstream"))]
+fn run_cargo_cli(args: &[&str]) -> std::process::Output {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    Command::new("cargo")
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(["run", "-q", "-p", "bijux-dna", "--"])
+        .args(args)
+        .output()
+        .expect("run cargo cli")
+}
+
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let output = run_cli(args);
     assert!(
@@ -38,7 +58,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 #[cfg(not(feature = "bam_downstream"))]
 #[test]
 fn bench_local_render_slurm_scripts_bam_requires_bam_downstream_feature() {
-    let output = run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "bam", "--json"]);
+    let output =
+        run_cargo_cli(&["bench", "local", "render-slurm-scripts", "--domain", "bam", "--json"]);
     assert!(!output.status.success(), "command should fail without bam_downstream");
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
