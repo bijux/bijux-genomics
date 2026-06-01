@@ -22,7 +22,7 @@ The public API is the planner surface exported from `src/lib.rs`.
 - `PLANNER_VERSION`
 
 ## `stage_api`
-`stage_api` is a curated compatibility surface for downstream stage planning. It reexports stage specs, stage registry lookup, default tool selection, allowed tool selection, `plan_stage`, `StagePlanRequest`, the governed local-ready `local_align_plan` helper for `bam.align`, the governed local-smoke `local_validate_smoke_plans` helper plus `LocalValidateSmokeCasePlan` for `bam.validate`, and the governed local-smoke `local_qc_pre_smoke_plans` helper plus `LocalQcPreSmokeCasePlan` for `bam.qc_pre`.
+`stage_api` is a curated compatibility surface for downstream stage planning. It reexports stage specs, stage registry lookup, default tool selection, allowed tool selection, `plan_stage`, `StagePlanRequest`, the governed local-ready `local_align_plan` helper for `bam.align`, the governed local-smoke `local_validate_smoke_plans` helper plus `LocalValidateSmokeCasePlan` for `bam.validate`, the governed local-smoke `local_qc_pre_smoke_plans` helper plus `LocalQcPreSmokeCasePlan` for `bam.qc_pre`, and the governed local-smoke `local_mapping_summary_smoke_plans` helper plus `LocalMappingSummarySmokeCasePlan` for `bam.mapping_summary`.
 
 ## Stability Rules
 - Additions must be documented here and covered by boundary or contract tests.
