@@ -74,14 +74,10 @@ pub(crate) fn load_fastq_domain_tool_execution_spec(
         ));
     }
 
-    let workspace_binary_entrypoint = if parsed.command_template.is_empty() || parsed.container.is_none()
-    {
-        Some(workspace_binary_entrypoint(&parsed)?)
-    } else {
-        None
-    };
+    let default_entrypoint =
+        if parsed.command_template.is_empty() { Some(default_command_entrypoint(&parsed)?) } else { None };
     let command_template = if parsed.command_template.is_empty() {
-        vec![workspace_binary_entrypoint.clone().unwrap_or_else(|| parsed.tool_id.clone())]
+        vec![default_entrypoint.clone().unwrap_or_else(|| parsed.tool_id.clone())]
     } else {
         parsed.command_template.clone()
     };
@@ -91,7 +87,7 @@ pub(crate) fn load_fastq_domain_tool_execution_spec(
             digest: container.digest,
         },
         None => ContainerImageRefV1 {
-            image: workspace_binary_entrypoint.unwrap_or_else(|| parsed.tool_id.clone()),
+            image: default_entrypoint.unwrap_or_else(|| parsed.tool_id.clone()),
             digest: None,
         },
     };
@@ -105,15 +101,32 @@ pub(crate) fn load_fastq_domain_tool_execution_spec(
     })
 }
 
-fn workspace_binary_entrypoint(parsed: &DomainToolYaml) -> Result<String> {
+fn default_command_entrypoint(parsed: &DomainToolYaml) -> Result<String> {
     let install_kind = parsed.install_kind.as_deref().unwrap_or("container");
-    if install_kind != "workspace_binary" {
+    if install_kind == "workspace_binary" {
+        return workspace_binary_entrypoint(parsed);
+    }
+    if parsed.container.is_none() {
         return Err(anyhow!(
             "governed tool yaml for {} omits required container metadata",
             parsed.tool_id
         ));
     }
+    parsed
+        .help_cmd
+        .as_deref()
+        .or(parsed.version_cmd.as_deref())
+        .and_then(|command| command.split_whitespace().next())
+        .map(str::to_string)
+        .ok_or_else(|| {
+            anyhow!(
+                "container tool yaml for {} must declare help_cmd or version_cmd when command_template is omitted",
+                parsed.tool_id
+            )
+        })
+}
 
+fn workspace_binary_entrypoint(parsed: &DomainToolYaml) -> Result<String> {
     parsed
         .help_cmd
         .as_deref()
@@ -170,6 +183,22 @@ mod tests {
         assert_eq!(spec.command.template[0], "cutadapt".to_string());
         assert_eq!(spec.image.image, "bijuxdna/cutadapt");
         assert!(spec.image.digest.is_some());
+        Ok(())
+    }
+
+    #[test]
+    fn load_fastq_domain_tool_execution_spec_accepts_container_stage_without_command_template(
+    ) -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("fastq.deplete_host".to_string());
+        let tool_id = ToolId::new("bowtie2");
+
+        let spec = load_fastq_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(spec.tool_id.as_str(), "bowtie2");
+        assert_eq!(spec.command.template, vec!["bowtie2".to_string()]);
+        assert_eq!(spec.image.image, "bijuxdna/bowtie2");
+        assert!(spec.image.digest.is_none());
         Ok(())
     }
 }
