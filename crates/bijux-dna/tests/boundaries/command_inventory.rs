@@ -88,6 +88,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench corpus-fastq-publication-status",
     "bijux-dna bench corpus-fastq-published-dossiers",
     "bijux-dna bench local list-stages",
+    "bijux-dna bench local validate-hpc-submission-ready",
     "bijux-dna bench local simulate-dag-watchdog",
     "bijux-dna bench local validate-pipeline-dag",
     "bijux-dna bench local validate-corpus-fixture",
