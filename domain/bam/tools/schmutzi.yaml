@@ -5,6 +5,8 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
+container:
+  image: "bijuxdna/schmutzi"
 license: "GPL-3.0"
 citation: "paper:https://genomebiology.biomedcentral.com/articles/10.1186/s13059-015-0776-0"
 stage_ids: ["bam.contamination"]

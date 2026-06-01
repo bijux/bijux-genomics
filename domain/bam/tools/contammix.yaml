@@ -5,6 +5,8 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "1.0.11"
 install_kind: "container"
+container:
+  image: "bijuxdna/contammix"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids: ["bam.contamination"]
