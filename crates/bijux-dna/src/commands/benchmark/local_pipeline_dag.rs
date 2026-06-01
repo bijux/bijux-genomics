@@ -750,4 +750,65 @@ mod tests {
             "bam.genotyping must expose both the filtered-BAM skip path and recalibrated-BAM run path"
         );
     }
+
+    #[test]
+    fn bam_kinship_pipeline_dag_keeps_overlap_insufficiency_local_to_kinship() {
+        let repo_root = repo_root();
+        let config_path = repo_root.join("configs/pipelines/local/bam-kinship.toml");
+        let output_path = repo_root.join("target/local-ready/pipeline-dag/bam-kinship.json");
+        let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect("validate bam kinship local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "bam-kinship");
+        assert_eq!(report.domain, "bam");
+        assert_eq!(report.default_corpus_id, "corpus-01-bam-mini");
+        assert_eq!(report.node_count, 4);
+        assert_eq!(report.edge_count, 4);
+        assert!(report.acyclic);
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.overlap_correction"
+                    && node.readiness_kind == "dry_or_smoke"
+                    && node.upstream_inputs == vec!["filtered_bam", "filtered_bai"]
+                    && node.outputs
+                        == vec![
+                            "overlap_corrected_bam",
+                            "overlap_corrected_bai",
+                            "overlap_correction_summary_json",
+                            "overlap_correction_stage_metrics",
+                        ]
+            }),
+            "bam.overlap_correction must expose the overlap-sufficiency handoff needed only by kinship"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.kinship"
+                    && node.depends_on == vec!["bam.overlap_correction", "bam.genotyping"]
+                    && node.upstream_inputs
+                        == vec![
+                            "overlap_corrected_bam",
+                            "overlap_corrected_bai",
+                            "overlap_correction_summary_json",
+                            "genotyping_report_json",
+                        ]
+                    && node.external_inputs
+                        == vec![
+                            "kinship_reference_panel_contract",
+                            "kinship_population_scope_contract",
+                            "kinship_pairing_contract",
+                        ]
+            }),
+            "bam.kinship must consume overlap and genotype-readiness handoffs before pairwise inference"
+        );
+        assert!(
+            report.nodes.iter().all(|node| {
+                node.stage_id == "bam.kinship"
+                    || !node
+                        .upstream_inputs
+                        .iter()
+                        .any(|input| input == "overlap_correction_summary_json")
+            }),
+            "overlap insufficiency must stay local to bam.kinship instead of blocking unrelated BAM stages"
+        );
+    }
 }
