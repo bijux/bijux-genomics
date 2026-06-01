@@ -10,6 +10,7 @@ forward_primer_id = "16S_27F"
 reverse_primer_id = "16S_1492R"
 primer_fasta = "../../../../assets/reference/primers/16S_universal_v1.fasta"
 primers_tsv_path = "primers.tsv"
+expected_asvs_path = "expected_asvs.tsv"
 amplicon_governance_path = "../../../../assets/reference/amplicon_governance.toml"
 
 [[controls]]
