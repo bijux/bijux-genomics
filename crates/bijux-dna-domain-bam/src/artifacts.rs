@@ -2682,6 +2682,9 @@ pub fn summarize_tiny_bam_recalibration(
         BqsrMode::Skip if coverage_below_gate => ("skipped", "coverage_below_gate"),
         BqsrMode::Skip => ("skipped", "requested_skip_mode"),
         BqsrMode::EmitOnly => ("emitted_only", "emit_only_requested"),
+        BqsrMode::Standard if output_bam_present && recalibration_report_present => {
+            ("ran", "standard_mode_requested")
+        }
         BqsrMode::Standard => ("ready_to_run", "coverage_gate_passed"),
     };
 
