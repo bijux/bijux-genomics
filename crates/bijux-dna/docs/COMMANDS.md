@@ -219,8 +219,11 @@ Visible aliases are part of the operator surface:
   `render-slurm-scripts` writes one governed `.sbatch` file per selected local benchmark stage
   under `target/slurm-dry-run/<domain>/`, using the real stage materialization command,
   governed thread and memory ceilings, and a domain-scoped stage inventory slice such as the
-  27-stage FASTQ local benchmark matrix or the 24-stage BAM local benchmark matrix. Rendering the
-  BAM slice requires `cargo run -p bijux-dna --features bam_downstream -- bench local
+  27-stage FASTQ local benchmark matrix or the 24-stage BAM local benchmark matrix. Each script
+  now resolves `#SBATCH --output`, `#SBATCH --error`, `RESULT_ROOT`, and
+  `STAGE_RESULT_MANIFEST_PATH` under
+  `target/slurm-dry-run/runs/local-benchmark-dry-run/<corpus-or-planner-only>/<stage-id-or-pipeline-id>/<sample-id-or-sample-set>/<tool-id>/`.
+  Rendering the BAM slice requires `cargo run -p bijux-dna --features bam_downstream -- bench local
   render-slurm-scripts --domain bam`.
 - `bijux-dna bench local render-stage-commands`
   `render-stage-commands` writes both `target/local-ready/rendered-stage-commands.sh` and the
