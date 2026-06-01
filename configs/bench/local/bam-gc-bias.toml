@@ -1,0 +1,35 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.gc_bias.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_gc_bias.v1"
+tool_id = "picard"
+threads = 2
+output_dir = "target/local-smoke/bam.gc_bias"
+
+[[cases]]
+sample_id = "core-v1-gc-window-ladder"
+bam = "assets/toy/core-v1/bam/gc_bias_window_reads.sam"
+reference = "assets/toy/core-v1/bam/gc_bias_reference_windows.fasta"
+window_size = 10
+
+[[cases.expected_rows]]
+gc_bin = 0
+normalized_coverage = 0.75
+windows = 1
+read_starts = 1
+
+[[cases.expected_rows]]
+gc_bin = 50
+normalized_coverage = 1.5
+windows = 1
+read_starts = 2
+
+[[cases.expected_rows]]
+gc_bin = 100
+normalized_coverage = 0.75
+windows = 1
+read_starts = 1
