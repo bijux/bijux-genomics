@@ -9,6 +9,7 @@ configs/bench/knobs.toml
 configs/bench/local/bam-align.toml
 configs/bench/local/bam-complexity.toml
 configs/bench/local/bam-coverage.toml
+configs/bench/local/bam-damage.toml
 configs/bench/local/bam-duplication-metrics.toml
 configs/bench/local/bam-endogenous-content.toml
 configs/bench/local/bam-filter.toml
