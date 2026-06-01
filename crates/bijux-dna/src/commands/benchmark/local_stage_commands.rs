@@ -254,14 +254,7 @@ pub(crate) fn render_local_stage_commands(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<BenchLocalStageCommandManifest> {
-    let fastq = load_local_stage_inventory(repo_root, BenchLocalDomain::Fastq)?;
-    let bam = load_local_stage_inventory(repo_root, BenchLocalDomain::Bam)?;
-    let commands = fastq
-        .stages
-        .into_iter()
-        .chain(bam.stages)
-        .map(|stage| build_local_stage_command_entry(repo_root, stage))
-        .collect::<Result<Vec<_>>>()?;
+    let commands = collect_local_stage_command_entries(repo_root, None)?;
 
     let absolute_output_path =
         if output_path.is_absolute() { output_path } else { repo_root.join(&output_path) };
@@ -291,6 +284,25 @@ pub(crate) fn render_local_stage_commands(
     bijux_dna_infra::atomic_write_json(&manifest_output_path, &manifest)?;
 
     Ok(manifest)
+}
+
+pub(crate) fn collect_local_stage_command_entries(
+    repo_root: &Path,
+    domain: Option<BenchLocalDomain>,
+) -> Result<Vec<BenchLocalStageCommandEntry>> {
+    let domains = match domain {
+        Some(domain) => vec![domain],
+        None => vec![BenchLocalDomain::Fastq, BenchLocalDomain::Bam],
+    };
+
+    domains
+        .into_iter()
+        .map(|selected_domain| load_local_stage_inventory(repo_root, selected_domain))
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .flat_map(|inventory| inventory.stages)
+        .map(|stage| build_local_stage_command_entry(repo_root, stage))
+        .collect()
 }
 
 fn build_local_stage_command_entry(

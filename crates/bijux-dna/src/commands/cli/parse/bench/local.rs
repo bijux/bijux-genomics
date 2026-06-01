@@ -48,6 +48,8 @@ pub enum BenchLocalCommand {
     FakeRunFailures(BenchLocalFakeRunFailuresArgs),
     #[command(name = "fake-run-stages")]
     FakeRunStages(BenchLocalFakeRunStagesArgs),
+    #[command(name = "render-slurm-scripts")]
+    RenderSlurmScripts(BenchLocalRenderSlurmScriptsArgs),
     #[command(name = "render-stage-commands")]
     RenderStageCommands(BenchLocalRenderStageCommandsArgs),
 }
@@ -184,6 +186,16 @@ pub struct BenchLocalValidateStageResultArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalFakeRunStagesArgs {
+    #[arg(long)]
+    pub output_root: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderSlurmScriptsArgs {
+    #[arg(long, value_enum)]
+    pub domain: BenchLocalDomainArg,
     #[arg(long)]
     pub output_root: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

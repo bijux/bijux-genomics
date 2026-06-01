@@ -237,6 +237,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RenderSlurmScripts(args) => {
+                        crate::commands::benchmark::local_slurm_dry_run::run_render_slurm_scripts(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RenderStageCommands(args) => {
                         crate::commands::benchmark::local_stage_commands::run_render_stage_commands(
                             &args,

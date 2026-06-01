@@ -14,7 +14,7 @@ pub(crate) enum BenchLocalDomain {
 }
 
 impl BenchLocalDomain {
-    fn as_str(self) -> &'static str {
+    pub(crate) fn as_str(self) -> &'static str {
         match self {
             Self::Fastq => "fastq",
             Self::Bam => "bam",

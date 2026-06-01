@@ -30,12 +30,11 @@ pub use self::fastq::{
 pub use self::local::{
     BenchLocalCheckManifestCompletionArgs, BenchLocalCheckOutputCompletionArgs,
     BenchLocalCollectRuntimeMetricsArgs, BenchLocalCommand, BenchLocalDagWatchdogScenarioArg,
-    BenchLocalDomainArg,
-    BenchLocalFakeRunFailuresArgs, BenchLocalFakeRunStagesArgs, BenchLocalListStagesArgs,
-    BenchLocalMaterializeStageArgs, BenchLocalRenderBenchmarkSummaryArgs,
-    BenchLocalRenderCorpusSkipReportArgs, BenchLocalRenderStageCommandsArgs,
-    BenchLocalSimulateDagWatchdogArgs,
-    BenchLocalRenderToolComparisonTemplateArgs, BenchLocalValidateCorpusFixtureArgs,
+    BenchLocalDomainArg, BenchLocalFakeRunFailuresArgs, BenchLocalFakeRunStagesArgs,
+    BenchLocalListStagesArgs, BenchLocalMaterializeStageArgs, BenchLocalRenderBenchmarkSummaryArgs,
+    BenchLocalRenderCorpusSkipReportArgs, BenchLocalRenderSlurmScriptsArgs,
+    BenchLocalRenderStageCommandsArgs, BenchLocalRenderToolComparisonTemplateArgs,
+    BenchLocalSimulateDagWatchdogArgs, BenchLocalValidateCorpusFixtureArgs,
     BenchLocalValidateCorpusStageCompatibilityArgs, BenchLocalValidatePipelineDagArgs,
     BenchLocalValidateStageResultArgs, BenchLocalValidateTaxonomyDatabaseFixtureArgs,
 };
