@@ -269,6 +269,19 @@ pub fn write_local_remove_chimeras_smoke_report() -> Result<PathBuf> {
     crate::internal::fastq::stages::remove_chimeras::write_local_remove_chimeras_smoke_report()
 }
 
+/// Materialize the governed local-smoke `fastq.infer_asvs` artifacts.
+///
+/// The written primary artifact lives at `target/local-smoke/fastq.infer_asvs/asv_table.tsv`
+/// under the active repository root, alongside the top-level `representatives.fasta` and
+/// `report.json`.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_infer_asvs_smoke_report() -> Result<PathBuf> {
+    crate::internal::fastq::stages::infer_asvs::write_local_infer_asvs_smoke_report()
+}
+
 /// Materialize the governed local-smoke `fastq.trim_reads` report bundle.
 ///
 /// The written summary artifact lives at `target/local-smoke/fastq.trim_reads/report.json`
