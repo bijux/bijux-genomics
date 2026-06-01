@@ -26,6 +26,8 @@ pub const BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.complexity.v1
 pub const BAM_COVERAGE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_summary.v1";
 pub const BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.insert_size.v1";
 pub const BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.gc_bias.v1";
+pub const BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION: &str =
+    "bijux.bam.bias_mitigation_summary.v1";
 pub const BAM_OVERLAP_CORRECTION_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.overlap_correction.v1";
 pub const BAM_DUPLICATE_POLICY_SCHEMA_VERSION: &str = "bijux.bam.duplicate_policy.v1";
 pub const BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION: &str = "bijux.bam.advisory_boundary.v1";
@@ -386,6 +388,35 @@ pub struct BamGcBiasSummaryV1 {
     pub gc_bias_score: f64,
     #[serde(default)]
     pub insufficient_reference_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamBiasMitigationSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub input_bam: PathBuf,
+    #[serde(default)]
+    pub reference_fasta: Option<PathBuf>,
+    pub method: String,
+    pub metric_name: String,
+    pub gc_bias_correction: bool,
+    pub map_bias_correction: bool,
+    pub report_present: bool,
+    #[serde(default)]
+    pub mitigation_actions: Vec<String>,
+    #[serde(default)]
+    pub consumed_metrics: Vec<String>,
+    #[serde(default)]
+    pub pre_mitigation_metric: Option<f64>,
+    #[serde(default)]
+    pub post_mitigation_metric: Option<f64>,
+    #[serde(default)]
+    pub metric_delta: Option<f64>,
+    #[serde(default)]
+    pub mitigation_projection_basis: Option<String>,
+    #[serde(default)]
+    pub insufficient_metric_reason: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -2569,6 +2600,38 @@ pub fn summarize_tiny_bam_gc_bias(
     Ok((summary, rows))
 }
 
+/// Summarize projected bias mitigation for a tiny BAM/SAM fixture and reference FASTA.
+///
+/// # Errors
+/// Returns an error if the input alignment or reference cannot be parsed.
+pub fn summarize_tiny_bam_bias_mitigation(
+    input_bam: &Path,
+    reference_fasta: &Path,
+    method: &str,
+    window_size: u32,
+    gc_bias_correction: bool,
+    map_bias_correction: bool,
+) -> Result<BamBiasMitigationSummaryV1> {
+    let (gc_bias_summary, _) = summarize_tiny_bam_gc_bias(input_bam, reference_fasta, window_size)?;
+    let pre_mitigation_metric = Some(gc_bias_summary.gc_bias_score);
+    let post_mitigation_metric =
+        pre_mitigation_metric.map(|metric| project_bias_metric(metric, gc_bias_correction, map_bias_correction));
+    Ok(summarize_bam_bias_mitigation(
+        "bam.bias_mitigation",
+        input_bam,
+        Some(reference_fasta),
+        method,
+        gc_bias_correction,
+        map_bias_correction,
+        true,
+        "gc_bias_score",
+        pre_mitigation_metric,
+        post_mitigation_metric,
+        Some("policy_projection".to_string()),
+        gc_bias_summary.insufficient_reference_reason,
+    ))
+}
+
 /// Filter tiny BAM/SAM fixtures by minimum read length and emit retained length bounds.
 ///
 /// # Errors
@@ -2803,6 +2866,76 @@ pub fn summarize_bam_gc_bias(
         gc_bias_score: metrics.map_or(0.0, |metrics| metrics.gc_bias_score),
         insufficient_reference_reason,
     }
+}
+
+#[must_use]
+pub fn summarize_bam_bias_mitigation(
+    stage_id: &str,
+    input_bam: &Path,
+    reference_fasta: Option<&Path>,
+    method: &str,
+    gc_bias_correction: bool,
+    map_bias_correction: bool,
+    report_present: bool,
+    metric_name: &str,
+    pre_mitigation_metric: Option<f64>,
+    post_mitigation_metric: Option<f64>,
+    mitigation_projection_basis: Option<String>,
+    insufficient_metric_reason: Option<String>,
+) -> BamBiasMitigationSummaryV1 {
+    let mitigation_actions = bias_mitigation_actions(gc_bias_correction, map_bias_correction);
+    let consumed_metrics = if pre_mitigation_metric.is_some() {
+        vec![metric_name.to_string()]
+    } else {
+        Vec::new()
+    };
+    let metric_delta = pre_mitigation_metric
+        .zip(post_mitigation_metric)
+        .map(|(pre_metric, post_metric)| round_metric(pre_metric - post_metric));
+    BamBiasMitigationSummaryV1 {
+        schema_version: BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        reference_fasta: reference_fasta.map(Path::to_path_buf),
+        method: method.to_string(),
+        metric_name: metric_name.to_string(),
+        gc_bias_correction,
+        map_bias_correction,
+        report_present,
+        mitigation_actions,
+        consumed_metrics,
+        pre_mitigation_metric,
+        post_mitigation_metric,
+        metric_delta,
+        mitigation_projection_basis,
+        insufficient_metric_reason,
+    }
+}
+
+fn bias_mitigation_actions(gc_bias_correction: bool, map_bias_correction: bool) -> Vec<String> {
+    let mut actions = Vec::new();
+    if gc_bias_correction {
+        actions.push("gc_bias_correction".to_string());
+    }
+    if map_bias_correction {
+        actions.push("map_bias_correction".to_string());
+    }
+    actions
+}
+
+fn project_bias_metric(metric: f64, gc_bias_correction: bool, map_bias_correction: bool) -> f64 {
+    let mut projected = metric;
+    if gc_bias_correction {
+        projected *= 0.5;
+    }
+    if map_bias_correction {
+        projected *= 0.8;
+    }
+    round_metric(projected)
+}
+
+fn round_metric(metric: f64) -> f64 {
+    (metric * 1_000_000.0).round() / 1_000_000.0
 }
 
 /// Summarize pre-QC core BAM metrics for a tiny BAM/SAM fixture.
@@ -5703,6 +5836,80 @@ gc100_001\t0\tchrgc\t21\t60\t10M\t*\t0\t0\tCCCCCGGGGG\tFFFFFFFFFF\tRG:Z:rg1\n",
                 },
             ]
         );
+    }
+
+    #[test]
+    fn summarize_tiny_bam_bias_mitigation_projects_gc_bias_reduction() {
+        let temp = unique_temp_dir("bam-bias-mitigation");
+        let input = temp.join("input.sam");
+        let reference = temp.join("reference.fasta");
+        std::fs::write(&reference, ">chrbias\nAAAAATTTTTACGTACGTACCCCCCGGGGG\n")
+            .expect("write bias-mitigation reference");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chrbias\tLN:30\n\
+@RG\tID:rg1\tSM:sampleA\n\
+bias00_001\t0\tchrbias\t1\t60\t10M\t*\t0\t0\tAAAAATTTTT\tFFFFFFFFFF\tRG:Z:rg1\n\
+bias50_001\t0\tchrbias\t11\t60\t10M\t*\t0\t0\tACGTACGTAC\tFFFFFFFFFF\tRG:Z:rg1\n\
+bias50_002\t0\tchrbias\t13\t60\t10M\t*\t0\t0\tGTACGTACCC\tFFFFFFFFFF\tRG:Z:rg1\n\
+bias100_001\t0\tchrbias\t21\t60\t10M\t*\t0\t0\tCCCCCGGGGG\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write bias-mitigation fixture");
+
+        let summary = summarize_tiny_bam_bias_mitigation(
+            &input,
+            &reference,
+            "mapdamage2",
+            10,
+            true,
+            false,
+        )
+        .expect("summarize bias mitigation");
+        assert_eq!(summary.schema_version, BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.stage_id, "bam.bias_mitigation");
+        assert_eq!(summary.reference_fasta, Some(reference));
+        assert_eq!(summary.method, "mapdamage2");
+        assert_eq!(summary.metric_name, "gc_bias_score");
+        assert!(summary.gc_bias_correction);
+        assert!(!summary.map_bias_correction);
+        assert!(summary.report_present);
+        assert_eq!(summary.mitigation_actions, vec!["gc_bias_correction"]);
+        assert_eq!(summary.consumed_metrics, vec!["gc_bias_score"]);
+        assert_eq!(summary.pre_mitigation_metric, Some(0.25));
+        assert_eq!(summary.post_mitigation_metric, Some(0.125));
+        assert_eq!(summary.metric_delta, Some(0.125));
+        assert_eq!(
+            summary.mitigation_projection_basis.as_deref(),
+            Some("policy_projection")
+        );
+        assert_eq!(summary.insufficient_metric_reason, None);
+    }
+
+    #[test]
+    fn bam_bias_mitigation_summary_round_trips() {
+        let summary = BamBiasMitigationSummaryV1 {
+            schema_version: BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.bias_mitigation".to_string(),
+            input_bam: PathBuf::from("input.bam"),
+            reference_fasta: Some(PathBuf::from("reference.fasta")),
+            method: "mapdamage2".to_string(),
+            metric_name: "gc_bias_score".to_string(),
+            gc_bias_correction: true,
+            map_bias_correction: false,
+            report_present: true,
+            mitigation_actions: vec!["gc_bias_correction".to_string()],
+            consumed_metrics: vec!["gc_bias_score".to_string()],
+            pre_mitigation_metric: Some(0.25),
+            post_mitigation_metric: Some(0.125),
+            metric_delta: Some(0.125),
+            mitigation_projection_basis: Some("policy_projection".to_string()),
+            insufficient_metric_reason: None,
+        };
+        let json = serde_json::to_value(&summary).expect("serialize bias-mitigation summary");
+        let restored: BamBiasMitigationSummaryV1 =
+            serde_json::from_value(json).expect("deserialize bias-mitigation summary");
+        assert_eq!(restored, summary);
     }
 
     #[test]
