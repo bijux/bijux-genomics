@@ -41,6 +41,8 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             tool_adapters::stages_adna::contamination::plan(
                 request.tool,
                 bam,
+                request.bam_index,
+                request.reference,
                 request.out_dir,
                 &params,
             )

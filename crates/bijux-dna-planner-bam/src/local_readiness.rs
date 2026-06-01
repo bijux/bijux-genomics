@@ -2,15 +2,19 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::prelude::{ArtifactId, ArtifactRole, StageId, ToolExecutionSpecV1, ToolId};
-use bijux_dna_domain_bam::params::{AlignEffectiveParams, ReadGroupSpec};
+use bijux_dna_domain_bam::params::{
+    AlignEffectiveParams, ContaminationEffectiveParams, ContaminationScope, ReadGroupSpec,
+};
 use bijux_dna_domain_bam::{bam_alignment_strategy_for_tool, BamStage};
 use serde::Deserialize;
 
 use crate::selection::{allowed_tools_for_stage, load_bam_domain_tool_execution_spec};
 
 const LOCAL_ALIGN_CONFIG_PATH: &str = "configs/bench/local/bam-align.toml";
+const LOCAL_CONTAMINATION_CONFIG_PATH: &str = "configs/bench/local/bam-contamination.toml";
 const LOCAL_RUNTIME_PROFILE_PATH: &str = "configs/runtime/profiles/local.toml";
 const DEFAULT_LOCAL_ALIGN_OUTPUT_DIR: &str = "target/local-ready/bam.align";
+const DEFAULT_LOCAL_CONTAMINATION_OUTPUT_DIR: &str = "target/local-ready/bam.contamination";
 
 #[derive(Debug, Deserialize)]
 struct LocalAlignPlanConfig {
@@ -29,9 +33,41 @@ struct LocalAlignPlanConfig {
 }
 
 #[derive(Debug, Deserialize)]
+struct LocalContaminationPlanConfig {
+    schema_version: String,
+    bam: PathBuf,
+    bai: PathBuf,
+    reference_fasta: PathBuf,
+    reference_panels: Vec<PathBuf>,
+    tool_id: String,
+    sample_id: String,
+    scope: ContaminationScope,
+    #[serde(default)]
+    prior: Option<f64>,
+    #[serde(default)]
+    sex_specific: bool,
+    #[serde(default)]
+    assumptions: Option<String>,
+    #[serde(default)]
+    chromosome_system: Option<String>,
+    #[serde(default)]
+    minimum_mean_coverage: Option<f64>,
+    #[serde(default = "default_emit_confidence_caveats")]
+    emit_confidence_caveats: bool,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+}
+
+#[derive(Debug, Deserialize)]
 struct LocalRuntimeProfile {
     default_threads: u32,
     default_mem_gb: u32,
+}
+
+fn default_emit_confidence_caveats() -> bool {
+    true
 }
 
 /// # Errors
@@ -77,16 +113,19 @@ pub fn local_align_plan(repo_root: &Path) -> Result<bijux_dna_stage_contract::St
         &repo_root.join(&reference_dict),
         "local-ready bam.align reference sequence dictionary",
     )?;
-    ensure_align_reference_index_exists(&repo_root.join(&config.reference_index), tool_id.as_str())?;
+    ensure_align_reference_index_exists(
+        &repo_root.join(&config.reference_index),
+        tool_id.as_str(),
+    )?;
 
     let mut tool_spec = load_bam_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
-    let strategy = bam_alignment_strategy_for_tool(tool_id.as_str(), Some("default")).ok_or_else(
-        || anyhow!("local-ready bam.align tool `{}` has no governed alignment strategy", tool_id),
-    )?;
-    let out_dir = config
-        .output_dir
-        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_ALIGN_OUTPUT_DIR));
+    let strategy =
+        bam_alignment_strategy_for_tool(tool_id.as_str(), Some("default")).ok_or_else(|| {
+            anyhow!("local-ready bam.align tool `{}` has no governed alignment strategy", tool_id)
+        })?;
+    let out_dir =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_ALIGN_OUTPUT_DIR));
     let params = AlignEffectiveParams {
         aligner: tool_id.as_str().to_string(),
         strategy_id: strategy.strategy_id,
@@ -145,6 +184,90 @@ pub fn local_align_plan(repo_root: &Path) -> Result<bijux_dna_stage_contract::St
     Ok(plan)
 }
 
+/// # Errors
+/// Returns an error if the governed local-ready config or runtime profile cannot be read, the
+/// configured BAM/reference/panel/tool tuple is invalid, or the contamination plan cannot be
+/// built.
+pub fn local_contamination_plan(repo_root: &Path) -> Result<bijux_dna_stage_contract::StagePlanV1> {
+    let config = load_local_contamination_plan_config(repo_root)?;
+    if config.schema_version != "bijux.bench.bam.local_contamination.v1" {
+        return Err(anyhow!(
+            "unexpected local-ready bam.contamination schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.reference_panels.is_empty() {
+        return Err(anyhow!(
+            "local-ready bam.contamination requires at least one governed reference panel"
+        ));
+    }
+
+    let local_profile = load_local_runtime_profile(repo_root)?;
+    let stage = BamStage::Contamination;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-ready tool_id `{}`: {error}", config.tool_id))?;
+
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-ready bam.contamination tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let bam_abs = repo_root.join(&config.bam);
+    ensure_required_file(&bam_abs, "local-ready bam.contamination bam")?;
+    let bai_abs = repo_root.join(&config.bai);
+    ensure_required_file(&bai_abs, "local-ready bam.contamination bai")?;
+    let reference_abs = repo_root.join(&config.reference_fasta);
+    ensure_required_file(&reference_abs, "local-ready bam.contamination reference FASTA")?;
+    for panel in &config.reference_panels {
+        ensure_required_file(
+            &repo_root.join(panel),
+            "local-ready bam.contamination reference panel",
+        )?;
+    }
+
+    let mut tool_spec = load_bam_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
+    let out_dir =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_CONTAMINATION_OUTPUT_DIR));
+    let params = ContaminationEffectiveParams {
+        reference_panels: config
+            .reference_panels
+            .iter()
+            .map(|path| path.display().to_string())
+            .collect(),
+        scope: config.scope,
+        prior: config.prior,
+        sex_specific: config.sex_specific,
+        assumptions: config.assumptions,
+        required_reference_digest: Some(bijux_dna_infra::hash_file_sha256(&reference_abs)?),
+        chromosome_system: config.chromosome_system,
+        minimum_mean_coverage: config.minimum_mean_coverage,
+        emit_confidence_caveats: config.emit_confidence_caveats,
+    };
+    let params_json = serde_json::to_value(&params)
+        .map_err(|error| anyhow!("local-ready bam.contamination params must serialize: {error}"))?;
+    crate::tool_policy::enforce(stage, tool_id.as_str(), Some(&params_json), Some(&reference_abs))?;
+
+    let mut plan = crate::tool_adapters::stages_adna::contamination::plan(
+        &tool_spec,
+        &config.bam,
+        Some(config.bai.as_path()),
+        Some(config.reference_fasta.as_path()),
+        &out_dir,
+        &params,
+    )?;
+    let params = plan.params.as_object_mut().ok_or_else(|| {
+        anyhow!("bam.contamination local-ready plan params must be a JSON object")
+    })?;
+    params.insert("sample_id".to_string(), serde_json::json!(config.sample_id));
+    params.insert("tool".to_string(), serde_json::json!(tool_id.as_str()));
+
+    Ok(plan)
+}
+
 fn push_required_input(
     plan: &mut bijux_dna_stage_contract::StagePlanV1,
     artifact_id: ArtifactId,
@@ -161,11 +284,7 @@ fn push_required_input(
     ));
 }
 
-fn normalize_plan_path(
-    plan: &mut bijux_dna_stage_contract::StagePlanV1,
-    from: &Path,
-    to: &Path,
-) {
+fn normalize_plan_path(plan: &mut bijux_dna_stage_contract::StagePlanV1, from: &Path, to: &Path) {
     for artifact in &mut plan.io.inputs {
         if artifact.path == from {
             artifact.path = to.to_path_buf();
@@ -204,6 +323,12 @@ fn load_local_align_plan_config(repo_root: &Path) -> Result<LocalAlignPlanConfig
     toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
+fn load_local_contamination_plan_config(repo_root: &Path) -> Result<LocalContaminationPlanConfig> {
+    let path = repo_root.join(LOCAL_CONTAMINATION_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+}
+
 fn load_local_runtime_profile(repo_root: &Path) -> Result<LocalRuntimeProfile> {
     let path = repo_root.join(LOCAL_RUNTIME_PROFILE_PATH);
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
@@ -226,14 +351,7 @@ fn ensure_bowtie2_index_prefix_exists(prefix: &Path) -> Result<()> {
         .ok_or_else(|| anyhow!("local-ready bam.align Bowtie2 index prefix has no file name"))?
         .to_string_lossy()
         .into_owned();
-    let required_suffixes = [
-        ".1.bt2",
-        ".2.bt2",
-        ".3.bt2",
-        ".4.bt2",
-        ".rev.1.bt2",
-        ".rev.2.bt2",
-    ];
+    let required_suffixes = [".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"];
     let missing = required_suffixes
         .into_iter()
         .map(|suffix| prefix.with_file_name(format!("{file_name}{suffix}")))

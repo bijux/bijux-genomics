@@ -6,7 +6,7 @@ use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_stage_contract::StagePlanV1;
 
 pub mod stage_api {
-    pub use crate::local_readiness::local_align_plan;
+    pub use crate::local_readiness::{local_align_plan, local_contamination_plan};
     pub use crate::local_smoke::{
         local_authenticity_smoke_plans, local_complexity_smoke_plans, local_coverage_smoke_plans,
         local_damage_smoke_plans, local_duplication_metrics_smoke_plans,
