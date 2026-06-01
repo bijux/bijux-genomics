@@ -1,0 +1,8 @@
+schema_version = "bijux.bench.fastq.local_remove_chimeras.v1"
+tool_id = "vsearch"
+threads = 1
+output_dir = "target/local-smoke/fastq.remove_chimeras"
+
+[[cases]]
+sample_id = "chimera-control-se"
+reads = "assets/toy/corpus-03-amplicon-mini/fastq/merged_amplicon_reads.fastq"
