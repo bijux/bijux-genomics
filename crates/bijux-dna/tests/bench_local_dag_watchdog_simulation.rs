@@ -98,3 +98,83 @@ fn bench_local_dag_watchdog_simulation_writes_no_global_wait_report() {
         "filter_reads must be reported as ready while the slow branch is still running"
     );
 }
+
+#[test]
+fn bench_local_dag_watchdog_simulation_writes_failure_isolation_report() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "simulate-dag-watchdog",
+        "--scenario",
+        "failure-isolation",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.local_dag_watchdog_simulation.v1")
+    );
+    assert_eq!(
+        payload.get("scenario").and_then(serde_json::Value::as_str),
+        Some("failure_isolation")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/dag-sim/failure-isolation.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("fastq-core-preprocess")
+    );
+    assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        payload
+            .get("failed_sample_id")
+            .and_then(serde_json::Value::as_str),
+        Some("sample_alpha")
+    );
+    assert_eq!(
+        payload
+            .get("failed_stage_id")
+            .and_then(serde_json::Value::as_str),
+        Some("fastq.detect_adapters")
+    );
+    assert_eq!(
+        payload.get("failure_second").and_then(serde_json::Value::as_u64),
+        Some(3)
+    );
+    assert_eq!(
+        payload
+            .get("failure_isolation_proven")
+            .and_then(serde_json::Value::as_bool),
+        Some(true)
+    );
+
+    let continued_nodes = payload
+        .get("continued_unrelated_node_ids")
+        .and_then(serde_json::Value::as_array)
+        .expect("continued_unrelated_node_ids array");
+    assert!(
+        continued_nodes
+            .iter()
+            .any(|value| value.as_str() == Some("sample_beta::fastq.trim_reads")),
+        "the unaffected sample must continue trimming after the injected failure"
+    );
+    assert!(
+        continued_nodes
+            .iter()
+            .any(|value| value.as_str() == Some("sample_beta::fastq.report_qc")),
+        "the unaffected sample must continue through downstream QC after the injected failure"
+    );
+
+    let blocked_nodes = payload
+        .get("blocked_node_ids")
+        .and_then(serde_json::Value::as_array)
+        .expect("blocked_node_ids array");
+    assert!(
+        blocked_nodes
+            .iter()
+            .any(|value| value.as_str() == Some("sample_alpha::fastq.trim_reads")),
+        "the failed sample must block only its own dependent downstream work"
+    );
+}
