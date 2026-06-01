@@ -124,6 +124,10 @@ Visible aliases are part of the operator surface:
   `check-output-completion` writes `target/local-ready/output-completion-report.json` and marks a
   stage complete only when every declared fake-run output exists under the selected
   `target/local-fake-runs/stages/` tree.
+- `bijux-dna bench local collect-runtime-metrics`
+  `collect-runtime-metrics` writes `target/local-ready/runtime-metrics.json` by reading validated
+  fake-run `stage-result.json` manifests and extracting per-stage start, end, elapsed, exit, and
+  status fields.
 - `bijux-dna bench local validate-stage-result`
   `validate-stage-result` loads one `stage-result.json` manifest and fails unless the required
   `command`, `tool`, `runtime`, and `outputs` contract fields are present and valid.
