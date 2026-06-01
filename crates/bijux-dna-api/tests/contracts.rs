@@ -48,6 +48,8 @@ mod mod_contracts_v1_fastq_local_merge_pairs_smoke_rs;
 mod mod_contracts_v1_fastq_local_normalize_primers_smoke_rs;
 #[path = "contracts/v1_fastq_local_profile_read_lengths_smoke.rs"]
 mod mod_contracts_v1_fastq_local_profile_read_lengths_smoke_rs;
+#[path = "contracts/v1_fastq_local_profile_overrepresented_sequences_smoke.rs"]
+mod mod_contracts_v1_fastq_local_profile_overrepresented_sequences_smoke_rs;
 #[path = "contracts/v1_fastq_local_profile_reads_smoke.rs"]
 mod mod_contracts_v1_fastq_local_profile_reads_smoke_rs;
 #[path = "contracts/v1_fastq_local_remove_duplicates_smoke.rs"]
