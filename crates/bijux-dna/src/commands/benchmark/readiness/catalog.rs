@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
@@ -50,6 +50,16 @@ pub(crate) struct ReadinessToolContract {
 }
 
 impl ReadinessToolContract {
+    pub(crate) fn pair_support_status(&self, stage_id: &str) -> &'static str {
+        if self.support_status == "planned"
+            || self.planned_stage_ids.iter().any(|candidate| candidate == stage_id)
+        {
+            "planned"
+        } else {
+            "supported"
+        }
+    }
+
     pub(crate) fn admitted_stage_ids(&self) -> Vec<String> {
         let mut stage_ids = self
             .stage_ids
@@ -72,6 +82,14 @@ impl ReadinessToolContract {
             .filter(|stage_id| benchmark_stage_ids.contains(stage_id))
             .collect()
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct ReadinessStageAdmission {
+    pub(crate) domain: ReadinessDomain,
+    pub(crate) stage_id: String,
+    pub(crate) tool_id: String,
+    pub(crate) support_status: String,
 }
 
 pub(crate) fn load_benchmark_stage_ids(
@@ -155,4 +173,26 @@ pub(crate) fn load_tool_contracts(
     }
     contracts.sort_by(|left, right| left.tool_id.cmp(&right.tool_id));
     Ok(contracts)
+}
+
+pub(crate) fn load_stage_admissions(
+    repo_root: &Path,
+    domain: ReadinessDomain,
+) -> Result<BTreeMap<String, Vec<ReadinessStageAdmission>>> {
+    let benchmark_stage_ids = load_benchmark_stage_ids(repo_root, domain)?;
+    let mut stage_admissions = BTreeMap::<String, Vec<ReadinessStageAdmission>>::new();
+    for contract in load_tool_contracts(repo_root, domain)? {
+        for stage_id in contract.benchmark_stage_overlap(&benchmark_stage_ids) {
+            stage_admissions.entry(stage_id.clone()).or_default().push(ReadinessStageAdmission {
+                domain,
+                stage_id: stage_id.clone(),
+                tool_id: contract.tool_id.clone(),
+                support_status: contract.pair_support_status(&stage_id).to_string(),
+            });
+        }
+    }
+    for admissions in stage_admissions.values_mut() {
+        admissions.sort_by(|left, right| left.tool_id.cmp(&right.tool_id));
+    }
+    Ok(stage_admissions)
 }
