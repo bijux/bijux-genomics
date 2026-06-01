@@ -52,6 +52,7 @@ configs/bench/local/fastq-profile-read-lengths.toml
 configs/bench/local/fastq-profile-reads.toml
 configs/bench/local/fastq-remove-chimeras.toml
 configs/bench/local/fastq-remove-duplicates.toml
+configs/bench/local/fastq-report-qc.toml
 configs/bench/local/fastq-screen-taxonomy.toml
 configs/bench/local/fastq-stage-matrix.toml
 configs/bench/local/fastq-trim-polyg-tails.toml
