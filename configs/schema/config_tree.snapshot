@@ -140,6 +140,7 @@ configs/lab/config_example.toml
 configs/lab/index.md
 configs/logging/index.md
 configs/logging/runtime.toml
+configs/pipelines/local/fastq-core-preprocess.toml
 configs/runtime/asset_hydration.toml
 configs/runtime/asset_locks.toml
 configs/runtime/cargo_build.toml
