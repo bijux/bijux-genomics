@@ -337,6 +337,16 @@ ALL_READS\tALL\t10\t4\t4\t25.0\t25.0\t3\t4\n\
         let authenticity_dir = bam_root.join("authenticity");
         bijux_dna_infra::ensure_dir(&damage_dir)?;
         bijux_dna_infra::ensure_dir(&authenticity_dir)?;
+        bijux_dna_infra::atomic_write_bytes(
+            &damage_dir.join("in.bam"),
+            b"@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chranc\tLN:120\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchranc\t5\t60\t20M\t*\t0\t0\tTCTTTCTTTCTTTCTTTCTT\tFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchranc\t19\t60\t24M\t*\t0\t0\tCTTTCCAAACTTTCCAAACTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchranc\t47\t60\t28M\t*\t0\t0\tTTCCCAAAGGGTTTCCCAAAGGGTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n",
+        )?;
         bijux_dna_infra::atomic_write_json(
             &damage_dir.join("damage.pydamage.json"),
             &serde_json::json!({
@@ -345,13 +355,36 @@ ALL_READS\tALL\t10\t4\t4\t25.0\t25.0\t3\t4\n\
                 "g_to_a_3p": 0.15
             }),
         )?;
+        let mut damage_plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Damage);
+        damage_plan.io.inputs[0].path = damage_dir.join("in.bam");
         stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::Damage,
             &damage_dir,
-            &mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Damage),
+            &damage_plan,
         )?;
         assert!(damage_dir.join("damage.unified_metrics.json").exists());
+        assert!(damage_dir.join("damage.summary.json").exists());
         assert!(damage_dir.join("advisory_boundary.json").exists());
+        assert!(damage_dir.join("stage.metrics.json").exists());
+        let damage_summary: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            damage_dir.join("damage.summary.json"),
+        )?)?;
+        assert_eq!(
+            damage_summary.get("schema_version").and_then(serde_json::Value::as_str),
+            Some("bijux.bam.damage_evidence.v1")
+        );
+        assert_eq!(
+            damage_summary.get("damage_signal").and_then(serde_json::Value::as_str),
+            Some("high")
+        );
+        assert_eq!(
+            damage_summary.get("terminal_c_to_t_5p").and_then(serde_json::Value::as_f64),
+            Some(0.20)
+        );
+        assert_eq!(
+            damage_summary.get("terminal_g_to_a_3p").and_then(serde_json::Value::as_f64),
+            Some(0.15)
+        );
 
         stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::Authenticity,

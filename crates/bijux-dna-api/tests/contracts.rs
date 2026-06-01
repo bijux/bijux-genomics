@@ -16,6 +16,8 @@ mod mod_contracts_v1_bam_local_align_plan_rs;
 mod mod_contracts_v1_bam_local_complexity_smoke_rs;
 #[path = "contracts/v1_bam_local_coverage_smoke.rs"]
 mod mod_contracts_v1_bam_local_coverage_smoke_rs;
+#[path = "contracts/v1_bam_local_damage_smoke.rs"]
+mod mod_contracts_v1_bam_local_damage_smoke_rs;
 #[path = "contracts/v1_bam_local_duplication_metrics_smoke.rs"]
 mod mod_contracts_v1_bam_local_duplication_metrics_smoke_rs;
 #[path = "contracts/v1_bam_local_endogenous_content_smoke.rs"]
