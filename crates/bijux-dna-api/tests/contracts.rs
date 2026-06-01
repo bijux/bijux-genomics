@@ -20,6 +20,8 @@ mod mod_contracts_v1_cross_profile_contracts_rs;
 mod mod_contracts_v1_cross_public_contract_rs;
 #[path = "contracts/v1_dry_run_manifest.rs"]
 mod mod_contracts_v1_dry_run_manifest_rs;
+#[path = "contracts/v1_fastq_local_cluster_otus_smoke.rs"]
+mod mod_contracts_v1_fastq_local_cluster_otus_smoke_rs;
 #[path = "contracts/v1_fastq_local_correct_errors_smoke.rs"]
 mod mod_contracts_v1_fastq_local_correct_errors_smoke_rs;
 #[path = "contracts/v1_fastq_local_deplete_host_plan.rs"]
