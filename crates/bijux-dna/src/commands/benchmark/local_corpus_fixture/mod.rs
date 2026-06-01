@@ -9,6 +9,7 @@ use crate::commands::cli::render;
 
 pub(crate) mod bam;
 pub(crate) mod damage;
+pub(crate) mod edna;
 pub(crate) mod fastq;
 
 #[derive(Debug, Deserialize)]
@@ -37,7 +38,8 @@ pub(crate) fn run_validate_corpus_fixture(
             }
         }
         bam::BAM_CORPUS_FIXTURE_SCHEMA_VERSION => {
-            let report = bam::validate_bam_corpus_fixture_manifest_path(&repo_root, &manifest_path)?;
+            let report =
+                bam::validate_bam_corpus_fixture_manifest_path(&repo_root, &manifest_path)?;
             if args.json {
                 render::json::print_pretty(&report)?;
             } else {
@@ -47,6 +49,15 @@ pub(crate) fn run_validate_corpus_fixture(
         damage::BAM_DAMAGE_FIXTURE_SCHEMA_VERSION => {
             let report =
                 damage::validate_bam_damage_fixture_manifest_path(&repo_root, &manifest_path)?;
+            if args.json {
+                render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.manifest_path);
+            }
+        }
+        edna::EDNA_CORPUS_FIXTURE_SCHEMA_VERSION => {
+            let report =
+                edna::validate_edna_corpus_fixture_manifest_path(&repo_root, &manifest_path)?;
             if args.json {
                 render::json::print_pretty(&report)?;
             } else {
@@ -65,15 +76,19 @@ pub(crate) fn run_validate_corpus_fixture(
 }
 
 fn load_manifest_schema_version(manifest_path: &Path) -> Result<String> {
-    let raw =
-        fs::read_to_string(manifest_path).with_context(|| format!("read {}", manifest_path.display()))?;
+    let raw = fs::read_to_string(manifest_path)
+        .with_context(|| format!("read {}", manifest_path.display()))?;
     let probe: ManifestSchemaProbe =
         toml::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))?;
     Ok(probe.schema_version)
 }
 
 fn resolve_manifest_relative_path(manifest_dir: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() { path.to_path_buf() } else { manifest_dir.join(path) }
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        manifest_dir.join(path)
+    }
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {

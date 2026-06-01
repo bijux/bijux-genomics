@@ -11,8 +11,7 @@ use super::{path_relative_to_repo, resolve_manifest_relative_path};
 
 pub(crate) const DEFAULT_CORPUS_01_MINI_MANIFEST_PATH: &str =
     "tests/fixtures/corpora/corpus-01-mini/manifest.toml";
-pub(crate) const FASTQ_CORPUS_FIXTURE_SCHEMA_VERSION: &str =
-    "bijux.bench.fastq_corpus_fixture.v1";
+pub(crate) const FASTQ_CORPUS_FIXTURE_SCHEMA_VERSION: &str = "bijux.bench.fastq_corpus_fixture.v1";
 const FASTQ_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.fastq_corpus_fixture_validation.v1";
 
@@ -29,7 +28,7 @@ impl FastqCorpusFixtureCompression {
         }
     }
 
-    fn as_str(self) -> &'static str {
+    pub(super) fn as_str(self) -> &'static str {
         match self {
             Self::Gzip => "gzip",
         }
@@ -323,7 +322,7 @@ fn validate_fastq_corpus_fixture_sample(
     })
 }
 
-fn validate_fastq_fixture_path(
+pub(super) fn validate_fastq_fixture_path(
     path: &Path,
     compression: FastqCorpusFixtureCompression,
     sample_id: &str,
@@ -350,7 +349,7 @@ fn validate_fastq_fixture_path(
     Ok(())
 }
 
-fn count_fastq_gz_reads(path: &Path) -> Result<u64> {
+pub(super) fn count_fastq_gz_reads(path: &Path) -> Result<u64> {
     let file = fs::File::open(path).with_context(|| format!("open {}", path.display()))?;
     let decoder = MultiGzDecoder::new(file);
     let reader = BufReader::new(decoder);
