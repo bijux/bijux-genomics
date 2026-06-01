@@ -308,29 +308,9 @@ fn stage_postprocess(
                 .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::InsertSize => {
-            let parsed = if stage_dir.join("insert_size.metrics.txt").exists() {
-                Some(bam_metrics::parse_picard_insert_size_metrics(
-                    &stage_dir.join("insert_size.metrics.txt"),
-                )?)
-            } else {
-                None
-            };
-            let path = stage_dir.join("insert_size.metrics.json");
-            bijux_dna_infra::atomic_write_json(
-                &path,
-                &serde_json::json!({
-                    "report_present": stage_dir.join("insert_size.metrics.txt").exists(),
-                    "histogram_present": stage_dir.join("insert_size.histogram.pdf").exists(),
-                    "fragment_length": parsed.as_ref().map(|m| serde_json::json!({
-                        "mean_insert_size": m.mean_insert_size,
-                        "median_insert_size": m.median_insert_size,
-                        "std_dev_insert_size": m.standard_deviation,
-                        "min_insert_size": m.min_insert_size,
-                        "max_insert_size": m.max_insert_size,
-                    })),
-                }),
-            )
-            .with_context(|| format!("write {}", path.display()))?;
+            crate::internal::bam::stages::insert_size::write_stage_insert_size_summary(
+                stage_dir, plan,
+            )?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::GcBias => {
             let path = stage_dir.join("gc_bias.metrics.json");
