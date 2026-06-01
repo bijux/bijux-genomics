@@ -162,6 +162,12 @@ pub(crate) fn handle_meta_commands(
                             }
                         }
                     }
+                    cli::BenchLocalCommand::ValidateHpcSubmissionReady(args) => {
+                        crate::commands::benchmark::local_hpc_submission_ready::run_validate_hpc_submission_ready(
+                            args.output.clone(),
+                            args.json,
+                        )?;
+                    }
                     cli::BenchLocalCommand::SimulateDagWatchdog(args) => {
                         crate::commands::benchmark::local_dag_watchdog_simulation::run_simulate_dag_watchdog(
                             &args,

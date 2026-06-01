@@ -36,9 +36,10 @@ pub use self::local::{
     BenchLocalRenderSlurmSubmitManifestArgs, BenchLocalRenderStageCommandsArgs,
     BenchLocalRenderToolComparisonTemplateArgs, BenchLocalSimulateDagWatchdogArgs,
     BenchLocalValidateCorpusFixtureArgs, BenchLocalValidateCorpusStageCompatibilityArgs,
-    BenchLocalValidatePipelineDagArgs, BenchLocalValidateSlurmDependenciesArgs,
-    BenchLocalValidateSlurmScriptBodiesArgs, BenchLocalValidateSlurmShellSyntaxArgs,
-    BenchLocalValidateStageResultArgs, BenchLocalValidateTaxonomyDatabaseFixtureArgs,
+    BenchLocalValidateHpcSubmissionReadyArgs, BenchLocalValidatePipelineDagArgs,
+    BenchLocalValidateSlurmDependenciesArgs, BenchLocalValidateSlurmScriptBodiesArgs,
+    BenchLocalValidateSlurmShellSyntaxArgs, BenchLocalValidateStageResultArgs,
+    BenchLocalValidateTaxonomyDatabaseFixtureArgs,
 };
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
