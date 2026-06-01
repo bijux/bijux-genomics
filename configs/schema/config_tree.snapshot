@@ -23,6 +23,7 @@ configs/bench/local/bam-mapq-filter.toml
 configs/bench/local/bam-markdup.toml
 configs/bench/local/bam-overlap-correction.toml
 configs/bench/local/bam-qc-pre.toml
+configs/bench/local/bam-sex.toml
 configs/bench/local/bam-stage-matrix.toml
 configs/bench/local/bam-validate.toml
 configs/bench/local/fastq-cluster-otus.toml
