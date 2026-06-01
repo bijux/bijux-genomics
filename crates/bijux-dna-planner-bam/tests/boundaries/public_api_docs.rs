@@ -66,6 +66,8 @@ fn documented_root_exports_remain_compilable() {
         bijux_dna_planner_bam::stage_api::plan_stage;
     let _: fn(&Path) -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalValidateSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_validate_smoke_plans;
+    let _: fn(&Path) -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalQcPreSmokeCasePlan>> =
+        bijux_dna_planner_bam::stage_api::local_qc_pre_smoke_plans;
     let _: &str = bijux_dna_planner_bam::tool_adapters::tools::catalog::TOOLS_NAMESPACE;
 }
 
