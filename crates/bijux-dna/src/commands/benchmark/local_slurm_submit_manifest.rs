@@ -249,9 +249,7 @@ fn build_submit_job(
     if sample_ids.is_empty() {
         if let Some(fixture_id) = &job.fixture_id {
             if let Some(index) = fixture_sample_index.get(fixture_id) {
-                if index.sample_ids.len() == 1 {
-                    sample_ids = index.sample_ids.clone();
-                }
+                sample_ids = index.sample_ids.clone();
             }
         }
     }
