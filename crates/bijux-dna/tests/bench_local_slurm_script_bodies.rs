@@ -23,6 +23,18 @@ fn run_cli(args: &[&str]) -> std::process::Output {
         .expect("run cli")
 }
 
+fn run_cli_json(args: &[&str]) -> serde_json::Value {
+    let output = run_cli(args);
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+}
+
 #[test]
 fn bench_local_validate_slurm_script_bodies_refuses_placeholder_job_bodies() {
     let temp = tempfile::tempdir().expect("tempdir");
@@ -79,4 +91,48 @@ fn bench_local_validate_slurm_script_bodies_refuses_placeholder_job_bodies() {
         findings.iter().any(|finding| finding.contains("missing `bijux-dna` command")),
         "findings must include missing bijux-dna detection"
     );
+}
+
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_validate_slurm_script_bodies_accepts_governed_fastq_and_bam_scripts() {
+    let fastq_render =
+        run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "fastq", "--json"]);
+    assert!(
+        fastq_render.status.success(),
+        "fastq render failed: {}\nstdout:\n{}\nstderr:\n{}",
+        fastq_render.status,
+        String::from_utf8_lossy(&fastq_render.stdout),
+        String::from_utf8_lossy(&fastq_render.stderr)
+    );
+    let bam_render =
+        run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "bam", "--json"]);
+    assert!(
+        bam_render.status.success(),
+        "bam render failed: {}\nstdout:\n{}\nstderr:\n{}",
+        bam_render.status,
+        String::from_utf8_lossy(&bam_render.stdout),
+        String::from_utf8_lossy(&bam_render.stderr)
+    );
+
+    let payload = run_cli_json(&["bench", "local", "validate-slurm-script-bodies", "--json"]);
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.local_slurm_script_bodies.v1")
+    );
+    assert_eq!(
+        payload.get("root_path").and_then(serde_json::Value::as_str),
+        Some("target/slurm-dry-run")
+    );
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(payload.get("script_count").and_then(serde_json::Value::as_u64), Some(51));
+    assert_eq!(payload.get("findings_count").and_then(serde_json::Value::as_u64), Some(0));
+    let scripts =
+        payload.get("scripts").and_then(serde_json::Value::as_array).expect("scripts array");
+    assert_eq!(scripts.len(), 51);
+    assert!(scripts.iter().all(|entry| {
+        entry.get("ok").and_then(serde_json::Value::as_bool) == Some(true)
+            && entry.get("has_bijux_dna_command").and_then(serde_json::Value::as_bool) == Some(true)
+    }));
 }
