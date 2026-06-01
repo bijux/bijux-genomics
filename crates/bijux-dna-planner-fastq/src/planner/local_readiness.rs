@@ -2,21 +2,25 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::prelude::{StageId, ToolExecutionSpecV1, ToolId};
-use bijux_dna_domain_fastq::stages::ids::STAGE_INDEX_REFERENCE;
+use bijux_dna_domain_fastq::stages::ids::{STAGE_DEPLETE_HOST, STAGE_INDEX_REFERENCE};
 use bijux_dna_domain_fastq::STAGE_DEPLETE_RRNA;
 use serde::Deserialize;
 
 use crate::selection::{
-    load_fastq_domain_tool_execution_spec, select_deplete_rrna_tools, select_index_reference_tools,
+    load_fastq_domain_tool_execution_spec, select_deplete_host_tools, select_deplete_rrna_tools,
+    select_index_reference_tools,
 };
+use crate::tool_adapters::fastq::deplete_host::plan_host_depletion_with_options;
 use crate::tool_adapters::fastq::deplete_rrna::plan_rrna_with_options;
 use crate::tool_adapters::fastq::index_reference::plan_with_options;
-use crate::{DepleteRrnaStageParams, IndexReferenceStageParams};
+use crate::{DepleteHostStageParams, DepleteRrnaStageParams, IndexReferenceStageParams};
 
 const LOCAL_INDEX_REFERENCE_CONFIG_PATH: &str = "configs/bench/local/fastq-index-reference.toml";
+const LOCAL_DEPLETE_HOST_CONFIG_PATH: &str = "configs/bench/local/fastq-deplete-host.toml";
 const LOCAL_DEPLETE_RRNA_CONFIG_PATH: &str = "configs/bench/local/fastq-deplete-rrna.toml";
 const LOCAL_RUNTIME_PROFILE_PATH: &str = "configs/runtime/profiles/local.toml";
 const DEFAULT_LOCAL_INDEX_REFERENCE_OUTPUT_DIR: &str = "target/local-ready/fastq.index_reference";
+const DEFAULT_LOCAL_DEPLETE_HOST_OUTPUT_DIR: &str = "target/local-ready/fastq.deplete_host";
 const DEFAULT_LOCAL_DEPLETE_RRNA_OUTPUT_DIR: &str = "target/local-ready/fastq.deplete_rrna";
 
 #[derive(Debug, Deserialize)]
@@ -35,6 +39,18 @@ struct LocalDepleteRrnaPlanConfig {
     schema_version: String,
     input_r1: PathBuf,
     rrna_db: PathBuf,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalDepleteHostPlanConfig {
+    schema_version: String,
+    input_r1: PathBuf,
+    reference_index: PathBuf,
     tool_id: String,
     #[serde(default)]
     threads: Option<u32>,
@@ -87,6 +103,56 @@ pub fn local_index_reference_plan(
         &config.reference_fasta,
         &out_dir,
         &IndexReferenceStageParams { threads: Some(tool_spec.resources.threads.max(1)) },
+    )
+}
+
+/// # Errors
+/// Returns an error if the governed local-ready config or runtime profile cannot be read, the
+/// configured reads/index/tool triple is invalid, the Bowtie2 index prefix is incomplete, or the
+/// stage plan cannot be built.
+pub fn local_deplete_host_plan(repo_root: &Path) -> Result<bijux_dna_stage_contract::StagePlanV1> {
+    let config = load_local_deplete_host_plan_config(repo_root)?;
+    let local_profile = load_local_runtime_profile(repo_root)?;
+    let stage_id = StageId::new(STAGE_DEPLETE_HOST.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-ready tool_id `{}`: {error}", config.tool_id))?;
+
+    let normalized_tools = select_deplete_host_tools(std::slice::from_ref(&config.tool_id))?;
+    if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
+        return Err(anyhow!(
+            "local-ready fastq.deplete_host tool selection normalized unexpectedly: {:?}",
+            normalized_tools
+        ));
+    }
+
+    let input_r1_abs = repo_root.join(&config.input_r1);
+    if !input_r1_abs.is_file() {
+        return Err(anyhow!(
+            "local-ready fastq.deplete_host input FASTQ is missing: {}",
+            input_r1_abs.display()
+        ));
+    }
+
+    let reference_index_abs = repo_root.join(&config.reference_index);
+    ensure_bowtie2_index_prefix_exists(&reference_index_abs, "local-ready fastq.deplete_host")?;
+
+    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
+    let out_dir = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DEPLETE_HOST_OUTPUT_DIR));
+
+    plan_host_depletion_with_options(
+        &tool_spec,
+        &config.input_r1,
+        None,
+        &config.reference_index,
+        &out_dir,
+        &DepleteHostStageParams {
+            host_identity_threshold: DepleteHostStageParams::baseline().host_identity_threshold,
+            retain_unmapped_only: DepleteHostStageParams::baseline().retain_unmapped_only,
+            threads: Some(tool_spec.resources.threads.max(1)),
+        },
     )
 }
 
@@ -183,6 +249,20 @@ fn load_local_index_reference_plan_config(
     Ok(config)
 }
 
+fn load_local_deplete_host_plan_config(repo_root: &Path) -> Result<LocalDepleteHostPlanConfig> {
+    let path = repo_root.join(LOCAL_DEPLETE_HOST_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalDepleteHostPlanConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.fastq.local_deplete_host.v1" {
+        return Err(anyhow!(
+            "unsupported local-ready fastq.deplete_host schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    Ok(config)
+}
+
 fn load_local_deplete_rrna_plan_config(repo_root: &Path) -> Result<LocalDepleteRrnaPlanConfig> {
     let path = repo_root.join(LOCAL_DEPLETE_RRNA_CONFIG_PATH);
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
@@ -201,4 +281,31 @@ fn load_local_runtime_profile(repo_root: &Path) -> Result<LocalRuntimeProfile> {
     let path = repo_root.join(LOCAL_RUNTIME_PROFILE_PATH);
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+}
+
+fn ensure_bowtie2_index_prefix_exists(prefix: &Path, label: &str) -> Result<()> {
+    let file_name = prefix
+        .file_name()
+        .ok_or_else(|| anyhow!("{label} reference index prefix has no file name"))?
+        .to_string_lossy()
+        .into_owned();
+    let required_suffixes = [
+        ".1.bt2",
+        ".2.bt2",
+        ".3.bt2",
+        ".4.bt2",
+        ".rev.1.bt2",
+        ".rev.2.bt2",
+    ];
+    let missing = required_suffixes
+        .into_iter()
+        .map(|suffix| prefix.with_file_name(format!("{file_name}{suffix}")))
+        .find(|path| !path.is_file());
+    if let Some(path) = missing {
+        return Err(anyhow!(
+            "{label} reference index prefix is incomplete, missing {}",
+            path.display()
+        ));
+    }
+    Ok(())
 }

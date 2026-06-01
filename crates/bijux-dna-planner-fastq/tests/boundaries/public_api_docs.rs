@@ -64,6 +64,7 @@ fn public_api_docs_match_curated_exports() {
             "toolset_for_stage",
             "stage_tool_maturity",
             "benchmark_cohorts_for_stage",
+            "local_deplete_host_plan",
             "local_deplete_rrna_plan",
             "local_detect_adapters_smoke_plans",
             "local_detect_duplicates_premerge_smoke_plans",
@@ -155,6 +156,8 @@ fn documented_stage_api_exports_remain_compilable() {
         bijux_dna_planner_fastq::stage_api::stage_tool_maturity;
     let _: fn(&StageId) -> Vec<bijux_dna_planner_fastq::stage_api::BenchmarkCohort> =
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage;
+    let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
+        bijux_dna_planner_fastq::stage_api::local_deplete_host_plan;
     let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
         bijux_dna_planner_fastq::stage_api::local_deplete_rrna_plan;
     let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
