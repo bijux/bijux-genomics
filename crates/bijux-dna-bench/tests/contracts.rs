@@ -3,6 +3,8 @@
 mod mod_contracts_architecture_rs;
 #[path = "contracts/benching/bench_contract.rs"]
 mod mod_contracts_bench_contract_rs;
+#[path = "contracts/benching/bam_local_stage_matrix.rs"]
+mod mod_contracts_bam_local_stage_matrix_rs;
 #[path = "contracts/benching/bench_paths.rs"]
 mod mod_contracts_bench_paths_rs;
 #[path = "contracts/benching/contract_handshake.rs"]
