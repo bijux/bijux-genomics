@@ -2833,6 +2833,22 @@ pub fn summarize_tiny_bam_damage_evidence(
     Ok(execute_ancient_damage_evidence(&metrics, strict_profile))
 }
 
+/// Build typed `bam.authenticity` advisory evidence for a tiny BAM fixture from damage metrics.
+///
+/// # Errors
+/// Returns an error if the tiny BAM fixture cannot be summarized into pre-QC metrics.
+pub fn summarize_tiny_bam_authenticity_advisory(
+    input_bam: &Path,
+    damage: &crate::metrics::DamageMetricsV1,
+) -> Result<BamAuthenticityAdvisoryV1> {
+    let qc_pre = summarize_tiny_bam_qc_pre(input_bam)?;
+    let mut metrics = crate::metrics::BamMetricsV1::empty();
+    metrics.fragment_length = qc_pre.fragment_length;
+    metrics.mapq = qc_pre.mapq;
+    metrics.damage = damage.clone();
+    Ok(execute_pmd_authenticity_advisory(&metrics))
+}
+
 fn idxstats_from_tiny_document(document: &TinySamDocument) -> crate::metrics::IdxstatsSummaryV1 {
     let mut contigs = document
         .references
@@ -5742,6 +5758,40 @@ r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFF
         assert!((evidence.short_fragment_fraction - 1.0).abs() <= f64::EPSILON);
         assert!(!evidence.strict_profile_upgraded);
         assert!(evidence.advisory_boundary.advisory_only);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_authenticity_advisory_reports_composed_signal() {
+        let temp = unique_temp_dir("bam-authenticity-advisory");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chranc\tLN:120\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchranc\t5\t25\t20M\t*\t0\t0\tTCTTTCTTTCTTTCTTTCTT\tFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchranc\t29\t25\t24M\t*\t0\t0\tCTTTCCAAACTTTCCAAACTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchranc\t57\t25\t28M\t*\t0\t0\tTTCCCAAAGGGTTTCCCAAAGGGTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r04\t0\tchranc\t89\t25\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write authenticity fixture");
+
+        let advisory = summarize_tiny_bam_authenticity_advisory(
+            &input,
+            &crate::metrics::DamageMetricsV1 {
+                c_to_t_5p: 0.18,
+                g_to_a_3p: 0.11,
+                pmd_score_histogram: Vec::new(),
+            },
+        )
+        .expect("summarize authenticity advisory");
+        assert_eq!(advisory.schema_version, BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION);
+        assert_eq!(advisory.stage_id, "bam.authenticity");
+        assert!((advisory.score - 0.8666666666666667).abs() <= 1e-12);
+        assert!((advisory.confidence - 0.9466666666666668).abs() <= 1e-12);
+        assert!(advisory.pmd_like_signal_present);
+        assert!(advisory.advisory_boundary.advisory_only);
+        assert_eq!(advisory.advisory_boundary.stage_id, "bam.authenticity");
     }
 
     #[test]
