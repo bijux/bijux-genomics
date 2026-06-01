@@ -2816,6 +2816,23 @@ pub fn summarize_tiny_bam_qc_pre(input_bam: &Path) -> Result<BamQcPreSummaryV1> 
     })
 }
 
+/// Build typed `bam.damage` evidence for a tiny BAM fixture from terminal-damage metrics.
+///
+/// # Errors
+/// Returns an error if the tiny BAM fixture cannot be summarized into pre-QC metrics.
+pub fn summarize_tiny_bam_damage_evidence(
+    input_bam: &Path,
+    damage: &crate::metrics::DamageMetricsV1,
+    strict_profile: bool,
+) -> Result<BamDamageEvidenceV1> {
+    let qc_pre = summarize_tiny_bam_qc_pre(input_bam)?;
+    let mut metrics = crate::metrics::BamMetricsV1::empty();
+    metrics.fragment_length = qc_pre.fragment_length;
+    metrics.mapq = qc_pre.mapq;
+    metrics.damage = damage.clone();
+    Ok(execute_ancient_damage_evidence(&metrics, strict_profile))
+}
+
 fn idxstats_from_tiny_document(document: &TinySamDocument) -> crate::metrics::IdxstatsSummaryV1 {
     let mut contigs = document
         .references
@@ -5690,6 +5707,41 @@ r02\t0\tchr1\t11\t45\t10M\t*\t0\t0\tTTTTGGGGCC\tFFFFFFFFFF\tRG:Z:rg1\n",
         let regime = summary.regime.expect("coverage regime");
         assert_eq!(regime.regime_class, BamCoverageRegimeClassV1::LowPass);
         assert!((regime.breadth_1x - 1.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_damage_evidence_reports_terminal_signal_and_short_fragments() {
+        let temp = unique_temp_dir("bam-damage-evidence");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chranc\tLN:120\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchranc\t5\t60\t20M\t*\t0\t0\tTCTTTCTTTCTTTCTTTCTT\tFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchranc\t19\t60\t24M\t*\t0\t0\tCTTTCCAAACTTTCCAAACTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchranc\t47\t60\t28M\t*\t0\t0\tTTCCCAAAGGGTTTCCCAAAGGGTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write damage fixture");
+
+        let evidence = summarize_tiny_bam_damage_evidence(
+            &input,
+            &crate::metrics::DamageMetricsV1 {
+                c_to_t_5p: 0.18,
+                g_to_a_3p: 0.11,
+                pmd_score_histogram: Vec::new(),
+            },
+            false,
+        )
+        .expect("summarize damage evidence");
+        assert_eq!(evidence.stage_id, "bam.damage");
+        assert_eq!(evidence.damage_signal, "moderate");
+        assert!((evidence.terminal_c_to_t_5p - 0.18).abs() <= f64::EPSILON);
+        assert!((evidence.terminal_g_to_a_3p - 0.11).abs() <= f64::EPSILON);
+        assert!((evidence.short_fragment_fraction - 1.0).abs() <= f64::EPSILON);
+        assert!(!evidence.strict_profile_upgraded);
+        assert!(evidence.advisory_boundary.advisory_only);
     }
 
     #[test]

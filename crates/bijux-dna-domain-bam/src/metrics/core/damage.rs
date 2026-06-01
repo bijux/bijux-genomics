@@ -122,8 +122,16 @@ pub fn compare_damage_metrics(
 pub fn parse_pydamage_json(path: &std::path::Path) -> anyhow::Result<DamageMetricsV1> {
     let raw = std::fs::read_to_string(path).context("read pydamage json")?;
     let value: serde_json::Value = serde_json::from_str(&raw)?;
-    let c_to_t = value.get("ct_5p").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
-    let g_to_a = value.get("ga_3p").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+    let c_to_t = value
+        .get("ct_5p")
+        .or_else(|| value.get("c_to_t_5p"))
+        .and_then(serde_json::Value::as_f64)
+        .unwrap_or(0.0);
+    let g_to_a = value
+        .get("ga_3p")
+        .or_else(|| value.get("g_to_a_3p"))
+        .and_then(serde_json::Value::as_f64)
+        .unwrap_or(0.0);
     Ok(DamageMetricsV1 { c_to_t_5p: c_to_t, g_to_a_3p: g_to_a, pmd_score_histogram: Vec::new() })
 }
 
