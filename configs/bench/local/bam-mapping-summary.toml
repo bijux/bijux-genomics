@@ -1,0 +1,19 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.mapping_summary.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_mapping_summary.v1"
+tool_id = "samtools"
+threads = 4
+output_dir = "target/local-smoke/bam.mapping_summary"
+
+[[cases]]
+sample_id = "core-v1-partial-mapping"
+bam = "assets/toy/core-v1/bam/mapping_summary_partial_mapping.sam"
+expected_total_reads = 3
+expected_mapped_reads = 2
+expected_mapping_fraction = 0.6666666666666666
+expected_reference_name = "chr1"

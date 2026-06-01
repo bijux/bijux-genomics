@@ -7,6 +7,7 @@ configs/bench/benchmark.toml
 configs/bench/index.md
 configs/bench/knobs.toml
 configs/bench/local/bam-align.toml
+configs/bench/local/bam-mapping-summary.toml
 configs/bench/local/bam-qc-pre.toml
 configs/bench/local/bam-stage-matrix.toml
 configs/bench/local/bam-validate.toml
