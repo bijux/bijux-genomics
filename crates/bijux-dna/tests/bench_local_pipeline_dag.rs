@@ -150,3 +150,61 @@ fn bench_local_pipeline_dag_validates_fastq_paired_merge_contract() {
         "filter_reads must consume the merged and unmerged handoff in the CLI validation report"
     );
 }
+
+#[test]
+fn bench_local_pipeline_dag_validates_fastq_edna_taxonomy_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/fastq-edna-taxonomy.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/fastq-edna-taxonomy.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/fastq-edna-taxonomy.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("fastq-edna-taxonomy")
+    );
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-02-edna-mini")
+    );
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.screen_taxonomy")
+                && node
+                    .get("external_inputs")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("taxonomy_database.root"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("taxonomy_expected_truth_table"))
+                    })
+                && node
+                    .get("outputs")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|outputs| {
+                        outputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("taxonomy_classification"))
+                            && outputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("unclassified_reads"))
+                    })
+        }),
+        "screen_taxonomy must expose governed taxonomy assets plus classification and unclassified outputs"
+    );
+}
