@@ -51,6 +51,8 @@ pub const BAM_STAGE_ID_CATALOG: &[&str] = &[
     "bam.validate",
 ];
 
+pub const BAM_LOCAL_BENCH_STAGE_ID_CATALOG: &[&str] = BAM_STAGE_ID_CATALOG;
+
 pub const BAM_PARAMS_CATALOG: &[&str] = &[
     "bijux.bam.params.align.v1",
     "bijux.bam.params.validate.v1",

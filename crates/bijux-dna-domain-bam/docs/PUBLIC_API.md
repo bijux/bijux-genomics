@@ -47,5 +47,6 @@ Primary artifact and workflow helpers:
 
 Primary catalogs:
 - `BAM_STAGE_ID_CATALOG`
+- `BAM_LOCAL_BENCH_STAGE_ID_CATALOG`
 - `BAM_PARAMS_CATALOG`
 - `BAM_METRICS_CATALOG`

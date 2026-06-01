@@ -85,7 +85,8 @@ pub use stage_specs::{
     BamStage, BamStageContract, BamStageSpec, StageSpec, STAGE_PREFIX,
 };
 pub use types::{
-    BamInvariantsPreset, BAM_METRICS_CATALOG, BAM_PARAMS_CATALOG, BAM_STAGE_ID_CATALOG,
+    BamInvariantsPreset, BAM_LOCAL_BENCH_STAGE_ID_CATALOG, BAM_METRICS_CATALOG,
+    BAM_PARAMS_CATALOG, BAM_STAGE_ID_CATALOG,
 };
 
 #[allow(clippy::struct_excessive_bools)]
