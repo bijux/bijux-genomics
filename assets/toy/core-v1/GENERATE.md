@@ -13,5 +13,10 @@ Generated via `cargo run -p bijux-dna-dev -- assets run refresh-toy`.
 - `fastq/reads_1.fastq`
 - `fastq/reads_2.fastq`
 - `bam/toy.sam`
+- `bam/validation_reference.fasta`
+- `bam/validation_pass.sam`
+- `bam/validation_pass.sam.bai`
+- `bam/validation_malformed.sam`
+- `tables/otu_abundance_small.tsv`
 - `vcf/toy.vcf`
 - `CHECKSUMS.sha256`

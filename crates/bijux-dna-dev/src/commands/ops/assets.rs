@@ -143,6 +143,8 @@ pub(super) fn assets_refresh_toy(
             .with_context(|| format!("create {}", stage_dir.join("bam").display()))?;
         bijux_dna_infra::ensure_dir(stage_dir.join("vcf"))
             .with_context(|| format!("create {}", stage_dir.join("vcf").display()))?;
+        bijux_dna_infra::ensure_dir(stage_dir.join("tables"))
+            .with_context(|| format!("create {}", stage_dir.join("tables").display()))?;
         if let Some(parent) = report_path.parent() {
             bijux_dna_infra::ensure_dir(parent)
                 .with_context(|| format!("create {}", parent.display()))?;
@@ -161,18 +163,58 @@ pub(super) fn assets_refresh_toy(
             "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:1000\nread1\t0\tchr1\t1\t60\t12M\t*\t0\t0\tACGTTGCAACGT\tFFFFFFFFFFFF\nread2\t0\tchr1\t50\t60\t12M\t*\t0\t0\tTGCATGCATGCA\tFFFFFFFFFFFF\n",
         )?;
         write_utf8(
+            &stage_dir.join("bam/validation_reference.fasta"),
+            ">chr1\nACGTACGTACGTACGTACGT\n",
+        )?;
+        write_utf8(
+            &stage_dir.join("bam/validation_pass.sam"),
+            "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:50\n@RG\tID:rg1\tSM:core-v1-pass\nr001\t99\tchr1\t1\t60\t6M\t=\t7\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\nr001\t147\tchr1\t7\t60\t6M\t=\t1\t0\tTTAACT\tFFFFFF\tRG:Z:rg1\n",
+        )?;
+        write_utf8(&stage_dir.join("bam/validation_pass.sam.bai"), "tiny-index\n")?;
+        write_utf8(
+            &stage_dir.join("bam/validation_malformed.sam"),
+            "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:50\nr001\t99\tchr1\n",
+        )?;
+        write_utf8(
             &stage_dir.join("vcf/toy.vcf"),
             "##fileformat=VCFv4.2\n##contig=<ID=chr1,length=1000>\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\nchr1\t10\t.\tA\tG\t60\tPASS\t.\n",
+        )?;
+        write_utf8(
+            &stage_dir.join("tables/otu_abundance_small.tsv"),
+            "sample_id\tfeature_id\tabundance\nsample_a\totu_001\t10\nsample_a\totu_002\t30\nsample_b\totu_001\t5\nsample_b\totu_003\t5\n",
         )?;
 
         write_checksum_manifest(
             &stage_dir.join("CHECKSUMS.sha256"),
-            &["bam/toy.sam", "fastq/reads_1.fastq", "fastq/reads_2.fastq", "vcf/toy.vcf"],
+            &[
+                "bam/toy.sam",
+                "bam/validation_malformed.sam",
+                "bam/validation_pass.sam",
+                "bam/validation_pass.sam.bai",
+                "bam/validation_reference.fasta",
+                "fastq/reads_1.fastq",
+                "fastq/reads_2.fastq",
+                "tables/otu_abundance_small.tsv",
+                "vcf/toy.vcf",
+            ],
         )?;
-        write_checksum_manifest(&stage_dir.join("bam/CHECKSUMS.sha256"), &["toy.sam"])?;
+        write_checksum_manifest(
+            &stage_dir.join("bam/CHECKSUMS.sha256"),
+            &[
+                "toy.sam",
+                "validation_malformed.sam",
+                "validation_pass.sam",
+                "validation_pass.sam.bai",
+                "validation_reference.fasta",
+            ],
+        )?;
         write_checksum_manifest(
             &stage_dir.join("fastq/CHECKSUMS.sha256"),
             &["reads_1.fastq", "reads_2.fastq"],
+        )?;
+        write_checksum_manifest(
+            &stage_dir.join("tables/CHECKSUMS.sha256"),
+            &["otu_abundance_small.tsv"],
         )?;
         write_checksum_manifest(&stage_dir.join("vcf/CHECKSUMS.sha256"), &["toy.vcf"])?;
 
@@ -193,6 +235,11 @@ Generated via `cargo run -p bijux-dna-dev -- assets run refresh-toy`.
 - `fastq/reads_1.fastq`
 - `fastq/reads_2.fastq`
 - `bam/toy.sam`
+- `bam/validation_reference.fasta`
+- `bam/validation_pass.sam`
+- `bam/validation_pass.sam.bai`
+- `bam/validation_malformed.sam`
+- `tables/otu_abundance_small.tsv`
 - `vcf/toy.vcf`
 - `CHECKSUMS.sha256`
 ",
