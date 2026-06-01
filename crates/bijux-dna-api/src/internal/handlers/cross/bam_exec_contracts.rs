@@ -301,10 +301,7 @@ ACCUMULATION_LEVEL\tREADS_USED\tWINDOW_SIZE\tTOTAL_CLUSTERS\tALIGNED_READS\tAT_D
 ALL_READS\tALL\t10\t4\t4\t25.0\t25.0\t3\t4\n\
 ",
         )?;
-        bijux_dna_infra::atomic_write_bytes(
-            &stage_dir.join("gc_bias.plot.pdf"),
-            b"%PDF-1.4\n",
-        )?;
+        bijux_dna_infra::atomic_write_bytes(&stage_dir.join("gc_bias.plot.pdf"), b"%PDF-1.4\n")?;
         let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::GcBias);
         plan.io.inputs[0].path = stage_dir.join("input.bam");
         plan.io.inputs.push(ArtifactRef::required(
@@ -312,11 +309,7 @@ ALL_READS\tALL\t10\t4\t4\t25.0\t25.0\t3\t4\n\
             stage_dir.join("reference.fasta"),
             ArtifactRole::Reference,
         ));
-        stage_postprocess(
-            bijux_dna_planner_bam::stage_api::BamStage::GcBias,
-            &stage_dir,
-            &plan,
-        )?;
+        stage_postprocess(bijux_dna_planner_bam::stage_api::BamStage::GcBias, &stage_dir, &plan)?;
         let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
             stage_dir.join("gc_bias.summary.json"),
         )?)?;
@@ -933,12 +926,42 @@ ALL_READS\tALL\t10\t4\t4\t25.0\t25.0\t3\t4\n\
         let temp = tempfile::tempdir()?;
         let overlap_dir = temp.path().join("overlap_correction");
         bijux_dna_infra::ensure_dir(&overlap_dir)?;
+        let overlap_input = overlap_dir.join("input.sam");
+        bijux_dna_infra::atomic_write_bytes(
+            &overlap_input,
+            b"@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:100\n@RG\tID:rg1\tSM:sampleA\npair_overlap\t99\tchr1\t10\t60\t12M\t=\t15\t17\tACGTACGTACGT\tFFFFFFFFFFFF\tRG:Z:rg1\npair_overlap\t147\tchr1\t15\t60\t12M\t=\t10\t-17\tTTTTCCCCAAAA\tFFFFFFFFFFFF\tRG:Z:rg1\npair_spaced\t99\tchr1\t40\t60\t10M\t=\t55\t25\tGGGGAAAACC\tFFFFFFFFFF\tRG:Z:rg1\npair_spaced\t147\tchr1\t55\t60\t10M\t=\t40\t-25\tCCCCAAAAGG\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )?;
+        bijux_dna_infra::atomic_write_bytes(
+            &overlap_dir.join("flagstat.before.txt"),
+            b"4 + 0 in total (QC-passed reads + QC-failed reads)\n4 + 0 mapped (100.00% : N/A)\n0 + 0 duplicates\n",
+        )?;
+        bijux_dna_infra::atomic_write_bytes(
+            &overlap_dir.join("flagstat.after.txt"),
+            b"4 + 0 in total (QC-passed reads + QC-failed reads)\n4 + 0 mapped (100.00% : N/A)\n0 + 0 duplicates\n",
+        )?;
+        bijux_dna_infra::atomic_write_bytes(
+            &overlap_dir.join("overlap.corrected.bam"),
+            b"@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:100\n@RG\tID:rg1\tSM:sampleA\npair_overlap\t99\tchr1\t10\t60\t12M\t=\t15\t17\tACGTACGTACGT\tFFFFFFFFFFFF\tRG:Z:rg1\npair_overlap\t147\tchr1\t15\t60\t5M\t=\t10\t-17\tTTTTC\tFFFFF\tRG:Z:rg1\npair_spaced\t99\tchr1\t40\t60\t10M\t=\t55\t25\tGGGGAAAACC\tFFFFFFFFFF\tRG:Z:rg1\npair_spaced\t147\tchr1\t55\t60\t10M\t=\t40\t-25\tCCCCAAAAGG\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )?;
+        let mut overlap_plan =
+            mock_plan(bijux_dna_planner_bam::stage_api::BamStage::OverlapCorrection);
+        overlap_plan.io.inputs[0].path = overlap_input;
         stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::OverlapCorrection,
             &overlap_dir,
-            &mock_plan(bijux_dna_planner_bam::stage_api::BamStage::OverlapCorrection),
+            &overlap_plan,
         )?;
-        assert!(overlap_dir.join("overlap_correction.outputs.json").exists());
+        let overlap: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            overlap_dir.join("overlap_correction.summary.json"),
+        )?)?;
+        assert_eq!(overlap.get("method").and_then(serde_json::Value::as_str), Some("samtools"));
+        assert_eq!(overlap.get("pair_count").and_then(serde_json::Value::as_u64), Some(2));
+        assert_eq!(overlap.get("corrected_pairs").and_then(serde_json::Value::as_u64), Some(1));
+        assert_eq!(
+            overlap.get("corrected_overlap_bases").and_then(serde_json::Value::as_u64),
+            Some(7)
+        );
+        assert_eq!(overlap.get("insufficiency_reason").and_then(serde_json::Value::as_str), None);
 
         let endogenous_dir = temp.path().join("endogenous_content");
         bijux_dna_infra::ensure_dir(&endogenous_dir)?;
@@ -960,24 +983,14 @@ ALL_READS\tALL\t10\t4\t4\t25.0\t25.0\t3\t4\n\
             endogenous.get("method").and_then(serde_json::Value::as_str),
             Some("mapped_fraction_from_flagstat")
         );
+        assert_eq!(endogenous.get("mapped_reads").and_then(serde_json::Value::as_u64), Some(6));
+        assert_eq!(endogenous.get("total_reads").and_then(serde_json::Value::as_u64), Some(10));
         assert_eq!(
-            endogenous.get("mapped_reads").and_then(serde_json::Value::as_u64),
-            Some(6)
-        );
-        assert_eq!(
-            endogenous.get("total_reads").and_then(serde_json::Value::as_u64),
-            Some(10)
-        );
-        assert_eq!(
-            endogenous
-                .get("endogenous_fraction")
-                .and_then(serde_json::Value::as_f64),
+            endogenous.get("endogenous_fraction").and_then(serde_json::Value::as_f64),
             Some(0.6)
         );
         assert_eq!(
-            endogenous
-                .get("host_reference_scope")
-                .and_then(serde_json::Value::as_str),
+            endogenous.get("host_reference_scope").and_then(serde_json::Value::as_str),
             Some("human_host")
         );
         assert!(endogenous_dir.join("endogenous.summary.json").exists());

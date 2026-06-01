@@ -34,6 +34,8 @@ mod mod_contracts_v1_bam_local_mapping_summary_smoke_rs;
 mod mod_contracts_v1_bam_local_mapq_filter_smoke_rs;
 #[path = "contracts/v1_bam_local_markdup_smoke.rs"]
 mod mod_contracts_v1_bam_local_markdup_smoke_rs;
+#[path = "contracts/v1_bam_local_overlap_correction_smoke.rs"]
+mod mod_contracts_v1_bam_local_overlap_correction_smoke_rs;
 #[path = "contracts/v1_bam_local_qc_pre_smoke.rs"]
 mod mod_contracts_v1_bam_local_qc_pre_smoke_rs;
 #[path = "contracts/v1_bam_local_validate_smoke.rs"]
