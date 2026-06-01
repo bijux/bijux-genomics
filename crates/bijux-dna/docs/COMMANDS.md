@@ -117,6 +117,9 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench corpus-fastq-published-dossiers`
 - `bijux-dna bench local list-stages`
 - `bijux-dna bench local materialize-stage`
+- `bijux-dna bench local fake-run-stages`
+  `fake-run-stages` mirrors every declared benchmark-stage output under
+  `target/local-fake-runs/stages/` and writes a fake-run manifest for all governed stages.
 - `bijux-dna bench local render-stage-commands`
   `render-stage-commands` writes both `target/local-ready/rendered-stage-commands.sh` and the
   machine-readable companion `target/local-ready/rendered-stage-commands.json`.
