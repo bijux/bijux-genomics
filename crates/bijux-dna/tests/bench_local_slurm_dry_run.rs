@@ -197,6 +197,56 @@ fn bench_local_render_slurm_scripts_bam_json_reports_governed_24_stage_slice() {
     }));
 }
 
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_render_slurm_scripts_bam_reports_governed_run_paths() {
+    let payload =
+        run_cli_json(&["bench", "local", "render-slurm-scripts", "--domain", "bam", "--json"]);
+    let scripts =
+        payload.get("scripts").and_then(serde_json::Value::as_array).expect("scripts array");
+
+    let bam_damage = scripts
+        .iter()
+        .find(|entry| {
+            entry.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
+        })
+        .expect("bam damage entry");
+    assert_eq!(
+        bam_damage.get("stdout_path").and_then(serde_json::Value::as_str),
+        Some(
+            "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/core-v1-damage-short-fragments/pydamage/stdout.log"
+        )
+    );
+    assert_eq!(
+        bam_damage.get("stderr_path").and_then(serde_json::Value::as_str),
+        Some(
+            "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/core-v1-damage-short-fragments/pydamage/stderr.log"
+        )
+    );
+    assert_eq!(
+        bam_damage
+            .get("stage_result_manifest_path")
+            .and_then(serde_json::Value::as_str),
+        Some(
+            "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/core-v1-damage-short-fragments/pydamage/stage-result.json"
+        )
+    );
+
+    let sex_script =
+        support::repo_root().expect("repo root").join("target/slurm-dry-run/bam/bam.sex.sbatch");
+    let script_body = std::fs::read_to_string(&sex_script).expect("read sex script");
+    assert!(
+        script_body.contains(
+            "#SBATCH --output=target/slurm-dry-run/runs/local-benchmark-dry-run/planner-only/bam.sex/core-v1-sex-xy-autosome-male/rxy/stdout.log"
+        )
+    );
+    assert!(
+        script_body.contains(
+            "STAGE_RESULT_MANIFEST_PATH=target/slurm-dry-run/runs/local-benchmark-dry-run/planner-only/bam.sex/core-v1-sex-xy-autosome-male/rxy/stage-result.json"
+        )
+    );
+}
+
 #[test]
 fn bench_local_render_slurm_scripts_fastq_writes_bash_parseable_27_script_slice() {
     let output = run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "fastq"]);
