@@ -4,6 +4,8 @@ mod artifacts_contract;
 mod contract_handshake;
 #[path = "plan/local_align.rs"]
 mod local_align;
+#[path = "plan/local_validate_smoke.rs"]
+mod local_validate_smoke;
 #[path = "plan/no_parsing_execution.rs"]
 mod no_parsing_execution;
 #[path = "plan/params_complete.rs"]
