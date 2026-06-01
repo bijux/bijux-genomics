@@ -10,6 +10,8 @@ use crate::selection::{allowed_tools_for_stage, load_bam_domain_tool_planning_sp
 
 const LOCAL_VALIDATE_CONFIG_PATH: &str = "configs/bench/local/bam-validate.toml";
 const DEFAULT_LOCAL_VALIDATE_OUTPUT_DIR: &str = "target/local-smoke/bam.validate";
+const LOCAL_QC_PRE_CONFIG_PATH: &str = "configs/bench/local/bam-qc-pre.toml";
+const DEFAULT_LOCAL_QC_PRE_OUTPUT_DIR: &str = "target/local-smoke/bam.qc_pre";
 
 #[derive(Debug, Clone)]
 pub struct LocalValidateSmokeCasePlan {
@@ -19,6 +21,18 @@ pub struct LocalValidateSmokeCasePlan {
     pub reference_fasta: Option<PathBuf>,
     pub expect_pass: bool,
     pub required_refusal_codes: Vec<String>,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalQcPreSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub expected_total_reads: u64,
+    pub expected_mapped_reads: u64,
+    pub expected_unmapped_reads: u64,
+    pub expected_duplicate_flagged_reads: u64,
+    pub expected_contigs: Vec<String>,
     pub plan: bijux_dna_stage_contract::StagePlanV1,
 }
 
@@ -34,6 +48,17 @@ struct LocalValidateSmokeConfig {
 }
 
 #[derive(Debug, Deserialize)]
+struct LocalQcPreSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalQcPreSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
 struct LocalValidateSmokeCase {
     sample_id: String,
     bam: PathBuf,
@@ -45,6 +70,17 @@ struct LocalValidateSmokeCase {
     expect_pass: bool,
     #[serde(default)]
     required_refusal_codes: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalQcPreSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    expected_total_reads: u64,
+    expected_mapped_reads: u64,
+    expected_unmapped_reads: u64,
+    expected_duplicate_flagged_reads: u64,
+    expected_contigs: Vec<String>,
 }
 
 const fn default_expect_pass() -> bool {
@@ -78,6 +114,36 @@ pub fn local_validate_smoke_plans(repo_root: &Path) -> Result<Vec<LocalValidateS
         .cases
         .into_iter()
         .map(|case| build_local_validate_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.qc_pre` plans cannot be built.
+pub fn local_qc_pre_smoke_plans(repo_root: &Path) -> Result<Vec<LocalQcPreSmokeCasePlan>> {
+    let config = load_local_qc_pre_smoke_config(repo_root)?;
+    ensure_unique_qc_pre_sample_ids(&config.cases)?;
+
+    let stage = BamStage::QcPre;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.qc_pre tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_QC_PRE_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_qc_pre_smoke_case(repo_root, &tool_spec, &output_root, case))
         .collect()
 }
 
@@ -148,6 +214,47 @@ fn build_local_validate_smoke_case(
     })
 }
 
+fn build_local_qc_pre_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalQcPreSmokeCase,
+) -> Result<LocalQcPreSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.qc_pre BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if case.expected_contigs.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.qc_pre case `{}` must declare at least one expected contig",
+            case.sample_id
+        ));
+    }
+    if case.expected_mapped_reads + case.expected_unmapped_reads != case.expected_total_reads {
+        return Err(anyhow!(
+            "local-smoke bam.qc_pre case `{}` must satisfy mapped + unmapped == total",
+            case.sample_id
+        ));
+    }
+
+    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let plan = crate::tool_adapters::bam::qc_pre::plan(tool_spec, &case.bam, &out_dir)?;
+
+    Ok(LocalQcPreSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        expected_total_reads: case.expected_total_reads,
+        expected_mapped_reads: case.expected_mapped_reads,
+        expected_unmapped_reads: case.expected_unmapped_reads,
+        expected_duplicate_flagged_reads: case.expected_duplicate_flagged_reads,
+        expected_contigs: case.expected_contigs,
+        plan,
+    })
+}
+
 fn hydrate_smoke_threads(tool_spec: &mut ToolExecutionSpecV1, threads: Option<u32>) {
     if let Some(threads) = threads {
         tool_spec.resources.threads = threads.max(1);
@@ -172,6 +279,19 @@ fn ensure_unique_sample_ids(cases: &[LocalValidateSmokeCase]) -> Result<()> {
     Ok(())
 }
 
+fn ensure_unique_qc_pre_sample_ids(cases: &[LocalQcPreSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.qc_pre sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!("duplicate local-smoke bam.qc_pre sample_id `{}`", case.sample_id));
+        }
+    }
+    Ok(())
+}
+
 fn load_local_validate_smoke_config(repo_root: &Path) -> Result<LocalValidateSmokeConfig> {
     let path = repo_root.join(LOCAL_VALIDATE_CONFIG_PATH);
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
@@ -185,6 +305,23 @@ fn load_local_validate_smoke_config(repo_root: &Path) -> Result<LocalValidateSmo
     }
     if config.cases.is_empty() {
         return Err(anyhow!("local-smoke bam.validate must declare at least one governed case"));
+    }
+    Ok(config)
+}
+
+fn load_local_qc_pre_smoke_config(repo_root: &Path) -> Result<LocalQcPreSmokeConfig> {
+    let path = repo_root.join(LOCAL_QC_PRE_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalQcPreSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_qc_pre.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.qc_pre schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!("local-smoke bam.qc_pre must declare at least one governed case"));
     }
     Ok(config)
 }
