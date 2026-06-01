@@ -162,6 +162,11 @@ pub(crate) fn handle_meta_commands(
                             }
                         }
                     }
+                    cli::BenchLocalCommand::ValidateCorpusFixture(args) => {
+                        crate::commands::benchmark::local_corpus_fixture::run_validate_corpus_fixture(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RenderBenchmarkSummary(args) => {
                         crate::commands::benchmark::local_benchmark_summary::run_render_benchmark_summary(
                             &args,

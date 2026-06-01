@@ -33,7 +33,7 @@ pub use self::local::{
     BenchLocalFakeRunFailuresArgs, BenchLocalFakeRunStagesArgs, BenchLocalListStagesArgs,
     BenchLocalMaterializeStageArgs, BenchLocalRenderBenchmarkSummaryArgs,
     BenchLocalRenderStageCommandsArgs, BenchLocalRenderToolComparisonTemplateArgs,
-    BenchLocalValidateStageResultArgs,
+    BenchLocalValidateCorpusFixtureArgs, BenchLocalValidateStageResultArgs,
 };
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
