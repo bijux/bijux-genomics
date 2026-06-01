@@ -2,37 +2,54 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_core::contract::ArtifactRef;
 use bijux_dna_domain_fastq::params::qc_post::{QcAggregationEngine, QcAggregationScope};
 use bijux_dna_domain_fastq::{
     derived_governed_qc_lineage_hash, GovernedQcContributorV1, GovernedQcInputsManifestV1,
     GovernedQcManifestContributorV1, ReportQcReportV1, GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION,
     REPORT_QC_REPORT_SCHEMA_VERSION,
 };
+use bijux_dna_stage_contract::StagePlanV1;
 use serde::{Deserialize, Serialize};
 
 use crate::commands::benchmark::local_stage_inventory::{
-    load_local_stage_inventory, BenchLocalDomain, LocalStageReadinessKind,
+    load_local_stage_inventory, BenchLocalDomain, BenchLocalStageInventoryEntry,
+    LocalStageReadinessKind,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const LOCAL_STAGE_COMMAND_SCRIPT_SCHEMA_VERSION: &str = "bijux.bench.local_stage_commands.v1";
+const LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION: &str = "bijux.bench.local_stage_commands.v2";
 const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str = "target/local-ready/rendered-stage-commands.sh";
 const LOCAL_REPORT_QC_CONFIG_PATH: &str = "configs/bench/local/fastq-report-qc.toml";
 const LOCAL_REPORT_QC_CONFIG_SCHEMA_VERSION: &str = "bijux.bench.fastq.local_report_qc.v1";
 const DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR: &str = "target/local-smoke/fastq.report_qc";
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+pub(crate) struct BenchLocalStageArtifactEntry {
+    pub(crate) artifact_id: String,
+    pub(crate) path: String,
+    pub(crate) role: String,
+    pub(crate) optional: bool,
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct BenchLocalStageCommandEntry {
     pub(crate) stage_id: String,
     pub(crate) readiness_kind: LocalStageReadinessKind,
+    pub(crate) tool_id: String,
+    pub(crate) inputs: Vec<BenchLocalStageArtifactEntry>,
+    pub(crate) outputs: Vec<BenchLocalStageArtifactEntry>,
+    pub(crate) threads: u32,
+    pub(crate) memory_mb: u32,
     pub(crate) command: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalStageCommandScript {
+pub(crate) struct BenchLocalStageCommandManifest {
     pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
+    pub(crate) script_output_path: String,
+    pub(crate) manifest_output_path: String,
     pub(crate) command_count: usize,
     pub(crate) commands: Vec<BenchLocalStageCommandEntry>,
 }
@@ -76,14 +93,14 @@ pub(crate) fn run_render_stage_commands(
     args: &parse::BenchLocalRenderStageCommandsArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let script = render_local_stage_commands(
+    let manifest = render_local_stage_commands(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_RENDERED_STAGE_COMMANDS_PATH)),
     )?;
     if args.json {
-        render::json::print_pretty(&script)?;
+        render::json::print_pretty(&manifest)?;
     } else {
-        println!("{}", script.output_path);
+        println!("{}", manifest.script_output_path);
     }
     Ok(())
 }
@@ -236,26 +253,23 @@ fn materialize_feature_gated_stage(stage_id: &str) -> Result<PathBuf> {
 pub(crate) fn render_local_stage_commands(
     repo_root: &Path,
     output_path: PathBuf,
-) -> Result<BenchLocalStageCommandScript> {
+) -> Result<BenchLocalStageCommandManifest> {
     let fastq = load_local_stage_inventory(repo_root, BenchLocalDomain::Fastq)?;
     let bam = load_local_stage_inventory(repo_root, BenchLocalDomain::Bam)?;
     let commands = fastq
         .stages
         .into_iter()
         .chain(bam.stages)
-        .map(|stage| BenchLocalStageCommandEntry {
-            command: format!(
-                "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id {}",
-                stage.stage_id
-            ),
-            readiness_kind: stage.readiness_kind,
-            stage_id: stage.stage_id,
-        })
-        .collect::<Vec<_>>();
+        .map(|stage| build_local_stage_command_entry(repo_root, stage))
+        .collect::<Result<Vec<_>>>()?;
 
     let absolute_output_path =
         if output_path.is_absolute() { output_path } else { repo_root.join(&output_path) };
     if let Some(parent) = absolute_output_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    let manifest_output_path = rendered_stage_commands_manifest_path(&absolute_output_path);
+    if let Some(parent) = manifest_output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
 
@@ -267,13 +281,346 @@ pub(crate) fn render_local_stage_commands(
     }
     fs::write(&absolute_output_path, script)
         .with_context(|| format!("write {}", absolute_output_path.display()))?;
-
-    Ok(BenchLocalStageCommandScript {
-        schema_version: LOCAL_STAGE_COMMAND_SCRIPT_SCHEMA_VERSION,
-        output_path: path_relative_to_repo(repo_root, &absolute_output_path),
+    let manifest = BenchLocalStageCommandManifest {
+        schema_version: LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION,
+        script_output_path: path_relative_to_repo(repo_root, &absolute_output_path),
+        manifest_output_path: path_relative_to_repo(repo_root, &manifest_output_path),
         command_count: commands.len(),
         commands,
+    };
+    bijux_dna_infra::atomic_write_json(&manifest_output_path, &manifest)?;
+
+    Ok(manifest)
+}
+
+fn build_local_stage_command_entry(
+    repo_root: &Path,
+    stage: BenchLocalStageInventoryEntry,
+) -> Result<BenchLocalStageCommandEntry> {
+    let plans = local_stage_plans(repo_root, &stage.stage_id)?;
+    if plans.is_empty() {
+        return Err(anyhow!(
+            "local benchmark stage `{}` did not yield any governed plans",
+            stage.stage_id
+        ));
+    }
+
+    let tool_id = plans[0].tool_id.as_str().to_string();
+    let threads = plans[0].resources.threads.max(1);
+    let memory_mb = plans[0].resources.mem_gb.max(1) * 1024;
+    for plan in &plans[1..] {
+        if plan.tool_id != plans[0].tool_id {
+            return Err(anyhow!(
+                "local benchmark stage `{}` mixes tool_ids `{}` and `{}` across governed plans",
+                stage.stage_id,
+                plans[0].tool_id.as_str(),
+                plan.tool_id.as_str()
+            ));
+        }
+        if plan.resources.threads.max(1) != threads {
+            return Err(anyhow!(
+                "local benchmark stage `{}` mixes thread counts `{threads}` and `{}` across governed plans",
+                stage.stage_id,
+                plan.resources.threads.max(1)
+            ));
+        }
+        if plan.resources.mem_gb.max(1) * 1024 != memory_mb {
+            return Err(anyhow!(
+                "local benchmark stage `{}` mixes memory ceilings `{memory_mb}` and `{}` MB across governed plans",
+                stage.stage_id,
+                plan.resources.mem_gb.max(1) * 1024
+            ));
+        }
+    }
+
+    Ok(BenchLocalStageCommandEntry {
+        stage_id: stage.stage_id.clone(),
+        readiness_kind: stage.readiness_kind,
+        tool_id,
+        inputs: aggregate_plan_artifacts(repo_root, &plans, |plan| &plan.io.inputs),
+        outputs: aggregate_plan_artifacts(repo_root, &plans, |plan| &plan.io.outputs),
+        threads,
+        memory_mb,
+        command: rendered_stage_materialize_command(&stage.stage_id),
     })
+}
+
+fn aggregate_plan_artifacts<F>(
+    repo_root: &Path,
+    plans: &[StagePlanV1],
+    select: F,
+) -> Vec<BenchLocalStageArtifactEntry>
+where
+    F: Fn(&StagePlanV1) -> &[ArtifactRef],
+{
+    let mut artifacts = plans
+        .iter()
+        .flat_map(|plan| select(plan).iter())
+        .map(|artifact| BenchLocalStageArtifactEntry {
+            artifact_id: artifact.name.as_str().to_string(),
+            path: path_relative_to_repo(repo_root, &artifact.path),
+            role: artifact.role.as_str().to_string(),
+            optional: artifact.optional,
+        })
+        .collect::<Vec<_>>();
+    artifacts.sort();
+    artifacts.dedup();
+    artifacts
+}
+
+fn local_stage_plans(repo_root: &Path, stage_id: &str) -> Result<Vec<StagePlanV1>> {
+    macro_rules! smoke_plans {
+        ($expr:expr) => {
+            Ok($expr?.into_iter().map(|case| case.plan).collect::<Vec<_>>())
+        };
+    }
+
+    match stage_id {
+        "fastq.cluster_otus" => {
+            smoke_plans!(bijux_dna_api::v1::api::fastq::local_cluster_otus_smoke_plans(repo_root))
+        }
+        "fastq.correct_errors" => {
+            smoke_plans!(bijux_dna_api::v1::api::fastq::local_correct_errors_smoke_plans(repo_root))
+        }
+        "fastq.deplete_host" => {
+            Ok(vec![bijux_dna_api::v1::api::fastq::local_deplete_host_plan(repo_root)?])
+        }
+        "fastq.deplete_reference_contaminants" => {
+            Ok(vec![bijux_dna_api::v1::api::fastq::local_deplete_reference_contaminants_plan(
+                repo_root,
+            )?])
+        }
+        "fastq.deplete_rrna" => {
+            Ok(vec![bijux_dna_api::v1::api::fastq::local_deplete_rrna_plan(repo_root)?])
+        }
+        "fastq.detect_adapters" => {
+            smoke_plans!(bijux_dna_api::v1::api::fastq::local_detect_adapters_smoke_plans(
+                repo_root
+            ))
+        }
+        "fastq.detect_duplicates_premerge" => smoke_plans!(
+            bijux_dna_api::v1::api::fastq::local_detect_duplicates_premerge_smoke_plans(repo_root)
+        ),
+        "fastq.estimate_library_complexity_prealign" => smoke_plans!(
+            bijux_dna_api::v1::api::fastq::local_estimate_library_complexity_prealign_smoke_plans(
+                repo_root,
+            )
+        ),
+        "fastq.extract_umis" => {
+            smoke_plans!(bijux_dna_api::v1::api::fastq::local_extract_umis_smoke_plans(repo_root))
+        }
+        "fastq.filter_low_complexity" => smoke_plans!(
+            bijux_dna_api::v1::api::fastq::local_filter_low_complexity_smoke_plans(repo_root)
+        ),
+        "fastq.filter_reads" => {
+            smoke_plans!(bijux_dna_api::v1::api::fastq::local_filter_reads_smoke_plans(repo_root))
+        }
+        "fastq.index_reference" => {
+            Ok(vec![bijux_dna_api::v1::api::fastq::local_index_reference_plan(repo_root)?])
+        }
+        "fastq.infer_asvs" => {
+            smoke_plans!(bijux_dna_api::v1::api::fastq::local_infer_asvs_smoke_plans(repo_root))
+        }
+        "fastq.merge_pairs" => {
+            smoke_plans!(bijux_dna_api::v1::api::fastq::local_merge_pairs_smoke_plans(repo_root))
+        }
+        "fastq.normalize_abundance" => smoke_plans!(
+            bijux_dna_api::v1::api::fastq::local_normalize_abundance_smoke_plans(repo_root)
+        ),
+        "fastq.normalize_primers" => smoke_plans!(
+            bijux_dna_api::v1::api::fastq::local_normalize_primers_smoke_plans(repo_root)
+        ),
+        "fastq.profile_overrepresented_sequences" => smoke_plans!(
+            bijux_dna_api::v1::api::fastq::local_profile_overrepresented_sequences_smoke_plans(
+                repo_root,
+            )
+        ),
+        "fastq.profile_read_lengths" => smoke_plans!(
+            bijux_dna_api::v1::api::fastq::local_profile_read_lengths_smoke_plans(repo_root)
+        ),
+        "fastq.profile_reads" => {
+            smoke_plans!(bijux_dna_api::v1::api::fastq::local_profile_reads_smoke_plans(repo_root))
+        }
+        "fastq.remove_chimeras" => {
+            smoke_plans!(bijux_dna_api::v1::api::fastq::local_remove_chimeras_smoke_plans(
+                repo_root
+            ))
+        }
+        "fastq.remove_duplicates" => smoke_plans!(
+            bijux_dna_api::v1::api::fastq::local_remove_duplicates_smoke_plans(repo_root)
+        ),
+        "fastq.report_qc" => {
+            Ok(vec![bijux_dna_api::v1::api::fastq::local_report_qc_smoke_plan(repo_root)?])
+        }
+        "fastq.screen_taxonomy" => {
+            Ok(vec![bijux_dna_api::v1::api::fastq::local_screen_taxonomy_plan(repo_root)?])
+        }
+        "fastq.trim_polyg_tails" => smoke_plans!(
+            bijux_dna_api::v1::api::fastq::local_trim_polyg_tails_smoke_plans(repo_root)
+        ),
+        "fastq.trim_reads" => {
+            smoke_plans!(bijux_dna_api::v1::api::fastq::local_trim_reads_smoke_plans(repo_root))
+        }
+        "fastq.trim_terminal_damage" => smoke_plans!(
+            bijux_dna_api::v1::api::fastq::local_trim_terminal_damage_smoke_plans(repo_root)
+        ),
+        "fastq.validate_reads" => {
+            smoke_plans!(bijux_dna_api::v1::api::fastq::local_validate_reads_smoke_plans(repo_root))
+        }
+        "bam.align" => {
+            Ok(vec![bijux_dna_api::v1::api::bam::bam_banks::local_align_plan(repo_root)?])
+        }
+        "bam.authenticity" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_authenticity_smoke_plans(
+                repo_root,
+            ))
+        }
+        "bam.complexity" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_complexity_smoke_plans(
+                repo_root,
+            ))
+        }
+        "bam.contamination" => {
+            Ok(vec![bijux_dna_api::v1::api::bam::bam_banks::local_contamination_plan(repo_root)?])
+        }
+        "bam.coverage" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_coverage_smoke_plans(
+                repo_root,
+            ))
+        }
+        "bam.damage" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_damage_smoke_plans(
+                repo_root,
+            ))
+        }
+        "bam.duplication_metrics" => smoke_plans!(
+            bijux_dna_api::v1::api::bam::bam_banks::local_duplication_metrics_smoke_plans(
+                repo_root,
+            )
+        ),
+        "bam.endogenous_content" => smoke_plans!(
+            bijux_dna_api::v1::api::bam::bam_banks::local_endogenous_content_smoke_plans(repo_root,)
+        ),
+        "bam.filter" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_filter_smoke_plans(
+                repo_root,
+            ))
+        }
+        "bam.gc_bias" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_gc_bias_smoke_plans(
+                repo_root,
+            ))
+        }
+        "bam.insert_size" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_insert_size_smoke_plans(
+                repo_root,
+            ))
+        }
+        "bam.length_filter" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_length_filter_smoke_plans(
+                repo_root,
+            ))
+        }
+        "bam.mapping_summary" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_mapping_summary_smoke_plans(
+                repo_root,
+            ))
+        }
+        "bam.mapq_filter" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_mapq_filter_smoke_plans(
+                repo_root,
+            ))
+        }
+        "bam.markdup" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_markdup_smoke_plans(
+                repo_root,
+            ))
+        }
+        "bam.overlap_correction" => smoke_plans!(
+            bijux_dna_api::v1::api::bam::bam_banks::local_overlap_correction_smoke_plans(repo_root,)
+        ),
+        "bam.qc_pre" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_qc_pre_smoke_plans(
+                repo_root,
+            ))
+        }
+        "bam.recalibration" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_recalibration_smoke_plans(
+                repo_root,
+            ))
+        }
+        "bam.sex" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_sex_smoke_plans(repo_root,))
+        }
+        "bam.validate" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_validate_smoke_plans(
+                repo_root,
+            ))
+        }
+        other => feature_gated_local_stage_plans(repo_root, other),
+    }
+}
+
+#[cfg(feature = "bam_downstream")]
+fn feature_gated_local_stage_plans(repo_root: &Path, stage_id: &str) -> Result<Vec<StagePlanV1>> {
+    macro_rules! smoke_plans {
+        ($expr:expr) => {
+            Ok($expr?.into_iter().map(|case| case.plan).collect::<Vec<_>>())
+        };
+    }
+
+    match stage_id {
+        "bam.bias_mitigation" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_bias_mitigation_smoke_plans(
+                repo_root,
+            ))
+        }
+        "bam.genotyping" => {
+            Ok(vec![bijux_dna_api::v1::api::bam::bam_banks::local_genotyping_plan(repo_root)?])
+        }
+        "bam.haplogroups" => {
+            Ok(vec![bijux_dna_api::v1::api::bam::bam_banks::local_haplogroups_plan(repo_root)?])
+        }
+        "bam.kinship" => {
+            smoke_plans!(bijux_dna_api::v1::api::bam::bam_banks::local_kinship_smoke_plans(
+                repo_root,
+            ))
+        }
+        other => Err(anyhow!("unsupported local benchmark stage `{other}`")),
+    }
+}
+
+#[cfg(not(feature = "bam_downstream"))]
+fn feature_gated_local_stage_plans(_repo_root: &Path, stage_id: &str) -> Result<Vec<StagePlanV1>> {
+    match stage_id {
+        "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship" => Err(
+            anyhow!(
+                "stage `{stage_id}` requires the `bam_downstream` feature for rendered local benchmark metadata; rerun with `cargo run -p bijux-dna --features bam_downstream -- bench local render-stage-commands`"
+            ),
+        ),
+        other => Err(anyhow!("unsupported local benchmark stage `{other}`")),
+    }
+}
+
+fn rendered_stage_materialize_command(stage_id: &str) -> String {
+    format!(
+        "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id {stage_id}"
+    )
+}
+
+fn rendered_stage_commands_manifest_path(script_output_path: &Path) -> PathBuf {
+    let json_name = script_output_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(|name| {
+            if let Some(stem) = name.strip_suffix(".sh") {
+                format!("{stem}.json")
+            } else {
+                format!("{name}.json")
+            }
+        })
+        .unwrap_or_else(|| "rendered-stage-commands.json".to_string());
+    script_output_path.with_file_name(json_name)
 }
 
 fn materialize_local_report_qc_smoke_report(repo_root: &Path) -> Result<PathBuf> {
@@ -482,10 +829,13 @@ fn repo_relative_pathbuf(repo_root: &Path, path: &Path) -> PathBuf {
 mod tests {
     use std::path::PathBuf;
 
+    use super::{materialize_local_report_qc_smoke_report, render_local_stage_commands};
+    #[cfg(feature = "bam_downstream")]
     use super::{
-        materialize_local_report_qc_smoke_report, render_local_stage_commands, BenchLocalDomain,
-        DEFAULT_RENDERED_STAGE_COMMANDS_PATH,
+        BenchLocalDomain, DEFAULT_RENDERED_STAGE_COMMANDS_PATH,
+        LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION,
     };
+    #[cfg(feature = "bam_downstream")]
     use crate::commands::benchmark::local_stage_inventory::load_local_stage_inventory;
 
     fn repo_root() -> PathBuf {
@@ -495,6 +845,7 @@ mod tests {
             .expect("canonicalize repo root")
     }
 
+    #[cfg(feature = "bam_downstream")]
     #[test]
     fn rendered_local_stage_commands_cover_governed_51_stage_slice() {
         let root = repo_root();
@@ -509,11 +860,37 @@ mod tests {
 
         assert_eq!(rendered.command_count, fastq.stage_count + bam.stage_count);
         assert_eq!(rendered.commands.len(), 51);
+        assert_eq!(rendered.schema_version, LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION);
+        assert_eq!(
+            rendered.manifest_output_path,
+            "target/local-ready/rendered-stage-commands.json"
+        );
         assert!(rendered.commands.iter().any(|entry| entry.stage_id == "fastq.report_qc"));
         assert!(rendered.commands.iter().all(|entry| {
-            entry.command.contains("bench local materialize-stage")
+            !entry.tool_id.is_empty()
+                && !entry.inputs.is_empty()
+                && !entry.outputs.is_empty()
+                && entry.threads >= 1
+                && entry.memory_mb >= 1024
+                && entry.command.contains("bench local materialize-stage")
                 && entry.command.contains(&entry.stage_id)
         }));
+    }
+
+    #[cfg(not(feature = "bam_downstream"))]
+    #[test]
+    fn rendered_local_stage_commands_explain_downstream_feature_requirement() {
+        let root = repo_root();
+        let error = render_local_stage_commands(
+            &root,
+            PathBuf::from("target/local-ready/rendered-stage-commands.sh"),
+        )
+        .expect_err("render without bam_downstream should explain the missing feature");
+
+        assert!(
+            error.to_string().contains("requires the `bam_downstream` feature"),
+            "missing-feature error should stay explicit: {error:#}"
+        );
     }
 
     #[test]
