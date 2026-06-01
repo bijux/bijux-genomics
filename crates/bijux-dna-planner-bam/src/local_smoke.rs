@@ -5,8 +5,8 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::prelude::{StageId, ToolExecutionSpecV1, ToolId};
 use bijux_dna_domain_bam::{
     params::{
-        ComplexityEffectiveParams, CoverageEffectiveParams, DuplicateAction, FilterEffectiveParams,
-        MarkDupEffectiveParams, OpticalDuplicatePolicy, UmiPolicy,
+        ComplexityEffectiveParams, CoverageEffectiveParams, DamageEffectiveParams, DuplicateAction,
+        FilterEffectiveParams, MarkDupEffectiveParams, OpticalDuplicatePolicy, UmiPolicy,
     },
     types::BedRegions,
     BamStage,
@@ -49,6 +49,8 @@ const LOCAL_OVERLAP_CORRECTION_CONFIG_PATH: &str =
     "configs/bench/local/bam-overlap-correction.toml";
 const DEFAULT_LOCAL_OVERLAP_CORRECTION_OUTPUT_DIR: &str =
     "target/local-smoke/bam.overlap_correction";
+const LOCAL_DAMAGE_CONFIG_PATH: &str = "configs/bench/local/bam-damage.toml";
+const DEFAULT_LOCAL_DAMAGE_OUTPUT_DIR: &str = "target/local-smoke/bam.damage";
 
 #[derive(Debug, Clone)]
 pub struct LocalValidateSmokeCasePlan {
@@ -234,6 +236,18 @@ pub struct LocalOverlapCorrectionSmokeCasePlan {
     pub plan: bijux_dna_stage_contract::StagePlanV1,
 }
 
+#[derive(Debug, Clone)]
+pub struct LocalDamageSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub expected_terminal_c_to_t_5p: f64,
+    pub expected_terminal_g_to_a_3p: f64,
+    pub expected_short_fragment_fraction: f64,
+    pub expected_damage_signal: String,
+    pub expected_strict_profile_upgraded: bool,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
 #[derive(Debug, Deserialize)]
 struct LocalValidateSmokeConfig {
     schema_version: String,
@@ -386,6 +400,17 @@ struct LocalOverlapCorrectionSmokeConfig {
     #[serde(default)]
     output_dir: Option<PathBuf>,
     cases: Vec<LocalOverlapCorrectionSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalDamageSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalDamageSmokeCase>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -558,6 +583,17 @@ struct LocalOverlapCorrectionSmokeCase {
     expected_pair_count: u64,
     expected_corrected_pairs: u64,
     expected_corrected_overlap_bases: u64,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalDamageSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    expected_terminal_c_to_t_5p: f64,
+    expected_terminal_g_to_a_3p: f64,
+    expected_short_fragment_fraction: f64,
+    expected_damage_signal: String,
+    expected_strict_profile_upgraded: bool,
 }
 
 const fn default_expect_pass() -> bool {
@@ -1007,6 +1043,36 @@ pub fn local_overlap_correction_smoke_plans(
         .map(|case| {
             build_local_overlap_correction_smoke_case(repo_root, &tool_spec, &output_root, case)
         })
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.damage` plans cannot be built.
+pub fn local_damage_smoke_plans(repo_root: &Path) -> Result<Vec<LocalDamageSmokeCasePlan>> {
+    let config = load_local_damage_smoke_config(repo_root)?;
+    ensure_unique_damage_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Damage;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.damage tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DAMAGE_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_damage_smoke_case(repo_root, &tool_spec, &output_root, case))
         .collect()
 }
 
@@ -1977,6 +2043,68 @@ fn build_local_overlap_correction_smoke_case(
     })
 }
 
+fn build_local_damage_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalDamageSmokeCase,
+) -> Result<LocalDamageSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.damage BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.expected_terminal_c_to_t_5p) {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` must keep expected_terminal_c_to_t_5p within [0, 1]",
+            case.sample_id
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.expected_terminal_g_to_a_3p) {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` must keep expected_terminal_g_to_a_3p within [0, 1]",
+            case.sample_id
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.expected_short_fragment_fraction) {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` must keep expected_short_fragment_fraction within [0, 1]",
+            case.sample_id
+        ));
+    }
+    if case.expected_damage_signal.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` must declare a non-empty expected_damage_signal",
+            case.sample_id
+        ));
+    }
+
+    let params = DamageEffectiveParams {
+        udg_model: bijux_dna_domain_bam::params::UdgModel::NonUdg,
+        pmd_threshold_5p: 0.3,
+        pmd_threshold_3p: 0.3,
+        trim_5p: 2,
+        trim_3p: 2,
+        damage_tool_profile: Some("ancient_dna_evidence".to_string()),
+        evidence_only: true,
+    };
+    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let plan = crate::tool_adapters::bam::damage::plan(tool_spec, &case.bam, &out_dir, &params)?;
+
+    Ok(LocalDamageSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        expected_terminal_c_to_t_5p: case.expected_terminal_c_to_t_5p,
+        expected_terminal_g_to_a_3p: case.expected_terminal_g_to_a_3p,
+        expected_short_fragment_fraction: case.expected_short_fragment_fraction,
+        expected_damage_signal: case.expected_damage_signal,
+        expected_strict_profile_upgraded: case.expected_strict_profile_upgraded,
+        plan,
+    })
+}
+
 fn hydrate_smoke_threads(tool_spec: &mut ToolExecutionSpecV1, threads: Option<u32>) {
     if let Some(threads) = threads {
         tool_spec.resources.threads = threads.max(1);
@@ -2025,6 +2153,19 @@ fn ensure_unique_mapping_summary_sample_ids(cases: &[LocalMappingSummarySmokeCas
                 "duplicate local-smoke bam.mapping_summary sample_id `{}`",
                 case.sample_id
             ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_damage_sample_ids(cases: &[LocalDamageSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.damage sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!("duplicate local-smoke bam.damage sample_id `{}`", case.sample_id));
         }
     }
     Ok(())
@@ -2461,6 +2602,23 @@ fn load_local_overlap_correction_smoke_config(
         return Err(anyhow!(
             "local-smoke bam.overlap_correction must declare at least one governed case"
         ));
+    }
+    Ok(config)
+}
+
+fn load_local_damage_smoke_config(repo_root: &Path) -> Result<LocalDamageSmokeConfig> {
+    let path = repo_root.join(LOCAL_DAMAGE_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalDamageSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_damage.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.damage schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!("local-smoke bam.damage must declare at least one governed case"));
     }
     Ok(config)
 }

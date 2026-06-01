@@ -8,16 +8,16 @@ use bijux_dna_stage_contract::StagePlanV1;
 pub mod stage_api {
     pub use crate::local_readiness::local_align_plan;
     pub use crate::local_smoke::{
-        local_complexity_smoke_plans, local_coverage_smoke_plans,
+        local_complexity_smoke_plans, local_coverage_smoke_plans, local_damage_smoke_plans,
         local_duplication_metrics_smoke_plans, local_endogenous_content_smoke_plans,
         local_filter_smoke_plans, local_gc_bias_smoke_plans, local_insert_size_smoke_plans,
         local_length_filter_smoke_plans, local_mapping_summary_smoke_plans,
         local_mapq_filter_smoke_plans, local_markdup_smoke_plans,
         local_overlap_correction_smoke_plans, local_qc_pre_smoke_plans, local_validate_smoke_plans,
         LocalComplexitySmokeCasePlan, LocalCoverageSmokeCasePlan, LocalCoverageSmokeExpectedRow,
-        LocalDuplicationMetricsSmokeCasePlan, LocalEndogenousContentSmokeCasePlan,
-        LocalFilterSmokeCasePlan, LocalGcBiasSmokeCasePlan, LocalGcBiasSmokeExpectedRow,
-        LocalInsertSizeSmokeCasePlan, LocalLengthFilterSmokeCasePlan,
+        LocalDamageSmokeCasePlan, LocalDuplicationMetricsSmokeCasePlan,
+        LocalEndogenousContentSmokeCasePlan, LocalFilterSmokeCasePlan, LocalGcBiasSmokeCasePlan,
+        LocalGcBiasSmokeExpectedRow, LocalInsertSizeSmokeCasePlan, LocalLengthFilterSmokeCasePlan,
         LocalMappingSummarySmokeCasePlan, LocalMapqFilterSmokeCasePlan, LocalMarkdupSmokeCasePlan,
         LocalOverlapCorrectionSmokeCasePlan, LocalQcPreSmokeCasePlan, LocalValidateSmokeCasePlan,
     };

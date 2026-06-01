@@ -101,10 +101,10 @@ fn documented_root_exports_remain_compilable() {
         &Path,
     ) -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalInsertSizeSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_insert_size_smoke_plans;
-    let _: fn(
-        &Path,
-    ) -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalGcBiasSmokeCasePlan>> =
+    let _: fn(&Path) -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalGcBiasSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_gc_bias_smoke_plans;
+    let _: fn(&Path) -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalDamageSmokeCasePlan>> =
+        bijux_dna_planner_bam::stage_api::local_damage_smoke_plans;
     let _: &str = bijux_dna_planner_bam::tool_adapters::tools::catalog::TOOLS_NAMESPACE;
 }
 
