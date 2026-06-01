@@ -3,9 +3,10 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::prelude::{ArtifactId, ArtifactRole, StageId, ToolExecutionSpecV1, ToolId};
 use bijux_dna_domain_bam::params::{
-    AlignEffectiveParams, ContaminationEffectiveParams, ContaminationScope,
-    HaplogroupEffectiveParams, ReadGroupSpec,
+    AlignEffectiveParams, ContaminationEffectiveParams, ContaminationScope, ReadGroupSpec,
 };
+#[cfg(feature = "bam_downstream")]
+use bijux_dna_domain_bam::params::HaplogroupEffectiveParams;
 use bijux_dna_domain_bam::{bam_alignment_strategy_for_tool, BamStage};
 use serde::Deserialize;
 
@@ -13,10 +14,12 @@ use crate::selection::{allowed_tools_for_stage, load_bam_domain_tool_execution_s
 
 const LOCAL_ALIGN_CONFIG_PATH: &str = "configs/bench/local/bam-align.toml";
 const LOCAL_CONTAMINATION_CONFIG_PATH: &str = "configs/bench/local/bam-contamination.toml";
+#[cfg(feature = "bam_downstream")]
 const LOCAL_HAPLOGROUPS_CONFIG_PATH: &str = "configs/bench/local/bam-haplogroups.toml";
 const LOCAL_RUNTIME_PROFILE_PATH: &str = "configs/runtime/profiles/local.toml";
 const DEFAULT_LOCAL_ALIGN_OUTPUT_DIR: &str = "target/local-ready/bam.align";
 const DEFAULT_LOCAL_CONTAMINATION_OUTPUT_DIR: &str = "target/local-ready/bam.contamination";
+#[cfg(feature = "bam_downstream")]
 const DEFAULT_LOCAL_HAPLOGROUPS_OUTPUT_DIR: &str = "target/local-ready/bam.haplogroups";
 
 #[derive(Debug, Deserialize)]
