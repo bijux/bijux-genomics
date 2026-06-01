@@ -8,6 +8,8 @@ mod cross_bam_catalog;
 mod domain_parity;
 #[path = "plan/filter_plan.rs"]
 mod filter_plan;
+#[path = "plan/local_correct_errors_smoke.rs"]
+mod local_correct_errors_smoke;
 #[path = "plan/local_detect_adapters_smoke.rs"]
 mod local_detect_adapters_smoke;
 #[path = "plan/local_detect_duplicates_premerge_smoke.rs"]
