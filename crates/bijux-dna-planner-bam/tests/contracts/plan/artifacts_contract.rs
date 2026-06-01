@@ -248,6 +248,7 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     let recal = bijux_dna_planner_bam::tool_adapters::bam::recalibration::plan(
         &dummy_tool("gatk"),
         bam,
+        Some(Path::new("reference.fasta")),
         out,
         &recal_params,
     )?;

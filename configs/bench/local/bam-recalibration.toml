@@ -1,0 +1,22 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.recalibration.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_recalibration.v1"
+tool_id = "gatk"
+threads = 2
+output_dir = "target/local-smoke/bam.recalibration"
+
+[[cases]]
+sample_id = "core-v1-recalibration-low-coverage-skip"
+bam = "assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam"
+reference = "assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta"
+known_sites = ["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"]
+mode = "standard"
+min_mean_coverage = 0.1
+min_breadth_1x = 0.05
+expected_status = "skipped"
+expected_reason = "coverage_below_gate"

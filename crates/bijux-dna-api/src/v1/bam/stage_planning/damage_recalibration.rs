@@ -116,7 +116,7 @@ pub(super) fn plan_damage_recalibration_stage(
                 bam_index: args.bai.as_deref(),
                 r1: None,
                 r2: None,
-                reference: None,
+                reference: args.reference.as_deref(),
                 sample_id: args.sample_id.as_deref(),
                 params: Some(&params_json),
             })

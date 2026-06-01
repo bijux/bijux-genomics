@@ -116,6 +116,7 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             tool_adapters::stages_post::recalibration::plan(
                 request.tool,
                 bam,
+                request.reference,
                 request.out_dir,
                 &params,
             )

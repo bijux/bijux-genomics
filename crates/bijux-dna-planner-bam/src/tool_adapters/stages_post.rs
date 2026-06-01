@@ -639,6 +639,7 @@ pub mod recalibration {
     pub fn plan(
         tool: &ToolExecutionSpecV1,
         bam: &Path,
+        reference: Option<&Path>,
         out_dir: &Path,
         params: &BqsrEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
@@ -646,9 +647,29 @@ pub mod recalibration {
             bijux_dna_domain_bam::BamStage::Recalibration,
             out_dir,
         );
-        let out_bam = out_dir.join("recalibrated.bam");
-        let recal_report = out_dir.join("recalibration.table");
-        let summary = out_dir.join("recalibration.summary.json");
+        let resolve_output = |name: &str| -> anyhow::Result<std::path::PathBuf> {
+            outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == name)
+                .map(|artifact| artifact.path.clone())
+                .ok_or_else(|| anyhow::anyhow!("bam.recalibration plan missing output `{name}`"))
+        };
+        let out_bam = resolve_output("recal_bam")?;
+        let out_bai = resolve_output("recal_bai")?;
+        let recal_report = resolve_output("recal_report")?;
+        let summary = resolve_output("summary")?;
+        let mut inputs = vec![bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("bam"),
+            bam.to_path_buf(),
+            ArtifactRole::Bam,
+        )];
+        if let Some(reference) = reference {
+            inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("reference"),
+                reference.to_path_buf(),
+                ArtifactRole::Reference,
+            ));
+        }
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_instance_id: None,
@@ -660,14 +681,18 @@ pub mod recalibration {
                 template: match tool.tool_id.as_str() {
                     "gatk" => crate::tool_adapters::tools::gatk::recalibration_args_with_outputs(
                         bam,
+                        reference,
                         &out_bam,
+                        &out_bai,
                         &recal_report,
                         &summary,
                         params,
                     ),
                     _ => crate::tool_adapters::tools::gatk::recalibration_args_with_outputs(
                         bam,
+                        reference,
                         &out_bam,
+                        &out_bai,
                         &recal_report,
                         &summary,
                         params,
@@ -675,17 +700,11 @@ pub mod recalibration {
                 },
             },
             resources: tool.resources.clone(),
-            io: StageIO {
-                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
-                    ArtifactId::from_static("bam"),
-                    bam.to_path_buf(),
-                    ArtifactRole::Bam,
-                )],
-                outputs,
-            },
+            io: StageIO { inputs, outputs },
             out_dir: out_dir.to_path_buf(),
             params: serde_json::json!({
                 "bam": bam,
+                "reference": reference,
                 "known_sites": params.known_sites,
                 "mode": params.mode,
                 "skip_criteria": params.skip_criteria,
@@ -703,7 +722,7 @@ pub mod recalibration {
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &["recal_bam", "recal_bai", "recal_report", "summary"],
+            &["recal_bam", "recal_bai", "recal_report", "summary", "stage_metrics"],
         )
     }
 }

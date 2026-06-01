@@ -290,6 +290,7 @@ fn recalibration_params_complete() -> Result<()> {
     let plan = bijux_dna_planner_bam::tool_adapters::bam::recalibration::plan(
         &dummy_tool("gatk"),
         Path::new("reads.bam"),
+        None,
         Path::new("out"),
         &params,
     )?;

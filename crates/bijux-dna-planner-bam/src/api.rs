@@ -14,14 +14,15 @@ pub mod stage_api {
         local_insert_size_smoke_plans, local_length_filter_smoke_plans,
         local_mapping_summary_smoke_plans, local_mapq_filter_smoke_plans,
         local_markdup_smoke_plans, local_overlap_correction_smoke_plans, local_qc_pre_smoke_plans,
-        local_sex_smoke_plans, local_validate_smoke_plans, LocalAuthenticitySmokeCasePlan,
-        LocalComplexitySmokeCasePlan, LocalCoverageSmokeCasePlan, LocalCoverageSmokeExpectedRow,
-        LocalDamageSmokeCasePlan, LocalDuplicationMetricsSmokeCasePlan,
-        LocalEndogenousContentSmokeCasePlan, LocalFilterSmokeCasePlan, LocalGcBiasSmokeCasePlan,
-        LocalGcBiasSmokeExpectedRow, LocalInsertSizeSmokeCasePlan, LocalLengthFilterSmokeCasePlan,
+        local_recalibration_smoke_plans, local_sex_smoke_plans, local_validate_smoke_plans,
+        LocalAuthenticitySmokeCasePlan, LocalComplexitySmokeCasePlan, LocalCoverageSmokeCasePlan,
+        LocalCoverageSmokeExpectedRow, LocalDamageSmokeCasePlan,
+        LocalDuplicationMetricsSmokeCasePlan, LocalEndogenousContentSmokeCasePlan,
+        LocalFilterSmokeCasePlan, LocalGcBiasSmokeCasePlan, LocalGcBiasSmokeExpectedRow,
+        LocalInsertSizeSmokeCasePlan, LocalLengthFilterSmokeCasePlan,
         LocalMappingSummarySmokeCasePlan, LocalMapqFilterSmokeCasePlan, LocalMarkdupSmokeCasePlan,
-        LocalOverlapCorrectionSmokeCasePlan, LocalQcPreSmokeCasePlan, LocalSexSmokeCasePlan,
-        LocalValidateSmokeCasePlan,
+        LocalOverlapCorrectionSmokeCasePlan, LocalQcPreSmokeCasePlan,
+        LocalRecalibrationSmokeCasePlan, LocalSexSmokeCasePlan, LocalValidateSmokeCasePlan,
     };
     #[cfg(feature = "bam_downstream")]
     pub use crate::local_smoke::{
