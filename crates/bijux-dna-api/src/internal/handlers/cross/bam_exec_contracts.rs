@@ -237,6 +237,57 @@ mod tests {
     }
 
     #[test]
+    fn insert_size_postprocess_emits_typed_summary() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let stage_dir = temp.path().join("insert_size");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        bijux_dna_infra::atomic_write_bytes(
+            &stage_dir.join("insert_size.metrics.txt"),
+            b"## htsjdk.samtools.metrics.StringHeader\n\
+# picard CollectInsertSizeMetrics synthetic fixture\n\
+## METRICS CLASS\tpicard.analysis.InsertSizeMetrics\n\
+MEDIAN_INSERT_SIZE\tMODE_INSERT_SIZE\tMEDIAN_ABSOLUTE_DEVIATION\tMIN_INSERT_SIZE\tMAX_INSERT_SIZE\tMEAN_INSERT_SIZE\tSTANDARD_DEVIATION\tREAD_PAIRS\tPAIR_ORIENTATION\tWIDTH_OF_10_PERCENT\tWIDTH_OF_20_PERCENT\tWIDTH_OF_30_PERCENT\tWIDTH_OF_40_PERCENT\tWIDTH_OF_50_PERCENT\tWIDTH_OF_60_PERCENT\tWIDTH_OF_70_PERCENT\tWIDTH_OF_80_PERCENT\tWIDTH_OF_90_PERCENT\tWIDTH_OF_99_PERCENT\tSAMPLE\tLIBRARY\tREAD_GROUP\n\
+20\t20\t5\t15\t30\t21.666666666666668\t6.236095644623236\t3\tFR\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\tNA\tNA\tNA\n",
+        )?;
+        bijux_dna_infra::atomic_write_bytes(
+            &stage_dir.join("insert_size.histogram.pdf"),
+            b"%PDF-1.4\n",
+        )?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::InsertSize);
+        plan.io.inputs[0].path = stage_dir.join("input.bam");
+        stage_postprocess(
+            bijux_dna_planner_bam::stage_api::BamStage::InsertSize,
+            &stage_dir,
+            &plan,
+        )?;
+        let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            stage_dir.join("insert_size.summary.json"),
+        )?)?;
+        assert_eq!(
+            payload.get("schema_version").and_then(serde_json::Value::as_str),
+            Some("bijux.bam.insert_size.v1")
+        );
+        assert_eq!(payload.get("report_present").and_then(serde_json::Value::as_bool), Some(true));
+        assert_eq!(
+            payload.get("histogram_present").and_then(serde_json::Value::as_bool),
+            Some(true)
+        );
+        assert_eq!(payload.get("read_pairs").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(
+            payload.get("median_insert_size").and_then(serde_json::Value::as_f64),
+            Some(20.0)
+        );
+        assert_eq!(
+            payload.get("mean_insert_size").and_then(serde_json::Value::as_f64),
+            Some(21.666666666666668)
+        );
+        assert_eq!(payload.get("min_insert_size").and_then(serde_json::Value::as_u64), Some(15));
+        assert_eq!(payload.get("max_insert_size").and_then(serde_json::Value::as_u64), Some(30));
+        assert_eq!(payload.get("insufficient_pairs_reason"), Some(&serde_json::Value::Null));
+        Ok(())
+    }
+
+    #[test]
     fn damage_and_authenticity_postprocess_emit_composite_artifacts() -> Result<()> {
         let temp = tempfile::tempdir()?;
         let bam_root = temp.path().join("bam");
