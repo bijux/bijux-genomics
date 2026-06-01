@@ -100,6 +100,70 @@ fn bench_local_render_slurm_scripts_fastq_json_reports_governed_27_stage_slice()
     }));
 }
 
+#[test]
+fn bench_local_render_slurm_scripts_fastq_json_reports_governed_run_paths() {
+    let payload =
+        run_cli_json(&["bench", "local", "render-slurm-scripts", "--domain", "fastq", "--json"]);
+    let scripts =
+        payload.get("scripts").and_then(serde_json::Value::as_array).expect("scripts array");
+
+    let validate_reads = scripts
+        .iter()
+        .find(|entry| {
+            entry.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.validate_reads")
+        })
+        .expect("validate reads entry");
+    assert_eq!(
+        validate_reads.get("stdout_path").and_then(serde_json::Value::as_str),
+        Some(
+            "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stdout.log"
+        )
+    );
+    assert_eq!(
+        validate_reads.get("stderr_path").and_then(serde_json::Value::as_str),
+        Some(
+            "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stderr.log"
+        )
+    );
+    assert_eq!(
+        validate_reads.get("result_root").and_then(serde_json::Value::as_str),
+        Some(
+            "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator"
+        )
+    );
+    assert_eq!(
+        validate_reads
+            .get("stage_result_manifest_path")
+            .and_then(serde_json::Value::as_str),
+        Some(
+            "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stage-result.json"
+        )
+    );
+
+    let index_reference = scripts
+        .iter()
+        .find(|entry| {
+            entry.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.index_reference")
+        })
+        .expect("index reference entry");
+    assert_eq!(
+        index_reference.get("stdout_path").and_then(serde_json::Value::as_str),
+        Some(
+            "target/slurm-dry-run/runs/local-benchmark-dry-run/planner-only/fastq.index_reference/sample-set/bowtie2_build/stdout.log"
+        )
+    );
+    assert_eq!(
+        index_reference
+            .get("stage_result_manifest_path")
+            .and_then(serde_json::Value::as_str),
+        Some(
+            "target/slurm-dry-run/runs/local-benchmark-dry-run/planner-only/fastq.index_reference/sample-set/bowtie2_build/stage-result.json"
+        )
+    );
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_slurm_scripts_bam_json_reports_governed_24_stage_slice() {
