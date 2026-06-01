@@ -10,6 +10,7 @@ pub enum BenchLocalDomainArg {
 pub enum BenchLocalDagWatchdogScenarioArg {
     NoGlobalWait,
     FailureIsolation,
+    PartialResume,
 }
 
 #[derive(Debug, Subcommand)]
