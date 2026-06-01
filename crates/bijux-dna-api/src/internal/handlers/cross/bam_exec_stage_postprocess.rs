@@ -313,16 +313,7 @@ fn stage_postprocess(
             )?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::GcBias => {
-            let path = stage_dir.join("gc_bias.metrics.json");
-            bijux_dna_infra::atomic_write_json(
-                &path,
-                &serde_json::json!({
-                    "report_present": stage_dir.join("gc_bias.metrics.txt").exists(),
-                    "plot_present": stage_dir.join("gc_bias.plot.pdf").exists(),
-                    "summary_present": stage_dir.join("gc_bias.summary.json").exists(),
-                }),
-            )
-            .with_context(|| format!("write {}", path.display()))?;
+            crate::internal::bam::stages::gc_bias::write_stage_gc_bias_summary(stage_dir, plan)?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Recalibration => {
             let path = stage_dir.join("recalibration.applicability.json");

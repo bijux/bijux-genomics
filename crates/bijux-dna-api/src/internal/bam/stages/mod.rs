@@ -2,6 +2,7 @@ pub(crate) mod complexity;
 pub(crate) mod coverage;
 pub(crate) mod duplication_metrics;
 pub(crate) mod filter;
+pub(crate) mod gc_bias;
 pub(crate) mod insert_size;
 pub(crate) mod length_filter;
 pub(crate) mod mapping_summary;
