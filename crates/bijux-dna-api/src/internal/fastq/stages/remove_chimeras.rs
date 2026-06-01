@@ -1,5 +1,6 @@
 use std::collections::{BTreeSet, HashMap};
-use std::path::PathBuf;
+use std::io::{BufRead, BufReader};
+use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::fastq::stages::trim_bench_common::benchmark_image_identity;
@@ -36,6 +37,26 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 const STAGE_ID: &str = "fastq.remove_chimeras";
+const LOCAL_REMOVE_CHIMERAS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.remove_chimeras.local_smoke.report.v1";
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct LocalRemoveChimerasSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    sample_id: String,
+    planned_tool_id: String,
+    report_tool_id: String,
+    checked_sequence_count: u64,
+    chimera_count: u64,
+    non_chimera_count: u64,
+    non_chimeric_fasta: String,
+    chimeras_tsv: String,
+    case_report_json: String,
+    chimera_metrics_json: String,
+    chimeras_fasta: String,
+    raw_backend_report: String,
+}
 
 /// Benchmark FASTQ chimera-removal tools under governed contracts.
 ///
@@ -977,6 +998,185 @@ fn validate_remove_chimeras_compatibility_metrics(
         ));
     }
     Ok(())
+}
+
+/// Materialize the governed local-smoke `fastq.remove_chimeras` artifact bundle.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_remove_chimeras_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases = bijux_dna_planner_fastq::stage_api::local_remove_chimeras_smoke_plans(&repo_root)?;
+    let [case] = cases.as_slice() else {
+        return Err(anyhow!(
+            "governed fastq.remove_chimeras local smoke must resolve exactly one case"
+        ));
+    };
+
+    let output_root = repo_root.join("target/local-smoke/fastq.remove_chimeras");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+    let summary = materialize_local_remove_chimeras_smoke_case(&repo_root, case, &output_root)?;
+    let report_path = output_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
+    Ok(output_root.join("non_chimeric.fasta"))
+}
+
+fn materialize_local_remove_chimeras_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalRemoveChimerasSmokeCasePlan,
+    output_root: &Path,
+) -> Result<LocalRemoveChimerasSmokeReport> {
+    let effective_params = serde_json::from_value::<ChimeraDetectionEffectiveParams>(
+        case.plan.effective_params.clone(),
+    )
+    .map_err(|error| anyhow!("decode remove-chimeras local-smoke effective params: {error}"))?;
+
+    let input_reads = repo_root.join(&case.reads);
+    let case_filtered_reads = resolve_smoke_output_path(
+        repo_root,
+        &required_smoke_output_path(&case.plan, "chimera_filtered_reads")?,
+    );
+    let case_report_json = resolve_smoke_output_path(
+        repo_root,
+        &required_smoke_output_path(&case.plan, "report_json")?,
+    );
+    let chimera_metrics_json = resolve_smoke_output_path(
+        repo_root,
+        &required_smoke_output_path(&case.plan, "chimera_metrics_json")?,
+    );
+    let chimeras_fasta = resolve_smoke_output_path(
+        repo_root,
+        &required_smoke_output_path(&case.plan, "chimeras_fasta")?,
+    );
+    let uchime_report_tsv = resolve_smoke_output_path(
+        repo_root,
+        &required_smoke_output_path(&case.plan, "uchime_report_tsv")?,
+    );
+
+    for path in [
+        &case_filtered_reads,
+        &case_report_json,
+        &chimera_metrics_json,
+        &chimeras_fasta,
+        &uchime_report_tsv,
+    ] {
+        if let Some(parent) = path.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+
+    let mut report = bijux_dna_domain_fastq::stages::contract::remove_chimeras(
+        &input_reads,
+        &case_filtered_reads,
+        &effective_params,
+        &chimera_metrics_json,
+        Some(&chimeras_fasta),
+        Some(&uchime_report_tsv),
+        Some(&uchime_report_tsv),
+    )?;
+
+    report.input_reads = case.reads.display().to_string();
+    report.output_reads = path_relative_to_repo(repo_root, &case_filtered_reads);
+    report.chimera_metrics_json = path_relative_to_repo(repo_root, &chimera_metrics_json);
+    report.chimeras_fasta = Some(path_relative_to_repo(repo_root, &chimeras_fasta));
+    report.uchime_report_tsv = Some(path_relative_to_repo(repo_root, &uchime_report_tsv));
+    report.raw_backend_report = Some(path_relative_to_repo(repo_root, &uchime_report_tsv));
+    bijux_dna_infra::atomic_write_json(&case_report_json, &report)?;
+
+    let non_chimeric_fasta = output_root.join("non_chimeric.fasta");
+    write_fastq_as_fasta(&case_filtered_reads, &non_chimeric_fasta)?;
+    let chimeras_tsv = output_root.join("chimeras.tsv");
+    copy_smoke_artifact(&uchime_report_tsv, &chimeras_tsv)?;
+
+    Ok(LocalRemoveChimerasSmokeReport {
+        schema_version: LOCAL_REMOVE_CHIMERAS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        sample_id: case.sample_id.clone(),
+        planned_tool_id: case.plan.tool_id.as_str().to_string(),
+        report_tool_id: report.tool_id,
+        checked_sequence_count: report.reads_in.unwrap_or(0),
+        chimera_count: report.chimeras_removed.unwrap_or(0),
+        non_chimera_count: report.reads_out.unwrap_or(0),
+        non_chimeric_fasta: path_relative_to_repo(repo_root, &non_chimeric_fasta),
+        chimeras_tsv: path_relative_to_repo(repo_root, &chimeras_tsv),
+        case_report_json: path_relative_to_repo(repo_root, &case_report_json),
+        chimera_metrics_json: path_relative_to_repo(repo_root, &chimera_metrics_json),
+        chimeras_fasta: path_relative_to_repo(repo_root, &chimeras_fasta),
+        raw_backend_report: path_relative_to_repo(repo_root, &uchime_report_tsv),
+    })
+}
+
+fn required_smoke_output_path(plan: &StagePlanV1, artifact_name: &str) -> Result<PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_name)
+        .map(|artifact| artifact.path.clone())
+        .ok_or_else(|| anyhow!("planned remove-chimeras output `{artifact_name}` missing"))
+}
+
+fn resolve_smoke_output_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+}
+
+fn copy_smoke_artifact(source: &Path, destination: &Path) -> Result<()> {
+    if let Some(parent) = destination.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+    std::fs::copy(source, destination).map(|_| ()).with_context(|| {
+        format!(
+            "copy local remove-chimeras artifact {} -> {}",
+            source.display(),
+            destination.display()
+        )
+    })
+}
+
+fn write_fastq_as_fasta(input_fastq: &Path, output_fasta: &Path) -> Result<()> {
+    let reader = open_fastq_reader(input_fastq)?;
+    let mut lines = reader.lines();
+    let mut fasta = String::new();
+    while let Some(header) = lines.next().transpose()? {
+        let sequence = lines
+            .next()
+            .transpose()?
+            .ok_or_else(|| anyhow!("missing sequence line in {}", input_fastq.display()))?;
+        let _plus = lines
+            .next()
+            .transpose()?
+            .ok_or_else(|| anyhow!("missing plus line in {}", input_fastq.display()))?;
+        let _quality = lines
+            .next()
+            .transpose()?
+            .ok_or_else(|| anyhow!("missing quality line in {}", input_fastq.display()))?;
+        let fasta_id = header.strip_prefix('@').unwrap_or(header.as_str());
+        fasta.push('>');
+        fasta.push_str(fasta_id);
+        fasta.push('\n');
+        fasta.push_str(&sequence);
+        fasta.push('\n');
+    }
+    std::fs::write(output_fasta, fasta)
+        .with_context(|| format!("write FASTA {}", output_fasta.display()))?;
+    Ok(())
+}
+
+fn open_fastq_reader(input_fastq: &Path) -> Result<Box<dyn BufRead>> {
+    let file = std::fs::File::open(input_fastq)
+        .with_context(|| format!("open FASTQ {}", input_fastq.display()))?;
+    if input_fastq.extension().and_then(|ext| ext.to_str()) == Some("gz") {
+        return Ok(Box::new(BufReader::new(flate2::read::MultiGzDecoder::new(file))));
+    }
+    Ok(Box::new(BufReader::new(file)))
 }
 
 fn governed_chimera_params(threads: u32) -> ChimeraDetectionEffectiveParams {

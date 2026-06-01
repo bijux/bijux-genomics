@@ -257,6 +257,18 @@ pub fn write_local_remove_duplicates_smoke_report() -> Result<PathBuf> {
     crate::internal::fastq::stages::remove_duplicates::write_local_remove_duplicates_smoke_report()
 }
 
+/// Materialize the governed local-smoke `fastq.remove_chimeras` artifacts.
+///
+/// The written primary artifact lives at `target/local-smoke/fastq.remove_chimeras/non_chimeric.fasta`
+/// under the active repository root, alongside the top-level `chimeras.tsv` and `report.json`.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_remove_chimeras_smoke_report() -> Result<PathBuf> {
+    crate::internal::fastq::stages::remove_chimeras::write_local_remove_chimeras_smoke_report()
+}
+
 /// Materialize the governed local-smoke `fastq.trim_reads` report bundle.
 ///
 /// The written summary artifact lives at `target/local-smoke/fastq.trim_reads/report.json`
