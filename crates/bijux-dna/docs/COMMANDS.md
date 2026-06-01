@@ -134,7 +134,8 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local validate-pipeline-dag`
   `validate-pipeline-dag` checks governed local pipeline DAG configs such as
   `configs/pipelines/local/fastq-core-preprocess.toml` and
-  `configs/pipelines/local/fastq-paired-merge.toml`, writes a validation report under
+  `configs/pipelines/local/fastq-paired-merge.toml` and
+  `configs/pipelines/local/fastq-edna-taxonomy.toml`, writes a validation report under
   `target/local-ready/pipeline-dag/`, proves the DAG is acyclic, and verifies that every node is
   inventory-aligned with declared inputs, outputs, and dependency handoffs.
 - `bijux-dna bench local render-corpus-skip-report`
