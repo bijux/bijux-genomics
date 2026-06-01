@@ -25,6 +25,7 @@ pub const BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.dupl
 pub const BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.complexity.v1";
 pub const BAM_COVERAGE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_summary.v1";
 pub const BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.insert_size.v1";
+pub const BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.gc_bias.v1";
 pub const BAM_DUPLICATE_POLICY_SCHEMA_VERSION: &str = "bijux.bam.duplicate_policy.v1";
 pub const BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION: &str = "bijux.bam.advisory_boundary.v1";
 pub const BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION: &str = "bijux.bam.workflow_template.v1";
@@ -352,6 +353,37 @@ pub struct BamInsertSizeSummaryV1 {
     pub pair_orientation_fr_fraction: Option<f64>,
     #[serde(default)]
     pub insufficient_pairs_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamGcBiasBinSummaryV1 {
+    pub gc_bin: u8,
+    pub windows: u64,
+    pub read_starts: u64,
+    pub normalized_coverage: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamGcBiasSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub input_bam: PathBuf,
+    pub reference_fasta: PathBuf,
+    #[serde(default)]
+    pub window_size: Option<u32>,
+    pub report_present: bool,
+    pub plot_present: bool,
+    pub total_clusters: u64,
+    pub aligned_reads: u64,
+    pub windows: u64,
+    pub read_starts: u64,
+    pub at_dropout: f64,
+    pub gc_dropout: f64,
+    pub gc_bias_score: f64,
+    #[serde(default)]
+    pub insufficient_reference_reason: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -2440,6 +2472,52 @@ pub fn summarize_tiny_bam_insert_size(input_bam: &Path) -> Result<BamInsertSizeS
     ))
 }
 
+/// Summarize GC-bias observations for a tiny BAM/SAM fixture and reference FASTA.
+///
+/// # Errors
+/// Returns an error if the input alignment or reference cannot be parsed.
+pub fn summarize_tiny_bam_gc_bias(
+    input_bam: &Path,
+    reference_fasta: &Path,
+    window_size: u32,
+) -> Result<(BamGcBiasSummaryV1, Vec<BamGcBiasBinSummaryV1>)> {
+    if window_size == 0 {
+        return Err(anyhow!("bam.gc_bias requires window_size greater than zero"));
+    }
+
+    let document = parse_tiny_sam(input_bam)?;
+    let references = parse_tiny_reference_fasta(reference_fasta)?;
+    let (rows, insufficient_reference_reason) =
+        tiny_gc_bias_rows(&document.records, &references, window_size);
+    let total_windows = rows.iter().map(|row| row.windows).sum::<u64>();
+    let read_starts = rows.iter().map(|row| row.read_starts).sum::<u64>();
+    let mapped_reads = document.records.iter().filter(|record| record.is_mapped()).count() as u64;
+    let at_dropout = dropout_pct(average_normalized_coverage(
+        rows.iter().filter(|row| row.gc_bin < 50).collect::<Vec<_>>().as_slice(),
+    ));
+    let gc_dropout = dropout_pct(average_normalized_coverage(
+        rows.iter().filter(|row| row.gc_bin > 50).collect::<Vec<_>>().as_slice(),
+    ));
+    let summary = BamGcBiasSummaryV1 {
+        schema_version: BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.gc_bias".to_string(),
+        input_bam: input_bam.to_path_buf(),
+        reference_fasta: reference_fasta.to_path_buf(),
+        window_size: Some(window_size),
+        report_present: true,
+        plot_present: true,
+        total_clusters: document.records.len() as u64,
+        aligned_reads: mapped_reads,
+        windows: total_windows,
+        read_starts,
+        at_dropout,
+        gc_dropout,
+        gc_bias_score: normalize_dropout_pct(at_dropout.max(gc_dropout)),
+        insufficient_reference_reason,
+    };
+    Ok((summary, rows))
+}
+
 /// Filter tiny BAM/SAM fixtures by minimum read length and emit retained length bounds.
 ///
 /// # Errors
@@ -2646,6 +2724,36 @@ pub fn summarize_bam_insert_size(
     build_insert_size_summary(stage_id, input_bam, report_present, histogram_present, metrics)
 }
 
+#[must_use]
+pub fn summarize_bam_gc_bias(
+    stage_id: &str,
+    input_bam: &Path,
+    reference_fasta: &Path,
+    window_size: Option<u32>,
+    report_present: bool,
+    plot_present: bool,
+    metrics: Option<&crate::metrics::GcBiasMetricsV1>,
+    insufficient_reference_reason: Option<String>,
+) -> BamGcBiasSummaryV1 {
+    BamGcBiasSummaryV1 {
+        schema_version: BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        reference_fasta: reference_fasta.to_path_buf(),
+        window_size,
+        report_present,
+        plot_present,
+        total_clusters: metrics.map_or(0, |metrics| metrics.total_clusters),
+        aligned_reads: metrics.map_or(0, |metrics| metrics.aligned_reads),
+        windows: metrics.map_or(0, |metrics| metrics.windows),
+        read_starts: metrics.map_or(0, |metrics| metrics.read_starts),
+        at_dropout: metrics.map_or(0.0, |metrics| metrics.at_dropout),
+        gc_dropout: metrics.map_or(0.0, |metrics| metrics.gc_dropout),
+        gc_bias_score: metrics.map_or(0.0, |metrics| metrics.gc_bias_score),
+        insufficient_reference_reason,
+    }
+}
+
 /// Summarize pre-QC core BAM metrics for a tiny BAM/SAM fixture.
 ///
 /// # Errors
@@ -2757,6 +2865,103 @@ fn build_insert_size_summary(
         pair_orientation_fr_fraction: populated_metrics
             .map(|metrics| metrics.pair_orientation_fr_fraction),
         insufficient_pairs_reason,
+    }
+}
+
+fn tiny_gc_bias_rows(
+    records: &[TinySamRecord],
+    references: &[TinyReferenceContig],
+    window_size: u32,
+) -> (Vec<BamGcBiasBinSummaryV1>, Option<String>) {
+    let mut windows_by_gc_bin = HashMap::<u8, u64>::new();
+    let mut read_starts_by_gc_bin = HashMap::<u8, u64>::new();
+    let mut gc_bin_by_window = HashMap::<(String, usize), u8>::new();
+    let window_size = window_size as usize;
+
+    for reference in references {
+        let full_windows = reference.sequence.len() / window_size;
+        for window_index in 0..full_windows {
+            let start = window_index * window_size;
+            let end = start + window_size;
+            let gc_bin = gc_bin_for_sequence(&reference.sequence[start..end]);
+            *windows_by_gc_bin.entry(gc_bin).or_insert(0) += 1;
+            gc_bin_by_window.insert((reference.name.clone(), window_index), gc_bin);
+        }
+    }
+
+    if gc_bin_by_window.is_empty() {
+        return (Vec::new(), Some("reference_gc_windows_unavailable".to_string()));
+    }
+
+    for record in records.iter().filter(|record| record.is_mapped() && record.pos > 0) {
+        let window_index = (record.pos as usize - 1) / window_size;
+        if let Some(gc_bin) = gc_bin_by_window.get(&(record.rname.clone(), window_index)).copied() {
+            *read_starts_by_gc_bin.entry(gc_bin).or_insert(0) += 1;
+        }
+    }
+
+    let total_windows = windows_by_gc_bin.values().sum::<u64>();
+    let total_read_starts = read_starts_by_gc_bin.values().sum::<u64>();
+    let mean_read_starts_per_window = if total_windows > 0 {
+        total_read_starts as f64 / total_windows as f64
+    } else {
+        0.0
+    };
+
+    let mut rows = windows_by_gc_bin
+        .into_iter()
+        .map(|(gc_bin, windows)| {
+            let read_starts = read_starts_by_gc_bin.get(&gc_bin).copied().unwrap_or(0);
+            let per_window_read_starts = if windows > 0 {
+                read_starts as f64 / windows as f64
+            } else {
+                0.0
+            };
+            let normalized_coverage = if mean_read_starts_per_window > 0.0 {
+                per_window_read_starts / mean_read_starts_per_window
+            } else {
+                0.0
+            };
+            BamGcBiasBinSummaryV1 { gc_bin, windows, read_starts, normalized_coverage }
+        })
+        .collect::<Vec<_>>();
+    rows.sort_by_key(|row| row.gc_bin);
+    (rows, None)
+}
+
+fn gc_bin_for_sequence(sequence: &str) -> u8 {
+    let gc_bases = sequence
+        .bytes()
+        .filter(|base| matches!(base.to_ascii_uppercase(), b'G' | b'C'))
+        .count();
+    let gc_fraction = if sequence.is_empty() {
+        0.0
+    } else {
+        gc_bases as f64 / sequence.len() as f64
+    };
+    (gc_fraction * 100.0).round() as u8
+}
+
+fn average_normalized_coverage(rows: &[&BamGcBiasBinSummaryV1]) -> Option<f64> {
+    if rows.is_empty() {
+        None
+    } else {
+        Some(rows.iter().map(|row| row.normalized_coverage).sum::<f64>() / rows.len() as f64)
+    }
+}
+
+fn dropout_pct(normalized_coverage: Option<f64>) -> f64 {
+    match normalized_coverage {
+        Some(value) if value < 1.0 => (1.0 - value) * 100.0,
+        _ => 0.0,
+    }
+}
+
+fn normalize_dropout_pct(value: f64) -> f64 {
+    if value > 1.0 {
+        value / 100.0
+    } else {
+        value
     }
 }
 
@@ -4127,6 +4332,32 @@ mod tests {
     }
 
     #[test]
+    fn bam_gc_bias_summary_round_trips() {
+        let payload = BamGcBiasSummaryV1 {
+            schema_version: BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.gc_bias".to_string(),
+            input_bam: PathBuf::from("input.bam"),
+            reference_fasta: PathBuf::from("reference.fasta"),
+            window_size: Some(10),
+            report_present: true,
+            plot_present: true,
+            total_clusters: 4,
+            aligned_reads: 4,
+            windows: 3,
+            read_starts: 4,
+            at_dropout: 25.0,
+            gc_dropout: 25.0,
+            gc_bias_score: 0.25,
+            insufficient_reference_reason: None,
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize gc-bias summary");
+        let roundtrip: BamGcBiasSummaryV1 =
+            serde_json::from_value(json).expect("roundtrip gc-bias summary");
+        assert_eq!(roundtrip, payload);
+    }
+
+    #[test]
     fn bam_filter_summary_round_trips() {
         let payload = BamFilterSummaryV1 {
             schema_version: BAM_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
@@ -4811,6 +5042,62 @@ pair003\t147\tchr1\t94\t60\t6M\t=\t70\t-30\tCCGGGG\tFFFFFF\tRG:Z:rg1\n",
         assert_eq!(summary.max_insert_size, Some(30));
         assert_eq!(summary.pair_orientation_fr_fraction, Some(1.0));
         assert_eq!(summary.insufficient_pairs_reason, None);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_gc_bias_reports_windowed_gc_bins() {
+        let temp = unique_temp_dir("bam-gc-bias");
+        let input = temp.join("input.sam");
+        let reference = temp.join("reference.fasta");
+        std::fs::write(&reference, ">chrgc\nAAAAATTTTTACGTACGTACCCCCCGGGGG\n")
+            .expect("write gc-bias reference");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chrgc\tLN:30\n\
+@RG\tID:rg1\tSM:sampleA\n\
+gc00_001\t0\tchrgc\t1\t60\t10M\t*\t0\t0\tAAAAATTTTT\tFFFFFFFFFF\tRG:Z:rg1\n\
+gc50_001\t0\tchrgc\t11\t60\t10M\t*\t0\t0\tACGTACGTAC\tFFFFFFFFFF\tRG:Z:rg1\n\
+gc50_002\t0\tchrgc\t13\t60\t10M\t*\t0\t0\tGTACGTACCC\tFFFFFFFFFF\tRG:Z:rg1\n\
+gc100_001\t0\tchrgc\t21\t60\t10M\t*\t0\t0\tCCCCCGGGGG\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write gc-bias fixture");
+
+        let (summary, rows) =
+            summarize_tiny_bam_gc_bias(&input, &reference, 10).expect("summarize gc-bias");
+        assert_eq!(summary.stage_id, "bam.gc_bias");
+        assert_eq!(summary.window_size, Some(10));
+        assert_eq!(summary.total_clusters, 4);
+        assert_eq!(summary.aligned_reads, 4);
+        assert_eq!(summary.windows, 3);
+        assert_eq!(summary.read_starts, 4);
+        assert_eq!(summary.at_dropout, 25.0);
+        assert_eq!(summary.gc_dropout, 25.0);
+        assert_eq!(summary.gc_bias_score, 0.25);
+        assert_eq!(summary.insufficient_reference_reason, None);
+        assert_eq!(
+            rows,
+            vec![
+                BamGcBiasBinSummaryV1 {
+                    gc_bin: 0,
+                    windows: 1,
+                    read_starts: 1,
+                    normalized_coverage: 0.75,
+                },
+                BamGcBiasBinSummaryV1 {
+                    gc_bin: 50,
+                    windows: 1,
+                    read_starts: 2,
+                    normalized_coverage: 1.5,
+                },
+                BamGcBiasBinSummaryV1 {
+                    gc_bin: 100,
+                    windows: 1,
+                    read_starts: 1,
+                    normalized_coverage: 0.75,
+                },
+            ]
+        );
     }
 
     #[test]

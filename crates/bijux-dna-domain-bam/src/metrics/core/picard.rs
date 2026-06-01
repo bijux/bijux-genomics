@@ -47,6 +47,7 @@ pub struct GcBiasMetricsV1 {
     pub total_clusters: u64,
     pub aligned_reads: u64,
     pub windows: u64,
+    pub read_starts: u64,
 }
 
 impl GcBiasMetricsV1 {
@@ -59,6 +60,7 @@ impl GcBiasMetricsV1 {
             total_clusters: 0,
             aligned_reads: 0,
             windows: 0,
+            read_starts: 0,
         }
     }
 }
@@ -107,6 +109,7 @@ pub fn parse_picard_gc_bias_metrics(path: &std::path::Path) -> anyhow::Result<Gc
         total_clusters: u64_field(&map, "TOTAL_CLUSTERS"),
         aligned_reads: u64_field(&map, "ALIGNED_READS"),
         windows: u64_field(&map, "WINDOWS"),
+        read_starts: u64_field(&map, "READ_STARTS"),
     })
 }
 
