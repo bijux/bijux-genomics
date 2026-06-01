@@ -165,6 +165,9 @@ Visible aliases are part of the operator surface:
   `tests/fixtures/databases/taxonomy-mini/manifest.toml` for declared taxa, lineage-table
   consistency, sequence-index paths, classifier-compatibility claims, source-manifest integrity,
   and backend bundle shape.
+- `bijux-dna bench local validate-slurm-shell-syntax`
+  `validate-slurm-shell-syntax` writes `target/slurm-dry-run/bash-n-report.json` and refuses any
+  generated `.sbatch` file under the selected dry-run root that fails `bash -n`.
 - `bijux-dna bench local validate-slurm-script-bodies`
   `validate-slurm-script-bodies` writes `target/slurm-dry-run/no-placeholder-report.json` and
   refuses generated `.sbatch` bodies that still contain placeholder markers, fake `echo execute`
