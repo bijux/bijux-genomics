@@ -236,6 +236,26 @@ fn bench_local_render_slurm_scripts_fastq_writes_bash_parseable_27_script_slice(
     assert!(script_body.contains("#SBATCH --job-name=fastq-validate_reads"));
     assert!(
         script_body.contains(
+            "#SBATCH --output=target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stdout.log"
+        )
+    );
+    assert!(
+        script_body.contains(
+            "#SBATCH --error=target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stderr.log"
+        )
+    );
+    assert!(
+        script_body.contains(
+            "RESULT_ROOT=target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator"
+        )
+    );
+    assert!(
+        script_body.contains(
+            "STAGE_RESULT_MANIFEST_PATH=target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stage-result.json"
+        )
+    );
+    assert!(
+        script_body.contains(
             "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.validate_reads"
         )
     );
