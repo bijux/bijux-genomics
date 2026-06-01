@@ -50,6 +50,7 @@ pub const BAM_SEX_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.sex_summary.v1";
 pub const BAM_SEX_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.sex_evidence.v1";
 pub const BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION: &str = "bijux.bam.haplogroup_readiness.v1";
 pub const BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION: &str = "bijux.bam.kinship_prerequisites.v1";
+pub const BAM_KINSHIP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.kinship_summary.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -833,6 +834,41 @@ pub struct BamSexInferenceEvidenceV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
+pub struct BamKinshipPairResultV1 {
+    pub sample_a: String,
+    pub sample_b: String,
+    pub overlap_snps: u32,
+    pub matching_sites: u32,
+    pub mismatch_sites: u32,
+    pub concordance: f64,
+    pub kinship_coefficient: f64,
+    pub relationship_label: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamKinshipSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    pub input_bam: PathBuf,
+    pub reference_panel: String,
+    pub reference_build: String,
+    pub population_scope: String,
+    pub min_overlap_snps: u32,
+    pub requires_cohort_context: bool,
+    pub sample_count: u32,
+    pub observed_max_overlap_snps: u32,
+    pub pair_count: u32,
+    pub status: String,
+    #[serde(default)]
+    pub insufficiency_reason: Option<String>,
+    #[serde(default)]
+    pub pairwise_results: Vec<BamKinshipPairResultV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct BamHaplogroupReadinessV1 {
     pub schema_version: String,
     pub stage_id: String,
@@ -1016,6 +1052,7 @@ struct TinySamDocument {
     reference_lengths: HashMap<String, u64>,
     read_groups: Vec<String>,
     read_group_samples: Vec<String>,
+    read_group_sample_map: HashMap<String, String>,
     records: Vec<TinySamRecord>,
 }
 
@@ -1070,12 +1107,23 @@ fn parse_tiny_sam(path: &Path) -> Result<TinySamDocument> {
                     }
                 }
                 Some("@RG") => {
+                    let mut read_group_id_value = None::<String>;
+                    let mut sample_id_value = None::<String>;
                     for field in &fields[1..] {
                         if let Some(read_group_id) = field.strip_prefix("ID:") {
-                            document.read_groups.push(read_group_id.to_string());
+                            let read_group_id = read_group_id.to_string();
+                            document.read_groups.push(read_group_id.clone());
+                            read_group_id_value = Some(read_group_id);
                         } else if let Some(sample_id) = field.strip_prefix("SM:") {
-                            document.read_group_samples.push(sample_id.to_string());
+                            let sample_id = sample_id.to_string();
+                            document.read_group_samples.push(sample_id.clone());
+                            sample_id_value = Some(sample_id);
                         }
+                    }
+                    if let (Some(read_group_id), Some(sample_id)) =
+                        (read_group_id_value, sample_id_value)
+                    {
+                        document.read_group_sample_map.insert(read_group_id, sample_id);
                     }
                 }
                 _ => {}
@@ -2196,6 +2244,7 @@ pub fn apply_duplicate_policy_tiny_bam(
         reference_lengths: input.reference_lengths.clone(),
         read_groups: input.read_groups.clone(),
         read_group_samples: input.read_group_samples.clone(),
+        read_group_sample_map: input.read_group_sample_map.clone(),
         records: output_records.clone(),
     };
     write_tiny_sam_from_document(
@@ -2532,6 +2581,7 @@ pub fn filter_tiny_bam_by_mapq(
         reference_lengths: input.reference_lengths.clone(),
         read_groups: input.read_groups.clone(),
         read_group_samples: input.read_group_samples.clone(),
+        read_group_sample_map: input.read_group_sample_map.clone(),
         records: filtered_records.clone(),
     };
     write_tiny_sam_from_document(
@@ -2798,6 +2848,7 @@ pub fn filter_tiny_bam(
         reference_lengths: input.reference_lengths.clone(),
         read_groups: input.read_groups.clone(),
         read_group_samples: input.read_group_samples.clone(),
+        read_group_sample_map: input.read_group_sample_map.clone(),
         records: filtered_records.clone(),
     };
     write_tiny_sam_from_document(
@@ -4029,6 +4080,188 @@ pub fn summarize_tiny_bam_sex(
     })
 }
 
+/// Summarize pairwise kinship signals from a tiny SAM/BAM fixture with governed panel context.
+///
+/// # Errors
+/// Returns an error if the tiny fixture cannot be parsed.
+pub fn summarize_tiny_bam_kinship(
+    input_bam: &Path,
+    method: &str,
+    reference_panel: &str,
+    reference_build: &str,
+    population_scope: &str,
+    min_overlap_snps: u32,
+    requires_cohort_context: bool,
+) -> Result<BamKinshipSummaryV1> {
+    let document = parse_tiny_sam(input_bam)?;
+    let sample_site_calls = tiny_kinship_site_calls(&document);
+    let mut sample_ids = sample_site_calls.keys().cloned().collect::<Vec<_>>();
+    sample_ids.sort();
+    sample_ids.dedup();
+
+    let mut observed_max_overlap_snps = 0_u32;
+    let mut pairwise_results = Vec::new();
+    for (left_index, sample_a) in sample_ids.iter().enumerate() {
+        for sample_b in sample_ids.iter().skip(left_index + 1) {
+            let Some(calls_a) = sample_site_calls.get(sample_a) else {
+                continue;
+            };
+            let Some(calls_b) = sample_site_calls.get(sample_b) else {
+                continue;
+            };
+            let (overlap_snps, result) =
+                build_tiny_kinship_pair_result(sample_a, sample_b, calls_a, calls_b, min_overlap_snps);
+            observed_max_overlap_snps = observed_max_overlap_snps.max(overlap_snps);
+            if let Some(result) = result {
+                pairwise_results.push(result);
+            }
+        }
+    }
+
+    let insufficiency_reason = if pairwise_results.is_empty() {
+        if sample_ids.len() < 2 {
+            Some("insufficient_pair_manifest".to_string())
+        } else if observed_max_overlap_snps < min_overlap_snps {
+            Some("insufficient_overlap_snps".to_string())
+        } else {
+            Some("no_pairwise_results".to_string())
+        }
+    } else {
+        None
+    };
+
+    Ok(BamKinshipSummaryV1 {
+        schema_version: BAM_KINSHIP_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.kinship".to_string(),
+        method: method.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        reference_panel: reference_panel.to_string(),
+        reference_build: reference_build.to_string(),
+        population_scope: population_scope.to_string(),
+        min_overlap_snps,
+        requires_cohort_context,
+        sample_count: sample_ids.len() as u32,
+        observed_max_overlap_snps,
+        pair_count: pairwise_results.len() as u32,
+        status: if pairwise_results.is_empty() {
+            "insufficient".to_string()
+        } else {
+            "ok".to_string()
+        },
+        insufficiency_reason,
+        pairwise_results,
+    })
+}
+
+fn tiny_kinship_site_calls(
+    document: &TinySamDocument,
+) -> HashMap<String, HashMap<(String, u64), Option<char>>> {
+    let mut calls = HashMap::<String, HashMap<(String, u64), Option<char>>>::new();
+    for record in document
+        .records
+        .iter()
+        .filter(|record| record.is_mapped() && record.pos > 0 && record.seq != "*")
+    {
+        let sample_id = kinship_sample_id_for_record(document, record);
+        let sample_calls = calls.entry(sample_id).or_default();
+        for (offset, base) in record.seq.chars().enumerate() {
+            let normalized = normalize_called_base(base);
+            let site = (record.rname.clone(), record.pos + offset as u64);
+            match sample_calls.get(&site).copied().flatten() {
+                Some(existing) if existing != normalized => {
+                    sample_calls.insert(site, None);
+                }
+                Some(_) => {}
+                None => {
+                    sample_calls.insert(site, Some(normalized));
+                }
+            }
+        }
+    }
+    calls
+}
+
+fn kinship_sample_id_for_record(document: &TinySamDocument, record: &TinySamRecord) -> String {
+    record
+        .read_group_id
+        .as_ref()
+        .and_then(|read_group_id| document.read_group_sample_map.get(read_group_id))
+        .cloned()
+        .or_else(|| document.read_group_samples.first().cloned())
+        .unwrap_or_else(|| "unknown".to_string())
+}
+
+fn normalize_called_base(base: char) -> char {
+    match base.to_ascii_uppercase() {
+        'A' | 'C' | 'G' | 'T' => base.to_ascii_uppercase(),
+        _ => 'N',
+    }
+}
+
+fn build_tiny_kinship_pair_result(
+    sample_a: &str,
+    sample_b: &str,
+    calls_a: &HashMap<(String, u64), Option<char>>,
+    calls_b: &HashMap<(String, u64), Option<char>>,
+    min_overlap_snps: u32,
+) -> (u32, Option<BamKinshipPairResultV1>) {
+    let mut overlap_snps = 0_u32;
+    let mut matching_sites = 0_u32;
+    for (site, base_a) in calls_a {
+        let Some(base_a) = *base_a else {
+            continue;
+        };
+        if base_a == 'N' {
+            continue;
+        }
+        let Some(Some(base_b)) = calls_b.get(site).copied() else {
+            continue;
+        };
+        if base_b == 'N' {
+            continue;
+        }
+        overlap_snps = overlap_snps.saturating_add(1);
+        if base_a == base_b {
+            matching_sites = matching_sites.saturating_add(1);
+        }
+    }
+
+    if overlap_snps < min_overlap_snps {
+        return (overlap_snps, None);
+    }
+
+    let mismatch_sites = overlap_snps.saturating_sub(matching_sites);
+    let concordance = round_metric(matching_sites as f64 / overlap_snps as f64);
+    let kinship_coefficient = round_metric(concordance / 2.0);
+    let relationship_label = classify_tiny_kinship_relationship(kinship_coefficient).to_string();
+
+    (
+        overlap_snps,
+        Some(BamKinshipPairResultV1 {
+            sample_a: sample_a.to_string(),
+            sample_b: sample_b.to_string(),
+            overlap_snps,
+            matching_sites,
+            mismatch_sites,
+            concordance,
+            kinship_coefficient,
+            relationship_label,
+        }),
+    )
+}
+
+fn classify_tiny_kinship_relationship(kinship_coefficient: f64) -> &'static str {
+    if kinship_coefficient >= 0.45 {
+        "duplicate_or_monozygotic"
+    } else if kinship_coefficient >= 0.177 {
+        "first_degree"
+    } else if kinship_coefficient >= 0.0884 {
+        "second_degree"
+    } else {
+        "unrelated"
+    }
+}
+
 fn find_named_contig(
     contig_order: &[String],
     reference_lengths: &HashMap<String, usize>,
@@ -4172,6 +4405,7 @@ pub fn correct_tiny_bam_overlaps(
         reference_lengths: input.reference_lengths.clone(),
         read_groups: input.read_groups.clone(),
         read_group_samples: input.read_group_samples.clone(),
+        read_group_sample_map: input.read_group_sample_map.clone(),
         records: corrected_records.clone(),
     };
     write_tiny_sam_from_document(
