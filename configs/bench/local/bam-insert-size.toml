@@ -1,0 +1,20 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.insert_size.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_insert_size.v1"
+tool_id = "picard"
+threads = 2
+output_dir = "target/local-smoke/bam.insert_size"
+
+[[cases]]
+sample_id = "core-v1-paired-triplet"
+bam = "assets/toy/core-v1/bam/insert_size_paired_triplet.sam"
+expected_read_pairs = 3
+expected_median_insert_size = 20.0
+expected_mean_insert_size = 21.666666666666668
+expected_min_insert_size = 15
+expected_max_insert_size = 30
