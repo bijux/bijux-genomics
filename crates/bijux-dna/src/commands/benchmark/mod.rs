@@ -2,6 +2,7 @@ pub(crate) mod config;
 pub(crate) mod corpus_fastq;
 pub(crate) mod corpus_metadata;
 pub(crate) mod fastq_bench;
+pub(crate) mod local_benchmark_summary;
 pub(crate) mod local_stage_commands;
 pub(crate) mod local_stage_fake_runs;
 pub(crate) mod local_stage_inventory;
