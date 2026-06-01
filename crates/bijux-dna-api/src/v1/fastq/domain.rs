@@ -232,6 +232,19 @@ pub fn write_local_filter_low_complexity_smoke_report() -> Result<PathBuf> {
     crate::internal::fastq::stages::filter_low_complexity::write_local_filter_low_complexity_smoke_report()
 }
 
+/// Materialize the governed local-smoke `fastq.normalize_abundance` artifacts.
+///
+/// The written summary artifact lives at
+/// `target/local-smoke/fastq.normalize_abundance/report.json` under the active repository root,
+/// alongside the top-level `normalized_abundance.tsv`.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_normalize_abundance_smoke_report() -> Result<PathBuf> {
+    crate::internal::fastq::stages::normalize_abundance::write_local_normalize_abundance_smoke_report()
+}
+
 /// Materialize the governed local-smoke `fastq.merge_pairs` artifacts.
 ///
 /// The written summary artifact lives at `target/local-smoke/fastq.merge_pairs/report.json`

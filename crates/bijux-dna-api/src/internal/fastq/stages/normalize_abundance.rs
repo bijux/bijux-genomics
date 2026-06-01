@@ -1,5 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -32,6 +32,24 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 const STAGE_ID: &str = "fastq.normalize_abundance";
+const LOCAL_NORMALIZE_ABUNDANCE_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.normalize_abundance.local_smoke.report.v1";
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct LocalNormalizeAbundanceSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    sample_id: String,
+    planned_tool_id: String,
+    report_tool_id: String,
+    method: String,
+    table_rows: u64,
+    sample_count: u64,
+    feature_count: u64,
+    zero_fraction: f64,
+    normalized_abundance_tsv: String,
+    case_report_json: String,
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct NormalizedAbundanceTableMetrics {
@@ -589,6 +607,118 @@ fn output_path_for(
 
 fn u64_to_f64(value: u64) -> f64 {
     value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+/// Materialize the governed local-smoke `fastq.normalize_abundance` artifact bundle.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_normalize_abundance_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases =
+        bijux_dna_planner_fastq::stage_api::local_normalize_abundance_smoke_plans(&repo_root)?;
+    let [case] = cases.as_slice() else {
+        return Err(anyhow!(
+            "governed fastq.normalize_abundance local smoke must resolve exactly one case"
+        ));
+    };
+
+    let output_root = repo_root.join("target/local-smoke/fastq.normalize_abundance");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+    let summary = materialize_local_normalize_abundance_smoke_case(&repo_root, case, &output_root)?;
+    let report_path = output_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
+    Ok(output_root.join("normalized_abundance.tsv"))
+}
+
+fn materialize_local_normalize_abundance_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalNormalizeAbundanceSmokeCasePlan,
+    output_root: &Path,
+) -> Result<LocalNormalizeAbundanceSmokeReport> {
+    let effective_params = serde_json::from_value::<AbundanceNormalizationEffectiveParams>(
+        case.plan.effective_params.clone(),
+    )
+    .map_err(|error| anyhow!("decode normalize_abundance local-smoke effective params: {error}"))?;
+
+    let input_table = repo_root.join(&case.abundance_table);
+    let outputs = resolve_normalize_abundance_outputs(&case.plan)?;
+    let case_normalized_table = resolve_smoke_output_path(repo_root, &outputs.normalized_table);
+    let case_report_json = resolve_smoke_output_path(repo_root, &outputs.report_json);
+
+    for path in [&case_normalized_table, &case_report_json] {
+        if let Some(parent) = path.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+
+    let runtime_report = bijux_dna_domain_fastq::stages::contract::normalize_abundance(
+        &input_table,
+        &effective_params,
+        &case_normalized_table,
+    )?;
+    let table_metrics = read_normalized_table_metrics(&case_normalized_table, &effective_params)?;
+
+    let mut report = canonical_normalize_abundance_report(
+        STAGE_ID,
+        "bijux",
+        &input_table,
+        &case_normalized_table,
+        &effective_params,
+        &table_metrics,
+        None,
+        None,
+        None,
+        false,
+        runtime_report.backend_metrics.clone(),
+    );
+    report.input_table = case.abundance_table.display().to_string();
+    report.normalized_abundance_tsv = path_relative_to_repo(repo_root, &case_normalized_table);
+    bijux_dna_infra::atomic_write_json(&case_report_json, &report)?;
+
+    let top_level_table = output_root.join("normalized_abundance.tsv");
+    copy_smoke_artifact(&case_normalized_table, &top_level_table)?;
+
+    Ok(LocalNormalizeAbundanceSmokeReport {
+        schema_version: LOCAL_NORMALIZE_ABUNDANCE_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        sample_id: case.sample_id.clone(),
+        planned_tool_id: case.plan.tool_id.as_str().to_string(),
+        report_tool_id: report.tool_id,
+        method: report.method,
+        table_rows: report.table_rows,
+        sample_count: report.sample_count,
+        feature_count: report.feature_count,
+        zero_fraction: report.zero_fraction,
+        normalized_abundance_tsv: path_relative_to_repo(repo_root, &top_level_table),
+        case_report_json: path_relative_to_repo(repo_root, &case_report_json),
+    })
+}
+
+fn resolve_smoke_output_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+}
+
+fn copy_smoke_artifact(source: &Path, destination: &Path) -> Result<()> {
+    if let Some(parent) = destination.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+    std::fs::copy(source, destination).map(|_| ()).with_context(|| {
+        format!(
+            "copy local normalize_abundance artifact {} -> {}",
+            source.display(),
+            destination.display()
+        )
+    })
 }
 
 #[cfg(test)]
