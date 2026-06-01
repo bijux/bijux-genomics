@@ -1,0 +1,25 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.filter.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_filter.v1"
+tool_id = "samtools"
+threads = 4
+output_dir = "target/local-smoke/bam.filter"
+
+[[cases]]
+sample_id = "core-v1-general-filter"
+bam = "assets/toy/core-v1/bam/filter_mixed_constraints.sam"
+expected_input_reads = 5
+expected_kept_reads = 1
+expected_removed_reads = 4
+expected_active_filters = ["mapq_threshold", "exclude_flags", "min_length", "remove_duplicates"]
+mapq_threshold = 20
+include_flags = []
+exclude_flags = [4]
+min_length = 8
+remove_duplicates = true
+base_quality_threshold = 20
