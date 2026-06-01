@@ -135,6 +135,34 @@ pub(crate) fn handle_meta_commands(
                         args,
                     )?;
                 }
+                BenchCommand::Local { command } => match command {
+                    cli::BenchLocalCommand::ListStages(args) => {
+                        let cwd = std::env::current_dir()?;
+                        let domain = match args.domain {
+                            cli::BenchLocalDomainArg::Fastq => {
+                                crate::commands::benchmark::local_stage_inventory::BenchLocalDomain::Fastq
+                            }
+                            cli::BenchLocalDomainArg::Bam => {
+                                crate::commands::benchmark::local_stage_inventory::BenchLocalDomain::Bam
+                            }
+                        };
+                        let inventory = crate::commands::benchmark::local_stage_inventory::load_local_stage_inventory(
+                            &cwd,
+                            domain,
+                        )?;
+                        if cli.json || args.json {
+                            render::json::print_pretty(&inventory)?;
+                        } else {
+                            println!(
+                                "{} local benchmark stages ({})",
+                                inventory.domain, inventory.stage_count
+                            );
+                            for stage in &inventory.stages {
+                                println!("{}\t{}", stage.stage_id, stage.readiness_kind.as_str());
+                            }
+                        }
+                    }
+                },
                 BenchCommand::CorpusFastq(args) => {
                     crate::commands::benchmark_corpus_fastq::run_benchmark_corpus_fastq(cli, args)?;
                 }

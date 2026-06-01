@@ -5,6 +5,7 @@ use super::BenchBamCommand;
 mod config;
 mod corpus_fastq;
 mod fastq;
+mod local;
 mod publication;
 mod suite;
 
@@ -26,6 +27,7 @@ pub use self::fastq::{
     BenchFastqStatsArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
     BenchFastqTrimTerminalDamageArgs, BenchFastqUmiArgs, BenchFastqValidateArgs,
 };
+pub use self::local::{BenchLocalCommand, BenchLocalDomainArg, BenchLocalListStagesArgs};
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
     BenchCorpusFastqReportArgs, BenchPublicationTargetsArgs,
@@ -60,6 +62,10 @@ pub enum BenchCommand {
     CorpusFastqPublicationStatus(BenchCorpusFastqPublicationStatusArgs),
     #[command(name = "corpus-fastq-published-dossiers")]
     CorpusFastqPublishedDossiers(BenchCorpusFastqPublishedDossiersArgs),
+    Local {
+        #[command(subcommand)]
+        command: BenchLocalCommand,
+    },
     Fastq {
         #[command(subcommand)]
         command: BenchFastqCommand,

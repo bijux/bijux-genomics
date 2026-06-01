@@ -51,6 +51,16 @@ pub(crate) enum LocalStageReadinessKind {
     DryOrSmoke,
 }
 
+impl LocalStageReadinessKind {
+    pub(crate) fn as_str(self) -> &'static str {
+        match self {
+            Self::DryRun => "dry_run",
+            Self::Smoke => "smoke",
+            Self::DryOrSmoke => "dry_or_smoke",
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct BenchLocalStageInventoryEntry {
     pub(crate) stage_id: String,
@@ -159,11 +169,8 @@ mod tests {
         assert_eq!(inventory.stage_count, 27);
         assert_eq!(inventory.stages.len(), 27);
         assert!(
-            inventory
-                .stages
-                .iter()
-                .any(|stage| stage.stage_id == "fastq.screen_taxonomy"
-                    && stage.readiness_kind == LocalStageReadinessKind::DryOrSmoke),
+            inventory.stages.iter().any(|stage| stage.stage_id == "fastq.screen_taxonomy"
+                && stage.readiness_kind == LocalStageReadinessKind::DryOrSmoke),
             "FASTQ local inventory must retain governed mixed readiness coverage"
         );
     }
@@ -178,11 +185,8 @@ mod tests {
         assert_eq!(inventory.stage_count, 24);
         assert_eq!(inventory.stages.len(), 24);
         assert!(
-            inventory
-                .stages
-                .iter()
-                .any(|stage| stage.stage_id == "bam.align"
-                    && stage.readiness_kind == LocalStageReadinessKind::DryOrSmoke),
+            inventory.stages.iter().any(|stage| stage.stage_id == "bam.align"
+                && stage.readiness_kind == LocalStageReadinessKind::DryOrSmoke),
             "BAM local inventory must retain governed mixed readiness coverage"
         );
     }
