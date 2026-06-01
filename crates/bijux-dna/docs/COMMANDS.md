@@ -146,6 +146,10 @@ Visible aliases are part of the operator surface:
   `target/local-ready/pipeline-dag/`, proves the DAG is acyclic, and verifies that every node is
   inventory-aligned with declared inputs, outputs, and dependency handoffs, including governed
   mixed FASTQ-to-BAM path handoffs for cross-domain DAGs.
+- `bijux-dna bench local simulate-dag-watchdog`
+  `simulate-dag-watchdog` writes governed DAG scheduling simulations such as
+  `target/local-ready/dag-sim/no-global-wait.json`, proving that dependency-ready nodes can start
+  without a global branch barrier while reusing the validated local pipeline DAG contracts.
 - `bijux-dna bench local render-corpus-skip-report`
   `render-corpus-skip-report` writes `target/local-ready/corpus-skip-report.json`, enumerating
   every incompatible corpus-fixture skip with its replacement corpus and keeping planner-only
