@@ -67,8 +67,11 @@ pub fn plan_screen_with_options(
     effective_params.report_format = report_format;
     effective_params.assignment_format = assignment_format;
     if let Some(database_root) = options.database_root.as_ref() {
-        let resolved_database_root =
-            std::fs::canonicalize(database_root).unwrap_or_else(|_| database_root.clone());
+        let resolved_database_root = if database_root.is_absolute() {
+            std::fs::canonicalize(database_root).unwrap_or_else(|_| database_root.clone())
+        } else {
+            database_root.clone()
+        };
         effective_params.contaminant_db = Some(resolved_database_root.display().to_string());
     }
     if let Some(threads) = options.threads {

@@ -59,6 +59,7 @@ The `stage_api` module is the curated compatibility surface for downstream stage
 - `local_deplete_host_plan`
 - `local_deplete_reference_contaminants_plan`
 - `local_deplete_rrna_plan`
+- `local_screen_taxonomy_plan`
 - `local_detect_adapters_smoke_plans`
 - `local_detect_duplicates_premerge_smoke_plans`
 - `local_estimate_library_complexity_prealign_smoke_plans`
