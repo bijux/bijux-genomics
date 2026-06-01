@@ -13,6 +13,8 @@ pub(crate) mod stage_planning;
 #[cfg(feature = "bam_downstream")]
 pub use domain::write_local_bias_mitigation_smoke_report;
 #[cfg(feature = "bam_downstream")]
+pub use domain::write_local_genotyping_plan;
+#[cfg(feature = "bam_downstream")]
 pub use domain::write_local_haplogroups_plan;
 pub use domain::{
     write_local_align_plan, write_local_authenticity_smoke_report,

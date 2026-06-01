@@ -58,6 +58,25 @@ pub fn write_local_haplogroups_plan() -> Result<PathBuf> {
     Ok(plan_path)
 }
 
+/// Materialize the governed local-ready `bam.genotyping` dry-run plan.
+///
+/// The written artifact lives at `target/local-ready/bam.genotyping/plan.json` under the active
+/// repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed planner config is
+/// invalid, or the plan artifact cannot be written.
+#[cfg(feature = "bam_downstream")]
+pub fn write_local_genotyping_plan() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let plan = bijux_dna_planner_bam::stage_api::local_genotyping_plan(&repo_root)?;
+    let plan_dir = resolve_plan_dir(&repo_root, &plan.out_dir);
+    bijux_dna_infra::ensure_dir(&plan_dir)?;
+    let plan_path = plan_dir.join("plan.json");
+    bijux_dna_infra::atomic_write_json(&plan_path, &plan)?;
+    Ok(plan_path)
+}
+
 /// Materialize the governed local-smoke `bam.validate` report bundle.
 ///
 /// The written summary artifact lives at `target/local-smoke/bam.validate/validation.json`
