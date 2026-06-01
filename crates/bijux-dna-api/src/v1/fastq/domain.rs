@@ -134,6 +134,18 @@ pub fn write_local_correct_errors_smoke_plan() -> Result<PathBuf> {
     Ok(plan_path)
 }
 
+/// Materialize the governed local-smoke `fastq.extract_umis` artifacts.
+///
+/// The written summary artifact lives at `target/local-smoke/fastq.extract_umis/report.json`
+/// under the active repository root, alongside the top-level `umi_extracted.fastq.gz`.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_extract_umis_smoke_report() -> Result<PathBuf> {
+    crate::internal::fastq::stages::extract_umis::write_local_extract_umis_smoke_report()
+}
+
 /// Materialize the governed local-smoke `fastq.validate_reads` report bundle.
 ///
 /// The written summary artifact lives at `target/local-smoke/fastq.validate_reads/report.json`
