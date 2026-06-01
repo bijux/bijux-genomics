@@ -64,6 +64,7 @@ The `stage_api` module is the curated compatibility surface for downstream stage
 - `local_estimate_library_complexity_prealign_smoke_plans`
 - `local_filter_low_complexity_smoke_plans`
 - `local_filter_reads_smoke_plans`
+- `local_infer_asvs_smoke_plans`
 - `local_index_reference_plan`
 - `local_merge_pairs_smoke_plans`
 - `local_normalize_primers_smoke_plans`

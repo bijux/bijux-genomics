@@ -218,6 +218,17 @@ pub fn local_filter_low_complexity_smoke_plans(
     crate::planner::local_filter_low_complexity_smoke_plans(repo_root)
 }
 
+/// Build the governed local-smoke case plans for `fastq.infer_asvs`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_infer_asvs_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalInferAsvsSmokeCasePlan>> {
+    crate::planner::local_infer_asvs_smoke_plans(repo_root)
+}
+
 /// Build the governed local-smoke case plans for `fastq.merge_pairs`.
 ///
 /// # Errors
