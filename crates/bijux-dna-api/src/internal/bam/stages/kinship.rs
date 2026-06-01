@@ -1,5 +1,7 @@
+#[cfg(feature = "bam_downstream")]
 use std::path::{Path, PathBuf};
 
+#[cfg(feature = "bam_downstream")]
 use anyhow::{anyhow, Context, Result};
 #[cfg(feature = "bam_downstream")]
 use serde::Serialize;
