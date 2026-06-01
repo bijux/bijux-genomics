@@ -20,36 +20,38 @@ mod mod_contracts_v1_cross_profile_contracts_rs;
 mod mod_contracts_v1_cross_public_contract_rs;
 #[path = "contracts/v1_dry_run_manifest.rs"]
 mod mod_contracts_v1_dry_run_manifest_rs;
-#[path = "contracts/v1_fastq_local_detect_adapters_smoke.rs"]
-mod mod_contracts_v1_fastq_local_detect_adapters_smoke_rs;
 #[path = "contracts/v1_fastq_local_correct_errors_smoke.rs"]
 mod mod_contracts_v1_fastq_local_correct_errors_smoke_rs;
-#[path = "contracts/v1_fastq_local_detect_duplicates_premerge_smoke.rs"]
-mod mod_contracts_v1_fastq_local_detect_duplicates_premerge_smoke_rs;
-#[path = "contracts/v1_fastq_local_deplete_rrna_plan.rs"]
-mod mod_contracts_v1_fastq_local_deplete_rrna_plan_rs;
 #[path = "contracts/v1_fastq_local_deplete_host_plan.rs"]
 mod mod_contracts_v1_fastq_local_deplete_host_plan_rs;
 #[path = "contracts/v1_fastq_local_deplete_reference_contaminants_plan.rs"]
 mod mod_contracts_v1_fastq_local_deplete_reference_contaminants_plan_rs;
+#[path = "contracts/v1_fastq_local_deplete_rrna_plan.rs"]
+mod mod_contracts_v1_fastq_local_deplete_rrna_plan_rs;
+#[path = "contracts/v1_fastq_local_detect_adapters_smoke.rs"]
+mod mod_contracts_v1_fastq_local_detect_adapters_smoke_rs;
+#[path = "contracts/v1_fastq_local_detect_duplicates_premerge_smoke.rs"]
+mod mod_contracts_v1_fastq_local_detect_duplicates_premerge_smoke_rs;
 #[path = "contracts/v1_fastq_local_estimate_library_complexity_prealign_smoke.rs"]
 mod mod_contracts_v1_fastq_local_estimate_library_complexity_prealign_smoke_rs;
+#[path = "contracts/v1_fastq_local_extract_umis_smoke.rs"]
+mod mod_contracts_v1_fastq_local_extract_umis_smoke_rs;
 #[path = "contracts/v1_fastq_local_filter_low_complexity_smoke.rs"]
 mod mod_contracts_v1_fastq_local_filter_low_complexity_smoke_rs;
 #[path = "contracts/v1_fastq_local_filter_reads_smoke.rs"]
 mod mod_contracts_v1_fastq_local_filter_reads_smoke_rs;
-#[path = "contracts/v1_fastq_local_merge_pairs_smoke.rs"]
-mod mod_contracts_v1_fastq_local_merge_pairs_smoke_rs;
-#[path = "contracts/v1_fastq_local_remove_duplicates_smoke.rs"]
-mod mod_contracts_v1_fastq_local_remove_duplicates_smoke_rs;
 #[path = "contracts/v1_fastq_local_index_reference_plan.rs"]
 mod mod_contracts_v1_fastq_local_index_reference_plan_rs;
+#[path = "contracts/v1_fastq_local_merge_pairs_smoke.rs"]
+mod mod_contracts_v1_fastq_local_merge_pairs_smoke_rs;
 #[path = "contracts/v1_fastq_local_normalize_primers_smoke.rs"]
 mod mod_contracts_v1_fastq_local_normalize_primers_smoke_rs;
 #[path = "contracts/v1_fastq_local_profile_read_lengths_smoke.rs"]
 mod mod_contracts_v1_fastq_local_profile_read_lengths_smoke_rs;
 #[path = "contracts/v1_fastq_local_profile_reads_smoke.rs"]
 mod mod_contracts_v1_fastq_local_profile_reads_smoke_rs;
+#[path = "contracts/v1_fastq_local_remove_duplicates_smoke.rs"]
+mod mod_contracts_v1_fastq_local_remove_duplicates_smoke_rs;
 #[path = "contracts/v1_fastq_local_trim_polyg_tails_smoke.rs"]
 mod mod_contracts_v1_fastq_local_trim_polyg_tails_smoke_rs;
 #[path = "contracts/v1_fastq_local_trim_reads_smoke.rs"]
