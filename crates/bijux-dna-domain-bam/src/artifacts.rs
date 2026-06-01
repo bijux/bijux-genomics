@@ -221,6 +221,9 @@ pub struct BamMapqFilterSummaryV1 {
     pub output_bam: PathBuf,
     pub flagstat_before: BamFlagstatCountsV1,
     pub flagstat_after: BamFlagstatCountsV1,
+    pub input_reads: u64,
+    pub kept_reads: u64,
+    pub removed_reads: u64,
     #[serde(default)]
     pub mapped_reads_removed: Option<u64>,
     #[serde(default)]
@@ -1989,6 +1992,9 @@ pub fn filter_tiny_bam_by_mapq(
         input.sort_order.as_deref().unwrap_or("unsorted"),
     )?;
     let after = flagstat_from_records(&filtered_records);
+    let input_reads = input.records.len() as u64;
+    let kept_reads = filtered_records.len() as u64;
+    let removed_reads = input_reads.saturating_sub(kept_reads);
     let mapped_reads_removed = match (before.mapped_reads, after.mapped_reads) {
         (Some(before_mapped), Some(after_mapped)) if before_mapped >= after_mapped => {
             Some(before_mapped - after_mapped)
@@ -2009,6 +2015,9 @@ pub fn filter_tiny_bam_by_mapq(
         output_bam: output_bam.to_path_buf(),
         flagstat_before: before,
         flagstat_after: after,
+        input_reads,
+        kept_reads,
+        removed_reads,
         mapped_reads_removed,
         mapped_fraction_retained,
     })
@@ -3232,6 +3241,9 @@ mod tests {
                 duplicate_reads: Some(8),
                 mapped_fraction: Some(0.875),
             },
+            input_reads: 100,
+            kept_reads: 80,
+            removed_reads: 20,
             mapped_reads_removed: Some(20),
             mapped_fraction_retained: Some(70.0 / 90.0),
         };
@@ -3797,6 +3809,9 @@ r03\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
 
         let summary = filter_tiny_bam_by_mapq(&input, &output, 30).expect("filter MAPQ");
         assert_eq!(summary.mapq_threshold, 30);
+        assert_eq!(summary.input_reads, 3);
+        assert_eq!(summary.kept_reads, 2);
+        assert_eq!(summary.removed_reads, 1);
         assert_eq!(summary.flagstat_before.mapped_reads, Some(2));
         assert_eq!(summary.flagstat_after.mapped_reads, Some(1));
         assert_eq!(summary.mapped_reads_removed, Some(1));
