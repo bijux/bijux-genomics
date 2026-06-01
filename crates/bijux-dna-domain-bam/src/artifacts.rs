@@ -21,6 +21,7 @@ pub const BAM_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.filter.v1";
 pub const BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapq_filter.v1";
 pub const BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.length_filter.v1";
 pub const BAM_MARKDUP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.markdup.v1";
+pub const BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.duplication_metrics.v1";
 pub const BAM_COVERAGE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_summary.v1";
 pub const BAM_DUPLICATE_POLICY_SCHEMA_VERSION: &str = "bijux.bam.duplicate_policy.v1";
 pub const BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION: &str = "bijux.bam.advisory_boundary.v1";
@@ -280,6 +281,28 @@ pub struct BamMarkdupSummaryV1 {
     pub duplicate_fraction_before: Option<f64>,
     #[serde(default)]
     pub duplicate_fraction_after: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamDuplicationMetricsSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    pub input_bam: PathBuf,
+    pub examined_reads: u64,
+    pub duplicate_reads: u64,
+    pub duplicate_fraction: f64,
+    #[serde(default)]
+    pub estimated_library_size: Option<u64>,
+    #[serde(default)]
+    pub insufficient_library_size_reason: Option<String>,
+    #[serde(default)]
+    pub optical_duplicates: Option<String>,
+    #[serde(default)]
+    pub umi_policy: Option<String>,
+    #[serde(default)]
+    pub duplicate_action: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -2081,6 +2104,81 @@ pub fn summarize_bam_markdup(
     }
 }
 
+/// Build a typed duplication-metrics summary from observed duplicate burden counts.
+#[must_use]
+pub fn summarize_bam_duplication_metrics(
+    stage_id: &str,
+    method: &str,
+    input_bam: &Path,
+    examined_reads: u64,
+    duplicate_reads: u64,
+    estimated_library_size: Option<u64>,
+    insufficient_library_size_reason: Option<&str>,
+    optical_duplicates: Option<&str>,
+    umi_policy: Option<&str>,
+    duplicate_action: Option<&str>,
+) -> BamDuplicationMetricsSummaryV1 {
+    let duplicate_fraction =
+        if examined_reads == 0 { 0.0 } else { duplicate_reads as f64 / examined_reads as f64 };
+    BamDuplicationMetricsSummaryV1 {
+        schema_version: BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        method: method.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        examined_reads,
+        duplicate_reads,
+        duplicate_fraction,
+        estimated_library_size,
+        insufficient_library_size_reason: insufficient_library_size_reason.map(ToOwned::to_owned),
+        optical_duplicates: optical_duplicates.map(ToOwned::to_owned),
+        umi_policy: umi_policy.map(ToOwned::to_owned),
+        duplicate_action: duplicate_action.map(ToOwned::to_owned),
+    }
+}
+
+/// Observe duplicate burden on a tiny BAM/SAM fixture without mutating alignment records.
+///
+/// # Errors
+/// Returns an error if input parsing fails.
+pub fn summarize_tiny_bam_duplication_metrics(
+    input_bam: &Path,
+    method: &str,
+    optical_duplicates: Option<&str>,
+    umi_policy: Option<&str>,
+    duplicate_action: Option<&str>,
+) -> Result<(BamDuplicationMetricsSummaryV1, Vec<(u64, u64)>)> {
+    let input = parse_tiny_sam(input_bam)?;
+    let mut observed = HashMap::<String, u64>::new();
+    for record in input.records.iter().filter(|record| record.is_mapped()) {
+        let key = format!("{}:{}:{}:{}", record.rname, record.pos, record.cigar, record.seq);
+        *observed.entry(key).or_insert(0) += 1;
+    }
+
+    let examined_reads = observed.values().copied().sum::<u64>();
+    let duplicate_reads =
+        observed.values().map(|family_size| family_size.saturating_sub(1)).sum::<u64>();
+    let mut family_histogram = HashMap::<u64, u64>::new();
+    for family_size in observed.values().copied() {
+        *family_histogram.entry(family_size).or_insert(0) += 1;
+    }
+    let mut family_histogram = family_histogram.into_iter().collect::<Vec<_>>();
+    family_histogram.sort_by_key(|(family_size, _)| *family_size);
+
+    let summary = summarize_bam_duplication_metrics(
+        "bam.duplication_metrics",
+        method,
+        input_bam,
+        examined_reads,
+        duplicate_reads,
+        None,
+        Some("tiny_smoke_duplicate_observation_is_insufficient_for_library_size_estimate"),
+        optical_duplicates,
+        umi_policy,
+        duplicate_action,
+    );
+    Ok((summary, family_histogram))
+}
+
 /// Filter tiny BAM/SAM fixtures by MAPQ and emit retained/removed evidence.
 ///
 /// # Errors
@@ -3490,6 +3588,32 @@ mod tests {
     }
 
     #[test]
+    fn bam_duplication_metrics_summary_round_trips() {
+        let payload = BamDuplicationMetricsSummaryV1 {
+            schema_version: BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.duplication_metrics".to_string(),
+            method: "samtools".to_string(),
+            input_bam: PathBuf::from("input.bam"),
+            examined_reads: 3,
+            duplicate_reads: 1,
+            duplicate_fraction: 1.0 / 3.0,
+            estimated_library_size: None,
+            insufficient_library_size_reason: Some(
+                "tiny_smoke_duplicate_observation_is_insufficient_for_library_size_estimate"
+                    .to_string(),
+            ),
+            optical_duplicates: Some("mark_only".to_string()),
+            umi_policy: Some("ignore".to_string()),
+            duplicate_action: Some("mark".to_string()),
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize duplication metrics summary");
+        let roundtrip: BamDuplicationMetricsSummaryV1 =
+            serde_json::from_value(json).expect("roundtrip duplication metrics summary");
+        assert_eq!(roundtrip, payload);
+    }
+
+    #[test]
     fn bam_filter_summary_round_trips() {
         let payload = BamFilterSummaryV1 {
             schema_version: BAM_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
@@ -4076,6 +4200,42 @@ r03\t0\tchr1\t7\t40\t6M\t*\t0\t0\tTTTTTT\tFFFFFF\tRG:Z:rg1\n",
         assert_eq!(removed.removed_reads, 1);
         assert_eq!(removed.newly_marked_reads, None);
         assert_eq!(removed.duplicate_reads_removed, Some(1));
+    }
+
+    #[test]
+    fn summarize_tiny_bam_duplication_metrics_reports_duplicate_burden() {
+        let temp = unique_temp_dir("bam-duplication-metrics");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:50\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t1\t40\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchr1\t1\t40\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchr1\t7\t40\t6M\t*\t0\t0\tTTTTTT\tFFFFFF\tRG:Z:rg1\n\
+r04\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write duplication metrics fixture");
+
+        let (summary, histogram) = summarize_tiny_bam_duplication_metrics(
+            &input,
+            "samtools",
+            Some("mark_only"),
+            Some("ignore"),
+            Some("mark"),
+        )
+        .expect("summarize duplication metrics");
+        assert_eq!(summary.method, "samtools");
+        assert_eq!(summary.examined_reads, 3);
+        assert_eq!(summary.duplicate_reads, 1);
+        assert!((summary.duplicate_fraction - (1.0 / 3.0)).abs() <= 1e-9);
+        assert_eq!(summary.estimated_library_size, None);
+        assert_eq!(
+            summary.insufficient_library_size_reason.as_deref(),
+            Some("tiny_smoke_duplicate_observation_is_insufficient_for_library_size_estimate")
+        );
+        assert_eq!(histogram, vec![(1, 1), (2, 1)]);
     }
 
     #[test]
