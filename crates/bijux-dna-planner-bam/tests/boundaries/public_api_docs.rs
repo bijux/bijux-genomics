@@ -91,6 +91,10 @@ fn documented_root_exports_remain_compilable() {
     ) -> Result<
         Vec<bijux_dna_planner_bam::stage_api::LocalDuplicationMetricsSmokeCasePlan>,
     > = bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> Result<Vec<bijux_dna_planner_bam::stage_api::LocalComplexitySmokeCasePlan>> =
+        bijux_dna_planner_bam::stage_api::local_complexity_smoke_plans;
     let _: &str = bijux_dna_planner_bam::tool_adapters::tools::catalog::TOOLS_NAMESPACE;
 }
 
