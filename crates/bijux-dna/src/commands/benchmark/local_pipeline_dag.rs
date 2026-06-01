@@ -697,4 +697,57 @@ mod tests {
             "bam.authenticity must not claim bam.sex as a required upstream metric"
         );
     }
+
+    #[test]
+    fn bam_genotyping_pipeline_dag_tracks_recalibration_skip_and_run_handoffs() {
+        let repo_root = repo_root();
+        let config_path = repo_root.join("configs/pipelines/local/bam-genotyping.toml");
+        let output_path = repo_root.join("target/local-ready/pipeline-dag/bam-genotyping.json");
+        let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect("validate bam genotyping local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "bam-genotyping");
+        assert_eq!(report.domain, "bam");
+        assert_eq!(report.default_corpus_id, "corpus-01-bam-mini");
+        assert_eq!(report.node_count, 4);
+        assert_eq!(report.edge_count, 5);
+        assert!(report.acyclic);
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.recalibration"
+                    && node.upstream_inputs == vec!["filtered_bam", "coverage_report_json"]
+                    && node.outputs
+                        == vec![
+                            "recalibrated_bam",
+                            "recalibrated_bai",
+                            "recalibration_report_text",
+                            "recalibration_summary_json",
+                            "recalibration_stage_metrics",
+                        ]
+            }),
+            "bam.recalibration must expose the coverage-gated decision summary plus recalibrated BAM outputs"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.genotyping"
+                    && node.readiness_kind == "dry_or_smoke"
+                    && node.depends_on == vec!["bam.filter", "bam.recalibration"]
+                    && node.upstream_inputs
+                        == vec![
+                            "filtered_bam",
+                            "filtered_bai",
+                            "recalibrated_bam",
+                            "recalibrated_bai",
+                            "recalibration_summary_json",
+                        ]
+                    && node.external_inputs
+                        == vec![
+                            "genotyping_reference_contract",
+                            "candidate_sites_vcf_contract",
+                            "target_regions_contract",
+                        ]
+            }),
+            "bam.genotyping must expose both the filtered-BAM skip path and recalibrated-BAM run path"
+        );
+    }
 }
