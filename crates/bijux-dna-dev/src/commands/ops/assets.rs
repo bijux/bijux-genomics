@@ -179,6 +179,10 @@ pub(super) fn assets_refresh_toy(
             "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:100\n@RG\tID:rg1\tSM:core-v1-mapq-filter\nmapq60\t0\tchr1\t1\t60\t8M\t*\t0\t0\tACGTACGT\tFFFFFFFF\tRG:Z:rg1\nmapq30\t0\tchr1\t12\t30\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\nmapq10\t0\tchr1\t24\t10\t8M\t*\t0\t0\tGGGGTTTT\tFFFFFFFF\tRG:Z:rg1\nunmapped\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNNNN\tFFFFFFFF\tRG:Z:rg1\n",
         )?;
         write_utf8(
+            &stage_dir.join("bam/length_threshold_ladder.sam"),
+            "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:100\n@RG\tID:rg1\tSM:core-v1-length-filter\nlen12\t0\tchr1\t1\t60\t12M\t*\t0\t0\tACGTACGTACGT\tFFFFFFFFFFFF\tRG:Z:rg1\nlen8\t0\tchr1\t20\t60\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\nlen5\t0\tchr1\t35\t60\t5M\t*\t0\t0\tGATTA\tFFFFF\tRG:Z:rg1\nunmapped10\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNNNNNN\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )?;
+        write_utf8(
             &stage_dir.join("bam/validation_reference.fasta"),
             ">chr1\nACGTACGTACGTACGTACGT\n",
         )?;
@@ -208,6 +212,7 @@ pub(super) fn assets_refresh_toy(
                 "bam/mapping_summary_partial_mapping.sam",
                 "bam/filter_mixed_constraints.sam",
                 "bam/mapq_threshold_ladder.sam",
+                "bam/length_threshold_ladder.sam",
                 "bam/validation_malformed.sam",
                 "bam/validation_pass.sam",
                 "bam/validation_pass.sam.bai",
@@ -226,6 +231,7 @@ pub(super) fn assets_refresh_toy(
                 "mapping_summary_partial_mapping.sam",
                 "filter_mixed_constraints.sam",
                 "mapq_threshold_ladder.sam",
+                "length_threshold_ladder.sam",
                 "validation_malformed.sam",
                 "validation_pass.sam",
                 "validation_pass.sam.bai",
@@ -261,6 +267,9 @@ Generated via `cargo run -p bijux-dna-dev -- assets run refresh-toy`.
 - `bam/toy.sam`
 - `bam/qc_pre_core_metrics.sam`
 - `bam/mapping_summary_partial_mapping.sam`
+- `bam/filter_mixed_constraints.sam`
+- `bam/mapq_threshold_ladder.sam`
+- `bam/length_threshold_ladder.sam`
 - `bam/validation_reference.fasta`
 - `bam/validation_pass.sam`
 - `bam/validation_pass.sam.bai`
