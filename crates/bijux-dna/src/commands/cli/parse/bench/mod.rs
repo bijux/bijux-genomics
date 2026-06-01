@@ -36,7 +36,8 @@ pub use self::local::{
     BenchLocalRenderStageCommandsArgs, BenchLocalRenderToolComparisonTemplateArgs,
     BenchLocalSimulateDagWatchdogArgs, BenchLocalValidateCorpusFixtureArgs,
     BenchLocalValidateCorpusStageCompatibilityArgs, BenchLocalValidatePipelineDagArgs,
-    BenchLocalValidateStageResultArgs, BenchLocalValidateTaxonomyDatabaseFixtureArgs,
+    BenchLocalValidateSlurmScriptBodiesArgs, BenchLocalValidateStageResultArgs,
+    BenchLocalValidateTaxonomyDatabaseFixtureArgs,
 };
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
