@@ -690,9 +690,15 @@ pub struct BamContaminationEvidenceV1 {
 pub struct BamEndogenousContentEstimateV1 {
     pub schema_version: String,
     pub stage_id: String,
+    pub method: String,
+    pub mapped_reads: u64,
+    pub total_reads: u64,
+    pub endogenous_fraction: f64,
     #[serde(default)]
     pub prealignment_fraction: Option<f64>,
     pub postalignment_fraction: f64,
+    #[serde(default)]
+    pub host_reference_scope: Option<String>,
     pub prealignment_meaning: String,
     pub postalignment_meaning: String,
     #[serde(default)]
@@ -3595,8 +3601,67 @@ pub fn estimate_endogenous_content(
     metrics: &BamMetricsV1,
     prealignment_fraction: Option<f64>,
 ) -> BamEndogenousContentEstimateV1 {
-    let postalignment_fraction = if metrics.alignment.total > 0 {
-        metrics.alignment.mapped as f64 / metrics.alignment.total as f64
+    build_endogenous_content_estimate(
+        "bam.endogenous_content",
+        "mapped_fraction_from_alignment_counts",
+        metrics.alignment.total,
+        metrics.alignment.mapped,
+        prealignment_fraction,
+        None,
+    )
+}
+
+/// Build a typed endogenous-content report from explicit mapped/total read counts.
+#[must_use]
+pub fn summarize_bam_endogenous_content(
+    stage_id: &str,
+    method: &str,
+    total_reads: u64,
+    mapped_reads: u64,
+    prealignment_fraction: Option<f64>,
+    host_reference_scope: Option<&str>,
+) -> BamEndogenousContentEstimateV1 {
+    build_endogenous_content_estimate(
+        stage_id,
+        method,
+        total_reads,
+        mapped_reads,
+        prealignment_fraction,
+        host_reference_scope,
+    )
+}
+
+/// Summarize endogenous content directly from a tiny SAM/BAM fixture.
+///
+/// # Errors
+/// Returns an error if the tiny fixture cannot be parsed.
+pub fn summarize_tiny_bam_endogenous_content(
+    input_bam: &Path,
+    method: &str,
+    host_reference_scope: &str,
+    prealignment_fraction: Option<f64>,
+) -> Result<BamEndogenousContentEstimateV1> {
+    let mapping = summarize_tiny_bam_mapping(input_bam)?;
+    Ok(summarize_bam_endogenous_content(
+        "bam.endogenous_content",
+        method,
+        mapping.flagstat.total_reads.unwrap_or(0),
+        mapping.flagstat.mapped_reads.unwrap_or(0),
+        prealignment_fraction,
+        Some(host_reference_scope),
+    ))
+}
+
+fn build_endogenous_content_estimate(
+    stage_id: &str,
+    method: &str,
+    total_reads: u64,
+    mapped_reads: u64,
+    prealignment_fraction: Option<f64>,
+    host_reference_scope: Option<&str>,
+) -> BamEndogenousContentEstimateV1 {
+    let postalignment_fraction = if total_reads > 0 {
+        mapped_reads as f64 / total_reads as f64
     } else {
         0.0
     };
@@ -3621,9 +3686,14 @@ pub fn estimate_endogenous_content(
     }
     BamEndogenousContentEstimateV1 {
         schema_version: BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION.to_string(),
-        stage_id: "bam.endogenous_content".to_string(),
+        stage_id: stage_id.to_string(),
+        method: method.to_string(),
+        mapped_reads,
+        total_reads,
+        endogenous_fraction: postalignment_fraction,
         prealignment_fraction,
         postalignment_fraction,
+        host_reference_scope: host_reference_scope.map(ToOwned::to_owned),
         prealignment_meaning:
             "fraction estimated before alignment from depletion/screening signals".to_string(),
         postalignment_meaning: "fraction of aligned reads relative to total reads after alignment"
@@ -4523,6 +4593,10 @@ mod tests {
         metrics.alignment.mapped = 62;
 
         let estimate = estimate_endogenous_content(&metrics, Some(0.20));
+        assert_eq!(estimate.method, "mapped_fraction_from_alignment_counts");
+        assert_eq!(estimate.mapped_reads, 62);
+        assert_eq!(estimate.total_reads, 100);
+        assert!((estimate.endogenous_fraction - 0.62).abs() < 1e-6);
         assert_eq!(estimate.prealignment_fraction, Some(0.20));
         assert!((estimate.postalignment_fraction - 0.62).abs() < 1e-6);
         assert!(estimate
@@ -4531,6 +4605,44 @@ mod tests {
             .any(|item| item.contains("prealignment and postalignment estimates diverge")));
         assert!(estimate.prealignment_meaning.contains("before alignment"));
         assert!(estimate.postalignment_meaning.contains("after alignment"));
+    }
+
+    #[test]
+    fn bam_endogenous_content_estimate_round_trips() {
+        let report = summarize_bam_endogenous_content(
+            "bam.endogenous_content",
+            "mapped_fraction_from_flagstat",
+            5,
+            3,
+            Some(0.58),
+            Some("human_host"),
+        );
+        let json = serde_json::to_value(&report).expect("serialize endogenous content");
+        let round_trip: BamEndogenousContentEstimateV1 =
+            serde_json::from_value(json).expect("deserialize endogenous content");
+        assert_eq!(round_trip, report);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_endogenous_content_reports_mapped_fraction_and_method() {
+        let input = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| panic!("workspace root"))
+            .join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam");
+        let summary = summarize_tiny_bam_endogenous_content(
+            &input,
+            "mapped_fraction_from_flagstat",
+            "human_host",
+            Some(0.60),
+        )
+        .expect("summarize endogenous content");
+        assert_eq!(summary.method, "mapped_fraction_from_flagstat");
+        assert_eq!(summary.mapped_reads, 3);
+        assert_eq!(summary.total_reads, 5);
+        assert!((summary.endogenous_fraction - 0.6).abs() < 1e-9);
+        assert_eq!(summary.prealignment_fraction, Some(0.60));
+        assert_eq!(summary.host_reference_scope.as_deref(), Some("human_host"));
     }
 
     #[test]

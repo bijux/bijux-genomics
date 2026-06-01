@@ -386,7 +386,7 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
         },
         BamStage::EndogenousContent => BamStageSpec {
             stage,
-            required_inputs: &["bam", "idxstats"],
+            required_inputs: &["bam"],
             artifact_policy: ArtifactPolicy {
                 required_outputs: &["endogenous_report", "summary", "stage_metrics"],
                 required_audit: required_audit_artifacts(stage),
