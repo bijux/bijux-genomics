@@ -30,6 +30,8 @@ mod local_filter_low_complexity_smoke;
 mod local_filter_reads_smoke;
 #[path = "plan/local_index_reference.rs"]
 mod local_index_reference;
+#[path = "plan/local_infer_asvs_smoke.rs"]
+mod local_infer_asvs_smoke;
 #[path = "plan/local_merge_pairs_smoke.rs"]
 mod local_merge_pairs_smoke;
 #[path = "plan/local_normalize_primers_smoke.rs"]
