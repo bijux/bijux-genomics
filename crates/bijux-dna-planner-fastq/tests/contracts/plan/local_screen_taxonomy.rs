@@ -71,6 +71,17 @@ fn local_screen_taxonomy_plan_uses_governed_corpus02_inputs() -> Result<()> {
         PathBuf::from("target/local-ready/fastq.screen_taxonomy/kraken2.classifications.json")
     );
 
+    let unclassified_r1_output = plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "unclassified_reads_r1")
+        .unwrap_or_else(|| panic!("unclassified_reads_r1 output missing from local-ready taxonomy plan"));
+    assert_eq!(
+        unclassified_r1_output.path,
+        PathBuf::from("target/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq")
+    );
+
     assert_eq!(
         plan.params["database_root"],
         serde_json::json!("assets/reference/taxonomy/references/mock_community_taxonomy")
@@ -88,7 +99,8 @@ fn local_screen_taxonomy_plan_uses_governed_corpus02_inputs() -> Result<()> {
     assert!(
         plan.command.template[2].contains("--db 'assets/reference/taxonomy/references/mock_community_taxonomy/kraken2'")
             && plan.command.template[2].contains("'target/local-ready/fastq.screen_taxonomy/kraken2.report.tsv'")
-            && plan.command.template[2].contains("'target/local-ready/fastq.screen_taxonomy/kraken2.classifications.native.tsv'"),
+            && plan.command.template[2].contains("'target/local-ready/fastq.screen_taxonomy/kraken2.classifications.native.tsv'")
+            && plan.command.template[2].contains("--unclassified-out 'target/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq'"),
         "local-ready taxonomy plan command must carry the governed database root and output paths"
     );
     Ok(())
