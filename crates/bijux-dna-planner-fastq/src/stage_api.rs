@@ -150,6 +150,17 @@ pub fn local_correct_errors_smoke_plans(
     crate::planner::local_correct_errors_smoke_plans(repo_root)
 }
 
+/// Build the governed local-smoke case plans for `fastq.extract_umis`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_extract_umis_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalExtractUmisSmokeCasePlan>> {
+    crate::planner::local_extract_umis_smoke_plans(repo_root)
+}
+
 /// Build the governed local-smoke case plans for
 /// `fastq.estimate_library_complexity_prealign`.
 ///

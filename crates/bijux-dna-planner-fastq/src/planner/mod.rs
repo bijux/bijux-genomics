@@ -64,7 +64,7 @@ pub use local_readiness::{
 pub use local_smoke::{
     local_correct_errors_smoke_plans, local_detect_adapters_smoke_plans,
     local_detect_duplicates_premerge_smoke_plans,
-    local_estimate_library_complexity_prealign_smoke_plans,
+    local_estimate_library_complexity_prealign_smoke_plans, local_extract_umis_smoke_plans,
     local_filter_low_complexity_smoke_plans, local_filter_reads_smoke_plans,
     local_merge_pairs_smoke_plans, local_normalize_primers_smoke_plans,
     local_profile_read_lengths_smoke_plans, local_profile_reads_smoke_plans,
@@ -72,12 +72,13 @@ pub use local_smoke::{
     local_trim_reads_smoke_plans, local_trim_terminal_damage_smoke_plans,
     local_validate_reads_smoke_plans, LocalCorrectErrorsSmokeCasePlan,
     LocalDetectAdaptersSmokeCasePlan, LocalDetectDuplicatesPremergeSmokeCasePlan,
-    LocalEstimateLibraryComplexityPrealignSmokeCasePlan, LocalFilterLowComplexitySmokeCasePlan,
-    LocalFilterReadsSmokeCasePlan, LocalMergePairsSmokeCasePlan,
-    LocalNormalizePrimersSmokeCasePlan, LocalProfileReadLengthsSmokeCasePlan,
-    LocalProfileReadsSmokeCasePlan, LocalRemoveDuplicatesSmokeCasePlan,
-    LocalTrimPolygTailsSmokeCasePlan, LocalTrimReadsSmokeCasePlan,
-    LocalTrimTerminalDamageSmokeCasePlan, LocalValidateReadsSmokeCasePlan,
+    LocalEstimateLibraryComplexityPrealignSmokeCasePlan, LocalExtractUmisSmokeCasePlan,
+    LocalFilterLowComplexitySmokeCasePlan, LocalFilterReadsSmokeCasePlan,
+    LocalMergePairsSmokeCasePlan, LocalNormalizePrimersSmokeCasePlan,
+    LocalProfileReadLengthsSmokeCasePlan, LocalProfileReadsSmokeCasePlan,
+    LocalRemoveDuplicatesSmokeCasePlan, LocalTrimPolygTailsSmokeCasePlan,
+    LocalTrimReadsSmokeCasePlan, LocalTrimTerminalDamageSmokeCasePlan,
+    LocalValidateReadsSmokeCasePlan,
 };
 pub(crate) use quality_sampling::estimate_mean_q;
 pub use route_expansion::{expand_pipeline_stage_tool_routes, select_preprocess_toolsets};

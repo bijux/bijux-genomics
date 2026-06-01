@@ -8,11 +8,13 @@ use bijux_dna_domain_fastq::banks::{
     DEFAULT_ADAPTER_PRESET,
 };
 use bijux_dna_domain_fastq::params::correct::QualityEncoding;
+use bijux_dna_domain_fastq::params::umi::{UmiFailedExtractionPolicy, UmiReadNameTransform};
 use bijux_dna_domain_fastq::params::validate::{PairSyncPolicy, ValidationMode};
 use bijux_dna_domain_fastq::stages::ids::STAGE_CORRECT_ERRORS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_DETECT_ADAPTERS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_DETECT_DUPLICATES_PREMERGE;
 use bijux_dna_domain_fastq::stages::ids::STAGE_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN;
+use bijux_dna_domain_fastq::stages::ids::STAGE_EXTRACT_UMIS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_FILTER_LOW_COMPLEXITY;
 use bijux_dna_domain_fastq::stages::ids::STAGE_FILTER_READS;
 use bijux_dna_domain_fastq::stages::ids::STAGE_MERGE_PAIRS;
@@ -30,12 +32,14 @@ use crate::selection::{
     allowed_tools_for_stage, load_fastq_domain_tool_execution_spec, select_correct_tools,
     select_detect_adapters_tools, select_filter_low_complexity_tools, select_filter_tools,
     select_merge_tools, select_normalize_primers_tools, select_profile_read_lengths_tools,
-    select_remove_duplicates_tools, select_stats_tools, select_trim_tools, select_validate_tools,
+    select_remove_duplicates_tools, select_stats_tools, select_trim_tools, select_umi_tools,
+    select_validate_tools,
 };
 use crate::tool_adapters::fastq::correct_errors::plan_correct_with_options;
 use crate::tool_adapters::fastq::detect_adapters::plan_with_options as plan_detect_adapters;
 use crate::tool_adapters::fastq::detect_duplicates_premerge::plan as plan_detect_duplicates_premerge;
 use crate::tool_adapters::fastq::estimate_library_complexity_prealign::plan as plan_estimate_library_complexity_prealign;
+use crate::tool_adapters::fastq::extract_umis::plan_umi_with_options;
 use crate::tool_adapters::fastq::filter_low_complexity::{
     plan_low_complexity, LowComplexityPlanOptions,
 };
@@ -66,6 +70,8 @@ const LOCAL_DETECT_ADAPTERS_CONFIG_PATH: &str = "configs/bench/local/fastq-detec
 const DEFAULT_LOCAL_DETECT_ADAPTERS_OUTPUT_DIR: &str = "target/local-smoke/fastq.detect_adapters";
 const LOCAL_CORRECT_ERRORS_CONFIG_PATH: &str = "configs/bench/local/fastq-correct-errors.toml";
 const DEFAULT_LOCAL_CORRECT_ERRORS_OUTPUT_DIR: &str = "target/local-smoke/fastq.correct_errors";
+const LOCAL_EXTRACT_UMIS_CONFIG_PATH: &str = "configs/bench/local/fastq-extract-umis.toml";
+const DEFAULT_LOCAL_EXTRACT_UMIS_OUTPUT_DIR: &str = "target/local-smoke/fastq.extract_umis";
 const LOCAL_DETECT_DUPLICATES_PREMERGE_CONFIG_PATH: &str =
     "configs/bench/local/fastq-detect-duplicates-premerge.toml";
 const DEFAULT_LOCAL_DETECT_DUPLICATES_PREMERGE_OUTPUT_DIR: &str =
@@ -139,6 +145,17 @@ pub struct LocalCorrectErrorsSmokeCasePlan {
     pub r2: Option<PathBuf>,
     pub quality_encoding: QualityEncoding,
     pub conservative_mode: bool,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalExtractUmisSmokeCasePlan {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub r2: PathBuf,
+    pub umi_pattern: String,
+    pub read_name_transform: UmiReadNameTransform,
+    pub failed_extraction_policy: UmiFailedExtractionPolicy,
     pub plan: bijux_dna_stage_contract::StagePlanV1,
 }
 
@@ -281,6 +298,31 @@ struct LocalCorrectErrorsSmokeConfig {
     #[serde(default)]
     output_dir: Option<PathBuf>,
     cases: Vec<LocalCorrectErrorsSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalExtractUmisSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    umi_pattern: Option<String>,
+    #[serde(default)]
+    extraction_location: Option<String>,
+    #[serde(default)]
+    read_name_transform: Option<String>,
+    #[serde(default)]
+    failed_extraction_policy: Option<String>,
+    #[serde(default)]
+    grouping_policy: Option<String>,
+    #[serde(default)]
+    downstream_dedup_policy: Option<String>,
+    #[serde(default)]
+    downstream_propagation: Option<String>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalExtractUmisSmokeCase>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -485,6 +527,13 @@ struct LocalCorrectErrorsSmokeCase {
 }
 
 #[derive(Debug, Deserialize)]
+struct LocalExtractUmisSmokeCase {
+    sample_id: String,
+    r1: PathBuf,
+    r2: PathBuf,
+}
+
+#[derive(Debug, Deserialize)]
 struct LocalDetectDuplicatesPremergeSmokeCase {
     sample_id: String,
     r1: PathBuf,
@@ -669,6 +718,62 @@ pub fn local_correct_errors_smoke_plans(
         .into_iter()
         .map(|case| {
             build_local_correct_errors_smoke_case(
+                repo_root,
+                &tool_spec,
+                &plan_options,
+                &output_root,
+                case,
+            )
+        })
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_extract_umis_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalExtractUmisSmokeCasePlan>> {
+    let config = load_local_extract_umis_smoke_config(repo_root)?;
+    ensure_unique_extract_umis_sample_ids(&config.cases)?;
+
+    let stage_id = StageId::new(STAGE_EXTRACT_UMIS.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    let normalized_tools = select_umi_tools(std::slice::from_ref(&config.tool_id))?;
+    if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
+        return Err(anyhow!(
+            "local-smoke fastq.extract_umis tool selection normalized unexpectedly: {:?}",
+            normalized_tools
+        ));
+    }
+    if !crate::stage_api::tool_supports_input_layout(&stage_id, &tool_id, true) {
+        return Err(anyhow!(
+            "local-smoke fastq.extract_umis tool_id `{}` does not support governed paired-end smoke inputs",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_EXTRACT_UMIS_OUTPUT_DIR));
+    let plan_options = crate::ExtractUmisStageParams {
+        threads: Some(tool_spec.resources.threads.max(1)),
+        umi_pattern: config.umi_pattern,
+        extraction_location: config.extraction_location,
+        read_name_transform: config.read_name_transform,
+        failed_extraction_policy: config.failed_extraction_policy,
+        grouping_policy: config.grouping_policy,
+        downstream_dedup_policy: config.downstream_dedup_policy,
+        downstream_propagation: config.downstream_propagation,
+    };
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| {
+            build_local_extract_umis_smoke_case(
                 repo_root,
                 &tool_spec,
                 &plan_options,
@@ -882,9 +987,8 @@ pub fn local_merge_pairs_smoke_plans(
         config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_MERGE_PAIRS_OUTPUT_DIR));
     let merge_overlap = config.merge_overlap.unwrap_or(10).max(1);
     let min_length = config.min_length.unwrap_or(30).max(1);
-    let unmerged_read_policy = parse_local_merge_pairs_unmerged_read_policy(
-        config.unmerged_read_policy.as_deref(),
-    )?;
+    let unmerged_read_policy =
+        parse_local_merge_pairs_unmerged_read_policy(config.unmerged_read_policy.as_deref())?;
     let plan_options = MergePlanOptions {
         threads: Some(tool_spec.resources.threads.max(1)),
         merge_overlap: Some(merge_overlap),
@@ -935,8 +1039,7 @@ pub fn local_remove_duplicates_smoke_plans(
 
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_smoke_threads(&mut tool_spec, config.threads);
-    let dedup_mode =
-        dedup_mode_from_literal(config.dedup_mode.as_deref().unwrap_or("exact"))?;
+    let dedup_mode = dedup_mode_from_literal(config.dedup_mode.as_deref().unwrap_or("exact"))?;
     let keep_order = config.keep_order.unwrap_or(true);
     let output_root = config
         .output_dir
@@ -1267,6 +1370,46 @@ fn build_local_correct_errors_smoke_case(
     })
 }
 
+fn build_local_extract_umis_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    options: &crate::ExtractUmisStageParams,
+    output_root: &Path,
+    case: LocalExtractUmisSmokeCase,
+) -> Result<LocalExtractUmisSmokeCasePlan> {
+    let r1_abs = repo_root.join(&case.r1);
+    if !r1_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke fastq.extract_umis r1 fixture is missing: {}",
+            r1_abs.display()
+        ));
+    }
+    let r2_abs = repo_root.join(&case.r2);
+    if !r2_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke fastq.extract_umis r2 fixture is missing: {}",
+            r2_abs.display()
+        ));
+    }
+
+    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let plan = plan_umi_with_options(tool_spec, &case.r1, &case.r2, &out_dir, options)?;
+    let effective_params = serde_json::from_value::<bijux_dna_domain_fastq::FastqUmiParams>(
+        plan.effective_params.clone(),
+    )
+    .map_err(|error| anyhow!("decode local-smoke fastq.extract_umis effective params: {error}"))?;
+
+    Ok(LocalExtractUmisSmokeCasePlan {
+        sample_id: case.sample_id,
+        r1: case.r1,
+        r2: case.r2,
+        umi_pattern: effective_params.umi_pattern.unwrap_or_else(|| "NNNNNNNN".to_string()),
+        read_name_transform: effective_params.read_name_transform,
+        failed_extraction_policy: effective_params.failed_extraction_policy,
+        plan,
+    })
+}
+
 fn build_local_detect_duplicates_premerge_smoke_case(
     repo_root: &Path,
     tool_spec: &ToolExecutionSpecV1,
@@ -1407,7 +1550,8 @@ fn build_local_filter_low_complexity_smoke_case(
     }
 
     let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
-    let plan = plan_low_complexity(tool_spec, &case.r1, case.r2.as_deref(), &out_dir, plan_options)?;
+    let plan =
+        plan_low_complexity(tool_spec, &case.r1, case.r2.as_deref(), &out_dir, plan_options)?;
 
     Ok(LocalFilterLowComplexitySmokeCasePlan {
         sample_id: case.sample_id,
@@ -1836,6 +1980,22 @@ fn ensure_unique_correct_errors_sample_ids(cases: &[LocalCorrectErrorsSmokeCase]
     Ok(())
 }
 
+fn ensure_unique_extract_umis_sample_ids(cases: &[LocalExtractUmisSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke fastq.extract_umis sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke fastq.extract_umis sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn parse_local_correct_errors_quality_encoding(value: Option<&str>) -> Result<QualityEncoding> {
     match value.unwrap_or("phred33") {
         "phred33" => Ok(QualityEncoding::Phred33),
@@ -1862,6 +2022,25 @@ fn load_local_correct_errors_smoke_config(
     if config.cases.is_empty() {
         return Err(anyhow!(
             "local-smoke fastq.correct_errors must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_extract_umis_smoke_config(repo_root: &Path) -> Result<LocalExtractUmisSmokeConfig> {
+    let path = repo_root.join(LOCAL_EXTRACT_UMIS_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalExtractUmisSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.fastq.local_extract_umis.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke fastq.extract_umis schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke fastq.extract_umis must declare at least one governed case"
         ));
     }
     Ok(config)
@@ -2046,13 +2225,13 @@ fn ensure_unique_merge_pairs_sample_ids(cases: &[LocalMergePairsSmokeCase]) -> R
     Ok(())
 }
 
-fn ensure_unique_remove_duplicates_sample_ids(cases: &[LocalRemoveDuplicatesSmokeCase]) -> Result<()> {
+fn ensure_unique_remove_duplicates_sample_ids(
+    cases: &[LocalRemoveDuplicatesSmokeCase],
+) -> Result<()> {
     let mut seen = BTreeSet::new();
     for case in cases {
         if case.sample_id.trim().is_empty() {
-            return Err(anyhow!(
-                "local-smoke fastq.remove_duplicates sample_id must not be empty"
-            ));
+            return Err(anyhow!("local-smoke fastq.remove_duplicates sample_id must not be empty"));
         }
         if !seen.insert(case.sample_id.clone()) {
             return Err(anyhow!(
@@ -2502,8 +2681,8 @@ fn parse_local_merge_pairs_unmerged_read_policy(
         "omit_unmerged_pairs" => {
             Ok(bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy::OmitUnmergedPairs)
         }
-        other => Err(anyhow!(
-            "unsupported local-smoke fastq.merge_pairs unmerged_read_policy `{other}`"
-        )),
+        other => {
+            Err(anyhow!("unsupported local-smoke fastq.merge_pairs unmerged_read_policy `{other}`"))
+        }
     }
 }
