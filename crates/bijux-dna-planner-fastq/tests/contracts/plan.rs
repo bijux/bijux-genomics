@@ -14,6 +14,8 @@ mod local_detect_adapters_smoke;
 mod local_detect_duplicates_premerge_smoke;
 #[path = "plan/local_deplete_host.rs"]
 mod local_deplete_host;
+#[path = "plan/local_deplete_reference_contaminants.rs"]
+mod local_deplete_reference_contaminants;
 #[path = "plan/local_deplete_rrna.rs"]
 mod local_deplete_rrna;
 #[path = "plan/local_estimate_library_complexity_prealign_smoke.rs"]
