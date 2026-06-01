@@ -1,0 +1,7 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chrbias	LN:30
+@RG	ID:rg-bias	SM:sample-bias
+bias00_001	0	chrbias	1	60	10M	*	0	0	AAAAATTTTT	FFFFFFFFFF	RG:Z:rg-bias
+bias50_001	0	chrbias	11	60	10M	*	0	0	ACGTACGTAC	FFFFFFFFFF	RG:Z:rg-bias
+bias50_002	0	chrbias	13	60	10M	*	0	0	GTACGTACCC	FFFFFFFFFF	RG:Z:rg-bias
+bias100_001	0	chrbias	21	60	10M	*	0	0	CCCCCGGGGG	FFFFFFFFFF	RG:Z:rg-bias
