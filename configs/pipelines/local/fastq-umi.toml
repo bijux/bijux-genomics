@@ -1,0 +1,114 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for the local FASTQ UMI preprocessing DAG.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "fastq-umi"
+domain = "fastq"
+summary = "FASTQ UMI DAG for governed validation, UMI extraction, duplicate-aware preprocessing, and QC collation."
+default_corpus_id = "corpus-01-mini"
+
+[[nodes]]
+node_id = "fastq.validate_reads"
+stage_id = "fastq.validate_reads"
+readiness_kind = "smoke"
+summary = "Validate governed paired FASTQ inputs before UMI-aware preprocessing consumes them."
+depends_on = []
+external_inputs = ["corpus.raw_fastq_reads"]
+upstream_inputs = []
+outputs = ["validated_reads", "validation_report"]
+
+[[nodes]]
+node_id = "fastq.extract_umis"
+stage_id = "fastq.extract_umis"
+readiness_kind = "smoke"
+summary = "Extract UMIs from governed validated reads and propagate the barcode metadata into downstream read headers and reports."
+depends_on = ["fastq.validate_reads"]
+external_inputs = ["umi_pattern_contract"]
+upstream_inputs = ["validated_reads"]
+outputs = ["umi_tagged_reads_r1", "umi_tagged_reads_r2", "umi_extraction_report"]
+
+[[nodes]]
+node_id = "fastq.detect_duplicates_premerge"
+stage_id = "fastq.detect_duplicates_premerge"
+readiness_kind = "smoke"
+summary = "Measure duplicate-like signal on the UMI-tagged reads before downstream read mutation changes the pair signatures."
+depends_on = ["fastq.extract_umis"]
+external_inputs = []
+upstream_inputs = ["umi_tagged_reads_r1", "umi_tagged_reads_r2"]
+outputs = ["duplicate_signal_report"]
+
+[[nodes]]
+node_id = "fastq.trim_reads"
+stage_id = "fastq.trim_reads"
+readiness_kind = "smoke"
+summary = "Trim the UMI-tagged reads while preserving the propagated UMI metadata in downstream read headers."
+depends_on = ["fastq.extract_umis"]
+external_inputs = []
+upstream_inputs = ["umi_tagged_reads_r1", "umi_tagged_reads_r2"]
+outputs = ["trimmed_umi_reads_r1", "trimmed_umi_reads_r2", "trim_metrics"]
+
+[[nodes]]
+node_id = "fastq.filter_reads"
+stage_id = "fastq.filter_reads"
+readiness_kind = "smoke"
+summary = "Filter the trimmed UMI-tagged reads before duplicate removal and downstream QC collation."
+depends_on = ["fastq.trim_reads"]
+external_inputs = []
+upstream_inputs = ["trimmed_umi_reads_r1", "trimmed_umi_reads_r2"]
+outputs = ["filtered_umi_reads_r1", "filtered_umi_reads_r2", "filter_metrics"]
+
+[[nodes]]
+node_id = "fastq.remove_duplicates"
+stage_id = "fastq.remove_duplicates"
+readiness_kind = "smoke"
+summary = "Remove duplicates from the filtered UMI-tagged reads so downstream preprocessing stays explicit about duplicate-aware read handling."
+depends_on = ["fastq.filter_reads"]
+external_inputs = []
+upstream_inputs = ["filtered_umi_reads_r1", "filtered_umi_reads_r2"]
+outputs = [
+  "deduplicated_umi_reads_r1",
+  "deduplicated_umi_reads_r2",
+  "duplicate_classes_tsv",
+  "duplicate_provenance_json",
+  "deduplication_report",
+]
+
+[[nodes]]
+node_id = "fastq.profile_reads"
+stage_id = "fastq.profile_reads"
+readiness_kind = "smoke"
+summary = "Profile the deduplicated UMI-tagged reads that are ready for downstream FASTQ consumers."
+depends_on = ["fastq.remove_duplicates"]
+external_inputs = []
+upstream_inputs = ["deduplicated_umi_reads_r1", "deduplicated_umi_reads_r2"]
+outputs = ["deduplicated_profile"]
+
+[[nodes]]
+node_id = "fastq.report_qc"
+stage_id = "fastq.report_qc"
+readiness_kind = "smoke"
+summary = "Collate validation, UMI extraction, duplicate-signal, trim, filter, deduplication, and post-dedup profiling metrics into the governed QC bundle."
+depends_on = [
+  "fastq.validate_reads",
+  "fastq.extract_umis",
+  "fastq.detect_duplicates_premerge",
+  "fastq.trim_reads",
+  "fastq.filter_reads",
+  "fastq.remove_duplicates",
+  "fastq.profile_reads",
+]
+external_inputs = []
+upstream_inputs = [
+  "validation_report",
+  "umi_extraction_report",
+  "duplicate_signal_report",
+  "trim_metrics",
+  "filter_metrics",
+  "deduplication_report",
+  "deduplicated_profile",
+]
+outputs = ["qc_bundle"]
