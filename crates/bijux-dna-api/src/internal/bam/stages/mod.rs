@@ -1,3 +1,4 @@
+pub(crate) mod authenticity;
 pub(crate) mod complexity;
 pub(crate) mod coverage;
 pub(crate) mod damage;

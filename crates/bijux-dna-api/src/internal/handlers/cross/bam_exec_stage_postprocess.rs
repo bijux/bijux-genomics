@@ -382,17 +382,8 @@ fn stage_postprocess(
         }
         bijux_dna_planner_bam::stage_api::BamStage::Authenticity => {
             write_udg_metadata(stage_dir, plan)?;
-            write_authenticity_composite(stage_dir)?;
-            write_advisory_boundary(
-                stage_dir,
-                stage,
-                "ancient_dna_authenticity",
-                &["authenticity.json", "authenticity_composite.json", "udg_metadata.json"],
-                &["authenticity signal review".to_string()],
-                &[
-                    "automatic authenticity certification".to_string(),
-                    "automatic contamination clearance".to_string(),
-                ],
+            crate::internal::bam::stages::authenticity::write_stage_authenticity_artifacts(
+                stage_dir, plan,
             )?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::BiasMitigation => {
