@@ -1,0 +1,2 @@
+database_component	status	notes
+kraken2	local_contract_only	Tiny governed taxonomy fixture index anchor for local taxonomy database validation. This file is suitable for fixture and lineage checks, not production classification.

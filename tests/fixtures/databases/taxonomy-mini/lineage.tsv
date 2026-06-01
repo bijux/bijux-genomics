@@ -1,0 +1,8 @@
+taxon_id	name	rank	parent_taxon_id
+1	root	no_rank	
+2	Bacteria	superkingdom	1
+1224	Proteobacteria	phylum	2
+561	Escherichia coli	species	1224
+28901	Salmonella enterica	species	1224
+2157	Archaea	superkingdom	1
+28890	Halobacterium salinarum	species	2157
