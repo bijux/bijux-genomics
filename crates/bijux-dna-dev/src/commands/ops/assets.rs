@@ -167,6 +167,10 @@ pub(super) fn assets_refresh_toy(
             "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:100\n@SQ\tSN:chr2\tLN:80\n@RG\tID:rg1\tSM:core-v1-qc-pre\nr001\t0\tchr1\t5\t60\t8M\t*\t0\t0\tACGTACGT\tFFFFFFFF\tRG:Z:rg1\nr002\t1024\tchr1\t20\t25\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\nr003\t0\tchr2\t10\t10\t8M\t*\t0\t0\tCCGGAATT\tFFFFFFFF\tRG:Z:rg1\n",
         )?;
         write_utf8(
+            &stage_dir.join("bam/mapping_summary_partial_mapping.sam"),
+            "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:50\n@RG\tID:rg1\tSM:core-v1-mapping-summary\nr001\t0\tchr1\t1\t45\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\nr002\t0\tchr1\t10\t20\t6M\t*\t0\t0\tTGCATG\tFFFFFF\tRG:Z:rg1\nr003\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
+        )?;
+        write_utf8(
             &stage_dir.join("bam/validation_reference.fasta"),
             ">chr1\nACGTACGTACGTACGTACGT\n",
         )?;
@@ -193,6 +197,7 @@ pub(super) fn assets_refresh_toy(
             &[
                 "bam/toy.sam",
                 "bam/qc_pre_core_metrics.sam",
+                "bam/mapping_summary_partial_mapping.sam",
                 "bam/validation_malformed.sam",
                 "bam/validation_pass.sam",
                 "bam/validation_pass.sam.bai",
@@ -208,6 +213,7 @@ pub(super) fn assets_refresh_toy(
             &[
                 "toy.sam",
                 "qc_pre_core_metrics.sam",
+                "mapping_summary_partial_mapping.sam",
                 "validation_malformed.sam",
                 "validation_pass.sam",
                 "validation_pass.sam.bai",
@@ -242,6 +248,7 @@ Generated via `cargo run -p bijux-dna-dev -- assets run refresh-toy`.
 - `fastq/reads_2.fastq`
 - `bam/toy.sam`
 - `bam/qc_pre_core_metrics.sam`
+- `bam/mapping_summary_partial_mapping.sam`
 - `bam/validation_reference.fasta`
 - `bam/validation_pass.sam`
 - `bam/validation_pass.sam.bai`
