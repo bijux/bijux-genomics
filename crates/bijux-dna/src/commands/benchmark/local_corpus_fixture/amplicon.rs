@@ -48,6 +48,7 @@ pub(crate) struct AmpliconCorpusFixtureManifest {
     pub(crate) forward_primer_id: String,
     pub(crate) reverse_primer_id: String,
     pub(crate) primer_fasta: PathBuf,
+    pub(crate) primers_tsv_path: PathBuf,
     pub(crate) amplicon_governance_path: PathBuf,
     pub(crate) controls: Vec<AmpliconCorpusControl>,
     pub(crate) samples: Vec<AmpliconCorpusFixtureSample>,
@@ -102,6 +103,8 @@ pub(crate) struct AmpliconCorpusFixtureValidationReport {
     pub(crate) forward_primer_id: String,
     pub(crate) reverse_primer_id: String,
     pub(crate) primer_fasta: String,
+    pub(crate) primers_tsv_path: String,
+    pub(crate) primer_table_row_count: usize,
     pub(crate) amplicon_governance_path: String,
     pub(crate) sample_count: usize,
     pub(crate) control_count: usize,
@@ -122,6 +125,15 @@ struct AmpliconGovernanceMarker {
     applicable_assays: Vec<String>,
 }
 
+#[derive(Debug)]
+struct AmpliconPrimerTableRow {
+    primer_id: String,
+    forward_sequence: String,
+    reverse_sequence: String,
+    target: String,
+    orientation: String,
+}
+
 pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
     repo_root: &Path,
     manifest_path: &Path,
@@ -133,6 +145,7 @@ pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
     validate_amplicon_corpus_fixture_manifest_contract(&manifest)?;
 
     let primer_fasta_path = resolve_manifest_relative_path(manifest_dir, &manifest.primer_fasta);
+    let primers_tsv_path = resolve_manifest_relative_path(manifest_dir, &manifest.primers_tsv_path);
     let amplicon_governance_path =
         resolve_manifest_relative_path(manifest_dir, &manifest.amplicon_governance_path);
     validate_amplicon_governance_contract(
@@ -141,10 +154,19 @@ pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
         &primer_fasta_path,
         &amplicon_governance_path,
     )?;
-    validate_primer_fasta_headers(&manifest, &primer_fasta_path)?;
+    let primer_fasta_records = validate_primer_fasta_headers(&manifest, &primer_fasta_path)?;
+    let primer_table_rows = validate_primer_table_contract(
+        repo_root,
+        &manifest,
+        &primers_tsv_path,
+        &primer_fasta_records,
+    )?;
     let report_primer_fasta_path = primer_fasta_path
         .canonicalize()
         .with_context(|| format!("canonicalize {}", primer_fasta_path.display()))?;
+    let report_primers_tsv_path = primers_tsv_path
+        .canonicalize()
+        .with_context(|| format!("canonicalize {}", primers_tsv_path.display()))?;
     let report_amplicon_governance_path = amplicon_governance_path
         .canonicalize()
         .with_context(|| format!("canonicalize {}", amplicon_governance_path.display()))?;
@@ -179,6 +201,8 @@ pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
         forward_primer_id: manifest.forward_primer_id,
         reverse_primer_id: manifest.reverse_primer_id,
         primer_fasta: path_relative_to_repo(repo_root, &report_primer_fasta_path),
+        primers_tsv_path: path_relative_to_repo(repo_root, &report_primers_tsv_path),
+        primer_table_row_count: primer_table_rows.len(),
         amplicon_governance_path: path_relative_to_repo(
             repo_root,
             &report_amplicon_governance_path,
@@ -238,6 +262,9 @@ fn validate_amplicon_corpus_fixture_manifest_contract(
     }
     if manifest.primer_fasta.as_os_str().is_empty() {
         return Err(anyhow!("amplicon corpus fixture must declare a non-empty `primer_fasta`"));
+    }
+    if manifest.primers_tsv_path.as_os_str().is_empty() {
+        return Err(anyhow!("amplicon corpus fixture must declare a non-empty `primers_tsv_path`"));
     }
     if manifest.amplicon_governance_path.as_os_str().is_empty() {
         return Err(anyhow!(
@@ -416,32 +443,181 @@ fn validate_amplicon_governance_contract(
 fn validate_primer_fasta_headers(
     manifest: &AmpliconCorpusFixtureManifest,
     primer_fasta_path: &Path,
-) -> Result<()> {
+) -> Result<BTreeMap<String, String>> {
     let file = fs::File::open(primer_fasta_path)
         .with_context(|| format!("open {}", primer_fasta_path.display()))?;
     let reader = BufReader::new(file);
-    let mut headers = BTreeSet::new();
+    let mut sequences = BTreeMap::new();
+    let mut current_header: Option<String> = None;
+    let mut current_sequence = String::new();
     for line in reader.lines() {
         let line = line.with_context(|| format!("read {}", primer_fasta_path.display()))?;
         if let Some(header) = line.strip_prefix('>') {
-            headers.insert(header.trim().to_string());
+            if let Some(previous_header) = current_header.take() {
+                sequences.insert(previous_header, current_sequence.clone());
+                current_sequence.clear();
+            }
+            current_header = Some(header.trim().to_string());
+        } else if !line.trim().is_empty() {
+            current_sequence.push_str(line.trim());
         }
     }
-    if !headers.contains(&manifest.forward_primer_id) {
+    if let Some(previous_header) = current_header.take() {
+        sequences.insert(previous_header, current_sequence);
+    }
+    if !sequences.contains_key(&manifest.forward_primer_id) {
         return Err(anyhow!(
             "amplicon corpus fixture forward primer `{}` is missing from {}",
             manifest.forward_primer_id,
             primer_fasta_path.display()
         ));
     }
-    if !headers.contains(&manifest.reverse_primer_id) {
+    if !sequences.contains_key(&manifest.reverse_primer_id) {
         return Err(anyhow!(
             "amplicon corpus fixture reverse primer `{}` is missing from {}",
             manifest.reverse_primer_id,
             primer_fasta_path.display()
         ));
     }
-    Ok(())
+    Ok(sequences)
+}
+
+fn validate_primer_table_contract(
+    repo_root: &Path,
+    manifest: &AmpliconCorpusFixtureManifest,
+    primers_tsv_path: &Path,
+    primer_fasta_records: &BTreeMap<String, String>,
+) -> Result<Vec<AmpliconPrimerTableRow>> {
+    if !primers_tsv_path.is_file() {
+        return Err(anyhow!(
+            "amplicon corpus fixture primer table is missing: {}",
+            primers_tsv_path.display()
+        ));
+    }
+    let raw = fs::read_to_string(primers_tsv_path)
+        .with_context(|| format!("read {}", primers_tsv_path.display()))?;
+    let mut lines = raw.lines();
+    let header = lines.next().ok_or_else(|| {
+        anyhow!("amplicon corpus fixture primer table is empty: {}", primers_tsv_path.display())
+    })?;
+    if header != "primer_id\tforward_sequence\treverse_sequence\ttarget\torientation" {
+        return Err(anyhow!(
+            "amplicon corpus fixture primer table header is unexpected in {}",
+            primers_tsv_path.display()
+        ));
+    }
+    let rows = lines
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            let mut fields = line.split('\t');
+            let row = AmpliconPrimerTableRow {
+                primer_id: fields
+                    .next()
+                    .ok_or_else(|| {
+                        anyhow!("missing primer_id field in {}", primers_tsv_path.display())
+                    })?
+                    .to_string(),
+                forward_sequence: fields
+                    .next()
+                    .ok_or_else(|| {
+                        anyhow!("missing forward_sequence field in {}", primers_tsv_path.display())
+                    })?
+                    .to_string(),
+                reverse_sequence: fields
+                    .next()
+                    .ok_or_else(|| {
+                        anyhow!("missing reverse_sequence field in {}", primers_tsv_path.display())
+                    })?
+                    .to_string(),
+                target: fields
+                    .next()
+                    .ok_or_else(|| {
+                        anyhow!("missing target field in {}", primers_tsv_path.display())
+                    })?
+                    .to_string(),
+                orientation: fields
+                    .next()
+                    .ok_or_else(|| {
+                        anyhow!("missing orientation field in {}", primers_tsv_path.display())
+                    })?
+                    .to_string(),
+            };
+            if fields.next().is_some() {
+                return Err(anyhow!(
+                    "amplicon corpus fixture primer table row has too many columns in {}",
+                    primers_tsv_path.display()
+                ));
+            }
+            Ok(row)
+        })
+        .collect::<Result<Vec<_>>>()?;
+    if rows.is_empty() {
+        return Err(anyhow!(
+            "amplicon corpus fixture primer table must declare at least one row in {}",
+            primers_tsv_path.display()
+        ));
+    }
+    let manifest_relative_path = path_relative_to_repo(repo_root, primers_tsv_path);
+    let mut primer_ids = BTreeSet::new();
+    for row in &rows {
+        if row.primer_id.trim().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus fixture primer table rows must declare a non-empty `primer_id` in {manifest_relative_path}"
+            ));
+        }
+        if !primer_ids.insert(row.primer_id.as_str()) {
+            return Err(anyhow!(
+                "amplicon corpus fixture primer table repeats primer_id `{}` in {manifest_relative_path}",
+                row.primer_id
+            ));
+        }
+        if row.primer_id != manifest.primer_set_id {
+            return Err(anyhow!(
+                "amplicon corpus fixture primer table primer_id `{}` does not match manifest primer_set_id `{}` in {manifest_relative_path}",
+                row.primer_id,
+                manifest.primer_set_id
+            ));
+        }
+        if row.target != manifest.target_region {
+            return Err(anyhow!(
+                "amplicon corpus fixture primer table target `{}` does not match manifest target_region `{}` in {manifest_relative_path}",
+                row.target,
+                manifest.target_region
+            ));
+        }
+        if row.orientation != "normalize_to_forward_primer" {
+            return Err(anyhow!(
+                "amplicon corpus fixture primer table orientation must be `normalize_to_forward_primer` in {manifest_relative_path}"
+            ));
+        }
+        let governed_forward =
+            primer_fasta_records.get(&manifest.forward_primer_id).ok_or_else(|| {
+                anyhow!(
+                    "amplicon corpus fixture primer FASTA missing governed forward primer `{}`",
+                    manifest.forward_primer_id
+                )
+            })?;
+        let governed_reverse =
+            primer_fasta_records.get(&manifest.reverse_primer_id).ok_or_else(|| {
+                anyhow!(
+                    "amplicon corpus fixture primer FASTA missing governed reverse primer `{}`",
+                    manifest.reverse_primer_id
+                )
+            })?;
+        if &row.forward_sequence != governed_forward {
+            return Err(anyhow!(
+                "amplicon corpus fixture primer table forward sequence does not match `{}` in {manifest_relative_path}",
+                manifest.forward_primer_id
+            ));
+        }
+        if &row.reverse_sequence != governed_reverse {
+            return Err(anyhow!(
+                "amplicon corpus fixture primer table reverse sequence does not match `{}` in {manifest_relative_path}",
+                manifest.reverse_primer_id
+            ));
+        }
+    }
+    Ok(rows)
 }
 
 fn validate_amplicon_corpus_fixture_sample(
@@ -526,6 +702,11 @@ mod tests {
         assert_eq!(report.primer_set_id, "16S_universal_v1");
         assert_eq!(report.forward_primer_id, "16S_27F");
         assert_eq!(report.reverse_primer_id, "16S_1492R");
+        assert_eq!(
+            report.primers_tsv_path,
+            "tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv"
+        );
+        assert_eq!(report.primer_table_row_count, 1);
         assert_eq!(report.sample_count, 4);
         assert_eq!(report.control_count, 1);
         assert!(report.valid);
