@@ -355,52 +355,6 @@ fn write_udg_metadata(
     .with_context(|| format!("write {}", path.display()))
 }
 
-fn write_damage_unified(stage_dir: &Path) -> Result<()> {
-    let mut measurements = Vec::new();
-    let pydamage = stage_dir.join("damage.pydamage.json");
-    if pydamage.exists() {
-        if let Ok(parsed) = bam_metrics::parse_pydamage_json(&pydamage) {
-            measurements.push(("pydamage", parsed));
-        }
-    }
-    let profiler = stage_dir.join("damage.profiler.json");
-    if profiler.exists() {
-        if let Ok(parsed) = bam_metrics::parse_damageprofiler_json(&profiler) {
-            measurements.push(("damageprofiler", parsed));
-        }
-    }
-    let mapdamage = stage_dir.join("damage.mapdamage2.txt");
-    if mapdamage.exists() {
-        if let Ok(parsed) = bam_metrics::parse_mapdamage2_misincorporation(&mapdamage) {
-            measurements.push(("mapdamage2", parsed));
-        }
-    }
-    let canonical = measurements
-        .first()
-        .map_or_else(bam_metrics::DamageMetricsV1::empty, |(_, metric)| metric.clone());
-    let comparison = if measurements.len() >= 2 {
-        Some(bam_metrics::compare_damage_metrics(
-            measurements[0].0,
-            &measurements[0].1,
-            measurements[1].0,
-            &measurements[1].1,
-            0.05,
-        ))
-    } else {
-        None
-    };
-    let path = stage_dir.join("damage.unified_metrics.json");
-    bijux_dna_infra::atomic_write_json(
-        &path,
-        &serde_json::json!({
-            "canonical": canonical,
-            "tools_seen": measurements.iter().map(|(name, _)| *name).collect::<Vec<_>>(),
-            "comparison": comparison,
-        }),
-    )
-    .with_context(|| format!("write {}", path.display()))
-}
-
 fn write_authenticity_composite(stage_dir: &Path) -> Result<()> {
     let bam_root = stage_dir.parent().ok_or_else(|| {
         anyhow!("authenticity stage path has no BAM root: {}", stage_dir.display())

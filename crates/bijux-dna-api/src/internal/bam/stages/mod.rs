@@ -1,5 +1,6 @@
 pub(crate) mod complexity;
 pub(crate) mod coverage;
+pub(crate) mod damage;
 pub(crate) mod duplication_metrics;
 pub(crate) mod endogenous_content;
 pub(crate) mod filter;

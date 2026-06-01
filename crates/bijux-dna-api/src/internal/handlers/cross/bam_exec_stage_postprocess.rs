@@ -378,18 +378,7 @@ fn stage_postprocess(
         }
         bijux_dna_planner_bam::stage_api::BamStage::Damage => {
             write_udg_metadata(stage_dir, plan)?;
-            write_damage_unified(stage_dir)?;
-            write_advisory_boundary(
-                stage_dir,
-                stage,
-                "terminal_damage_and_deamination",
-                &["damage.unified_metrics.json", "udg_metadata.json"],
-                &["damage pattern observation".to_string()],
-                &[
-                    "sample authenticity certification".to_string(),
-                    "sample age assignment".to_string(),
-                ],
-            )?;
+            crate::internal::bam::stages::damage::write_stage_damage_artifacts(stage_dir, plan)?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Authenticity => {
             write_udg_metadata(stage_dir, plan)?;
