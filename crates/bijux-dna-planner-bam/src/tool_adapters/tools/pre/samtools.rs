@@ -3,7 +3,8 @@ use std::path::Path;
 use bijux_dna_domain_bam::types::BedRegions;
 
 use bijux_dna_domain_bam::params::{
-    FilterEffectiveParams, QcPreEffectiveParams, ValidateEffectiveParams,
+    EndogenousContentEffectiveParams, FilterEffectiveParams, QcPreEffectiveParams,
+    ValidateEffectiveParams,
 };
 
 #[must_use]
@@ -180,6 +181,31 @@ python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"stage\":\"bam.map
         idxstats = idxstats.display(),
         stats = stats.display(),
         summary = summary.display(),
+    );
+    vec!["/bin/sh".to_string(), "-c".to_string(), command]
+}
+
+#[must_use]
+pub fn endogenous_content_args(
+    bam: &Path,
+    flagstat: &Path,
+    report: &Path,
+    params: &EndogenousContentEffectiveParams,
+) -> Vec<String> {
+    let host_reference_digest = params
+        .host_reference_digest
+        .as_ref()
+        .map_or_else(|| "null".to_string(), |digest| format!("\"{digest}\""));
+    let command = format!(
+        "samtools flagstat {bam} > {flagstat} && \
+python - <<'PY' > {report}\nimport json\npayload = {{\"stage\": \"bam.endogenous_content\", \"method\": \"mapped_fraction_from_flagstat\", \"flagstat\": \"{flagstat}\", \"host_reference_scope\": \"{host_reference_scope}\", \"host_reference_digest\": {host_reference_digest}, \"refuse_without_host_reference\": {refuse_without_host_reference}}}\nprint(json.dumps(payload, indent=2))\nPY",
+        bam = bam.display(),
+        flagstat = flagstat.display(),
+        report = report.display(),
+        host_reference_scope = params.host_reference_scope,
+        host_reference_digest = host_reference_digest,
+        refuse_without_host_reference =
+            if params.refuse_without_host_reference { "true" } else { "false" },
     );
     vec!["/bin/sh".to_string(), "-c".to_string(), command]
 }
