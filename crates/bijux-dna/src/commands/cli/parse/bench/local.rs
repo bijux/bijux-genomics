@@ -10,6 +10,8 @@ pub enum BenchLocalDomainArg {
 pub enum BenchLocalCommand {
     #[command(name = "list-stages")]
     ListStages(BenchLocalListStagesArgs),
+    #[command(name = "check-output-completion")]
+    CheckOutputCompletion(BenchLocalCheckOutputCompletionArgs),
     #[command(name = "materialize-stage")]
     MaterializeStage(BenchLocalMaterializeStageArgs),
     #[command(name = "fake-run-failures")]
@@ -24,6 +26,16 @@ pub enum BenchLocalCommand {
 pub struct BenchLocalListStagesArgs {
     #[arg(long, value_enum)]
     pub domain: BenchLocalDomainArg,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalCheckOutputCompletionArgs {
+    #[arg(long)]
+    pub fake_run_root: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

@@ -28,9 +28,9 @@ pub use self::fastq::{
     BenchFastqTrimTerminalDamageArgs, BenchFastqUmiArgs, BenchFastqValidateArgs,
 };
 pub use self::local::{
-    BenchLocalCommand, BenchLocalDomainArg, BenchLocalFakeRunFailuresArgs,
-    BenchLocalFakeRunStagesArgs, BenchLocalListStagesArgs, BenchLocalMaterializeStageArgs,
-    BenchLocalRenderStageCommandsArgs,
+    BenchLocalCheckOutputCompletionArgs, BenchLocalCommand, BenchLocalDomainArg,
+    BenchLocalFakeRunFailuresArgs, BenchLocalFakeRunStagesArgs, BenchLocalListStagesArgs,
+    BenchLocalMaterializeStageArgs, BenchLocalRenderStageCommandsArgs,
 };
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,

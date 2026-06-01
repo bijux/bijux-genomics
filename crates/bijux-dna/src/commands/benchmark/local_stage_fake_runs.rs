@@ -18,7 +18,7 @@ const LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_VERSION: &str =
     "bijux.bench.local_stage_fake_failures.v1";
 const LOCAL_STAGE_FAKE_FAILURE_RECORD_SCHEMA_VERSION: &str =
     "bijux.bench.local_stage_fake_failure_record.v1";
-const DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT: &str = "target/local-fake-runs/stages";
+pub(crate) const DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT: &str = "target/local-fake-runs/stages";
 const DEFAULT_LOCAL_STAGE_FAKE_FAILURE_ROOT: &str = "target/local-fake-runs/failures";
 const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str = "target/local-ready/rendered-stage-commands.sh";
 
@@ -276,7 +276,7 @@ fn fake_run_output_entry(
     stage_id: &str,
     artifact: &BenchLocalStageArtifactEntry,
 ) -> Result<BenchLocalStageFakeRunOutputEntry> {
-    let fake_run_path = stage_root.join("declared-outputs").join(&artifact.path);
+    let fake_run_path = stage_fake_run_output_path(stage_root, &artifact.path);
     materialize_fake_run_output(&fake_run_path, stage_id, artifact)?;
     Ok(BenchLocalStageFakeRunOutputEntry {
         artifact_id: artifact.artifact_id.clone(),
@@ -397,7 +397,11 @@ fn select_stage_commands<'a>(
     Ok(selected)
 }
 
-fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+pub(crate) fn stage_fake_run_output_path(stage_root: &Path, declared_path: &str) -> PathBuf {
+    stage_root.join("declared-outputs").join(declared_path)
+}
+
+pub(crate) fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
 
