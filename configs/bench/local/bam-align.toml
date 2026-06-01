@@ -1,0 +1,16 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-ready plan input for bam.align.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_align.v1"
+input_r1 = "assets/toy/core-v1/fastq/reads_1.fastq"
+input_r2 = "assets/toy/core-v1/fastq/reads_2.fastq"
+reference_fasta = "assets/reference/host/references/toy_host_reference.fasta"
+reference_index = "assets/reference/host/references/toy_host_reference"
+tool_id = "bowtie2"
+sample_id = "core-v1-align"
+threads = 4
+output_dir = "target/local-ready/bam.align"
