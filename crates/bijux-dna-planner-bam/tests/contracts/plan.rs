@@ -6,6 +6,8 @@ mod contract_handshake;
 mod local_align;
 #[path = "plan/local_complexity_smoke.rs"]
 mod local_complexity_smoke;
+#[path = "plan/local_coverage_smoke.rs"]
+mod local_coverage_smoke;
 #[path = "plan/local_duplication_metrics_smoke.rs"]
 mod local_duplication_metrics_smoke;
 #[path = "plan/local_filter_smoke.rs"]
