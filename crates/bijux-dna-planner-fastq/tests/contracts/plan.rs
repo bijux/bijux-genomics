@@ -10,26 +10,28 @@ mod domain_parity;
 mod filter_plan;
 #[path = "plan/local_correct_errors_smoke.rs"]
 mod local_correct_errors_smoke;
-#[path = "plan/local_detect_adapters_smoke.rs"]
-mod local_detect_adapters_smoke;
-#[path = "plan/local_detect_duplicates_premerge_smoke.rs"]
-mod local_detect_duplicates_premerge_smoke;
 #[path = "plan/local_deplete_host.rs"]
 mod local_deplete_host;
 #[path = "plan/local_deplete_reference_contaminants.rs"]
 mod local_deplete_reference_contaminants;
 #[path = "plan/local_deplete_rrna.rs"]
 mod local_deplete_rrna;
+#[path = "plan/local_detect_adapters_smoke.rs"]
+mod local_detect_adapters_smoke;
+#[path = "plan/local_detect_duplicates_premerge_smoke.rs"]
+mod local_detect_duplicates_premerge_smoke;
 #[path = "plan/local_estimate_library_complexity_prealign_smoke.rs"]
 mod local_estimate_library_complexity_prealign_smoke;
+#[path = "plan/local_extract_umis_smoke.rs"]
+mod local_extract_umis_smoke;
 #[path = "plan/local_filter_low_complexity_smoke.rs"]
 mod local_filter_low_complexity_smoke;
 #[path = "plan/local_filter_reads_smoke.rs"]
 mod local_filter_reads_smoke;
-#[path = "plan/local_merge_pairs_smoke.rs"]
-mod local_merge_pairs_smoke;
 #[path = "plan/local_index_reference.rs"]
 mod local_index_reference;
+#[path = "plan/local_merge_pairs_smoke.rs"]
+mod local_merge_pairs_smoke;
 #[path = "plan/local_normalize_primers_smoke.rs"]
 mod local_normalize_primers_smoke;
 #[path = "plan/local_profile_read_lengths_smoke.rs"]

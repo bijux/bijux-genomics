@@ -65,6 +65,7 @@ fn public_api_docs_match_curated_exports() {
             "stage_tool_maturity",
             "benchmark_cohorts_for_stage",
             "local_correct_errors_smoke_plans",
+            "local_extract_umis_smoke_plans",
             "local_deplete_host_plan",
             "local_deplete_reference_contaminants_plan",
             "local_deplete_rrna_plan",
@@ -160,7 +161,8 @@ fn documented_stage_api_exports_remain_compilable() {
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage;
     let _: fn(
         &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalCorrectErrorsSmokeCasePlan>> =
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalCorrectErrorsSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_correct_errors_smoke_plans;
     let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
         bijux_dna_planner_fastq::stage_api::local_deplete_host_plan;
@@ -187,15 +189,14 @@ fn documented_stage_api_exports_remain_compilable() {
     > = bijux_dna_planner_fastq::stage_api::local_estimate_library_complexity_prealign_smoke_plans;
     let _: fn(
         &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalFilterLowComplexitySmokeCasePlan>> =
-        bijux_dna_planner_fastq::stage_api::local_filter_low_complexity_smoke_plans;
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalFilterLowComplexitySmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_filter_low_complexity_smoke_plans;
     let _: fn(
         &Path,
     ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalFilterReadsSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_filter_reads_smoke_plans;
-    let _: fn(
-        &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalMergePairsSmokeCasePlan>> =
+    let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalMergePairsSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_merge_pairs_smoke_plans;
     let _: fn(
         &Path,
@@ -213,7 +214,8 @@ fn documented_stage_api_exports_remain_compilable() {
         bijux_dna_planner_fastq::stage_api::local_profile_reads_smoke_plans;
     let _: fn(
         &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalRemoveDuplicatesSmokeCasePlan>> =
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalRemoveDuplicatesSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_remove_duplicates_smoke_plans;
     let _: fn(
         &Path,
