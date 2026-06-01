@@ -142,6 +142,7 @@ configs/logging/index.md
 configs/logging/runtime.toml
 configs/pipelines/local/bam-authenticity.toml
 configs/pipelines/local/bam-core-qc.toml
+configs/pipelines/local/bam-genotyping.toml
 configs/pipelines/local/fastq-amplicon.toml
 configs/pipelines/local/fastq-core-preprocess.toml
 configs/pipelines/local/fastq-edna-taxonomy.toml
