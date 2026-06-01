@@ -9,5 +9,6 @@ pub(crate) mod length_filter;
 pub(crate) mod mapping_summary;
 pub(crate) mod mapq_filter;
 pub(crate) mod markdup;
+pub(crate) mod overlap_correction;
 pub(crate) mod qc_pre;
 pub(crate) mod validate;

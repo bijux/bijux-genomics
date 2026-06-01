@@ -422,21 +422,7 @@ fn stage_postprocess(
             crate::internal::bam::stages::endogenous_content::write_stage_endogenous_content_artifacts(stage_dir, plan)?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::OverlapCorrection => {
-            let path = stage_dir.join("overlap_correction.outputs.json");
-            bijux_dna_infra::atomic_write_json(
-                &path,
-                &serde_json::json!({
-                    "schema_version": "bijux.bam.overlap_correction.v1",
-                    "tool": plan.tool_id,
-                    "paired_end_behavior": "correct_overlapping_pairs",
-                    "outputs": {
-                        "bam": stage_dir.join("overlap.corrected.bam"),
-                        "bai": stage_dir.join("overlap.corrected.bam.bai"),
-                        "summary": stage_dir.join("overlap_correction.summary.json"),
-                    }
-                }),
-            )
-            .with_context(|| format!("write {}", path.display()))?;
+            crate::internal::bam::stages::overlap_correction::write_stage_overlap_correction_summary(stage_dir, plan)?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Contamination => {
             let tool_scope =

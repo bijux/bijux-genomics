@@ -120,6 +120,20 @@ pub fn write_local_endogenous_content_smoke_report() -> Result<PathBuf> {
     crate::internal::bam::stages::endogenous_content::write_local_endogenous_content_smoke_report()
 }
 
+/// Materialize the governed local-smoke `bam.overlap_correction` report bundle.
+///
+/// The written report artifact lives at
+/// `target/local-smoke/bam.overlap_correction/overlap_correction.json`
+/// under the active repository root, alongside the curated top-level
+/// `overlap_corrected.bam`.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_overlap_correction_smoke_report() -> Result<PathBuf> {
+    crate::internal::bam::stages::overlap_correction::write_local_overlap_correction_smoke_report()
+}
+
 /// Materialize the governed local-smoke `bam.coverage` TSV bundle.
 ///
 /// The written summary artifact lives at
