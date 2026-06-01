@@ -38,6 +38,8 @@ pub struct ContaminantDepletionArtifactPaths {
 pub struct RrnaDepletionArtifactPaths {
     pub retained_r1: PathBuf,
     pub retained_r2: Option<PathBuf>,
+    pub rejected_r1: PathBuf,
+    pub rejected_r2: Option<PathBuf>,
     pub report_tsv: PathBuf,
     pub report_json: PathBuf,
 }
@@ -182,6 +184,12 @@ pub fn rrna_depletion_artifact_paths(out_dir: &Path, paired: bool) -> RrnaDeplet
             out_dir.join("rrna_filtered.fastq.gz")
         },
         retained_r2: paired.then(|| out_dir.join("rrna_filtered_R2.fastq.gz")),
+        rejected_r1: if paired {
+            out_dir.join("removed_rrna_R1.fastq.gz")
+        } else {
+            out_dir.join("removed_rrna.fastq.gz")
+        },
+        rejected_r2: paired.then(|| out_dir.join("removed_rrna_R2.fastq.gz")),
         report_tsv: out_dir.join("rrna_report.tsv"),
         report_json: out_dir.join("rrna_report.json"),
     }
@@ -201,8 +209,9 @@ pub fn qc_bundle_artifact_paths(out_dir: &Path) -> QcBundleArtifactPaths {
 mod tests {
     use super::{
         corrected_fastq_artifact_paths, host_depletion_artifact_paths, merge_fastq_artifact_paths,
-        qc_bundle_artifact_paths, rejected_fastq_artifact_paths, singleton_fastq_artifact_path,
-        trim_artifact_paths, umi_artifact_paths, validation_artifact_paths,
+        qc_bundle_artifact_paths, rejected_fastq_artifact_paths, rrna_depletion_artifact_paths,
+        singleton_fastq_artifact_path, trim_artifact_paths, umi_artifact_paths,
+        validation_artifact_paths,
     };
     use std::path::Path;
 
@@ -251,6 +260,10 @@ mod tests {
         let host = host_depletion_artifact_paths(Path::new("out"), false);
         assert_eq!(host.retained_r1, Path::new("out/host_depleted.fastq.gz"));
         assert_eq!(host.rejected_r1, Path::new("out/removed_host.fastq.gz"));
+
+        let rrna = rrna_depletion_artifact_paths(Path::new("out"), false);
+        assert_eq!(rrna.retained_r1, Path::new("out/rrna_filtered.fastq.gz"));
+        assert_eq!(rrna.rejected_r1, Path::new("out/removed_rrna.fastq.gz"));
 
         let qc = qc_bundle_artifact_paths(Path::new("out"));
         assert_eq!(qc.report_json, Path::new("out/report_qc_report.json"));

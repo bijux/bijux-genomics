@@ -8,6 +8,8 @@ install_kind: container
 container:
   image: bijuxdna/sortmerna
   digest: sha256:2021b21d075d06404339ec019b9729f2dfb820685c86835df654c2fb7d8b447c
+command_template:
+- sortmerna
 license: GPL-3.0
 citation: paper:https://academic.oup.com/bioinformatics/article/28/24/3211/246053
 stage_ids:
@@ -21,14 +23,18 @@ stage_contracts:
     expected_artifacts:
     - rrna_filtered_reads_r1
     - rrna_filtered_reads_r2
+    - rrna_removed_reads_r1
+    - rrna_removed_reads_r2
     - rrna_report_tsv
     - rrna_report_json
-    notes: rRNA depletion emits governed filtered-read artifacts together with normalized depletion reports and accepts an optional mate input for paired depletion runs.
+    notes: rRNA depletion emits governed retained-read and removed-read artifacts together with normalized depletion reports and accepts an optional mate input for paired depletion runs.
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:
 - rrna_filtered_reads_r1
 - rrna_filtered_reads_r2
+- rrna_removed_reads_r1
+- rrna_removed_reads_r2
 - rrna_report_tsv
 - rrna_report_json
 metrics_schema_id: bijux.stage.metrics.v1

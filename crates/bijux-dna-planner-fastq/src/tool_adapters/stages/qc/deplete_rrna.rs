@@ -24,6 +24,8 @@ pub type DepleteRrnaPlanOptions = crate::DepleteRrnaStageParams;
 struct RrnaPlanPaths {
     filtered_reads_r1: std::path::PathBuf,
     filtered_reads_r2: Option<std::path::PathBuf>,
+    removed_reads_r1: std::path::PathBuf,
+    removed_reads_r2: Option<std::path::PathBuf>,
     report: std::path::PathBuf,
     metrics: std::path::PathBuf,
 }
@@ -119,6 +121,8 @@ pub fn plan_rrna_with_options(
                 out_dir,
                 &paths.filtered_reads_r1,
                 paths.filtered_reads_r2.as_deref(),
+                &paths.removed_reads_r1,
+                paths.removed_reads_r2.as_deref(),
                 &paths.report,
                 &paths.metrics,
                 effective_threads,
@@ -152,6 +156,8 @@ fn rrna_plan_paths(paired: bool, out_dir: &Path) -> RrnaPlanPaths {
     RrnaPlanPaths {
         filtered_reads_r1: named.retained_r1,
         filtered_reads_r2: named.retained_r2,
+        removed_reads_r1: named.rejected_r1,
+        removed_reads_r2: named.rejected_r2,
         report: named.report_tsv,
         metrics: named.report_json,
     }
@@ -172,7 +178,7 @@ fn rrna_effective_params(
         database_build_id: None,
         screening_engine: RrnaScreeningEngine::Sortmerna,
         report_format: RrnaReportFormat::SummaryTsvAndJson,
-        emit_removed_reads: false,
+        emit_removed_reads: true,
     }
 }
 
@@ -216,6 +222,18 @@ fn rrna_outputs(paths: &RrnaPlanPaths) -> Vec<ArtifactRef> {
         ArtifactRole::SummaryTsv,
     ));
     outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("rrna_removed_reads_r1"),
+        paths.removed_reads_r1.clone(),
+        ArtifactRole::Reads,
+    ));
+    if let Some(removed_reads_r2) = &paths.removed_reads_r2 {
+        outputs.push(ArtifactRef::required(
+            ArtifactId::from_static("rrna_removed_reads_r2"),
+            removed_reads_r2.clone(),
+            ArtifactRole::Reads,
+        ));
+    }
+    outputs.push(ArtifactRef::required(
         ArtifactId::from_static("rrna_report_json"),
         paths.metrics.clone(),
         ArtifactRole::MetricsJson,
@@ -242,6 +260,8 @@ fn rrna_plan_params(
         "threads": effective_threads,
         "filtered_reads_r1": paths.filtered_reads_r1,
         "filtered_reads_r2": paths.filtered_reads_r2,
+        "removed_reads_r1": paths.removed_reads_r1,
+        "removed_reads_r2": paths.removed_reads_r2,
         "report_tsv": paths.report,
         "report_json": paths.metrics
     })
@@ -254,6 +274,8 @@ fn rrna_command(
     out_dir: &Path,
     filtered_reads_r1: &Path,
     filtered_reads_r2: Option<&Path>,
+    removed_reads_r1: &Path,
+    removed_reads_r2: Option<&Path>,
     report_tsv: &Path,
     report_json: &Path,
     threads: u32,
@@ -266,6 +288,8 @@ fn rrna_command(
             out_dir,
             filtered_reads_r1,
             filtered_reads_r2,
+            removed_reads_r1,
+            removed_reads_r2,
             report_tsv,
             report_json,
             threads,
@@ -281,6 +305,7 @@ struct SortmernaWorkPaths {
     kvdb_dir: std::path::PathBuf,
     readb_dir: std::path::PathBuf,
     out_subdir: std::path::PathBuf,
+    aligned_prefix: std::path::PathBuf,
     other_prefix: std::path::PathBuf,
 }
 
@@ -289,6 +314,10 @@ struct SortmernaOutputGlobs {
     readb_single: String,
     paired_fwd: String,
     paired_rev: String,
+    removed_single: String,
+    removed_readb_single: String,
+    removed_paired_fwd: String,
+    removed_paired_rev: String,
 }
 
 fn sortmerna_rrna_command(
@@ -297,6 +326,8 @@ fn sortmerna_rrna_command(
     out_dir: &Path,
     filtered_reads_r1: &Path,
     filtered_reads_r2: Option<&Path>,
+    removed_reads_r1: &Path,
+    removed_reads_r2: Option<&Path>,
     report_tsv: &Path,
     report_json: &Path,
     threads: u32,
@@ -309,11 +340,19 @@ fn sortmerna_rrna_command(
         &paths,
         filtered_reads_r1,
         filtered_reads_r2,
+        removed_reads_r1,
+        removed_reads_r2,
         report_tsv,
         report_json,
         &command,
     );
-    script.push_str(&sortmerna_collect_script(filtered_reads_r1, filtered_reads_r2, &globs));
+    script.push_str(&sortmerna_collect_script(
+        filtered_reads_r1,
+        filtered_reads_r2,
+        removed_reads_r1,
+        removed_reads_r2,
+        &globs,
+    ));
     script.push_str(&sortmerna_finalize_script(&paths, report_tsv, report_json));
     vec!["bash".to_string(), "-lc".to_string(), script]
 }
@@ -324,8 +363,17 @@ fn sortmerna_work_paths(out_dir: &Path) -> SortmernaWorkPaths {
     let kvdb_dir = work_dir.join("kvdb");
     let readb_dir = work_dir.join("readb");
     let out_subdir = work_dir.join("out");
+    let aligned_prefix = out_subdir.join("aligned");
     let other_prefix = out_subdir.join("other");
-    SortmernaWorkPaths { work_dir, idx_dir, kvdb_dir, readb_dir, out_subdir, other_prefix }
+    SortmernaWorkPaths {
+        work_dir,
+        idx_dir,
+        kvdb_dir,
+        readb_dir,
+        out_subdir,
+        aligned_prefix,
+        other_prefix,
+    }
 }
 
 fn sortmerna_command_tokens(
@@ -373,6 +421,15 @@ fn sortmerna_output_globs(paths: &SortmernaWorkPaths) -> SortmernaOutputGlobs {
         readb_single: readb_globs(&paths.readb_dir, "fwd"),
         paired_fwd: paired_globs(&paths.other_prefix, &paths.readb_dir, "fwd"),
         paired_rev: paired_globs(&paths.other_prefix, &paths.readb_dir, "rev"),
+        removed_single: quoted_globs(&[
+            format!("{}*.fastq.gz", paths.aligned_prefix.display()),
+            format!("{}*.fq.gz", paths.aligned_prefix.display()),
+            format!("{}*.fastq", paths.aligned_prefix.display()),
+            format!("{}*.fq", paths.aligned_prefix.display()),
+        ]),
+        removed_readb_single: readb_globs(&paths.readb_dir, "aligned_fwd"),
+        removed_paired_fwd: paired_globs(&paths.aligned_prefix, &paths.readb_dir, "aligned_fwd"),
+        removed_paired_rev: paired_globs(&paths.aligned_prefix, &paths.readb_dir, "aligned_rev"),
     }
 }
 
@@ -410,12 +467,14 @@ fn sortmerna_setup_script(
     paths: &SortmernaWorkPaths,
     filtered_reads_r1: &Path,
     filtered_reads_r2: Option<&Path>,
+    removed_reads_r1: &Path,
+    removed_reads_r2: Option<&Path>,
     report_tsv: &Path,
     report_json: &Path,
     command: &[String],
 ) -> String {
     format!(
-        "set -euo pipefail\nshopt -s nullglob\ncollect_output_from_globs() {{ dest=\"$1\"; shift; local pattern candidate matches=(); local -a inputs=(); for pattern in \"$@\"; do matches=( $pattern ); for candidate in \"${{matches[@]}}\"; do if [ -f \"$candidate\" ]; then inputs+=( \"$candidate\" ); fi; done; done; if [ \"${{#inputs[@]}}\" -eq 0 ]; then printf 'missing expected SortMeRNA output for %s\\n' \"$dest\" >&2; return 1; fi; {{ for candidate in \"${{inputs[@]}}\"; do case \"$candidate\" in *.gz) gzip -cd -- \"$candidate\" ;; *) cat -- \"$candidate\" ;; esac; done; }} | gzip -c > \"$dest\"; }}\nrm -rf {kvdb_dir} {readb_dir} {out_subdir}\nmkdir -p {work_dir} {idx_dir} {kvdb_dir} {readb_dir} {out_subdir}\nmkdir -p \"$(dirname {filtered_reads_r1})\" \"$(dirname {report_tsv})\" \"$(dirname {report_json})\"\nrm -f {filtered_reads_r1} {filtered_reads_r2_cleanup} {report_tsv} {report_json}\n{sortmerna_command}\n",
+        "set -euo pipefail\nshopt -s nullglob\ncollect_output_from_globs() {{ dest=\"$1\"; shift; local pattern candidate matches=(); local -a inputs=(); for pattern in \"$@\"; do matches=( $pattern ); for candidate in \"${{matches[@]}}\"; do if [ -f \"$candidate\" ]; then inputs+=( \"$candidate\" ); fi; done; done; if [ \"${{#inputs[@]}}\" -eq 0 ]; then printf 'missing expected SortMeRNA output for %s\\n' \"$dest\" >&2; return 1; fi; {{ for candidate in \"${{inputs[@]}}\"; do case \"$candidate\" in *.gz) gzip -cd -- \"$candidate\" ;; *) cat -- \"$candidate\" ;; esac; done; }} | gzip -c > \"$dest\"; }}\nrm -rf {kvdb_dir} {readb_dir} {out_subdir}\nmkdir -p {work_dir} {idx_dir} {kvdb_dir} {readb_dir} {out_subdir}\nmkdir -p \"$(dirname {filtered_reads_r1})\" \"$(dirname {removed_reads_r1})\" \"$(dirname {report_tsv})\" \"$(dirname {report_json})\"\nrm -f {filtered_reads_r1} {filtered_reads_r2_cleanup} {removed_reads_r1} {removed_reads_r2_cleanup} {report_tsv} {report_json}\n{sortmerna_command}\n",
         kvdb_dir = shell_quote_path(&paths.kvdb_dir),
         readb_dir = shell_quote_path(&paths.readb_dir),
         out_subdir = shell_quote_path(&paths.out_subdir),
@@ -424,6 +483,9 @@ fn sortmerna_setup_script(
         filtered_reads_r1 = shell_quote_path(filtered_reads_r1),
         filtered_reads_r2_cleanup =
             filtered_reads_r2.map_or_else(|| "''".to_string(), shell_quote_path),
+        removed_reads_r1 = shell_quote_path(removed_reads_r1),
+        removed_reads_r2_cleanup =
+            removed_reads_r2.map_or_else(|| "''".to_string(), shell_quote_path),
         report_tsv = shell_quote_path(report_tsv),
         report_json = shell_quote_path(report_json),
         sortmerna_command = shell_join(command),
@@ -433,22 +495,32 @@ fn sortmerna_setup_script(
 fn sortmerna_collect_script(
     filtered_reads_r1: &Path,
     filtered_reads_r2: Option<&Path>,
+    removed_reads_r1: &Path,
+    removed_reads_r2: Option<&Path>,
     globs: &SortmernaOutputGlobs,
 ) -> String {
-    if let Some(filtered_reads_r2) = filtered_reads_r2 {
+    if let (Some(filtered_reads_r2), Some(removed_reads_r2)) = (filtered_reads_r2, removed_reads_r2)
+    {
         format!(
-            "collect_output_from_globs {filtered_reads_r1} {paired_fwd_globs}\ncollect_output_from_globs {filtered_reads_r2} {paired_rev_globs}\n",
+            "collect_output_from_globs {filtered_reads_r1} {paired_fwd_globs}\ncollect_output_from_globs {filtered_reads_r2} {paired_rev_globs}\ncollect_output_from_globs {removed_reads_r1} {removed_paired_fwd_globs}\ncollect_output_from_globs {removed_reads_r2} {removed_paired_rev_globs}\n",
             filtered_reads_r1 = shell_quote_path(filtered_reads_r1),
             paired_fwd_globs = globs.paired_fwd,
             filtered_reads_r2 = shell_quote_path(filtered_reads_r2),
             paired_rev_globs = globs.paired_rev,
+            removed_reads_r1 = shell_quote_path(removed_reads_r1),
+            removed_paired_fwd_globs = globs.removed_paired_fwd,
+            removed_reads_r2 = shell_quote_path(removed_reads_r2),
+            removed_paired_rev_globs = globs.removed_paired_rev,
         )
     } else {
         format!(
-            "collect_output_from_globs {filtered_reads_r1} {single_output_globs} {readb_single_globs}\n",
+            "collect_output_from_globs {filtered_reads_r1} {single_output_globs} {readb_single_globs}\ncollect_output_from_globs {removed_reads_r1} {removed_single_output_globs} {removed_readb_single_globs}\n",
             filtered_reads_r1 = shell_quote_path(filtered_reads_r1),
             single_output_globs = globs.single_output,
             readb_single_globs = globs.readb_single,
+            removed_reads_r1 = shell_quote_path(removed_reads_r1),
+            removed_single_output_globs = globs.removed_single,
+            removed_readb_single_globs = globs.removed_readb_single,
         )
     }
 }
