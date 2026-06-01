@@ -20,6 +20,7 @@ configs/bench/local/bam-gc-bias.toml
 configs/bench/local/bam-genotyping.toml
 configs/bench/local/bam-haplogroups.toml
 configs/bench/local/bam-insert-size.toml
+configs/bench/local/bam-kinship.toml
 configs/bench/local/bam-length-filter.toml
 configs/bench/local/bam-mapping-summary.toml
 configs/bench/local/bam-mapq-filter.toml
