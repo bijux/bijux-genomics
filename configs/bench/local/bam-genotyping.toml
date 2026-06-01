@@ -1,0 +1,19 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-ready plan input for bam.genotyping.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_genotyping.v1"
+bam = "assets/toy/core-v1/bam/genotyping_panel_sites.sam"
+bai = "assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai"
+reference_fasta = "assets/toy/core-v1/bam/genotyping_reference_chr1.fasta"
+sites_vcf = "assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf"
+regions = "assets/toy/core-v1/bam/genotyping_target_regions.txt"
+tool_id = "angsd"
+sample_id = "core-v1-genotyping-panel-sites"
+min_posterior = 0.9
+min_call_rate = 0.5
+threads = 2
+output_dir = "target/local-ready/bam.genotyping"
