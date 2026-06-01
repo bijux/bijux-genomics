@@ -2,8 +2,8 @@
 //! Stable public benchmark surface re-exported by the crate root.
 
 pub use crate::repo::{
-    bench_bundles_dir, bench_corpora_dir, bench_data_dir, bench_fastq_local_stage_matrix_path,
-    bench_local_config_dir, bench_suites_dir,
+    bench_bam_local_stage_matrix_path, bench_bundles_dir, bench_corpora_dir, bench_data_dir,
+    bench_fastq_local_stage_matrix_path, bench_local_config_dir, bench_suites_dir,
 };
 pub use crate::workflow::{
     compare, gate, load_bundle_catalog, load_bundle_manifest, load_corpus_catalog,

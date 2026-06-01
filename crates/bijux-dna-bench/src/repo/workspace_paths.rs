@@ -39,12 +39,20 @@ pub fn bench_fastq_local_stage_matrix_path() -> PathBuf {
     bench_local_config_dir().join("fastq-stage-matrix.toml")
 }
 
+#[must_use]
+pub fn bench_bam_local_stage_matrix_path() -> PathBuf {
+    bench_local_config_dir().join("bam-stage-matrix.toml")
+}
+
 #[cfg(test)]
 mod tests {
     use std::fs;
     use std::path::PathBuf;
 
-    use super::{bench_fastq_local_stage_matrix_path, bench_local_config_dir};
+    use super::{
+        bench_bam_local_stage_matrix_path, bench_fastq_local_stage_matrix_path,
+        bench_local_config_dir,
+    };
 
     struct RepoRootOverrideGuard {
         previous: Option<std::ffi::OsString>,
@@ -87,6 +95,14 @@ mod tests {
                 .join("bench")
                 .join("local")
                 .join("fastq-stage-matrix.toml"),
+        );
+        assert_eq!(
+            bench_bam_local_stage_matrix_path(),
+            PathBuf::from(temp.path())
+                .join("configs")
+                .join("bench")
+                .join("local")
+                .join("bam-stage-matrix.toml"),
         );
         Ok(())
     }

@@ -18,6 +18,9 @@ The `public_api` module itself is private. Stable exports are owned by
 - `gate(policy, summary)` evaluates summary rows against a `GatePolicy`.
 - `bench_data_dir()` resolves the crate-owned benchmark data directory.
 - `bench_suites_dir()` resolves the crate-owned suite catalog directory.
+- `bench_local_config_dir()` resolves the repository-owned local benchmark config directory.
+- `bench_fastq_local_stage_matrix_path()` resolves the governed FASTQ local stage matrix path.
+- `bench_bam_local_stage_matrix_path()` resolves the governed BAM local stage matrix path.
 
 `docs/COMMANDS.md` is the SSOT for this callable operation list.
 
