@@ -107,6 +107,19 @@ pub fn write_local_gc_bias_smoke_summary() -> Result<PathBuf> {
     crate::internal::bam::stages::gc_bias::write_local_gc_bias_smoke_summary()
 }
 
+/// Materialize the governed local-smoke `bam.endogenous_content` report bundle.
+///
+/// The written report artifact lives at
+/// `target/local-smoke/bam.endogenous_content/endogenous_content.json`
+/// under the active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_endogenous_content_smoke_report() -> Result<PathBuf> {
+    crate::internal::bam::stages::endogenous_content::write_local_endogenous_content_smoke_report()
+}
+
 /// Materialize the governed local-smoke `bam.coverage` TSV bundle.
 ///
 /// The written summary artifact lives at

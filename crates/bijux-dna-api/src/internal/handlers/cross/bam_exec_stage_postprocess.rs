@@ -419,29 +419,7 @@ fn stage_postprocess(
             .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::EndogenousContent => {
-            let flagstat = stage_dir.join("flagstat.txt");
-            let mapped_fraction = parse_flagstat_mapped_fraction(&flagstat)?;
-            let competitive_mapping_enabled = plan
-                .params
-                .get("competitive_mapping")
-                .and_then(serde_json::Value::as_bool)
-                .unwrap_or(false);
-            let competitive_fraction = if competitive_mapping_enabled {
-                parse_flagstat_mapped_fraction(&stage_dir.join("competitive.flagstat.txt"))?
-            } else {
-                None
-            };
-            let path = stage_dir.join("endogenous.content.json");
-            bijux_dna_infra::atomic_write_json(
-                &path,
-                &serde_json::json!({
-                    "method": "mapped_fraction_from_flagstat",
-                    "mapped_fraction": mapped_fraction,
-                    "competitive_mapping_enabled": competitive_mapping_enabled,
-                    "competitive_mapping_fraction": competitive_fraction,
-                }),
-            )
-            .with_context(|| format!("write {}", path.display()))?;
+            crate::internal::bam::stages::endogenous_content::write_stage_endogenous_content_artifacts(stage_dir, plan)?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::OverlapCorrection => {
             let path = stage_dir.join("overlap_correction.outputs.json");

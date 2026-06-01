@@ -1,6 +1,7 @@
 pub(crate) mod complexity;
 pub(crate) mod coverage;
 pub(crate) mod duplication_metrics;
+pub(crate) mod endogenous_content;
 pub(crate) mod filter;
 pub(crate) mod gc_bias;
 pub(crate) mod insert_size;
