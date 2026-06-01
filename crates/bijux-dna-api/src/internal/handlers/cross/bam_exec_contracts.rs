@@ -257,6 +257,15 @@ mod tests {
             "umi_policy": "ignore",
             "duplicate_action": "mark"
         });
+        bijux_dna_infra::atomic_write_json(
+            &dup_dir.join("duplication.metrics.json"),
+            &serde_json::json!({
+                "method": "samtools",
+                "source": dup_dir.join("duplication.histogram.txt"),
+                "examined_pairs": 3,
+                "duplicate_pairs": 1
+            }),
+        )?;
         stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::DuplicationMetrics,
             &dup_dir,
@@ -272,6 +281,39 @@ mod tests {
         assert_eq!(
             duplication_policy.get("policy_scope").and_then(serde_json::Value::as_str),
             Some("observation_only")
+        );
+        let duplication_summary: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(dup_dir.join("duplication.summary.json"))?,
+        )?;
+        assert_eq!(
+            duplication_summary.get("schema_version").and_then(serde_json::Value::as_str),
+            Some("bijux.bam.duplication_metrics.v1")
+        );
+        assert_eq!(
+            duplication_summary.get("method").and_then(serde_json::Value::as_str),
+            Some("samtools")
+        );
+        assert_eq!(
+            duplication_summary.get("duplicate_action").and_then(serde_json::Value::as_str),
+            Some("mark")
+        );
+        assert_eq!(
+            duplication_summary.get("examined_reads").and_then(serde_json::Value::as_u64),
+            Some(3)
+        );
+        assert_eq!(
+            duplication_summary.get("duplicate_reads").and_then(serde_json::Value::as_u64),
+            Some(1)
+        );
+        assert_eq!(
+            duplication_summary.get("duplicate_fraction").and_then(serde_json::Value::as_f64),
+            Some(1.0 / 3.0)
+        );
+        assert_eq!(
+            duplication_summary
+                .get("insufficient_library_size_reason")
+                .and_then(serde_json::Value::as_str),
+            Some("tool_report_did_not_provide_library_size_estimate")
         );
 
         let mut markdup_plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Markdup);

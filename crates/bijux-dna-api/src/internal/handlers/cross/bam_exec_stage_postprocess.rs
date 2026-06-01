@@ -233,23 +233,10 @@ fn stage_postprocess(
             .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::DuplicationMetrics => {
-            let path = stage_dir.join("duplication.policy.json");
-            let payload = bijux_dna_domain_bam::BamDuplicatePolicyV1 {
-                schema_version: bijux_dna_domain_bam::BAM_DUPLICATE_POLICY_SCHEMA_VERSION
-                    .to_string(),
-                stage_id: stage.as_str().to_string(),
-                library_type: None,
-                optical_duplicates: json_string(plan.params.get("optical_duplicates")),
-                umi_policy: json_string(plan.params.get("umi_policy")),
-                duplicate_action: json_string(plan.params.get("duplicate_action")),
-                policy_scope: "observation_only".to_string(),
-                library_semantics: vec![
-                    "reports duplicate burden without mutating BAM outputs".to_string()
-                ],
-                comparison_ready_with: vec!["picard".to_string(), "samtools".to_string()],
-            };
-            bijux_dna_infra::atomic_write_json(&path, &payload)
-                .with_context(|| format!("write {}", path.display()))?;
+            crate::internal::bam::stages::duplication_metrics::write_stage_duplication_metrics_artifacts(
+                stage_dir,
+                plan,
+            )?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Markdup => {
             let flagstat_before: bijux_dna_domain_bam::BamFlagstatCountsV1 =
