@@ -40,7 +40,7 @@ pub fn align_args(
     let stats = out_dir.join("samtools_stats.txt");
     let metrics = out_dir.join("align.metrics.json");
     let rg = rg_string(params);
-    let index_prefix = reference.display();
+    let index_prefix = params.reference.as_str();
     let mut preset_flags = preset_flags(&params.preset).to_string();
     if let Some(seed_length) = params.seed_length {
         preset_flags.push_str(&format!(" -L {seed_length}"));
@@ -49,8 +49,10 @@ pub fn align_args(
         format!(
             "if [ ! -f {ref}.fai ]; then samtools faidx {ref}; fi; \
         if [ ! -f {ref}.dict ]; then gatk CreateSequenceDictionary -R {ref} -O {ref}.dict; fi; \
-        if [ ! -f {ref}.1.bt2 ]; then bowtie2-build {ref} {ref}; fi;",
+        if [ ! -f {idx}.1.bt2 ]; then bowtie2-build {ref} {idx}; fi;",
             ref = reference.display()
+            ,
+            idx = index_prefix
         )
     } else {
         String::new()
@@ -82,7 +84,7 @@ pub fn align_args(
     samtools index {out} && \
     samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats} && \
     samtools stats {out} > {stats} && \
-    python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bowtie2\",\"preset\":\"{preset}\",\"sensitivity_profile\":{sensitivity_profile},\"seed_length\":{seed_length},\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
+    python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bowtie2\",\"preset\":\"{preset}\",\"sensitivity_profile\":{sensitivity_profile},\"seed_length\":{seed_length},\"reference\":\"{ref}\",\"reference_index\":\"{idx}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
         build = build_index,
         align = align,
         out = out_bam.display(),
@@ -94,6 +96,7 @@ pub fn align_args(
         sensitivity_profile = serde_json::to_string(&params.sensitivity_profile).unwrap_or_else(|_| "null".to_string()),
         seed_length = params.seed_length.map_or_else(|| "null".to_string(), |value| value.to_string()),
         ref = reference.display(),
+        idx = index_prefix,
         rg = rg
     );
     vec!["/bin/sh".to_string(), "-c".to_string(), command]

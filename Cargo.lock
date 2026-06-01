@@ -593,6 +593,7 @@ dependencies = [
  "bijux-dna-stages-bam",
  "bijux-dna-testkit",
  "insta",
+ "serde",
  "serde_json",
  "toml",
  "tracing",

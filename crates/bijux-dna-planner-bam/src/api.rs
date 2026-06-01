@@ -7,6 +7,7 @@ use bijux_dna_stage_contract::StagePlanV1;
 
 pub mod stage_api {
     pub use crate::report_stage::report_stage_step;
+    pub use crate::local_readiness::local_align_plan;
     pub use crate::selection::{allowed_tools_for_stage, default_tool_for_stage};
     pub use crate::stages::stage_registry;
     pub use crate::{plan_stage, StagePlanRequest};

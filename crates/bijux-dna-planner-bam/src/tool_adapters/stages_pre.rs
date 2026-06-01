@@ -193,6 +193,7 @@ pub mod align {
                 "r1": r1,
                 "r2": r2,
                 "reference": reference,
+                "reference_index": effective.reference,
                 "sample_id": sample_id,
                 "aligner": effective.aligner,
                 "strategy_id": effective.strategy_id,
