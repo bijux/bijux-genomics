@@ -153,6 +153,13 @@ deplete_host_benchmark_policy: fastq.deplete_host
 - `host_index_artifact_id` must stay aligned with the governed `reference_index_artifact_id`, `depleted_reads` must stay aligned with `reads_removed`, and `host_hit_rate` must stay aligned with `host_fraction_removed`
 - the benchmark row must preserve the governed retained-read policy and removed-host output provenance so host-hit accounting remains auditable without pretending optional domain-level alternatives are already benchmark-admitted
 
+deplete_reference_contaminants_benchmark_policy: fastq.deplete_reference_contaminants
+- default benchmark backend is `bowtie2`
+- the current governed benchmark surface remains single-tool until the benchmark registry admits an alternative contaminant-depletion backend
+- every governed `fastq.deplete_reference_contaminants` row must emit `contaminant_index_artifact_id`, retained FASTQ outputs, `contaminant_reads`, and `contaminant_hit_rate`
+- `contaminant_index_artifact_id` must stay aligned with the governed `reference_index_artifact_id`, `contaminant_reads` must stay aligned with `reads_removed`, and `contaminant_hit_rate` must stay aligned with `contaminant_fraction_removed`
+- the benchmark row must preserve the governed retained-read role and contaminant reference identity so decoy-screen accounting remains auditable without overstating tool admission
+
 trim_terminal_damage_benchmark_policy: fastq.trim_terminal_damage
 - default benchmark backend is `cutadapt`
 - governed comparison backends are `adapterremoval` and `seqkit`
