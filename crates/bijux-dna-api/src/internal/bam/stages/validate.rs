@@ -5,6 +5,15 @@ use serde::{Deserialize, Serialize};
 
 const LOCAL_VALIDATE_SMOKE_REPORT_SCHEMA_VERSION: &str = "bijux.bam.validate.local_smoke.report.v1";
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct LocalValidateInputBamIdentity {
+    input_bam: String,
+    #[serde(default)]
+    bam_index: Option<String>,
+    #[serde(default)]
+    reference_fasta: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 enum LocalValidateSmokeStatus {
@@ -16,14 +25,14 @@ enum LocalValidateSmokeStatus {
 struct LocalValidateSmokeCaseReport {
     sample_id: String,
     validation_status: LocalValidateSmokeStatus,
+    validation_errors: Vec<String>,
+    validation_warnings: Vec<String>,
     expect_pass: bool,
     expectation_matched: bool,
     required_refusal_codes: Vec<String>,
     refusal_codes: Vec<String>,
     validation_report_present: bool,
-    input_bam: String,
-    bam_index: Option<String>,
-    reference_fasta: Option<String>,
+    input_bam_identity: LocalValidateInputBamIdentity,
     total_reads: Option<u64>,
     mapped_reads: Option<u64>,
     duplicate_reads: Option<u64>,
@@ -106,8 +115,16 @@ fn materialize_local_validate_smoke_case(
             "schema_version": "bijux.bam.validate.local_smoke.metrics.v1",
             "stage_id": "bam.validate",
             "sample_id": case.sample_id,
+            "validation_status": if summary.validation_report_present { "pass" } else { "refusal" },
             "validation_report_present": summary.validation_report_present,
+            "validation_errors": summary.refusal_codes,
+            "validation_warnings": Vec::<String>::new(),
             "refusal_codes": summary.refusal_codes,
+            "input_bam_identity": {
+                "input_bam": summary.input_bam,
+                "bam_index": summary.bam_index,
+                "reference_fasta": summary.reference_fasta,
+            },
             "total_reads": summary.flagstat.total_reads,
             "mapped_reads": summary.flagstat.mapped_reads,
             "duplicate_reads": summary.flagstat.duplicate_reads,
@@ -127,14 +144,21 @@ fn materialize_local_validate_smoke_case(
         } else {
             LocalValidateSmokeStatus::Refusal
         },
+        validation_errors: summary.refusal_codes.clone(),
+        validation_warnings: Vec::new(),
         expect_pass: case.expect_pass,
         expectation_matched,
         required_refusal_codes: case.required_refusal_codes.clone(),
         refusal_codes: summary.refusal_codes.clone(),
         validation_report_present: summary.validation_report_present,
-        input_bam: summary.input_bam.display().to_string(),
-        bam_index: summary.bam_index.as_ref().map(|path| path.display().to_string()),
-        reference_fasta: summary.reference_fasta.as_ref().map(|path| path.display().to_string()),
+        input_bam_identity: LocalValidateInputBamIdentity {
+            input_bam: summary.input_bam.display().to_string(),
+            bam_index: summary.bam_index.as_ref().map(|path| path.display().to_string()),
+            reference_fasta: summary
+                .reference_fasta
+                .as_ref()
+                .map(|path| path.display().to_string()),
+        },
         total_reads: summary.flagstat.total_reads,
         mapped_reads: summary.flagstat.mapped_reads,
         duplicate_reads: summary.flagstat.duplicate_reads,
