@@ -109,6 +109,8 @@ fn write_local_gc_bias_smoke_summary_materializes_governed_outputs() -> Result<(
     assert_eq!(summary_json["aligned_reads"], serde_json::json!(4));
     assert_eq!(summary_json["windows"], serde_json::json!(3));
     assert_eq!(summary_json["read_starts"], serde_json::json!(4));
+    assert_eq!(summary_json["report_present"], serde_json::json!(true));
+    assert_eq!(summary_json["plot_present"], serde_json::json!(true));
     assert_eq!(summary_json["at_dropout"], serde_json::json!(25.0));
     assert_eq!(summary_json["gc_dropout"], serde_json::json!(25.0));
     assert_eq!(summary_json["gc_bias_score"], serde_json::json!(0.25));
@@ -122,6 +124,9 @@ fn write_local_gc_bias_smoke_summary_materializes_governed_outputs() -> Result<(
     );
     assert_eq!(stage_metrics_json["window_size"], serde_json::json!(10));
     assert_eq!(stage_metrics_json["gc_bias_score"], serde_json::json!(0.25));
+    assert_eq!(stage_metrics_json["at_dropout"], serde_json::json!(25.0));
+    assert_eq!(stage_metrics_json["gc_dropout"], serde_json::json!(25.0));
+    assert_eq!(stage_metrics_json["observed_gc_bins"], serde_json::json!([0, 50, 100]));
     assert_eq!(stage_metrics_json["row_expectation_matched"], serde_json::json!(true));
     assert_eq!(stage_metrics_json["case_expectation_matched"], serde_json::json!(true));
 
