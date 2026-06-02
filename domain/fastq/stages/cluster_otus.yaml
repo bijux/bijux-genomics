@@ -14,7 +14,13 @@ outputs:
   - name: "otu_table"
     data_type: "tsv"
     cardinality: "One"
+  - name: "otu_table_tsv"
+    data_type: "tsv"
+    cardinality: "One"
   - name: "otu_representatives"
+    data_type: "fasta"
+    cardinality: "One"
+  - name: "representative_sequences_fasta"
     data_type: "fasta"
     cardinality: "One"
   - name: "taxonomy_ready_fasta"
@@ -26,10 +32,16 @@ outputs:
 metrics:
   - name: "reads_in"
     meaning: "Number of input reads contributing to OTU clustering."
+  - name: "clustering_threshold"
+    meaning: "Canonical benchmark alias for the governed OTU identity threshold."
   - name: "otu_count"
     meaning: "Number of OTU clusters emitted."
+  - name: "sample_count"
+    meaning: "Number of samples represented in the governed OTU abundance table."
   - name: "representative_count"
     meaning: "Number of representative OTU sequences emitted."
+  - name: "representative_sequence_count"
+    meaning: "Canonical benchmark alias for the representative OTU sequence count emitted with the OTU table."
   - name: "runtime_s"
     meaning: "Stage runtime in seconds"
   - name: "memory_mb"
@@ -38,6 +50,7 @@ parameters:
   - name: "otu_identity"
     param_type: "float"
     default: "0.97"
+    meaning: "Governed OTU identity threshold that the benchmark row exposes through the `clustering_threshold` alias."
   - name: "threads"
     param_type: "int"
     default: "4"
@@ -55,6 +68,8 @@ tool_capability_requirements:
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
+  - "clustering_threshold == otu_identity"
+  - "representative_sequence_count == representative_count"
 compatible_tools:
   - vsearch
 assumptions:
