@@ -187,6 +187,15 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.cluster_otus")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("vsearch")
+        }),
+        "fastq.cluster_otus / vsearch must not drift against the registry"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.infer_asvs")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("dada2")
         }),
