@@ -530,6 +530,10 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "keep_order": governed.as_ref().map(|report| report.keep_order),
                 "reads_in": governed.as_ref().map(|report| report.reads_in),
                 "reads_out": governed.as_ref().map(|report| report.reads_out),
+                "input_reads": governed.as_ref().map(|report| report.reads_in),
+                "duplicate_reads": governed.as_ref().map(|report| report.duplicates_removed),
+                "unique_reads": governed.as_ref().map(|report| report.reads_out),
+                "output_reads": governed.as_ref().map(|report| report.reads_out),
                 "reads_in_r2": governed.as_ref().and_then(|report| report.reads_in_r2),
                 "reads_out_r2": governed.as_ref().and_then(|report| report.reads_out_r2),
                 "pairs_in": governed.as_ref().and_then(|report| report.pairs_in),
@@ -1621,6 +1625,10 @@ mod stage_artifact_tests {
         assert_eq!(extra["keep_order"], serde_json::json!(false));
         assert_eq!(extra["reads_in"], serde_json::json!(200));
         assert_eq!(extra["reads_out"], serde_json::json!(172));
+        assert_eq!(extra["input_reads"], serde_json::json!(200));
+        assert_eq!(extra["duplicate_reads"], serde_json::json!(28));
+        assert_eq!(extra["unique_reads"], serde_json::json!(172));
+        assert_eq!(extra["output_reads"], serde_json::json!(172));
         assert_eq!(extra["pairs_in"], serde_json::json!(200));
         assert_eq!(extra["pairs_out"], serde_json::json!(172));
         assert_eq!(extra["duplicates_removed"], serde_json::json!(28));
