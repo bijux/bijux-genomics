@@ -109,6 +109,9 @@ fn write_local_extract_umis_smoke_report_materializes_governed_outputs() -> Resu
     assert_eq!(case_report["reads_with_umi"], serde_json::json!(2));
     assert_eq!(case_report["failed_extractions"], serde_json::json!(2));
     assert_eq!(case_report["read_name_transform"], serde_json::json!("append_to_header"));
+    assert_eq!(payload["extracted_umi_count"], case_report["reads_with_umi"]);
+    assert_eq!(payload["invalid_umi_count"], case_report["failed_extractions"]);
+    assert_eq!(payload["tag_header_format"], case_report["read_name_transform"]);
     assert_eq!(
         case_report["raw_backend_report_format"],
         serde_json::json!("governed_local_smoke_log")
