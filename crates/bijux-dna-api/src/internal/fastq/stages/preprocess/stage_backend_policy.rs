@@ -1318,6 +1318,9 @@ mod tests {
         let metrics = parse_screen_taxonomy_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("kraken2"));
         assert_eq!(metrics["classifier"], serde_json::json!("kraken2"));
+        assert_eq!(metrics["taxonomy_database_id"], serde_json::json!("taxonomy_db"));
+        assert_eq!(metrics["classified_reads"], serde_json::json!(77));
+        assert_eq!(metrics["unclassified_reads"], serde_json::json!(23));
         assert_eq!(metrics["contamination_rate"], serde_json::json!(0.23));
         assert_eq!(metrics["top_taxa"][0]["label"], serde_json::json!("bacteria"));
         assert_eq!(metrics["database_digest"], serde_json::json!("sha256:taxonomy-db"));
@@ -1836,7 +1839,17 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "bases_trimmed_polyg",
         ],
         "fastq.screen_taxonomy" => {
-            &["schema_version", "stage", "tool", "classifier", "contamination_rate", "top_taxa"]
+            &[
+                "schema_version",
+                "stage",
+                "tool",
+                "classifier",
+                "taxonomy_database_id",
+                "classified_reads",
+                "unclassified_reads",
+                "contamination_rate",
+                "top_taxa",
+            ]
         }
         "fastq.deplete_rrna" => &[
             "schema_version",

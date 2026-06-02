@@ -921,12 +921,15 @@ pub(crate) fn parse_screen_taxonomy_metrics(out_dir: &std::path::Path) -> serde_
         .unwrap_or_else(|| out_dir.join("classification_report.json"));
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_screen_taxonomy_report(&raw) {
+            let (classified_reads, unclassified_reads) =
+                derive_screen_taxonomy_read_counts(&report);
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.screen_taxonomy",
                 "tool": report.tool_id,
                 "paired_mode": report.paired_mode,
                 "classifier": report.classifier,
+                "taxonomy_database_id": report.database_artifact_id,
                 "report_format": report.report_format,
                 "assignment_format": report.assignment_format,
                 "database_catalog_id": report.database_catalog_id,
@@ -939,6 +942,8 @@ pub(crate) fn parse_screen_taxonomy_metrics(out_dir: &std::path::Path) -> serde_
                 "emit_unclassified": report.emit_unclassified,
                 "reads_in": report.reads_in,
                 "reads_out": report.reads_out,
+                "classified_reads": classified_reads,
+                "unclassified_reads": unclassified_reads,
                 "bases_in": report.bases_in,
                 "bases_out": report.bases_out,
                 "pairs_in": report.pairs_in,
@@ -957,10 +962,36 @@ pub(crate) fn parse_screen_taxonomy_metrics(out_dir: &std::path::Path) -> serde_
         "stage": "fastq.screen_taxonomy",
         "tool": "report_missing",
         "classifier": serde_json::Value::Null,
+        "taxonomy_database_id": serde_json::Value::Null,
+        "classified_reads": serde_json::Value::Null,
+        "unclassified_reads": serde_json::Value::Null,
         "contamination_rate": serde_json::Value::Null,
         "top_taxa": serde_json::Value::Null,
         "report_json": report_path,
     })
+}
+
+fn derive_screen_taxonomy_read_counts(
+    report: &bijux_dna_domain_fastq::ScreenTaxonomyReportV1,
+) -> (Option<u64>, Option<u64>) {
+    let total_reads = report.reads_in.or(report.reads_out);
+    match (total_reads, report.unclassified_fraction, report.classified_fraction) {
+        (Some(total_reads), Some(unclassified_fraction), _) => {
+            let unclassified_reads =
+                ((total_reads as f64) * unclassified_fraction).round().clamp(0.0, total_reads as f64)
+                    as u64;
+            let classified_reads = total_reads.saturating_sub(unclassified_reads);
+            (Some(classified_reads), Some(unclassified_reads))
+        }
+        (Some(total_reads), None, Some(classified_fraction)) => {
+            let classified_reads =
+                ((total_reads as f64) * classified_fraction).round().clamp(0.0, total_reads as f64)
+                    as u64;
+            let unclassified_reads = total_reads.saturating_sub(classified_reads);
+            (Some(classified_reads), Some(unclassified_reads))
+        }
+        _ => (None, None),
+    }
 }
 
 fn discover_screen_taxonomy_report(out_dir: &std::path::Path) -> Option<std::path::PathBuf> {
