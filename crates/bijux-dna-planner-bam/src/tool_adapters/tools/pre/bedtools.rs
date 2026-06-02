@@ -2,6 +2,7 @@ use std::path::Path;
 
 use bijux_dna_domain_bam::params::FilterEffectiveParams;
 use bijux_dna_domain_bam::params::ValidateEffectiveParams;
+use bijux_dna_domain_bam::types::BedRegions;
 
 #[must_use]
 pub fn validate_args(
@@ -47,6 +48,38 @@ python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"filter_tool\": \"
         flag_after = flagstat_after.display(),
         idx_before = idxstats_before.display(),
         idx_after = idxstats_after.display(),
+        summary = summary.display()
+    );
+    vec!["/bin/sh".to_string(), "-c".to_string(), command]
+}
+
+#[must_use]
+pub fn coverage_args(
+    bam: &Path,
+    depth: &Path,
+    summary: &Path,
+    regions: Option<&BedRegions>,
+) -> Vec<String> {
+    let bedtools_probe = regions.map_or_else(
+        || format!("bedtools genomecov -ibam {bam} >/dev/null", bam = bam.display()),
+        |regions| {
+            format!(
+                "bedtools coverage -a {regions} -b {bam} >/dev/null",
+                regions = regions.as_path().display(),
+                bam = bam.display()
+            )
+        },
+    );
+    let depth_regions_arg =
+        regions.map_or_else(String::new, |regions| format!("-b {} ", regions.as_path().display()));
+    let command = format!(
+        "{bedtools_probe} && \
+samtools depth -a {depth_regions_arg}{bam} > {depth} && \
+awk '{{sum+=$3; if($3>0) cov++}} END {{mean=(NR>0)?sum/NR:0; print \"total\", NR, cov, mean}}' {depth} > {summary}",
+        bedtools_probe = bedtools_probe,
+        bam = bam.display(),
+        depth_regions_arg = depth_regions_arg,
+        depth = depth.display(),
         summary = summary.display()
     );
     vec!["/bin/sh".to_string(), "-c".to_string(), command]

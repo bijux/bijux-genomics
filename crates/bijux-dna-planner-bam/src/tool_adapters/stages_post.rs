@@ -311,7 +311,7 @@ pub mod coverage {
         out_dir: &Path,
         params: &CoverageEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
-        let mut outputs = crate::tool_adapters::stages_support::audit_outputs(
+        let outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::Coverage,
             out_dir,
         );
@@ -319,19 +319,18 @@ pub mod coverage {
         let depth_path = out_dir.join("coverage.depth.txt");
         let summary_path = out_dir.join("coverage.mosdepth.summary.txt");
         let command = match tool.tool_id.as_str() {
-            "samtools" => {
-                outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
-                    ArtifactId::from_static("coverage_depth"),
-                    depth_path.clone(),
-                    ArtifactRole::ReportJson,
-                ));
-                crate::tool_adapters::tools::samtools::depth_args(
-                    bam,
-                    &depth_path,
-                    &summary_path,
-                    params.regions.as_ref(),
-                )
-            }
+            "samtools" => crate::tool_adapters::tools::samtools::depth_args(
+                bam,
+                &depth_path,
+                &summary_path,
+                params.regions.as_ref(),
+            ),
+            "bedtools" => crate::tool_adapters::tools::bedtools::coverage_args(
+                bam,
+                &depth_path,
+                &summary_path,
+                params.regions.as_ref(),
+            ),
             _ => crate::tool_adapters::tools::mosdepth::args(bam, &prefix, params),
         };
         let plan = StagePlanV1 {
