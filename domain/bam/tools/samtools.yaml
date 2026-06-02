@@ -24,6 +24,14 @@ planned_stage_ids:
 status: supported
 scope: pre_hpc_pre_vcf
 stage_contracts:
+  bam.endogenous_content:
+    required_inputs:
+    - bam
+    expected_artifacts:
+    - endogenous_report
+    - summary
+    - stage_metrics
+    notes: Samtools preserves the governed BAM endogenous-content benchmark row through deterministic total-read, mapped-read, endogenous-read, and endogenous-fraction summaries derived from stable flagstat counts.
   bam.coverage:
     required_inputs:
     - bam
