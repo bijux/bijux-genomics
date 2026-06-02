@@ -9,6 +9,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "name": "coverage_summary"
     },
     {
+      "filename": "coverage.depth.txt",
+      "name": "coverage_depth"
+    },
+    {
       "filename": "stage.metrics.json",
       "name": "stage_metrics"
     }
@@ -31,12 +35,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "outputs": [
     "coverage_summary",
+    "coverage_depth",
     "stage_metrics"
   ],
   "schema_version": "bijux.stage_contract.v1",
   "stage_id": "bam.coverage",
   "tool_ids": [
     "mosdepth",
-    "samtools"
+    "samtools",
+    "bedtools"
   ]
 }
