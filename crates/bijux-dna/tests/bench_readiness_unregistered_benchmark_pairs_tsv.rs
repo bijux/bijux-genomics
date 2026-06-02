@@ -144,6 +144,12 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             "TSV must not retain a registry-drift row for bam.filter / {tool_id}"
         );
     }
+    for tool_id in ["bedtools", "mosdepth", "samtools"] {
+        assert!(
+            !rows.iter().any(|row| { row.starts_with(&format!("bam\tbam.coverage\t{tool_id}\t")) }),
+            "TSV must not retain a registry-drift row for bam.coverage / {tool_id}"
+        );
+    }
     for tool_id in ["bamtools", "samtools"] {
         assert!(
             !rows

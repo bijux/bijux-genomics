@@ -41,7 +41,13 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         Some("tool_id\tstage_id\tsupport_status\tadapter_status\tparser_status\tcorpus_status")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 46, "TSV must retain the governed BAM row count");
+    assert_eq!(rows.len(), 47, "TSV must retain the governed BAM row count");
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bedtools\tbam.coverage\tsupported\tplannable\tparser_fixture_validated\tplanner_only"
+        }),
+        "TSV must retain the governed bedtools coverage row"
+    );
     assert!(
         rows.iter().any(|row| {
             row == &"bwa\tbam.align\tsupported\trunnable\tartifact_contract_only\tfixture:corpus-01-mini"

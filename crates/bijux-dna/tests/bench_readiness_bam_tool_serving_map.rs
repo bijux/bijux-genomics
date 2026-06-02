@@ -55,7 +55,7 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
         payload.get("row_count").and_then(serde_json::Value::as_u64),
         Some(rows.len() as u64)
     );
-    assert_eq!(rows.len(), 46, "BAM readiness map must retain the governed 46-row slice");
+    assert_eq!(rows.len(), 47, "BAM readiness map must retain the governed 47-row slice");
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bwa")
@@ -100,6 +100,21 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
                     == Some("planner_only")
         }),
         "BAM readiness map must retain the governed bamtools MAPQ-filter row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bedtools")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.coverage")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("supported")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                    == Some("plannable")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("parser_fixture_validated")
+                && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                    == Some("planner_only")
+        }),
+        "BAM readiness map must retain the governed bedtools coverage row"
     );
     assert!(
         rows.iter().any(|row| {
@@ -359,6 +374,14 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
                     == Some("planner_only")
         }),
         "missing BAM tool contracts must remain visible instead of dropping benchmark rows"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.coverage")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("missing_contract")
+        }),
+        "bam.coverage rows must remain governed instead of regressing to missing-contract coverage"
     );
     assert!(
         !rows.iter().any(|row| {
