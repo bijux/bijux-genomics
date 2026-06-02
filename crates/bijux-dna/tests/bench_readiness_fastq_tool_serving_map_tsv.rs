@@ -48,4 +48,14 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
         }),
         "TSV must retain the governed fastqc validation row"
     );
+    for tool_id in ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"] {
+        assert!(
+            rows.iter().any(|row| {
+                row == &format!(
+                    "{tool_id}\tfastq.validate_reads\tobserver_specialized_benchmark\trunnable\tcomparable\tfixture:corpus-01-mini"
+                )
+            }),
+            "TSV must retain the governed validation row for {tool_id}"
+        );
+    }
 }
