@@ -12,7 +12,31 @@ citation: "paper:https://academic.oup.com/bioinformatics/article/25/14/1754/2256
 stage_ids: ["bam.align"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
-expected_artifacts: ["aligned_bam"]
+stage_contracts:
+  bam.align:
+    required_inputs:
+      - "fastq_r1"
+      - "reference_fasta"
+      - "reference_index"
+    optional_inputs:
+      - "fastq_r2"
+    expected_artifacts:
+      - "align_bam"
+      - "align_bai"
+      - "align_metrics"
+      - "flagstat"
+      - "idxstats"
+      - "stats"
+      - "stage_metrics"
+    notes: "BWA alignment emits the governed BAM, BAI, mapping summaries, and benchmark-facing alignment metrics while accepting an optional mate FASTQ."
+expected_artifacts:
+  - "align_bam"
+  - "align_bai"
+  - "align_metrics"
+  - "flagstat"
+  - "idxstats"
+  - "stats"
+  - "stage_metrics"
 metrics_schema_id: "bijux.bam.align.v1"
 metrics_schema: "bijux.bam.align.v1"
 version_cmd: "bwa --version"
@@ -22,9 +46,12 @@ comparability:
   non_comparable_with: []
 comparability_notes: "Comparable only within same stage contract and input constraints."
 capabilities:
-  - bam_input
+  - "SE"
+  - "PE"
 io_contract:
   required_inputs:
-    - bam
+    - "fastq_r1"
+    - "reference_fasta"
+    - "reference_index"
 
 notes: "Domain SSOT tool contract entry."
