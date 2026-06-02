@@ -75,6 +75,13 @@ validation_benchmark_policy: fastq.validate_reads
 - `fastq.report_qc` must consume any governed `fastq.validate_reads` backend artifacts already present in the benchmark output tree, while falling back to bootstrapping `fastqvalidator` when no validation backend has produced report inputs yet
 - `fastq.report_qc` and `fastq.profile_reads` are downstream complements, not substitutes for structural validation
 
+merge_pairs_benchmark_policy: fastq.merge_pairs
+- default benchmark backend is `pear`
+- governed comparison backends are `adapterremoval`, `bbmerge`, `flash2`, `leehom`, and `vsearch`
+- every governed `fastq.merge_pairs` row must emit `merged_pair_count`, `unmerged_pair_count`, `discarded_pair_count`, and `merge_rate`
+- benchmark rows must keep `input_pair_count`, `merged_pair_count`, and `unmerged_pair_count` aligned with the governed `reads_r1`, `reads_r2`, `reads_merged`, and `reads_unmerged` report fields so downstream comparison code does not need backend-specific merge math
+- `discarded_pair_count` must stay derived from the governed pair counts instead of inventing a backend-specific discard metric that some merge tools do not publish directly
+
 profile_read_lengths_benchmark_policy: fastq.profile_read_lengths
 - default benchmark backend is `seqkit_stats`
 - `fastp`, `prinseq`, and `seqfu` are governed comparison backends for read-length agreement studies
