@@ -10,6 +10,8 @@ pub enum BenchReadinessCommand {
     RenderMissingBenchmarkPairs(BenchReadinessRenderMissingBenchmarkPairsArgs),
     #[command(name = "render-stage-registry-extra-pairs")]
     RenderStageRegistryExtraPairs(BenchReadinessRenderStageRegistryExtraPairsArgs),
+    #[command(name = "validate-tool-execution-modes")]
+    ValidateToolExecutionModes(BenchReadinessValidateToolExecutionModesArgs),
     #[command(name = "render-tool-id-normalization")]
     RenderToolIdNormalization(BenchReadinessRenderToolIdNormalizationArgs),
     #[command(name = "validate-tool-families")]
@@ -50,6 +52,14 @@ pub struct BenchReadinessRenderMissingBenchmarkPairsArgs {
 pub struct BenchReadinessRenderStageRegistryExtraPairsArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessValidateToolExecutionModesArgs {
+    #[arg(long)]
+    pub config: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

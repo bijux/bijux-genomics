@@ -156,6 +156,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::ValidateToolExecutionModes(args) => {
+                        crate::commands::benchmark::readiness::tool_execution_modes::run_validate_tool_execution_modes(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderToolIdNormalization(args) => {
                         crate::commands::benchmark::readiness::tool_id_normalization::run_render_tool_id_normalization(
                             args,
