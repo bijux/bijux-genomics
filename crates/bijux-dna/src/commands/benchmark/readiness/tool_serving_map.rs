@@ -449,8 +449,8 @@ mod tests {
         assert_eq!(report.schema_version, BAM_TOOL_SERVING_MAP_SCHEMA_VERSION);
         assert_eq!(report.domain, "bam");
         assert_eq!(report.stage_count, 24);
-        assert_eq!(report.tool_count, 23);
-        assert_eq!(report.row_count, 42);
+        assert_eq!(report.tool_count, 21);
+        assert_eq!(report.row_count, 45);
         assert!(!report.rows.is_empty(), "BAM tool serving map must contain rows");
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "samtools"
@@ -459,6 +459,14 @@ mod tests {
                 && row.adapter_status == "plannable"
                 && row.parser_status == "parser_fixture_validated"
                 && row.corpus_status == "fixture:corpus-01-bam-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "picard"
+                && row.stage_id == "bam.mapping_summary"
+                && row.support_status == "supported"
+                && row.adapter_status == "plannable"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "planner_only"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "pydamage"

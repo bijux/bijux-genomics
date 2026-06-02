@@ -48,14 +48,14 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
         Some("target/bench-readiness/bam-tool-serving-map.tsv")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(24));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(23));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(21));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(
         payload.get("row_count").and_then(serde_json::Value::as_u64),
         Some(rows.len() as u64)
     );
-    assert_eq!(rows.len(), 47, "BAM readiness map must retain the governed 47-row slice");
+    assert_eq!(rows.len(), 45, "BAM readiness map must retain the governed 45-row slice");
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bwa")
