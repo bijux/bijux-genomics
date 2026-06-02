@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "7f92f74f3d6b5fa90319ebb5b71976f79393927f",
-  "bundle_checksum_sha256": "23c9c8592d3fb07b7ec7a7fa70790e2ac2cc5e8969e9ef26b951d4dfc21541b2",
+  "source_commit": "defd8e48786aec54e446726c8998d5ae54b3a2bb",
+  "bundle_checksum_sha256": "468ce873ace108eb80ad098e8b1563e7b6167d5560f7daf607749d84b4fb7404",
   "domains": [
     {
       "domain_id": "bam",
@@ -53,6 +53,7 @@
         "king",
         "mapdamage2",
         "mosdepth",
+        "multiqc",
         "ngsbriggs",
         "picard",
         "pmdtools",
@@ -96,51 +97,112 @@
           "status": "supported",
           "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
-          "description": "BAM align stage contract.",
+          "description": "FASTQ-to-BAM alignment contract for governed BAM benchmark admission.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
             {
-              "name": "bam",
-              "data_type": "bam",
+              "name": "fastq_r1",
+              "data_type": "fastq",
+              "cardinality": "One"
+            },
+            {
+              "name": "fastq_r2",
+              "data_type": "fastq",
+              "cardinality": "One"
+            },
+            {
+              "name": "reference_fasta",
+              "data_type": "fasta",
+              "cardinality": "One"
+            },
+            {
+              "name": "reference_index",
+              "data_type": "index",
               "cardinality": "One"
             }
           ],
           "outputs": [
             {
-              "name": "align_report_json",
+              "name": "align_bam",
+              "data_type": "bam",
+              "cardinality": "One"
+            },
+            {
+              "name": "align_bai",
+              "data_type": "bai",
+              "cardinality": "One"
+            },
+            {
+              "name": "align_metrics",
+              "data_type": "json",
+              "cardinality": "One"
+            },
+            {
+              "name": "flagstat",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "idxstats",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "stats",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "stage_metrics",
               "data_type": "json",
               "cardinality": "One"
             }
           ],
           "required_inputs": [
-            "bam"
+            "fastq_r1",
+            "reference_fasta",
+            "reference_index"
           ],
           "required_outputs": [
-            "align_report_json"
+            "align_bam",
+            "align_bai",
+            "align_metrics"
           ],
-          "parameters": [],
+          "parameters": [
+            {
+              "name": "preset",
+              "param_type": "",
+              "default_value": ""
+            },
+            {
+              "name": "read_group",
+              "param_type": "",
+              "default_value": ""
+            }
+          ],
           "metrics": [
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "mapped_reads",
+              "meaning": "Mapped-read count derived from governed alignment summaries",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "alignment_rate",
+              "meaning": "Mapped fraction derived from governed alignment summaries",
               "schema_version": "bijux.stage.v3"
             }
           ],
           "tool_capability_requirements": [
-            "bam_input"
+            "SE"
           ],
           "compatible_tools": [
             "bowtie2",
             "bwa"
           ],
           "assumptions": [
-            "default stage assumptions captured"
+            "optional read-two input is admitted only for paired-end alignment runs",
+            "reference index assets stay aligned with the selected aligner backend"
           ],
           "invariants": [
             "stable_artifact_contract",
@@ -285,7 +347,7 @@
           "status": "planned",
           "evidence_status": "planned",
           "scope": "pre_hpc_pre_vcf",
-          "description": "BAM complexity stage contract.",
+          "description": "BAM library-complexity contract for governed complexity-curve reporting, projected library-size estimation, and saturation benchmarking.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -297,7 +359,22 @@
           ],
           "outputs": [
             {
-              "name": "complexity_report_json",
+              "name": "complexity_report",
+              "data_type": "json",
+              "cardinality": "One"
+            },
+            {
+              "name": "complexity_curve",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "summary",
+              "data_type": "json",
+              "cardinality": "One"
+            },
+            {
+              "name": "stage_metrics",
               "data_type": "json",
               "cardinality": "One"
             }
@@ -306,18 +383,21 @@
             "bam"
           ],
           "required_outputs": [
-            "complexity_report_json"
+            "complexity_report",
+            "complexity_curve",
+            "summary",
+            "stage_metrics"
           ],
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "estimated_library_size",
+              "meaning": "Projected unique-read yield preserved as the governed BAM complexity benchmark estimate when extrapolation is supported",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "saturation_estimate",
+              "meaning": "Observed library saturation estimate preserved in the governed BAM complexity benchmark row when extrapolation is supported",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -328,7 +408,8 @@
             "preseq"
           ],
           "assumptions": [
-            "default stage assumptions captured"
+            "complexity extrapolation requires sufficient observed unique-read support before estimated_library_size and saturation_estimate can be emitted",
+            "the governed complexity_curve artifact is the benchmark-facing tabular curve even when the underlying backend is preseq"
           ],
           "invariants": [
             "stable_artifact_contract",
@@ -412,7 +493,7 @@
           "status": "supported",
           "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
-          "description": "BAM coverage stage contract.",
+          "description": "BAM coverage stage contract with governed summary, depth sidecar, and benchmark-facing coverage metrics.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -424,7 +505,17 @@
           ],
           "outputs": [
             {
-              "name": "coverage_report_json",
+              "name": "coverage_summary",
+              "data_type": "text",
+              "cardinality": "One"
+            },
+            {
+              "name": "coverage_depth",
+              "data_type": "text",
+              "cardinality": "One"
+            },
+            {
+              "name": "stage_metrics",
               "data_type": "json",
               "cardinality": "One"
             }
@@ -433,10 +524,27 @@
             "bam"
           ],
           "required_outputs": [
-            "coverage_report_json"
+            "coverage_summary",
+            "coverage_depth",
+            "stage_metrics"
           ],
           "parameters": [],
           "metrics": [
+            {
+              "metric_id": "mean_depth",
+              "meaning": "Mean observed depth across the governed target space",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "breadth_1x",
+              "meaning": "Fraction of governed target positions with at least one aligned base",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "covered_bases",
+              "meaning": "Count of governed target positions with at least one aligned base",
+              "schema_version": "bijux.stage.v3"
+            },
             {
               "metric_id": "runtime_s",
               "meaning": "Wall-clock runtime in seconds",
@@ -452,11 +560,13 @@
             "bam_input"
           ],
           "compatible_tools": [
+            "bedtools",
             "mosdepth",
             "samtools"
           ],
           "assumptions": [
-            "default stage assumptions captured"
+            "default stage assumptions captured",
+            "coverage summaries stay comparable only when target-space selection is fixed"
           ],
           "invariants": [
             "stable_artifact_contract",
@@ -542,7 +652,7 @@
           "status": "supported",
           "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
-          "description": "BAM duplication metrics stage contract.",
+          "description": "BAM duplication-metrics contract for governed duplicate-burden benchmarking, histogram reporting, and library-size estimation when available.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -554,7 +664,22 @@
           ],
           "outputs": [
             {
-              "name": "duplication_metrics_report_json",
+              "name": "duplication_report",
+              "data_type": "json",
+              "cardinality": "One"
+            },
+            {
+              "name": "duplication_histogram",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "summary",
+              "data_type": "json",
+              "cardinality": "One"
+            },
+            {
+              "name": "stage_metrics",
               "data_type": "json",
               "cardinality": "One"
             }
@@ -563,18 +688,26 @@
             "bam"
           ],
           "required_outputs": [
-            "duplication_metrics_report_json"
+            "duplication_report",
+            "duplication_histogram",
+            "summary",
+            "stage_metrics"
           ],
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "duplicate_count",
+              "meaning": "Observed duplicate-read count preserved in the governed BAM duplication-metrics benchmark row",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "duplicate_fraction",
+              "meaning": "Observed duplicate-read fraction preserved in the governed BAM duplication-metrics benchmark row",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "estimated_library_size",
+              "meaning": "Estimated library size preserved in the governed BAM duplication-metrics benchmark row when the admitted tool can derive one",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -586,7 +719,8 @@
             "samtools"
           ],
           "assumptions": [
-            "duplicate-rate estimation requires coordinate-consistent BAM and read-group metadata"
+            "duplicate-rate estimation requires coordinate-consistent BAM and read-group metadata",
+            "admitted BAM duplication-metrics tools must preserve the governed duplicate-count, duplicate-fraction, and estimated-library-size contract"
           ],
           "invariants": [
             "stable_artifact_contract",
@@ -668,7 +802,7 @@
           "status": "supported",
           "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
-          "description": "BAM filter stage contract.",
+          "description": "BAM filter contract for governed retention-count benchmarking and deterministic filter-policy reporting.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -680,7 +814,42 @@
           ],
           "outputs": [
             {
-              "name": "filter_report_json",
+              "name": "filtered_bam",
+              "data_type": "bam",
+              "cardinality": "One"
+            },
+            {
+              "name": "filtered_bai",
+              "data_type": "bai",
+              "cardinality": "One"
+            },
+            {
+              "name": "flagstat_before",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "flagstat_after",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "idxstats_before",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "idxstats_after",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "summary",
+              "data_type": "json",
+              "cardinality": "One"
+            },
+            {
+              "name": "stage_metrics",
               "data_type": "json",
               "cardinality": "One"
             }
@@ -689,18 +858,35 @@
             "bam"
           ],
           "required_outputs": [
-            "filter_report_json"
+            "filtered_bam",
+            "filtered_bai",
+            "flagstat_before",
+            "flagstat_after",
+            "idxstats_before",
+            "idxstats_after",
+            "summary",
+            "stage_metrics"
           ],
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "input_reads",
+              "meaning": "Input read count preserved in the governed BAM filter benchmark row",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "kept_reads",
+              "meaning": "Read count retained after the governed BAM filter policy is applied",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "removed_reads",
+              "meaning": "Read count removed by the governed BAM filter policy",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "active_filters",
+              "meaning": "Named filter clauses that define the governed BAM filter benchmark row",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -713,7 +899,8 @@
             "samtools"
           ],
           "assumptions": [
-            "default stage assumptions captured"
+            "all admitted BAM filter tools must preserve the governed retained/removed read accounting contract",
+            "active_filters records policy intent even when tool-specific argv differs across samtools, bamtools, and bedtools"
           ],
           "invariants": [
             "stable_artifact_contract",
@@ -1048,7 +1235,7 @@
           "status": "supported",
           "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
-          "description": "BAM read-length filtering stage contract.",
+          "description": "BAM read-length filtering contract for governed threshold-count benchmarking and deterministic filtered-BAM reporting.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -1060,7 +1247,42 @@
           ],
           "outputs": [
             {
-              "name": "length_filter_report_json",
+              "name": "filtered_bam",
+              "data_type": "bam",
+              "cardinality": "One"
+            },
+            {
+              "name": "filtered_bai",
+              "data_type": "bai",
+              "cardinality": "One"
+            },
+            {
+              "name": "flagstat_before",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "flagstat_after",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "idxstats_before",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "idxstats_after",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "summary",
+              "data_type": "json",
+              "cardinality": "One"
+            },
+            {
+              "name": "stage_metrics",
               "data_type": "json",
               "cardinality": "One"
             }
@@ -1069,18 +1291,35 @@
             "bam"
           ],
           "required_outputs": [
-            "length_filter_report_json"
+            "filtered_bam",
+            "filtered_bai",
+            "flagstat_before",
+            "flagstat_after",
+            "idxstats_before",
+            "idxstats_after",
+            "summary",
+            "stage_metrics"
           ],
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "min_length_threshold",
+              "meaning": "Minimum retained read length preserved in the governed BAM length-filter benchmark row",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "kept_reads",
+              "meaning": "Read count retained after applying the governed BAM length threshold",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "removed_reads",
+              "meaning": "Read count removed by the governed BAM length threshold",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "filtered_bam",
+              "meaning": "Filtered BAM artifact emitted for the governed BAM length-filter benchmark row",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -1092,7 +1331,8 @@
             "samtools"
           ],
           "assumptions": [
-            "length thresholds are deterministic for fixed BAM input"
+            "length thresholds are deterministic for fixed BAM input",
+            "all admitted BAM length-filter tools must preserve the governed threshold, retained-read, removed-read, and filtered-BAM contract"
           ],
           "invariants": [
             "stable_artifact_contract",
@@ -1111,7 +1351,7 @@
           "status": "supported",
           "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
-          "description": "BAM mapping summary stage contract.",
+          "description": "BAM mapping-summary contract for governed alignment-rate reporting and canonical mapping-count comparisons.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -1123,7 +1363,27 @@
           ],
           "outputs": [
             {
-              "name": "mapping_summary_report_json",
+              "name": "flagstat",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "idxstats",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "stats",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "summary",
+              "data_type": "json",
+              "cardinality": "One"
+            },
+            {
+              "name": "stage_metrics",
               "data_type": "json",
               "cardinality": "One"
             }
@@ -1132,18 +1392,37 @@
             "bam"
           ],
           "required_outputs": [
-            "mapping_summary_report_json"
+            "flagstat",
+            "idxstats",
+            "stats",
+            "summary",
+            "stage_metrics"
           ],
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "mapping_fraction",
+              "meaning": "Fraction of reads reported as mapped for the governed BAM input",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "mapped_reads",
+              "meaning": "Mapped reads reported by the governed BAM mapping summary row",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "unmapped_reads",
+              "meaning": "Unmapped reads preserved in the governed BAM mapping summary row",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "secondary_reads",
+              "meaning": "Secondary alignment count preserved in the governed BAM mapping summary row",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "supplementary_reads",
+              "meaning": "Supplementary alignment count preserved in the governed BAM mapping summary row",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -1151,10 +1430,12 @@
             "bam_input"
           ],
           "compatible_tools": [
+            "picard",
             "samtools"
           ],
           "assumptions": [
-            "mapping summary metrics are generated from deterministic BAM summary commands"
+            "samtools remains the governed baseline for fixture-backed BAM mapping-summary smoke coverage",
+            "picard contributes a governed comparison backend for alignment-summary metrics without changing the canonical BAM row metrics"
           ],
           "invariants": [
             "stable_artifact_contract",
@@ -1173,7 +1454,7 @@
           "status": "supported",
           "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
-          "description": "BAM MAPQ filtering stage contract.",
+          "description": "BAM MAPQ-filter contract for governed threshold-count benchmarking and deterministic filtered-BAM reporting.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -1185,7 +1466,42 @@
           ],
           "outputs": [
             {
-              "name": "mapq_filter_report_json",
+              "name": "filtered_bam",
+              "data_type": "bam",
+              "cardinality": "One"
+            },
+            {
+              "name": "filtered_bai",
+              "data_type": "bai",
+              "cardinality": "One"
+            },
+            {
+              "name": "flagstat_before",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "flagstat_after",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "idxstats_before",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "idxstats_after",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "summary",
+              "data_type": "json",
+              "cardinality": "One"
+            },
+            {
+              "name": "stage_metrics",
               "data_type": "json",
               "cardinality": "One"
             }
@@ -1194,18 +1510,35 @@
             "bam"
           ],
           "required_outputs": [
-            "mapq_filter_report_json"
+            "filtered_bam",
+            "filtered_bai",
+            "flagstat_before",
+            "flagstat_after",
+            "idxstats_before",
+            "idxstats_after",
+            "summary",
+            "stage_metrics"
           ],
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "mapq_threshold",
+              "meaning": "Mapping-quality threshold preserved in the governed BAM MAPQ-filter benchmark row",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "kept_reads",
+              "meaning": "Read count retained after applying the governed BAM MAPQ threshold",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "removed_reads",
+              "meaning": "Read count removed by the governed BAM MAPQ threshold",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "filtered_bam",
+              "meaning": "Filtered BAM artifact emitted for the governed BAM MAPQ-filter benchmark row",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -1217,7 +1550,8 @@
             "samtools"
           ],
           "assumptions": [
-            "MAPQ thresholds are deterministic for fixed BAM/input index"
+            "MAPQ thresholds are deterministic for fixed BAM/input index",
+            "all admitted BAM MAPQ-filter tools must preserve the governed threshold, retained-read, removed-read, and filtered-BAM contract"
           ],
           "invariants": [
             "stable_artifact_contract",
@@ -1236,7 +1570,7 @@
           "status": "planned",
           "evidence_status": "planned",
           "scope": "pre_hpc_pre_vcf",
-          "description": "BAM markdup stage contract.",
+          "description": "BAM duplicate-marking contract for governed marked-BAM, duplicate-metric, and duplicate-burden benchmarking.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -1248,7 +1582,42 @@
           ],
           "outputs": [
             {
-              "name": "markdup_report_json",
+              "name": "markdup_bam",
+              "data_type": "bam",
+              "cardinality": "One"
+            },
+            {
+              "name": "markdup_bai",
+              "data_type": "bai",
+              "cardinality": "One"
+            },
+            {
+              "name": "flagstat_before",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "flagstat_after",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "idxstats_before",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "idxstats_after",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "summary",
+              "data_type": "json",
+              "cardinality": "One"
+            },
+            {
+              "name": "stage_metrics",
               "data_type": "json",
               "cardinality": "One"
             }
@@ -1257,18 +1626,35 @@
             "bam"
           ],
           "required_outputs": [
-            "markdup_report_json"
+            "markdup_bam",
+            "markdup_bai",
+            "flagstat_before",
+            "flagstat_after",
+            "idxstats_before",
+            "idxstats_after",
+            "summary",
+            "stage_metrics"
           ],
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "marked_bam",
+              "meaning": "Duplicate-marked BAM artifact emitted for the governed BAM markdup benchmark row",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "duplicate_metrics",
+              "meaning": "Governed duplicate-marking summary artifact that carries comparable duplicate burden outputs",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "duplicate_count",
+              "meaning": "Duplicate-read count preserved in the governed BAM markdup benchmark row",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "duplicate_fraction",
+              "meaning": "Duplicate-read fraction preserved in the governed BAM markdup benchmark row",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -1280,7 +1666,7 @@
             "samtools"
           ],
           "assumptions": [
-            "default stage assumptions captured"
+            "admitted BAM markdup tools must preserve the governed marked-BAM, duplicate-metric, duplicate-count, and duplicate-fraction contract"
           ],
           "invariants": [
             "stable_artifact_contract",
@@ -1361,7 +1747,7 @@
           "status": "planned",
           "evidence_status": "planned",
           "scope": "pre_hpc_pre_vcf",
-          "description": "BAM qc_pre stage contract.",
+          "description": "BAM pre-QC contract for governed pre-filter integrity summaries and benchmark-facing count reports.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -1373,7 +1759,22 @@
           ],
           "outputs": [
             {
-              "name": "qc_pre_report_json",
+              "name": "flagstat",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "idxstats",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "stats",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "stage_metrics",
               "data_type": "json",
               "cardinality": "One"
             }
@@ -1382,18 +1783,36 @@
             "bam"
           ],
           "required_outputs": [
-            "qc_pre_report_json"
+            "flagstat",
+            "idxstats",
+            "stats",
+            "stage_metrics"
           ],
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "total_reads",
+              "meaning": "Total reads observed in the input BAM",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "mapped_reads",
+              "meaning": "Reads reported as mapped in the governed flagstat summary",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "unmapped_reads",
+              "meaning": "Reads reported as unmapped in the governed flagstat summary",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "duplicate_flagged_reads",
+              "meaning": "Reads carrying the duplicate flag in the governed flagstat summary",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "contig_summary",
+              "meaning": "Per-contig idxstats summary with mapped and unmapped read counts",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -1401,10 +1820,12 @@
             "bam_input"
           ],
           "compatible_tools": [
+            "multiqc",
             "samtools"
           ],
           "assumptions": [
-            "default stage assumptions captured"
+            "samtools is the governed primary executor for flagstat, idxstats, and stats materialization",
+            "multiqc is a governed reporting companion that aggregates governed bam.qc_pre summaries without redefining the canonical row metrics"
           ],
           "invariants": [
             "stable_artifact_contract",
@@ -1549,7 +1970,7 @@
           "status": "supported",
           "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
-          "description": "Stub BAM validation stage.",
+          "description": "BAM validation contract for governed benchmark diagnostics and identity tracking.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -1557,47 +1978,79 @@
               "name": "bam",
               "data_type": "bam",
               "cardinality": "One"
+            },
+            {
+              "name": "bam_index",
+              "data_type": "bai",
+              "cardinality": "One"
+            },
+            {
+              "name": "reference_fasta",
+              "data_type": "fasta",
+              "cardinality": "One"
             }
           ],
           "outputs": [
             {
-              "name": "report_json",
+              "name": "validation_report",
+              "data_type": "json",
+              "cardinality": "One"
+            },
+            {
+              "name": "flagstat",
+              "data_type": "txt",
+              "cardinality": "One"
+            },
+            {
+              "name": "stage_metrics",
               "data_type": "json",
               "cardinality": "One"
             }
           ],
-          "required_inputs": [],
-          "required_outputs": [],
+          "required_inputs": [
+            "bam"
+          ],
+          "required_outputs": [
+            "validation_report",
+            "flagstat",
+            "stage_metrics"
+          ],
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "validation_status",
+              "meaning": "Governed validation outcome for the input BAM",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "validation_errors",
+              "meaning": "Deterministic refusal codes emitted when validation fails",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "validation_warnings",
+              "meaning": "Non-fatal validation findings reserved for future warning-grade checks",
               "schema_version": "bijux.stage.v3"
             }
           ],
-          "tool_capability_requirements": [],
+          "tool_capability_requirements": [
+            "bam_input"
+          ],
           "compatible_tools": [
             "bamtools",
             "bedtools",
             "samtools"
           ],
           "assumptions": [
-            "default stage assumptions captured"
+            "bam_index and reference_fasta are optional inputs that enrich validation identity when present",
+            "governed fixtures currently emit refusal codes as errors and no warning-grade findings"
           ],
           "invariants": [
             "stable_artifact_contract",
             "deterministic_output_order"
           ],
           "allowed_missingness": [
-            "deterministic_output_order",
-            "none",
-            "stable_artifact_contract"
+            "none"
           ],
           "bank_hooks": [
             "none"
@@ -1660,7 +2113,10 @@
           ],
           "metrics_schema_id": "bijux.bam.population.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/angsd",
+            "digest": ""
+          }
         },
         {
           "tool_id": "authenticct",
@@ -1756,6 +2212,7 @@
           "version_cmd": "bedtools --version",
           "help_cmd": "bedtools --help",
           "stage_ids": [
+            "bam.coverage",
             "bam.filter",
             "bam.validate"
           ],
@@ -1787,14 +2244,24 @@
           ],
           "planned_stage_ids": [],
           "expected_artifacts": [
-            "aligned_bam"
+            "align_bai",
+            "align_bam",
+            "align_metrics",
+            "flagstat",
+            "idxstats",
+            "stage_metrics",
+            "stats"
           ],
           "capabilities": [
-            "bam_input"
+            "PE",
+            "SE"
           ],
           "metrics_schema_id": "bijux.bam.align.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/bowtie2",
+            "digest": ""
+          }
         },
         {
           "tool_id": "bwa",
@@ -1813,14 +2280,24 @@
           ],
           "planned_stage_ids": [],
           "expected_artifacts": [
-            "aligned_bam"
+            "align_bai",
+            "align_bam",
+            "align_metrics",
+            "flagstat",
+            "idxstats",
+            "stage_metrics",
+            "stats"
           ],
           "capabilities": [
-            "bam_input"
+            "PE",
+            "SE"
           ],
           "metrics_schema_id": "bijux.bam.align.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/bwa",
+            "digest": ""
+          }
         },
         {
           "tool_id": "contammix",
@@ -1847,7 +2324,10 @@
           ],
           "metrics_schema_id": "bijux.bam.contamination.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/contammix",
+            "digest": ""
+          }
         },
         {
           "tool_id": "damageprofiler",
@@ -1942,10 +2422,12 @@
           "version_cmd": "mapdamage2 --version",
           "help_cmd": "mapdamage2 --help",
           "stage_ids": [
+            "bam.bias_mitigation",
             "bam.damage"
           ],
           "planned_stage_ids": [],
           "expected_artifacts": [
+            "bias_report",
             "damage_plot",
             "damage_profile"
           ],
@@ -1973,13 +2455,44 @@
           ],
           "planned_stage_ids": [],
           "expected_artifacts": [
-            "coverage_report"
+            "coverage_depth",
+            "coverage_summary",
+            "stage_metrics"
           ],
           "capabilities": [
             "bam_input"
           ],
           "metrics_schema_id": "bijux.bam.coverage.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
+          "container": null
+        },
+        {
+          "tool_id": "multiqc",
+          "status": "supported",
+          "scope": "pre_hpc_pre_vcf",
+          "role": "",
+          "default_version": "1.24",
+          "upstream": "https://github.com/multiqc/multiqc",
+          "pin_strategy": "pinned",
+          "license": "GPL-3.0",
+          "citation": "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5039924/",
+          "version_cmd": "multiqc --version",
+          "help_cmd": "multiqc --help",
+          "stage_ids": [
+            "bam.qc_pre"
+          ],
+          "planned_stage_ids": [],
+          "expected_artifacts": [
+            "governed_qc_inputs_manifest",
+            "multiqc_data",
+            "multiqc_report",
+            "report_json"
+          ],
+          "capabilities": [
+            "report_aggregation"
+          ],
+          "metrics_schema_id": "bijux.stage.metrics.v1",
+          "comparability_notes": "Comparable only when the BAM qc_pre reporting run consumes the same governed qc_pre summary artifacts and preserves the canonical stage-level counts.",
           "container": null
         },
         {
@@ -2011,7 +2524,7 @@
         },
         {
           "tool_id": "picard",
-          "status": "planned",
+          "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
           "default_version": "latest-pinned",
@@ -2026,6 +2539,7 @@
             "bam.gc_bias",
             "bam.insert_size",
             "bam.length_filter",
+            "bam.mapping_summary",
             "bam.markdup"
           ],
           "planned_stage_ids": [],
@@ -2211,7 +2725,10 @@
           ],
           "metrics_schema_id": "bijux.bam.contamination.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/schmutzi",
+            "digest": ""
+          }
         },
         {
           "tool_id": "verifybamid2",
@@ -2237,7 +2754,10 @@
           ],
           "metrics_schema_id": "bijux.bam.contamination.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/verifybamid2",
+            "digest": ""
+          }
         },
         {
           "tool_id": "yleaf",
@@ -2264,7 +2784,10 @@
           ],
           "metrics_schema_id": "bijux.bam.sex.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/yleaf",
+            "digest": ""
+          }
         }
       ],
       "metrics": [
@@ -2746,6 +3269,11 @@
         },
         {
           "stage_id": "bam.mapping_summary",
+          "tool_id": "picard",
+          "fixture_path": "domain/bam/fixtures/bam.mapping_summary/picard.txt"
+        },
+        {
+          "stage_id": "bam.mapping_summary",
           "tool_id": "samtools",
           "fixture_path": "domain/bam/fixtures/bam.mapping_summary/samtools.txt"
         },
@@ -2800,7 +3328,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "c80dc72a3330d1d5670b64b56d38d8118bebe1c48481ebcce448dd30dcdaedcf"
+      "checksum_sha256": "a9d7b9e7d747dd7051a52710b6a305d975a406eb6526e0fe3e8a0453821028cb"
     },
     {
       "domain_id": "fastq",
@@ -3313,7 +3841,17 @@
               "cardinality": "One"
             },
             {
+              "name": "otu_table_tsv",
+              "data_type": "tsv",
+              "cardinality": "One"
+            },
+            {
               "name": "otu_representatives",
+              "data_type": "fasta",
+              "cardinality": "One"
+            },
+            {
+              "name": "representative_sequences_fasta",
               "data_type": "fasta",
               "cardinality": "One"
             },
@@ -3357,13 +3895,28 @@
               "schema_version": "bijux.stage.v3"
             },
             {
+              "metric_id": "clustering_threshold",
+              "meaning": "Canonical benchmark alias for the governed OTU identity threshold.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "otu_count",
               "meaning": "Number of OTU clusters emitted.",
               "schema_version": "bijux.stage.v3"
             },
             {
+              "metric_id": "sample_count",
+              "meaning": "Number of samples represented in the governed OTU abundance table.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "representative_count",
               "meaning": "Number of representative OTU sequences emitted.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "representative_sequence_count",
+              "meaning": "Canonical benchmark alias for the representative OTU sequence count emitted with the OTU table.",
               "schema_version": "bijux.stage.v3"
             },
             {
@@ -3390,7 +3943,9 @@
           ],
           "invariants": [
             "stable_artifact_contract",
-            "deterministic_output_order"
+            "deterministic_output_order",
+            "clustering_threshold == otu_identity",
+            "representative_sequence_count == representative_count"
           ],
           "allowed_missingness": [
             "none"
@@ -3556,6 +4111,21 @@
             }
           ],
           "metrics": [
+            {
+              "metric_id": "corrected_reads",
+              "meaning": "Number of reads emitted through the corrected FASTQ outputs",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "changed_reads",
+              "meaning": "Number of reads whose sequence or quality changed during correction",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "unchanged_reads",
+              "meaning": "Number of reads preserved byte-equivalent across correction outputs",
+              "schema_version": "bijux.stage.v3"
+            },
             {
               "metric_id": "reads_in",
               "meaning": "Number of input reads",
@@ -3865,6 +4435,11 @@
               "schema_version": "bijux.stage.v3"
             },
             {
+              "metric_id": "depleted_reads",
+              "meaning": "Canonical benchmark alias for reads removed during host depletion.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "bases_in",
               "meaning": "Number of input bases.",
               "schema_version": "bijux.stage.v3"
@@ -3887,6 +4462,11 @@
             {
               "metric_id": "host_fraction_removed",
               "meaning": "Fraction of input reads removed during host depletion.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "host_hit_rate",
+              "meaning": "Canonical benchmark alias for fraction of input reads classified as host.",
               "schema_version": "bijux.stage.v3"
             },
             {
@@ -3993,6 +4573,11 @@
               "schema_version": "bijux.stage.v3"
             },
             {
+              "metric_id": "contaminant_reads",
+              "meaning": "Canonical benchmark alias for reads removed during contaminant depletion.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "bases_in",
               "meaning": "Number of input bases.",
               "schema_version": "bijux.stage.v3"
@@ -4015,6 +4600,11 @@
             {
               "metric_id": "contaminant_fraction_removed",
               "meaning": "Fraction of reads removed during reference contaminant depletion.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "contaminant_hit_rate",
+              "meaning": "Canonical benchmark alias for fraction of reads removed as reference contaminants.",
               "schema_version": "bijux.stage.v3"
             },
             {
@@ -4077,6 +4667,16 @@
               "cardinality": "Many"
             },
             {
+              "name": "rrna_removed_reads_r1",
+              "data_type": "fastq",
+              "cardinality": "Many"
+            },
+            {
+              "name": "rrna_removed_reads_r2",
+              "data_type": "fastq",
+              "cardinality": "Many"
+            },
+            {
               "name": "rrna_report_tsv",
               "data_type": "tsv",
               "cardinality": "One"
@@ -4092,6 +4692,7 @@
           ],
           "required_outputs": [
             "rrna_filtered_reads_r1",
+            "rrna_removed_reads_r1",
             "rrna_report_tsv",
             "rrna_report_json"
           ],
@@ -4124,6 +4725,21 @@
               "schema_version": "bijux.stage.v3"
             },
             {
+              "metric_id": "retained_reads",
+              "meaning": "Canonical benchmark alias for retained reads after rRNA depletion",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "reads_removed",
+              "meaning": "Reads removed as rRNA during depletion",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "removed_reads",
+              "meaning": "Canonical benchmark alias for reads removed as rRNA during depletion",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "bases_in",
               "meaning": "Number of input bases",
               "schema_version": "bijux.stage.v3"
@@ -4149,6 +4765,11 @@
               "schema_version": "bijux.stage.v3"
             },
             {
+              "metric_id": "depletion_rate",
+              "meaning": "Canonical benchmark alias for fraction of reads removed as rRNA",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "depletion_summary",
               "meaning": "Structured governed depletion summary for rRNA depletion",
               "schema_version": "bijux.stage.v3"
@@ -4170,7 +4791,8 @@
           ],
           "allowed_missingness": [
             "reads_r2",
-            "rrna_filtered_reads_r2"
+            "rrna_filtered_reads_r2",
+            "rrna_removed_reads_r2"
           ],
           "bank_hooks": [
             "rrna_database_lock"
@@ -4182,7 +4804,7 @@
           "status": "supported",
           "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
-          "description": "Inspect likely adapter content without mutating reads prior to trimming.",
+          "description": "Inspect likely adapter content without mutating reads prior to trimming, while emitting governed adapter-report and identity evidence.",
           "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -4260,6 +4882,21 @@
               "schema_version": "bijux.stage.v3"
             },
             {
+              "metric_id": "detected_adapter_ids",
+              "meaning": "Governed adapter-bank identifiers admitted by adapter inspection after stronger parent motifs suppress nested partial seeds.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "detection_confidence",
+              "meaning": "Highest governed per-adapter support fraction among the admitted adapter identities.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "detection_threshold",
+              "meaning": "Minimum governed support fraction required to admit an adapter identity for this report.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "adapter_trimmed_fraction",
               "meaning": "Fraction of reads with detectable adapter evidence when the backend can estimate it",
               "schema_version": "bijux.stage.v3"
@@ -4273,7 +4910,8 @@
           ],
           "assumptions": [
             "single-end input omits reads_r2; paired-end input contributes both mates to governed evidence-only adapter inspection.",
-            "fastqc inspects the full input set, so sampled-read evidence is not claimed by the canonical contract."
+            "fastqc inspects the full input set, so sampled-read evidence is not claimed by the canonical contract.",
+            "governed benchmark rows must expose adapter_report, detected_adapter_ids, detection_confidence, and detection_threshold fields from the canonical adapter-inspection report."
           ],
           "invariants": [
             "stable_artifact_contract",
@@ -4326,8 +4964,33 @@
           ],
           "metrics": [
             {
-              "metric_id": "duplicate_signal_fraction",
-              "meaning": "Fraction of reads with premerge duplicate-like sequence signatures.",
+              "metric_id": "reads_in",
+              "meaning": "Number of input reads inspected by the report-only premerge duplicate detector.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "duplicate_count",
+              "meaning": "Number of reads flagged by the report-only premerge duplicate detector.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "duplicate_fraction",
+              "meaning": "Fraction of input reads flagged by the report-only premerge duplicate detector.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "inspected_pair_count",
+              "meaning": "Number of read-pair observations inspected when paired-end input is present.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "duplicate_detection_policy",
+              "meaning": "Resolved report-only duplicate-detection policy recorded by the governed internal harness.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "measurement_scope",
+              "meaning": "Measurement scope used to interpret premerge duplicate-like sequence signatures.",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -4452,8 +5115,23 @@
           ],
           "metrics": [
             {
+              "metric_id": "reads_in",
+              "meaning": "Number of reads inspected by the governed prealignment library-complexity estimator.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "estimated_complexity",
+              "meaning": "Canonical prealignment complexity estimate exposed for comparison rows when input data is sufficient.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "estimated_duplicate_fraction",
               "meaning": "Prealignment estimate of library duplication or redundancy.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "insufficient_data_reason",
+              "meaning": "Deterministic reason emitted when the governed estimator cannot produce a comparable complexity estimate.",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -4570,6 +5248,26 @@
               "metric_id": "reads_with_umi",
               "meaning": "Number of reads for which a UMI was extracted and attached.",
               "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "failed_extractions",
+              "meaning": "Number of reads for which governed UMI extraction did not yield a valid UMI tag.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "extracted_umi_count",
+              "meaning": "Canonical number of reads emitted with extracted UMI tags.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "invalid_umi_count",
+              "meaning": "Canonical number of reads that remained untagged because UMI extraction failed.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "tag_header_format",
+              "meaning": "Canonical FASTQ header tag format used to propagate extracted UMIs.",
+              "schema_version": "bijux.stage.v3"
             }
           ],
           "tool_capability_requirements": [
@@ -4653,6 +5351,16 @@
             }
           ],
           "metrics": [
+            {
+              "metric_id": "filtered_fastq_r1",
+              "meaning": "Canonical filtered FASTQ output for read one or single-end input.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "filtered_fastq_r2",
+              "meaning": "Canonical filtered FASTQ output for read two when paired-end input is provided.",
+              "schema_version": "bijux.stage.v3"
+            },
             {
               "metric_id": "reads_in",
               "meaning": "Number of input reads.",
@@ -4958,6 +5666,26 @@
           ],
           "metrics": [
             {
+              "metric_id": "index_directory",
+              "meaning": "Canonical benchmark alias for the emitted index directory consumed by downstream reference-guided stages.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "index_files",
+              "meaning": "Structured benchmark list of emitted index files and their sizes.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "elapsed_time_s",
+              "meaning": "Canonical benchmark alias for governed index build runtime in seconds.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "index_size_bytes",
+              "meaning": "Canonical benchmark alias for total bytes written for the emitted reference index.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "reference_bytes",
               "meaning": "Total bytes in the indexed reference FASTA input",
               "schema_version": "bijux.stage.v3"
@@ -5083,6 +5811,11 @@
             {
               "metric_id": "sample_count",
               "meaning": "Number of samples represented in the ASV table",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "representative_sequence_count",
+              "meaning": "Number of representative sequences emitted alongside the ASV abundance table.",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -5364,6 +6097,11 @@
               "schema_version": "bijux.stage.v3"
             },
             {
+              "metric_id": "input_pair_count",
+              "meaning": "Canonical number of input read pairs eligible for merging",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "reads_merged",
               "meaning": "Number of successfully merged pairs",
               "schema_version": "bijux.stage.v3"
@@ -5371,6 +6109,21 @@
             {
               "metric_id": "reads_unmerged",
               "meaning": "Number of pairs left unmerged",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "merged_pair_count",
+              "meaning": "Canonical number of merged read pairs emitted by the benchmark row",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "unmerged_pair_count",
+              "meaning": "Canonical number of unmerged read pairs retained by the benchmark row",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "discarded_pair_count",
+              "meaning": "Canonical number of input read pairs discarded after merge handling",
               "schema_version": "bijux.stage.v3"
             },
             {
@@ -5450,6 +6203,11 @@
           ],
           "metrics": [
             {
+              "metric_id": "normalization_method",
+              "meaning": "Canonical benchmark alias for the governed abundance-normalization method.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "table_rows",
               "meaning": "Number of rows in the normalized abundance table",
               "schema_version": "bijux.stage.v3"
@@ -5457,6 +6215,21 @@
             {
               "metric_id": "sample_count",
               "meaning": "Number of samples in the normalized abundance table",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "feature_count",
+              "meaning": "Number of distinct features represented in the normalized abundance table.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "sample_totals",
+              "meaning": "Per-sample normalized abundance totals used to validate the compositional output contract.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "numeric_output_valid",
+              "meaning": "Whether every governed sample total matches the expected compositional target for the selected normalization method.",
               "schema_version": "bijux.stage.v3"
             },
             {
@@ -5475,7 +6248,8 @@
           "invariants": [
             "stable_artifact_contract",
             "amplicon_only_stage",
-            "per_sample_abundance_is_compositional"
+            "per_sample_abundance_is_compositional",
+            "normalization_method == method"
           ],
           "allowed_missingness": [
             "none"
@@ -5584,6 +6358,21 @@
             {
               "metric_id": "reads_out",
               "meaning": "Number of reads emitted after primer normalization.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "matched_primers",
+              "meaning": "Number of reads whose configured primer sequence was matched and trimmed during normalization.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "unmatched_reads",
+              "meaning": "Number of input reads that did not match the governed primer set during normalization.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "trimmed_primer_bases",
+              "meaning": "Number of primer-derived bases removed while normalizing read orientation and primer boundaries.",
               "schema_version": "bijux.stage.v3"
             },
             {
@@ -6051,8 +6840,18 @@
               "schema_version": "bijux.stage.v3"
             },
             {
+              "metric_id": "min_read_length",
+              "meaning": "Minimum read length observed before trimming.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "mean_read_length",
               "meaning": "Average read length before trimming.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "median_read_length",
+              "meaning": "Median read length before trimming.",
               "schema_version": "bijux.stage.v3"
             },
             {
@@ -6068,6 +6867,9 @@
           ],
           "tool_capability_requirements": [],
           "compatible_tools": [
+            "fastp",
+            "prinseq",
+            "seqfu",
             "seqkit_stats"
           ],
           "assumptions": [
@@ -6085,11 +6887,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "fastp",
-            "prinseq",
-            "seqfu"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "fastq.profile_reads",
@@ -6199,7 +6997,7 @@
           "status": "supported",
           "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
-          "description": "FASTQ amplicon stage for chimera detection and governed removal reporting.",
+          "description": "FASTQ amplicon stage for chimera detection and governed representative-sequence retention reporting.",
           "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -6263,8 +7061,18 @@
               "schema_version": "bijux.stage.v3"
             },
             {
+              "metric_id": "non_chimera_count",
+              "meaning": "Canonical benchmark alias for the retained non-chimeric representative-sequence count.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "chimeras_removed",
               "meaning": "Number of reads removed as chimeric.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "chimera_count",
+              "meaning": "Canonical benchmark alias for the representative-sequence count removed as chimeric.",
               "schema_version": "bijux.stage.v3"
             },
             {
@@ -6288,7 +7096,9 @@
             "stable_artifact_contract",
             "deterministic_output_order",
             "reads_out <= reads_in",
+            "non_chimera_count == reads_out",
             "chimeras_removed == reads_in - reads_out",
+            "chimera_count == chimeras_removed",
             "chimera_fraction in [0, 1]"
           ],
           "allowed_missingness": [
@@ -6405,8 +7215,28 @@
               "schema_version": "bijux.stage.v3"
             },
             {
+              "metric_id": "input_reads",
+              "meaning": "Canonical benchmark alias for the number of input reads.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "reads_out",
               "meaning": "Number of output reads.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "duplicate_reads",
+              "meaning": "Canonical benchmark alias for the number of reads removed as duplicates.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "unique_reads",
+              "meaning": "Canonical benchmark alias for the number of deduplicated reads retained.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "output_reads",
+              "meaning": "Canonical benchmark alias for the number of output reads.",
               "schema_version": "bijux.stage.v3"
             },
             {
@@ -6786,6 +7616,16 @@
               "name": "classification_report_json",
               "data_type": "json",
               "cardinality": "One"
+            },
+            {
+              "name": "unclassified_reads_r1",
+              "data_type": "fastq",
+              "cardinality": "Many"
+            },
+            {
+              "name": "unclassified_reads_r2",
+              "data_type": "fastq",
+              "cardinality": "Many"
             }
           ],
           "required_inputs": [
@@ -6859,6 +7699,11 @@
               "schema_version": "bijux.stage.v3"
             },
             {
+              "metric_id": "taxonomy_database_id",
+              "meaning": "Canonical benchmark alias for the governed taxonomy database artifact identifier.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "minimum_confidence",
               "meaning": "Minimum classification confidence threshold enforced by governed screening",
               "schema_version": "bijux.stage.v3"
@@ -6871,6 +7716,16 @@
             {
               "metric_id": "contamination_summary",
               "meaning": "Structured governed taxonomy summary entries reduced from the raw classifier report",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "classified_reads",
+              "meaning": "Canonical benchmark read count derived from the governed classified fraction and input read total.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "unclassified_reads",
+              "meaning": "Canonical benchmark read count derived from the governed unclassified fraction and input read total.",
               "schema_version": "bijux.stage.v3"
             },
             {
@@ -6898,14 +7753,17 @@
           ],
           "assumptions": [
             "supported tools must emit read-level taxonomic classifications from the screened FASTQ input.",
-            "screen_report_tsv preserves the raw classifier summary while classification_report_json stores the governed taxonomy report contract."
+            "screen_report_tsv preserves the raw classifier summary while classification_report_json stores the governed taxonomy report contract.",
+            "when the selected backend supports unclassified-read export and emit_unclassified is enabled, unclassified_reads_* preserve the reads that remained taxonomically unresolved."
           ],
           "invariants": [
             "stable_artifact_contract",
             "deterministic_output_order"
           ],
           "allowed_missingness": [
-            "none"
+            "reads_r2",
+            "unclassified_reads_r1",
+            "unclassified_reads_r2"
           ],
           "bank_hooks": [
             "taxonomy_database_lock"
@@ -7121,6 +7979,11 @@
               "schema_version": "bijux.stage.v3"
             },
             {
+              "metric_id": "trimmed_tail_count",
+              "meaning": "Number of reads whose terminal polyG tail was trimmed.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "bases_trimmed_polyg",
               "meaning": "Number of bases removed from polyG tails.",
               "schema_version": "bijux.stage.v3"
@@ -7285,6 +8148,16 @@
             {
               "metric_id": "bases_out",
               "meaning": "Number of output bases",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "reads_dropped",
+              "meaning": "Number of reads removed by trimming or post-trim retention rules",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "bases_removed",
+              "meaning": "Number of bases removed between input and trimmed output",
               "schema_version": "bijux.stage.v3"
             },
             {
@@ -7478,6 +8351,16 @@
           ],
           "metrics": [
             {
+              "metric_id": "trim_5p_bases",
+              "meaning": "Resolved 5' trim length applied during damage-aware trimming.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "trim_3p_bases",
+              "meaning": "Resolved 3' trim length applied during damage-aware trimming.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "reads_in",
               "meaning": "Number of input reads.",
               "schema_version": "bijux.stage.v3"
@@ -7488,6 +8371,11 @@
               "schema_version": "bijux.stage.v3"
             },
             {
+              "metric_id": "reads_retained",
+              "meaning": "Number of reads retained after damage-aware pretrim.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
               "metric_id": "bases_in",
               "meaning": "Number of input bases before damage-aware trimming.",
               "schema_version": "bijux.stage.v3"
@@ -7495,6 +8383,11 @@
             {
               "metric_id": "bases_out",
               "meaning": "Number of output bases after damage-aware trimming.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "bases_removed",
+              "meaning": "Number of bases removed by damage-aware terminal trimming.",
               "schema_version": "bijux.stage.v3"
             },
             {
@@ -8393,12 +9286,12 @@
           "help_cmd": "fastp --help",
           "stage_ids": [
             "fastq.filter_reads",
+            "fastq.profile_read_lengths",
             "fastq.trim_polyg_tails",
             "fastq.trim_reads"
           ],
           "planned_stage_ids": [
-            "fastq.filter_low_complexity",
-            "fastq.profile_read_lengths"
+            "fastq.filter_low_complexity"
           ],
           "expected_artifacts": [
             "filter_report_json",
@@ -8711,7 +9604,9 @@
           "planned_stage_ids": [],
           "expected_artifacts": [
             "classification_report_json",
-            "screen_report_tsv"
+            "screen_report_tsv",
+            "unclassified_reads_r1",
+            "unclassified_reads_r2"
           ],
           "capabilities": [
             "PE",
@@ -8831,8 +9726,8 @@
           "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "latest-pinned",
-          "upstream": "unknown",
+          "default_version": "1.24",
+          "upstream": "https://github.com/multiqc/multiqc",
           "pin_strategy": "pinned",
           "license": "GPL-3.0",
           "citation": "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5039924/",
@@ -8939,11 +9834,10 @@
           "stage_ids": [
             "fastq.filter_low_complexity",
             "fastq.filter_reads",
+            "fastq.profile_read_lengths",
             "fastq.trim_reads"
           ],
-          "planned_stage_ids": [
-            "fastq.profile_read_lengths"
-          ],
+          "planned_stage_ids": [],
           "expected_artifacts": [
             "filter_report_json",
             "filtered_fastq_r1",
@@ -9001,7 +9895,7 @@
         },
         {
           "tool_id": "seqfu",
-          "status": "planned",
+          "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
           "default_version": "planned",
@@ -9012,13 +9906,11 @@
           "version_cmd": "seqfu --version",
           "help_cmd": "seqfu --help",
           "stage_ids": [
-            "fastq.normalize_abundance",
-            "fastq.profile_read_lengths"
-          ],
-          "planned_stage_ids": [
-            "fastq.normalize_abundance",
             "fastq.profile_read_lengths",
             "fastq.profile_reads"
+          ],
+          "planned_stage_ids": [
+            "fastq.normalize_abundance"
           ],
           "expected_artifacts": [
             "length_distribution_json",
@@ -9053,12 +9945,11 @@
             "fastq.filter_reads",
             "fastq.normalize_abundance",
             "fastq.profile_overrepresented_sequences",
+            "fastq.profile_reads",
             "fastq.trim_reads",
             "fastq.trim_terminal_damage"
           ],
-          "planned_stage_ids": [
-            "fastq.profile_reads"
-          ],
+          "planned_stage_ids": [],
           "expected_artifacts": [
             "filtered_reads_r1",
             "filtered_reads_r2",
@@ -9236,6 +10127,8 @@
           "expected_artifacts": [
             "rrna_filtered_reads_r1",
             "rrna_filtered_reads_r2",
+            "rrna_removed_reads_r1",
+            "rrna_removed_reads_r2",
             "rrna_report_json",
             "rrna_report_tsv"
           ],
@@ -9592,6 +10485,14 @@
           "schema_version": "bijux.domain.metrics.v1"
         },
         {
+          "metric_id": "duplicate_count",
+          "schema_version": "bijux.domain.metrics.v1"
+        },
+        {
+          "metric_id": "duplicate_fraction",
+          "schema_version": "bijux.domain.metrics.v1"
+        },
+        {
           "metric_id": "duplicate_provenance_json",
           "schema_version": "bijux.domain.metrics.v1"
         },
@@ -9609,6 +10510,10 @@
         },
         {
           "metric_id": "emit_unclassified",
+          "schema_version": "bijux.domain.metrics.v1"
+        },
+        {
+          "metric_id": "estimated_complexity",
           "schema_version": "bijux.domain.metrics.v1"
         },
         {
@@ -9657,6 +10562,14 @@
         },
         {
           "metric_id": "index_file_count",
+          "schema_version": "bijux.domain.metrics.v1"
+        },
+        {
+          "metric_id": "inspected_pair_count",
+          "schema_version": "bijux.domain.metrics.v1"
+        },
+        {
+          "metric_id": "insufficient_data_reason",
           "schema_version": "bijux.domain.metrics.v1"
         },
         {
@@ -10682,6 +11595,14 @@
           "artifact_type": null
         },
         {
+          "artifact_id": "unclassified_reads_r1",
+          "artifact_type": null
+        },
+        {
+          "artifact_id": "unclassified_reads_r2",
+          "artifact_type": null
+        },
+        {
           "artifact_id": "unmerged_reads_r1",
           "artifact_type": null
         },
@@ -11065,6 +11986,21 @@
         },
         {
           "stage_id": "fastq.profile_read_lengths",
+          "tool_id": "fastp",
+          "fixture_path": "domain/fastq/fixtures/fastq.profile_read_lengths/fastp.txt"
+        },
+        {
+          "stage_id": "fastq.profile_read_lengths",
+          "tool_id": "prinseq",
+          "fixture_path": "domain/fastq/fixtures/fastq.profile_read_lengths/prinseq.txt"
+        },
+        {
+          "stage_id": "fastq.profile_read_lengths",
+          "tool_id": "seqfu",
+          "fixture_path": "domain/fastq/fixtures/fastq.profile_read_lengths/seqfu.txt"
+        },
+        {
+          "stage_id": "fastq.profile_read_lengths",
           "tool_id": "seqkit_stats",
           "fixture_path": "domain/fastq/fixtures/fastq.profile_read_lengths/seqkit_stats.txt"
         },
@@ -11230,7 +12166,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "1951c9d93b8494f79230692d229122c804420289fee6b2966de3705c5584e12c"
+      "checksum_sha256": "29b94b24b53d1bf1adf15edffb395e177d126fee424b394d68b67497421cca3c"
     },
     {
       "domain_id": "vcf",
@@ -13488,7 +14424,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "ac2a340cb86caab4829ff620b9cfdd2110651f422c8ae24a4cbc4581590bd1d2"
+      "checksum_sha256": "bd186b3204596f3de20036cc71048104b8b22c4717258a8710215a56c4bec85e"
     }
   ]
 }

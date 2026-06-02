@@ -7,7 +7,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "optional read-two input is admitted only for paired-end alignment runs",
+          "reference index assets stay aligned with the selected aligner backend"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -43,7 +44,8 @@
         "evidence_status": "planned",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "complexity extrapolation requires sufficient observed unique-read support before estimated_library_size and saturation_estimate can be emitted",
+          "the governed complexity_curve artifact is the benchmark-facing tabular curve even when the underlying backend is preseq"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -67,7 +69,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "default stage assumptions captured",
+          "coverage summaries stay comparable only when target-space selection is fixed"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -91,7 +94,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "duplicate-rate estimation requires coordinate-consistent BAM and read-group metadata"
+          "duplicate-rate estimation requires coordinate-consistent BAM and read-group metadata",
+          "admitted BAM duplication-metrics tools must preserve the governed duplicate-count, duplicate-fraction, and estimated-library-size contract"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -115,7 +119,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "all admitted BAM filter tools must preserve the governed retained/removed read accounting contract",
+          "active_filters records policy intent even when tool-specific argv differs across samtools, bamtools, and bedtools"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -191,7 +196,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "length thresholds are deterministic for fixed BAM input"
+          "length thresholds are deterministic for fixed BAM input",
+          "all admitted BAM length-filter tools must preserve the governed threshold, retained-read, removed-read, and filtered-BAM contract"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -203,7 +209,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "mapping summary metrics are generated from deterministic BAM summary commands"
+          "samtools remains the governed baseline for fixture-backed BAM mapping-summary smoke coverage",
+          "picard contributes a governed comparison backend for alignment-summary metrics without changing the canonical BAM row metrics"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -215,7 +222,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "MAPQ thresholds are deterministic for fixed BAM/input index"
+          "MAPQ thresholds are deterministic for fixed BAM/input index",
+          "all admitted BAM MAPQ-filter tools must preserve the governed threshold, retained-read, removed-read, and filtered-BAM contract"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -227,7 +235,7 @@
         "evidence_status": "planned",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "admitted BAM markdup tools must preserve the governed marked-BAM, duplicate-metric, duplicate-count, and duplicate-fraction contract"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -251,7 +259,8 @@
         "evidence_status": "planned",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "samtools is the governed primary executor for flagstat, idxstats, and stats materialization",
+          "multiqc is a governed reporting companion that aggregates governed bam.qc_pre summaries without redefining the canonical row metrics"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -287,7 +296,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "bam_index and reference_fasta are optional inputs that enrich validation identity when present",
+          "governed fixtures currently emit refusal codes as errors and no warning-grade findings"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -370,7 +380,9 @@
         ],
         "invariants": [
           "stable_artifact_contract",
-          "deterministic_output_order"
+          "deterministic_output_order",
+          "clustering_threshold == otu_identity",
+          "representative_sequence_count == representative_count"
         ]
       },
       {
@@ -470,7 +482,8 @@
         "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "single-end input omits reads_r2; paired-end input contributes both mates to governed evidence-only adapter inspection.",
-          "fastqc inspects the full input set, so sampled-read evidence is not claimed by the canonical contract."
+          "fastqc inspects the full input set, so sampled-read evidence is not claimed by the canonical contract.",
+          "governed benchmark rows must expose adapter_report, detected_adapter_ids, detection_confidence, and detection_threshold fields from the canonical adapter-inspection report."
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -633,7 +646,8 @@
         "invariants": [
           "stable_artifact_contract",
           "amplicon_only_stage",
-          "per_sample_abundance_is_compositional"
+          "per_sample_abundance_is_compositional",
+          "normalization_method == method"
         ]
       },
       {
@@ -753,7 +767,9 @@
           "stable_artifact_contract",
           "deterministic_output_order",
           "reads_out <= reads_in",
+          "non_chimera_count == reads_out",
           "chimeras_removed == reads_in - reads_out",
+          "chimera_count == chimeras_removed",
           "chimera_fraction in [0, 1]"
         ]
       },
@@ -804,7 +820,8 @@
         "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "supported tools must emit read-level taxonomic classifications from the screened FASTQ input.",
-          "screen_report_tsv preserves the raw classifier summary while classification_report_json stores the governed taxonomy report contract."
+          "screen_report_tsv preserves the raw classifier summary while classification_report_json stores the governed taxonomy report contract.",
+          "when the selected backend supports unclassified-read export and emit_unclassified is enabled, unclassified_reads_* preserve the reads that remained taxonomically unresolved."
         ],
         "invariants": [
           "stable_artifact_contract",

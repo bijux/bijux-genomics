@@ -225,7 +225,13 @@
     ],
     "stage_outputs": {
       "bam.align": [
-        "align_report_json"
+        "align_bam",
+        "align_bai",
+        "align_metrics",
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics"
       ],
       "bam.authenticity": [
         "authenticity_report_json"
@@ -234,25 +240,40 @@
         "bias_mitigation_report_json"
       ],
       "bam.complexity": [
-        "complexity_report_json"
+        "complexity_report",
+        "complexity_curve",
+        "summary",
+        "stage_metrics"
       ],
       "bam.contamination": [
         "contamination_report_json"
       ],
       "bam.coverage": [
-        "coverage_report_json"
+        "coverage_summary",
+        "coverage_depth",
+        "stage_metrics"
       ],
       "bam.damage": [
         "damage_report_json"
       ],
       "bam.duplication_metrics": [
-        "duplication_metrics_report_json"
+        "duplication_report",
+        "duplication_histogram",
+        "summary",
+        "stage_metrics"
       ],
       "bam.endogenous_content": [
         "endogenous_content_report_json"
       ],
       "bam.filter": [
-        "filter_report_json"
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "summary",
+        "stage_metrics"
       ],
       "bam.gc_bias": [
         "gc_bias_report_json"
@@ -270,22 +291,50 @@
         "kinship_report_json"
       ],
       "bam.length_filter": [
-        "length_filter_report_json"
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "summary",
+        "stage_metrics"
       ],
       "bam.mapping_summary": [
-        "mapping_summary_report_json"
+        "flagstat",
+        "idxstats",
+        "stats",
+        "summary",
+        "stage_metrics"
       ],
       "bam.mapq_filter": [
-        "mapq_filter_report_json"
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "summary",
+        "stage_metrics"
       ],
       "bam.markdup": [
-        "markdup_report_json"
+        "markdup_bam",
+        "markdup_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "summary",
+        "stage_metrics"
       ],
       "bam.overlap_correction": [
         "overlap_correction_report_json"
       ],
       "bam.qc_pre": [
-        "qc_pre_report_json"
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics"
       ],
       "bam.recalibration": [
         "recalibration_report_json"
@@ -294,7 +343,9 @@
         "sex_report_json"
       ],
       "bam.validate": [
-        "report_json"
+        "validation_report",
+        "flagstat",
+        "stage_metrics"
       ]
     }
   },
@@ -958,6 +1009,14 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "unclassified_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "unclassified_reads_r2",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "unmerged_reads_r1",
         "artifact_type": null
       },
@@ -1008,7 +1067,9 @@
       "fastq.cluster_otus": [
         "report_json",
         "otu_table",
+        "otu_table_tsv",
         "otu_representatives",
+        "representative_sequences_fasta",
         "taxonomy_ready_fasta",
         "taxonomy_ready_fastq"
       ],
@@ -1045,6 +1106,8 @@
       "fastq.deplete_rrna": [
         "rrna_filtered_reads_r1",
         "rrna_filtered_reads_r2",
+        "rrna_removed_reads_r1",
+        "rrna_removed_reads_r2",
         "rrna_report_tsv",
         "rrna_report_json"
       ],
@@ -1171,7 +1234,9 @@
       ],
       "fastq.screen_taxonomy": [
         "screen_report_tsv",
-        "classification_report_json"
+        "classification_report_json",
+        "unclassified_reads_r1",
+        "unclassified_reads_r2"
       ],
       "fastq.subsample_reads": [
         "subsampled_reads",

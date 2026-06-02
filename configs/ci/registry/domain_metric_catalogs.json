@@ -180,6 +180,14 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "duplicate_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "duplicate_fraction",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "duplicate_provenance_json",
         "schema_version": "bijux.domain.metrics.v1"
       },
@@ -197,6 +205,10 @@
       },
       {
         "metric_id": "emit_unclassified",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "estimated_complexity",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -245,6 +257,14 @@
       },
       {
         "metric_id": "index_file_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "inspected_pair_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "insufficient_data_reason",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
