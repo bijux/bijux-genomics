@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 7f92f74f3d6b5fa90319ebb5b71976f79393927f
+# source_commit: defd8e48786aec54e446726c8998d5ae54b3a2bb
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -12,7 +12,7 @@
 [[stages]]
 id = "bam.align"
 status = "supported"
-output_kinds = ["json"]
+output_kinds = ["bai", "bam", "json", "txt"]
 ordering_after = []
 prerequisites = []
 resource_memory_gb = 24
@@ -69,7 +69,7 @@ tools = ["contammix", "schmutzi", "verifybamid2"]
 [[stages]]
 id = "bam.coverage"
 status = "supported"
-output_kinds = ["json"]
+output_kinds = ["json", "text"]
 ordering_after = ["bam.filter"]
 prerequisites = ["bam.filter"]
 resource_memory_gb = 8
@@ -83,7 +83,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["mean_coverage>=0.5", "breadth_1x>=0.6"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["mosdepth", "samtools"]
+tools = ["bedtools", "mosdepth", "samtools"]
 
 [[stages]]
 id = "bam.damage"
@@ -107,7 +107,7 @@ tools = ["mapdamage2", "pmdtools", "pydamage"]
 [[stages]]
 id = "bam.duplication_metrics"
 status = "supported"
-output_kinds = ["json"]
+output_kinds = ["json", "txt"]
 ordering_after = ["bam.length_filter"]
 prerequisites = ["bam.length_filter"]
 resource_memory_gb = 10
@@ -121,7 +121,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["reads_after_dedup>=10000"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["samtools"]
+tools = ["picard", "samtools"]
 
 [[stages]]
 id = "bam.endogenous_content"
@@ -145,7 +145,7 @@ tools = ["samtools"]
 [[stages]]
 id = "bam.filter"
 status = "supported"
-output_kinds = ["json"]
+output_kinds = ["bai", "bam", "json", "txt"]
 ordering_after = ["bam.validate"]
 prerequisites = ["bam.validate"]
 resource_memory_gb = 8
@@ -183,7 +183,7 @@ tools = ["angsd", "king"]
 [[stages]]
 id = "bam.length_filter"
 status = "supported"
-output_kinds = ["json"]
+output_kinds = ["bai", "bam", "json", "txt"]
 ordering_after = ["bam.mapq_filter"]
 prerequisites = ["bam.mapq_filter"]
 resource_memory_gb = 8
@@ -197,12 +197,12 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["reads_retained_fraction>=0.1"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["samtools"]
+tools = ["picard", "samtools"]
 
 [[stages]]
 id = "bam.mapping_summary"
 status = "supported"
-output_kinds = ["json"]
+output_kinds = ["json", "txt"]
 ordering_after = ["bam.validate"]
 prerequisites = ["bam.validate"]
 resource_memory_gb = 6
@@ -216,12 +216,12 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["indexed_bam=true"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["samtools"]
+tools = ["picard", "samtools"]
 
 [[stages]]
 id = "bam.mapq_filter"
 status = "supported"
-output_kinds = ["json"]
+output_kinds = ["bai", "bam", "json", "txt"]
 ordering_after = ["bam.validate"]
 prerequisites = ["bam.validate"]
 resource_memory_gb = 8
@@ -259,7 +259,7 @@ tools = ["angsd", "rxy"]
 [[stages]]
 id = "bam.validate"
 status = "supported"
-output_kinds = ["json"]
+output_kinds = ["json", "txt"]
 ordering_after = ["bam.align"]
 prerequisites = ["bam.align"]
 resource_memory_gb = 6
@@ -361,7 +361,7 @@ resource_memory_gb = 8
 resource_time_minutes = 30
 resource_threads = 6
 sanity_metrics = ["rrna_removed_fraction"]
-output_size_estimates_mb = ["rrna_filtered_reads_r1:1700", "rrna_report_json:4", "rrna_report_tsv:6"]
+output_size_estimates_mb = ["rrna_filtered_reads_r1:1700", "rrna_removed_reads_r1:1000", "rrna_report_json:4", "rrna_report_tsv:6"]
 qc_thresholds = ["rrna_removed_fraction|warn=<0.05|fail=<0.01"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -577,7 +577,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["seqkit_stats"]
+tools = ["fastp", "prinseq", "seqfu", "seqkit_stats"]
 
 [[stages]]
 id = "fastq.profile_reads"
@@ -658,7 +658,7 @@ tools = ["multiqc"]
 [[stages]]
 id = "fastq.screen_taxonomy"
 status = "supported"
-output_kinds = ["json", "tsv"]
+output_kinds = ["fastq", "json", "tsv"]
 ordering_after = ["fastq.profile_overrepresented_sequences"]
 prerequisites = ["fastq.profile_overrepresented_sequences"]
 resource_memory_gb = 16
