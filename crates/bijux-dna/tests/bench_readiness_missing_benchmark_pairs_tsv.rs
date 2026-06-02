@@ -58,4 +58,8 @@ fn bench_readiness_missing_benchmark_pairs_writes_governed_tsv_columns() {
         !rows.iter().any(|row| row.starts_with("bam\tbam.filter\t")),
         "TSV must not retain a missing benchmark-pair row for bam.filter"
     );
+    assert!(
+        !rows.iter().any(|row| row.starts_with("bam\tbam.mapq_filter\t")),
+        "TSV must not retain a missing benchmark-pair row for bam.mapq_filter"
+    );
 }

@@ -56,6 +56,12 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"bamtools\tbam.mapq_filter\tsupported\tplannable\tartifact_contract_only\tplanner_only"
+        }),
+        "TSV must retain the governed bamtools MAPQ-filter row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"bedtools\tbam.filter\tsupported\tplannable\tparser_fixture_validated\tplanner_only"
         }),
         "TSV must retain the governed bedtools filter row"
@@ -65,6 +71,12 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
             row == &"samtools\tbam.filter\tsupported\tplannable\tparser_fixture_validated\tplanner_only"
         }),
         "TSV must retain the governed samtools filter row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"samtools\tbam.mapq_filter\tsupported\tplannable\tartifact_contract_only\tplanner_only"
+        }),
+        "TSV must retain the governed samtools MAPQ-filter row"
     );
     assert!(
         rows.iter().any(|row| {
