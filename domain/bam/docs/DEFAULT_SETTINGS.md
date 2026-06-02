@@ -90,3 +90,5 @@ single_tool_justification: bam.haplogroups
 - `bam.filter`: `samtools` remains the local-smoke execution baseline, while `bamtools` and `bedtools` currently contribute supported comparison coverage through the same retained/removed audit-artifact contract.
 - `bam.mapq_filter`: the admitted `samtools` and `bamtools` benchmark rows must preserve `mapq_threshold`, `kept_reads`, `removed_reads`, and `filtered_bam`.
 - `bam.mapq_filter`: `samtools` remains the fixture-backed MAPQ-gating baseline, while `bamtools` currently contributes supported comparison coverage through the same governed audit-artifact contract and local planning path.
+- `bam.length_filter`: the admitted `samtools` and `picard` benchmark rows must preserve `min_length_threshold`, `kept_reads`, `removed_reads`, and `filtered_bam`.
+- `bam.length_filter`: `samtools` remains the fixture-backed length-gating baseline, while `picard` currently contributes supported comparison coverage through the same governed audit-artifact contract and local planning path.

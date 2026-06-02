@@ -17,7 +17,7 @@ in sync with `bijux-dna-domain-bam` when adding, renaming, or removing stages.
 | `bam.mapping_summary` | pre | samtools, picard | flagstat, idxstats, mapping stats, mapping summary |
 | `bam.filter` | core | samtools, bamtools, bedtools | filtered BAM, index, before/after flagstat and idxstats, filter summary |
 | `bam.mapq_filter` | core | samtools, bamtools | filtered BAM, index, before/after flagstat and idxstats, MAPQ-filter summary |
-| `bam.length_filter` | core | samtools, picard | filtered BAM, index, length-filter summary |
+| `bam.length_filter` | core | samtools, picard | filtered BAM, index, before/after flagstat and idxstats, length-filter summary |
 | `bam.markdup` | core | picard | duplicate-marked BAM, index, before/after metrics |
 | `bam.duplication_metrics` | core | samtools, picard | duplication report and histogram |
 | `bam.complexity` | core | preseq | complexity report and preseq estimates |
@@ -105,7 +105,7 @@ chr1	1	0.12	0.10
 
 ### bam.length_filter
 - Required artifacts:
-`filtered.bam`, `filtered.bam.bai`, `length_filter.summary.json`, `stage.metrics.json`
+`filtered.bam`, `filtered.bam.bai`, `flagstat.before.txt`, `flagstat.after.txt`, `idxstats.before.txt`, `idxstats.after.txt`, `length_filter.summary.json`, `stage.metrics.json`
 
 ## References
 
