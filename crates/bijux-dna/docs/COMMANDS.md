@@ -147,6 +147,12 @@ Visible aliases are part of the operator surface:
   FASTQ or BAM tool-ID alias cluster, carrying `normalized_tool_id`, `canonical_tool_id`,
   `alias_tool_ids`, `domains`, and `reason` so inconsistent `-` versus `_` benchmark tool naming
   cannot drift without an explicit canonical mapping.
+- `bijux-dna bench readiness validate-tool-families`
+  `validate-tool-families` checks `configs/bench/local/tool-families.toml` against the governed
+  FASTQ and BAM benchmark serving maps, enforcing one primary-function family assignment for every
+  benchmark tool. The JSON report carries `family_count`, `tool_count`, `multidomain_tool_count`,
+  `family_counts`, and one row per tool with its `family_id`, domains, and governed benchmark
+  stage scope.
 - `bijux-dna bench readiness render-stage-registry-extra-pairs`
   `render-stage-registry-extra-pairs` writes
   `target/bench-readiness/stage-registry-extra-pairs.tsv` with one governed row per benchmark-
