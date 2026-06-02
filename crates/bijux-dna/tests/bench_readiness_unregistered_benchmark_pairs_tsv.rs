@@ -125,6 +125,18 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         "TSV must not retain a registry-drift row for fastq.cluster_otus / vsearch"
     );
     assert!(
+        !rows.iter().any(|row| { row.starts_with("fastq\tfastq.normalize_abundance\tseqkit\t") }),
+        "TSV must not retain a registry-drift row for fastq.normalize_abundance / seqkit"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row.starts_with(
+                "fastq\tfastq.normalize_abundance\tseqfu\tplanned_contract\ttool_registered_pair_missing\t",
+            )
+        }),
+        "TSV must retain the planned fastq.normalize_abundance / seqfu registry-drift row"
+    );
+    assert!(
         !rows.iter().any(|row| { row.starts_with("fastq\tfastq.infer_asvs\tdada2\t") }),
         "TSV must not retain a registry-drift row for fastq.infer_asvs / dada2"
     );
