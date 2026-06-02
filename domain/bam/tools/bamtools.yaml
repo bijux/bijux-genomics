@@ -24,6 +24,19 @@ stage_contracts:
       - "summary"
       - "stage_metrics"
     notes: "Bamtools filter coverage must preserve the governed BAM filter row through deterministic retained/removed read accounting and before-and-after audit artifacts."
+  bam.mapq_filter:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "filtered_bam"
+      - "filtered_bai"
+      - "flagstat_before"
+      - "flagstat_after"
+      - "idxstats_before"
+      - "idxstats_after"
+      - "summary"
+      - "stage_metrics"
+    notes: "Bamtools MAPQ-filter coverage must preserve the governed threshold, retained-read, removed-read, and filtered-BAM contract even when local comparison planning reuses the samtools MAPQ-gating implementation."
   bam.validate:
     required_inputs:
       - "bam"
