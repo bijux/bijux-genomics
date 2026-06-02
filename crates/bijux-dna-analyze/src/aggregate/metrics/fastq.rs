@@ -343,7 +343,9 @@ impl StageMetricSchema for FastqDetectAdaptersMetrics {
                 ));
             }
         }
-        if let (Some(confidence), Some(threshold)) = (self.detection_confidence, self.detection_threshold) {
+        if let (Some(confidence), Some(threshold)) =
+            (self.detection_confidence, self.detection_threshold)
+        {
             if self.candidate_adapter_count > 0 && confidence < threshold {
                 return Err(BenchError::Validation(
                     "detection_confidence must be >= detection_threshold when adapters are detected"

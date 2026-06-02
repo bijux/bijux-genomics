@@ -683,14 +683,8 @@ mod tests {
 
         let metric_set =
             build_detect_adapters_metric_set(&report).expect("metric set should validate");
-        assert_eq!(
-            metric_set.metrics.adapter_report.as_deref(),
-            Some("out/adapter_report.json")
-        );
-        assert_eq!(
-            metric_set.metrics.detected_adapter_ids,
-            vec!["truseq_universal".to_string()]
-        );
+        assert_eq!(metric_set.metrics.adapter_report.as_deref(), Some("out/adapter_report.json"));
+        assert_eq!(metric_set.metrics.detected_adapter_ids, vec!["truseq_universal".to_string()]);
         assert_eq!(metric_set.metrics.detection_confidence, Some(0.25));
         assert_eq!(metric_set.metrics.detection_threshold, Some(0.01));
     }
@@ -707,7 +701,8 @@ mod tests {
 
         let out_dir = temp.path().join("out");
         std::fs::create_dir_all(out_dir.join("fastqc")).expect("create fastqc dir");
-        std::fs::write(out_dir.join("fastqc/fastqc_data.txt"), "adapter content").expect("write raw report");
+        std::fs::write(out_dir.join("fastqc/fastqc_data.txt"), "adapter content")
+            .expect("write raw report");
 
         let bench_inputs = TrimBenchInputs {
             runner: RuntimeKind::Docker,

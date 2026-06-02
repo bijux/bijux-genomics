@@ -361,10 +361,7 @@ mod tests {
     fn detect_adapters_preserves_fastqc_evidence_provenance() -> anyhow::Result<()> {
         let temp = bijux_dna_infra::temp_dir("bijux-detect-adapters-fastqc")?;
         let r1 = temp.path().join("r1.fastq");
-        write_fastq(
-            &r1,
-            &[("a", "ACGTAGATCGGAAGAGCTTT", "IIIIIIIIIIIIIIIIIIII")],
-        )?;
+        write_fastq(&r1, &[("a", "ACGTAGATCGGAAGAGCTTT", "IIIIIIIIIIIIIIIIIIII")])?;
 
         let params = DetectAdaptersEffectiveParams {
             schema_version: "bijux.fastq.params.detect_adapters.v1".to_string(),
@@ -394,12 +391,10 @@ mod tests {
             report.recommended_adapter_bank_id.as_deref(),
             Some("bijux-dna-fastq-adapter-bank")
         );
-        assert!(
-            report
-                .recommended_adapter_bank_hash
-                .as_deref()
-                .is_some_and(|value| value.starts_with("sha256:"))
-        );
+        assert!(report
+            .recommended_adapter_bank_hash
+            .as_deref()
+            .is_some_and(|value| value.starts_with("sha256:")));
         Ok(())
     }
 
