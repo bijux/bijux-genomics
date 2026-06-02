@@ -85,6 +85,10 @@ fn bench_readiness_missing_benchmark_pairs_writes_governed_tsv_columns() {
         "TSV must retain the governed bam.sex / yleaf gap"
     );
     assert!(
+        !rows.iter().any(|row| row.starts_with("bam\tbam.endogenous_content\t")),
+        "TSV must not retain a missing benchmark-pair row for bam.endogenous_content"
+    );
+    assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.filter\t")),
         "TSV must not retain a missing benchmark-pair row for bam.filter"
     );

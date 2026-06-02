@@ -74,6 +74,12 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"samtools\tbam.endogenous_content\tsupported\tplannable\tscientific_report_contract\tplanner_only"
+        }),
+        "TSV must retain the governed samtools endogenous-content row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"samtools\tbam.filter\tsupported\tplannable\tparser_fixture_validated\tplanner_only"
         }),
         "TSV must retain the governed samtools filter row"

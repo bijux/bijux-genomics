@@ -143,6 +143,10 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         );
     }
     assert!(
+        !rows.iter().any(|row| { row.starts_with("bam\tbam.endogenous_content\tsamtools\t") }),
+        "TSV must not retain a registry-drift row for bam.endogenous_content / samtools"
+    );
+    assert!(
         !rows.iter().any(|row| { row.starts_with("bam\tbam.qc_pre\tmultiqc\t") }),
         "TSV must not retain a registry-drift row for bam.qc_pre / multiqc"
     );

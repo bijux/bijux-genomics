@@ -243,6 +243,15 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.endogenous_content")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
+        }),
+        "bam.endogenous_content / samtools must not drift against the registry"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("bam.insert_size")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
         }),
