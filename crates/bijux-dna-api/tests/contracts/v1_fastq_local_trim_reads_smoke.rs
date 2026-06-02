@@ -78,9 +78,12 @@ fn write_local_trim_reads_smoke_report_materializes_governed_outputs() -> Result
     assert_eq!(se_case["layout"], serde_json::json!("single_end"));
     assert_eq!(se_case["input_read_count_total"], serde_json::json!(2));
     assert_eq!(se_case["output_read_count_total"], serde_json::json!(2));
+    assert_eq!(se_case["reads_retained"], serde_json::json!(2));
+    assert_eq!(se_case["reads_dropped"], serde_json::json!(0));
     assert_eq!(se_case["read_count_not_greater_than_input"], serde_json::json!(true));
     assert_eq!(se_case["min_length"], serde_json::json!(4));
     assert_eq!(se_case["quality_cutoff"], serde_json::json!(20));
+    assert_eq!(se_case["bases_removed"], serde_json::json!(17));
 
     let se_trimmed = repo_root.join(
         se_case["trimmed_reads_r1"]
@@ -125,7 +128,10 @@ fn write_local_trim_reads_smoke_report_materializes_governed_outputs() -> Result
     assert_eq!(pe_case["output_read_count_total"], serde_json::json!(4));
     assert_eq!(pe_case["input_pair_count"], serde_json::json!(2));
     assert_eq!(pe_case["output_pair_count"], serde_json::json!(2));
+    assert_eq!(pe_case["reads_retained"], serde_json::json!(4));
+    assert_eq!(pe_case["reads_dropped"], serde_json::json!(0));
     assert_eq!(pe_case["read_count_not_greater_than_input"], serde_json::json!(true));
+    assert_eq!(pe_case["bases_removed"], serde_json::json!(17));
 
     let pe_trimmed_r1 = repo_root.join(
         pe_case["trimmed_reads_r1"]

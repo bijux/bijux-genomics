@@ -71,9 +71,12 @@ struct LocalTrimReadsSmokeCaseReport {
     output_read_count_r1: u64,
     output_read_count_r2: Option<u64>,
     output_pair_count: Option<u64>,
+    reads_retained: u64,
+    reads_dropped: u64,
     read_count_not_greater_than_input: bool,
     min_length: u32,
     quality_cutoff: Option<u32>,
+    bases_removed: u64,
     trimmed_reads_r1: String,
     trimmed_reads_r2: Option<String>,
     report_json: String,
@@ -213,6 +216,9 @@ fn materialize_local_trim_reads_smoke_case(
     let output_read_count_total = report.reads_out.unwrap_or(0);
     let input_pair_count = report.pairs_in;
     let output_pair_count = report.pairs_out;
+    let reads_retained = output_read_count_total;
+    let reads_dropped = input_read_count_total.saturating_sub(output_read_count_total);
+    let bases_removed = report.bases_in.unwrap_or(0).saturating_sub(report.bases_out.unwrap_or(0));
     let input_read_count_r2 = input_pair_count;
     let output_read_count_r2 = output_pair_count;
     let input_read_count_r1 =
@@ -237,9 +243,12 @@ fn materialize_local_trim_reads_smoke_case(
         output_read_count_r1,
         output_read_count_r2,
         output_pair_count,
+        reads_retained,
+        reads_dropped,
         read_count_not_greater_than_input: output_read_count_total <= input_read_count_total,
         min_length: effective_params.min_len,
         quality_cutoff: effective_params.q_cutoff,
+        bases_removed,
         trimmed_reads_r1: path_relative_to_repo(repo_root, &output_r1),
         trimmed_reads_r2: output_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
         report_json: path_relative_to_repo(repo_root, &report_path),
@@ -254,6 +263,9 @@ fn write_local_trim_backend_report(
     tool_id: &str,
     report: &TrimReadsReportV1,
 ) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
     match tool_id {
         "fastp" => bijux_dna_infra::write_bytes(
             path,
