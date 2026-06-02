@@ -1838,19 +1838,17 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "trimmed_tail_count",
             "bases_trimmed_polyg",
         ],
-        "fastq.screen_taxonomy" => {
-            &[
-                "schema_version",
-                "stage",
-                "tool",
-                "classifier",
-                "taxonomy_database_id",
-                "classified_reads",
-                "unclassified_reads",
-                "contamination_rate",
-                "top_taxa",
-            ]
-        }
+        "fastq.screen_taxonomy" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "classifier",
+            "taxonomy_database_id",
+            "classified_reads",
+            "unclassified_reads",
+            "contamination_rate",
+            "top_taxa",
+        ],
         "fastq.deplete_rrna" => &[
             "schema_version",
             "stage",

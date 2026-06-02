@@ -152,7 +152,9 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
     }
     assert!(
         rows.iter().any(|row| {
-            row.starts_with("fastq\tfastq.screen_taxonomy\tdiamond\tplanned_contract\ttool_missing\t")
+            row.starts_with(
+                "fastq\tfastq.screen_taxonomy\tdiamond\tplanned_contract\ttool_missing\t",
+            )
         }),
         "TSV must retain the planned fastq.screen_taxonomy / diamond registry-drift row"
     );

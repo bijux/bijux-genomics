@@ -977,16 +977,16 @@ fn derive_screen_taxonomy_read_counts(
     let total_reads = report.reads_in.or(report.reads_out);
     match (total_reads, report.unclassified_fraction, report.classified_fraction) {
         (Some(total_reads), Some(unclassified_fraction), _) => {
-            let unclassified_reads =
-                ((total_reads as f64) * unclassified_fraction).round().clamp(0.0, total_reads as f64)
-                    as u64;
+            let unclassified_reads = ((total_reads as f64) * unclassified_fraction)
+                .round()
+                .clamp(0.0, total_reads as f64) as u64;
             let classified_reads = total_reads.saturating_sub(unclassified_reads);
             (Some(classified_reads), Some(unclassified_reads))
         }
         (Some(total_reads), None, Some(classified_fraction)) => {
-            let classified_reads =
-                ((total_reads as f64) * classified_fraction).round().clamp(0.0, total_reads as f64)
-                    as u64;
+            let classified_reads = ((total_reads as f64) * classified_fraction)
+                .round()
+                .clamp(0.0, total_reads as f64) as u64;
             let unclassified_reads = total_reads.saturating_sub(classified_reads);
             (Some(classified_reads), Some(unclassified_reads))
         }
