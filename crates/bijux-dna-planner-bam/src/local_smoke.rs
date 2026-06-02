@@ -148,6 +148,7 @@ pub struct LocalMarkdupSmokeCasePlan {
     pub expected_removed_reads: u64,
     pub expected_duplicate_reads_before: u64,
     pub expected_duplicate_reads_after: u64,
+    pub expected_duplicate_fraction: f64,
     pub expected_newly_marked_reads: u64,
     pub plan: bijux_dna_stage_contract::StagePlanV1,
 }
@@ -672,6 +673,7 @@ struct LocalMarkdupSmokeCase {
     expected_removed_reads: u64,
     expected_duplicate_reads_before: u64,
     expected_duplicate_reads_after: u64,
+    expected_duplicate_fraction: f64,
     expected_newly_marked_reads: u64,
 }
 
@@ -1899,6 +1901,23 @@ fn build_local_markdup_smoke_case(
             case.sample_id
         ));
     }
+    if !(0.0..=1.0).contains(&case.expected_duplicate_fraction) {
+        return Err(anyhow!(
+            "local-smoke bam.markdup case `{}` must declare duplicate fraction within [0, 1]",
+            case.sample_id
+        ));
+    }
+    let derived_fraction = if case.expected_output_reads == 0 {
+        0.0
+    } else {
+        case.expected_duplicate_reads_after as f64 / case.expected_output_reads as f64
+    };
+    if (derived_fraction - case.expected_duplicate_fraction).abs() > 1e-9 {
+        return Err(anyhow!(
+            "local-smoke bam.markdup case `{}` must keep duplicate fraction aligned with output and duplicate reads",
+            case.sample_id
+        ));
+    }
     if case.expected_newly_marked_reads > case.expected_duplicate_reads_after {
         return Err(anyhow!(
             "local-smoke bam.markdup case `{}` cannot declare newly marked reads greater than duplicate reads after processing",
@@ -1940,6 +1959,7 @@ fn build_local_markdup_smoke_case(
         expected_removed_reads: case.expected_removed_reads,
         expected_duplicate_reads_before: case.expected_duplicate_reads_before,
         expected_duplicate_reads_after: case.expected_duplicate_reads_after,
+        expected_duplicate_fraction: case.expected_duplicate_fraction,
         expected_newly_marked_reads: case.expected_newly_marked_reads,
         plan,
     })

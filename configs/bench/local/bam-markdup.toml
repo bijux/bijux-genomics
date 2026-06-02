@@ -21,4 +21,5 @@ expected_output_reads = 4
 expected_removed_reads = 0
 expected_duplicate_reads_before = 0
 expected_duplicate_reads_after = 1
+expected_duplicate_fraction = 0.25
 expected_newly_marked_reads = 1

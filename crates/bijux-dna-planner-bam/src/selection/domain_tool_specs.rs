@@ -486,4 +486,22 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn load_bam_domain_tool_planning_spec_accepts_supported_markdup_stage_tools() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("bam.markdup".to_string());
+
+        for tool in ["samtools", "picard"] {
+            let tool_id = ToolId::new(tool);
+            let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
+
+            assert_eq!(spec.tool_id.as_str(), tool);
+            assert_eq!(spec.command.template, vec![tool.to_string()]);
+            assert_eq!(spec.image.image, tool);
+            assert!(spec.image.digest.is_none());
+        }
+
+        Ok(())
+    }
 }
