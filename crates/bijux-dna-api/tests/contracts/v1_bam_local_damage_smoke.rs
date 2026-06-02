@@ -56,23 +56,16 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
     assert_eq!(payload["damage_signal"], serde_json::json!("moderate"));
     assert_eq!(payload["strict_profile_upgraded"], serde_json::json!(false));
 
-    let damage_pydamage = repo_root.join(
-        payload["damage_pydamage"]
-            .as_str()
-            .unwrap_or_else(|| panic!("damage_pydamage path missing")),
+    let damage_report = repo_root.join(
+        payload["damage_report"].as_str().unwrap_or_else(|| panic!("damage_report path missing")),
     );
-    let damage_mapdamage2 = repo_root.join(
-        payload["damage_mapdamage2"]
+    let terminal_position_metrics = repo_root.join(
+        payload["terminal_position_metrics"]
             .as_str()
-            .unwrap_or_else(|| panic!("damage_mapdamage2 path missing")),
+            .unwrap_or_else(|| panic!("terminal_position_metrics path missing")),
     );
-    let damage_summary = repo_root.join(
-        payload["damage_summary"].as_str().unwrap_or_else(|| panic!("damage_summary path missing")),
-    );
-    let damage_unified_metrics = repo_root.join(
-        payload["damage_unified_metrics"]
-            .as_str()
-            .unwrap_or_else(|| panic!("damage_unified_metrics path missing")),
+    let parser_output = repo_root.join(
+        payload["parser_output"].as_str().unwrap_or_else(|| panic!("parser_output path missing")),
     );
     let advisory_boundary = repo_root.join(
         payload["advisory_boundary"]
@@ -85,10 +78,9 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
         payload["stage_metrics"].as_str().unwrap_or_else(|| panic!("stage_metrics path missing")),
     );
     for path in [
-        &damage_pydamage,
-        &damage_mapdamage2,
-        &damage_summary,
-        &damage_unified_metrics,
+        &damage_report,
+        &terminal_position_metrics,
+        &parser_output,
         &advisory_boundary,
         &udg_regime,
         &stage_metrics,
@@ -97,7 +89,7 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
     }
 
     let summary_json: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(&damage_summary)?)?;
+        serde_json::from_str(&std::fs::read_to_string(&damage_report)?)?;
     assert_eq!(summary_json["schema_version"], serde_json::json!("bijux.bam.damage_evidence.v1"));
     assert_eq!(summary_json["stage_id"], serde_json::json!("bam.damage"));
     assert_eq!(summary_json["terminal_c_to_t_5p"], serde_json::json!(0.18));
@@ -107,10 +99,22 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
     assert_eq!(summary_json["strict_profile_upgraded"], serde_json::json!(false));
 
     let unified_json: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(&damage_unified_metrics)?)?;
+        serde_json::from_str(&std::fs::read_to_string(&terminal_position_metrics)?)?;
     assert_eq!(unified_json["canonical"]["c_to_t_5p"], serde_json::json!(0.18));
     assert_eq!(unified_json["canonical"]["g_to_a_3p"], serde_json::json!(0.11));
     assert_eq!(unified_json["tools_seen"], serde_json::json!(["pydamage", "mapdamage2"]));
+
+    let parser_output_json: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&parser_output)?)?;
+    assert_eq!(
+        parser_output_json["schema_version"],
+        serde_json::json!("bijux.bam.damage.parser_output.v1")
+    );
+    assert_eq!(parser_output_json["stage_id"], serde_json::json!("bam.damage"));
+    assert_eq!(
+        parser_output_json["parsed_tools"][0]["tool_id"],
+        serde_json::json!("pydamage")
+    );
 
     let advisory_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&advisory_boundary)?)?;

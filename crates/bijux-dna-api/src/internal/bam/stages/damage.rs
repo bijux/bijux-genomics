@@ -5,6 +5,7 @@ use serde::Serialize;
 
 const LOCAL_DAMAGE_SMOKE_REPORT_SCHEMA_VERSION: &str = "bijux.bam.damage.local_smoke.report.v1";
 const DAMAGE_STAGE_METRICS_SCHEMA_VERSION: &str = "bijux.bam.damage.stage_metrics.v1";
+const DAMAGE_PARSER_OUTPUT_SCHEMA_VERSION: &str = "bijux.bam.damage.parser_output.v1";
 
 #[derive(Debug, Clone, Serialize)]
 struct LocalDamageSmokeReport {
@@ -20,13 +21,18 @@ struct LocalDamageSmokeReport {
     short_fragment_fraction: f64,
     damage_signal: String,
     strict_profile_upgraded: bool,
-    damage_pydamage: String,
-    damage_mapdamage2: String,
-    damage_summary: String,
-    damage_unified_metrics: String,
+    damage_report: String,
+    terminal_position_metrics: String,
+    parser_output: String,
     advisory_boundary: String,
     udg_regime: String,
     stage_metrics: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct ParsedDamageToolOutput {
+    tool_id: String,
+    metrics: bijux_dna_domain_bam::metrics::DamageMetricsV1,
 }
 
 /// Materialize the governed local-smoke `bam.damage` artifacts and top-level report.
@@ -71,7 +77,9 @@ pub(crate) fn write_stage_damage_artifacts(
         .map_or_else(|| stage_dir.join("in.bam"), |artifact| artifact.path.clone());
     let input_bam = resolve_stage_input_path(&input_bam);
     let strict_profile = strict_profile_from_plan(plan);
-    let unified_path = write_stage_damage_unified(stage_dir)?;
+    let measurements = read_stage_damage_measurements(stage_dir)?;
+    let unified_path = write_stage_damage_unified_from_measurements(stage_dir, &measurements)?;
+    let parser_output_path = write_stage_damage_parser_output(stage_dir, &measurements)?;
     let unified = read_damage_unified(&unified_path)?;
     let canonical = parse_canonical_damage_metrics(&unified)?;
     let tools_seen = parse_tools_seen(&unified);
@@ -104,16 +112,14 @@ pub(crate) fn write_stage_damage_artifacts(
         }),
     )
     .with_context(|| format!("write {}", stage_metrics_path.display()))?;
+    debug_assert!(parser_output_path.exists());
     Ok(summary_path)
 }
 
-/// Write a canonical unified view of available stage damage metrics.
-///
-/// # Errors
-/// Returns an error if no readable damage metrics artifacts are present or the unified payload
-/// cannot be written.
-pub(crate) fn write_stage_damage_unified(stage_dir: &Path) -> Result<PathBuf> {
-    let measurements = read_stage_damage_measurements(stage_dir)?;
+fn write_stage_damage_unified_from_measurements(
+    stage_dir: &Path,
+    measurements: &[(String, bijux_dna_domain_bam::metrics::DamageMetricsV1)],
+) -> Result<PathBuf> {
     let canonical = measurements
         .first()
         .map_or_else(bijux_dna_domain_bam::metrics::DamageMetricsV1::empty, |(_, metric)| {
@@ -146,6 +152,30 @@ pub(crate) fn write_stage_damage_unified(stage_dir: &Path) -> Result<PathBuf> {
     Ok(path)
 }
 
+fn write_stage_damage_parser_output(
+    stage_dir: &Path,
+    measurements: &[(String, bijux_dna_domain_bam::metrics::DamageMetricsV1)],
+) -> Result<PathBuf> {
+    let path = stage_dir.join("damage.parser_output.json");
+    let parsed_tools = measurements
+        .iter()
+        .map(|(tool_id, metrics)| ParsedDamageToolOutput {
+            tool_id: tool_id.clone(),
+            metrics: metrics.clone(),
+        })
+        .collect::<Vec<_>>();
+    bijux_dna_infra::atomic_write_json(
+        &path,
+        &serde_json::json!({
+            "schema_version": DAMAGE_PARSER_OUTPUT_SCHEMA_VERSION,
+            "stage_id": "bam.damage",
+            "parsed_tools": parsed_tools,
+        }),
+    )
+    .with_context(|| format!("write {}", path.display()))?;
+    Ok(path)
+}
+
 fn materialize_local_damage_smoke_case(
     repo_root: &Path,
     case: &bijux_dna_planner_bam::stage_api::LocalDamageSmokeCasePlan,
@@ -153,9 +183,9 @@ fn materialize_local_damage_smoke_case(
     let case_out_dir = resolve_plan_path(repo_root, &case.plan.out_dir);
     bijux_dna_infra::ensure_dir(&case_out_dir)?;
 
-    let damage_pydamage_path = resolve_output_path(repo_root, &case.plan, "damage_pydamage")?;
-    let damage_mapdamage2_path = resolve_output_path(repo_root, &case.plan, "damage_mapdamage2")?;
     let input_bam = repo_root.join(&case.bam);
+    let damage_pydamage_path = case_out_dir.join("damage.pydamage.json");
+    let damage_mapdamage2_path = case_out_dir.join("damage.mapdamage2.txt");
 
     bijux_dna_infra::atomic_write_json(
         &damage_pydamage_path,
@@ -175,7 +205,12 @@ fn materialize_local_damage_smoke_case(
     )?;
     write_udg_regime(&case_out_dir, &case.plan)?;
     let summary_path = write_stage_damage_artifacts(&case_out_dir, &case.plan)?;
-    let unified_path = case_out_dir.join("damage.unified_metrics.json");
+    let terminal_position_metrics_path = resolve_output_path(
+        repo_root,
+        &case.plan,
+        "terminal_position_metrics",
+    )?;
+    let parser_output_path = resolve_output_path(repo_root, &case.plan, "parser_output")?;
     let advisory_boundary_path = case_out_dir.join("advisory_boundary.json");
     let udg_regime_path = case_out_dir.join("udg_regime.json");
     let stage_metrics_path = resolve_output_path(repo_root, &case.plan, "stage_metrics")?;
@@ -185,7 +220,7 @@ fn materialize_local_damage_smoke_case(
             .with_context(|| format!("read {}", summary_path.display()))?,
     )
     .with_context(|| format!("parse {}", summary_path.display()))?;
-    let unified = read_damage_unified(&unified_path)?;
+    let unified = read_damage_unified(&terminal_position_metrics_path)?;
     let tools_seen = parse_tools_seen(&unified);
 
     let expectation_matched =
@@ -211,10 +246,9 @@ fn materialize_local_damage_smoke_case(
         short_fragment_fraction: summary.short_fragment_fraction,
         damage_signal: summary.damage_signal,
         strict_profile_upgraded: summary.strict_profile_upgraded,
-        damage_pydamage: path_relative_to_repo(repo_root, &damage_pydamage_path),
-        damage_mapdamage2: path_relative_to_repo(repo_root, &damage_mapdamage2_path),
-        damage_summary: path_relative_to_repo(repo_root, &summary_path),
-        damage_unified_metrics: path_relative_to_repo(repo_root, &unified_path),
+        damage_report: path_relative_to_repo(repo_root, &summary_path),
+        terminal_position_metrics: path_relative_to_repo(repo_root, &terminal_position_metrics_path),
+        parser_output: path_relative_to_repo(repo_root, &parser_output_path),
         advisory_boundary: path_relative_to_repo(repo_root, &advisory_boundary_path),
         udg_regime: path_relative_to_repo(repo_root, &udg_regime_path),
         stage_metrics: path_relative_to_repo(repo_root, &stage_metrics_path),
@@ -241,12 +275,36 @@ fn read_stage_damage_measurements(
                 .with_context(|| format!("parse {}", profiler.display()))?,
         ));
     }
+    let addeam = stage_dir.join("damage.addeam.json");
+    if addeam.exists() {
+        measurements.push((
+            "addeam".to_string(),
+            bijux_dna_domain_bam::metrics::parse_addeam_json(&addeam)
+                .with_context(|| format!("parse {}", addeam.display()))?,
+        ));
+    }
     let mapdamage = stage_dir.join("damage.mapdamage2.txt");
     if mapdamage.exists() {
         measurements.push((
             "mapdamage2".to_string(),
             bijux_dna_domain_bam::metrics::parse_mapdamage2_misincorporation(&mapdamage)
                 .with_context(|| format!("parse {}", mapdamage.display()))?,
+        ));
+    }
+    let ngsbriggs = stage_dir.join("damage.ngsbriggs.json");
+    if ngsbriggs.exists() {
+        measurements.push((
+            "ngsbriggs".to_string(),
+            bijux_dna_domain_bam::metrics::parse_ngsbriggs_json(&ngsbriggs)
+                .with_context(|| format!("parse {}", ngsbriggs.display()))?,
+        ));
+    }
+    let pmdtools = stage_dir.join("damage.pmdtools.json");
+    if pmdtools.exists() {
+        measurements.push((
+            "pmdtools".to_string(),
+            bijux_dna_domain_bam::metrics::parse_pmdtools_json(&pmdtools)
+                .with_context(|| format!("parse {}", pmdtools.display()))?,
         ));
     }
     if measurements.is_empty() {
