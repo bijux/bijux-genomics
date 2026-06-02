@@ -1,0 +1,146 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Governed primary-function family classification for local FASTQ and BAM benchmark tools.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-02
+
+schema_version = "bijux.bench.local_tool_families.v1"
+classification_scope = "primary_benchmark_function"
+
+[[families]]
+family_id = "reference_indexing"
+summary = "Tools whose primary benchmark role is building or materializing reference-search indexes."
+tool_ids = ["bowtie2_build", "star"]
+
+[[families]]
+family_id = "alignment"
+summary = "Aligners whose primary benchmark role is mapping FASTQ reads into BAM-ready alignments."
+tool_ids = ["bowtie2", "bwa"]
+
+[[families]]
+family_id = "adapter_and_quality_trimming"
+summary = "Tools whose primary benchmark role is trimming adapters, low-quality tails, or terminal read damage."
+tool_ids = [
+  "adapterremoval",
+  "alientrimmer",
+  "atropos",
+  "cutadapt",
+  "fastp",
+  "fastx_clipper",
+  "leehom",
+  "seqpurge",
+  "skewer",
+  "trim_galore",
+  "trimmomatic",
+]
+
+[[families]]
+family_id = "read_pair_merging"
+summary = "Tools whose primary benchmark role is merging overlapping paired-end reads."
+tool_ids = ["bbmerge", "flash2", "pear"]
+
+[[families]]
+family_id = "read_filtering_and_low_complexity"
+summary = "Tools whose primary benchmark role is filtering reads by complexity, content, or lightweight sequence constraints."
+tool_ids = ["bbduk", "dustmasker", "prinseq", "seqkit"]
+
+[[families]]
+family_id = "read_validation_and_profiling"
+summary = "Tools whose primary benchmark role is validating FASTQ structure or emitting benchmark-comparable sequence statistics."
+tool_ids = ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqkit_stats", "seqtk"]
+
+[[families]]
+family_id = "report_aggregation"
+summary = "Tools whose primary benchmark role is aggregating governed QC outputs into operator-facing reports."
+tool_ids = ["multiqc"]
+
+[[families]]
+family_id = "error_correction"
+summary = "Tools whose primary benchmark role is correcting sequencing errors before downstream preprocessing."
+tool_ids = ["bayeshammer", "lighter", "musket", "rcorrector"]
+
+[[families]]
+family_id = "duplicate_handling"
+summary = "Tools whose primary benchmark role is identifying or removing duplicate reads."
+tool_ids = ["clumpify", "fastuniq"]
+
+[[families]]
+family_id = "umi_processing"
+summary = "Tools whose primary benchmark role is extracting or normalizing unique molecular identifiers."
+tool_ids = ["umi_tools"]
+
+[[families]]
+family_id = "taxonomy_classification"
+summary = "Tools whose primary benchmark role is classifying reads against taxonomy databases."
+tool_ids = ["centrifuge", "diamond", "kaiju", "kraken2", "krakenuniq"]
+
+[[families]]
+family_id = "rrna_depletion"
+summary = "Tools whose primary benchmark role is depleting rRNA-like reads from FASTQ inputs."
+tool_ids = ["sortmerna"]
+
+[[families]]
+family_id = "amplicon_processing"
+summary = "Tools whose primary benchmark role is amplicon denoising, OTU clustering, chimera handling, or related amplicon inference."
+tool_ids = ["dada2", "vsearch"]
+
+[[families]]
+family_id = "abundance_normalization"
+summary = "Tools whose primary benchmark role is abundance-oriented sequence normalization or sampling."
+tool_ids = ["seqfu"]
+
+[[families]]
+family_id = "internal_workflow_runtime"
+summary = "Repository-owned runtime tools whose primary benchmark role is governed internal workflow execution."
+tool_ids = ["bijux_dna"]
+
+[[families]]
+family_id = "bam_quality_control_and_metrics"
+summary = "Tools whose primary benchmark role is BAM validation, filtering, coverage, or general alignment-metric reporting."
+tool_ids = ["bamtools", "bedtools", "mosdepth", "picard", "samtools"]
+
+[[families]]
+family_id = "overlap_correction"
+summary = "Tools whose primary benchmark role is correcting overlapping paired-end alignments."
+tool_ids = ["bamutil"]
+
+[[families]]
+family_id = "variant_analysis_and_recalibration"
+summary = "Tools whose primary benchmark role is genotyping, VCF-oriented variant analysis, or base-quality recalibration."
+tool_ids = ["bcftools", "gatk"]
+
+[[families]]
+family_id = "genotyping_and_population_inference"
+summary = "Tools whose primary benchmark role is genotype-likelihood, population, or genotype-derived inference across BAM evidence."
+tool_ids = ["angsd"]
+
+[[families]]
+family_id = "damage_and_postmortem_bias"
+summary = "Tools whose primary benchmark role is profiling ancient-DNA damage or postmortem substitution bias."
+tool_ids = ["mapdamage2", "pmdtools", "pydamage"]
+
+[[families]]
+family_id = "authenticity_assessment"
+summary = "Tools whose primary benchmark role is summarizing whether BAM evidence is authentic ancient DNA."
+tool_ids = ["authenticct"]
+
+[[families]]
+family_id = "contamination_estimation"
+summary = "Tools whose primary benchmark role is estimating exogenous or modern-sample contamination."
+tool_ids = ["contammix", "schmutzi", "verifybamid2"]
+
+[[families]]
+family_id = "library_complexity_estimation"
+summary = "Tools whose primary benchmark role is estimating library complexity from observed read duplication structure."
+tool_ids = ["preseq"]
+
+[[families]]
+family_id = "kinship_relatedness"
+summary = "Tools whose primary benchmark role is inferring kinship or relatedness between individuals."
+tool_ids = ["king"]
+
+[[families]]
+family_id = "sex_and_haplogroup_inference"
+summary = "Tools whose primary benchmark role is inferring sex-chromosome state or haplogroup identity."
+tool_ids = ["rxy", "yleaf"]
