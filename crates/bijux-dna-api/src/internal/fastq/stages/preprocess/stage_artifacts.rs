@@ -1520,10 +1520,7 @@ mod stage_artifact_tests {
         assert_eq!(extra["tool"], serde_json::json!("bowtie2"));
         assert_eq!(extra["reference_catalog_id"], serde_json::json!("host_reference"));
         assert_eq!(extra["host_index_artifact_id"], serde_json::json!("reference_index"));
-        assert_eq!(
-            extra["host_depleted_reads_r1"],
-            serde_json::json!("host_depleted.fastq.gz")
-        );
+        assert_eq!(extra["host_depleted_reads_r1"], serde_json::json!("host_depleted.fastq.gz"));
         assert_eq!(extra["host_depleted_reads_r2"], serde_json::Value::Null);
         assert_eq!(extra["reads_removed"], serde_json::json!(30));
         assert_eq!(extra["depleted_reads"], serde_json::json!(30));
@@ -1738,10 +1735,7 @@ mod stage_artifact_tests {
         )?)?;
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
         assert_eq!(metrics["host_index_artifact_id"], serde_json::json!("reference_index"));
-        assert_eq!(
-            metrics["host_depleted_reads_r1"],
-            serde_json::json!("host_depleted.fastq.gz")
-        );
+        assert_eq!(metrics["host_depleted_reads_r1"], serde_json::json!("host_depleted.fastq.gz"));
         assert_eq!(metrics["reads_removed"], serde_json::json!(30));
         assert_eq!(metrics["depleted_reads"], serde_json::json!(30));
         assert_eq!(metrics["host_fraction_removed"], serde_json::json!(0.30));
