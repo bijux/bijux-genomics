@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 7f92f74f3d6b5fa90319ebb5b71976f79393927f
+# source_commit: beada86b1486a194075ba95a3073a3943daccb7b
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1268,6 +1268,40 @@ apptainer_def = "containers/apptainer/shared/pear.def"
 require_labels = true
 
 [[tools]]
+id = "picard"
+tool_id = "picard"
+domain = "bam"
+domains = ["bam"]
+status = "production"
+stage_ids = ["bam.markdup", "bam.length_filter", "bam.duplication_metrics", "bam.insert_size", "bam.gc_bias", "bam.mapping_summary"]
+bindings = ["bam.duplication_metrics", "bam.gc_bias", "bam.insert_size", "bam.length_filter", "bam.mapping_summary", "bam.markdup"]
+tool_role = "transform"
+version = "3.3.0"
+default_version = "3.3.0"
+upstream = "https://github.com/broadinstitute/picard"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "software:https://broadinstitute.github.io/picard/"
+pinned_commit = "release:3.3.0"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/picard:3.3.0"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "picard --version"
+help_cmd = "picard --help"
+smoke_version_cmd = "picard --version"
+smoke_help_cmd = "picard --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "picard --help"
+expected_bin = "picard"
+expected_artifacts = ["markdup_bam", "dup_metrics"]
+metrics_schema = "bijux.bam.markdup.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.picard"
+apptainer_def = "containers/apptainer/shared/picard.def"
+require_labels = true
+
+[[tools]]
 id = "pmdtools"
 tool_id = "pmdtools"
 domain = "bam"
@@ -2009,7 +2043,7 @@ requires_reporting = false
 id = "bam.duplication_metrics"
 required_tool_roles = ["transform"]
 primary_tools = ["samtools"]
-optional_alternatives = []
+optional_alternatives = ["picard"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -2042,9 +2076,33 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
+id = "bam.gc_bias"
+required_tool_roles = ["transform"]
+primary_tools = ["picard"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = ""
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
 id = "bam.haplogroups"
 required_tool_roles = ["transform"]
 primary_tools = ["samtools"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = ""
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.insert_size"
+required_tool_roles = ["transform"]
+primary_tools = ["picard"]
 optional_alternatives = []
 validation_tools = []
 reporting_tools = []
@@ -2069,7 +2127,7 @@ requires_reporting = false
 id = "bam.length_filter"
 required_tool_roles = ["filter", "transform"]
 primary_tools = ["samtools"]
-optional_alternatives = []
+optional_alternatives = ["picard"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -2081,7 +2139,7 @@ requires_reporting = false
 id = "bam.mapping_summary"
 required_tool_roles = ["transform"]
 primary_tools = ["samtools"]
-optional_alternatives = []
+optional_alternatives = ["picard"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -2104,8 +2162,8 @@ requires_reporting = false
 [[stages]]
 id = "bam.markdup"
 required_tool_roles = ["transform"]
-primary_tools = ["samtools"]
-optional_alternatives = []
+primary_tools = ["picard"]
+optional_alternatives = ["samtools"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
