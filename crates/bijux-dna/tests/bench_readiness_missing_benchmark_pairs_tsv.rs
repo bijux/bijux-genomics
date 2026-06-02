@@ -71,6 +71,10 @@ fn bench_readiness_missing_benchmark_pairs_writes_governed_tsv_columns() {
         "TSV must not retain a missing benchmark-pair row for bam.duplication_metrics"
     );
     assert!(
+        !rows.iter().any(|row| row.starts_with("bam\tbam.complexity\t")),
+        "TSV must not retain a missing benchmark-pair row for bam.complexity"
+    );
+    assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.markdup\t")),
         "TSV must not retain a missing benchmark-pair row for bam.markdup"
     );

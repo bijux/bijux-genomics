@@ -58,6 +58,12 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"bam\tbam.complexity\tpreseq\tplanned\ttool_missing\t\tbenchmark matrix references `bam.complexity` / `preseq` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `preseq`: <none>"
+        }),
+        "TSV must retain the planned bam.complexity / preseq registry-drift row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"fastq\tfastq.detect_duplicates_premerge\tbijux_dna\tplanned_contract\ttool_missing\t\tbenchmark matrix references `fastq.detect_duplicates_premerge` / `bijux_dna` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `bijux_dna`: <none>"
         }),
         "TSV must retain the governed fastq.detect_duplicates_premerge / bijux_dna registry drift row"
@@ -162,6 +168,12 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             "TSV must not retain a registry-drift row for bam.duplication_metrics / {tool_id}"
         );
     }
+    assert!(
+        !rows.iter().any(|row| {
+            row.starts_with("bam\tbam.complexity\t") && !row.starts_with("bam\tbam.complexity\tpreseq\t")
+        }),
+        "TSV must not retain extra registry-drift rows for bam.complexity beyond the planned preseq gap"
+    );
     for tool_id in ["picard", "samtools"] {
         assert!(
             !rows.iter().any(|row| { row.starts_with(&format!("bam\tbam.markdup\t{tool_id}\t")) }),

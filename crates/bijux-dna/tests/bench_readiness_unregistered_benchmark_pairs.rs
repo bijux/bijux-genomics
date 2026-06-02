@@ -109,6 +109,16 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         }),
         "bam.genotyping / angsd must remain visible as a pair-missing registry row"
     );
+    assert!(
+        rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.complexity")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("preseq")
+                && row.get("registry_status").and_then(serde_json::Value::as_str)
+                    == Some("tool_missing")
+        }),
+        "bam.complexity / preseq must remain visible as a missing tool row"
+    );
     for tool_id in ["fastp", "prinseq", "seqfu"] {
         assert!(
             !rows.iter().any(|row| {
@@ -225,6 +235,15 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
         }),
         "bam.duplication_metrics / samtools must not drift against the registry"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.complexity")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) != Some("preseq")
+        }),
+        "bam.complexity must not invent extra registry-drift rows beyond the truthful planned preseq gap"
     );
     assert!(
         !rows.iter().any(|row| {

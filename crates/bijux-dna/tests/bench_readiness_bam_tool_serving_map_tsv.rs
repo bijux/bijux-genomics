@@ -92,6 +92,12 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"preseq\tbam.complexity\tplanned\tplannable\tartifact_contract_only\tplanner_only"
+        }),
+        "TSV must retain the planned preseq complexity row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"picard\tbam.markdup\tsupported\tplannable\tartifact_contract_only\tplanner_only"
         }),
         "TSV must retain the governed picard markdup row"
