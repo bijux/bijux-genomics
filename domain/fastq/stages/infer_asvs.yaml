@@ -44,6 +44,8 @@ metrics:
     meaning: "Number of inferred ASVs"
   - name: "sample_count"
     meaning: "Number of samples represented in the ASV table"
+  - name: "representative_sequence_count"
+    meaning: "Number of representative sequences emitted alongside the ASV abundance table."
 description: "FASTQ stage for amplicon denoising and ASV table generation."
 mutates_fastq: false
 report_only: false
