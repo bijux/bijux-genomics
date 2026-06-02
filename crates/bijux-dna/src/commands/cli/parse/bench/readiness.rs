@@ -12,6 +12,8 @@ pub enum BenchReadinessCommand {
     RenderStageRegistryExtraPairs(BenchReadinessRenderStageRegistryExtraPairsArgs),
     #[command(name = "render-tool-id-normalization")]
     RenderToolIdNormalization(BenchReadinessRenderToolIdNormalizationArgs),
+    #[command(name = "validate-tool-families")]
+    ValidateToolFamilies(BenchReadinessValidateToolFamiliesArgs),
     #[command(name = "render-unregistered-benchmark-pairs")]
     RenderUnregisteredBenchmarkPairs(BenchReadinessRenderUnregisteredBenchmarkPairsArgs),
     #[command(name = "render-orphan-tools")]
@@ -56,6 +58,14 @@ pub struct BenchReadinessRenderStageRegistryExtraPairsArgs {
 pub struct BenchReadinessRenderToolIdNormalizationArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessValidateToolFamiliesArgs {
+    #[arg(long)]
+    pub config: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

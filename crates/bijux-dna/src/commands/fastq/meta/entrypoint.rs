@@ -161,6 +161,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::ValidateToolFamilies(args) => {
+                        crate::commands::benchmark::readiness::tool_families::run_validate_tool_families(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderUnregisteredBenchmarkPairs(args) => {
                         crate::commands::benchmark::readiness::unregistered_benchmark_pairs::run_render_unregistered_benchmark_pairs(
                             args,

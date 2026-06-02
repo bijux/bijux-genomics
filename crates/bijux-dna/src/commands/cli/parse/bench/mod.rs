@@ -48,12 +48,10 @@ pub use self::publication::{
 };
 pub use self::readiness::{
     BenchReadinessCommand, BenchReadinessRenderBamToolServingMapArgs,
-    BenchReadinessRenderFastqToolServingMapArgs,
-    BenchReadinessRenderMissingBenchmarkPairsArgs,
-    BenchReadinessRenderStageRegistryExtraPairsArgs,
-    BenchReadinessRenderToolIdNormalizationArgs,
-    BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
-    BenchReadinessRenderOrphanToolsArgs, BenchReadinessRenderUndercoveredStagesArgs,
+    BenchReadinessRenderFastqToolServingMapArgs, BenchReadinessRenderMissingBenchmarkPairsArgs,
+    BenchReadinessRenderOrphanToolsArgs, BenchReadinessRenderStageRegistryExtraPairsArgs,
+    BenchReadinessRenderToolIdNormalizationArgs, BenchReadinessRenderUndercoveredStagesArgs,
+    BenchReadinessRenderUnregisteredBenchmarkPairsArgs, BenchReadinessValidateToolFamiliesArgs,
 };
 pub use self::suite::BenchRunArgs;
 
