@@ -200,10 +200,16 @@ index_reference_benchmark_policy: fastq.index_reference
 - `index_directory` must stay aligned with the governed emitted index root, `index_files` must preserve the governed emitted file list with byte counts, `elapsed_time_s` must stay aligned with `runtime_s`, and `index_size_bytes` must stay aligned with `index_bytes`
 - the benchmark row must preserve the selected index format so downstream reference-guided stages can compare preparation cost without obscuring mapper-specific index ownership
 
+normalize_primers_benchmark_policy: fastq.normalize_primers
+- default benchmark backend is `cutadapt`
+- the current governed benchmark surface is intentionally single-tool and assigned to `fixture:corpus-03-amplicon-mini`
+- every governed `fastq.normalize_primers` row must emit `matched_primers`, `unmatched_reads`, `trimmed_primer_bases`, and the normalized FASTQ outputs
+- `matched_primers` must stay aligned with the governed `primer_trimmed_reads` count, `unmatched_reads` must stay derived from `reads_in - matched_primers`, and `trimmed_primer_bases` must stay derived from `bases_in - bases_out`
+- the normalized FASTQ output aliases must keep pointing at the governed `normalized_reads_r1` and `normalized_reads_r2` artifacts so downstream amplicon stages inherit the same primer-normalized read identity
+
 single_tool_justification: fastq.detect_adapters
 single_tool_justification: fastq.deplete_rrna
 single_tool_justification: fastq.extract_umis
-single_tool_justification: fastq.normalize_primers
 single_tool_justification: fastq.remove_chimeras
 single_tool_justification: fastq.cluster_otus
 single_tool_justification: fastq.normalize_abundance
