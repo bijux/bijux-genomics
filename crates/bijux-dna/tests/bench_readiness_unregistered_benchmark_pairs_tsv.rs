@@ -56,6 +56,12 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         }),
         "TSV must retain the governed fastq.detect_duplicates_premerge / bijux_dna registry drift row"
     );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"fastq\tfastq.estimate_library_complexity_prealign\tbijux_dna\tplanned_contract\ttool_missing\t\tbenchmark matrix references `fastq.estimate_library_complexity_prealign` / `bijux_dna` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `bijux_dna`: <none>"
+        }),
+        "TSV must retain the governed fastq.estimate_library_complexity_prealign / bijux_dna registry drift row"
+    );
     for tool_id in ["fastp", "prinseq", "seqfu"] {
         assert!(
             !rows.iter().any(|row| {

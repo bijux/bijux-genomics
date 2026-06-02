@@ -79,6 +79,17 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
     );
     assert!(
         rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.estimate_library_complexity_prealign")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")
+                && row.get("registry_status").and_then(serde_json::Value::as_str)
+                    == Some("tool_missing")
+        }),
+        "fastq.estimate_library_complexity_prealign / bijux_dna must remain visible as a missing tool row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
                 && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
