@@ -49,30 +49,30 @@ fn write_local_validate_smoke_report_materializes_governed_outputs() -> Result<(
     assert_eq!(cases.len(), 2);
     assert!(cases.iter().any(|case| {
         case["sample_id"] == serde_json::json!("core-v1-coordinate-pass")
-            && case["alignment_fixture_encoding"] == serde_json::json!("sam_text_proxy")
+            && case["alignment_fixture_encoding"] == serde_json::json!("binary_bam")
             && case["validation_status"] == serde_json::json!("pass")
             && case["validation_errors"] == serde_json::json!([])
             && case["validation_warnings"] == serde_json::json!([])
             && case["expectation_matched"] == serde_json::json!(true)
             && case["validation_report_present"] == serde_json::json!(true)
             && case["input_bam_identity"]["input_bam"]
-                == serde_json::json!("assets/toy/core-v1/bam/validation_pass.sam")
+                == serde_json::json!("assets/toy/core-v1/bam/validation_pass.bam")
             && case["input_bam_identity"]["bam_index"]
-                == serde_json::json!("assets/toy/core-v1/bam/validation_pass.sam.bai")
+                == serde_json::json!("assets/toy/core-v1/bam/validation_pass.bam.bai")
             && case["input_bam_identity"]["reference_fasta"]
                 == serde_json::json!("assets/toy/core-v1/bam/validation_reference.fasta")
             && case["mapped_reads"] == serde_json::json!(2)
     }));
     assert!(cases.iter().any(|case| {
         case["sample_id"] == serde_json::json!("core-v1-malformed-refusal")
-            && case["alignment_fixture_encoding"] == serde_json::json!("sam_text_proxy")
+            && case["alignment_fixture_encoding"] == serde_json::json!("binary_bam")
             && case["validation_status"] == serde_json::json!("refusal")
             && case["validation_errors"] == serde_json::json!(["malformed_alignment_record"])
             && case["validation_warnings"] == serde_json::json!([])
             && case["expectation_matched"] == serde_json::json!(true)
             && case["validation_report_present"] == serde_json::json!(false)
             && case["input_bam_identity"]["input_bam"]
-                == serde_json::json!("assets/toy/core-v1/bam/validation_malformed.sam")
+                == serde_json::json!("assets/toy/core-v1/bam/validation_malformed.bam")
             && case["input_bam_identity"]["bam_index"] == serde_json::Value::Null
             && case["input_bam_identity"]["reference_fasta"] == serde_json::Value::Null
             && case["refusal_codes"].as_array().is_some_and(|codes| {
