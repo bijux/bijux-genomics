@@ -186,7 +186,13 @@ profile_reads_benchmark_policy: fastq.profile_reads
 - `fastq.report_qc` must reuse any governed `fastq.profile_reads` backend artifacts already present in the benchmark output tree instead of forcing a second profiling backend run
 - the current `seqfu` benchmark route runs through the admitted seqfu compatibility wrapper runtime surface, so its profile-read command line must remain compatible with the wrapped stats entrypoint
 
-single_tool_justification: fastq.index_reference
+index_reference_benchmark_policy: fastq.index_reference
+- default benchmark backend is `bowtie2_build`
+- `star` remains an admitted comparison backend for reference-index preparation cost studies
+- every governed `fastq.index_reference` row must emit `index_directory`, `index_files`, `elapsed_time_s`, and `index_size_bytes`
+- `index_directory` must stay aligned with the governed emitted index root, `index_files` must preserve the governed emitted file list with byte counts, `elapsed_time_s` must stay aligned with `runtime_s`, and `index_size_bytes` must stay aligned with `index_bytes`
+- the benchmark row must preserve the selected index format so downstream reference-guided stages can compare preparation cost without obscuring mapper-specific index ownership
+
 single_tool_justification: fastq.detect_adapters
 single_tool_justification: fastq.deplete_rrna
 single_tool_justification: fastq.extract_umis
