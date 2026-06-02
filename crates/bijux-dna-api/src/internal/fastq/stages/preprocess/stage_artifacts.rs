@@ -63,6 +63,51 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "report_json": report_path,
             }))
         }
+        "fastq.trim_reads" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str()) == Some("trim_report.json")
+                })
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("trim_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_domain_fastq::observer::parse_trim_reads_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.trim_reads.extra_artifacts.v2",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
+                "min_length": governed.as_ref().map(|report| report.min_length),
+                "quality_cutoff": governed.as_ref().and_then(|report| report.quality_cutoff),
+                "adapter_policy": governed.as_ref().map(|report| report.adapter_policy.clone()),
+                "polyx_policy": governed.as_ref().and_then(|report| report.polyx_policy.clone()),
+                "n_policy": governed.as_ref().and_then(|report| report.n_policy.clone()),
+                "contaminant_policy": governed.as_ref().and_then(|report| report.contaminant_policy.clone()),
+                "adapter_bank_id": governed.as_ref().and_then(|report| report.adapter_bank_id.clone()),
+                "adapter_bank_hash": governed.as_ref().and_then(|report| report.adapter_bank_hash.clone()),
+                "adapter_preset": governed.as_ref().and_then(|report| report.adapter_preset.clone()),
+                "trimmed_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "trimmed_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
+                "report_json": report_path,
+                "reads_retained": governed.as_ref().and_then(|report| report.reads_out),
+                "reads_dropped": governed.as_ref().and_then(|report| {
+                    report.reads_in.zip(report.reads_out).map(|(reads_in, reads_out)| {
+                        reads_in.saturating_sub(reads_out)
+                    })
+                }),
+                "bases_removed": governed.as_ref().and_then(|report| {
+                    report.bases_in.zip(report.bases_out).map(|(bases_in, bases_out)| {
+                        bases_in.saturating_sub(bases_out)
+                    })
+                }),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+            }))
+        }
         "fastq.filter_reads" => {
             let report_path = execution
                 .outputs
@@ -827,6 +872,78 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn trim_reads_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "trim-reads-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 3.2,
+            memory_mb: 40.0,
+            outputs: vec![stage_root.join("trim_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "fastp".to_string(),
+        }
+    }
+
+    fn write_trim_reads_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("trim_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.trim_reads.report.v2",
+                "stage": "fastq.trim_reads",
+                "stage_id": "fastq.trim_reads",
+                "tool_id": "fastp",
+                "paired_mode": "paired_end",
+                "threads": 4,
+                "trimming_backend": "fastp",
+                "backend_mode": "enforced",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "trimmed_R1.fastq.gz",
+                "output_r2": "trimmed_R2.fastq.gz",
+                "min_length": 30,
+                "quality_cutoff": 20,
+                "adapter_policy": "bank",
+                "polyx_policy": "trim",
+                "n_policy": "retain",
+                "contaminant_policy": "none",
+                "adapter_bank_id": "illumina",
+                "adapter_bank_hash": "sha256:adapter",
+                "adapter_preset": "illumina-default",
+                "detected_adapter_source": "governed_pattern_scan",
+                "adapter_overrides": {
+                    "enable": ["AGATCGGAAGAGC"]
+                },
+                "prepared_adapter_bank": null,
+                "polyx_bank_id": "polyx",
+                "polyx_bank_hash": "sha256:polyx",
+                "polyx_preset": "illumina_twocolor",
+                "contaminant_bank_id": null,
+                "contaminant_bank_hash": null,
+                "contaminant_preset": null,
+                "reads_in": 100,
+                "reads_out": 92,
+                "bases_in": 1000,
+                "bases_out": 850,
+                "pairs_in": 50,
+                "pairs_out": 46,
+                "mean_q_before": 28.0,
+                "mean_q_after": 30.0,
+                "effective_trim_params": {
+                    "adapter_policy": "bank",
+                    "min_length": 30,
+                    "quality_cutoff": 20
+                },
+                "runtime_s": 3.2,
+                "memory_mb": 40.0,
+                "raw_backend_report": "trim.fastp.json",
+                "raw_backend_report_format": "fastp_json"
+            }"#,
+        )?;
+        Ok(())
+    }
+
     fn trim_polyg_execution(stage_root: &std::path::Path) -> StageResultV1 {
         StageResultV1 {
             run_id: "trim-polyg-fixture".to_string(),
@@ -1067,6 +1184,29 @@ mod stage_artifact_tests {
         assert_eq!(extra["trim_3p_bases"], serde_json::json!(1));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("cutadapt.raw.json"));
         assert_eq!(extra["used_fallback"], serde_json::json!(false));
+        Ok(())
+    }
+
+    #[test]
+    fn trim_reads_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_trim_reads_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.trim_reads",
+            &trim_reads_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("fastp"));
+        assert_eq!(extra["trimmed_reads_r1"], serde_json::json!("trimmed_R1.fastq.gz"));
+        assert_eq!(extra["trimmed_reads_r2"], serde_json::json!("trimmed_R2.fastq.gz"));
+        assert_eq!(extra["report_json"], serde_json::json!(temp.path().join("trim_report.json")));
+        assert_eq!(extra["reads_retained"], serde_json::json!(92));
+        assert_eq!(extra["reads_dropped"], serde_json::json!(8));
+        assert_eq!(extra["bases_removed"], serde_json::json!(150));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("trim.fastp.json"));
         Ok(())
     }
 
