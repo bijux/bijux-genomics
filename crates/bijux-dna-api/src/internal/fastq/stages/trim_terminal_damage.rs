@@ -292,6 +292,8 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
             pairs_out: output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads)),
             mean_q_before: before_stats.mean_q,
             mean_q_after: after_stats.mean_q,
+            trim_5p_bases: Some(governed_report.trim_5p_bases),
+            trim_3p_bases: Some(governed_report.trim_3p_bases),
             damage_mode: Some(governed_report.damage_mode.as_str().to_string()),
             execution_policy: Some(
                 terminal_damage_execution_policy_label(Some(governed_report.execution_policy))
@@ -299,6 +301,8 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
             ),
             requested_trim_5p_bases: governed_report.requested_trim_5p_bases,
             requested_trim_3p_bases: governed_report.requested_trim_3p_bases,
+            reads_retained: Some(after_stats.reads),
+            bases_removed: Some(before_stats.bases.saturating_sub(after_stats.bases)),
             udg_classification: Some(governed_report.udg_classification.clone()),
             ct_ga_asymmetry_pre: governed_report.ct_ga_asymmetry_pre,
             ct_ga_asymmetry_post: governed_report.ct_ga_asymmetry_post,

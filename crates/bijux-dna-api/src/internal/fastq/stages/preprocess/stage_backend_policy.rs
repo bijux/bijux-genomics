@@ -414,12 +414,12 @@ mod tests {
                 "input_r2": null,
                 "output_r1": "trimmed.fastq.gz",
                 "output_r2": null,
-                "reads_in": null,
-                "reads_out": null,
-                "bases_in": null,
-                "bases_out": null,
-                "mean_q_before": null,
-                "mean_q_after": null,
+                "reads_in": 100,
+                "reads_out": 100,
+                "bases_in": 1000,
+                "bases_out": 700,
+                "mean_q_before": 27.5,
+                "mean_q_after": 28.0,
                 "ct_ga_asymmetry_pre": 0.42,
                 "ct_ga_asymmetry_post": 0.11,
                 "ct_ga_asymmetry_pre_r1": null,
@@ -445,6 +445,10 @@ mod tests {
         assert_eq!(metrics["tool"], serde_json::json!("cutadapt"));
         assert_eq!(metrics["execution_policy"], serde_json::json!("explicit_terminal_trim"));
         assert_eq!(metrics["threads"], serde_json::json!(4));
+        assert_eq!(metrics["trim_5p_bases"], serde_json::json!(2));
+        assert_eq!(metrics["trim_3p_bases"], serde_json::json!(2));
+        assert_eq!(metrics["reads_retained"], serde_json::json!(100));
+        assert_eq!(metrics["bases_removed"], serde_json::json!(300));
         assert_eq!(metrics["ct_ga_asymmetry_post"], serde_json::json!(0.11));
         assert_eq!(metrics["used_fallback"], serde_json::json!(false));
     }
@@ -1438,6 +1442,10 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "stage",
             "tool",
             "threads",
+            "reads_in",
+            "reads_out",
+            "reads_retained",
+            "bases_removed",
             "execution_policy",
             "trim_5p_bases",
             "trim_3p_bases",

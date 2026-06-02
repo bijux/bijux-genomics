@@ -402,6 +402,14 @@ pub(crate) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> s
                 "tool": report.tool_id,
                 "paired_mode": report.paired_mode,
                 "threads": report.threads,
+                "reads_in": report.reads_in,
+                "reads_out": report.reads_out,
+                "reads_retained": report.reads_out,
+                "bases_in": report.bases_in,
+                "bases_out": report.bases_out,
+                "bases_removed": report.bases_in.zip(report.bases_out).map(|(bases_in, bases_out)| {
+                    bases_in.saturating_sub(bases_out)
+                }),
                 "damage_mode": report.damage_mode,
                 "execution_policy": report.execution_policy,
                 "trim_5p_bases": report.trim_5p_bases,
@@ -423,6 +431,8 @@ pub(crate) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> s
         "schema_version": "bijux.fastq_stage_metrics.v1",
         "stage": "fastq.trim_terminal_damage",
         "tool": "report_missing",
+        "reads_retained": serde_json::Value::Null,
+        "bases_removed": serde_json::Value::Null,
         "udg_classification": serde_json::Value::Null,
         "ct_ga_asymmetry_pre": serde_json::Value::Null,
         "ct_ga_asymmetry_post": serde_json::Value::Null,

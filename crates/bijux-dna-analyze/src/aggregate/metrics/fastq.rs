@@ -178,6 +178,10 @@ pub struct FastqTrimTerminalDamageMetrics {
     pub mean_q_before: f64,
     pub mean_q_after: f64,
     #[serde(default)]
+    pub trim_5p_bases: Option<u32>,
+    #[serde(default)]
+    pub trim_3p_bases: Option<u32>,
+    #[serde(default)]
     pub damage_mode: Option<String>,
     #[serde(default)]
     pub execution_policy: Option<String>,
@@ -185,6 +189,10 @@ pub struct FastqTrimTerminalDamageMetrics {
     pub requested_trim_5p_bases: Option<u32>,
     #[serde(default)]
     pub requested_trim_3p_bases: Option<u32>,
+    #[serde(default)]
+    pub reads_retained: Option<u64>,
+    #[serde(default)]
+    pub bases_removed: Option<u64>,
     #[serde(default)]
     pub udg_classification: Option<String>,
     #[serde(default)]
