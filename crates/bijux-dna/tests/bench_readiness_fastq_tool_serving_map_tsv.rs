@@ -134,6 +134,12 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain the governed merge-pairs row for {tool_id}"
         );
     }
+    assert!(
+        rows.iter().any(|row| {
+            row == &"umi_tools\tfastq.extract_umis\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tplanner_only"
+        }),
+        "TSV must retain the governed extract-umis row for umi_tools"
+    );
     for tool_id in ["bbduk", "prinseq"] {
         assert!(
             rows.iter().any(|row| {

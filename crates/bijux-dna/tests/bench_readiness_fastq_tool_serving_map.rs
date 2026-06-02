@@ -221,6 +221,21 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
             "FASTQ readiness map must retain the governed merge-pairs row for {tool_id}"
         );
     }
+    assert!(
+        rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("umi_tools")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.extract_umis")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("governed_benchmark_cohort")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("benchmark_normalized")
+                && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                    == Some("planner_only")
+        }),
+        "FASTQ readiness map must retain the governed extract-umis row for umi_tools"
+    );
     for tool_id in ["bbduk", "prinseq"] {
         assert!(
             rows.iter().any(|row| {
