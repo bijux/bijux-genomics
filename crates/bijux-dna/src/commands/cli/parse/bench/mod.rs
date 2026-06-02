@@ -51,6 +51,7 @@ pub use self::readiness::{
     BenchReadinessRenderFastqToolServingMapArgs,
     BenchReadinessRenderMissingBenchmarkPairsArgs,
     BenchReadinessRenderStageRegistryExtraPairsArgs,
+    BenchReadinessRenderToolIdNormalizationArgs,
     BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
     BenchReadinessRenderOrphanToolsArgs, BenchReadinessRenderUndercoveredStagesArgs,
 };

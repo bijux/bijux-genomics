@@ -156,6 +156,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderToolIdNormalization(args) => {
+                        crate::commands::benchmark::readiness::tool_id_normalization::run_render_tool_id_normalization(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderUnregisteredBenchmarkPairs(args) => {
                         crate::commands::benchmark::readiness::unregistered_benchmark_pairs::run_render_unregistered_benchmark_pairs(
                             args,
