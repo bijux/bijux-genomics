@@ -165,6 +165,15 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         }),
         "fastq.extract_umis / umi_tools must not drift against the registry"
     );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.normalize_primers")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("cutadapt")
+        }),
+        "fastq.normalize_primers / cutadapt must not drift against the registry"
+    );
     for tool_id in ["bayeshammer", "lighter", "musket", "rcorrector"] {
         assert!(
             !rows.iter().any(|row| {

@@ -112,6 +112,10 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         !rows.iter().any(|row| { row.starts_with("fastq\tfastq.extract_umis\tumi_tools\t") }),
         "TSV must not retain a registry-drift row for fastq.extract_umis / umi_tools"
     );
+    assert!(
+        !rows.iter().any(|row| { row.starts_with("fastq\tfastq.normalize_primers\tcutadapt\t") }),
+        "TSV must not retain a registry-drift row for fastq.normalize_primers / cutadapt"
+    );
     for tool_id in ["bayeshammer", "lighter", "musket", "rcorrector"] {
         assert!(
             !rows.iter().any(|row| {
