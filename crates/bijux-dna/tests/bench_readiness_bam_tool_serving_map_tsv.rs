@@ -56,6 +56,18 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"bamtools\tbam.validate\tsupported\tplannable\tparser_fixture_validated\tfixture:corpus-01-bam-mini"
+        }),
+        "TSV must retain the governed bamtools validation row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bedtools\tbam.validate\tsupported\tplannable\tparser_fixture_validated\tfixture:corpus-01-bam-mini"
+        }),
+        "TSV must retain the governed bedtools validation row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"samtools\tbam.validate\tsupported\tplannable\tparser_fixture_validated\tfixture:corpus-01-bam-mini"
         }),
         "TSV must retain the governed samtools validation row"

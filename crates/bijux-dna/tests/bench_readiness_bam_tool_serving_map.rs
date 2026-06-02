@@ -86,6 +86,36 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
     );
     assert!(
         rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bamtools")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.validate")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("supported")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                    == Some("plannable")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("parser_fixture_validated")
+                && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                    == Some("fixture:corpus-01-bam-mini")
+        }),
+        "BAM readiness map must retain the governed bamtools validation row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bedtools")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.validate")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("supported")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                    == Some("plannable")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("parser_fixture_validated")
+                && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                    == Some("fixture:corpus-01-bam-mini")
+        }),
+        "BAM readiness map must retain the governed bedtools validation row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
                 && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.validate")
                 && row.get("support_status").and_then(serde_json::Value::as_str)
