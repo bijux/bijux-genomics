@@ -603,3 +603,145 @@ fn build_detect_report(
     report.exit_code = Some(execution.exit_code);
     Ok(report)
 }
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use super::{build_detect_adapters_metric_set, build_detect_report, TrimBenchInputs};
+    use bijux_dna_core::prelude::measure::SeqkitMetrics;
+    use bijux_dna_core::prelude::{
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+    };
+    use bijux_dna_domain_fastq::{
+        DetectAdaptersReportV1, PairedMode, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION,
+    };
+    use bijux_dna_environment::api::RuntimeKind;
+    use bijux_dna_runner::step_runner::StageResultV1;
+
+    fn dummy_tool(tool_id: &'static str, threads: u32) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static(tool_id),
+            tool_version: "1.0.0".to_string(),
+            image: ContainerImageRefV1 { image: format!("{tool_id}:latest"), digest: None },
+            command: CommandSpecV1 { template: vec![tool_id.to_string()] },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads,
+            },
+        }
+    }
+
+    #[test]
+    fn build_detect_adapters_metric_set_retains_adapter_contract_fields() {
+        let report = DetectAdaptersReportV1 {
+            schema_version: DETECT_ADAPTERS_REPORT_SCHEMA_VERSION.to_string(),
+            stage: "fastq.detect_adapters".to_string(),
+            stage_id: "fastq.detect_adapters".to_string(),
+            tool_id: "fastqc".to_string(),
+            paired_mode: PairedMode::SingleEnd,
+            threads: 4,
+            inspection_mode: bijux_dna_domain_fastq::params::detect_adapters::AdapterInspectionMode::EvidenceOnly,
+            report_only: true,
+            evidence_engine: "fastqc".to_string(),
+            evidence_scope: bijux_dna_domain_fastq::params::detect_adapters::AdapterEvidenceScope::FullInput,
+            evidence_format: bijux_dna_domain_fastq::params::detect_adapters::AdapterEvidenceFormat::FastqcSummary,
+            evidence_artifact_id: "report_json".to_string(),
+            detected_adapter_source: "normalized_fastqc_evidence".to_string(),
+            detected_adapter_ids: vec!["truseq_universal".to_string()],
+            detection_confidence: Some(0.25),
+            detection_threshold: Some(0.01),
+            input_r1: "reads.fastq.gz".to_string(),
+            input_r2: None,
+            report_json: "out/adapter_report.json".to_string(),
+            adapter_evidence_dir: "out/fastqc".to_string(),
+            recommended_adapter_bank_id: Some("bijux-dna-fastq-adapter-bank".to_string()),
+            recommended_adapter_bank_hash: Some("sha256:test".to_string()),
+            recommended_adapter_preset: Some("illumina-default".to_string()),
+            reads_in: 100,
+            reads_out: 100,
+            bases_in: 10_000,
+            bases_out: 10_000,
+            pairs_in: None,
+            pairs_out: None,
+            mean_q: 31.0,
+            candidate_adapter_count: 1,
+            adapter_trimmed_fraction: Some(0.25),
+            adapter_content_max: Some(0.25),
+            adapter_content_mean: Some(0.10),
+            duplication_rate: Some(0.0),
+            n_rate: Some(0.0),
+            kmer_warning_count: Some(0),
+            overrepresented_sequence_count: Some(0),
+            runtime_s: Some(2.0),
+            memory_mb: Some(64.0),
+            exit_code: Some(0),
+            raw_backend_report: Some("out/fastqc/fastqc_data.txt".to_string()),
+            raw_backend_report_format: Some("fastqc_normalized".to_string()),
+        };
+
+        let metric_set =
+            build_detect_adapters_metric_set(&report).expect("metric set should validate");
+        assert_eq!(
+            metric_set.metrics.adapter_report.as_deref(),
+            Some("out/adapter_report.json")
+        );
+        assert_eq!(
+            metric_set.metrics.detected_adapter_ids,
+            vec!["truseq_universal".to_string()]
+        );
+        assert_eq!(metric_set.metrics.detection_confidence, Some(0.25));
+        assert_eq!(metric_set.metrics.detection_threshold, Some(0.01));
+    }
+
+    #[test]
+    fn build_detect_report_uses_governed_adapter_identity_fields() {
+        let temp = bijux_dna_infra::temp_dir("bijux-api-detect-adapters").expect("temp dir");
+        let r1 = temp.path().join("reads.fastq");
+        std::fs::write(
+            &r1,
+            "@r1\nACGTAGATCGGAAGAGCTTT\n+\nIIIIIIIIIIIIIIIIIIII\n@r2\nACGTACGT\n+\nIIIIIIII\n",
+        )
+        .expect("write fastq");
+
+        let out_dir = temp.path().join("out");
+        std::fs::create_dir_all(out_dir.join("fastqc")).expect("create fastqc dir");
+        std::fs::write(out_dir.join("fastqc/fastqc_data.txt"), "adapter content").expect("write raw report");
+
+        let bench_inputs = TrimBenchInputs {
+            runner: RuntimeKind::Docker,
+            r1: r1.clone(),
+            input_hash: "hash".to_string(),
+            input_stats: SeqkitMetrics { reads: 2, bases: 28, mean_q: 31.0, gc_percent: 0.5 },
+            bench_dir: temp.path().join("bench"),
+            tools_root: temp.path().join("tools"),
+        };
+        let report = build_detect_report(
+            &bench_inputs,
+            None,
+            None,
+            "fastqc",
+            &dummy_tool("fastqc", 4),
+            &out_dir,
+            &StageResultV1 {
+                run_id: "run-1".to_string(),
+                exit_code: 0,
+                runtime_s: 3.5,
+                memory_mb: 72.0,
+                outputs: vec![out_dir.join("adapter_report.json")],
+                metrics_path: None,
+                stdout: String::new(),
+                stderr: String::new(),
+                command: "fastqc".to_string(),
+            },
+        )
+        .expect("build report");
+
+        assert_eq!(report.report_json, out_dir.join("adapter_report.json").display().to_string());
+        assert_eq!(report.detected_adapter_ids, vec!["truseq_universal".to_string()]);
+        assert_eq!(report.detection_confidence, Some(0.5));
+        assert_eq!(report.detection_threshold, Some(0.5));
+        assert_eq!(report.raw_backend_report_format.as_deref(), Some("fastqc_normalized"));
+    }
+}
