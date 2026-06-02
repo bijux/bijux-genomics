@@ -284,6 +284,37 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
     );
     assert!(
         rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqkit")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.normalize_abundance")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("governed_benchmark_cohort")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("benchmark_normalized")
+                && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                    == Some("planner_only")
+        }),
+        "FASTQ readiness map must retain the governed normalize-abundance row for seqkit"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqfu")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.normalize_abundance")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("planned_contract")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                    == Some("declared_only")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("not_normalized")
+                && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                    == Some("planner_only")
+        }),
+        "FASTQ readiness map must retain the planned normalize-abundance row for seqfu"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("dada2")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.infer_asvs")

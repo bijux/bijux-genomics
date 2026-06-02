@@ -160,6 +160,18 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"seqkit\tfastq.normalize_abundance\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tplanner_only"
+        }),
+        "TSV must retain the governed normalize-abundance row for seqkit"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"seqfu\tfastq.normalize_abundance\tplanned_contract\tdeclared_only\tnot_normalized\tplanner_only"
+        }),
+        "TSV must retain the planned normalize-abundance row for seqfu"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"dada2\tfastq.infer_asvs\tgoverned_execution\trunnable\tparse_normalized\tfixture:corpus-03-amplicon-mini"
         }),
         "TSV must retain the governed infer-asvs row for dada2"
