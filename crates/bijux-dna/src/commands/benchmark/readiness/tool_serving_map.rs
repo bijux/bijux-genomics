@@ -469,6 +469,14 @@ mod tests {
                 && row.corpus_status == "fixture:corpus-01-adna-damage-mini"
         }));
         assert!(report.rows.iter().any(|row| {
+            row.tool_id == "multiqc"
+                && row.stage_id == "bam.qc_pre"
+                && row.support_status == "supported"
+                && row.adapter_status == "plannable"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "planner_only"
+        }));
+        assert!(report.rows.iter().any(|row| {
             row.tool_id == "bcftools"
                 && row.stage_id == "bam.genotyping"
                 && row.support_status == "missing_contract"

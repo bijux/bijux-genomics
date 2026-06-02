@@ -74,6 +74,12 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"multiqc\tbam.qc_pre\tsupported\tplannable\tparser_fixture_validated\tplanner_only"
+        }),
+        "TSV must retain the governed multiqc qc_pre reporting row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"bcftools\tbam.genotyping\tmissing_contract\tdeclared_only\tartifact_contract_only\tplanner_only"
         }),
         "TSV must surface missing BAM tool contracts explicitly"
