@@ -82,6 +82,12 @@ merge_pairs_benchmark_policy: fastq.merge_pairs
 - benchmark rows must keep `input_pair_count`, `merged_pair_count`, and `unmerged_pair_count` aligned with the governed `reads_r1`, `reads_r2`, `reads_merged`, and `reads_unmerged` report fields so downstream comparison code does not need backend-specific merge math
 - `discarded_pair_count` must stay derived from the governed pair counts instead of inventing a backend-specific discard metric that some merge tools do not publish directly
 
+extract_umis_benchmark_policy: fastq.extract_umis
+- default benchmark backend is `umi_tools`
+- every governed `fastq.extract_umis` row must emit `umi_pattern`, `extracted_umi_count`, `invalid_umi_count`, and `tag_header_format`
+- benchmark rows must preserve the governed downstream propagation policy and the UMI-tagged FASTQ output paths so header tagging remains distinguishable from downstream BAM-tag materialization expectations
+- the current governed benchmark surface is intentionally single-tool; completing the row contract must not be misrepresented as admitted alternative-backend coverage
+
 profile_read_lengths_benchmark_policy: fastq.profile_read_lengths
 - default benchmark backend is `seqkit_stats`
 - `fastp`, `prinseq`, and `seqfu` are governed comparison backends for read-length agreement studies
