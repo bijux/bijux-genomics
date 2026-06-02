@@ -5825,6 +5825,39 @@ r001\t99\tchr1\n",
         assert!(summary.refusal_codes.contains(&"malformed_alignment_record".to_string()));
     }
 
+    fn workspace_root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| panic!("workspace root"))
+            .to_path_buf()
+    }
+
+    #[test]
+    fn execute_bam_validation_accepts_governed_binary_bam_fixture() {
+        let repo_root = workspace_root();
+        let bam = repo_root.join("assets/toy/core-v1/bam/validation_pass.bam");
+        let bai = repo_root.join("assets/toy/core-v1/bam/validation_pass.bam.bai");
+        let reference = repo_root.join("assets/toy/core-v1/bam/validation_reference.fasta");
+
+        let summary =
+            execute_bam_validation(&bam, Some(&bai), Some(&reference)).expect("validate BAM fixture");
+        assert!(summary.validation_report_present);
+        assert!(summary.refusal_codes.is_empty());
+        assert_eq!(summary.flagstat.total_reads, Some(2));
+        assert_eq!(summary.flagstat.mapped_reads, Some(2));
+    }
+
+    #[test]
+    fn execute_bam_validation_refuses_governed_malformed_bam_fixture() {
+        let repo_root = workspace_root();
+        let bam = repo_root.join("assets/toy/core-v1/bam/validation_malformed.bam");
+
+        let summary = execute_bam_validation(&bam, None, None).expect("validate malformed BAM");
+        assert!(!summary.validation_report_present);
+        assert!(summary.refusal_codes.contains(&"malformed_alignment_record".to_string()));
+    }
+
     fn write_fastq(path: &Path, records: &[(&str, &str)]) {
         let mut payload = String::new();
         for (id, sequence) in records {

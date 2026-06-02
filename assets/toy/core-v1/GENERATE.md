@@ -19,9 +19,9 @@ Generated via `cargo run -p bijux-dna-dev -- assets run refresh-toy`.
 - `bam/mapq_threshold_ladder.sam`
 - `bam/length_threshold_ladder.sam`
 - `bam/validation_reference.fasta`
-- `bam/validation_pass.sam`
-- `bam/validation_pass.sam.bai`
-- `bam/validation_malformed.sam`
+- `bam/validation_pass.bam`
+- `bam/validation_pass.bam.bai`
+- `bam/validation_malformed.bam`
 - `tables/otu_abundance_small.tsv`
 - `vcf/toy.vcf`
 - `CHECKSUMS.sha256`

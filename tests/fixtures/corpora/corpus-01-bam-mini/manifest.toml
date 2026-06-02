@@ -1,19 +1,19 @@
 schema_version = "bijux.bench.bam_corpus_fixture.v1"
 corpus_id = "corpus-01-bam-mini"
 species = "Homo sapiens"
-description = "Tiny BAM-stage alignment corpus expressed as explicit sam_text_proxy fixtures with sibling BAI sidecars and a shared reference for local benchmark contract checks."
+description = "Tiny BAM-stage alignment corpus with a governed binary BAM validation sample, deterministic SAM proxy support fixtures, sibling BAI sidecars, and a shared reference for local benchmark contract checks."
 reference_fasta = "reference/corpus_01_bam_reference.fasta"
 
 [[samples]]
 sample_id = "human_like_validation"
 cohort = "human_like"
-alignment_path = "aligned/human_like_validation.sam"
-index_path = "aligned/human_like_validation.sam.bai"
+alignment_path = "aligned/human_like_validation.bam"
+index_path = "aligned/human_like_validation.bam.bai"
 expected_contigs = ["chr1"]
 expected_header_sample_ids = ["human_like_validation"]
 expected_read_group_ids = ["rg-human"]
 expected_record_count = 2
-source_paths = ["assets/toy/core-v1/bam/validation_pass.sam"]
+source_paths = ["assets/toy/core-v1/bam/validation_pass.bam"]
 
 [[samples]]
 sample_id = "adna_like_damage"
