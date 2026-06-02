@@ -69,6 +69,8 @@ serde_yaml = "0.9"
 opentelemetry = "0.32"
 opentelemetry_sdk = "0.32"
 insta = "1"
+noodles-bam = "0.88"
+noodles-sam = "0.84"
 bijux-dna-analyze = { path = "crates/bijux-dna-analyze" }
 bijux-dna-api = { path = "crates/bijux-dna-api" }
 bijux-dna-core = { path = "crates/bijux-dna-core" }
