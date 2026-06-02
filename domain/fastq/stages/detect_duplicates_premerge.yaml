@@ -16,8 +16,18 @@ parameters:
     param_type: "string"
     default: "report_only"
 metrics:
-  - name: "duplicate_signal_fraction"
-    meaning: "Fraction of reads with premerge duplicate-like sequence signatures."
+  - name: "reads_in"
+    meaning: "Number of input reads inspected by the report-only premerge duplicate detector."
+  - name: "duplicate_count"
+    meaning: "Number of reads flagged by the report-only premerge duplicate detector."
+  - name: "duplicate_fraction"
+    meaning: "Fraction of input reads flagged by the report-only premerge duplicate detector."
+  - name: "inspected_pair_count"
+    meaning: "Number of read-pair observations inspected when paired-end input is present."
+  - name: "duplicate_detection_policy"
+    meaning: "Resolved report-only duplicate-detection policy recorded by the governed internal harness."
+  - name: "measurement_scope"
+    meaning: "Measurement scope used to interpret premerge duplicate-like sequence signatures."
 description: "Report duplicate-like signals before merge only when route-family evidence justifies the interpretation."
 required_inputs:
   - reads
