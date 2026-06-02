@@ -158,6 +158,30 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
     }
     assert!(
         !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.validate")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bamtools")
+        }),
+        "bam.validate / bamtools must not drift against the registry"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.validate")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bedtools")
+        }),
+        "bam.validate / bedtools must not drift against the registry"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.validate")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
+        }),
+        "bam.validate / samtools must not drift against the registry"
+    );
+    assert!(
+        !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.extract_umis")

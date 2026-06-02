@@ -112,6 +112,12 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         !rows.iter().any(|row| { row.starts_with("fastq\tfastq.extract_umis\tumi_tools\t") }),
         "TSV must not retain a registry-drift row for fastq.extract_umis / umi_tools"
     );
+    for tool_id in ["bamtools", "bedtools", "samtools"] {
+        assert!(
+            !rows.iter().any(|row| { row.starts_with(&format!("bam\tbam.validate\t{tool_id}\t")) }),
+            "TSV must not retain a registry-drift row for bam.validate / {tool_id}"
+        );
+    }
     for tool_id in ["bwa", "bowtie2"] {
         assert!(
             !rows.iter().any(|row| { row.starts_with(&format!("bam\tbam.align\t{tool_id}\t")) }),
