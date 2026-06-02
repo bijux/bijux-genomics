@@ -63,9 +63,18 @@ fn write_local_cluster_otus_smoke_report_materializes_governed_outputs() -> Resu
     assert_eq!(payload["sample_id"], serde_json::json!("corpus-03-otu-cluster-se"));
     assert_eq!(payload["planned_tool_id"], serde_json::json!("vsearch"));
     assert_eq!(payload["report_tool_id"], serde_json::json!("bijux"));
+    assert_eq!(payload["clustering_threshold"], serde_json::json!(0.97));
     assert_eq!(payload["otu_count"], serde_json::json!(3));
     assert_eq!(payload["sample_count"], serde_json::json!(1));
     assert_eq!(payload["representative_sequence_count"], serde_json::json!(3));
+    assert_eq!(
+        payload["otu_table_tsv"],
+        serde_json::json!("target/local-smoke/fastq.cluster_otus/otu_table.tsv")
+    );
+    assert_eq!(
+        payload["representative_sequences_fasta"],
+        serde_json::json!("target/local-smoke/fastq.cluster_otus/otu_representatives.fasta")
+    );
 
     let case_report_path = repo_root.join(
         payload["case_report_json"].as_str().ok_or_else(|| anyhow!("case_report_json missing"))?,
@@ -75,6 +84,7 @@ fn write_local_cluster_otus_smoke_report_materializes_governed_outputs() -> Resu
         serde_json::from_str(&std::fs::read_to_string(&case_report_path)?)?;
     assert_eq!(case_report["stage_id"], serde_json::json!("fastq.cluster_otus"));
     assert_eq!(case_report["tool_id"], serde_json::json!("bijux"));
+    assert_eq!(case_report["otu_identity"], serde_json::json!(0.97));
     assert_eq!(case_report["otu_count"], serde_json::json!(3));
     assert_eq!(case_report["sample_count"], serde_json::json!(1));
     assert_eq!(case_report["representative_sequence_count"], serde_json::json!(3));
