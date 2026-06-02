@@ -140,25 +140,31 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
     }
     for tool_id in ["bamtools", "samtools"] {
         assert!(
-            !rows.iter().any(|row| {
-                row.starts_with(&format!("bam\tbam.mapq_filter\t{tool_id}\t"))
-            }),
+            !rows
+                .iter()
+                .any(|row| { row.starts_with(&format!("bam\tbam.mapq_filter\t{tool_id}\t")) }),
             "TSV must not retain a registry-drift row for bam.mapq_filter / {tool_id}"
         );
     }
     for tool_id in ["picard", "samtools"] {
         assert!(
-            !rows.iter().any(|row| {
-                row.starts_with(&format!("bam\tbam.length_filter\t{tool_id}\t"))
-            }),
+            !rows
+                .iter()
+                .any(|row| { row.starts_with(&format!("bam\tbam.length_filter\t{tool_id}\t")) }),
             "TSV must not retain a registry-drift row for bam.length_filter / {tool_id}"
         );
     }
     for tool_id in ["picard", "samtools"] {
         assert!(
             !rows.iter().any(|row| {
-                row.starts_with(&format!("bam\tbam.markdup\t{tool_id}\t"))
+                row.starts_with(&format!("bam\tbam.duplication_metrics\t{tool_id}\t"))
             }),
+            "TSV must not retain a registry-drift row for bam.duplication_metrics / {tool_id}"
+        );
+    }
+    for tool_id in ["picard", "samtools"] {
+        assert!(
+            !rows.iter().any(|row| { row.starts_with(&format!("bam\tbam.markdup\t{tool_id}\t")) }),
             "TSV must not retain a registry-drift row for bam.markdup / {tool_id}"
         );
     }

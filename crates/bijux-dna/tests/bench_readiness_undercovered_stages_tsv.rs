@@ -57,6 +57,10 @@ fn bench_readiness_undercovered_stages_writes_governed_tsv_columns() {
         "TSV must not retain an undercovered-stage row for bam.mapq_filter"
     );
     assert!(
+        !rows.iter().any(|row| row.starts_with("bam\tbam.duplication_metrics\t")),
+        "TSV must not retain an undercovered-stage row for bam.duplication_metrics"
+    );
+    assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.markdup\t")),
         "TSV must not retain an undercovered-stage row for bam.markdup"
     );

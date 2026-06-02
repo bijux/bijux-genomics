@@ -75,10 +75,8 @@ fn bench_readiness_missing_benchmark_pairs_reports_governed_gaps() {
     );
     assert!(
         rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("bam.authenticity")
-                && row.get("tool_id").and_then(serde_json::Value::as_str)
-                    == Some("damageprofiler")
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.authenticity")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("damageprofiler")
                 && row.get("support_status").and_then(serde_json::Value::as_str)
                     == Some("supported")
         }),
@@ -119,6 +117,13 @@ fn bench_readiness_missing_benchmark_pairs_reports_governed_gaps() {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.length_filter")
         }),
         "bam.length_filter must stay out of the missing benchmark-pair report once all admitted tools are covered"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.duplication_metrics")
+        }),
+        "bam.duplication_metrics must stay out of the missing benchmark-pair report once all admitted tools are covered"
     );
     assert!(
         !rows.iter().any(|row| {

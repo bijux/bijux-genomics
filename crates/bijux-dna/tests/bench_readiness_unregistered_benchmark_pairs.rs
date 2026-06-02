@@ -71,8 +71,7 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("bam.bias_mitigation")
-                && row.get("tool_id").and_then(serde_json::Value::as_str)
-                    == Some("mapdamage2")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("mapdamage2")
                 && row.get("registry_status").and_then(serde_json::Value::as_str)
                     == Some("tool_registered_pair_missing")
         }),
@@ -213,6 +212,24 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.duplication_metrics")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
+        }),
+        "bam.duplication_metrics / picard must not drift against the registry"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.duplication_metrics")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
+        }),
+        "bam.duplication_metrics / samtools must not drift against the registry"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("bam.mapping_summary")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
         }),
@@ -222,8 +239,7 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         assert!(
             !rows.iter().any(|row| {
                 row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-                    && row.get("stage_id").and_then(serde_json::Value::as_str)
-                        == Some("bam.filter")
+                    && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.filter")
                     && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
             }),
             "bam.filter / {tool_id} must not drift against the registry"
