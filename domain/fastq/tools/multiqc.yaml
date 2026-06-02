@@ -44,10 +44,10 @@ execution_contract:
     - "governed_qc_inputs_manifest"
   forbidden_outputs: []
   forbid_unexpected_outputs: false
-upstream: "unknown"
+upstream: "https://github.com/multiqc/multiqc"
 versioning_strategy: "pinned"
 pin_strategy: "pinned"
-default_version: "latest-pinned"
+default_version: "1.24"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5039924/"

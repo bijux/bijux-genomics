@@ -43,6 +43,7 @@ tool_ids:
   - king
   - mapdamage2
   - mosdepth
+  - multiqc
   - ngsbriggs
   - picard
   - pmdtools
@@ -81,6 +82,7 @@ governed_tool_ids:
   - king
   - mapdamage2
   - mosdepth
+  - multiqc
   - pmdtools
   - pydamage
   - rxy
@@ -149,6 +151,7 @@ stage_tool_compatibility:
   - bamutil
   bam.qc_pre:
   - samtools
+  - multiqc
   bam.recalibration:
   - gatk
   bam.sex:
@@ -219,6 +222,7 @@ stage_tool_integration:
   bam.overlap_correction:
     bamutil: governed_contract
   bam.qc_pre:
+    multiqc: governed_contract
     samtools: governed_contract
   bam.recalibration:
     gatk: governed_contract

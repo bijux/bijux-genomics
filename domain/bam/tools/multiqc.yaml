@@ -1,0 +1,40 @@
+schema_version: "bijux.tool.v2"
+tool_id: "multiqc"
+upstream: "https://github.com/multiqc/multiqc"
+versioning_strategy: "pinned"
+pin_strategy: "pinned"
+default_version: "1.24"
+install_kind: "container"
+license: "GPL-3.0"
+citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5039924/"
+stage_ids: ["bam.qc_pre"]
+status: "supported"
+scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.qc_pre:
+    required_inputs:
+      - "qc_pre_summary"
+      - "flagstat"
+      - "idxstats"
+    expected_artifacts:
+      - "report_json"
+      - "multiqc_report"
+      - "multiqc_data"
+      - "governed_qc_inputs_manifest"
+    notes: "BAM qc_pre reporting consumes the governed samtools-derived qc_pre summary artifacts, preserves the canonical total/mapped/unmapped/duplicate/contig contract in report_json, and publishes the native MultiQC bundle as a reporting companion."
+expected_artifacts:
+  - "report_json"
+  - "multiqc_report"
+  - "multiqc_data"
+  - "governed_qc_inputs_manifest"
+metrics_schema_id: "bijux.stage.metrics.v1"
+metrics_schema: "bijux.stage.metrics.v1"
+version_cmd: "multiqc --version"
+help_cmd: "multiqc --help"
+comparability:
+  comparable_with: ["samtools"]
+  non_comparable_with: []
+comparability_notes: "Comparable only when the BAM qc_pre reporting run consumes the same governed qc_pre summary artifacts and preserves the canonical stage-level counts."
+capabilities:
+  - report_aggregation
+notes: "Domain SSOT tool contract entry for BAM qc_pre reporting coverage."

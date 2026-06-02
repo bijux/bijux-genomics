@@ -8,20 +8,38 @@ inputs:
     data_type: "bam"
     cardinality: "One"
 outputs:
-  - name: "qc_pre_report_json"
+  - name: "flagstat"
+    data_type: "txt"
+    cardinality: "One"
+  - name: "idxstats"
+    data_type: "txt"
+    cardinality: "One"
+  - name: "stats"
+    data_type: "txt"
+    cardinality: "One"
+  - name: "stage_metrics"
     data_type: "json"
     cardinality: "One"
 parameters: []
 metrics:
-  - name: "runtime_s"
-    meaning: "Wall-clock runtime in seconds"
-  - name: "memory_mb"
-    meaning: "Peak memory usage in MB"
-description: "BAM qc_pre stage contract."
+  - name: "total_reads"
+    meaning: "Total reads observed in the input BAM"
+  - name: "mapped_reads"
+    meaning: "Reads reported as mapped in the governed flagstat summary"
+  - name: "unmapped_reads"
+    meaning: "Reads reported as unmapped in the governed flagstat summary"
+  - name: "duplicate_flagged_reads"
+    meaning: "Reads carrying the duplicate flag in the governed flagstat summary"
+  - name: "contig_summary"
+    meaning: "Per-contig idxstats summary with mapped and unmapped read counts"
+description: "BAM pre-QC contract for governed pre-filter integrity summaries and benchmark-facing count reports."
 required_inputs:
   - bam
 required_outputs:
-  - qc_pre_report_json
+  - flagstat
+  - idxstats
+  - stats
+  - stage_metrics
 tool_capability_requirements:
   - bam_input
 invariants:
@@ -31,9 +49,11 @@ allowed_missingness:
   - "none"
 compatible_tools:
   - samtools
+  - multiqc
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "default stage assumptions captured"
+  - "samtools is the governed primary executor for flagstat, idxstats, and stats materialization"
+  - "multiqc is a governed reporting companion that aggregates governed bam.qc_pre summaries without redefining the canonical row metrics"
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
