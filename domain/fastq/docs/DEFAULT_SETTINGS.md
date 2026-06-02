@@ -75,6 +75,13 @@ validation_benchmark_policy: fastq.validate_reads
 - `fastq.report_qc` must consume any governed `fastq.validate_reads` backend artifacts already present in the benchmark output tree, while falling back to bootstrapping `fastqvalidator` when no validation backend has produced report inputs yet
 - `fastq.report_qc` and `fastq.profile_reads` are downstream complements, not substitutes for structural validation
 
+screen_taxonomy_benchmark_policy: fastq.screen_taxonomy
+- default benchmark backend is `kraken2`
+- governed comparison backends are `centrifuge`, `kaiju`, and `krakenuniq`
+- retained planned taxonomy row `diamond` must remain visible as non-admitted registry drift until it is either fully registered and normalized or explicitly removed from the benchmark matrix
+- every governed `fastq.screen_taxonomy` row must emit `classified_reads`, `unclassified_reads`, `top_taxa`, and `taxonomy_database_id`
+- `taxonomy_database_id` must stay aligned with the governed `database_artifact_id`, and the classified versus unclassified read counts must stay derived from the governed read totals plus taxonomy fractions so backend comparisons do not require classifier-specific summary parsing
+
 merge_pairs_benchmark_policy: fastq.merge_pairs
 - default benchmark backend is `pear`
 - governed comparison backends are `adapterremoval`, `bbmerge`, `flash2`, `leehom`, and `vsearch`
