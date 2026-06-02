@@ -107,7 +107,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "endogenous ratio computed from stable mapping summary counts and host-contig rules"
+          "endogenous ratio computed from stable mapping summary counts and host-contig rules",
+          "admitted endogenous-content tools must preserve governed total-read, mapped-read, endogenous-read, and endogenous-fraction semantics"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -132,7 +133,8 @@
         "evidence_status": "planned",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "reference GC context and aligned read depth are available"
+          "reference GC context and aligned read depth are available",
+          "admitted GC-bias tools must preserve the governed metrics report, plot, summary JSON, and benchmark-facing dropout metric contract"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -170,7 +172,8 @@
         "evidence_status": "planned",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "paired-end alignment metadata is available for insert-size inference"
+          "paired-end alignment metadata is available for insert-size inference",
+          "admitted BAM insert-size tools must preserve the governed report, histogram, paired-template count, and insert-size summary contract"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -244,10 +247,11 @@
       },
       {
         "stage_id": "bam.overlap_correction",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "paired read overlap clipping requires consistent template metadata"
+          "paired read overlap clipping requires consistent template metadata",
+          "admitted overlap-correction tools must preserve the governed corrected-BAM, corrected-index, before-and-after audit artifacts, and overlap summary metrics contract"
         ],
         "invariants": [
           "stable_artifact_contract",

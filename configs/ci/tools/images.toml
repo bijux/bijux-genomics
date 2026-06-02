@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: defd8e48786aec54e446726c8998d5ae54b3a2bb
+# source_commit: 1914315b8e4395bf3dc142368ccaa322a6168c47
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -30,6 +30,9 @@ version = "latest-pinned"
 
 [bamtools]
 version = "2.5.2"
+
+[bamutil]
+version = "1.0.15"
 
 [bayeshammer]
 version = "4.2.0"

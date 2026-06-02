@@ -263,7 +263,9 @@
         "stage_metrics"
       ],
       "bam.endogenous_content": [
-        "endogenous_content_report_json"
+        "endogenous_report",
+        "summary",
+        "stage_metrics"
       ],
       "bam.filter": [
         "filtered_bam",
@@ -276,7 +278,10 @@
         "stage_metrics"
       ],
       "bam.gc_bias": [
-        "gc_bias_report_json"
+        "gc_bias_report",
+        "gc_bias_plot",
+        "summary",
+        "stage_metrics"
       ],
       "bam.genotyping": [
         "genotyping_report_json"
@@ -285,7 +290,10 @@
         "haplogroups_report_json"
       ],
       "bam.insert_size": [
-        "insert_size_report_json"
+        "insert_size_report",
+        "insert_size_histogram",
+        "summary",
+        "stage_metrics"
       ],
       "bam.kinship": [
         "kinship_report_json"
@@ -328,7 +336,14 @@
         "stage_metrics"
       ],
       "bam.overlap_correction": [
-        "overlap_correction_report_json"
+        "overlap_corrected_bam",
+        "overlap_corrected_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "summary",
+        "stage_metrics"
       ],
       "bam.qc_pre": [
         "flagstat",

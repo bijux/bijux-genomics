@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: defd8e48786aec54e446726c8998d5ae54b3a2bb
+# source_commit: 1914315b8e4395bf3dc142368ccaa322a6168c47
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -236,6 +236,25 @@ duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["reads_retained_fraction>=0.1"]
 sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bamtools", "samtools"]
+
+[[stages]]
+id = "bam.overlap_correction"
+status = "supported"
+output_kinds = ["bai", "bam", "json", "txt"]
+ordering_after = ["bam.length_filter"]
+prerequisites = ["bam.length_filter"]
+resource_memory_gb = 8
+resource_time_minutes = 35
+resource_threads = 4
+sanity_metrics = ["reads_retained_fraction"]
+output_size_estimates_mb = ["overlap_corrected_bam:4050"]
+qc_thresholds = ["reads_retained_fraction|warn=<0.2|fail=<0.1"]
+contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
+coverage_sufficiency = ["paired_reads_present=true"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["bamutil"]
 
 [[stages]]
 id = "bam.sex"

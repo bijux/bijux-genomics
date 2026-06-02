@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: defd8e48786aec54e446726c8998d5ae54b3a2bb
+# source_commit: 1914315b8e4395bf3dc142368ccaa322a6168c47
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -211,6 +211,40 @@ metrics_schema = "bijux.bam.validation.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bamtools"
 apptainer_def = "containers/apptainer/shared/bamtools.def"
+require_labels = true
+
+[[tools]]
+id = "bamutil"
+tool_id = "bamutil"
+domain = "bam"
+domains = ["bam"]
+status = "production"
+stage_ids = ["bam.overlap_correction"]
+bindings = ["bam.overlap_correction"]
+tool_role = "corrector"
+version = "1.0.15"
+default_version = "1.0.15"
+upstream = "https://github.com/statgen/bamUtil"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/statgen/bamUtil"
+pinned_commit = "release:1.0.15"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/bamutil:1.0.15"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "bam clipOverlap --help"
+help_cmd = "bam clipOverlap --help"
+smoke_version_cmd = "bam clipOverlap --help"
+smoke_help_cmd = "bam clipOverlap --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "bam clipOverlap --help"
+expected_bin = "bam"
+expected_artifacts = ["overlap_corrected_bam", "overlap_corrected_bai", "flagstat_before", "flagstat_after", "idxstats_before", "idxstats_after", "summary", "stage_metrics"]
+metrics_schema = "bijux.bam.overlap_correction.v1"
+comparability_notes = "Comparable only within overlap-correction stage with identical paired-end inputs."
+dockerfile = "containers/docker/arm64/Dockerfile.bamutil"
+apptainer_def = "containers/apptainer/shared/bamutil.def"
 require_labels = true
 
 [[tools]]
@@ -2144,6 +2178,18 @@ id = "bam.markdup"
 required_tool_roles = ["transform"]
 primary_tools = ["picard"]
 optional_alternatives = ["samtools"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = ""
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.overlap_correction"
+required_tool_roles = ["corrector"]
+primary_tools = ["bamutil"]
+optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
