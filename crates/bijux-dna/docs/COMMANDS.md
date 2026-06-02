@@ -147,6 +147,13 @@ Visible aliases are part of the operator surface:
   FASTQ or BAM tool-ID alias cluster, carrying `normalized_tool_id`, `canonical_tool_id`,
   `alias_tool_ids`, `domains`, and `reason` so inconsistent `-` versus `_` benchmark tool naming
   cannot drift without an explicit canonical mapping.
+- `bijux-dna bench readiness validate-tool-execution-modes`
+  `validate-tool-execution-modes` checks `configs/bench/local/tool-execution-modes.toml` against
+  the governed FASTQ and BAM benchmark serving maps plus each tool's runtime probe contract,
+  enforcing one primary operator runtime classification for every benchmark tool. The JSON report
+  carries `mode_count`, `tool_count`, `multidomain_tool_count`, `mode_counts`, and one row per
+  tool with its `execution_mode`, `expected_install_kind`, domains, benchmark stage scope, and
+  required runtime fields.
 - `bijux-dna bench readiness validate-tool-families`
   `validate-tool-families` checks `configs/bench/local/tool-families.toml` against the governed
   FASTQ and BAM benchmark serving maps, enforcing one primary-function family assignment for every

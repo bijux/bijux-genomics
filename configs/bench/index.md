@@ -17,6 +17,7 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 - `configs/bench/knobs.toml`
 
 ## Local Benchmark Readiness Contracts
+- `configs/bench/local/tool-execution-modes.toml` classifies every governed FASTQ and BAM benchmark tool by its primary operator runtime and required runtime fields so readiness validation can prove the current execution surface is explicit and complete.
 - `configs/bench/local/tool-families.toml` classifies every governed FASTQ and BAM benchmark tool by its primary benchmark function so readiness reports can group tools consistently across domains.
 
 ## Control Plane Contract
