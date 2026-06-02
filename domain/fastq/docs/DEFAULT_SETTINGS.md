@@ -207,6 +207,13 @@ normalize_primers_benchmark_policy: fastq.normalize_primers
 - `matched_primers` must stay aligned with the governed `primer_trimmed_reads` count, `unmatched_reads` must stay derived from `reads_in - matched_primers`, and `trimmed_primer_bases` must stay derived from `bases_in - bases_out`
 - the normalized FASTQ output aliases must keep pointing at the governed `normalized_reads_r1` and `normalized_reads_r2` artifacts so downstream amplicon stages inherit the same primer-normalized read identity
 
+infer_asvs_benchmark_policy: fastq.infer_asvs
+- default benchmark backend is `dada2`
+- the current governed benchmark surface is intentionally single-tool and assigned to `fixture:corpus-03-amplicon-mini`
+- every governed `fastq.infer_asvs` row must emit the ASV abundance table path, representative-sequence FASTA path, `asv_count`, and `sample_count`
+- the benchmark aliases must stay aligned with the governed report contract: `asv_table_tsv` points at the canonical abundance table and `representative_sequences_fasta` points at the canonical representative-sequence FASTA
+- `asv_count` must stay aligned with the inferred feature count in the governed ASV table, and `sample_count` must stay aligned with the distinct sample count represented in that table
+
 single_tool_justification: fastq.detect_adapters
 single_tool_justification: fastq.deplete_rrna
 single_tool_justification: fastq.extract_umis
