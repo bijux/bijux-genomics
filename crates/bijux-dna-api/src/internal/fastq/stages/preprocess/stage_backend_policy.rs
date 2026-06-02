@@ -38,7 +38,7 @@ mod tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{
-        fastq_backend_allowlist, parse_deplete_host_metrics,
+        fastq_backend_allowlist, parse_correct_errors_metrics, parse_deplete_host_metrics,
         parse_deplete_reference_contaminants_metrics, parse_deplete_rrna_metrics,
         parse_detect_duplicates_premerge_metrics,
         parse_estimate_library_complexity_prealign_metrics, parse_extract_umis_metrics,
@@ -273,7 +273,10 @@ mod tests {
                 "stage",
                 "tool",
                 "correction_engine",
+                "corrected_reads_r1",
                 "corrected_reads",
+                "changed_reads",
+                "unchanged_reads",
                 "kmer_fix_rate",
             ]
         );
@@ -370,6 +373,76 @@ mod tests {
             serde_json::json!("insufficient_reads_for_prealign_complexity_estimation")
         );
         assert_eq!(metrics["complexity_status"], serde_json::json!("insufficient_data"));
+    }
+
+    #[test]
+    fn correct_errors_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("correct_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.correct_errors.report.v2",
+                "stage": "fastq.correct_errors",
+                "stage_id": "fastq.correct_errors",
+                "tool_id": "rcorrector",
+                "paired_mode": "paired_end",
+                "threads": 4,
+                "correction_engine": "rcorrector",
+                "quality_encoding": "phred33",
+                "kmer_size": null,
+                "musket_kmer_budget": null,
+                "genome_size": null,
+                "max_memory_gb": 16,
+                "trusted_kmer_artifact": null,
+                "conservative_mode": false,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "corrected_R1.fastq.gz",
+                "output_r2": "corrected_R2.fastq.gz",
+                "report_json": "correct_report.json",
+                "corrected_reads": 200,
+                "changed_reads": 18,
+                "unchanged_reads": 182,
+                "reads_in": 200,
+                "reads_out": 200,
+                "bases_in": 20000,
+                "bases_out": 19950,
+                "pairs_in": 100,
+                "pairs_out": 100,
+                "mean_q_before": 28.0,
+                "mean_q_after": 29.1,
+                "kmer_fix_rate": 0.05,
+                "correction_effect": {
+                    "outputs_changed": true,
+                    "reads_delta": 0,
+                    "bases_delta": -50,
+                    "mean_q_delta": 1.1
+                },
+                "runtime_s": 2.4,
+                "memory_mb": 128.0,
+                "exit_code": 0,
+                "raw_backend_report": "rcorrector.log",
+                "raw_backend_report_format": "rcorrector_log",
+                "backend_metrics": {
+                    "trusted_kmers_loaded": false
+                }
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_correct_errors_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("rcorrector"));
+        assert_eq!(metrics["paired_mode"], serde_json::json!("paired_end"));
+        assert_eq!(metrics["threads"], serde_json::json!(4));
+        assert_eq!(metrics["corrected_reads_r1"], serde_json::json!("corrected_R1.fastq.gz"));
+        assert_eq!(metrics["corrected_reads_r2"], serde_json::json!("corrected_R2.fastq.gz"));
+        assert_eq!(metrics["corrected_reads"], serde_json::json!(200));
+        assert_eq!(metrics["changed_reads"], serde_json::json!(18));
+        assert_eq!(metrics["unchanged_reads"], serde_json::json!(182));
+        assert_eq!(metrics["kmer_fix_rate"], serde_json::json!(0.05));
+        assert_eq!(metrics["raw_backend_report_format"], serde_json::json!("rcorrector_log"));
     }
 
     #[test]
@@ -1652,7 +1725,10 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "stage",
             "tool",
             "correction_engine",
+            "corrected_reads_r1",
             "corrected_reads",
+            "changed_reads",
+            "unchanged_reads",
             "kmer_fix_rate",
         ],
         "fastq.filter_reads" => &[

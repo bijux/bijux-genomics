@@ -250,6 +250,11 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "max_memory_gb": governed.as_ref().and_then(|report| report.max_memory_gb),
                 "trusted_kmer_artifact": governed.as_ref().and_then(|report| report.trusted_kmer_artifact.clone()),
                 "conservative_mode": governed.as_ref().map(|report| report.conservative_mode),
+                "corrected_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "corrected_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
+                "corrected_reads": governed.as_ref().and_then(|report| report.corrected_reads),
+                "changed_reads": governed.as_ref().and_then(|report| report.changed_reads),
+                "unchanged_reads": governed.as_ref().and_then(|report| report.unchanged_reads),
                 "correction_effect": governed.as_ref().and_then(|report| report.correction_effect.clone()),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
@@ -1007,6 +1012,74 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn correct_errors_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "correct-errors-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 2.2,
+            memory_mb: 96.0,
+            outputs: vec![stage_root.join("correct_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "rcorrector".to_string(),
+        }
+    }
+
+    fn write_correct_errors_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("correct_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.correct_errors.report.v2",
+                "stage": "fastq.correct_errors",
+                "stage_id": "fastq.correct_errors",
+                "tool_id": "rcorrector",
+                "paired_mode": "paired_end",
+                "threads": 4,
+                "correction_engine": "rcorrector",
+                "quality_encoding": "phred33",
+                "kmer_size": null,
+                "musket_kmer_budget": null,
+                "genome_size": null,
+                "max_memory_gb": 16,
+                "trusted_kmer_artifact": null,
+                "conservative_mode": false,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "corrected_R1.fastq.gz",
+                "output_r2": "corrected_R2.fastq.gz",
+                "report_json": "correct_report.json",
+                "corrected_reads": 200,
+                "changed_reads": 18,
+                "unchanged_reads": 182,
+                "reads_in": 200,
+                "reads_out": 200,
+                "bases_in": 20000,
+                "bases_out": 19950,
+                "pairs_in": 100,
+                "pairs_out": 100,
+                "mean_q_before": 28.0,
+                "mean_q_after": 29.1,
+                "kmer_fix_rate": 0.05,
+                "correction_effect": {
+                    "outputs_changed": true,
+                    "reads_delta": 0,
+                    "bases_delta": -50,
+                    "mean_q_delta": 1.1
+                },
+                "runtime_s": 2.2,
+                "memory_mb": 96.0,
+                "exit_code": 0,
+                "raw_backend_report": "rcorrector.log",
+                "raw_backend_report_format": "rcorrector_log",
+                "backend_metrics": {
+                    "trusted_kmers_loaded": false
+                }
+            }"#,
+        )?;
+        Ok(())
+    }
+
     fn trim_terminal_damage_execution(stage_root: &std::path::Path) -> StageResultV1 {
         StageResultV1 {
             run_id: "trim-terminal-damage-fixture".to_string(),
@@ -1528,6 +1601,33 @@ mod stage_artifact_tests {
     }
 
     #[test]
+    fn correct_errors_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_correct_errors_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.correct_errors",
+            &correct_errors_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("rcorrector"));
+        assert_eq!(extra["threads"], serde_json::json!(4));
+        assert_eq!(extra["corrected_reads_r1"], serde_json::json!("corrected_R1.fastq.gz"));
+        assert_eq!(extra["corrected_reads_r2"], serde_json::json!("corrected_R2.fastq.gz"));
+        assert_eq!(extra["corrected_reads"], serde_json::json!(200));
+        assert_eq!(extra["changed_reads"], serde_json::json!(18));
+        assert_eq!(extra["unchanged_reads"], serde_json::json!(182));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("rcorrector.log"));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("correct_report.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
     fn host_standardized_metrics_writer_uses_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
         write_host_report(temp.path())?;
@@ -1593,6 +1693,29 @@ mod stage_artifact_tests {
             serde_json::json!("insufficient_reads_for_prealign_complexity_estimation")
         );
         assert_eq!(metrics["complexity_status"], serde_json::json!("insufficient_data"));
+        Ok(())
+    }
+
+    #[test]
+    fn correct_errors_standardized_metrics_writer_uses_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_correct_errors_report(temp.path())?;
+        write_stage_standardized_metrics(
+            temp.path(),
+            "fastq.correct_errors",
+            temp.path(),
+            &correct_errors_execution(temp.path()),
+        )?;
+
+        let metrics: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.metrics.standardized.json"),
+        )?)?;
+        assert_eq!(metrics["tool"], serde_json::json!("rcorrector"));
+        assert_eq!(metrics["corrected_reads_r1"], serde_json::json!("corrected_R1.fastq.gz"));
+        assert_eq!(metrics["corrected_reads_r2"], serde_json::json!("corrected_R2.fastq.gz"));
+        assert_eq!(metrics["corrected_reads"], serde_json::json!(200));
+        assert_eq!(metrics["changed_reads"], serde_json::json!(18));
+        assert_eq!(metrics["unchanged_reads"], serde_json::json!(182));
         Ok(())
     }
 
