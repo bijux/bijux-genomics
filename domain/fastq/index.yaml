@@ -152,6 +152,7 @@ governed_tool_ids:
   - pear
   - prinseq
   - rcorrector
+  - seqfu
   - seqkit
   - seqkit_stats
   - seqtk
@@ -314,6 +315,8 @@ stage_tool_integration:
     prinseq: governed_contract
     bbduk: governed_contract
   fastq.profile_reads:
+    seqfu: governed_contract
+    seqkit: governed_contract
     seqkit_stats: governed_contract
   fastq.deplete_rrna:
     sortmerna: governed_contract
@@ -1235,6 +1238,7 @@ stage_output_size_estimates_mb:
     contaminant_screen_report_json: 10.0
   fastq.deplete_rrna:
     rrna_filtered_reads_r1: 1700.0
+    rrna_removed_reads_r1: 1000.0
     rrna_report_tsv: 6.0
     rrna_report_json: 4.0
   fastq.detect_adapters:
