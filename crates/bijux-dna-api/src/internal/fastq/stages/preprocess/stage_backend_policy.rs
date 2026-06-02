@@ -260,7 +260,23 @@ mod tests {
     fn filter_reads_uses_governed_report_metrics_policy() {
         assert_eq!(
             required_metrics_keys("fastq.filter_reads"),
-            &["schema_version", "stage", "tool", "reads_in", "reads_out", "reads_dropped",]
+            &[
+                "schema_version",
+                "stage",
+                "tool",
+                "filtered_reads_r1",
+                "reads_in",
+                "reads_out",
+                "reads_dropped",
+                "reads_retained",
+                "reads_removed",
+                "reads_removed_by_n",
+                "reads_removed_by_entropy",
+                "reads_removed_low_complexity",
+                "reads_removed_by_kmer",
+                "reads_removed_contaminant_kmer",
+                "reads_removed_by_length",
+            ]
         );
     }
 
@@ -489,9 +505,13 @@ mod tests {
         let metrics = parse_filter_reads_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("fastp"));
         assert_eq!(metrics["threads"], serde_json::json!(8));
+        assert_eq!(metrics["filtered_reads_r1"], serde_json::json!("filtered.fastq.gz"));
         assert_eq!(metrics["max_n_fraction"], serde_json::json!(0.05));
         assert_eq!(metrics["polyx_policy"], serde_json::json!("trim"));
+        assert_eq!(metrics["reads_retained"], serde_json::json!(95));
+        assert_eq!(metrics["reads_removed"], serde_json::json!(5));
         assert_eq!(metrics["reads_removed_by_n"], serde_json::json!(2));
+        assert_eq!(metrics["reads_removed_by_length"], serde_json::json!(1));
         assert_eq!(metrics["raw_backend_report_format"], serde_json::json!("fastp_json"));
     }
 
@@ -1461,9 +1481,23 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "corrected_reads",
             "kmer_fix_rate",
         ],
-        "fastq.filter_reads" => {
-            &["schema_version", "stage", "tool", "reads_in", "reads_out", "reads_dropped"]
-        }
+        "fastq.filter_reads" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "filtered_reads_r1",
+            "reads_in",
+            "reads_out",
+            "reads_dropped",
+            "reads_retained",
+            "reads_removed",
+            "reads_removed_by_n",
+            "reads_removed_by_entropy",
+            "reads_removed_low_complexity",
+            "reads_removed_by_kmer",
+            "reads_removed_contaminant_kmer",
+            "reads_removed_by_length",
+        ],
         "fastq.filter_low_complexity" => &[
             "schema_version",
             "stage",
