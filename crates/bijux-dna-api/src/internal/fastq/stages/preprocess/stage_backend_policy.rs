@@ -1485,8 +1485,15 @@ mod tests {
         let metrics = parse_deplete_host_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
         assert_eq!(metrics["reference_catalog_id"], serde_json::json!("host_reference"));
+        assert_eq!(metrics["host_index_artifact_id"], serde_json::json!("reference_index"));
+        assert_eq!(
+            metrics["host_depleted_reads_r1"],
+            serde_json::json!("host_depleted.fastq.gz")
+        );
         assert_eq!(metrics["reads_removed"], serde_json::json!(30));
+        assert_eq!(metrics["depleted_reads"], serde_json::json!(30));
         assert_eq!(metrics["host_fraction_removed"], serde_json::json!(0.30));
+        assert_eq!(metrics["host_hit_rate"], serde_json::json!(0.30));
     }
 
     #[test]
@@ -1832,7 +1839,15 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "contaminant_fraction_removed",
         ],
         "fastq.deplete_host" => {
-            &["schema_version", "stage", "tool", "host_fraction_removed", "reads_removed"]
+            &[
+                "schema_version",
+                "stage",
+                "tool",
+                "host_index_artifact_id",
+                "host_depleted_reads_r1",
+                "depleted_reads",
+                "host_hit_rate",
+            ]
         }
         "fastq.report_qc" => &[
             "schema_version",
