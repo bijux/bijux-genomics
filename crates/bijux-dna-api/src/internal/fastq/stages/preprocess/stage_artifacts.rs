@@ -666,6 +666,7 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                     .map(|report| report.reference_scope.clone()),
                 "reference_catalog_id": governed.as_ref().map(|report| report.reference_catalog_id.clone()),
                 "reference_index_artifact_id": governed.as_ref().map(|report| report.reference_index_artifact_id.clone()),
+                "host_index_artifact_id": governed.as_ref().map(|report| report.reference_index_artifact_id.clone()),
                 "reference_index_backend": governed.as_ref().map(|report| report.reference_index_backend.clone()),
                 "reference_build_id": governed.as_ref().and_then(|report| report.reference_build_id.clone()),
                 "reference_digest": governed.as_ref().and_then(|report| report.reference_digest.clone()),
@@ -685,9 +686,13 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                     .as_ref()
                     .map(|report| report.report_format.clone()),
                 "retain_unmapped_pairs": governed.as_ref().map(|report| report.retain_unmapped_pairs),
+                "host_depleted_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "host_depleted_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
                 "reads_removed": governed.as_ref().map(|report| report.reads_removed),
+                "depleted_reads": governed.as_ref().map(|report| report.reads_removed),
                 "bases_removed": governed.as_ref().map(|report| report.bases_removed),
                 "host_fraction_removed": governed.as_ref().map(|report| report.host_fraction_removed),
+                "host_hit_rate": governed.as_ref().map(|report| report.host_fraction_removed),
                 "removed_host_r1": governed.as_ref().map(|report| report.removed_host_r1.clone()),
                 "removed_host_r2": governed.as_ref().and_then(|report| report.removed_host_r2.clone()),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
@@ -1514,8 +1519,17 @@ mod stage_artifact_tests {
             serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
         assert_eq!(extra["tool"], serde_json::json!("bowtie2"));
         assert_eq!(extra["reference_catalog_id"], serde_json::json!("host_reference"));
+        assert_eq!(extra["host_index_artifact_id"], serde_json::json!("reference_index"));
+        assert_eq!(
+            extra["host_depleted_reads_r1"],
+            serde_json::json!("host_depleted.fastq.gz")
+        );
+        assert_eq!(extra["host_depleted_reads_r2"], serde_json::Value::Null);
         assert_eq!(extra["reads_removed"], serde_json::json!(30));
+        assert_eq!(extra["depleted_reads"], serde_json::json!(30));
         assert_eq!(extra["host_fraction_removed"], serde_json::json!(0.30));
+        assert_eq!(extra["host_hit_rate"], serde_json::json!(0.30));
+        assert_eq!(extra["removed_host_r1"], serde_json::json!("removed_host.fastq.gz"));
         Ok(())
     }
 
@@ -1723,8 +1737,15 @@ mod stage_artifact_tests {
             temp.path().join("stage.metrics.standardized.json"),
         )?)?;
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
+        assert_eq!(metrics["host_index_artifact_id"], serde_json::json!("reference_index"));
+        assert_eq!(
+            metrics["host_depleted_reads_r1"],
+            serde_json::json!("host_depleted.fastq.gz")
+        );
         assert_eq!(metrics["reads_removed"], serde_json::json!(30));
+        assert_eq!(metrics["depleted_reads"], serde_json::json!(30));
         assert_eq!(metrics["host_fraction_removed"], serde_json::json!(0.30));
+        assert_eq!(metrics["host_hit_rate"], serde_json::json!(0.30));
         Ok(())
     }
 
