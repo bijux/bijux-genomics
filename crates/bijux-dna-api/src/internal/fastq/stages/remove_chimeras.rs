@@ -936,10 +936,15 @@ fn validate_remove_chimeras_report_metrics(
 fn compatibility_metrics_from_report(report: &RemoveChimerasReportV1) -> serde_json::Value {
     serde_json::json!({
         "schema_version": "bijux.fastq.remove_chimeras.v2",
+        "filtered_representative_sequences": report.output_reads,
         "chimera_fraction": report.chimera_fraction.unwrap_or(0.0),
         "chimeras_removed": report.chimeras_removed.unwrap_or(0),
+        "chimera_count": report.chimeras_removed.unwrap_or(0),
         "non_chimera_reads": report.reads_out.unwrap_or(0),
+        "non_chimera_count": report.reads_out.unwrap_or(0),
         "tool": report.tool_id,
+        "method": report.method,
+        "detection_scope": report.detection_scope,
         "used_fallback": report.used_fallback,
     })
 }
@@ -962,12 +967,54 @@ fn validate_remove_chimeras_compatibility_metrics(
             chimeras_removed
         ));
     }
+    let chimera_count = metrics.get("chimera_count").and_then(serde_json::Value::as_u64);
+    if chimera_count != report.chimeras_removed {
+        return Err(anyhow!(
+            "remove_chimeras compatibility chimera count mismatch: expected {:?}, observed {:?}",
+            report.chimeras_removed,
+            chimera_count
+        ));
+    }
     let non_chimera_reads = metrics.get("non_chimera_reads").and_then(serde_json::Value::as_u64);
     if non_chimera_reads != report.reads_out {
         return Err(anyhow!(
             "remove_chimeras compatibility non-chimera reads mismatch: expected {:?}, observed {:?}",
             report.reads_out,
             non_chimera_reads
+        ));
+    }
+    let non_chimera_count = metrics.get("non_chimera_count").and_then(serde_json::Value::as_u64);
+    if non_chimera_count != report.reads_out {
+        return Err(anyhow!(
+            "remove_chimeras compatibility non-chimera count mismatch: expected {:?}, observed {:?}",
+            report.reads_out,
+            non_chimera_count
+        ));
+    }
+    let filtered_representative_sequences = metrics
+        .get("filtered_representative_sequences")
+        .and_then(serde_json::Value::as_str);
+    if filtered_representative_sequences != Some(report.output_reads.as_str()) {
+        return Err(anyhow!(
+            "remove_chimeras compatibility filtered representative sequence path mismatch: expected {:?}, observed {:?}",
+            report.output_reads,
+            filtered_representative_sequences
+        ));
+    }
+    let method = metrics.get("method").and_then(serde_json::Value::as_str);
+    if method != Some(report.method.as_str()) {
+        return Err(anyhow!(
+            "remove_chimeras compatibility method mismatch: expected {:?}, observed {:?}",
+            report.method,
+            method
+        ));
+    }
+    let detection_scope = metrics.get("detection_scope").and_then(serde_json::Value::as_str);
+    if detection_scope != Some(report.detection_scope.as_str()) {
+        return Err(anyhow!(
+            "remove_chimeras compatibility detection scope mismatch: expected {:?}, observed {:?}",
+            report.detection_scope,
+            detection_scope
         ));
     }
     let chimera_fraction = metrics.get("chimera_fraction").and_then(serde_json::Value::as_f64);

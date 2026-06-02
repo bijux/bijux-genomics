@@ -46,9 +46,10 @@ mod tests {
         parse_index_reference_metrics, parse_infer_asvs_metrics, parse_merge_pairs_metrics,
         parse_normalize_abundance_metrics, parse_normalize_primers_metrics,
         parse_profile_overrepresented_metrics, parse_profile_read_lengths_metrics,
-        parse_profile_reads_metrics, parse_remove_duplicates_metrics, parse_report_qc_metrics,
-        parse_screen_taxonomy_metrics, parse_trim_polyg_metrics, parse_trim_reads_metrics,
-        parse_trim_terminal_damage_metrics, parse_validate_reads_metrics, required_metrics_keys,
+        parse_profile_reads_metrics, parse_remove_chimeras_metrics, parse_remove_duplicates_metrics,
+        parse_report_qc_metrics, parse_screen_taxonomy_metrics, parse_trim_polyg_metrics,
+        parse_trim_reads_metrics, parse_trim_terminal_damage_metrics, parse_validate_reads_metrics,
+        required_metrics_keys,
     };
 
     fn env_lock() -> &'static Mutex<()> {
@@ -229,6 +230,25 @@ mod tests {
                 "unmerged_pair_count",
                 "discarded_pair_count",
                 "merge_rate",
+                "raw_backend_report_format",
+            ]
+        );
+    }
+
+    #[test]
+    fn remove_chimeras_uses_governed_report_metrics_policy() {
+        assert_eq!(
+            required_metrics_keys("fastq.remove_chimeras"),
+            &[
+                "schema_version",
+                "stage",
+                "tool",
+                "method",
+                "detection_scope",
+                "filtered_representative_sequences",
+                "chimera_count",
+                "non_chimera_count",
+                "chimera_fraction",
                 "raw_backend_report_format",
             ]
         );
@@ -1114,6 +1134,63 @@ mod tests {
     }
 
     #[test]
+    fn remove_chimeras_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("remove_chimeras_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.remove_chimeras.report.v2",
+                "stage": "fastq.remove_chimeras",
+                "stage_id": "fastq.remove_chimeras",
+                "tool_id": "vsearch",
+                "paired_mode": "single_end",
+                "threads": 2,
+                "method": "vsearch_uchime_denovo",
+                "detection_scope": "denovo",
+                "chimera_removed_definition": "reads flagged as de_novo chimeras are excluded from downstream abundance tables",
+                "input_reads": "merged.fastq.gz",
+                "output_reads": "nonchimeras.fastq.gz",
+                "chimera_metrics_json": "chimera_metrics.json",
+                "chimeras_fasta": "chimeras.fasta",
+                "uchime_report_tsv": "uchime.tsv",
+                "reads_in": 100,
+                "reads_out": 92,
+                "chimeras_removed": 8,
+                "chimera_fraction": 0.08,
+                "used_fallback": false,
+                "raw_backend_report": "uchime.tsv",
+                "raw_backend_report_format": "vsearch_uchime_tsv",
+                "runtime_s": 1.7,
+                "memory_mb": 32.0,
+                "exit_code": 0,
+                "backend_metrics": {
+                    "parsed_records": 100,
+                    "flagged_records": 8
+                }
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_remove_chimeras_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("vsearch"));
+        assert_eq!(metrics["paired_mode"], serde_json::json!("single_end"));
+        assert_eq!(metrics["method"], serde_json::json!("vsearch_uchime_denovo"));
+        assert_eq!(metrics["detection_scope"], serde_json::json!("denovo"));
+        assert_eq!(
+            metrics["filtered_representative_sequences"],
+            serde_json::json!("nonchimeras.fastq.gz")
+        );
+        assert_eq!(metrics["chimera_count"], serde_json::json!(8));
+        assert_eq!(metrics["non_chimera_count"], serde_json::json!(92));
+        assert_eq!(metrics["chimeras_removed"], serde_json::json!(8));
+        assert_eq!(metrics["chimera_fraction"], serde_json::json!(0.08));
+        assert_eq!(metrics["raw_backend_report"], serde_json::json!("uchime.tsv"));
+        assert_eq!(metrics["raw_backend_report_format"], serde_json::json!("vsearch_uchime_tsv"));
+    }
+
+    #[test]
     fn trim_polyg_standardized_metrics_prefer_governed_report() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("trim_polyg_tails_report.json");
@@ -1788,6 +1865,18 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "unmerged_pair_count",
             "discarded_pair_count",
             "merge_rate",
+            "raw_backend_report_format",
+        ],
+        "fastq.remove_chimeras" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "method",
+            "detection_scope",
+            "filtered_representative_sequences",
+            "chimera_count",
+            "non_chimera_count",
+            "chimera_fraction",
             "raw_backend_report_format",
         ],
         "fastq.remove_duplicates" => &[

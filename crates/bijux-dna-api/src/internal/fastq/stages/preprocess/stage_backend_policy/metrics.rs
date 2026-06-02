@@ -916,11 +916,15 @@ pub(crate) fn parse_remove_chimeras_metrics(out_dir: &std::path::Path) -> serde_
                 "paired_mode": report.paired_mode,
                 "method": report.method,
                 "detection_scope": report.detection_scope,
+                "filtered_representative_sequences": report.output_reads,
                 "reads_in": report.reads_in,
                 "reads_out": report.reads_out,
                 "chimeras_removed": report.chimeras_removed,
+                "chimera_count": report.chimeras_removed,
+                "non_chimera_count": report.reads_out,
                 "chimera_fraction": report.chimera_fraction,
                 "used_fallback": report.used_fallback,
+                "raw_backend_report": report.raw_backend_report,
                 "raw_backend_report_format": report.raw_backend_report_format,
                 "report_json": report_path,
             });
@@ -930,8 +934,12 @@ pub(crate) fn parse_remove_chimeras_metrics(out_dir: &std::path::Path) -> serde_
         "schema_version": "bijux.fastq_stage_metrics.v1",
         "stage": "fastq.remove_chimeras",
         "tool": "report_missing",
+        "filtered_representative_sequences": serde_json::Value::Null,
+        "chimera_count": serde_json::Value::Null,
+        "non_chimera_count": serde_json::Value::Null,
         "chimera_fraction": serde_json::Value::Null,
         "chimeras_removed": serde_json::Value::Null,
+        "raw_backend_report": serde_json::Value::Null,
         "report_json": report_path,
     })
 }
