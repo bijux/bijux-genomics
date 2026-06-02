@@ -50,6 +50,7 @@ pub use self::readiness::{
     BenchReadinessCommand, BenchReadinessRenderBamToolServingMapArgs,
     BenchReadinessRenderFastqToolServingMapArgs,
     BenchReadinessRenderMissingBenchmarkPairsArgs,
+    BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
     BenchReadinessRenderOrphanToolsArgs, BenchReadinessRenderUndercoveredStagesArgs,
 };
 pub use self::suite::BenchRunArgs;
