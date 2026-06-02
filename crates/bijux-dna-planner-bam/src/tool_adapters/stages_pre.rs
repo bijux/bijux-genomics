@@ -345,14 +345,71 @@ pub mod mapping_summary {
         out_dir: &Path,
         params: &QcPreEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
-        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+        let mut outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::MappingSummary,
             out_dir,
         );
         let flagstat = out_dir.join("flagstat.txt");
         let idxstats = out_dir.join("idxstats.txt");
-        let stats = out_dir.join("samtools_stats.txt");
+        let stats = if tool.tool_id.as_str() == "picard" {
+            out_dir.join("alignment_summary.metrics.txt")
+        } else {
+            out_dir.join("samtools_stats.txt")
+        };
         let summary = out_dir.join("mapping.summary.json");
+        if let Some(output) = outputs.iter_mut().find(|artifact| artifact.name.as_str() == "stats") {
+            output.path = stats.clone();
+        }
+        let command_template = if tool.tool_id.as_str() == "picard" {
+            let metrics_command = crate::tool_adapters::tools::core::picard::
+                collect_alignment_summary_metrics_args(bam, &stats)
+                .join(" ");
+            let command = format!(
+                "{metrics_command} && \
+picard BamIndexStats I={bam} O={idxstats} && \
+python - <<'PY' {metrics} {flagstat} {summary}\n\
+import csv,json,sys\n\
+metrics_path, flagstat_path, summary_path = sys.argv[1:4]\n\
+rows = []\n\
+capture = False\n\
+with open(metrics_path, 'r', encoding='utf-8') as handle:\n\
+    for raw in handle:\n\
+        line = raw.rstrip('\\n')\n\
+        if line.startswith('## METRICS CLASS'):\n\
+            capture = True\n\
+            continue\n\
+        if not capture or not line or line.startswith('#'):\n\
+            continue\n\
+        rows.append(line)\n\
+        if len(rows) == 2:\n\
+            break\n\
+metrics = {{}}\n\
+if len(rows) == 2:\n\
+    reader = csv.DictReader(rows, delimiter='\\t')\n\
+    metrics = next(reader, {{}})\n\
+total_reads = int(float(metrics.get('TOTAL_READS', 0) or 0))\n\
+mapped_reads = int(float(metrics.get('PF_READS_ALIGNED', 0) or 0))\n\
+mapped_fraction = (mapped_reads / total_reads * 100.0) if total_reads else 0.0\n\
+with open(flagstat_path, 'w', encoding='utf-8') as handle:\n\
+    handle.write(f\"{{total_reads}} + 0 in total (QC-passed reads + QC-failed reads)\\n\")\n\
+    handle.write(f\"{{mapped_reads}} + 0 mapped ({{mapped_fraction:.2f}}% : N/A)\\n\")\n\
+with open(summary_path, 'w', encoding='utf-8') as handle:\n\
+    json.dump({{\"stage\": \"bam.mapping_summary\", \"tool\": \"picard\", \"flagstat\": flagstat_path, \"idxstats\": \"{idxstats}\", \"stats\": metrics_path}}, handle, indent=2)\n\
+    handle.write('\\n')\n\
+PY",
+                metrics_command = metrics_command,
+                bam = bam.display(),
+                idxstats = idxstats.display(),
+                metrics = stats.display(),
+                flagstat = flagstat.display(),
+                summary = summary.display(),
+            );
+            vec!["/bin/sh".to_string(), "-c".to_string(), command]
+        } else {
+            crate::tool_adapters::tools::samtools::mapping_summary_args(
+                bam, &flagstat, &idxstats, &stats, &summary,
+            )
+        };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_instance_id: None,
@@ -360,11 +417,7 @@ pub mod mapping_summary {
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
-            command: CommandSpecV1 {
-                template: crate::tool_adapters::tools::samtools::mapping_summary_args(
-                    bam, &flagstat, &idxstats, &stats, &summary,
-                ),
-            },
+            command: CommandSpecV1 { template: command_template },
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(

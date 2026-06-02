@@ -1,6 +1,20 @@
 use std::path::Path;
 
 #[must_use]
+pub fn collect_alignment_summary_metrics_args(
+    bam: &Path,
+    report: &Path,
+) -> Vec<String> {
+    vec![
+        "picard".to_string(),
+        "CollectAlignmentSummaryMetrics".to_string(),
+        format!("I={}", bam.display()),
+        format!("O={}", report.display()),
+        "VALIDATION_STRINGENCY=SILENT".to_string(),
+    ]
+}
+
+#[must_use]
 pub fn collect_insert_size_metrics_args(
     bam: &Path,
     report: &Path,
