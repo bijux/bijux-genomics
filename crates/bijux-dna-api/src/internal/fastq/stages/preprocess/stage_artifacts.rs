@@ -63,6 +63,35 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "report_json": report_path,
             }))
         }
+        "fastq.detect_duplicates_premerge" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str())
+                        == Some("duplicate_signal_report.json")
+                })
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("duplicate_signal_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_domain_fastq::observer::parse_detect_duplicates_premerge_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.detect_duplicates_premerge.extra_artifacts.v1",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "duplicate_detection_policy": governed.as_ref().map(|report| report.duplicate_detection_policy.clone()),
+                "measurement_scope": governed.as_ref().map(|report| report.measurement_scope.clone()),
+                "modifies_reads": governed.as_ref().map(|report| report.modifies_reads),
+                "advisory_only": governed.as_ref().map(|report| report.advisory_only),
+                "reads_in": governed.as_ref().map(|report| report.reads_in),
+                "duplicate_count": governed.as_ref().map(|report| report.duplicate_signal_reads),
+                "duplicate_fraction": governed.as_ref().map(|report| report.duplicate_signal_fraction),
+                "inspected_pair_count": governed.as_ref().and_then(|report| report.compared_read_pairs),
+                "report_json": report_path,
+            }))
+        }
         "fastq.trim_reads" => {
             let report_path = execution
                 .outputs
@@ -818,6 +847,42 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn detect_duplicates_premerge_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "detect-duplicates-premerge-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 1.4,
+            memory_mb: 12.0,
+            outputs: vec![stage_root.join("duplicate_signal_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "bijux-dna".to_string(),
+        }
+    }
+
+    fn write_detect_duplicates_premerge_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("duplicate_signal_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.detect_duplicates_premerge.report.v1",
+                "stage": "fastq.detect_duplicates_premerge",
+                "stage_id": "fastq.detect_duplicates_premerge",
+                "tool_id": "bijux",
+                "paired_mode": "paired_end",
+                "duplicate_detection_policy": "report_only",
+                "measurement_scope": "premerge_sequence_signature",
+                "modifies_reads": false,
+                "advisory_only": true,
+                "reads_in": 12,
+                "duplicate_signal_reads": 4,
+                "duplicate_signal_fraction": 0.3333333333333333,
+                "compared_read_pairs": 6
+            }"#,
+        )?;
+        Ok(())
+    }
+
     fn trim_terminal_damage_execution(stage_root: &std::path::Path) -> StageResultV1 {
         StageResultV1 {
             run_id: "trim-terminal-damage-fixture".to_string(),
@@ -1224,6 +1289,33 @@ mod stage_artifact_tests {
     }
 
     #[test]
+    fn detect_duplicates_premerge_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_detect_duplicates_premerge_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.detect_duplicates_premerge",
+            &detect_duplicates_premerge_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("bijux"));
+        assert_eq!(extra["paired_mode"], serde_json::json!("paired_end"));
+        assert_eq!(extra["duplicate_detection_policy"], serde_json::json!("report_only"));
+        assert_eq!(extra["measurement_scope"], serde_json::json!("premerge_sequence_signature"));
+        assert_eq!(extra["reads_in"], serde_json::json!(12));
+        assert_eq!(extra["duplicate_count"], serde_json::json!(4));
+        assert_eq!(extra["duplicate_fraction"], serde_json::json!(0.3333333333333333));
+        assert_eq!(extra["inspected_pair_count"], serde_json::json!(6));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("duplicate_signal_report.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
     fn host_standardized_metrics_writer_uses_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
         write_host_report(temp.path())?;
@@ -1240,6 +1332,28 @@ mod stage_artifact_tests {
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
         assert_eq!(metrics["reads_removed"], serde_json::json!(30));
         assert_eq!(metrics["host_fraction_removed"], serde_json::json!(0.30));
+        Ok(())
+    }
+
+    #[test]
+    fn detect_duplicates_premerge_standardized_metrics_writer_uses_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_detect_duplicates_premerge_report(temp.path())?;
+        write_stage_standardized_metrics(
+            temp.path(),
+            "fastq.detect_duplicates_premerge",
+            temp.path(),
+            &detect_duplicates_premerge_execution(temp.path()),
+        )?;
+
+        let metrics: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.metrics.standardized.json"),
+        )?)?;
+        assert_eq!(metrics["tool"], serde_json::json!("bijux"));
+        assert_eq!(metrics["reads_in"], serde_json::json!(12));
+        assert_eq!(metrics["duplicate_count"], serde_json::json!(4));
+        assert_eq!(metrics["duplicate_fraction"], serde_json::json!(0.3333333333333333));
+        assert_eq!(metrics["inspected_pair_count"], serde_json::json!(6));
         Ok(())
     }
 

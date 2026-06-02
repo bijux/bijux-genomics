@@ -40,8 +40,9 @@ mod tests {
     use super::{
         fastq_backend_allowlist, parse_deplete_host_metrics,
         parse_deplete_reference_contaminants_metrics, parse_deplete_rrna_metrics,
-        parse_extract_umis_metrics, parse_filter_low_complexity_metrics,
-        parse_filter_reads_metrics, parse_index_reference_metrics, parse_merge_pairs_metrics,
+        parse_detect_duplicates_premerge_metrics, parse_extract_umis_metrics,
+        parse_filter_low_complexity_metrics, parse_filter_reads_metrics,
+        parse_index_reference_metrics, parse_merge_pairs_metrics,
         parse_normalize_abundance_metrics, parse_normalize_primers_metrics,
         parse_profile_overrepresented_metrics, parse_profile_read_lengths_metrics,
         parse_profile_reads_metrics, parse_remove_duplicates_metrics, parse_report_qc_metrics,
@@ -227,6 +228,21 @@ mod tests {
     }
 
     #[test]
+    fn detect_duplicates_premerge_uses_governed_report_metrics_policy() {
+        assert_eq!(
+            required_metrics_keys("fastq.detect_duplicates_premerge"),
+            &[
+                "schema_version",
+                "stage",
+                "tool",
+                "duplicate_count",
+                "duplicate_fraction",
+                "inspected_pair_count",
+            ]
+        );
+    }
+
+    #[test]
     fn correct_errors_uses_governed_report_metrics_policy() {
         assert_eq!(
             required_metrics_keys("fastq.correct_errors"),
@@ -254,6 +270,43 @@ mod tests {
                 "length_histogram_bins",
             ]
         );
+    }
+
+    #[test]
+    fn detect_duplicates_premerge_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("duplicate_signal_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.detect_duplicates_premerge.report.v1",
+                "stage": "fastq.detect_duplicates_premerge",
+                "stage_id": "fastq.detect_duplicates_premerge",
+                "tool_id": "bijux",
+                "paired_mode": "paired_end",
+                "duplicate_detection_policy": "report_only",
+                "measurement_scope": "premerge_sequence_signature",
+                "modifies_reads": false,
+                "advisory_only": true,
+                "reads_in": 12,
+                "duplicate_signal_reads": 4,
+                "duplicate_signal_fraction": 0.3333333333333333,
+                "compared_read_pairs": 6
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_detect_duplicates_premerge_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("bijux"));
+        assert_eq!(metrics["paired_mode"], serde_json::json!("paired_end"));
+        assert_eq!(metrics["duplicate_detection_policy"], serde_json::json!("report_only"));
+        assert_eq!(metrics["measurement_scope"], serde_json::json!("premerge_sequence_signature"));
+        assert_eq!(metrics["reads_in"], serde_json::json!(12));
+        assert_eq!(metrics["duplicate_count"], serde_json::json!(4));
+        assert_eq!(metrics["duplicate_fraction"], serde_json::json!(0.3333333333333333));
+        assert_eq!(metrics["inspected_pair_count"], serde_json::json!(6));
+        assert_eq!(metrics["advisory_only"], serde_json::json!(true));
     }
 
     #[test]
@@ -1423,6 +1476,14 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "reference_bytes",
             "index_bytes",
             "index_file_count",
+        ],
+        "fastq.detect_duplicates_premerge" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "duplicate_count",
+            "duplicate_fraction",
+            "inspected_pair_count",
         ],
         "fastq.detect_adapters" => {
             &["schema_version", "stage", "tool", "candidate_adapter_count", "adapter_inference"]

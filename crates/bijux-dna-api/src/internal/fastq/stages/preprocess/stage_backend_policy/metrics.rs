@@ -103,6 +103,42 @@ pub(crate) fn parse_profile_reads_metrics(out_dir: &std::path::Path) -> serde_js
     })
 }
 
+pub(crate) fn parse_detect_duplicates_premerge_metrics(
+    out_dir: &std::path::Path,
+) -> serde_json::Value {
+    let report_path = out_dir.join("duplicate_signal_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) =
+            bijux_dna_domain_fastq::observer::parse_detect_duplicates_premerge_report(&raw)
+        {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.detect_duplicates_premerge",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "duplicate_detection_policy": report.duplicate_detection_policy,
+                "measurement_scope": report.measurement_scope,
+                "modifies_reads": report.modifies_reads,
+                "advisory_only": report.advisory_only,
+                "reads_in": report.reads_in,
+                "duplicate_count": report.duplicate_signal_reads,
+                "duplicate_fraction": report.duplicate_signal_fraction,
+                "inspected_pair_count": report.compared_read_pairs,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.detect_duplicates_premerge",
+        "tool": "report_missing",
+        "duplicate_count": serde_json::Value::Null,
+        "duplicate_fraction": serde_json::Value::Null,
+        "inspected_pair_count": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_filter_reads_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("filter_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
