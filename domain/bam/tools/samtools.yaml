@@ -50,6 +50,19 @@ stage_contracts:
     - summary
     - stage_metrics
     notes: Samtools preserves the governed BAM MAPQ-filter benchmark row through deterministic threshold gating, filtered BAM output, and before-and-after audit artifacts.
+  bam.length_filter:
+    required_inputs:
+    - bam
+    expected_artifacts:
+    - filtered_bam
+    - filtered_bai
+    - flagstat_before
+    - flagstat_after
+    - idxstats_before
+    - idxstats_after
+    - summary
+    - stage_metrics
+    notes: Samtools preserves the governed BAM length-filter benchmark row through deterministic minimum-length gating, filtered BAM output, and before-and-after audit artifacts.
   bam.mapping_summary:
     required_inputs:
     - bam

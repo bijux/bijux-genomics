@@ -11,6 +11,19 @@ stage_ids: ["bam.markdup","bam.length_filter","bam.duplication_metrics","bam.ins
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 stage_contracts:
+  bam.length_filter:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "filtered_bam"
+      - "filtered_bai"
+      - "flagstat_before"
+      - "flagstat_after"
+      - "idxstats_before"
+      - "idxstats_after"
+      - "summary"
+      - "stage_metrics"
+    notes: "Picard length-filter coverage must preserve the governed minimum-length threshold, retained-read, removed-read, and filtered-BAM contract even while local comparison planning reuses the samtools length-gating implementation."
   bam.mapping_summary:
     required_inputs:
       - "bam"
