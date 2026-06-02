@@ -125,6 +125,13 @@ trim_terminal_damage_benchmark_policy: fastq.trim_terminal_damage
 - every governed `fastq.trim_terminal_damage` row must emit `trim_5p_bases`, `trim_3p_bases`, `reads_retained`, and `bases_removed`
 - the benchmark row must preserve the governed execution policy and UDG classification so explicit trimming remains distinguishable from preserve-ended policy results
 
+remove_duplicates_benchmark_policy: fastq.remove_duplicates
+- default benchmark backend is `clumpify`
+- governed comparison backend is `fastuniq`
+- every governed `fastq.remove_duplicates` row must emit `input_reads`, `duplicate_reads`, `unique_reads`, and `output_reads`
+- benchmark rows must keep the stage-native `reads_in`, `reads_out`, and `duplicates_removed` fields aligned with those canonical aliases so deduplication comparisons do not need stage-specific name translation
+- paired-end rows must preserve the pair-count coherence contract alongside the read-count aliases, and single-end rows must leave pair fields empty instead of inventing synthetic mate counts
+
 profile_reads_benchmark_policy: fastq.profile_reads
 - default benchmark backend is `seqkit_stats`
 - `seqkit` and `seqfu` are governed comparison backends for general read profiling studies
