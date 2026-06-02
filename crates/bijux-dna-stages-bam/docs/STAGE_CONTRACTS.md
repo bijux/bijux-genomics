@@ -74,6 +74,11 @@ in sync with `bijux-dna-domain-bam` when adding, renaming, or removing stages.
 
 ### bam.damage
 
+Required artifacts:
+`damage.summary.json`, `damage.unified_metrics.json`, `damage.parser_output.json`, `stage.metrics.json`
+
+Raw parser sources may still differ by tool, for example:
+
 `damage.pydamage.json`
 
 ```json
@@ -86,10 +91,18 @@ Chr	Pos	5pC>T	3pG>A
 chr1	1	0.12	0.10
 ```
 
+`damage.parser_output.json`
+
+```json
+{"schema_version":"bijux.bam.damage.parser_output.v1","stage_id":"bam.damage","parsed_tools":[{"tool_id":"pydamage","metrics":{"c_to_t_5p":0.12,"g_to_a_3p":0.10,"pmd_score_histogram":[]}}]}
+```
+
 `stage.metrics.json`
 ```json
 {"schema_version":"bijux.stage.metrics.v1","stage_id":"bam.damage","tool_id":"pydamage","runtime_s":1.2,"wall_time_ms":1200,"memory_mb":256.0,"exit_code":0}
 ```
+
+The governed BAM damage comparison surface now admits `mapdamage2`, `pydamage`, `damageprofiler`, `addeam`, and `pmdtools`, while retaining a visible planned `ngsbriggs` row. Every row must preserve a damage report, terminal-position metrics, and parser-output semantics even when the backend raw artifact layout differs.
 
 ### bam.validate
 - Required artifacts:

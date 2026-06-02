@@ -67,7 +67,7 @@ single_tool_justification: bam.haplogroups
 - `bam.gc_bias` rationale: deterministic GC-bias baseline until expanded tool admission.
 - `bam.endogenous_content` rationale: reproducible endogenous ratio derivation from mapping summaries.
 - `bam.overlap_correction` rationale: deterministic overlap clipping preserves downstream comparability.
-- `bam.damage` rationale: preserve historical aDNA comparability baseline.
+- `bam.damage` rationale: preserve historical aDNA comparability while exposing the full governed damage-tool comparison surface.
 - `bam.authenticity` rationale: stable authenticity score baseline for operator interpretation.
 - `bam.contamination` rationale: established contamination baseline for aDNA workflows.
 - `bam.sex` rationale: deterministic ratio-based sex inference baseline.
@@ -109,3 +109,5 @@ single_tool_justification: bam.haplogroups
 - `bam.endogenous_content`: the current governed endogenous-content slice remains a single admitted samtools row, so the durable contract stays explicit about mapped-read-derived endogenous estimates instead of inventing unsupported comparison backends.
 - `bam.overlap_correction`: the admitted `bamutil` benchmark row must preserve `overlap_corrected_bam`, `corrected_pairs`, `corrected_overlap_bases`, and the governed before-and-after audit artifacts across `overlap_correction.summary.json` and `stage.metrics.json`.
 - `bam.overlap_correction`: the current governed overlap-correction slice remains a single admitted `bamutil` row, and the repo no longer advertises `samtools` as a planned overlap-correction benchmark backend because the current governed contract does not own a distinct `samtools` overlap-clipping surface.
+- `bam.damage`: the governed damage benchmark surface must preserve `damage.summary.json`, `damage.unified_metrics.json`, `damage.parser_output.json`, and `stage.metrics.json` across `mapdamage2`, `pydamage`, `damageprofiler`, `addeam`, `pmdtools`, and the planned `ngsbriggs` row.
+- `bam.damage`: `mapdamage2`, `pydamage`, `damageprofiler`, `addeam`, and `pmdtools` now stay visible as admitted damage-tool comparison rows when their governed contracts are present, while `ngsbriggs` remains explicitly planned until its runtime path graduates from planned-only support.
