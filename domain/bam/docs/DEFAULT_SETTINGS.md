@@ -100,3 +100,5 @@ single_tool_justification: bam.haplogroups
 - `bam.complexity`: the current governed benchmark slice is still a single planned `preseq` row with visible registry drift, so the durable contract stays honest about planned-only readiness instead of implying a broader admitted comparison cohort.
 - `bam.coverage`: the admitted `mosdepth`, `samtools`, and `bedtools` benchmark rows must preserve `mean_depth`, `breadth_1x`, `covered_bases`, and governed region-level coverage output.
 - `bam.coverage`: `samtools` remains the fixture-backed local-smoke baseline, while `mosdepth` and `bedtools` contribute supported comparison coverage through the same depth sidecar, coverage summary, and benchmark-facing stage metrics contract.
+- `bam.insert_size`: the admitted `picard` benchmark row must preserve `mean_insert_size`, `median_insert_size`, `standard_deviation`, `read_pairs`, and the governed insert-size histogram artifact.
+- `bam.insert_size`: the current governed insert-size slice remains a single admitted Picard row, so the durable contract focuses on comparable paired-template metrics and histogram provenance rather than inventing unsupported alternative backends.

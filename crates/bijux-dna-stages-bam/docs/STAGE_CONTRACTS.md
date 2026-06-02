@@ -123,6 +123,10 @@ chr1	1	0.12	0.10
 - Required artifacts:
 `coverage.mosdepth.summary.txt`, `coverage.depth.txt`, `stage.metrics.json`
 
+### bam.insert_size
+- Required artifacts:
+`insert_size.metrics.txt`, `insert_size.histogram.pdf`, `insert_size.summary.json`, `stage.metrics.json`
+
 ## References
 
 - mapDamage2: Jonsson et al. 2013.
