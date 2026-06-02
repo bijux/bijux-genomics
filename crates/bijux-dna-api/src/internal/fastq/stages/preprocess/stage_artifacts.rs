@@ -302,6 +302,7 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "threads": governed.as_ref().map(|report| report.threads),
                 "trim_polyg": governed.as_ref().map(|report| report.trim_polyg),
                 "min_polyg_run": governed.as_ref().map(|report| report.min_polyg_run),
+                "trimmed_tail_count": governed.as_ref().and_then(|report| report.trimmed_tail_count),
                 "bases_trimmed_polyg": governed.as_ref().and_then(|report| report.bases_trimmed_polyg),
                 "polyx_bank_id": governed.as_ref().and_then(|report| report.polyx_bank_id.clone()),
                 "polyx_bank_hash": governed.as_ref().and_then(|report| report.polyx_bank_hash.clone()),
@@ -1052,6 +1053,7 @@ mod stage_artifact_tests {
                 "pairs_out": null,
                 "mean_q_before": 28.0,
                 "mean_q_after": 29.4,
+                "trimmed_tail_count": 4,
                 "bases_trimmed_polyg": 90,
                 "polyx_bank_id": "polyx",
                 "polyx_bank_hash": "sha256:polyx",
@@ -1318,6 +1320,8 @@ mod stage_artifact_tests {
         assert_eq!(extra["tool"], serde_json::json!(bijux_dna_core::id_catalog::TOOL_FASTP));
         assert_eq!(extra["threads"], serde_json::json!(6));
         assert_eq!(extra["trim_polyg"], serde_json::json!(true));
+        assert_eq!(extra["trimmed_tail_count"], serde_json::json!(4));
+        assert_eq!(extra["bases_trimmed_polyg"], serde_json::json!(90));
         assert_eq!(extra["polyx_bank_id"], serde_json::json!("polyx"));
         assert_eq!(extra["polyx_preset"], serde_json::json!("illumina_twocolor"));
         assert_eq!(
