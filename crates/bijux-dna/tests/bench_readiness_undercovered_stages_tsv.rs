@@ -41,7 +41,13 @@ fn bench_readiness_undercovered_stages_writes_governed_tsv_columns() {
         Some("domain\tstage_id\tvalid_tool_count\tregistered_tool_count\tvalid_tool_ids\tregistered_tool_ids\tmissing_tool_ids\treason")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 1, "TSV must retain the governed undercovered-stage row count");
+    assert_eq!(rows.len(), 2, "TSV must retain the governed undercovered-stage row count");
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bam\tbam.align\t3\t1\tbowtie2,bwa,samtools\tbwa\tbowtie2,samtools\tstage `bam.align` admits 3 governed tool options (bowtie2, bwa, samtools) but only registers bwa; add bowtie2, samtools to avoid a single-backend benchmark slice"
+        }),
+        "TSV must retain the governed alignment undercoverage gap"
+    );
     assert!(
         rows.iter().any(|row| {
             row == &"bam\tbam.overlap_correction\t2\t1\tbamutil,samtools\tbamutil\tsamtools\tstage `bam.overlap_correction` admits 2 governed tool options (bamutil, samtools) but only registers bamutil; add samtools to avoid a single-backend benchmark slice"
@@ -59,6 +65,10 @@ fn bench_readiness_undercovered_stages_writes_governed_tsv_columns() {
     assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.duplication_metrics\t")),
         "TSV must not retain an undercovered-stage row for bam.duplication_metrics"
+    );
+    assert!(
+        !rows.iter().any(|row| row.starts_with("bam\tbam.insert_size\t")),
+        "TSV must not retain an undercovered-stage row for bam.insert_size"
     );
     assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.complexity\t")),

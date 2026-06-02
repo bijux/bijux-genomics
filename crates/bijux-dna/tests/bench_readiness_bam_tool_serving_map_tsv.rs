@@ -86,6 +86,12 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"picard\tbam.insert_size\tsupported\tplannable\tparser_fixture_validated\tplanner_only"
+        }),
+        "TSV must retain the governed picard insert-size row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"picard\tbam.duplication_metrics\tsupported\tplannable\tartifact_contract_only\tplanner_only"
         }),
         "TSV must retain the governed picard duplication-metrics row"

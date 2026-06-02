@@ -43,12 +43,12 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 13, "TSV must retain the governed unregistered-pair row count");
+    assert_eq!(rows.len(), 12, "TSV must retain the governed unregistered-pair row count");
     assert!(
         rows.iter().any(|row| {
-            row == &"bam\tbam.bias_mitigation\tmapdamage2\tsupported\ttool_registered_pair_missing\tbam.damage\tbenchmark matrix references `bam.bias_mitigation` / `mapdamage2` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `mapdamage2`: bam.damage"
+            row == &"bam\tbam.genotyping\tbcftools\tmissing_contract\ttool_missing\t\tbenchmark matrix references `bam.genotyping` / `bcftools` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `bcftools`: <none>"
         }),
-        "TSV must retain the governed bam.bias_mitigation / mapdamage2 registry drift row"
+        "TSV must retain the governed bam.genotyping / bcftools registry drift row"
     );
     assert!(
         rows.iter().any(|row| {
@@ -61,6 +61,18 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             row == &"bam\tbam.complexity\tpreseq\tplanned\ttool_missing\t\tbenchmark matrix references `bam.complexity` / `preseq` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `preseq`: <none>"
         }),
         "TSV must retain the planned bam.complexity / preseq registry-drift row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bam\tbam.overlap_correction\tbamutil\tplanned\ttool_missing\t\tbenchmark matrix references `bam.overlap_correction` / `bamutil` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `bamutil`: <none>"
+        }),
+        "TSV must retain the planned bam.overlap_correction / bamutil registry-drift row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bam\tbam.recalibration\tgatk\tplanned\ttool_missing\t\tbenchmark matrix references `bam.recalibration` / `gatk` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `gatk`: <none>"
+        }),
+        "TSV must retain the planned bam.recalibration / gatk registry-drift row"
     );
     assert!(
         rows.iter().any(|row| {
@@ -174,6 +186,10 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             "TSV must not retain a registry-drift row for bam.duplication_metrics / {tool_id}"
         );
     }
+    assert!(
+        !rows.iter().any(|row| { row.starts_with("bam\tbam.insert_size\tpicard\t") }),
+        "TSV must not retain a registry-drift row for bam.insert_size / picard"
+    );
     assert!(
         !rows.iter().any(|row| {
             row.starts_with("bam\tbam.complexity\t") && !row.starts_with("bam\tbam.complexity\tpreseq\t")

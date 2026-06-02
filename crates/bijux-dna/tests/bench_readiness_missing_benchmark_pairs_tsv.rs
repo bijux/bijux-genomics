@@ -41,10 +41,16 @@ fn bench_readiness_missing_benchmark_pairs_writes_governed_tsv_columns() {
         Some("domain\tstage_id\ttool_id\tsupport_status\tregistered_tool_ids\treason")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 6, "TSV must retain the governed missing-pair row count");
+    assert_eq!(rows.len(), 9, "TSV must retain the governed missing-pair row count");
     assert!(
         rows.iter().any(|row| {
-            row == &"bam\tbam.align\tsamtools\tplanned\tbowtie2,bwa\tdomain-compatible pair `bam.align` / `samtools` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: bowtie2, bwa"
+            row == &"bam\tbam.align\tbowtie2\tsupported\tbwa\tdomain-compatible pair `bam.align` / `bowtie2` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: bwa"
+        }),
+        "TSV must retain the governed bam.align / bowtie2 gap"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bam\tbam.align\tsamtools\tplanned\tbwa\tdomain-compatible pair `bam.align` / `samtools` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: bwa"
         }),
         "TSV must retain the governed bam.align / samtools gap"
     );
@@ -53,6 +59,30 @@ fn bench_readiness_missing_benchmark_pairs_writes_governed_tsv_columns() {
             row == &"bam\tbam.damage\taddeam\tsupported\tmapdamage2,pmdtools,pydamage\tdomain-compatible pair `bam.damage` / `addeam` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: mapdamage2, pmdtools, pydamage"
         }),
         "TSV must retain the governed bam.damage / addeam gap"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bam\tbam.damage\tdamageprofiler\tsupported\tmapdamage2,pmdtools,pydamage\tdomain-compatible pair `bam.damage` / `damageprofiler` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: mapdamage2, pmdtools, pydamage"
+        }),
+        "TSV must retain the governed bam.damage / damageprofiler gap"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bam\tbam.damage\tngsbriggs\tplanned\tmapdamage2,pmdtools,pydamage\tdomain-compatible pair `bam.damage` / `ngsbriggs` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: mapdamage2, pmdtools, pydamage"
+        }),
+        "TSV must retain the governed bam.damage / ngsbriggs gap"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bam\tbam.haplogroups\tyleaf\tsupported\tsamtools\tdomain-compatible pair `bam.haplogroups` / `yleaf` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: samtools"
+        }),
+        "TSV must retain the governed bam.haplogroups / yleaf gap"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bam\tbam.sex\tyleaf\tsupported\tangsd,rxy\tdomain-compatible pair `bam.sex` / `yleaf` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: angsd, rxy"
+        }),
+        "TSV must retain the governed bam.sex / yleaf gap"
     );
     assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.filter\t")),
@@ -69,6 +99,10 @@ fn bench_readiness_missing_benchmark_pairs_writes_governed_tsv_columns() {
     assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.duplication_metrics\t")),
         "TSV must not retain a missing benchmark-pair row for bam.duplication_metrics"
+    );
+    assert!(
+        !rows.iter().any(|row| row.starts_with("bam\tbam.insert_size\t")),
+        "TSV must not retain a missing benchmark-pair row for bam.insert_size"
     );
     assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.complexity\t")),
