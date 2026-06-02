@@ -88,6 +88,12 @@ detect_adapters_benchmark_policy: fastq.detect_adapters
 - governed adapter identities must resolve to adapter-bank IDs instead of raw sequence fragments, and nested partial rescue motifs must not be double-counted when a stronger parent adapter matches the same read
 - `fastq.report_qc` may reuse the governed adapter report and evidence directory, but it must not invent new adapter identities beyond the canonical detect-adapters report
 
+trim_reads_benchmark_policy: fastq.trim_reads
+- default benchmark backend is `fastp`
+- governed comparison backends are `adapterremoval`, `alientrimmer`, `atropos`, `bbduk`, `cutadapt`, `fastx_clipper`, `leehom`, `prinseq`, `seqkit`, `skewer`, `trim_galore`, and `trimmomatic`
+- every governed `fastq.trim_reads` row must emit trimmed FASTQ outputs, the governed report output, retained-read count, dropped-read count, and bases-removed accounting
+- the retained planned extra `seqpurge` must remain explicitly visible as a non-normalized trim-reads contract until it is admitted and registered instead of silently disappearing from readiness reporting
+
 profile_reads_benchmark_policy: fastq.profile_reads
 - default benchmark backend is `seqkit_stats`
 - `seqkit` and `seqfu` are governed comparison backends for general read profiling studies
