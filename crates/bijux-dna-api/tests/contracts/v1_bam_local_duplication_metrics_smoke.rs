@@ -54,6 +54,7 @@ fn write_local_duplication_metrics_smoke_report_materializes_governed_outputs() 
     assert_eq!(payload["method"], serde_json::json!("samtools"));
     assert_eq!(payload["examined_reads"], serde_json::json!(3));
     assert_eq!(payload["duplicate_reads"], serde_json::json!(1));
+    assert_eq!(payload["duplicate_count"], serde_json::json!(1));
     assert_eq!(payload["duplicate_fraction"], serde_json::json!(1.0 / 3.0));
     assert_eq!(payload["estimated_library_size"], serde_json::Value::Null);
     assert_eq!(
@@ -109,6 +110,7 @@ fn write_local_duplication_metrics_smoke_report_materializes_governed_outputs() 
     assert_eq!(observation_json["method"], serde_json::json!("samtools"));
     assert_eq!(observation_json["examined_reads"], serde_json::json!(3));
     assert_eq!(observation_json["duplicate_reads"], serde_json::json!(1));
+    assert_eq!(observation_json["duplicate_count"], serde_json::json!(1));
     assert_eq!(
         observation_json["insufficient_library_size_reason"],
         serde_json::json!(
@@ -128,6 +130,7 @@ fn write_local_duplication_metrics_smoke_report_materializes_governed_outputs() 
     assert_eq!(summary_json["method"], serde_json::json!("samtools"));
     assert_eq!(summary_json["examined_reads"], serde_json::json!(3));
     assert_eq!(summary_json["duplicate_reads"], serde_json::json!(1));
+    assert_eq!(summary_json["duplicate_count"], serde_json::json!(1));
     assert_eq!(summary_json["duplicate_fraction"], serde_json::json!(1.0 / 3.0));
     assert_eq!(
         summary_json["insufficient_library_size_reason"],
@@ -153,6 +156,7 @@ fn write_local_duplication_metrics_smoke_report_materializes_governed_outputs() 
     assert_eq!(stage_metrics_json["method"], serde_json::json!("samtools"));
     assert_eq!(stage_metrics_json["examined_reads"], serde_json::json!(3));
     assert_eq!(stage_metrics_json["duplicate_reads"], serde_json::json!(1));
+    assert_eq!(stage_metrics_json["duplicate_count"], serde_json::json!(1));
     assert_eq!(stage_metrics_json["duplicate_fraction"], serde_json::json!(1.0 / 3.0));
 
     Ok(())
