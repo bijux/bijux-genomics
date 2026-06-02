@@ -127,7 +127,7 @@ pub mod complexity {
             bijux_dna_domain_bam::BamStage::Complexity,
             out_dir,
         );
-        let preseq_txt = out_dir.join("preseq.txt");
+        let complexity_curve_tsv = out_dir.join("complexity_curve.tsv");
         let complexity_json = out_dir.join("complexity.json");
         let summary_json = out_dir.join("complexity.summary.json");
         let plan = StagePlanV1 {
@@ -141,14 +141,14 @@ pub mod complexity {
                 template: match tool.tool_id.as_str() {
                     "preseq" => crate::tool_adapters::tools::preseq::args_with_outputs(
                         bam,
-                        &preseq_txt,
+                        &complexity_curve_tsv,
                         &complexity_json,
                         &summary_json,
                         params,
                     ),
                     _ => crate::tool_adapters::tools::preseq::args_with_outputs(
                         bam,
-                        &preseq_txt,
+                        &complexity_curve_tsv,
                         &complexity_json,
                         &summary_json,
                         params,
@@ -183,7 +183,7 @@ pub mod complexity {
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &["complexity_report", "preseq", "summary"],
+            &["complexity_report", "complexity_curve", "summary"],
         )
     }
 }

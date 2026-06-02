@@ -79,7 +79,7 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
         ],
         BamStage::Complexity => &[
             AuditArtifact { name: "complexity_report", filename: "complexity.json" },
-            AuditArtifact { name: "preseq", filename: "preseq.txt" },
+            AuditArtifact { name: "complexity_curve", filename: "complexity_curve.tsv" },
             AuditArtifact { name: "summary", filename: "complexity.summary.json" },
             AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
@@ -332,7 +332,12 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
             stage,
             required_inputs: &["bam"],
             artifact_policy: ArtifactPolicy {
-                required_outputs: &["complexity_report", "preseq", "summary", "stage_metrics"],
+                required_outputs: &[
+                    "complexity_report",
+                    "complexity_curve",
+                    "summary",
+                    "stage_metrics",
+                ],
                 required_audit: required_audit_artifacts(stage),
             },
             default_params: BamEffectiveParams::Complexity(ComplexityEffectiveParams {

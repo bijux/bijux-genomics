@@ -333,6 +333,8 @@ pub struct BamComplexitySummaryV1 {
     #[serde(default)]
     pub estimated_unique_reads: Option<u64>,
     #[serde(default)]
+    pub estimated_library_size: Option<u64>,
+    #[serde(default)]
     pub saturation_estimate: Option<f64>,
     pub min_reads: u64,
     #[serde(default)]
@@ -2493,6 +2495,7 @@ pub fn summarize_bam_complexity(
         observed_unique_reads: complexity.observed_reads,
         projected_unique_reads: complexity.projected_reads.clone(),
         estimated_unique_reads,
+        estimated_library_size: estimated_unique_reads,
         saturation_estimate,
         min_reads,
         insufficient_data_reason: insufficient_data_reason.map(ToOwned::to_owned),
@@ -5239,6 +5242,7 @@ mod tests {
             observed_unique_reads: 2,
             projected_unique_reads: vec![(3, 2)],
             estimated_unique_reads: None,
+            estimated_library_size: None,
             saturation_estimate: None,
             min_reads: 3,
             insufficient_data_reason: Some(
@@ -6066,6 +6070,7 @@ r04\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
         assert_eq!(summary.observed_unique_reads, 2);
         assert_eq!(summary.projected_unique_reads, vec![(3, 2)]);
         assert_eq!(summary.estimated_unique_reads, None);
+        assert_eq!(summary.estimated_library_size, None);
         assert_eq!(summary.saturation_estimate, None);
         assert_eq!(summary.min_reads, 3);
         assert_eq!(
