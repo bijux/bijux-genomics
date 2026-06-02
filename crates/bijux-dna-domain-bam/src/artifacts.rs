@@ -761,6 +761,7 @@ pub struct BamEndogenousContentEstimateV1 {
     pub stage_id: String,
     pub method: String,
     pub mapped_reads: u64,
+    pub endogenous_reads: u64,
     pub total_reads: u64,
     pub endogenous_fraction: f64,
     #[serde(default)]
@@ -4350,6 +4351,7 @@ fn build_endogenous_content_estimate(
         stage_id: stage_id.to_string(),
         method: method.to_string(),
         mapped_reads,
+        endogenous_reads: mapped_reads,
         total_reads,
         endogenous_fraction: postalignment_fraction,
         prealignment_fraction,
@@ -5475,6 +5477,7 @@ mod tests {
         let estimate = estimate_endogenous_content(&metrics, Some(0.20));
         assert_eq!(estimate.method, "mapped_fraction_from_alignment_counts");
         assert_eq!(estimate.mapped_reads, 62);
+        assert_eq!(estimate.endogenous_reads, 62);
         assert_eq!(estimate.total_reads, 100);
         assert!((estimate.endogenous_fraction - 0.62).abs() < 1e-6);
         assert_eq!(estimate.prealignment_fraction, Some(0.20));
@@ -5519,6 +5522,7 @@ mod tests {
         .expect("summarize endogenous content");
         assert_eq!(summary.method, "mapped_fraction_from_flagstat");
         assert_eq!(summary.mapped_reads, 3);
+        assert_eq!(summary.endogenous_reads, 3);
         assert_eq!(summary.total_reads, 5);
         assert!((summary.endogenous_fraction - 0.6).abs() < 1e-9);
         assert_eq!(summary.prealignment_fraction, Some(0.60));

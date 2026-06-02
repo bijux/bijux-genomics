@@ -54,6 +54,7 @@ fn write_local_endogenous_content_smoke_report_materializes_governed_outputs() -
     assert_eq!(payload["method"], serde_json::json!("mapped_fraction_from_flagstat"));
     assert_eq!(payload["host_reference_scope"], serde_json::json!("human_host"));
     assert_eq!(payload["mapped_reads"], serde_json::json!(3));
+    assert_eq!(payload["endogenous_reads"], serde_json::json!(3));
     assert_eq!(payload["total_reads"], serde_json::json!(5));
     assert_eq!(payload["endogenous_fraction"], serde_json::json!(0.6));
     assert_eq!(payload["prealignment_fraction"], serde_json::Value::Null);
@@ -84,6 +85,7 @@ fn write_local_endogenous_content_smoke_report_materializes_governed_outputs() -
     assert_eq!(report_json["schema_version"], serde_json::json!("bijux.bam.endogenous_content.v1"));
     assert_eq!(report_json["method"], serde_json::json!("mapped_fraction_from_flagstat"));
     assert_eq!(report_json["mapped_reads"], serde_json::json!(3));
+    assert_eq!(report_json["endogenous_reads"], serde_json::json!(3));
     assert_eq!(report_json["total_reads"], serde_json::json!(5));
     assert_eq!(report_json["endogenous_fraction"], serde_json::json!(0.6));
     assert_eq!(report_json["host_reference_scope"], serde_json::json!("human_host"));
@@ -101,6 +103,7 @@ fn write_local_endogenous_content_smoke_report_materializes_governed_outputs() -
     assert_eq!(stage_metrics_json["method"], serde_json::json!("mapped_fraction_from_flagstat"));
     assert_eq!(stage_metrics_json["host_reference_scope"], serde_json::json!("human_host"));
     assert_eq!(stage_metrics_json["mapped_reads"], serde_json::json!(3));
+    assert_eq!(stage_metrics_json["endogenous_reads"], serde_json::json!(3));
     assert_eq!(stage_metrics_json["total_reads"], serde_json::json!(5));
     assert_eq!(stage_metrics_json["endogenous_fraction"], serde_json::json!(0.6));
     assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
