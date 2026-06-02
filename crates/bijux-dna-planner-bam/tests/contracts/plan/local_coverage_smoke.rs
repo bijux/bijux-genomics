@@ -56,7 +56,7 @@ fn local_coverage_smoke_plans_use_governed_target_windows_fixture() -> Result<()
         .iter()
         .map(|artifact| artifact.name.as_str().to_string())
         .collect::<Vec<_>>();
-    assert_eq!(output_names, vec!["coverage_summary", "stage_metrics", "coverage_depth"]);
+    assert_eq!(output_names, vec!["coverage_summary", "coverage_depth", "stage_metrics"]);
 
     let depth_output = case
         .plan
