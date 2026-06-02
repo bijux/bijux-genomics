@@ -251,6 +251,21 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
         }),
         "FASTQ readiness map must retain the governed normalize-primers row for cutadapt"
     );
+    assert!(
+        rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("dada2")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.infer_asvs")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("governed_execution")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("parse_normalized")
+                && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                    == Some("fixture:corpus-03-amplicon-mini")
+        }),
+        "FASTQ readiness map must retain the governed infer-asvs row for dada2"
+    );
     for tool_id in ["bayeshammer", "lighter", "musket", "rcorrector"] {
         assert!(
             rows.iter().any(|row| {

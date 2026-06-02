@@ -146,6 +146,12 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
         }),
         "TSV must retain the governed normalize-primers row for cutadapt"
     );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"dada2\tfastq.infer_asvs\tgoverned_execution\trunnable\tparse_normalized\tfixture:corpus-03-amplicon-mini"
+        }),
+        "TSV must retain the governed infer-asvs row for dada2"
+    );
     for tool_id in ["bayeshammer", "lighter", "musket", "rcorrector"] {
         assert!(
             rows.iter().any(|row| {
