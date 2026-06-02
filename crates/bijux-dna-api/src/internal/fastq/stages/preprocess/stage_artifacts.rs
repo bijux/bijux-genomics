@@ -636,9 +636,14 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "min_identity": governed.as_ref().and_then(|report| report.min_identity),
                 "retained_read_role": governed.as_ref().map(|report| report.retained_read_role.clone()),
                 "rejected_read_role": governed.as_ref().map(|report| report.rejected_read_role.clone()),
+                "rrna_filtered_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "rrna_filtered_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
+                "retained_reads": governed.as_ref().map(|report| report.reads_out),
                 "reads_removed": governed.as_ref().map(|report| report.reads_removed),
+                "removed_reads": governed.as_ref().map(|report| report.reads_removed),
                 "bases_removed": governed.as_ref().map(|report| report.bases_removed),
                 "rrna_fraction_removed": governed.as_ref().map(|report| report.rrna_fraction_removed),
+                "depletion_rate": governed.as_ref().map(|report| report.rrna_fraction_removed),
                 "rrna_report_tsv": governed.as_ref().map(|report| report.rrna_report_tsv.clone()),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
@@ -1511,6 +1516,82 @@ mod stage_artifact_tests {
         assert_eq!(extra["reference_catalog_id"], serde_json::json!("host_reference"));
         assert_eq!(extra["reads_removed"], serde_json::json!(30));
         assert_eq!(extra["host_fraction_removed"], serde_json::json!(0.30));
+        Ok(())
+    }
+
+    #[test]
+    fn deplete_rrna_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        std::fs::write(
+            temp.path().join("rrna_report.json"),
+            serde_json::json!({
+                "schema_version": "bijux.fastq.deplete_rrna.report.v2",
+                "stage": "fastq.deplete_rrna",
+                "stage_id": "fastq.deplete_rrna",
+                "tool_id": "sortmerna",
+                "paired_mode": "single_end",
+                "threads": 4,
+                "rrna_db": "/refs/silva",
+                "database_artifact_id": "silva_nr99",
+                "database_build_id": "2026.03",
+                "database_digest": "sha256:silva",
+                "screening_engine": "sortmerna",
+                "report_format": "summary_tsv_and_json",
+                "emit_removed_reads": false,
+                "min_identity": 0.95,
+                "retained_read_role": "rrna_filtered_reads",
+                "rejected_read_role": "removed_rrna_reads",
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "rrna_filtered.fastq.gz",
+                "output_r2": null,
+                "rrna_report_tsv": "rrna_report.tsv",
+                "rrna_report_json": "rrna_report.json",
+                "reads_in": 100,
+                "reads_out": 64,
+                "reads_removed": 36,
+                "bases_in": 1000,
+                "bases_out": 620,
+                "bases_removed": 380,
+                "pairs_in": null,
+                "pairs_out": null,
+                "rrna_fraction_removed": 0.36,
+                "runtime_s": 5.0,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "sortmerna.log",
+                "raw_backend_report_format": "sortmerna_log",
+                "backend_metrics": {"reads_removed": 36}
+            })
+            .to_string(),
+        )?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.deplete_rrna",
+            &StageResultV1 {
+                run_id: "deplete-rrna-fixture".to_string(),
+                exit_code: 0,
+                runtime_s: 5.0,
+                memory_mb: 64.0,
+                outputs: vec![temp.path().join("rrna_report.json")],
+                metrics_path: None,
+                stdout: String::new(),
+                stderr: String::new(),
+                command: "sortmerna".to_string(),
+            },
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("sortmerna"));
+        assert_eq!(extra["rrna_db"], serde_json::json!("/refs/silva"));
+        assert_eq!(extra["rrna_filtered_r1"], serde_json::json!("rrna_filtered.fastq.gz"));
+        assert_eq!(extra["rrna_filtered_r2"], serde_json::Value::Null);
+        assert_eq!(extra["retained_reads"], serde_json::json!(64));
+        assert_eq!(extra["reads_removed"], serde_json::json!(36));
+        assert_eq!(extra["removed_reads"], serde_json::json!(36));
+        assert_eq!(extra["depletion_rate"], serde_json::json!(0.36));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("sortmerna.log"));
         Ok(())
     }
 
