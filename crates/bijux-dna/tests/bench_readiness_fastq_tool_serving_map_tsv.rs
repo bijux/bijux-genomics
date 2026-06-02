@@ -162,6 +162,12 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
         }),
         "TSV must retain the governed deplete-host row for bowtie2"
     );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bowtie2\tfastq.deplete_reference_contaminants\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-01-mini"
+        }),
+        "TSV must retain the governed contaminant-depletion row for bowtie2"
+    );
     for tool_id in ["bbduk", "prinseq"] {
         assert!(
             rows.iter().any(|row| {
