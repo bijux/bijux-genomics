@@ -37,9 +37,15 @@ metrics:
     meaning: "Mean base quality observed across the inspected reads."
   - name: "candidate_adapter_count"
     meaning: "Number of governed adapter candidates detected in the evidence report"
+  - name: "detected_adapter_ids"
+    meaning: "Governed adapter-bank identifiers admitted by adapter inspection after stronger parent motifs suppress nested partial seeds."
+  - name: "detection_confidence"
+    meaning: "Highest governed per-adapter support fraction among the admitted adapter identities."
+  - name: "detection_threshold"
+    meaning: "Minimum governed support fraction required to admit an adapter identity for this report."
   - name: "adapter_trimmed_fraction"
     meaning: "Fraction of reads with detectable adapter evidence when the backend can estimate it"
-description: "Inspect likely adapter content without mutating reads prior to trimming."
+description: "Inspect likely adapter content without mutating reads prior to trimming, while emitting governed adapter-report and identity evidence."
 required_inputs:
   - reads_r1
 required_outputs:
@@ -60,6 +66,7 @@ defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "single-end input omits reads_r2; paired-end input contributes both mates to governed evidence-only adapter inspection."
   - "fastqc inspects the full input set, so sampled-read evidence is not claimed by the canonical contract."
+  - "governed benchmark rows must expose adapter_report, detected_adapter_ids, detection_confidence, and detection_threshold fields from the canonical adapter-inspection report."
 bank_hooks:
   - "adapter_bank"
 metrics_schema: "bijux.stage.metrics.v1"
