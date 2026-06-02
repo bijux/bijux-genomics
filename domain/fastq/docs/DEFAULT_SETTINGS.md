@@ -75,6 +75,12 @@ validation_benchmark_policy: fastq.validate_reads
 - `fastq.report_qc` must consume any governed `fastq.validate_reads` backend artifacts already present in the benchmark output tree, while falling back to bootstrapping `fastqvalidator` when no validation backend has produced report inputs yet
 - `fastq.report_qc` and `fastq.profile_reads` are downstream complements, not substitutes for structural validation
 
+profile_reads_benchmark_policy: fastq.profile_reads
+- default benchmark backend is `seqkit_stats`
+- `seqkit` and `seqfu` are governed comparison backends for general read profiling studies
+- `fastq.report_qc` must reuse any governed `fastq.profile_reads` backend artifacts already present in the benchmark output tree instead of forcing a second profiling backend run
+- the current `seqfu` benchmark route runs through the admitted seqfu compatibility wrapper runtime surface, so its profile-read command line must remain compatible with the wrapped stats entrypoint
+
 single_tool_justification: fastq.index_reference
 single_tool_justification: fastq.detect_adapters
 single_tool_justification: fastq.deplete_rrna
