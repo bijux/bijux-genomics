@@ -43,7 +43,8 @@ mod tests {
         parse_detect_duplicates_premerge_metrics,
         parse_estimate_library_complexity_prealign_metrics, parse_extract_umis_metrics,
         parse_filter_low_complexity_metrics, parse_filter_reads_metrics,
-        parse_index_reference_metrics, parse_infer_asvs_metrics, parse_merge_pairs_metrics,
+        parse_index_reference_metrics, parse_infer_asvs_metrics, parse_cluster_otus_metrics,
+        parse_merge_pairs_metrics,
         parse_normalize_abundance_metrics, parse_normalize_primers_metrics,
         parse_profile_overrepresented_metrics, parse_profile_read_lengths_metrics,
         parse_profile_reads_metrics, parse_remove_chimeras_metrics, parse_remove_duplicates_metrics,
@@ -250,6 +251,23 @@ mod tests {
                 "non_chimera_count",
                 "chimera_fraction",
                 "raw_backend_report_format",
+            ]
+        );
+    }
+
+    #[test]
+    fn cluster_otus_uses_governed_report_metrics_policy() {
+        assert_eq!(
+            required_metrics_keys("fastq.cluster_otus"),
+            &[
+                "schema_version",
+                "stage",
+                "tool",
+                "clustering_threshold",
+                "otu_table_tsv",
+                "representative_sequences_fasta",
+                "otu_count",
+                "sample_count",
             ]
         );
     }
@@ -1191,6 +1209,58 @@ mod tests {
     }
 
     #[test]
+    fn cluster_otus_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("cluster_otus_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.cluster_otus.report.v2",
+                "stage": "fastq.cluster_otus",
+                "stage_id": "fastq.cluster_otus",
+                "tool_id": "vsearch",
+                "otu_identity": 0.97,
+                "threads": 4,
+                "input_reads": "merged.fastq.gz",
+                "otu_table": "otu_abundance.tsv",
+                "otu_representatives": "otu_representatives.fasta",
+                "taxonomy_ready_fasta": "taxonomy_ready.fasta",
+                "taxonomy_ready_fastq": "taxonomy_ready.fastq",
+                "report_json": "cluster_otus_report.json",
+                "otu_count": 18,
+                "sample_count": 4,
+                "representative_sequence_count": 18,
+                "output_table_kind": "otu_abundance_table",
+                "used_fallback": false,
+                "runtime_s": 3.4,
+                "memory_mb": 96.0,
+                "exit_code": 0,
+                "raw_backend_report": "otu_clusters.uc",
+                "raw_backend_report_format": "vsearch_uc",
+                "backend_metrics": {
+                    "cluster_memberships": 18
+                }
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_cluster_otus_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("vsearch"));
+        assert_eq!(metrics["clustering_threshold"], serde_json::json!(0.97));
+        assert_eq!(metrics["otu_table_tsv"], serde_json::json!("otu_abundance.tsv"));
+        assert_eq!(
+            metrics["representative_sequences_fasta"],
+            serde_json::json!("otu_representatives.fasta")
+        );
+        assert_eq!(metrics["otu_count"], serde_json::json!(18));
+        assert_eq!(metrics["sample_count"], serde_json::json!(4));
+        assert_eq!(metrics["representative_sequence_count"], serde_json::json!(18));
+        assert_eq!(metrics["output_table_kind"], serde_json::json!("otu_abundance_table"));
+        assert_eq!(metrics["raw_backend_report_format"], serde_json::json!("vsearch_uc"));
+    }
+
+    #[test]
     fn trim_polyg_standardized_metrics_prefer_governed_report() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("trim_polyg_tails_report.json");
@@ -1866,6 +1936,16 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "discarded_pair_count",
             "merge_rate",
             "raw_backend_report_format",
+        ],
+        "fastq.cluster_otus" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "clustering_threshold",
+            "otu_table_tsv",
+            "representative_sequences_fasta",
+            "otu_count",
+            "sample_count",
         ],
         "fastq.remove_chimeras" => &[
             "schema_version",
