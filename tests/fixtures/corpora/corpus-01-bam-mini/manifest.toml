@@ -1,7 +1,7 @@
 schema_version = "bijux.bench.bam_corpus_fixture.v1"
 corpus_id = "corpus-01-bam-mini"
 species = "Homo sapiens"
-description = "Tiny BAM-stage alignment corpus expressed as SAM proxy fixtures with sibling BAI sidecars and a shared reference for local benchmark contract checks."
+description = "Tiny BAM-stage alignment corpus expressed as explicit sam_text_proxy fixtures with sibling BAI sidecars and a shared reference for local benchmark contract checks."
 reference_fasta = "reference/corpus_01_bam_reference.fasta"
 
 [[samples]]
