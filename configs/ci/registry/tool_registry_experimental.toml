@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 1914315b8e4395bf3dc142368ccaa322a6168c47
+# source_commit: 7b23f17ef51140da008286a0506c36a0e48251df
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -8,74 +8,6 @@
 # authority = bijux-dna-domain-compiler
 # stability = stable
 # last_updated = 2026-02-14
-
-[[tools]]
-id = "addeam"
-tool_id = "addeam"
-domain = "bam"
-domains = ["bam"]
-status = "experimental"
-stage_ids = ["bam.damage"]
-bindings = ["bam.damage"]
-tool_role = "transform"
-version = "latest-pinned"
-default_version = "latest-pinned"
-upstream = "https://github.com/LouisPwr/AdDeam"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "paper:https://academic.oup.com/bioinformatics/article/doi/10.1093/bioinformatics/btaf407/8205671"
-pinned_commit = "git:f1dd2a5e530975cab1df48e47a1d51ea76bf183a"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/addeam:latest-pinned"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "addeam --version"
-help_cmd = "addeam --help"
-smoke_version_cmd = "addeam --version"
-smoke_help_cmd = "addeam --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "addeam --help"
-expected_bin = "addeam"
-expected_artifacts = ["damage_profile", "damage_clusters"]
-metrics_schema = "bijux.bam.damage.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.addeam"
-apptainer_def = "containers/apptainer/shared/addeam.def"
-require_labels = true
-
-[[tools]]
-id = "damageprofiler"
-tool_id = "damageprofiler"
-domain = "bam"
-domains = ["bam"]
-status = "experimental"
-stage_ids = ["bam.damage", "bam.authenticity"]
-bindings = ["bam.authenticity", "bam.damage"]
-tool_role = "transform"
-version = "latest-pinned"
-default_version = "latest-pinned"
-upstream = "https://github.com/Integrative-Transcriptomics/DamageProfiler"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "paper:https://academic.oup.com/bioinformatics/article/37/20/3652/6247758"
-pinned_commit = "unresolved"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/damageprofiler:latest-pinned"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "damageprofiler --version"
-help_cmd = "damageprofiler --help"
-smoke_version_cmd = "damageprofiler --version"
-smoke_help_cmd = "damageprofiler --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "damageprofiler --help"
-expected_bin = "damageprofiler"
-expected_artifacts = ["damage_profile", "damage_plot"]
-metrics_schema = "bijux.bam.damage.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.damageprofiler"
-apptainer_def = "containers/apptainer/shared/damageprofiler.def"
-require_labels = true
 
 [[tools]]
 id = "yleaf"

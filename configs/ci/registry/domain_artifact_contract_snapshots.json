@@ -254,7 +254,10 @@
         "stage_metrics"
       ],
       "bam.damage": [
-        "damage_report_json"
+        "damage_report",
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics"
       ],
       "bam.duplication_metrics": [
         "duplication_report",

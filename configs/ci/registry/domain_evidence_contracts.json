@@ -82,7 +82,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "damage tools emit comparable terminal-position evidence from the same aligned BAM input",
+          "admitted and planned damage rows preserve governed damage-report, terminal-position-metrics, and parser-output semantics even when backend raw artifacts differ"
         ],
         "invariants": [
           "stable_artifact_contract",

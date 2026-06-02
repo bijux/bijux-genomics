@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "1914315b8e4395bf3dc142368ccaa322a6168c47",
-  "bundle_checksum_sha256": "d159c025939373274da33195a9f3e494592771184f5c7e24a7633c7798a9dd6a",
+  "source_commit": "7b23f17ef51140da008286a0506c36a0e48251df",
+  "bundle_checksum_sha256": "39723dd5d637c1ffee966f6a7a9b2708f0080d91e94f8c33cbc9769716782043",
   "domains": [
     {
       "domain_id": "bam",
@@ -585,7 +585,7 @@
           "status": "supported",
           "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
-          "description": "BAM damage stage contract.",
+          "description": "BAM damage stage contract with governed damage report, terminal-position metrics, parser-output JSON, and benchmark-facing damage signal semantics.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -597,7 +597,22 @@
           ],
           "outputs": [
             {
-              "name": "damage_report_json",
+              "name": "damage_report",
+              "data_type": "json",
+              "cardinality": "One"
+            },
+            {
+              "name": "terminal_position_metrics",
+              "data_type": "json",
+              "cardinality": "One"
+            },
+            {
+              "name": "parser_output",
+              "data_type": "json",
+              "cardinality": "One"
+            },
+            {
+              "name": "stage_metrics",
               "data_type": "json",
               "cardinality": "One"
             }
@@ -606,10 +621,28 @@
             "bam"
           ],
           "required_outputs": [
-            "damage_report_json"
+            "damage_report",
+            "terminal_position_metrics",
+            "parser_output",
+            "stage_metrics"
           ],
           "parameters": [],
           "metrics": [
+            {
+              "metric_id": "terminal_c_to_t_5p",
+              "meaning": "Observed 5' terminal C-to-T damage rate preserved in the governed BAM damage benchmark row",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "terminal_g_to_a_3p",
+              "meaning": "Observed 3' terminal G-to-A damage rate preserved in the governed BAM damage benchmark row",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "damage_signal",
+              "meaning": "Governed categorical damage signal preserved in the BAM damage benchmark row",
+              "schema_version": "bijux.stage.v3"
+            },
             {
               "metric_id": "runtime_s",
               "meaning": "Wall-clock runtime in seconds",
@@ -633,7 +666,8 @@
             "pydamage"
           ],
           "assumptions": [
-            "default stage assumptions captured"
+            "damage tools emit comparable terminal-position evidence from the same aligned BAM input",
+            "admitted and planned damage rows preserve governed damage-report, terminal-position-metrics, and parser-output semantics even when backend raw artifacts differ"
           ],
           "invariants": [
             "stable_artifact_contract",
@@ -2234,7 +2268,7 @@
           "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "latest-pinned",
+          "default_version": "1.0.0",
           "upstream": "https://github.com/LouisPwr/AdDeam",
           "pin_strategy": "pinned",
           "license": "GPL-3.0",
@@ -2510,7 +2544,7 @@
           "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "latest-pinned",
+          "default_version": "1.1",
           "upstream": "https://github.com/Integrative-Transcriptomics/DamageProfiler",
           "pin_strategy": "pinned",
           "license": "GPL-3.0",
@@ -3508,7 +3542,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "ae3f5340ea60e0c8910d02c456504c6e878b37f5d1419bd9918930c5f7583bb4"
+      "checksum_sha256": "6dbf366f9f40b447f2c57b06750134d0a5994b0c55c680c1ab1b8a37e0c79b94"
     },
     {
       "domain_id": "fastq",
@@ -12346,7 +12380,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "5c874d1952038db8954e20ca910cd2a8192d65bc4b3ddd782e3bf9d0f040bdca"
+      "checksum_sha256": "f1307e65757a75f855770d2af8ec1385bc843375f65a3456c4d2912f08af4ee7"
     },
     {
       "domain_id": "vcf",
@@ -14604,7 +14638,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "f053e5e8bc60192d5cfdfc9962ab0ce5c32054306b868798c97e0888f6e675a3"
+      "checksum_sha256": "3d6c2f80c0793b0ab4a8d954d41b1314a725625282c07eb1ba8257c228cde033"
     }
   ]
 }
