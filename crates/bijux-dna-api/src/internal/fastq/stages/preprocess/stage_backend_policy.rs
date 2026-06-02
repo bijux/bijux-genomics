@@ -1425,8 +1425,18 @@ mod tests {
         let metrics = parse_deplete_reference_contaminants_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
         assert_eq!(metrics["contaminant_reference"], serde_json::json!("phix_and_spikeins"));
+        assert_eq!(
+            metrics["contaminant_index_artifact_id"],
+            serde_json::json!("reference_index")
+        );
+        assert_eq!(
+            metrics["contaminant_screened_reads_r1"],
+            serde_json::json!("contaminant_screened.fastq.gz")
+        );
         assert_eq!(metrics["reads_removed"], serde_json::json!(28));
+        assert_eq!(metrics["contaminant_reads"], serde_json::json!(28));
         assert_eq!(metrics["contaminant_fraction_removed"], serde_json::json!(0.28));
+        assert_eq!(metrics["contaminant_hit_rate"], serde_json::json!(0.28));
     }
 
     #[test]
@@ -1832,8 +1842,10 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "stage",
             "tool",
             "contaminant_reference",
-            "reads_removed",
-            "contaminant_fraction_removed",
+            "contaminant_index_artifact_id",
+            "contaminant_screened_reads_r1",
+            "contaminant_reads",
+            "contaminant_hit_rate",
         ],
         "fastq.deplete_host" => &[
             "schema_version",
