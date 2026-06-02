@@ -88,6 +88,12 @@ detect_adapters_benchmark_policy: fastq.detect_adapters
 - governed adapter identities must resolve to adapter-bank IDs instead of raw sequence fragments, and nested partial rescue motifs must not be double-counted when a stronger parent adapter matches the same read
 - `fastq.report_qc` may reuse the governed adapter report and evidence directory, but it must not invent new adapter identities beyond the canonical detect-adapters report
 
+detect_duplicates_premerge_benchmark_policy: fastq.detect_duplicates_premerge
+- default benchmark backend is the planned internal `bijux_dna` contract harness
+- every governed `fastq.detect_duplicates_premerge` row must emit `duplicate_count`, `duplicate_fraction`, and `inspected_pair_count`
+- benchmark rows must preserve the report-only `duplicate_detection_policy` and `measurement_scope` so premerge duplicate signaling is not misrepresented as scientific duplicate removal
+- paired-end rows must report inspected pair count from the governed sequence-signature comparison, while single-end rows must leave inspected pair count empty instead of inventing a synthetic pair total
+
 trim_polyg_tails_benchmark_policy: fastq.trim_polyg_tails
 - default benchmark backend is `fastp`
 - governed comparison backend is `bbduk`
