@@ -304,6 +304,8 @@ pub struct BamDuplicationMetricsSummaryV1 {
     pub input_bam: PathBuf,
     pub examined_reads: u64,
     pub duplicate_reads: u64,
+    #[serde(default)]
+    pub duplicate_count: Option<u64>,
     pub duplicate_fraction: f64,
     #[serde(default)]
     pub estimated_library_size: Option<u64>,
@@ -2403,6 +2405,7 @@ pub fn summarize_bam_duplication_metrics(
         input_bam: input_bam.to_path_buf(),
         examined_reads,
         duplicate_reads,
+        duplicate_count: Some(duplicate_reads),
         duplicate_fraction,
         estimated_library_size,
         insufficient_library_size_reason: insufficient_library_size_reason.map(ToOwned::to_owned),
@@ -5207,6 +5210,7 @@ mod tests {
             input_bam: PathBuf::from("input.bam"),
             examined_reads: 3,
             duplicate_reads: 1,
+            duplicate_count: Some(1),
             duplicate_fraction: 1.0 / 3.0,
             estimated_library_size: None,
             insufficient_library_size_reason: Some(
@@ -6029,6 +6033,7 @@ r04\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
         assert_eq!(summary.method, "samtools");
         assert_eq!(summary.examined_reads, 3);
         assert_eq!(summary.duplicate_reads, 1);
+        assert_eq!(summary.duplicate_count, Some(1));
         assert!((summary.duplicate_fraction - (1.0 / 3.0)).abs() <= 1e-9);
         assert_eq!(summary.estimated_library_size, None);
         assert_eq!(
