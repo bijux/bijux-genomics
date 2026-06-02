@@ -64,6 +64,17 @@ fn write_local_align_plan_materializes_governed_target_output() -> Result<()> {
     let outputs = payload["io"]["outputs"]
         .as_array()
         .unwrap_or_else(|| panic!("plan outputs must serialize as an array"));
+    let inputs = payload["io"]["inputs"]
+        .as_array()
+        .unwrap_or_else(|| panic!("plan inputs must serialize as an array"));
+    let reference_index = inputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("reference_index"))
+        .unwrap_or_else(|| panic!("reference_index input missing from local-ready plan payload"));
+    assert_eq!(
+        reference_index["path"],
+        serde_json::json!("assets/reference/host/references/toy_host_reference")
+    );
     let align_metrics = outputs
         .iter()
         .find(|artifact| artifact["name"] == serde_json::json!("align_metrics"))
@@ -76,23 +87,32 @@ fn write_local_align_plan_materializes_governed_target_output() -> Result<()> {
         .iter()
         .find(|artifact| artifact["name"] == serde_json::json!("align_bam"))
         .unwrap_or_else(|| panic!("align_bam output missing from local-ready plan payload"));
-    assert_eq!(
-        align_bam["path"],
-        serde_json::json!("target/local-ready/bam.align/align.bam")
-    );
+    assert_eq!(align_bam["path"], serde_json::json!("target/local-ready/bam.align/align.bam"));
+    let align_bai = outputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("align_bai"))
+        .unwrap_or_else(|| panic!("align_bai output missing from local-ready plan payload"));
+    assert_eq!(align_bai["path"], serde_json::json!("target/local-ready/bam.align/align.bam.bai"));
     assert!(
-        payload["command"]["template"]
-            .as_array()
-            .is_some_and(|command| command.iter().any(|part| {
+        payload["command"]["template"].as_array().is_some_and(|command| command.iter().any(
+            |part| {
                 part.as_str().is_some_and(|shell| {
                     shell.contains("assets/reference/host/references/toy_host_reference.fasta")
                 })
-            }) && command.iter().any(|part| {
+            }
+        ) && command.iter().any(
+            |part| {
                 part.as_str().is_some_and(|shell| {
                     shell.contains("-x assets/reference/host/references/toy_host_reference")
                 })
-            })),
-        "local-ready plan command must carry the governed Bowtie2 FASTA and index-prefix paths"
+            }
+        ) && command.iter().any(
+            |part| {
+                part.as_str()
+                    .is_some_and(|shell| shell.contains("align.metrics.json"))
+            }
+        )),
+        "local-ready plan command must carry the governed FASTA, index-prefix, and alignment metrics paths"
     );
     Ok(())
 }
