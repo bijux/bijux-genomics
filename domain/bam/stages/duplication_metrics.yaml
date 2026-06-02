@@ -8,20 +8,34 @@ inputs:
     data_type: "bam"
     cardinality: "One"
 outputs:
-  - name: "duplication_metrics_report_json"
+  - name: "duplication_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "duplication_histogram"
+    data_type: "txt"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
     data_type: "json"
     cardinality: "One"
 parameters: []
 metrics:
-  - name: "runtime_s"
-    meaning: "Wall-clock runtime in seconds"
-  - name: "memory_mb"
-    meaning: "Peak memory usage in MB"
-description: "BAM duplication metrics stage contract."
+  - name: "duplicate_count"
+    meaning: "Observed duplicate-read count preserved in the governed BAM duplication-metrics benchmark row"
+  - name: "duplicate_fraction"
+    meaning: "Observed duplicate-read fraction preserved in the governed BAM duplication-metrics benchmark row"
+  - name: "estimated_library_size"
+    meaning: "Estimated library size preserved in the governed BAM duplication-metrics benchmark row when the admitted tool can derive one"
+description: "BAM duplication-metrics contract for governed duplicate-burden benchmarking, histogram reporting, and library-size estimation when available."
 required_inputs:
   - bam
 required_outputs:
-  - duplication_metrics_report_json
+  - duplication_report
+  - duplication_histogram
+  - summary
+  - stage_metrics
 tool_capability_requirements:
   - bam_input
 invariants:
@@ -35,6 +49,7 @@ compatible_tools:
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "duplicate-rate estimation requires coordinate-consistent BAM and read-group metadata"
+  - "admitted BAM duplication-metrics tools must preserve the governed duplicate-count, duplicate-fraction, and estimated-library-size contract"
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
