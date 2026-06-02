@@ -180,6 +180,12 @@ fn bench_readiness_missing_benchmark_pairs_reports_governed_gaps() {
     );
     assert!(
         !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.gc_bias")
+        }),
+        "bam.gc_bias must stay out of the missing benchmark-pair report once its admitted picard row is covered"
+    );
+    assert!(
+        !rows.iter().any(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.complexity")
         }),
         "bam.complexity must stay out of the missing benchmark-pair report while its planned preseq row already exists in the benchmark matrix"

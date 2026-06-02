@@ -92,6 +92,12 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"picard\tbam.gc_bias\tsupported\tplannable\tparser_fixture_validated\tplanner_only"
+        }),
+        "TSV must retain the governed picard GC-bias row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"picard\tbam.duplication_metrics\tsupported\tplannable\tartifact_contract_only\tplanner_only"
         }),
         "TSV must retain the governed picard duplication-metrics row"

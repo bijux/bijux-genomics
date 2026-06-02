@@ -191,6 +191,10 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         "TSV must not retain a registry-drift row for bam.insert_size / picard"
     );
     assert!(
+        !rows.iter().any(|row| { row.starts_with("bam\tbam.gc_bias\tpicard\t") }),
+        "TSV must not retain a registry-drift row for bam.gc_bias / picard"
+    );
+    assert!(
         !rows.iter().any(|row| {
             row.starts_with("bam\tbam.complexity\t") && !row.starts_with("bam\tbam.complexity\tpreseq\t")
         }),

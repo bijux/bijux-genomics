@@ -252,6 +252,15 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.gc_bias")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
+        }),
+        "bam.gc_bias / picard must not drift against the registry"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("bam.duplication_metrics")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
         }),

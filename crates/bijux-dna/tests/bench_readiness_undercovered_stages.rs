@@ -129,6 +129,12 @@ fn bench_readiness_undercovered_stages_reports_single_backend_gaps() {
     );
     assert!(
         !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.gc_bias")
+        }),
+        "bam.gc_bias must stay out of the undercovered-stage report while its admitted picard slice is already fully registered"
+    );
+    assert!(
+        !rows.iter().any(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.complexity")
         }),
         "bam.complexity must stay out of the undercovered-stage report while its governed contract only admits the planned preseq row today"

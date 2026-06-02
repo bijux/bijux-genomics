@@ -198,6 +198,22 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.gc_bias")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("supported")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                    == Some("plannable")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("parser_fixture_validated")
+                && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                    == Some("planner_only")
+        }),
+        "BAM readiness map must retain the governed picard GC-bias row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("bam.duplication_metrics")
                 && row.get("support_status").and_then(serde_json::Value::as_str)
                     == Some("supported")
@@ -431,6 +447,14 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
                     == Some("missing_contract")
         }),
         "bam.duplication_metrics rows must remain governed instead of regressing to missing-contract coverage"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.gc_bias")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("missing_contract")
+        }),
+        "bam.gc_bias rows must remain governed instead of regressing to missing-contract coverage"
     );
     assert!(
         !rows.iter().any(|row| {
