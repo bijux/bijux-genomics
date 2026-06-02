@@ -41,7 +41,7 @@ fn bench_readiness_stage_registry_extra_pairs_writes_governed_tsv_columns() {
         Some("domain\tstage_id\ttool_id\tcontract_status\tregistry_sources\tregistered_stage_ids\tintentional_override_status\tintentional_override_reason\treason")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 2, "TSV must retain the governed stage-registry drift row count");
+    assert_eq!(rows.len(), 1, "TSV must retain the governed stage-registry drift row count");
     assert!(
         rows.iter().any(|row| {
             row == &"bam\tbam.haplogroups\tsamtools\tpair_missing_from_contract\tstages.primary_tools\tbam.align,bam.coverage,bam.duplication_metrics,bam.endogenous_content,bam.filter,bam.length_filter,bam.mapping_summary,bam.mapq_filter,bam.markdup,bam.overlap_correction,bam.qc_pre,bam.validate\tnone\t\tstage registry admits `bam.haplogroups` / `samtools` inside the benchmark scope but domain contracts do not; contract status: pair_missing_from_contract; registry sources: stages.primary_tools; admitted contract stages for `samtools`: bam.align, bam.coverage, bam.duplication_metrics, bam.endogenous_content, bam.filter, bam.length_filter, bam.mapping_summary, bam.mapq_filter, bam.markdup, bam.overlap_correction, bam.qc_pre, bam.validate; stage rationale: <none>"
@@ -49,9 +49,7 @@ fn bench_readiness_stage_registry_extra_pairs_writes_governed_tsv_columns() {
         "TSV must retain the governed bam.haplogroups / samtools registry-only row"
     );
     assert!(
-        rows.iter().any(|row| {
-            row == &"bam\tbam.qc_pre\tmultiqc\ttool_missing_contract\tstages.reporting_tools\t\tnone\t\tstage registry admits `bam.qc_pre` / `multiqc` inside the benchmark scope but domain contracts do not; contract status: tool_missing_contract; registry sources: stages.reporting_tools; admitted contract stages for `multiqc`: <none>; stage rationale: <none>"
-        }),
-        "TSV must retain the governed bam.qc_pre / multiqc registry-only row"
+        !rows.iter().any(|row| row.starts_with("bam\tbam.qc_pre\tmultiqc\t")),
+        "TSV must no longer retain a governed bam.qc_pre / multiqc registry-only row"
     );
 }

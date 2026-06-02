@@ -182,6 +182,14 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
     );
     assert!(
         !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.qc_pre")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("multiqc")
+        }),
+        "bam.qc_pre / multiqc must not drift against the registry"
+    );
+    assert!(
+        !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.extract_umis")

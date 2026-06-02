@@ -5,7 +5,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use serde::Serialize;
 
-use super::catalog::{load_benchmark_stage_ids, load_registry_tool_matrix, load_tool_contracts, ReadinessDomain};
+use super::catalog::{
+    load_benchmark_stage_ids, load_registry_tool_matrix, load_tool_contracts, ReadinessDomain,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -90,9 +92,8 @@ pub(crate) fn render_stage_registry_extra_pairs(
     for domain in [ReadinessDomain::Fastq, ReadinessDomain::Bam] {
         let stage_ids = benchmark_stage_ids.get(&domain).expect("benchmark stage ids");
         let domain_pairs = admitted_pairs.get(&domain).expect("admitted pairs");
-        let stage_ids_by_tool = contract_stage_ids_by_tool
-            .get(&domain)
-            .expect("contract stage ids by tool");
+        let stage_ids_by_tool =
+            contract_stage_ids_by_tool.get(&domain).expect("contract stage ids by tool");
 
         for (stage_id, tool_id) in &registry.tool_stage_pairs {
             if !stage_ids.contains(stage_id) {
@@ -107,23 +108,16 @@ pub(crate) fn render_stage_registry_extra_pairs(
                 "tool_missing_contract"
             };
             let intentional_override_reason = String::new();
-            let intentional_override_status = if intentional_override_reason.is_empty() {
-                "none"
-            } else {
-                "explicit_intent"
-            };
-            let registered_stage_ids =
-                stage_ids_by_tool.get(tool_id).cloned().unwrap_or_default();
+            let intentional_override_status =
+                if intentional_override_reason.is_empty() { "none" } else { "explicit_intent" };
+            let registered_stage_ids = stage_ids_by_tool.get(tool_id).cloned().unwrap_or_default();
             let registry_sources = registry
                 .pair_sources
                 .get(&(stage_id.clone(), tool_id.clone()))
                 .cloned()
                 .unwrap_or_default();
-            let stage_rationale = registry
-                .stage_default_rationales
-                .get(stage_id)
-                .cloned()
-                .unwrap_or_default();
+            let stage_rationale =
+                registry.stage_default_rationales.get(stage_id).cloned().unwrap_or_default();
             rows.push(StageRegistryExtraPairRow {
                 domain: domain.as_str().to_string(),
                 stage_id: stage_id.clone(),
@@ -176,9 +170,7 @@ pub(crate) fn render_stage_registry_extra_pairs(
     for row in &rows {
         *domain_counts.entry(row.domain.clone()).or_default() += 1;
     }
-    let ok = rows
-        .iter()
-        .all(|row| row.intentional_override_status == "explicit_intent");
+    let ok = rows.iter().all(|row| row.intentional_override_status == "explicit_intent");
 
     Ok(StageRegistryExtraPairsReport {
         schema_version: STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_VERSION,
@@ -224,10 +216,7 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
 
 #[cfg(test)]
@@ -255,13 +244,10 @@ mod tests {
         )
         .expect("render stage registry extra pairs");
 
-        assert_eq!(
-            report.schema_version,
-            STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_VERSION
-        );
-        assert_eq!(report.extra_pair_count, 2);
+        assert_eq!(report.schema_version, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_VERSION);
+        assert_eq!(report.extra_pair_count, 1);
         assert!(!report.ok, "report must fail while registry-only benchmark pairs remain");
-        assert_eq!(report.domain_counts.get("bam"), Some(&2));
+        assert_eq!(report.domain_counts.get("bam"), Some(&1));
         assert!(report.rows.iter().any(|row| {
             row.domain == "bam"
                 && row.stage_id == "bam.haplogroups"
@@ -269,12 +255,13 @@ mod tests {
                 && row.contract_status == "pair_missing_from_contract"
                 && row.intentional_override_status == "none"
         }));
-        assert!(report.rows.iter().any(|row| {
-            row.domain == "bam"
-                && row.stage_id == "bam.qc_pre"
-                && row.tool_id == "multiqc"
-                && row.contract_status == "tool_missing_contract"
-                && row.intentional_override_status == "none"
-        }));
+        assert!(
+            !report.rows.iter().any(|row| {
+                row.domain == "bam"
+                    && row.stage_id == "bam.qc_pre"
+                    && row.tool_id == "multiqc"
+            }),
+            "bam.qc_pre / multiqc must no longer remain a registry-only pair once the BAM tool contract exists"
+        );
     }
 }
