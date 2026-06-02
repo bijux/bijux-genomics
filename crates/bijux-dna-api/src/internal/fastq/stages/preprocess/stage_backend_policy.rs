@@ -1425,10 +1425,7 @@ mod tests {
         let metrics = parse_deplete_reference_contaminants_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
         assert_eq!(metrics["contaminant_reference"], serde_json::json!("phix_and_spikeins"));
-        assert_eq!(
-            metrics["contaminant_index_artifact_id"],
-            serde_json::json!("reference_index")
-        );
+        assert_eq!(metrics["contaminant_index_artifact_id"], serde_json::json!("reference_index"));
         assert_eq!(
             metrics["contaminant_screened_reads_r1"],
             serde_json::json!("contaminant_screened.fastq.gz")
