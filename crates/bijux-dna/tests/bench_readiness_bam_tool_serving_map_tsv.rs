@@ -44,6 +44,18 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     assert_eq!(rows.len(), 42, "TSV must retain the governed BAM row count");
     assert!(
         rows.iter().any(|row| {
+            row == &"bwa\tbam.align\tsupported\trunnable\tartifact_contract_only\tfixture:corpus-01-mini"
+        }),
+        "TSV must retain the governed bwa alignment row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bowtie2\tbam.align\tsupported\trunnable\tartifact_contract_only\tfixture:corpus-01-mini"
+        }),
+        "TSV must retain the governed bowtie2 alignment row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"samtools\tbam.validate\tsupported\tplannable\tparser_fixture_validated\tfixture:corpus-01-bam-mini"
         }),
         "TSV must retain the governed samtools validation row"
