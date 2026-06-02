@@ -609,6 +609,12 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode),
                 "threads": governed.as_ref().map(|report| report.threads),
+                "reads_retained": governed.as_ref().and_then(|report| report.reads_out),
+                "bases_removed": governed.as_ref().and_then(|report| {
+                    report.bases_in.zip(report.bases_out).map(|(bases_in, bases_out)| {
+                        bases_in.saturating_sub(bases_out)
+                    })
+                }),
                 "damage_mode": governed.as_ref().map(|report| report.damage_mode),
                 "execution_policy": governed.as_ref().map(|report| report.execution_policy),
                 "trim_5p_bases": governed.as_ref().map(|report| report.trim_5p_bases),
@@ -848,12 +854,12 @@ mod stage_artifact_tests {
                 "input_r2": null,
                 "output_r1": "trimmed.fastq.gz",
                 "output_r2": null,
-                "reads_in": null,
-                "reads_out": null,
-                "bases_in": null,
-                "bases_out": null,
-                "mean_q_before": null,
-                "mean_q_after": null,
+                "reads_in": 100,
+                "reads_out": 100,
+                "bases_in": 1000,
+                "bases_out": 700,
+                "mean_q_before": 27.5,
+                "mean_q_after": 28.0,
                 "ct_ga_asymmetry_pre": 0.42,
                 "ct_ga_asymmetry_post": 0.11,
                 "ct_ga_asymmetry_pre_r1": 0.42,
@@ -1253,6 +1259,8 @@ mod stage_artifact_tests {
         assert_eq!(extra["threads"], serde_json::json!(4));
         assert_eq!(extra["trim_5p_bases"], serde_json::json!(2));
         assert_eq!(extra["trim_3p_bases"], serde_json::json!(1));
+        assert_eq!(extra["reads_retained"], serde_json::json!(100));
+        assert_eq!(extra["bases_removed"], serde_json::json!(300));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("cutadapt.raw.json"));
         assert_eq!(extra["used_fallback"], serde_json::json!(false));
         Ok(())
