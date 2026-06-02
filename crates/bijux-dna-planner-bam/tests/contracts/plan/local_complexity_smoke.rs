@@ -50,7 +50,24 @@ fn local_complexity_smoke_plans_use_governed_sparse_fixture() -> Result<()> {
         .iter()
         .map(|artifact| artifact.name.as_str().to_string())
         .collect::<Vec<_>>();
-    assert_eq!(output_names, vec!["complexity_report", "preseq", "summary", "stage_metrics"]);
+    assert_eq!(
+        output_names,
+        vec!["complexity_report", "complexity_curve", "summary", "stage_metrics"]
+    );
+
+    let complexity_curve_output = case
+        .plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "complexity_curve")
+        .unwrap_or_else(|| panic!("complexity_curve output missing from BAM complexity plan"));
+    assert_eq!(
+        complexity_curve_output.path,
+        PathBuf::from(
+            "target/local-smoke/bam.complexity/core-v1-complexity-insufficient/preseq/complexity_curve.tsv"
+        )
+    );
 
     let summary_output = case
         .plan

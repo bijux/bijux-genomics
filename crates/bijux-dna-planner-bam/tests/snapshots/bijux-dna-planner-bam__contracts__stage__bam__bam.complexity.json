@@ -5,7 +5,7 @@
     "template": [
       "/bin/sh",
       "-c",
-      "preseq lc_extrap -o out/preseq.txt tests/fixtures/plan_inputs/default/sample.bam && python - <<'PY' > out/complexity.json\nimport json\nprint(json.dumps({\"source\": \"preseq\", \"report\": \"out/preseq.txt\"}, indent=2))\nPY && python - <<'PY' > out/complexity.summary.json\nimport json\nprint(json.dumps({\"stage\": \"bam.complexity\", \"preseq\": \"out/preseq.txt\"}, indent=2))\nPY"
+      "preseq lc_extrap -o out/complexity_curve.tsv tests/fixtures/plan_inputs/default/sample.bam && python - <<'PY' > out/complexity.json\nimport json\nprint(json.dumps({\"source\": \"preseq\", \"complexity_curve\": \"out/complexity_curve.tsv\"}, indent=2))\nPY && python - <<'PY' > out/complexity.summary.json\nimport json\nprint(json.dumps({\"stage\": \"bam.complexity\", \"complexity_curve\": \"out/complexity_curve.tsv\"}, indent=2))\nPY"
     ]
   },
   "effective_params": {
@@ -36,9 +36,9 @@
         "role": "report_json"
       },
       {
-        "name": "preseq",
+        "name": "complexity_curve",
         "optional": false,
-        "path": "out/preseq.txt",
+        "path": "out/complexity_curve.tsv",
         "role": "unknown"
       },
       {
