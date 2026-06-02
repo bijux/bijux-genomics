@@ -70,8 +70,33 @@ fn write_local_merge_pairs_smoke_report_materializes_governed_outputs() -> Resul
     let case_report: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&case_report_path)?)?;
     assert_eq!(case_report["tool_id"], serde_json::json!("bijux"));
+    assert_eq!(case_report["reads_r1"], serde_json::json!(2));
+    assert_eq!(case_report["reads_r2"], serde_json::json!(2));
     assert_eq!(case_report["reads_merged"], serde_json::json!(1));
     assert_eq!(case_report["reads_unmerged"], serde_json::json!(1));
+    let input_pair_count = case_report["reads_r1"]
+        .as_u64()
+        .ok_or_else(|| anyhow!("reads_r1 must be an integer"))?
+        .min(
+            case_report["reads_r2"]
+                .as_u64()
+                .ok_or_else(|| anyhow!("reads_r2 must be an integer"))?,
+        );
+    let merged_pair_count = case_report["reads_merged"]
+        .as_u64()
+        .ok_or_else(|| anyhow!("reads_merged must be an integer"))?
+        .min(input_pair_count);
+    let unmerged_pair_count = case_report["reads_unmerged"]
+        .as_u64()
+        .ok_or_else(|| anyhow!("reads_unmerged must be an integer"))?
+        .min(input_pair_count.saturating_sub(merged_pair_count));
+    let discarded_pair_count =
+        input_pair_count.saturating_sub(merged_pair_count + unmerged_pair_count);
+    assert_eq!(payload["input_pair_count"], serde_json::json!(input_pair_count));
+    assert_eq!(payload["merged_count"], serde_json::json!(merged_pair_count));
+    assert_eq!(payload["unmerged_r1_count"], serde_json::json!(unmerged_pair_count));
+    assert_eq!(payload["unmerged_r2_count"], serde_json::json!(unmerged_pair_count));
+    assert_eq!(payload["discarded_count"], serde_json::json!(discarded_pair_count));
 
     Ok(())
 }
@@ -98,13 +123,9 @@ fn read_gzip_fastq_sequences(path: &Path) -> Result<Vec<String>> {
             break;
         };
         let _header = header?;
-        let sequence = lines
-            .next()
-            .ok_or_else(|| anyhow!("missing sequence line"))??;
+        let sequence = lines.next().ok_or_else(|| anyhow!("missing sequence line"))??;
         let _plus = lines.next().ok_or_else(|| anyhow!("missing plus line"))??;
-        let _quality = lines
-            .next()
-            .ok_or_else(|| anyhow!("missing quality line"))??;
+        let _quality = lines.next().ok_or_else(|| anyhow!("missing quality line"))??;
         sequences.push(sequence);
     }
     Ok(sequences)
