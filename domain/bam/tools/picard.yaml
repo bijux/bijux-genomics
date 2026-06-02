@@ -11,6 +11,16 @@ stage_ids: ["bam.markdup","bam.length_filter","bam.duplication_metrics","bam.ins
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 stage_contracts:
+  bam.gc_bias:
+    required_inputs:
+      - "bam"
+      - "reference"
+    expected_artifacts:
+      - "gc_bias_report"
+      - "gc_bias_plot"
+      - "summary"
+      - "stage_metrics"
+    notes: "Picard GC-bias coverage must preserve the governed metrics report, plot, summary JSON, and benchmark-facing GC-bias, AT-dropout, and GC-dropout contract."
   bam.insert_size:
     required_inputs:
       - "bam"
