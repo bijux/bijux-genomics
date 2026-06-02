@@ -49,7 +49,7 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
     );
     assert_eq!(
         payload.get("unregistered_pair_count").and_then(serde_json::Value::as_u64),
-        Some(12)
+        Some(11)
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
@@ -58,14 +58,10 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(7));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(4));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(
-        rows.len(),
-        12,
-        "governed registry-drift slice must retain the current twelve rows"
-    );
+    assert_eq!(rows.len(), 11, "governed registry-drift slice must retain the current eleven rows");
     assert!(
         rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -122,23 +118,20 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.overlap_correction")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bamutil")
-                && row.get("registry_status").and_then(serde_json::Value::as_str)
-                    == Some("tool_missing")
-        }),
-        "bam.overlap_correction / bamutil must remain visible as a missing tool row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("bam.recalibration")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("gatk")
                 && row.get("registry_status").and_then(serde_json::Value::as_str)
                     == Some("tool_missing")
         }),
         "bam.recalibration / gatk must remain visible as a missing tool row"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.overlap_correction")
+        }),
+        "bam.overlap_correction must not drift against the registry once the admitted bamutil row is published in production"
     );
     for tool_id in ["fastp", "prinseq", "seqfu"] {
         assert!(
@@ -260,8 +253,7 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
     assert!(
         !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.gc_bias")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.gc_bias")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
         }),
         "bam.gc_bias / picard must not drift against the registry"

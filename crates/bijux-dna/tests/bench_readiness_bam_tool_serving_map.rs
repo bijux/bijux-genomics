@@ -103,6 +103,22 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
     );
     assert!(
         rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bamutil")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.overlap_correction")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("supported")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                    == Some("plannable")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("artifact_contract_only")
+                && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                    == Some("planner_only")
+        }),
+        "BAM readiness map must retain the governed bamutil overlap-correction row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bedtools")
                 && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.coverage")
                 && row.get("support_status").and_then(serde_json::Value::as_str)
@@ -213,8 +229,7 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.gc_bias")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.gc_bias")
                 && row.get("support_status").and_then(serde_json::Value::as_str)
                     == Some("supported")
                 && row.get("adapter_status").and_then(serde_json::Value::as_str)

@@ -43,7 +43,7 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 12, "TSV must retain the governed unregistered-pair row count");
+    assert_eq!(rows.len(), 11, "TSV must retain the governed unregistered-pair row count");
     assert!(
         rows.iter().any(|row| {
             row == &"bam\tbam.genotyping\tbcftools\tmissing_contract\ttool_missing\t\tbenchmark matrix references `bam.genotyping` / `bcftools` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `bcftools`: <none>"
@@ -64,12 +64,6 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bam\tbam.overlap_correction\tbamutil\tplanned\ttool_missing\t\tbenchmark matrix references `bam.overlap_correction` / `bamutil` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `bamutil`: <none>"
-        }),
-        "TSV must retain the planned bam.overlap_correction / bamutil registry-drift row"
-    );
-    assert!(
-        rows.iter().any(|row| {
             row == &"bam\tbam.recalibration\tgatk\tplanned\ttool_missing\t\tbenchmark matrix references `bam.recalibration` / `gatk` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `gatk`: <none>"
         }),
         "TSV must retain the planned bam.recalibration / gatk registry-drift row"
@@ -85,6 +79,10 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             row == &"fastq\tfastq.estimate_library_complexity_prealign\tbijux_dna\tplanned_contract\ttool_missing\t\tbenchmark matrix references `fastq.estimate_library_complexity_prealign` / `bijux_dna` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `bijux_dna`: <none>"
         }),
         "TSV must retain the governed fastq.estimate_library_complexity_prealign / bijux_dna registry drift row"
+    );
+    assert!(
+        !rows.iter().any(|row| row.starts_with("bam\tbam.overlap_correction\t")),
+        "TSV must not retain a registry-drift row for bam.overlap_correction once bamutil is registered in production"
     );
     for tool_id in ["fastp", "prinseq", "seqfu"] {
         assert!(

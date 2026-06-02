@@ -44,6 +44,12 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     assert_eq!(rows.len(), 45, "TSV must retain the governed BAM row count");
     assert!(
         rows.iter().any(|row| {
+            row == &"bamutil\tbam.overlap_correction\tsupported\tplannable\tartifact_contract_only\tplanner_only"
+        }),
+        "TSV must retain the governed bamutil overlap-correction row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"bedtools\tbam.coverage\tsupported\tplannable\tparser_fixture_validated\tplanner_only"
         }),
         "TSV must retain the governed bedtools coverage row"

@@ -41,7 +41,7 @@ fn bench_readiness_missing_benchmark_pairs_writes_governed_tsv_columns() {
         Some("domain\tstage_id\ttool_id\tsupport_status\tregistered_tool_ids\treason")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 9, "TSV must retain the governed missing-pair row count");
+    assert_eq!(rows.len(), 8, "TSV must retain the governed missing-pair row count");
     assert!(
         rows.iter().any(|row| {
             row == &"bam\tbam.align\tbowtie2\tsupported\tbwa\tdomain-compatible pair `bam.align` / `bowtie2` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: bwa"
@@ -53,6 +53,12 @@ fn bench_readiness_missing_benchmark_pairs_writes_governed_tsv_columns() {
             row == &"bam\tbam.align\tsamtools\tplanned\tbwa\tdomain-compatible pair `bam.align` / `samtools` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: bwa"
         }),
         "TSV must retain the governed bam.align / samtools gap"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bam\tbam.authenticity\tdamageprofiler\tsupported\tauthenticct,pmdtools\tdomain-compatible pair `bam.authenticity` / `damageprofiler` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: authenticct, pmdtools"
+        }),
+        "TSV must retain the governed bam.authenticity / damageprofiler gap"
     );
     assert!(
         rows.iter().any(|row| {
@@ -77,6 +83,10 @@ fn bench_readiness_missing_benchmark_pairs_writes_governed_tsv_columns() {
             row == &"bam\tbam.haplogroups\tyleaf\tsupported\tsamtools\tdomain-compatible pair `bam.haplogroups` / `yleaf` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: samtools"
         }),
         "TSV must retain the governed bam.haplogroups / yleaf gap"
+    );
+    assert!(
+        !rows.iter().any(|row| row.starts_with("bam\tbam.overlap_correction\t")),
+        "TSV must not retain a missing benchmark-pair row for bam.overlap_correction once samtools is no longer admitted for that stage"
     );
     assert!(
         rows.iter().any(|row| {

@@ -49,7 +49,7 @@ fn bench_readiness_undercovered_stages_reports_single_backend_gaps() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(
         payload.get("undercovered_stage_count").and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(1)
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
@@ -59,7 +59,7 @@ fn bench_readiness_undercovered_stages_reports_single_backend_gaps() {
         .expect("domain_counts object");
     assert_eq!(
         domain_counts.get("bam").and_then(serde_json::Value::as_u64),
-        Some(2),
+        Some(1),
         "the current undercovered-stage slice must be entirely BAM-owned"
     );
     assert!(
@@ -68,7 +68,7 @@ fn bench_readiness_undercovered_stages_reports_single_backend_gaps() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 2, "the governed undercovered-stage slice must retain two BAM rows");
+    assert_eq!(rows.len(), 1, "the governed undercovered-stage slice must retain one BAM row");
     assert!(
         rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -85,16 +85,11 @@ fn bench_readiness_undercovered_stages_reports_single_backend_gaps() {
         "bam.align must remain visible as a multi-backend benchmark gap while only bwa is registered"
     );
     assert!(
-        rows.iter().any(|row| {
-            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.overlap_correction")
-                && row.get("registered_tool_ids").and_then(serde_json::Value::as_array)
-                    == Some(&vec![serde_json::Value::String("bamutil".to_string())])
-                && row.get("missing_tool_ids").and_then(serde_json::Value::as_array)
-                    == Some(&vec![serde_json::Value::String("samtools".to_string())])
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.overlap_correction")
         }),
-        "bam.overlap_correction must stay visible as a single-backend benchmark gap"
+        "bam.overlap_correction must stay out of the undercovered-stage report once bamutil is the only admitted governed backend and the registry is aligned"
     );
     assert!(
         !rows.iter().any(|row| {
