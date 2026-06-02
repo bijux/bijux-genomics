@@ -62,7 +62,7 @@ single_tool_justification: bam.haplogroups
 - `bam.markdup` rationale: deterministic duplicate marking semantics for repeatable metrics.
 - `bam.duplication_metrics` rationale: stable duplicate summaries for comparability.
 - `bam.complexity` rationale: planned complexity extrapolation with stable baseline tooling.
-- `bam.coverage` rationale: consistent low-overhead depth metrics.
+- `bam.coverage` rationale: preserve a governed depth-and-breadth comparison surface while keeping `mosdepth` as the low-overhead default.
 - `bam.insert_size` rationale: deterministic insert-size summaries for QC comparability.
 - `bam.gc_bias` rationale: deterministic GC-bias baseline until expanded tool admission.
 - `bam.endogenous_content` rationale: reproducible endogenous ratio derivation from mapping summaries.
@@ -98,3 +98,5 @@ single_tool_justification: bam.haplogroups
 - `bam.duplication_metrics`: `samtools` remains the fixture-backed duplicate-observation baseline, while `picard` currently contributes supported comparison coverage through the same governed duplicate-burden contract and plannable-only local comparison planning.
 - `bam.complexity`: the planned `preseq` benchmark row must preserve `complexity_curve`, `estimated_library_size`, and `saturation_estimate` across `complexity.json`, `complexity.summary.json`, and `stage.metrics.json`.
 - `bam.complexity`: the current governed benchmark slice is still a single planned `preseq` row with visible registry drift, so the durable contract stays honest about planned-only readiness instead of implying a broader admitted comparison cohort.
+- `bam.coverage`: the admitted `mosdepth`, `samtools`, and `bedtools` benchmark rows must preserve `mean_depth`, `breadth_1x`, `covered_bases`, and governed region-level coverage output.
+- `bam.coverage`: `samtools` remains the fixture-backed local-smoke baseline, while `mosdepth` and `bedtools` contribute supported comparison coverage through the same depth sidecar, coverage summary, and benchmark-facing stage metrics contract.

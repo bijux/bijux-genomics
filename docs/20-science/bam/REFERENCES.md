@@ -29,7 +29,7 @@ The BAM domain is not reviewable if tool admission, stage claims, and citation c
 | bwa | `bam.align` | governed paper locator present; runtime closure remains separate | https://github.com/lh3/bwa |
 | bowtie2 | `bam.align` | governed paper locator present; runtime closure remains separate | https://github.com/BenLangmead/bowtie2 |
 | samtools | `bam.validate`, `bam.qc_pre`, `bam.mapping_summary`, `bam.filter`, `bam.mapq_filter`, `bam.length_filter`, `bam.markdup`, `bam.duplication_metrics`, `bam.coverage`, `bam.endogenous_content` | governed paper locator present; runtime closure remains separate | https://github.com/samtools/samtools |
-| bedtools | `bam.validate`, `bam.filter` | governed paper locator present; runtime closure remains separate | https://github.com/arq5x/bedtools2 |
+| bedtools | `bam.validate`, `bam.filter`, `bam.coverage` | governed paper locator present; runtime closure remains separate | https://github.com/arq5x/bedtools2 |
 | bamtools | `bam.validate`, `bam.filter`, `bam.mapq_filter` | governed paper locator present; runtime closure remains separate | https://github.com/pezmaster31/bamtools |
 | mosdepth | `bam.coverage` | governed paper locator present; runtime closure remains separate | https://github.com/brentp/mosdepth |
 | picard | `bam.markdup`, `bam.length_filter`, `bam.duplication_metrics`, `bam.insert_size`, `bam.gc_bias` | governed software citation present; no standalone Picard paper is claimed | https://github.com/broadinstitute/picard |

@@ -116,9 +116,9 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Purpose: coverage summaries.
 - Inputs/Outputs: bam → coverage report.
 - Metrics: depth/breadth.
-- Tools: mosdepth, samtools.
+- Tools: mosdepth, samtools, bedtools.
 - Defaults: default `mosdepth`; rationale lives in [domain/bam/docs/DEFAULT_SETTINGS.md](../../../domain/bam/docs/DEFAULT_SETTINGS.md).
-- References: mosdepth and SAMtools depth summaries.
+- References: mosdepth, SAMtools depth summaries, and BEDTools interval coverage.
 
 ### bam.endogenous_content {#bam-endogenous-content}
 - Status: supported.

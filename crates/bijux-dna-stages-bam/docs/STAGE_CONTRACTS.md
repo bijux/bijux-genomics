@@ -21,7 +21,7 @@ in sync with `bijux-dna-domain-bam` when adding, renaming, or removing stages.
 | `bam.markdup` | core | picard, samtools | duplicate-marked BAM, index, before/after flagstat and idxstats, markdup summary |
 | `bam.duplication_metrics` | core | samtools, picard | duplication report, histogram, and duplication summary |
 | `bam.complexity` | core | preseq | complexity report, complexity curve, and saturation summary |
-| `bam.coverage` | core | mosdepth | coverage summary |
+| `bam.coverage` | core | mosdepth, samtools, bedtools | coverage summary and depth sidecar |
 | `bam.insert_size` | core | picard | insert-size metrics and histogram |
 | `bam.gc_bias` | core | picard | GC-bias metrics and plot |
 | `bam.endogenous_content` | core | samtools | endogenous-content report |
@@ -118,6 +118,10 @@ chr1	1	0.12	0.10
 ### bam.complexity
 - Required artifacts:
 `complexity.json`, `complexity_curve.tsv`, `complexity.summary.json`, `stage.metrics.json`
+
+### bam.coverage
+- Required artifacts:
+`coverage.mosdepth.summary.txt`, `coverage.depth.txt`, `stage.metrics.json`
 
 ## References
 

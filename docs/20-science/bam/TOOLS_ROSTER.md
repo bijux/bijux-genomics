@@ -36,7 +36,7 @@ Clarifies tool coverage and rationale.
 | bam.markdup | planned | picard, samtools | Duplicate marking stays planned until the governed runtime/reporting contract is promoted. |
 | bam.duplication_metrics | supported | samtools, picard | Duplicate-rate reporting is supported even while full markdup mutation remains planned. |
 | bam.complexity | planned | preseq | Library-complexity extrapolation remains planned until promotion evidence closes. |
-| bam.coverage | supported | mosdepth, samtools | Coverage reporting keeps both low-overhead and samtools-derived summaries visible. |
+| bam.coverage | supported | mosdepth, samtools, bedtools | Coverage reporting keeps low-overhead, depth-derived, and interval-coverage summaries visible inside one governed contract. |
 | bam.insert_size | planned | picard | Insert-size reporting remains planned alongside other QC-expansion stages. |
 | bam.gc_bias | planned | picard | GC-bias analysis stays planned until the broader QC bundle is promoted. |
 | bam.endogenous_content | supported | samtools | Endogenous-content estimation currently resolves through governed samtools summaries. |
