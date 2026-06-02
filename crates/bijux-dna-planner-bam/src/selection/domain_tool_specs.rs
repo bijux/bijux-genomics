@@ -94,18 +94,9 @@ pub fn load_bam_domain_tool_contract_metadata(
         }
     };
 
-    let stage_ids = parsed
-        .stage_ids
-        .iter()
-        .cloned()
-        .map(StageId::new)
-        .collect::<Vec<_>>();
-    let planned_stage_ids = parsed
-        .planned_stage_ids
-        .iter()
-        .cloned()
-        .map(StageId::new)
-        .collect::<Vec<_>>();
+    let stage_ids = parsed.stage_ids.iter().cloned().map(StageId::new).collect::<Vec<_>>();
+    let planned_stage_ids =
+        parsed.planned_stage_ids.iter().cloned().map(StageId::new).collect::<Vec<_>>();
 
     Ok(BamDomainToolContractMetadata {
         tool_id: tool_id.clone(),
@@ -145,7 +136,8 @@ fn load_bam_domain_tool_spec_inner(
     allow_placeholder_image: bool,
 ) -> Result<ToolExecutionSpecV1> {
     let parsed = load_domain_tool_yaml(repo_root, tool_id)?;
-    let yaml_path = repo_root.join("domain").join("bam").join("tools").join(format!("{tool_id}.yaml"));
+    let yaml_path =
+        repo_root.join("domain").join("bam").join("tools").join(format!("{tool_id}.yaml"));
 
     let mut admitted_stage_ids = parsed.stage_ids.clone();
     if let Some(single_stage_id) = parsed.stage_id.as_ref() {
@@ -305,10 +297,24 @@ mod tests {
             "samtools metadata must retain planned-only BAM stage admissions"
         );
         assert_eq!(
-            metadata
-                .pair_support_level(&StageId::new("bam.align".to_string()))
-                .as_str(),
+            metadata.pair_support_level(&StageId::new("bam.align".to_string())).as_str(),
             "planned"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn load_bam_domain_tool_contract_metadata_reads_supported_multiqc_qc_pre_stage() -> Result<()> {
+        let repo_root = repo_root();
+        let tool_id = ToolId::new("multiqc");
+
+        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
+
+        assert_eq!(metadata.tool_id.as_str(), "multiqc");
+        assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Supported);
+        assert!(
+            metadata.stage_ids.iter().any(|stage_id| stage_id.as_str() == "bam.qc_pre"),
+            "multiqc metadata must retain admitted BAM qc_pre reporting coverage"
         );
         Ok(())
     }
@@ -327,9 +333,7 @@ mod tests {
             "picard metadata must retain admitted BAM stages"
         );
         assert_eq!(
-            metadata
-                .pair_support_level(&StageId::new("bam.gc_bias".to_string()))
-                .as_str(),
+            metadata.pair_support_level(&StageId::new("bam.gc_bias".to_string())).as_str(),
             "planned"
         );
         Ok(())
@@ -392,6 +396,21 @@ mod tests {
         assert_eq!(spec.tool_id.as_str(), "samtools");
         assert_eq!(spec.command.template, vec!["samtools".to_string()]);
         assert_eq!(spec.image.image, "samtools");
+        assert!(spec.image.digest.is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn load_bam_domain_tool_planning_spec_accepts_supported_multiqc_qc_pre_stage() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("bam.qc_pre".to_string());
+        let tool_id = ToolId::new("multiqc");
+
+        let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(spec.tool_id.as_str(), "multiqc");
+        assert_eq!(spec.command.template, vec!["multiqc".to_string()]);
+        assert_eq!(spec.image.image, "multiqc");
         assert!(spec.image.digest.is_none());
         Ok(())
     }
