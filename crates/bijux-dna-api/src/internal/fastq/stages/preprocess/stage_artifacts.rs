@@ -883,15 +883,21 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 bijux_dna_domain_fastq::observer::parse_cluster_otus_report(&raw).ok()
             });
             Some(serde_json::json!({
-                "schema_version": "bijux.fastq.cluster_otus.extra_artifacts.v2",
+                "schema_version": "bijux.fastq.cluster_otus.extra_artifacts.v3",
                 "stage": stage_id,
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "otu_identity": governed.as_ref().map(|report| report.otu_identity),
+                "clustering_threshold": governed.as_ref().map(|report| report.otu_identity),
                 "threads": governed.as_ref().map(|report| report.threads),
                 "otu_table": governed.as_ref().map(|report| report.otu_table.clone()),
+                "otu_table_tsv": governed.as_ref().map(|report| report.otu_table.clone()),
                 "otu_representatives": governed.as_ref().map(|report| report.otu_representatives.clone()),
+                "representative_sequences_fasta": governed.as_ref().map(|report| report.otu_representatives.clone()),
                 "taxonomy_ready_fasta": governed.as_ref().map(|report| report.taxonomy_ready_fasta.clone()),
                 "taxonomy_ready_fastq": governed.as_ref().map(|report| report.taxonomy_ready_fastq.clone()),
+                "otu_count": governed.as_ref().map(|report| report.otu_count),
+                "sample_count": governed.as_ref().map(|report| report.sample_count),
+                "representative_sequence_count": governed.as_ref().map(|report| report.representative_sequence_count),
                 "output_table_kind": governed.as_ref().map(|report| report.output_table_kind.clone()),
                 "used_fallback": governed.as_ref().map(|report| report.used_fallback),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
@@ -1917,6 +1923,54 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn cluster_otus_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "cluster-otus-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 3.4,
+            memory_mb: 96.0,
+            outputs: vec![stage_root.join("cluster_otus_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "vsearch".to_string(),
+        }
+    }
+
+    fn write_cluster_otus_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("cluster_otus_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.cluster_otus.report.v2",
+                "stage": "fastq.cluster_otus",
+                "stage_id": "fastq.cluster_otus",
+                "tool_id": "vsearch",
+                "otu_identity": 0.97,
+                "threads": 4,
+                "input_reads": "merged.fastq.gz",
+                "otu_table": "otu_abundance.tsv",
+                "otu_representatives": "otu_representatives.fasta",
+                "taxonomy_ready_fasta": "taxonomy_ready.fasta",
+                "taxonomy_ready_fastq": "taxonomy_ready.fastq",
+                "report_json": "cluster_otus_report.json",
+                "otu_count": 18,
+                "sample_count": 4,
+                "representative_sequence_count": 18,
+                "output_table_kind": "otu_abundance_table",
+                "used_fallback": false,
+                "runtime_s": 3.4,
+                "memory_mb": 96.0,
+                "exit_code": 0,
+                "raw_backend_report": "otu_clusters.uc",
+                "raw_backend_report_format": "vsearch_uc",
+                "backend_metrics": {
+                    "cluster_memberships": 18
+                }
+            }"#,
+        )?;
+        Ok(())
+    }
+
     #[test]
     fn host_extra_artifacts_prefer_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
@@ -2070,6 +2124,40 @@ mod stage_artifact_tests {
         assert_eq!(extra["merge_rate"], serde_json::json!(0.88));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("pear.log"));
         assert_eq!(extra["raw_backend_report_format"], serde_json::json!("pear_log"));
+        Ok(())
+    }
+
+    #[test]
+    fn cluster_otus_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_cluster_otus_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.cluster_otus",
+            &cluster_otus_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("vsearch"));
+        assert_eq!(extra["clustering_threshold"], serde_json::json!(0.97));
+        assert_eq!(extra["threads"], serde_json::json!(4));
+        assert_eq!(extra["otu_table"], serde_json::json!("otu_abundance.tsv"));
+        assert_eq!(extra["otu_table_tsv"], serde_json::json!("otu_abundance.tsv"));
+        assert_eq!(
+            extra["otu_representatives"],
+            serde_json::json!("otu_representatives.fasta")
+        );
+        assert_eq!(
+            extra["representative_sequences_fasta"],
+            serde_json::json!("otu_representatives.fasta")
+        );
+        assert_eq!(extra["otu_count"], serde_json::json!(18));
+        assert_eq!(extra["sample_count"], serde_json::json!(4));
+        assert_eq!(extra["representative_sequence_count"], serde_json::json!(18));
+        assert_eq!(extra["output_table_kind"], serde_json::json!("otu_abundance_table"));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("otu_clusters.uc"));
+        assert_eq!(extra["raw_backend_report_format"], serde_json::json!("vsearch_uc"));
         Ok(())
     }
 
