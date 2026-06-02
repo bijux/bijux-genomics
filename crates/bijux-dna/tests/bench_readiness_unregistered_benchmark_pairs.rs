@@ -98,4 +98,40 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
             "fastq.profile_read_lengths / {tool_id} must no longer drift against the registry"
         );
     }
+    for tool_id in [
+        "adapterremoval",
+        "alientrimmer",
+        "atropos",
+        "bbduk",
+        "cutadapt",
+        "fastp",
+        "fastx_clipper",
+        "leehom",
+        "prinseq",
+        "seqkit",
+        "skewer",
+        "trim_galore",
+        "trimmomatic",
+    ] {
+        assert!(
+            !rows.iter().any(|row| {
+                row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+                    && row.get("stage_id").and_then(serde_json::Value::as_str)
+                        == Some("fastq.trim_reads")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            }),
+            "fastq.trim_reads / {tool_id} must not drift against the registry"
+        );
+    }
+    assert!(
+        rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.trim_reads")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqpurge")
+                && row.get("registry_status").and_then(serde_json::Value::as_str)
+                    == Some("tool_missing")
+        }),
+        "fastq.trim_reads / seqpurge must remain visible as the planned trim-reads registry gap"
+    );
 }

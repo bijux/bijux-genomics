@@ -64,4 +64,32 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             "TSV must no longer retain a registry-drift row for fastq.profile_read_lengths / {tool_id}"
         );
     }
+    for tool_id in [
+        "adapterremoval",
+        "alientrimmer",
+        "atropos",
+        "bbduk",
+        "cutadapt",
+        "fastp",
+        "fastx_clipper",
+        "leehom",
+        "prinseq",
+        "seqkit",
+        "skewer",
+        "trim_galore",
+        "trimmomatic",
+    ] {
+        assert!(
+            !rows
+                .iter()
+                .any(|row| { row.starts_with(&format!("fastq\tfastq.trim_reads\t{tool_id}\t")) }),
+            "TSV must not retain a registry-drift row for fastq.trim_reads / {tool_id}"
+        );
+    }
+    assert!(
+        rows.iter().any(|row| {
+            row.starts_with("fastq\tfastq.trim_reads\tseqpurge\tplanned_contract\ttool_missing\t")
+        }),
+        "TSV must retain the planned fastq.trim_reads / seqpurge registry-drift row"
+    );
 }
