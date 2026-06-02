@@ -61,6 +61,14 @@ fn write_local_remove_chimeras_smoke_report_materializes_governed_outputs() -> R
     assert_eq!(payload["checked_sequence_count"], serde_json::json!(3));
     assert_eq!(payload["chimera_count"], serde_json::json!(1));
     assert_eq!(payload["non_chimera_count"], serde_json::json!(2));
+    assert_eq!(
+        payload["filtered_representative_sequences"],
+        serde_json::json!("target/local-smoke/fastq.remove_chimeras/non_chimeric.fasta")
+    );
+    assert_eq!(
+        payload["non_chimeric_fasta"],
+        serde_json::json!("target/local-smoke/fastq.remove_chimeras/non_chimeric.fasta")
+    );
 
     let chimera_tsv = repo_root
         .join(payload["chimeras_tsv"].as_str().ok_or_else(|| anyhow!("chimeras_tsv missing"))?);
@@ -77,6 +85,12 @@ fn write_local_remove_chimeras_smoke_report_materializes_governed_outputs() -> R
         serde_json::from_str(&std::fs::read_to_string(&case_report_path)?)?;
     assert_eq!(case_report["stage_id"], serde_json::json!("fastq.remove_chimeras"));
     assert_eq!(case_report["tool_id"], serde_json::json!("bijux"));
+    assert_eq!(
+        case_report["output_reads"],
+        serde_json::json!(
+            "target/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/nonchimeras.fastq.gz"
+        )
+    );
     assert_eq!(case_report["reads_in"], serde_json::json!(3));
     assert_eq!(case_report["reads_out"], serde_json::json!(2));
     assert_eq!(case_report["chimeras_removed"], serde_json::json!(1));
