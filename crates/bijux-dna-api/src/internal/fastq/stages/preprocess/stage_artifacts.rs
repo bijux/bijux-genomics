@@ -126,6 +126,8 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode),
                 "threads": governed.as_ref().map(|report| report.threads),
+                "filtered_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "filtered_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
                 "max_n": governed.as_ref().and_then(|report| report.max_n),
                 "max_n_fraction": governed.as_ref().and_then(|report| report.max_n_fraction),
                 "max_n_count": governed.as_ref().and_then(|report| report.max_n_count),
@@ -134,6 +136,8 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "n_policy": governed.as_ref().and_then(|report| report.n_policy.clone()),
                 "polyx_policy": governed.as_ref().and_then(|report| report.polyx_policy.clone()),
                 "contaminant_db": governed.as_ref().and_then(|report| report.contaminant_db.clone()),
+                "reads_retained": governed.as_ref().map(|report| report.reads_out),
+                "reads_removed": governed.as_ref().map(|report| report.reads_dropped),
                 "reads_removed_by_n": governed.as_ref().map(|report| report.reads_removed_by_n),
                 "reads_removed_by_entropy": governed.as_ref().map(|report| report.reads_removed_by_entropy),
                 "reads_removed_low_complexity": governed.as_ref().map(|report| report.reads_removed_low_complexity),
@@ -944,6 +948,71 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn filter_reads_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "filter-reads-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 1.6,
+            memory_mb: 64.0,
+            outputs: vec![stage_root.join("filter_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "fastp".to_string(),
+        }
+    }
+
+    fn write_filter_reads_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("filter_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.filter_reads.report.v3",
+                "stage": "fastq.filter_reads",
+                "stage_id": "fastq.filter_reads",
+                "tool_id": "fastp",
+                "paired_mode": "paired_end",
+                "threads": 8,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "filtered_R1.fastq.gz",
+                "output_r2": "filtered_R2.fastq.gz",
+                "report_json": "filter_report.json",
+                "max_n": 0,
+                "max_n_fraction": 0.05,
+                "max_n_count": 3,
+                "low_complexity_threshold": 20.0,
+                "entropy_threshold": 18.0,
+                "n_policy": "drop",
+                "polyx_policy": "trim",
+                "contaminant_db": "contaminants.fa",
+                "reads_in": 100,
+                "reads_out": 95,
+                "reads_dropped": 5,
+                "reads_removed_by_n": 2,
+                "reads_removed_by_entropy": 1,
+                "reads_removed_low_complexity": 1,
+                "reads_removed_by_kmer": 0,
+                "reads_removed_contaminant_kmer": 0,
+                "reads_removed_by_length": 1,
+                "bases_in": 1000,
+                "bases_out": 920,
+                "pairs_in": 50,
+                "pairs_out": 47,
+                "mean_q_before": 28.0,
+                "mean_q_after": 30.0,
+                "runtime_s": 1.6,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "fastp.filter.json",
+                "raw_backend_report_format": "fastp_json",
+                "backend_metrics": {
+                    "passed_filter_reads": 95
+                }
+            }"#,
+        )?;
+        Ok(())
+    }
+
     fn trim_polyg_execution(stage_root: &std::path::Path) -> StageResultV1 {
         StageResultV1 {
             run_id: "trim-polyg-fixture".to_string(),
@@ -1207,6 +1276,30 @@ mod stage_artifact_tests {
         assert_eq!(extra["reads_dropped"], serde_json::json!(8));
         assert_eq!(extra["bases_removed"], serde_json::json!(150));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("trim.fastp.json"));
+        Ok(())
+    }
+
+    #[test]
+    fn filter_reads_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_filter_reads_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.filter_reads",
+            &filter_reads_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("fastp"));
+        assert_eq!(extra["filtered_reads_r1"], serde_json::json!("filtered_R1.fastq.gz"));
+        assert_eq!(extra["filtered_reads_r2"], serde_json::json!("filtered_R2.fastq.gz"));
+        assert_eq!(extra["report_json"], serde_json::json!(temp.path().join("filter_report.json")));
+        assert_eq!(extra["reads_retained"], serde_json::json!(95));
+        assert_eq!(extra["reads_removed"], serde_json::json!(5));
+        assert_eq!(extra["reads_removed_by_n"], serde_json::json!(2));
+        assert_eq!(extra["reads_removed_by_length"], serde_json::json!(1));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("fastp.filter.json"));
         Ok(())
     }
 
