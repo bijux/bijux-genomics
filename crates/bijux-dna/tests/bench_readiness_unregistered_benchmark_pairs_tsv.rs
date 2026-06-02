@@ -120,6 +120,10 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             "TSV must not retain a registry-drift row for fastq.correct_errors / {tool_id}"
         );
     }
+    assert!(
+        !rows.iter().any(|row| { row.starts_with("fastq\tfastq.deplete_rrna\tsortmerna\t") }),
+        "TSV must not retain a registry-drift row for fastq.deplete_rrna / sortmerna"
+    );
     for tool_id in ["bbduk", "prinseq"] {
         assert!(
             !rows.iter().any(|row| {
