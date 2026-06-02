@@ -5,6 +5,12 @@ use serde::{Deserialize, Serialize};
 
 const LOCAL_VALIDATE_SMOKE_REPORT_SCHEMA_VERSION: &str = "bijux.bam.validate.local_smoke.report.v1";
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+enum LocalValidateAlignmentFixtureEncoding {
+    SamTextProxy,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct LocalValidateInputBamIdentity {
     input_bam: String,
@@ -24,6 +30,7 @@ enum LocalValidateSmokeStatus {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct LocalValidateSmokeCaseReport {
     sample_id: String,
+    alignment_fixture_encoding: LocalValidateAlignmentFixtureEncoding,
     validation_status: LocalValidateSmokeStatus,
     validation_errors: Vec<String>,
     validation_warnings: Vec<String>,
@@ -115,6 +122,9 @@ fn materialize_local_validate_smoke_case(
             "schema_version": "bijux.bam.validate.local_smoke.metrics.v1",
             "stage_id": "bam.validate",
             "sample_id": case.sample_id,
+            "alignment_fixture_encoding": match case.alignment_fixture_encoding {
+                bijux_dna_planner_bam::stage_api::LocalValidateAlignmentFixtureEncoding::SamTextProxy => "sam_text_proxy",
+            },
             "validation_status": if summary.validation_report_present { "pass" } else { "refusal" },
             "validation_report_present": summary.validation_report_present,
             "validation_errors": summary.refusal_codes,
@@ -139,6 +149,11 @@ fn materialize_local_validate_smoke_case(
 
     Ok(LocalValidateSmokeCaseReport {
         sample_id: case.sample_id.clone(),
+        alignment_fixture_encoding: match case.alignment_fixture_encoding {
+            bijux_dna_planner_bam::stage_api::LocalValidateAlignmentFixtureEncoding::SamTextProxy => {
+                LocalValidateAlignmentFixtureEncoding::SamTextProxy
+            }
+        },
         validation_status: if summary.validation_report_present {
             LocalValidateSmokeStatus::Pass
         } else {
