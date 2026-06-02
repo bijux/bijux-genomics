@@ -207,6 +207,13 @@ normalize_primers_benchmark_policy: fastq.normalize_primers
 - `matched_primers` must stay aligned with the governed `primer_trimmed_reads` count, `unmatched_reads` must stay derived from `reads_in - matched_primers`, and `trimmed_primer_bases` must stay derived from `bases_in - bases_out`
 - the normalized FASTQ output aliases must keep pointing at the governed `normalized_reads_r1` and `normalized_reads_r2` artifacts so downstream amplicon stages inherit the same primer-normalized read identity
 
+remove_chimeras_benchmark_policy: fastq.remove_chimeras
+- default benchmark backend is `vsearch`
+- the current governed benchmark surface is intentionally single-tool and assigned to `fixture:corpus-03-amplicon-mini`
+- every governed `fastq.remove_chimeras` row must emit `chimera_count`, `non_chimera_count`, and `filtered_representative_sequences`
+- `chimera_count` must stay aligned with the governed `chimeras_removed` count, `non_chimera_count` must stay aligned with `reads_out`, and `filtered_representative_sequences` must stay aligned with the governed filtered-output artifact path
+- the admitted benchmark row must preserve the governed method and detection-scope identity so the deterministic UCHIME baseline remains auditable while the truthful cohort is still single-tool
+
 infer_asvs_benchmark_policy: fastq.infer_asvs
 - default benchmark backend is `dada2`
 - the current governed benchmark surface is intentionally single-tool and assigned to `fixture:corpus-03-amplicon-mini`
