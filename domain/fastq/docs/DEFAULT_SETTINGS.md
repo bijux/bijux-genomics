@@ -139,6 +139,13 @@ correct_errors_benchmark_policy: fastq.correct_errors
 - `changed_reads` and `unchanged_reads` must come from real input-versus-output FASTQ comparison instead of inferring correction activity from aggregate quality or base totals
 - the canonical `corrected_reads` count remains the emitted corrected-output read count; it must not be repurposed to mean only reads whose content changed
 
+deplete_rrna_benchmark_policy: fastq.deplete_rrna
+- default benchmark backend is `sortmerna`
+- the current governed benchmark surface remains single-tool until the domain contract admits additional normalized depletion backends
+- every governed `fastq.deplete_rrna` row must emit `rrna_db`, `retained_reads`, `removed_reads`, and `depletion_rate`
+- `retained_reads` must stay aligned with `reads_out`, `removed_reads` must stay aligned with `reads_removed`, and `depletion_rate` must stay aligned with `rrna_fraction_removed` so downstream comparison code does not need stage-specific translation
+- the benchmark row must preserve the governed retained-read role, removed-read role, and retained FASTQ output path so depletion accounting stays auditable even while the truthful benchmark cohort is still single-tool
+
 trim_terminal_damage_benchmark_policy: fastq.trim_terminal_damage
 - default benchmark backend is `cutadapt`
 - governed comparison backends are `adapterremoval` and `seqkit`
