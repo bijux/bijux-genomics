@@ -78,3 +78,7 @@ single_tool_justification: bam.haplogroups
 - `bam.haplogroups` rationale: planned deterministic haplogroup assignment baseline.
 - `bam.genotyping` rationale: planned pinned-caller baseline for consistent genotype outputs.
 - `bam.kinship` rationale: reproducible pairwise kinship baseline.
+
+## Benchmark Contract Notes
+- `bam.align`: the admitted `bwa` and `bowtie2` benchmark rows must declare governed FASTQ input, reference index input, `align.bam`, `align.bam.bai`, and `align.metrics.json`.
+- `bam.align`: current readiness stays `artifact_contract_only` until alignment mapping summaries are promoted from artifact presence to normalized BAM parser semantics.
