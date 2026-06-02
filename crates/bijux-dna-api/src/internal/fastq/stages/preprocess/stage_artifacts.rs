@@ -31,6 +31,22 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "threads": governed.as_ref().map(|report| report.threads),
                 "index_format": governed.as_ref().map(|report| report.index_format.clone()),
+                "index_directory": governed.as_ref().and_then(|report| {
+                    report
+                        .backend_metrics
+                        .as_ref()
+                        .and_then(|metrics| metrics.get("index_directory"))
+                        .and_then(serde_json::Value::as_str)
+                        .map(std::string::ToString::to_string)
+                        .or_else(|| {
+                            std::path::Path::new(&report.reference_index)
+                                .parent()
+                                .map(|path| path.to_string_lossy().to_string())
+                        })
+                }),
+                "index_files": governed.as_ref().map(|report| report.emitted_files.clone()),
+                "elapsed_time_s": governed.as_ref().and_then(|report| report.runtime_s),
+                "index_size_bytes": governed.as_ref().map(|report| report.index_bytes),
                 "reference_index": governed.as_ref().map(|report| report.reference_index.clone()),
                 "index_prefix": governed.as_ref().and_then(|report| report.index_prefix.clone()),
                 "emitted_file_count": governed.as_ref().map(|report| report.emitted_files.len()),
@@ -884,6 +900,50 @@ mod stage_artifact_tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{emit_fastq_stage_extra_artifacts, write_stage_standardized_metrics};
+
+    fn index_reference_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "index-reference-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 1.5,
+            memory_mb: 96.0,
+            outputs: vec![stage_root.join("index_reference_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "bowtie2-build".to_string(),
+        }
+    }
+
+    fn write_index_reference_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("index_reference_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.index_reference.report.v2",
+                "stage": "fastq.index_reference",
+                "stage_id": "fastq.index_reference",
+                "tool_id": "bowtie2_build",
+                "threads": 4,
+                "index_format": "bowtie2_build",
+                "reference_fasta": "reference.fa",
+                "reference_bytes": 4096,
+                "reference_index": "reference_index/bowtie2/reference",
+                "report_json": "index_reference_report.json",
+                "index_prefix": "reference",
+                "emitted_files": [
+                    {"relative_path": "bowtie2/reference.1.bt2", "bytes": 1024},
+                    {"relative_path": "bowtie2/reference.2.bt2", "bytes": 2048}
+                ],
+                "index_file_count": 2,
+                "index_bytes": 3072,
+                "runtime_s": 1.5,
+                "memory_mb": 96.0,
+                "exit_code": 0,
+                "backend_metrics": {"index_directory": "reference_index/bowtie2"}
+            }"#,
+        )?;
+        Ok(())
+    }
 
     fn host_execution(stage_root: &std::path::Path) -> StageResultV1 {
         StageResultV1 {
@@ -1811,6 +1871,36 @@ mod stage_artifact_tests {
     }
 
     #[test]
+    fn index_reference_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_index_reference_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.index_reference",
+            &index_reference_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("bowtie2_build"));
+        assert_eq!(extra["index_directory"], serde_json::json!("reference_index/bowtie2"));
+        assert_eq!(
+            extra["index_files"],
+            serde_json::json!([
+                {"relative_path": "bowtie2/reference.1.bt2", "bytes": 1024},
+                {"relative_path": "bowtie2/reference.2.bt2", "bytes": 2048}
+            ])
+        );
+        assert_eq!(extra["elapsed_time_s"], serde_json::json!(1.5));
+        assert_eq!(extra["index_size_bytes"], serde_json::json!(3072));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("index_reference_report.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
     fn host_standardized_metrics_writer_uses_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
         write_host_report(temp.path())?;
@@ -1831,6 +1921,34 @@ mod stage_artifact_tests {
         assert_eq!(metrics["depleted_reads"], serde_json::json!(30));
         assert_eq!(metrics["host_fraction_removed"], serde_json::json!(0.30));
         assert_eq!(metrics["host_hit_rate"], serde_json::json!(0.30));
+        Ok(())
+    }
+
+    #[test]
+    fn index_reference_standardized_metrics_writer_uses_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_index_reference_report(temp.path())?;
+        write_stage_standardized_metrics(
+            temp.path(),
+            "fastq.index_reference",
+            temp.path(),
+            &index_reference_execution(temp.path()),
+        )?;
+
+        let metrics: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.metrics.standardized.json"),
+        )?)?;
+        assert_eq!(metrics["tool"], serde_json::json!("bowtie2_build"));
+        assert_eq!(metrics["index_directory"], serde_json::json!("reference_index/bowtie2"));
+        assert_eq!(
+            metrics["index_files"],
+            serde_json::json!([
+                {"relative_path": "bowtie2/reference.1.bt2", "bytes": 1024},
+                {"relative_path": "bowtie2/reference.2.bt2", "bytes": 2048}
+            ])
+        );
+        assert_eq!(metrics["elapsed_time_s"], serde_json::json!(1.5));
+        assert_eq!(metrics["index_size_bytes"], serde_json::json!(3072));
         Ok(())
     }
 
