@@ -1215,6 +1215,11 @@ mod tests {
         let metrics = parse_normalize_primers_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("cutadapt"));
         assert_eq!(metrics["primer_set_id"], serde_json::json!("16S_universal_v1"));
+        assert_eq!(metrics["normalized_reads_r1"], serde_json::json!("normalized_R1.fastq.gz"));
+        assert_eq!(metrics["normalized_reads_r2"], serde_json::json!("normalized_R2.fastq.gz"));
+        assert_eq!(metrics["matched_primers"], serde_json::json!(190));
+        assert_eq!(metrics["unmatched_reads"], serde_json::json!(10));
+        assert_eq!(metrics["trimmed_primer_bases"], serde_json::json!(20));
         assert_eq!(metrics["primer_trimmed_reads"], serde_json::json!(190));
         assert_eq!(metrics["orientation_forward_fraction"], serde_json::json!(0.93));
     }
@@ -1827,6 +1832,16 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "sequence_count",
             "flagged_sequences",
             "top_fraction",
+        ],
+        "fastq.normalize_primers" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "primer_set_id",
+            "normalized_reads_r1",
+            "matched_primers",
+            "unmatched_reads",
+            "trimmed_primer_bases",
         ],
         "fastq.trim_polyg_tails" => &[
             "schema_version",

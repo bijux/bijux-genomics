@@ -814,6 +814,14 @@ pub(crate) fn parse_normalize_primers_metrics(out_dir: &std::path::Path) -> serd
     let report_path = out_dir.join("normalize_primers_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_normalize_primers_report(&raw) {
+            let unmatched_reads = report
+                .reads_in
+                .zip(report.primer_trimmed_reads)
+                .map(|(reads_in, matched_primers)| reads_in.saturating_sub(matched_primers));
+            let trimmed_primer_bases = report
+                .bases_in
+                .zip(report.bases_out)
+                .map(|(bases_in, bases_out)| bases_in.saturating_sub(bases_out));
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.normalize_primers",
@@ -824,10 +832,15 @@ pub(crate) fn parse_normalize_primers_metrics(out_dir: &std::path::Path) -> serd
                 "orientation_policy": report.orientation_policy,
                 "max_mismatch_rate": report.max_mismatch_rate,
                 "min_overlap_bp": report.min_overlap_bp,
+                "normalized_reads_r1": report.output_r1,
+                "normalized_reads_r2": report.output_r2,
                 "reads_in": report.reads_in,
                 "reads_out": report.reads_out,
                 "pairs_in": report.pairs_in,
                 "pairs_out": report.pairs_out,
+                "matched_primers": report.primer_trimmed_reads,
+                "unmatched_reads": unmatched_reads,
+                "trimmed_primer_bases": trimmed_primer_bases,
                 "primer_trimmed_reads": report.primer_trimmed_reads,
                 "primer_trimmed_fraction": report.primer_trimmed_fraction,
                 "orientation_forward_fraction": report.orientation_forward_fraction,
@@ -842,6 +855,9 @@ pub(crate) fn parse_normalize_primers_metrics(out_dir: &std::path::Path) -> serd
         "schema_version": "bijux.fastq_stage_metrics.v1",
         "stage": "fastq.normalize_primers",
         "tool": "report_missing",
+        "matched_primers": serde_json::Value::Null,
+        "unmatched_reads": serde_json::Value::Null,
+        "trimmed_primer_bases": serde_json::Value::Null,
         "primer_trimmed_fraction": serde_json::Value::Null,
         "orientation_forward_fraction": serde_json::Value::Null,
         "report_json": report_path,
