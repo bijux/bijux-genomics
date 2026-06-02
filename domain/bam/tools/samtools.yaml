@@ -24,6 +24,19 @@ planned_stage_ids:
 status: supported
 scope: pre_hpc_pre_vcf
 stage_contracts:
+  bam.filter:
+    required_inputs:
+    - bam
+    expected_artifacts:
+    - filtered_bam
+    - filtered_bai
+    - flagstat_before
+    - flagstat_after
+    - idxstats_before
+    - idxstats_after
+    - summary
+    - stage_metrics
+    notes: Samtools preserves the governed BAM filter benchmark row through deterministic BAM output, before-and-after audit artifacts, and filter-policy stage metrics.
   bam.mapping_summary:
     required_inputs:
     - bam
