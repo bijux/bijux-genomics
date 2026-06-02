@@ -69,7 +69,7 @@ const REPORT_QC_CONTRIBUTORS: [ReportQcContributorContract; 6] = [
     },
     ReportQcContributorContract {
         stage_id: "fastq.profile_reads",
-        candidate_tool_ids: &["seqkit_stats"],
+        candidate_tool_ids: &["seqkit_stats", "seqkit", "seqfu"],
         default_tool_id: "seqkit_stats",
         artifact_id: "qc_json",
         artifact_role: "metrics_json",
