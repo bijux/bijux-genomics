@@ -20,7 +20,6 @@ stage_ids:
 - bam.endogenous_content
 planned_stage_ids:
 - bam.align
-- bam.overlap_correction
 status: supported
 scope: pre_hpc_pre_vcf
 stage_contracts:

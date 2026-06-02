@@ -3,20 +3,42 @@ tool_id: "bamutil"
 upstream: "https://github.com/statgen/bamUtil"
 versioning_strategy: "pinned"
 pin_strategy: "pinned"
-default_version: "planned"
+default_version: "1.0.15"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids: ["bam.overlap_correction"]
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
-expected_artifacts: ["overlap_corrected_bam","overlap_metrics"]
+stage_contracts:
+  bam.overlap_correction:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "overlap_corrected_bam"
+      - "overlap_corrected_bai"
+      - "flagstat_before"
+      - "flagstat_after"
+      - "idxstats_before"
+      - "idxstats_after"
+      - "summary"
+      - "stage_metrics"
+    notes: "Bamutil overlap-correction coverage must preserve the governed corrected-BAM, corrected-index, before-and-after audit artifacts, overlap summary, and benchmark-facing stage metrics contract."
+expected_artifacts:
+  - "overlap_corrected_bam"
+  - "overlap_corrected_bai"
+  - "flagstat_before"
+  - "flagstat_after"
+  - "idxstats_before"
+  - "idxstats_after"
+  - "summary"
+  - "stage_metrics"
 metrics_schema_id: "bijux.bam.overlap_correction.v1"
 metrics_schema: "bijux.bam.overlap_correction.v1"
 version_cmd: "bam clipOverlap --help"
 help_cmd: "bam clipOverlap --help"
 comparability:
-  comparable_with: ["adapterremoval"]
+  comparable_with: []
   non_comparable_with: []
 comparability_notes: "Comparable only within overlap-correction stage with identical paired-end inputs."
 capabilities:
@@ -24,5 +46,4 @@ capabilities:
 io_contract:
   required_inputs:
     - bam
-
 notes: "Domain SSOT tool contract entry."
