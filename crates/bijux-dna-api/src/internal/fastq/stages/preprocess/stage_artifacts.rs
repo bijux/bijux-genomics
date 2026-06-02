@@ -451,7 +451,23 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode),
                 "threads": governed.as_ref().map(|report| report.threads),
                 "umi_pattern": governed.as_ref().map(|report| report.umi_pattern.clone()),
+                "extraction_location": governed.as_ref().map(|report| report.extraction_location.clone()),
+                "read_name_transform": governed.as_ref().map(|report| report.read_name_transform.clone()),
+                "tag_header_format": governed.as_ref().map(|report| report.read_name_transform.clone()),
+                "failed_extraction_policy": governed.as_ref().map(|report| report.failed_extraction_policy.clone()),
+                "downstream_propagation": governed.as_ref().map(|report| report.downstream_propagation.clone()),
+                "grouping_policy": governed.as_ref().map(|report| report.grouping_policy.clone()),
+                "downstream_dedup_policy": governed.as_ref().map(|report| report.downstream_dedup_policy.clone()),
+                "umi_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "umi_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
+                "reads_in": governed.as_ref().map(|report| report.reads_in),
+                "reads_out": governed.as_ref().map(|report| report.reads_out),
+                "pairs_in": governed.as_ref().and_then(|report| report.pairs_in),
+                "pairs_out": governed.as_ref().and_then(|report| report.pairs_out),
                 "reads_with_umi": governed.as_ref().map(|report| report.reads_with_umi),
+                "failed_extractions": governed.as_ref().and_then(|report| report.failed_extractions),
+                "extracted_umi_count": governed.as_ref().map(|report| report.reads_with_umi),
+                "invalid_umi_count": governed.as_ref().and_then(|report| report.failed_extractions),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
                 "report_json": report_path,
@@ -1729,6 +1745,82 @@ mod stage_artifact_tests {
         assert_eq!(extra["dedup_rate"], serde_json::json!(0.14));
         assert_eq!(extra["pair_count_match"], serde_json::json!(true));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("clumpify.log"));
+        Ok(())
+    }
+
+    #[test]
+    fn extract_umis_extra_artifacts_preserve_governed_umi_contract() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        bijux_dna_infra::write_bytes(
+            temp.path().join("umi_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.extract_umis.report.v2",
+                "stage": "fastq.extract_umis",
+                "stage_id": "fastq.extract_umis",
+                "tool_id": "umi_tools",
+                "paired_mode": "paired_end",
+                "threads": 2,
+                "umi_pattern": "NNNNNNNN",
+                "extraction_location": "read1_prefix",
+                "read_name_transform": "append_to_header",
+                "failed_extraction_policy": "refuse_stage",
+                "grouping_policy": "pair_aware",
+                "downstream_dedup_policy": "sequence_identity_recommended",
+                "downstream_propagation": "header_and_report",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "umi_reads_R1.fastq.gz",
+                "output_r2": "umi_reads_R2.fastq.gz",
+                "report_json": "umi_report.json",
+                "reads_in": 200,
+                "reads_out": 200,
+                "bases_in": 20000,
+                "bases_out": 20000,
+                "pairs_in": 100,
+                "pairs_out": 100,
+                "reads_with_umi": 196,
+                "failed_extractions": 4,
+                "mean_q_before": 30.0,
+                "mean_q_after": 30.0,
+                "runtime_s": 1.4,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "umi_tools.extract.log",
+                "raw_backend_report_format": "umi_tools_log",
+                "backend_metrics": {
+                    "reads_with_umi_fraction": 0.98
+                }
+            }"#,
+        )?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.extract_umis",
+            &StageResultV1 {
+                run_id: "extract-umis-fixture".to_string(),
+                exit_code: 0,
+                runtime_s: 1.4,
+                memory_mb: 64.0,
+                outputs: vec![temp.path().join("umi_report.json")],
+                metrics_path: None,
+                stdout: String::new(),
+                stderr: String::new(),
+                command: "umi_tools".to_string(),
+            },
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("umi_tools"));
+        assert_eq!(extra["umi_pattern"], serde_json::json!("NNNNNNNN"));
+        assert_eq!(extra["tag_header_format"], serde_json::json!("append_to_header"));
+        assert_eq!(extra["downstream_propagation"], serde_json::json!("header_and_report"));
+        assert_eq!(extra["umi_reads_r1"], serde_json::json!("umi_reads_R1.fastq.gz"));
+        assert_eq!(extra["umi_reads_r2"], serde_json::json!("umi_reads_R2.fastq.gz"));
+        assert_eq!(extra["reads_with_umi"], serde_json::json!(196));
+        assert_eq!(extra["failed_extractions"], serde_json::json!(4));
+        assert_eq!(extra["extracted_umi_count"], serde_json::json!(196));
+        assert_eq!(extra["invalid_umi_count"], serde_json::json!(4));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("umi_tools.extract.log"));
         Ok(())
     }
 
