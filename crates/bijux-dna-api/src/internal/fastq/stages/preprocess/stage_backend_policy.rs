@@ -1496,6 +1496,10 @@ mod tests {
         assert_eq!(metrics["tool"], serde_json::json!("clumpify"));
         assert_eq!(metrics["threads"], serde_json::json!(4));
         assert_eq!(metrics["dedup_mode"], serde_json::json!("optical_aware"));
+        assert_eq!(metrics["input_reads"], serde_json::json!(100));
+        assert_eq!(metrics["duplicate_reads"], serde_json::json!(16));
+        assert_eq!(metrics["unique_reads"], serde_json::json!(84));
+        assert_eq!(metrics["output_reads"], serde_json::json!(84));
         assert_eq!(metrics["duplicates_removed"], serde_json::json!(16));
         assert_eq!(metrics["duplicate_class_count"], serde_json::json!(1));
         assert_eq!(metrics["raw_backend_report"], serde_json::json!("clumpify.log"));
@@ -1512,6 +1516,10 @@ mod tests {
                 "threads",
                 "dedup_mode",
                 "keep_order",
+                "input_reads",
+                "duplicate_reads",
+                "unique_reads",
+                "output_reads",
                 "reads_in",
                 "reads_out",
                 "duplicates_removed",
@@ -1607,6 +1615,10 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "threads",
             "dedup_mode",
             "keep_order",
+            "input_reads",
+            "duplicate_reads",
+            "unique_reads",
+            "output_reads",
             "reads_in",
             "reads_out",
             "duplicates_removed",
