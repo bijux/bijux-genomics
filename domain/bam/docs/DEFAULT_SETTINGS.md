@@ -82,3 +82,5 @@ single_tool_justification: bam.haplogroups
 ## Benchmark Contract Notes
 - `bam.align`: the admitted `bwa` and `bowtie2` benchmark rows must declare governed FASTQ input, reference index input, `align.bam`, `align.bam.bai`, and `align.metrics.json`.
 - `bam.align`: current readiness stays `artifact_contract_only` until alignment mapping summaries are promoted from artifact presence to normalized BAM parser semantics.
+- `bam.validate`: the admitted `samtools`, `bedtools`, and `bamtools` benchmark rows must emit `validation_status`, `validation_errors`, `validation_warnings`, and `input_bam_identity`.
+- `bam.validate`: warning-grade findings are currently empty for governed fixtures; validation failures surface through deterministic refusal-code errors instead of a mixed warning/error model.
