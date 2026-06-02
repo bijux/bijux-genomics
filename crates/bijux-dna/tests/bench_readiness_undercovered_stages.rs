@@ -93,4 +93,10 @@ fn bench_readiness_undercovered_stages_reports_single_backend_gaps() {
         }),
         "bam.mapq_filter must stay out of the undercovered-stage report once all admitted tools are registered"
     );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.length_filter")
+        }),
+        "bam.length_filter must stay out of the undercovered-stage report once all admitted tools are registered"
+    );
 }

@@ -114,4 +114,10 @@ fn bench_readiness_missing_benchmark_pairs_reports_governed_gaps() {
         }),
         "bam.mapq_filter must stay out of the missing benchmark-pair report once all admitted tools are covered"
     );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.length_filter")
+        }),
+        "bam.length_filter must stay out of the missing benchmark-pair report once all admitted tools are covered"
+    );
 }
