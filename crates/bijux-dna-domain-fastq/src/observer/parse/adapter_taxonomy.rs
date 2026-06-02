@@ -36,7 +36,7 @@ fn parse_legacy_detect_adapters_report(report_json: &str) -> Result<DetectAdapte
         other => return Err(anyhow!("unsupported detect adapters inspection mode {other}")),
     };
     Ok(DetectAdaptersReportV1 {
-        schema_version: "bijux.fastq.detect_adapters.report.v2".to_string(),
+        schema_version: "bijux.fastq.detect_adapters.report.v3".to_string(),
         stage: legacy.stage_id.clone(),
         stage_id: legacy.stage_id,
         tool_id: legacy.tool_id,
@@ -53,6 +53,9 @@ fn parse_legacy_detect_adapters_report(report_json: &str) -> Result<DetectAdapte
         evidence_format: AdapterEvidenceFormat::FastqcSummary,
         evidence_artifact_id: "report_json".to_string(),
         detected_adapter_source: "legacy_fastqc_summary".to_string(),
+        detected_adapter_ids: Vec::new(),
+        detection_confidence: None,
+        detection_threshold: None,
         input_r1: legacy.input_fastq,
         input_r2: None,
         report_json: "adapter_report.json".to_string(),

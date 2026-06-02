@@ -4,7 +4,7 @@ use super::*;
 fn parse_detect_adapters_report_round_trips_governed_payload() -> Result<()> {
     let parsed = parse_detect_adapters_report(
         &serde_json::json!({
-            "schema_version": "bijux.fastq.detect_adapters.report.v2",
+            "schema_version": "bijux.fastq.detect_adapters.report.v3",
             "stage": "fastq.detect_adapters",
             "stage_id": "fastq.detect_adapters",
             "tool_id": "fastqc",
@@ -17,6 +17,9 @@ fn parse_detect_adapters_report_round_trips_governed_payload() -> Result<()> {
             "evidence_format": "fastqc_summary",
             "evidence_artifact_id": "report_json",
             "detected_adapter_source": "normalized_fastqc_evidence",
+            "detected_adapter_ids": ["truseq_universal", "nextera_transposase"],
+            "detection_confidence": 0.22,
+            "detection_threshold": 0.01,
             "input_r1": "reads_R1.fastq.gz",
             "input_r2": "reads_R2.fastq.gz",
             "report_json": "adapter_report.json",
@@ -47,5 +50,11 @@ fn parse_detect_adapters_report_round_trips_governed_payload() -> Result<()> {
     assert_eq!(parsed.tool_id, "fastqc");
     assert_eq!(parsed.candidate_adapter_count, 2);
     assert_eq!(parsed.threads, 4);
+    assert_eq!(
+        parsed.detected_adapter_ids,
+        vec!["truseq_universal".to_string(), "nextera_transposase".to_string()]
+    );
+    assert_eq!(parsed.detection_confidence, Some(0.22));
+    assert_eq!(parsed.detection_threshold, Some(0.01));
     Ok(())
 }
