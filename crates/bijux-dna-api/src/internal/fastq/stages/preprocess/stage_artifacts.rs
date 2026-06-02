@@ -601,6 +601,7 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "reference_catalog_id": governed.as_ref().map(|report| report.reference_catalog_id.clone()),
                 "contaminant_reference": governed.as_ref().map(|report| report.contaminant_reference.clone()),
                 "reference_index_artifact_id": governed.as_ref().map(|report| report.reference_index_artifact_id.clone()),
+                "contaminant_index_artifact_id": governed.as_ref().map(|report| report.reference_index_artifact_id.clone()),
                 "reference_index_backend": governed.as_ref().map(|report| report.reference_index_backend.clone()),
                 "reference_build_id": governed.as_ref().and_then(|report| report.reference_build_id.clone()),
                 "reference_digest": governed.as_ref().and_then(|report| report.reference_digest.clone()),
@@ -608,9 +609,13 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "retained_read_role": governed.as_ref().map(|report| report.retained_read_role.clone()),
                 "rejected_read_role": governed.as_ref().map(|report| report.rejected_read_role.clone()),
                 "retain_unmapped_pairs": governed.as_ref().map(|report| report.retain_unmapped_pairs),
+                "contaminant_screened_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "contaminant_screened_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
                 "reads_removed": governed.as_ref().map(|report| report.reads_removed),
+                "contaminant_reads": governed.as_ref().map(|report| report.reads_removed),
                 "bases_removed": governed.as_ref().map(|report| report.bases_removed),
                 "contaminant_fraction_removed": governed.as_ref().map(|report| report.contaminant_fraction_removed),
+                "contaminant_hit_rate": governed.as_ref().map(|report| report.contaminant_fraction_removed),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
                 "report_json": report_path,
@@ -940,6 +945,65 @@ mod stage_artifact_tests {
                 "raw_backend_report": "bowtie2.host.metrics.txt",
                 "raw_backend_report_format": "bowtie2_met_file",
                 "backend_metrics": {"reads_removed": 30}
+            }"#,
+        )?;
+        Ok(())
+    }
+
+    fn contaminant_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "contaminant-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 5.0,
+            memory_mb: 64.0,
+            outputs: vec![stage_root.join("contaminant_screen_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "bowtie2".to_string(),
+        }
+    }
+
+    fn write_contaminant_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("contaminant_screen_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.deplete_reference_contaminants.report.v2",
+                "stage": "fastq.deplete_reference_contaminants",
+                "stage_id": "fastq.deplete_reference_contaminants",
+                "tool_id": "bowtie2",
+                "paired_mode": "single_end",
+                "threads": 4,
+                "reference_catalog_id": "contaminant_reference",
+                "contaminant_reference": "phix_and_spikeins",
+                "reference_index_artifact_id": "reference_index",
+                "reference_index_backend": "bowtie2_build",
+                "reference_build_id": "2026.03",
+                "reference_digest": "sha256:contaminants",
+                "match_threshold": 0.95,
+                "retained_read_role": "contaminant_screened_reads",
+                "rejected_read_role": "removed_contaminant_reads",
+                "retain_unmapped_pairs": false,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "contaminant_screened.fastq.gz",
+                "output_r2": null,
+                "report_json": "contaminant_screen_report.json",
+                "reads_in": 100,
+                "reads_out": 72,
+                "reads_removed": 28,
+                "bases_in": 1000,
+                "bases_out": 700,
+                "bases_removed": 300,
+                "pairs_in": null,
+                "pairs_out": null,
+                "contaminant_fraction_removed": 0.28,
+                "runtime_s": 5.0,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "bowtie2.contaminant.metrics.txt",
+                "raw_backend_report_format": "bowtie2_met_file",
+                "backend_metrics": {"reads_removed": 28}
             }"#,
         )?;
         Ok(())
@@ -1531,6 +1595,33 @@ mod stage_artifact_tests {
     }
 
     #[test]
+    fn deplete_reference_contaminants_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_contaminant_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.deplete_reference_contaminants",
+            &contaminant_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("bowtie2"));
+        assert_eq!(extra["contaminant_reference"], serde_json::json!("phix_and_spikeins"));
+        assert_eq!(extra["contaminant_index_artifact_id"], serde_json::json!("reference_index"));
+        assert_eq!(
+            extra["contaminant_screened_reads_r1"],
+            serde_json::json!("contaminant_screened.fastq.gz")
+        );
+        assert_eq!(extra["contaminant_screened_reads_r2"], serde_json::Value::Null);
+        assert_eq!(extra["reads_removed"], serde_json::json!(28));
+        assert_eq!(extra["contaminant_reads"], serde_json::json!(28));
+        assert_eq!(extra["contaminant_fraction_removed"], serde_json::json!(0.28));
+        assert_eq!(extra["contaminant_hit_rate"], serde_json::json!(0.28));
+        Ok(())
+    }
+
+    #[test]
     fn deplete_rrna_extra_artifacts_prefer_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
         std::fs::write(
@@ -1740,6 +1831,36 @@ mod stage_artifact_tests {
         assert_eq!(metrics["depleted_reads"], serde_json::json!(30));
         assert_eq!(metrics["host_fraction_removed"], serde_json::json!(0.30));
         assert_eq!(metrics["host_hit_rate"], serde_json::json!(0.30));
+        Ok(())
+    }
+
+    #[test]
+    fn contaminant_standardized_metrics_writer_uses_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_contaminant_report(temp.path())?;
+        write_stage_standardized_metrics(
+            temp.path(),
+            "fastq.deplete_reference_contaminants",
+            temp.path(),
+            &contaminant_execution(temp.path()),
+        )?;
+
+        let metrics: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.metrics.standardized.json"),
+        )?)?;
+        assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
+        assert_eq!(
+            metrics["contaminant_index_artifact_id"],
+            serde_json::json!("reference_index")
+        );
+        assert_eq!(
+            metrics["contaminant_screened_reads_r1"],
+            serde_json::json!("contaminant_screened.fastq.gz")
+        );
+        assert_eq!(metrics["reads_removed"], serde_json::json!(28));
+        assert_eq!(metrics["contaminant_reads"], serde_json::json!(28));
+        assert_eq!(metrics["contaminant_fraction_removed"], serde_json::json!(0.28));
+        assert_eq!(metrics["contaminant_hit_rate"], serde_json::json!(0.28));
         Ok(())
     }
 
