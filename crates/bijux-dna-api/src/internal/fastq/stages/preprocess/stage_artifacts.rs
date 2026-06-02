@@ -414,8 +414,22 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "unmerged_read_policy": governed.as_ref().map(|report| report.unmerged_read_policy.clone()),
                 "reads_r1": governed.as_ref().map(|report| report.reads_r1),
                 "reads_r2": governed.as_ref().map(|report| report.reads_r2),
+                "input_pair_count": governed.as_ref().map(|report| report.reads_r1.min(report.reads_r2)),
                 "reads_merged": governed.as_ref().map(|report| report.reads_merged),
                 "reads_unmerged": governed.as_ref().map(|report| report.reads_unmerged),
+                "merged_pair_count": governed.as_ref().map(|report| report.reads_merged.min(report.reads_r1.min(report.reads_r2))),
+                "unmerged_pair_count": governed.as_ref().map(|report| {
+                    let input_pair_count = report.reads_r1.min(report.reads_r2);
+                    let merged_pair_count = report.reads_merged.min(input_pair_count);
+                    report.reads_unmerged.min(input_pair_count.saturating_sub(merged_pair_count))
+                }),
+                "discarded_pair_count": governed.as_ref().map(|report| {
+                    let input_pair_count = report.reads_r1.min(report.reads_r2);
+                    let merged_pair_count = report.reads_merged.min(input_pair_count);
+                    let unmerged_pair_count =
+                        report.reads_unmerged.min(input_pair_count.saturating_sub(merged_pair_count));
+                    input_pair_count.saturating_sub(merged_pair_count + unmerged_pair_count)
+                }),
                 "merge_rate": governed.as_ref().map(|report| report.merge_rate),
                 "merged_reads": governed.as_ref().map(|report| report.merged_reads.clone()),
                 "unmerged_reads_r1": governed.as_ref().and_then(|report| report.unmerged_reads_r1.clone()),
@@ -1427,8 +1441,12 @@ mod stage_artifact_tests {
         assert_eq!(extra["threads"], serde_json::json!(4));
         assert_eq!(extra["reads_r1"], serde_json::json!(100));
         assert_eq!(extra["reads_r2"], serde_json::json!(100));
+        assert_eq!(extra["input_pair_count"], serde_json::json!(100));
         assert_eq!(extra["reads_merged"], serde_json::json!(88));
         assert_eq!(extra["reads_unmerged"], serde_json::json!(12));
+        assert_eq!(extra["merged_pair_count"], serde_json::json!(88));
+        assert_eq!(extra["unmerged_pair_count"], serde_json::json!(12));
+        assert_eq!(extra["discarded_pair_count"], serde_json::json!(0));
         assert_eq!(extra["merge_rate"], serde_json::json!(0.88));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("pear.log"));
         assert_eq!(extra["raw_backend_report_format"], serde_json::json!("pear_log"));
