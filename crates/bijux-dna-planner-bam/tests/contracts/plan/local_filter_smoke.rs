@@ -1,4 +1,5 @@
 use anyhow::Result;
+use bijux_dna_core::prelude::{StageId, ToolId};
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
@@ -89,4 +90,68 @@ fn local_filter_smoke_plans_use_governed_mixed_constraint_fixture() -> Result<()
 fn local_filter_smoke_stage_api_surface_stays_callable() {
     let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalFilterSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_filter_smoke_plans;
+}
+
+#[test]
+fn filter_plan_accepts_bamtools_and_bedtools_governed_planning_contracts() -> Result<()> {
+    let repo_root = repo_root();
+    let stage_id = StageId::new("bam.filter".to_string());
+    let bam = PathBuf::from("assets/toy/core-v1/bam/filter_mixed_constraints.sam");
+
+    for (tool, expected_command_fragment) in [
+        ("bamtools", "bamtools stats -in"),
+        ("bedtools", "bedtools bamtobed -i"),
+    ] {
+        let tool_id = ToolId::new(tool);
+        let tool_spec = bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
+            &repo_root,
+            &stage_id,
+            &tool_id,
+        )?;
+        let params = bijux_dna_domain_bam::params::FilterEffectiveParams {
+            mapq_threshold: 20,
+            include_flags: vec![],
+            exclude_flags: vec![4],
+            min_length: 8,
+            remove_duplicates: true,
+            base_quality_threshold: 20,
+        };
+        let out_dir = PathBuf::from(format!(
+            "target/local-smoke/bam.filter/core-v1-general-filter/{tool}"
+        ));
+        let plan = bijux_dna_planner_bam::tool_adapters::stages_pre::filter::plan(
+            &tool_spec, &bam, &out_dir, &params,
+        )?;
+
+        assert_eq!(plan.stage_id.as_str(), "bam.filter");
+        assert_eq!(plan.tool_id.as_str(), tool);
+        assert_eq!(plan.out_dir, out_dir);
+        let summary_output = plan
+            .io
+            .outputs
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "summary")
+            .unwrap_or_else(|| panic!("summary output missing from {tool} bam.filter plan"));
+        assert_eq!(
+            summary_output.path,
+            PathBuf::from(format!(
+                "target/local-smoke/bam.filter/core-v1-general-filter/{tool}/filter.summary.json"
+            ))
+        );
+
+        let command = plan.command.template.last().unwrap_or_else(|| {
+            panic!("{tool} bam.filter command template must contain a shell body")
+        });
+        assert!(
+            command.contains(expected_command_fragment)
+                && command.contains("flagstat.before.txt")
+                && command.contains("flagstat.after.txt")
+                && command.contains("idxstats.before.txt")
+                && command.contains("idxstats.after.txt")
+                && command.contains("filter.summary.json"),
+            "{tool} bam.filter command must preserve the governed audit-artifact contract"
+        );
+    }
+
+    Ok(())
 }
