@@ -7,9 +7,20 @@ default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "software:https://broadinstitute.github.io/picard/"
-stage_ids: ["bam.markdup","bam.length_filter","bam.duplication_metrics","bam.insert_size","bam.gc_bias"]
-status: "planned"
+stage_ids: ["bam.markdup","bam.length_filter","bam.duplication_metrics","bam.insert_size","bam.gc_bias","bam.mapping_summary"]
+status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.mapping_summary:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "flagstat"
+      - "idxstats"
+      - "stats"
+      - "summary"
+      - "stage_metrics"
+    notes: "Picard coverage for bam.mapping_summary uses CollectAlignmentSummaryMetrics plus BamIndexStats to preserve the governed mapping-summary benchmark row contract."
 expected_artifacts: ["markdup_bam","dup_metrics"]
 metrics_schema_id: "bijux.bam.markdup.v1"
 metrics_schema: "bijux.bam.markdup.v1"

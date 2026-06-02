@@ -1,0 +1,10 @@
+tool=picard
+tool_version=latest-pinned
+stage=bam.mapping_summary
+domain=bam
+shipping=external
+fixture_kind=truth
+command=picard
+args=
+expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok

@@ -24,6 +24,16 @@ planned_stage_ids:
 status: supported
 scope: pre_hpc_pre_vcf
 stage_contracts:
+  bam.mapping_summary:
+    required_inputs:
+    - bam
+    expected_artifacts:
+    - flagstat
+    - idxstats
+    - stats
+    - summary
+    - stage_metrics
+    notes: Samtools materializes the governed BAM mapping-summary benchmark surface through deterministic flagstat, idxstats, stats, summary, and stage-metrics artifacts.
   bam.qc_pre:
     required_inputs:
     - bam
@@ -54,6 +64,7 @@ help_cmd: samtools --help
 comparability:
   comparable_with:
   - multiqc
+  - picard
   - bedtools
   - bamtools
   non_comparable_with: []

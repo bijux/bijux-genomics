@@ -83,6 +83,7 @@ governed_tool_ids:
   - mapdamage2
   - mosdepth
   - multiqc
+  - picard
   - pmdtools
   - pydamage
   - rxy
@@ -141,6 +142,7 @@ stage_tool_compatibility:
   - picard
   bam.mapping_summary:
   - samtools
+  - picard
   bam.mapq_filter:
   - samtools
   - bamtools
@@ -212,6 +214,7 @@ stage_tool_integration:
     picard: governed_contract
     samtools: governed_contract
   bam.mapping_summary:
+    picard: governed_contract
     samtools: governed_contract
   bam.mapq_filter:
     bamtools: governed_contract
