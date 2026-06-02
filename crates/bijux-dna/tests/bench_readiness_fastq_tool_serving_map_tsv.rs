@@ -178,6 +178,22 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
         }),
         "TSV must retain the governed contaminant-depletion row for bowtie2"
     );
+    for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+        assert!(
+            rows.iter().any(|row| {
+                row == &format!(
+                    "{tool_id}\tfastq.screen_taxonomy\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-02-edna-mini"
+                )
+            }),
+            "TSV must retain the governed taxonomy-screen row for {tool_id}"
+        );
+    }
+    assert!(
+        rows.iter().any(|row| {
+            row == &"diamond\tfastq.screen_taxonomy\tplanned_contract\tdeclared_only\tnot_normalized\tfixture:corpus-02-edna-mini"
+        }),
+        "TSV must retain the planned taxonomy-screen row for diamond"
+    );
     for tool_id in ["bbduk", "prinseq"] {
         assert!(
             rows.iter().any(|row| {

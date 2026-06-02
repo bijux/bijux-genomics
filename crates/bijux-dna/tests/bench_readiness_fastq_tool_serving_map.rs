@@ -433,4 +433,22 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
         }),
         "planned taxonomy bindings must remain visible in the FASTQ readiness map"
     );
+    for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+        assert!(
+            rows.iter().any(|row| {
+                row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                    && row.get("stage_id").and_then(serde_json::Value::as_str)
+                        == Some("fastq.screen_taxonomy")
+                    && row.get("support_status").and_then(serde_json::Value::as_str)
+                        == Some("governed_benchmark_cohort")
+                    && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                        == Some("runnable")
+                    && row.get("parser_status").and_then(serde_json::Value::as_str)
+                        == Some("benchmark_normalized")
+                    && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                        == Some("fixture:corpus-02-edna-mini")
+            }),
+            "FASTQ readiness map must retain the governed taxonomy-screen row for {tool_id}"
+        );
+    }
 }
