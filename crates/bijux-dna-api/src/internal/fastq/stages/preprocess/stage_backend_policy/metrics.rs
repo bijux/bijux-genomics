@@ -1260,12 +1260,27 @@ pub(crate) fn parse_index_reference_metrics(out_dir: &std::path::Path) -> serde_
     let report_path = out_dir.join("index_reference_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_index_reference_report(&raw) {
+            let index_directory = report
+                .backend_metrics
+                .as_ref()
+                .and_then(|metrics| metrics.get("index_directory"))
+                .and_then(serde_json::Value::as_str)
+                .map(std::string::ToString::to_string)
+                .or_else(|| {
+                    std::path::Path::new(&report.reference_index)
+                        .parent()
+                        .map(|path| path.to_string_lossy().to_string())
+                });
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.index_reference",
                 "tool": report.tool_id,
                 "threads": report.threads,
                 "index_format": report.index_format,
+                "index_directory": index_directory,
+                "index_files": report.emitted_files,
+                "elapsed_time_s": report.runtime_s,
+                "index_size_bytes": report.index_bytes,
                 "reference_bytes": report.reference_bytes,
                 "index_bytes": report.index_bytes,
                 "index_file_count": report.index_file_count,
@@ -1279,6 +1294,10 @@ pub(crate) fn parse_index_reference_metrics(out_dir: &std::path::Path) -> serde_
         "schema_version": "bijux.fastq_stage_metrics.v1",
         "stage": "fastq.index_reference",
         "tool": "report_missing",
+        "index_directory": serde_json::Value::Null,
+        "index_files": [],
+        "elapsed_time_s": serde_json::Value::Null,
+        "index_size_bytes": serde_json::Value::Null,
         "reference_bytes": serde_json::Value::Null,
         "index_bytes": serde_json::Value::Null,
         "index_file_count": serde_json::Value::Null,

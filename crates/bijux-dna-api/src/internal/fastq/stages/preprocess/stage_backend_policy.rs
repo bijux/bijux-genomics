@@ -152,6 +152,16 @@ mod tests {
 
         let metrics = parse_index_reference_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2_build"));
+        assert_eq!(metrics["index_directory"], serde_json::json!("reference_index/bowtie2"));
+        assert_eq!(
+            metrics["index_files"],
+            serde_json::json!([
+                {"relative_path": "bowtie2/reference.1.bt2", "bytes": 1024},
+                {"relative_path": "bowtie2/reference.2.bt2", "bytes": 2048}
+            ])
+        );
+        assert_eq!(metrics["elapsed_time_s"], serde_json::json!(1.5));
+        assert_eq!(metrics["index_size_bytes"], serde_json::json!(3072));
         assert_eq!(metrics["index_bytes"], serde_json::json!(3072));
         assert_eq!(metrics["emitted_file_count"], serde_json::json!(2));
     }
@@ -1645,6 +1655,10 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "schema_version",
             "stage",
             "tool",
+            "index_directory",
+            "index_files",
+            "elapsed_time_s",
+            "index_size_bytes",
             "reference_bytes",
             "index_bytes",
             "index_file_count",
