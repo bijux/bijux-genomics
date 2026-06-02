@@ -22,14 +22,14 @@ fn local_validate_smoke_plans_use_governed_bam_fixtures() -> Result<()> {
     assert_eq!(passing.plan.stage_id.as_str(), "bam.validate");
     assert_eq!(passing.plan.tool_id.as_str(), "samtools");
     assert_eq!(passing.plan.resources.threads, 4);
-    assert_eq!(passing.bam, PathBuf::from("assets/toy/core-v1/bam/validation_pass.sam"));
+    assert_eq!(passing.bam, PathBuf::from("assets/toy/core-v1/bam/validation_pass.bam"));
     assert_eq!(
         passing.alignment_fixture_encoding,
-        bijux_dna_planner_bam::stage_api::LocalValidateAlignmentFixtureEncoding::SamTextProxy
+        bijux_dna_planner_bam::stage_api::LocalValidateAlignmentFixtureEncoding::BinaryBam
     );
     assert_eq!(
         passing.bam_index,
-        Some(PathBuf::from("assets/toy/core-v1/bam/validation_pass.sam.bai"))
+        Some(PathBuf::from("assets/toy/core-v1/bam/validation_pass.bam.bai"))
     );
     assert_eq!(
         passing.reference_fasta,
@@ -46,10 +46,10 @@ fn local_validate_smoke_plans_use_governed_bam_fixtures() -> Result<()> {
         .iter()
         .find(|case| case.sample_id == "core-v1-malformed-refusal")
         .unwrap_or_else(|| panic!("refusal BAM validation case missing"));
-    assert_eq!(refusal.bam, PathBuf::from("assets/toy/core-v1/bam/validation_malformed.sam"));
+    assert_eq!(refusal.bam, PathBuf::from("assets/toy/core-v1/bam/validation_malformed.bam"));
     assert_eq!(
         refusal.alignment_fixture_encoding,
-        bijux_dna_planner_bam::stage_api::LocalValidateAlignmentFixtureEncoding::SamTextProxy
+        bijux_dna_planner_bam::stage_api::LocalValidateAlignmentFixtureEncoding::BinaryBam
     );
     assert_eq!(refusal.bam_index, None);
     assert_eq!(refusal.reference_fasta, None);

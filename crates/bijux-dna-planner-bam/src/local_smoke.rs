@@ -366,6 +366,7 @@ pub struct LocalKinshipSmokeCasePlan {
 #[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum LocalValidateAlignmentFixtureEncoding {
+    BinaryBam,
     SamTextProxy,
 }
 
