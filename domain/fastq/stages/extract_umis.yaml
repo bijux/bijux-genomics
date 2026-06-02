@@ -42,6 +42,14 @@ metrics:
     meaning: "Number of output read pairs after UMI extraction"
   - name: "reads_with_umi"
     meaning: "Number of reads for which a UMI was extracted and attached."
+  - name: "failed_extractions"
+    meaning: "Number of reads for which governed UMI extraction did not yield a valid UMI tag."
+  - name: "extracted_umi_count"
+    meaning: "Canonical number of reads emitted with extracted UMI tags."
+  - name: "invalid_umi_count"
+    meaning: "Canonical number of reads that remained untagged because UMI extraction failed."
+  - name: "tag_header_format"
+    meaning: "Canonical FASTQ header tag format used to propagate extracted UMIs."
 description: "FASTQ stage for extracting UMIs and propagating them into read headers."
 mutates_fastq: true
 report_only: false
