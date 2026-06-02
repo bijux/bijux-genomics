@@ -80,6 +80,18 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"picard\tbam.markdup\tsupported\tplannable\tartifact_contract_only\tplanner_only"
+        }),
+        "TSV must retain the governed picard markdup row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"samtools\tbam.markdup\tsupported\tplannable\tartifact_contract_only\tplanner_only"
+        }),
+        "TSV must retain the governed samtools markdup row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"samtools\tbam.length_filter\tsupported\tplannable\tartifact_contract_only\tplanner_only"
         }),
         "TSV must retain the governed samtools length-filter row"

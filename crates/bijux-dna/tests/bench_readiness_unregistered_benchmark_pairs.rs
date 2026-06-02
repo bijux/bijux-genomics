@@ -251,6 +251,17 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
             "bam.length_filter / {tool_id} must not drift against the registry"
         );
     }
+    for tool_id in ["picard", "samtools"] {
+        assert!(
+            !rows.iter().any(|row| {
+                row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                    && row.get("stage_id").and_then(serde_json::Value::as_str)
+                        == Some("bam.markdup")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            }),
+            "bam.markdup / {tool_id} must not drift against the registry"
+        );
+    }
     assert!(
         !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
