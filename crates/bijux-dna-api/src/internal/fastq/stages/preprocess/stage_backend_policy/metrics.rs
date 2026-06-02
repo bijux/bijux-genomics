@@ -637,6 +637,7 @@ pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json:
                 "pairs_out": report.pairs_out,
                 "mean_q_before": report.mean_q_before,
                 "mean_q_after": report.mean_q_after,
+                "trimmed_tail_count": report.trimmed_tail_count,
                 "bases_trimmed_polyg": report.bases_trimmed_polyg,
                 "polyx_bank_id": report.polyx_bank_id,
                 "polyx_bank_hash": report.polyx_bank_hash,

@@ -923,6 +923,7 @@ mod tests {
                 "pairs_out": null,
                 "mean_q_before": 28.0,
                 "mean_q_after": 29.4,
+                "trimmed_tail_count": 4,
                 "bases_trimmed_polyg": 90,
                 "polyx_bank_id": "polyx",
                 "polyx_bank_hash": "sha256:polyx",
@@ -945,6 +946,7 @@ mod tests {
         assert_eq!(metrics["threads"], serde_json::json!(6));
         assert_eq!(metrics["trim_polyg"], serde_json::json!(true));
         assert_eq!(metrics["reads_in"], serde_json::json!(100));
+        assert_eq!(metrics["trimmed_tail_count"], serde_json::json!(4));
         assert_eq!(metrics["bases_trimmed_polyg"], serde_json::json!(90));
         assert_eq!(metrics["polyx_bank_hash"], serde_json::json!("sha256:polyx"));
     }
@@ -1536,9 +1538,16 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "flagged_sequences",
             "top_fraction",
         ],
-        "fastq.trim_polyg_tails" => {
-            &["schema_version", "stage", "tool", "trim_polyg", "reads_in", "reads_out"]
-        }
+        "fastq.trim_polyg_tails" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "trim_polyg",
+            "reads_in",
+            "reads_out",
+            "trimmed_tail_count",
+            "bases_trimmed_polyg",
+        ],
         "fastq.screen_taxonomy" => {
             &["schema_version", "stage", "tool", "classifier", "contamination_rate", "top_taxa"]
         }

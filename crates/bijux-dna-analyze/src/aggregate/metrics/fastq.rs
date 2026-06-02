@@ -128,6 +128,8 @@ pub struct FastqTrimPolygMetrics {
     #[serde(default)]
     pub min_polyg_run: Option<u32>,
     #[serde(default)]
+    pub trimmed_tail_count: Option<u64>,
+    #[serde(default)]
     pub bases_trimmed_polyg: Option<u64>,
     #[serde(default)]
     pub raw_backend_report_format: Option<String>,
