@@ -94,3 +94,5 @@ single_tool_justification: bam.haplogroups
 - `bam.length_filter`: `samtools` remains the fixture-backed length-gating baseline, while `picard` currently contributes supported comparison coverage through the same governed audit-artifact contract and local planning path.
 - `bam.markdup`: the admitted `samtools` and `picard` benchmark rows must preserve `marked_bam`, `duplicate_metrics`, `duplicate_count`, and `duplicate_fraction`.
 - `bam.markdup`: `samtools` remains the fixture-backed duplicate-marking baseline, while `picard` currently contributes supported comparison coverage through the same governed audit-artifact contract and the current GATK MarkDuplicatesSpark planning path.
+- `bam.duplication_metrics`: the admitted `samtools` and `picard` benchmark rows must preserve `duplicate_count`, `duplicate_fraction`, `estimated_library_size`, and the governed duplication histogram/report artifacts.
+- `bam.duplication_metrics`: `samtools` remains the fixture-backed duplicate-observation baseline, while `picard` currently contributes supported comparison coverage through the same governed duplicate-burden contract and plannable-only local comparison planning.

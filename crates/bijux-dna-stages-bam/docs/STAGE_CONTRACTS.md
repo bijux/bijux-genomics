@@ -19,7 +19,7 @@ in sync with `bijux-dna-domain-bam` when adding, renaming, or removing stages.
 | `bam.mapq_filter` | core | samtools, bamtools | filtered BAM, index, before/after flagstat and idxstats, MAPQ-filter summary |
 | `bam.length_filter` | core | samtools, picard | filtered BAM, index, before/after flagstat and idxstats, length-filter summary |
 | `bam.markdup` | core | picard, samtools | duplicate-marked BAM, index, before/after flagstat and idxstats, markdup summary |
-| `bam.duplication_metrics` | core | samtools, picard | duplication report and histogram |
+| `bam.duplication_metrics` | core | samtools, picard | duplication report, histogram, and duplication summary |
 | `bam.complexity` | core | preseq | complexity report and preseq estimates |
 | `bam.coverage` | core | mosdepth | coverage summary |
 | `bam.insert_size` | core | picard | insert-size metrics and histogram |
@@ -110,6 +110,10 @@ chr1	1	0.12	0.10
 ### bam.markdup
 - Required artifacts:
 `markdup.bam`, `markdup.bam.bai`, `flagstat.before.txt`, `flagstat.after.txt`, `idxstats.before.txt`, `idxstats.after.txt`, `markdup.summary.json`, `stage.metrics.json`
+
+### bam.duplication_metrics
+- Required artifacts:
+`duplication.metrics.json`, `duplication.histogram.txt`, `duplication.summary.json`, `stage.metrics.json`
 
 ## References
 
