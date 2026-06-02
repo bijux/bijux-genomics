@@ -406,6 +406,16 @@ mod tests {
                 && row.parser_status == "comparable"
                 && row.corpus_status == "fixture:corpus-01-mini"
         }));
+        for tool_id in ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"] {
+            assert!(report.rows.iter().any(|row| {
+                row.tool_id == tool_id
+                    && row.stage_id == "fastq.validate_reads"
+                    && row.support_status == "observer_specialized_benchmark"
+                    && row.adapter_status == "runnable"
+                    && row.parser_status == "comparable"
+                    && row.corpus_status == "fixture:corpus-01-mini"
+            }));
+        }
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "diamond"
                 && row.stage_id == "fastq.screen_taxonomy"
