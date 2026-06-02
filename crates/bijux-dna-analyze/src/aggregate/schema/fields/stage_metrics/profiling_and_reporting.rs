@@ -1,6 +1,6 @@
 use crate::aggregate::schema::defs::{MetricDirection, MetricId, MetricRange, MetricSpec};
 
-pub const METRIC_REGISTRY_PROFILING_AND_REPORTING: [MetricSpec; 21] = [
+pub const METRIC_REGISTRY_PROFILING_AND_REPORTING: [MetricSpec; 23] = [
     MetricSpec {
         id: MetricId::GcPercent,
         name: "gc_percent",
@@ -32,9 +32,29 @@ pub const METRIC_REGISTRY_PROFILING_AND_REPORTING: [MetricSpec; 21] = [
         derived: false,
     },
     MetricSpec {
+        id: MetricId::MinReadLength,
+        name: "min_read_length",
+        meaning: "Minimum read length observed in the profile",
+        direction: MetricDirection::Neutral,
+        range: Some(MetricRange { min: 0.0, max: f64::INFINITY }),
+        stages: &["fastq.profile_read_lengths"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
         id: MetricId::MeanReadLength,
         name: "mean_read_length",
         meaning: "Mean read length observed in the profile",
+        direction: MetricDirection::Neutral,
+        range: Some(MetricRange { min: 0.0, max: f64::INFINITY }),
+        stages: &["fastq.profile_read_lengths"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::MedianReadLength,
+        name: "median_read_length",
+        meaning: "Median read length observed in the profile",
         direction: MetricDirection::Neutral,
         range: Some(MetricRange { min: 0.0, max: f64::INFINITY }),
         stages: &["fastq.profile_read_lengths"],

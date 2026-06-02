@@ -31,6 +31,9 @@ fn parse_legacy_profile_read_lengths_report(
         histogram.iter().map(|bin| bin.read_length.saturating_mul(bin.count)).sum::<u64>();
     let mean_read_length =
         if read_count == 0 { 0.0 } else { u64_to_f64(total_length) / u64_to_f64(read_count) };
+    let min_read_length = histogram.iter().map(|bin| bin.read_length).min().unwrap_or(0);
+    let max_read_length = histogram.iter().map(|bin| bin.read_length).max().unwrap_or(0);
+    let median_read_length = histogram_median_read_length(&histogram);
     Ok(ProfileReadLengthsReportV1 {
         schema_version: "bijux.fastq.profile_read_lengths.report.v1_legacy".to_string(),
         stage: "fastq.profile_read_lengths".to_string(),
@@ -56,8 +59,10 @@ fn parse_legacy_profile_read_lengths_report(
         length_distribution_json: String::new(),
         report_json: String::new(),
         read_count,
+        min_read_length,
         mean_read_length,
-        max_read_length: histogram.iter().map(|bin| bin.read_length).max().unwrap_or(0),
+        median_read_length,
+        max_read_length,
         distinct_lengths: histogram.len() as u64,
         histogram,
         runtime_s: json.get("runtime_s").and_then(serde_json::Value::as_f64),
@@ -69,4 +74,35 @@ fn parse_legacy_profile_read_lengths_report(
         raw_backend_report: None,
         raw_backend_report_format: None,
     })
+}
+
+fn histogram_median_read_length(histogram: &[ProfileReadLengthBinV1]) -> f64 {
+    let total_count = histogram.iter().map(|bin| bin.count).sum::<u64>();
+    if total_count == 0 {
+        return 0.0;
+    }
+
+    let midpoint_low = (total_count - 1) / 2;
+    let midpoint_high = total_count / 2;
+    let mut seen = 0_u64;
+    let mut low_value = None;
+    let mut high_value = None;
+
+    for bin in histogram {
+        let next_seen = seen.saturating_add(bin.count);
+        if low_value.is_none() && midpoint_low < next_seen {
+            low_value = Some(bin.read_length);
+        }
+        if high_value.is_none() && midpoint_high < next_seen {
+            high_value = Some(bin.read_length);
+            break;
+        }
+        seen = next_seen;
+    }
+
+    match (low_value, high_value) {
+        (Some(low), Some(high)) => (u64_to_f64(low) + u64_to_f64(high)) / 2.0,
+        (Some(low), None) => u64_to_f64(low),
+        _ => 0.0,
+    }
 }

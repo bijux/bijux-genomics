@@ -816,14 +816,18 @@ impl StageMetricSchema for FastqStatsMetrics {
 #[serde(deny_unknown_fields)]
 pub struct FastqReadLengthMetrics {
     pub read_count: u64,
+    #[serde(default)]
+    pub min_read_length: u64,
     pub mean_read_length: f64,
+    #[serde(default)]
+    pub median_read_length: f64,
     pub max_read_length: u64,
     pub distinct_lengths: u64,
 }
 
 impl StageMetricSchema for FastqReadLengthMetrics {
     const STAGE: &'static str = "fastq.profile_read_lengths";
-    const VERSION: i32 = 1;
+    const VERSION: i32 = 2;
 
     fn validate(&self) -> Result<()> {
         if !self.mean_read_length.is_finite() || self.mean_read_length < 0.0 {
@@ -831,9 +835,29 @@ impl StageMetricSchema for FastqReadLengthMetrics {
                 "mean_read_length must be finite and >= 0".to_string(),
             ));
         }
+        if !self.median_read_length.is_finite() || self.median_read_length < 0.0 {
+            return Err(BenchError::Validation(
+                "median_read_length must be finite and >= 0".to_string(),
+            ));
+        }
+        if self.read_count > 0 && self.min_read_length == 0 {
+            return Err(BenchError::Validation(
+                "min_read_length must be > 0 when reads are present".to_string(),
+            ));
+        }
         if self.read_count > 0 && self.max_read_length == 0 {
             return Err(BenchError::Validation(
                 "max_read_length must be > 0 when reads are present".to_string(),
+            ));
+        }
+        if self.read_count > 0 && self.median_read_length < self.min_read_length as f64 {
+            return Err(BenchError::Validation(
+                "median_read_length must be >= min_read_length when reads are present".to_string(),
+            ));
+        }
+        if self.read_count > 0 && self.median_read_length > self.max_read_length as f64 {
+            return Err(BenchError::Validation(
+                "median_read_length must be <= max_read_length when reads are present".to_string(),
             ));
         }
         Ok(())

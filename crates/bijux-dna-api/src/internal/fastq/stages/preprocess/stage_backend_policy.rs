@@ -273,7 +273,10 @@ mod tests {
                 "stage",
                 "tool",
                 "read_count",
+                "min_read_length",
                 "mean_read_length",
+                "median_read_length",
+                "max_read_length",
                 "histogram_entry_count",
             ]
         );
@@ -670,7 +673,9 @@ mod tests {
                 "length_distribution_json": "length_distribution.json",
                 "report_json": "profile_read_lengths_report.json",
                 "read_count": 200,
+                "min_read_length": 100,
                 "mean_read_length": 101.5,
+                "median_read_length": 100.0,
                 "max_read_length": 150,
                 "distinct_lengths": 12,
                 "histogram": [
@@ -692,6 +697,8 @@ mod tests {
         assert_eq!(metrics["paired_mode"], serde_json::json!("paired_end"));
         assert_eq!(metrics["histogram_bins"], serde_json::json!(64));
         assert_eq!(metrics["read_count"], serde_json::json!(200));
+        assert_eq!(metrics["min_read_length"], serde_json::json!(100));
+        assert_eq!(metrics["median_read_length"], serde_json::json!(100.0));
         assert_eq!(metrics["histogram_entry_count"], serde_json::json!(2));
         assert_eq!(metrics["raw_backend_report_format"], serde_json::json!("seqkit_fx2tab_tsv"));
     }
@@ -1481,7 +1488,10 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "stage",
             "tool",
             "read_count",
+            "min_read_length",
             "mean_read_length",
+            "median_read_length",
+            "max_read_length",
             "histogram_entry_count",
         ],
         "fastq.profile_overrepresented_sequences" => &[

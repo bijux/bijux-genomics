@@ -252,7 +252,9 @@ pub(crate) fn parse_profile_read_lengths_metrics(out_dir: &std::path::Path) -> s
                 "threads": report.threads,
                 "histogram_bins": report.histogram_bins,
                 "read_count": report.read_count,
+                "min_read_length": report.min_read_length,
                 "mean_read_length": report.mean_read_length,
+                "median_read_length": report.median_read_length,
                 "max_read_length": report.max_read_length,
                 "distinct_lengths": report.distinct_lengths,
                 "histogram_entry_count": report.histogram.len(),
@@ -269,7 +271,9 @@ pub(crate) fn parse_profile_read_lengths_metrics(out_dir: &std::path::Path) -> s
         "stage": "fastq.profile_read_lengths",
         "tool": "report_missing",
         "read_count": serde_json::Value::Null,
+        "min_read_length": serde_json::Value::Null,
         "mean_read_length": serde_json::Value::Null,
+        "median_read_length": serde_json::Value::Null,
         "report_json": report_path,
     })
 }

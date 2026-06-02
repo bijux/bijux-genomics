@@ -39,7 +39,7 @@ use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json
 
 const STAGE_ID: &str = "fastq.profile_read_lengths";
 const LOCAL_PROFILE_READ_LENGTHS_SMOKE_SUMMARY_HEADER: &str =
-    "sample_id\tmin_len\tmax_len\tmean_len\tread_count\tlayout\treport_json\tlength_distribution_tsv\tlength_distribution_json\n";
+    "sample_id\tmin_len\tmax_len\tmean_len\tmedian_len\tread_count\tlayout\treport_json\tlength_distribution_tsv\tlength_distribution_json\n";
 
 #[derive(Debug, Clone)]
 struct LocalProfileReadLengthsSmokeCaseSummary {
@@ -47,6 +47,7 @@ struct LocalProfileReadLengthsSmokeCaseSummary {
     min_len: u64,
     max_len: u64,
     mean_len: f64,
+    median_len: f64,
     read_count: u64,
     layout: PairedMode,
     report_json: String,
@@ -409,7 +410,8 @@ fn materialize_local_profile_read_lengths_smoke_case(
     let r2 = case.r2.as_ref().map(|path| repo_root.join(path));
     let lengths = observe_read_lengths_inputs(&r1, r2.as_deref())?;
     validate_read_lengths_observation(&lengths)?;
-    let artifacts = resolve_local_read_lengths_artifacts(repo_root, &case.plan, case.histogram_bins)?;
+    let artifacts =
+        resolve_local_read_lengths_artifacts(repo_root, &case.plan, case.histogram_bins)?;
     if !artifacts.length_tsv.exists() || !artifacts.length_json.exists() {
         write_length_outputs(
             &artifacts.length_tsv,
@@ -442,13 +444,17 @@ fn materialize_local_profile_read_lengths_smoke_case(
 
     Ok(LocalProfileReadLengthsSmokeCaseSummary {
         sample_id: case.sample_id.clone(),
-        min_len: min_read_length(&observation.lengths),
+        min_len: metrics.min_read_length,
         max_len: metrics.max_read_length,
         mean_len: metrics.mean_read_length,
+        median_len: metrics.median_read_length,
         read_count: metrics.read_count,
         layout: if case.r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         report_json: path_relative_to_repo(repo_root, &observation.artifacts.report_json),
-        length_distribution_tsv: path_relative_to_repo(repo_root, &observation.artifacts.length_tsv),
+        length_distribution_tsv: path_relative_to_repo(
+            repo_root,
+            &observation.artifacts.length_tsv,
+        ),
         length_distribution_json: path_relative_to_repo(
             repo_root,
             &observation.artifacts.length_json,
@@ -469,6 +475,8 @@ fn write_local_profile_read_lengths_smoke_tsv(
         body.push_str(&summary.max_len.to_string());
         body.push('\t');
         body.push_str(&summary.mean_len.to_string());
+        body.push('\t');
+        body.push_str(&summary.median_len.to_string());
         body.push('\t');
         body.push_str(&summary.read_count.to_string());
         body.push('\t');
@@ -534,7 +542,11 @@ fn prepare_read_lengths_artifacts(
     plan: &StagePlanV1,
     lengths: &[usize],
 ) -> Result<ReadLengthsArtifacts> {
-    prepare_read_lengths_artifacts_from_plan(plan, args.histogram_bins.unwrap_or(100).max(1), lengths)
+    prepare_read_lengths_artifacts_from_plan(
+        plan,
+        args.histogram_bins.unwrap_or(100).max(1),
+        lengths,
+    )
 }
 
 fn prepare_read_lengths_artifacts_from_plan(
@@ -665,7 +677,9 @@ fn render_read_lengths_report(
         length_distribution_json: artifacts.length_json.display().to_string(),
         report_json: artifacts.report_json.display().to_string(),
         read_count: metrics.read_count,
+        min_read_length: metrics.min_read_length,
         mean_read_length: metrics.mean_read_length,
+        median_read_length: metrics.median_read_length,
         max_read_length: metrics.max_read_length,
         distinct_lengths: metrics.distinct_lengths,
         histogram,
@@ -743,6 +757,20 @@ fn validate_read_lengths_report_metrics(
             "profile_read_lengths report read count mismatch: expected {}, observed {}",
             metrics.read_count,
             report.read_count
+        ));
+    }
+    if report.min_read_length != metrics.min_read_length {
+        return Err(anyhow!(
+            "profile_read_lengths report min length mismatch: expected {}, observed {}",
+            metrics.min_read_length,
+            report.min_read_length
+        ));
+    }
+    if (report.median_read_length - metrics.median_read_length).abs() > f64::EPSILON {
+        return Err(anyhow!(
+            "profile_read_lengths report median length mismatch: expected {}, observed {}",
+            metrics.median_read_length,
+            report.median_read_length
         ));
     }
     if report.max_read_length != metrics.max_read_length {
@@ -906,23 +934,35 @@ fn rebin_lengths(lengths: &[usize], histogram_bins: u32) -> BTreeMap<usize, u64>
     rebinned
 }
 
-fn min_read_length(lengths: &[usize]) -> u64 {
-    usize_to_u64(lengths.iter().copied().min().unwrap_or(0))
-}
-
 fn metrics_from_lengths(lengths: &[usize]) -> Result<FastqReadLengthMetrics> {
     let read_count = usize_to_u64(lengths.len());
     let total: usize = lengths.iter().sum();
+    let min_read_length = usize_to_u64(lengths.iter().copied().min().unwrap_or(0));
     let max_read_length = usize_to_u64(lengths.iter().copied().max().unwrap_or(0));
     let distinct_lengths = usize_to_u64(lengths.iter().copied().collect::<BTreeSet<_>>().len());
     let metrics = FastqReadLengthMetrics {
         read_count,
+        min_read_length,
         mean_read_length: usize_to_f64(total) / u64_to_f64(read_count),
+        median_read_length: median_read_length(lengths),
         max_read_length,
         distinct_lengths,
     };
     metrics.validate()?;
     Ok(metrics)
+}
+
+fn median_read_length(lengths: &[usize]) -> f64 {
+    if lengths.is_empty() {
+        return 0.0;
+    }
+    let mut ordered = lengths.iter().copied().collect::<Vec<_>>();
+    ordered.sort_unstable();
+    let midpoint = ordered.len() / 2;
+    if ordered.len() % 2 == 1 {
+        return usize_to_f64(ordered[midpoint]);
+    }
+    (usize_to_f64(ordered[midpoint - 1]) + usize_to_f64(ordered[midpoint])) / 2.0
 }
 
 fn u64_to_f64(value: u64) -> f64 {

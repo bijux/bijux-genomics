@@ -29,7 +29,11 @@ pub struct ProfileReadLengthsReportV1 {
     pub length_distribution_json: String,
     pub report_json: String,
     pub read_count: u64,
+    #[serde(default)]
+    pub min_read_length: u64,
     pub mean_read_length: f64,
+    #[serde(default)]
+    pub median_read_length: f64,
     pub max_read_length: u64,
     pub distinct_lengths: u64,
     pub histogram: Vec<ProfileReadLengthBinV1>,
@@ -64,7 +68,9 @@ mod tests {
             length_distribution_json: "length_distribution.json".to_string(),
             report_json: "profile_read_lengths_report.json".to_string(),
             read_count: 200,
+            min_read_length: 90,
             mean_read_length: 101.2,
+            median_read_length: 100.0,
             max_read_length: 150,
             distinct_lengths: 12,
             histogram: vec![ProfileReadLengthBinV1 { read_length: 100, count: 180 }],
@@ -82,6 +88,8 @@ mod tests {
         assert_eq!(decoded.tool_id, "seqkit_stats");
         assert_eq!(decoded.threads, 2);
         assert_eq!(decoded.histogram_bins, 64);
+        assert_eq!(decoded.min_read_length, 90);
+        assert_eq!(decoded.median_read_length, 100.0);
         assert_eq!(decoded.histogram.len(), 1);
     }
 }

@@ -190,6 +190,8 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode),
                 "histogram_bins": governed.as_ref().map(|report| report.histogram_bins),
                 "histogram_entry_count": governed.as_ref().map(|report| report.histogram.len()),
+                "min_read_length": governed.as_ref().map(|report| report.min_read_length),
+                "median_read_length": governed.as_ref().map(|report| report.median_read_length),
                 "length_distribution_tsv": governed.as_ref().map(|report| report.length_distribution_tsv.clone()),
                 "length_distribution_json": governed.as_ref().map(|report| report.length_distribution_json.clone()),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),

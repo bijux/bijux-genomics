@@ -49,16 +49,11 @@ fn write_local_profile_read_lengths_smoke_summary_materializes_governed_outputs(
     let mut lines = body.lines();
     let header = lines.next().ok_or_else(|| anyhow!("summary header missing"))?;
     let header_index = parse_header_index(header);
-    for column in ["sample_id", "min_len", "max_len", "mean_len", "read_count"] {
-        assert!(
-            header_index.contains_key(column),
-            "summary header must contain `{column}`"
-        );
+    for column in ["sample_id", "min_len", "max_len", "mean_len", "median_len", "read_count"] {
+        assert!(header_index.contains_key(column), "summary header must contain `{column}`");
     }
 
-    let rows = lines
-        .map(|line| parse_row(&header_index, line))
-        .collect::<Result<Vec<_>>>()?;
+    let rows = lines.map(|line| parse_row(&header_index, line)).collect::<Result<Vec<_>>>()?;
     assert_eq!(rows.len(), 2, "governed local-smoke summary must keep SE and PE coverage");
 
     let single_end = rows
@@ -68,6 +63,7 @@ fn write_local_profile_read_lengths_smoke_summary_materializes_governed_outputs(
     assert_eq!(single_end["min_len"], "12");
     assert_eq!(single_end["max_len"], "12");
     assert_eq!(single_end["mean_len"], "12");
+    assert_eq!(single_end["median_len"], "12");
     assert_eq!(single_end["read_count"], "2");
     assert_eq!(single_end["layout"], "single_end");
 
@@ -78,6 +74,7 @@ fn write_local_profile_read_lengths_smoke_summary_materializes_governed_outputs(
     assert_eq!(paired_end["min_len"], "12");
     assert_eq!(paired_end["max_len"], "12");
     assert_eq!(paired_end["mean_len"], "12");
+    assert_eq!(paired_end["median_len"], "12");
     assert_eq!(paired_end["read_count"], "4");
     assert_eq!(paired_end["layout"], "paired_end");
 
@@ -94,20 +91,18 @@ fn write_local_profile_read_lengths_smoke_summary_materializes_governed_outputs(
 }
 
 fn parse_header_index(header: &str) -> BTreeMap<String, usize> {
-    header
-        .split('\t')
-        .enumerate()
-        .map(|(index, column)| (column.to_string(), index))
-        .collect()
+    header.split('\t').enumerate().map(|(index, column)| (column.to_string(), index)).collect()
 }
 
-fn parse_row(header_index: &BTreeMap<String, usize>, line: &str) -> Result<BTreeMap<String, String>> {
+fn parse_row(
+    header_index: &BTreeMap<String, usize>,
+    line: &str,
+) -> Result<BTreeMap<String, String>> {
     let fields = line.split('\t').map(str::to_string).collect::<Vec<_>>();
     let mut row = BTreeMap::new();
     for (column, index) in header_index {
-        let value = fields
-            .get(*index)
-            .ok_or_else(|| anyhow!("summary row is missing `{column}`"))?;
+        let value =
+            fields.get(*index).ok_or_else(|| anyhow!("summary row is missing `{column}`"))?;
         row.insert(column.clone(), value.clone());
     }
     Ok(row)
