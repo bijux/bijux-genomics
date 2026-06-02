@@ -112,6 +112,8 @@ stages:
     benchmark_support: "cohort"
     default_tool: "seqkit_stats"
     admitted_tools:
+      - "seqfu"
+      - "seqkit"
       - "seqkit_stats"
   - stage_id: "fastq.deplete_rrna"
     execution_status: "closed"

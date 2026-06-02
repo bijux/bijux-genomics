@@ -10,10 +10,8 @@ citation: paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC8148589/
 planned_stage_ids:
 - fastq.profile_read_lengths
 - fastq.normalize_abundance
-- fastq.profile_reads
 stage_ids:
-- fastq.profile_read_lengths
-- fastq.normalize_abundance
+- fastq.profile_reads
 stage_contracts:
   fastq.profile_read_lengths:
     required_inputs:
@@ -33,11 +31,13 @@ stage_contracts:
   fastq.profile_reads:
     required_inputs:
     - reads_r1
+    optional_inputs:
+    - reads_r2
     expected_artifacts:
     - qc_json
     - qc_tsv
-    notes: Planned read profiling would emit governed qc_json and qc_tsv artifacts.
-status: planned
+    notes: SeqFu read profiling emits governed qc_json and qc_tsv profile artifacts while retaining SeqFu-native statistics as the backend evidence source.
+status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:
 - length_distribution_tsv

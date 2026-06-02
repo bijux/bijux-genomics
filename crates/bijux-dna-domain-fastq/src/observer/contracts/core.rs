@@ -15,6 +15,8 @@ pub(super) const CONTRACTS: &[ObserverSpecializationContract] = &[
     contract("fastq.profile_overrepresented_sequences", "fastqc", "report_json"),
     contract("fastq.profile_overrepresented_sequences", "fastq_scan", "report_json"),
     contract("fastq.profile_overrepresented_sequences", "seqkit", "report_json"),
+    contract("fastq.profile_reads", "seqfu", "qc_json"),
+    contract("fastq.profile_reads", "seqkit", "qc_json"),
     contract("fastq.profile_reads", "seqkit_stats", "qc_json"),
     contract("fastq.report_qc", "multiqc", "multiqc_data"),
     contract("fastq.screen_taxonomy", id_catalog::TOOL_KRAKEN2, "classification_report_json"),

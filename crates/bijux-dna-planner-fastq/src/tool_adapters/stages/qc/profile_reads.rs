@@ -115,20 +115,54 @@ fn profile_reads_command(
     threads: u32,
 ) -> Result<Vec<String>> {
     let tool_id = tool.tool_id.as_str();
-    if tool_id != "seqkit_stats" {
-        return Err(anyhow!("unsupported read-profiling tool for stage planning: {tool_id}"));
-    }
-    let rendered = crate::tool_adapters::template_render::render_command_template(
-        &tool.command.template,
-        &[
-            ("threads", Some(threads.to_string())),
-            ("reads_r1", Some(r1.display().to_string())),
-            ("reads_r2", Some(r2.map(|path| path.display().to_string()).unwrap_or_default())),
-        ],
-    )?;
-    let command = rendered.into_iter().filter(|token| !token.is_empty()).collect::<Vec<_>>();
+    let command = match tool_id {
+        "seqkit_stats" => {
+            let rendered = crate::tool_adapters::template_render::render_command_template(
+                &tool.command.template,
+                &[
+                    ("threads", Some(threads.to_string())),
+                    ("reads_r1", Some(r1.display().to_string())),
+                    ("reads_r2", Some(r2.map(|path| path.display().to_string()).unwrap_or_default())),
+                ],
+            )?;
+            rendered.into_iter().filter(|token| !token.is_empty()).collect::<Vec<_>>()
+        }
+        "seqkit" => {
+            let mut command = vec![
+                "seqkit".to_string(),
+                "stats".to_string(),
+                "-a".to_string(),
+                "-T".to_string(),
+                "-j".to_string(),
+                threads.to_string(),
+                r1.display().to_string(),
+            ];
+            if let Some(r2) = r2 {
+                command.push(r2.display().to_string());
+            }
+            command
+        }
+        "seqfu" => {
+            let mut command = vec![
+                "seqfu".to_string(),
+                "stats".to_string(),
+                "--json".to_string(),
+                "--gc".to_string(),
+                "--threads".to_string(),
+                threads.to_string(),
+                r1.display().to_string(),
+            ];
+            if let Some(r2) = r2 {
+                command.push(r2.display().to_string());
+            }
+            command
+        }
+        _ => {
+            return Err(anyhow!("unsupported read-profiling tool for stage planning: {tool_id}"));
+        }
+    };
     if command.is_empty() {
-        return Err(anyhow!("profile reads command template resolved to an empty command"));
+        return Err(anyhow!("profile-reads command resolved to an empty command"));
     }
     Ok(command)
 }
@@ -167,6 +201,21 @@ mod tests {
         }
     }
 
+    fn seqkit_stats_tool(tool_id: &'static str) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static(tool_id),
+            tool_version: ToolVersion::from("2.8.0"),
+            image: ContainerImageRefV1 { image: format!("bijuxdna/{tool_id}"), digest: None },
+            command: CommandSpecV1 { template: vec![tool_id.to_string()] },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 2,
+            },
+        }
+    }
+
     #[test]
     fn profile_reads_plan_renders_seqkit_thread_template() {
         let plan = plan_stats_with_threads(
@@ -182,6 +231,42 @@ mod tests {
         assert_eq!(
             plan.command.template,
             vec!["seqkit_stats", "-a", "-T", "-j", "8", "reads_R1.fastq.gz", "reads_R2.fastq.gz",]
+        );
+    }
+
+    #[test]
+    fn profile_reads_plan_renders_seqkit_stats_command() {
+        let plan = plan_stats_with_threads(
+            &seqkit_stats_tool("seqkit"),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            Some(6),
+        )
+        .expect("plan");
+
+        assert_eq!(plan.resources.threads, 6);
+        assert_eq!(
+            plan.command.template,
+            vec!["seqkit", "stats", "-a", "-T", "-j", "6", "reads_R1.fastq.gz", "reads_R2.fastq.gz",]
+        );
+    }
+
+    #[test]
+    fn profile_reads_plan_renders_seqfu_stats_command() {
+        let plan = plan_stats_with_threads(
+            &seqkit_stats_tool("seqfu"),
+            Path::new("reads_R1.fastq.gz"),
+            None,
+            Path::new("out"),
+            Some(5),
+        )
+        .expect("plan");
+
+        assert_eq!(plan.resources.threads, 5);
+        assert_eq!(
+            plan.command.template,
+            vec!["seqfu", "stats", "--json", "--gc", "--threads", "5", "reads_R1.fastq.gz",]
         );
     }
 }

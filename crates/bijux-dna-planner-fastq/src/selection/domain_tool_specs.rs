@@ -306,6 +306,40 @@ mod tests {
     }
 
     #[test]
+    fn load_fastq_domain_tool_contract_metadata_distinguishes_supported_and_planned_seqfu_pairs(
+    ) -> Result<()> {
+        let repo_root = repo_root();
+        let tool_id = ToolId::new("seqfu");
+        let metadata = load_fastq_domain_tool_contract_metadata(&repo_root, &tool_id)?;
+
+        assert_eq!(metadata.support_level, FastqDomainToolSupportLevel::Supported);
+        assert!(
+            metadata.stage_ids.iter().any(|stage_id| stage_id.as_str() == "fastq.profile_reads"),
+            "seqfu must retain governed profile-reads admission"
+        );
+        assert!(
+            metadata
+                .planned_stage_ids
+                .iter()
+                .any(|stage_id| stage_id.as_str() == "fastq.normalize_abundance"),
+            "seqfu must retain planned normalize-abundance admission"
+        );
+        assert_eq!(
+            metadata
+                .pair_support_level(&StageId::new("fastq.profile_reads".to_string()))
+                .as_str(),
+            "supported"
+        );
+        assert_eq!(
+            metadata
+                .pair_support_level(&StageId::new("fastq.normalize_abundance".to_string()))
+                .as_str(),
+            "planned"
+        );
+        Ok(())
+    }
+
+    #[test]
     fn load_fastq_domain_tool_execution_spec_accepts_supported_container_stage() -> Result<()> {
         let repo_root = repo_root();
         let stage_id = StageId::new("fastq.trim_terminal_damage".to_string());

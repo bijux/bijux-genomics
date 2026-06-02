@@ -59,7 +59,6 @@ stage_ids:
   - "fastq.normalize_abundance"
   - "fastq.trim_terminal_damage"
   - "fastq.profile_overrepresented_sequences"
-planned_stage_ids:
   - "fastq.profile_reads"
 stage_contracts:
   fastq.trim_reads:
@@ -106,10 +105,12 @@ stage_contracts:
   fastq.profile_reads:
     required_inputs:
       - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
     expected_artifacts:
       - "qc_json"
       - "qc_tsv"
-    notes: "planned seqkit read profiling emits governed qc_json and qc_tsv artifacts without mutating reads."
+    notes: "seqkit read profiling retains the backend stats invocation while publishing the governed qc_json and qc_tsv profile artifacts without mutating reads."
 expected_artifacts:
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"
