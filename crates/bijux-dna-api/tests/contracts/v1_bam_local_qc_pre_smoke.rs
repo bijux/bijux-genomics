@@ -54,7 +54,23 @@ fn write_local_qc_pre_smoke_report_materializes_governed_outputs() -> Result<()>
     assert_eq!(case["mapped_reads"], serde_json::json!(3));
     assert_eq!(case["unmapped_reads"], serde_json::json!(0));
     assert_eq!(case["duplicate_flagged_reads"], serde_json::json!(1));
-    assert_eq!(case["contigs"], serde_json::json!(["chr1", "chr2"]));
+    assert_eq!(
+        case["contig_summary"],
+        serde_json::json!([
+            {
+                "contig": "chr1",
+                "length": 100,
+                "mapped": 2,
+                "unmapped": 0
+            },
+            {
+                "contig": "chr2",
+                "length": 80,
+                "mapped": 1,
+                "unmapped": 0
+            }
+        ])
+    );
     assert_eq!(case["reference_mismatch"], serde_json::json!(false));
 
     let qc_pre_summary = repo_root.join(
@@ -81,6 +97,48 @@ fn write_local_qc_pre_smoke_report_materializes_governed_outputs() -> Result<()>
     assert_eq!(case_summary["stage_id"], serde_json::json!("bam.qc_pre"));
     assert_eq!(case_summary["total_reads"], serde_json::json!(3));
     assert_eq!(case_summary["duplicate_flagged_reads"], serde_json::json!(1));
+    assert_eq!(
+        case_summary["contig_summary"],
+        serde_json::json!([
+            {
+                "contig": "chr1",
+                "length": 100,
+                "mapped": 2,
+                "unmapped": 0
+            },
+            {
+                "contig": "chr2",
+                "length": 80,
+                "mapped": 1,
+                "unmapped": 0
+            }
+        ])
+    );
+
+    let stage_metrics_payload: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&stage_metrics)?)?;
+    assert_eq!(stage_metrics_payload["stage_id"], serde_json::json!("bam.qc_pre"));
+    assert_eq!(stage_metrics_payload["total_reads"], serde_json::json!(3));
+    assert_eq!(stage_metrics_payload["mapped_reads"], serde_json::json!(3));
+    assert_eq!(stage_metrics_payload["unmapped_reads"], serde_json::json!(0));
+    assert_eq!(stage_metrics_payload["duplicate_flagged_reads"], serde_json::json!(1));
+    assert_eq!(
+        stage_metrics_payload["contig_summary"],
+        serde_json::json!([
+            {
+                "contig": "chr1",
+                "length": 100,
+                "mapped": 2,
+                "unmapped": 0
+            },
+            {
+                "contig": "chr2",
+                "length": 80,
+                "mapped": 1,
+                "unmapped": 0
+            }
+        ])
+    );
 
     Ok(())
 }

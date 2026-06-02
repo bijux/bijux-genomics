@@ -7,6 +7,14 @@ const LOCAL_QC_PRE_SMOKE_REPORT_SCHEMA_VERSION: &str = "bijux.bam.qc_pre.local_s
 const LOCAL_QC_PRE_SMOKE_METRICS_SCHEMA_VERSION: &str = "bijux.bam.qc_pre.local_smoke.metrics.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+struct LocalQcPreContigSummary {
+    contig: String,
+    length: u64,
+    mapped: u64,
+    unmapped: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct LocalQcPreSmokeCaseReport {
     sample_id: String,
     expectation_matched: bool,
@@ -15,7 +23,7 @@ struct LocalQcPreSmokeCaseReport {
     mapped_reads: u64,
     unmapped_reads: u64,
     duplicate_flagged_reads: u64,
-    contigs: Vec<String>,
+    contig_summary: Vec<LocalQcPreContigSummary>,
     reference_mismatch: bool,
     qc_pre_summary: String,
     flagstat: String,
@@ -106,10 +114,15 @@ fn materialize_local_qc_pre_smoke_case(
             "mapped_reads": summary.mapped_reads,
             "unmapped_reads": summary.unmapped_reads,
             "duplicate_flagged_reads": summary.duplicate_flagged_reads,
-            "contigs": summary
+            "contig_summary": summary
                 .contig_summary
                 .iter()
-                .map(|contig| contig.contig.clone())
+                .map(|contig| serde_json::json!({
+                    "contig": contig.contig,
+                    "length": contig.length,
+                    "mapped": contig.mapped,
+                    "unmapped": contig.unmapped,
+                }))
                 .collect::<Vec<_>>(),
         }),
     )?;
@@ -117,6 +130,16 @@ fn materialize_local_qc_pre_smoke_case(
 
     let observed_contigs =
         summary.contig_summary.iter().map(|contig| contig.contig.clone()).collect::<Vec<_>>();
+    let contig_summary = summary
+        .contig_summary
+        .iter()
+        .map(|contig| LocalQcPreContigSummary {
+            contig: contig.contig.clone(),
+            length: contig.length,
+            mapped: contig.mapped,
+            unmapped: contig.unmapped,
+        })
+        .collect::<Vec<_>>();
     let expectation_matched = summary.total_reads == case.expected_total_reads
         && summary.mapped_reads == case.expected_mapped_reads
         && summary.unmapped_reads == case.expected_unmapped_reads
@@ -131,7 +154,7 @@ fn materialize_local_qc_pre_smoke_case(
         mapped_reads: summary.mapped_reads,
         unmapped_reads: summary.unmapped_reads,
         duplicate_flagged_reads: summary.duplicate_flagged_reads,
-        contigs: observed_contigs,
+        contig_summary,
         reference_mismatch: summary.reference_mismatch,
         qc_pre_summary: path_relative_to_repo(repo_root, &qc_pre_summary_path),
         flagstat: path_relative_to_repo(repo_root, &flagstat_path),
