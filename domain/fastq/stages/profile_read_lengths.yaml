@@ -31,8 +31,12 @@ parameters:
 metrics:
   - name: "read_count"
     meaning: "Number of reads observed."
+  - name: "min_read_length"
+    meaning: "Minimum read length observed before trimming."
   - name: "mean_read_length"
     meaning: "Average read length before trimming."
+  - name: "median_read_length"
+    meaning: "Median read length before trimming."
   - name: "max_read_length"
     meaning: "Maximum read length observed in the governed profile."
   - name: "distinct_lengths"
@@ -59,6 +63,9 @@ invariants:
 allowed_missingness:
   - "reads_r2"
 compatible_tools:
+  - fastp
+  - prinseq
+  - seqfu
   - seqkit_stats
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
@@ -68,7 +75,4 @@ assumptions:
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
-planned_out_of_scope:
-  - "fastp"
-  - "prinseq"
-  - "seqfu"
+planned_out_of_scope: []

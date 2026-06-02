@@ -31,6 +31,9 @@ stages:
     benchmark_support: "cohort"
     default_tool: "seqkit_stats"
     admitted_tools:
+      - "fastp"
+      - "prinseq"
+      - "seqfu"
       - "seqkit_stats"
   - stage_id: "fastq.detect_adapters"
     execution_status: "closed"

@@ -7,11 +7,11 @@ default_version: planned
 install_kind: container
 license: GPL-3.0
 citation: paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC8148589/
-planned_stage_ids:
-- fastq.profile_read_lengths
-- fastq.normalize_abundance
 stage_ids:
+- fastq.profile_read_lengths
 - fastq.profile_reads
+planned_stage_ids:
+- fastq.normalize_abundance
 stage_contracts:
   fastq.profile_read_lengths:
     required_inputs:
@@ -20,7 +20,7 @@ stage_contracts:
     - report_json
     - length_distribution_tsv
     - length_distribution_json
-    notes: Planned read-length profiling would emit governed histogram artifacts.
+    notes: SeqFu read-length profiling emits the governed summary report plus deterministic histogram artifacts.
   fastq.normalize_abundance:
     required_inputs:
     - abundance_table

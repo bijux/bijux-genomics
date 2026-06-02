@@ -54,11 +54,11 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://academic.oup.com/bioinformatics/article/34/17/i884/5093234"
 stage_ids:
+  - "fastq.profile_read_lengths"
   - "fastq.trim_reads"
   - "fastq.filter_reads"
   - "fastq.trim_polyg_tails"
 planned_stage_ids:
-  - "fastq.profile_read_lengths"
   - "fastq.filter_low_complexity"
 stage_contracts:
   fastq.trim_reads:

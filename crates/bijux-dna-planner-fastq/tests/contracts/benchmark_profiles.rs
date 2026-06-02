@@ -258,7 +258,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(read_length_cohorts[0].scenario_id, "read_length_fairness");
     assert_eq!(
         read_length_cohorts[0].tool_ids.iter().map(ToolId::as_str).collect::<Vec<_>>(),
-        vec!["seqkit_stats"]
+        vec!["fastp", "prinseq", "seqfu", "seqkit_stats"]
     );
     assert_eq!(
         read_length_cohorts[0]
@@ -266,7 +266,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .map(ToolId::as_str)
             .collect::<Vec<_>>(),
-        vec!["seqkit_stats"]
+        vec!["fastp", "prinseq", "seqfu", "seqkit_stats"]
     );
 
     let correction_stage = StageId::from_static("fastq.correct_errors");

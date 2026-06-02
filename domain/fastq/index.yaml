@@ -227,6 +227,9 @@ stage_tool_compatibility:
   - fastq_scan
   - seqkit
   fastq.profile_read_lengths:
+  - fastp
+  - prinseq
+  - seqfu
   - seqkit_stats
   fastq.profile_reads:
   - seqkit_stats
@@ -283,6 +286,9 @@ stage_tool_integration:
     seqtk: governed_contract
     fqtools: governed_contract
   fastq.profile_read_lengths:
+    fastp: governed_contract
+    prinseq: governed_contract
+    seqfu: governed_contract
     seqkit_stats: governed_contract
   fastq.detect_adapters:
     fastqc: governed_contract
