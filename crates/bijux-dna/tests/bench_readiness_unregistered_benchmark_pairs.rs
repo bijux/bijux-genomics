@@ -167,6 +167,22 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
     );
     assert!(
         !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bwa")
+        }),
+        "bam.align / bwa must not drift against the registry"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2")
+        }),
+        "bam.align / bowtie2 must not drift against the registry"
+    );
+    assert!(
+        !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.normalize_primers")
