@@ -1367,8 +1367,11 @@ mod tests {
         assert_eq!(metrics["database_artifact_id"], serde_json::json!("silva_nr99"));
         assert_eq!(metrics["database_digest"], serde_json::json!("sha256:silva"));
         assert_eq!(metrics["retained_read_role"], serde_json::json!("rrna_filtered_reads"));
+        assert_eq!(metrics["retained_reads"], serde_json::json!(64));
         assert_eq!(metrics["reads_removed"], serde_json::json!(36));
+        assert_eq!(metrics["removed_reads"], serde_json::json!(36));
         assert_eq!(metrics["rrna_fraction_removed"], serde_json::json!(0.36));
+        assert_eq!(metrics["depletion_rate"], serde_json::json!(0.36));
     }
 
     #[test]
@@ -1814,9 +1817,11 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "schema_version",
             "stage",
             "tool",
+            "rrna_db",
             "database_artifact_id",
-            "reads_removed",
-            "rrna_fraction_removed",
+            "retained_reads",
+            "removed_reads",
+            "depletion_rate",
         ],
         "fastq.deplete_reference_contaminants" => &[
             "schema_version",
