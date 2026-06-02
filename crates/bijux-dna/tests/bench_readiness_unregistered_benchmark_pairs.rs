@@ -37,12 +37,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
-    let payload = run_cli_json(&[
-        "bench",
-        "readiness",
-        "render-unregistered-benchmark-pairs",
-        "--json",
-    ]);
+    let payload =
+        run_cli_json(&["bench", "readiness", "render-unregistered-benchmark-pairs", "--json"]);
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.unregistered_benchmark_pairs.v1")
@@ -52,10 +48,8 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         Some("target/bench-readiness/unregistered-benchmark-pairs.tsv")
     );
     assert_eq!(
-        payload
-            .get("unregistered_pair_count")
-            .and_then(serde_json::Value::as_u64),
-        Some(18)
+        payload.get("unregistered_pair_count").and_then(serde_json::Value::as_u64),
+        Some(15)
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
@@ -63,23 +57,14 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         .get("domain_counts")
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
-    assert_eq!(
-        domain_counts.get("fastq").and_then(serde_json::Value::as_u64),
-        Some(10)
-    );
-    assert_eq!(
-        domain_counts.get("bam").and_then(serde_json::Value::as_u64),
-        Some(8)
-    );
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(8));
 
-    let rows = payload
-        .get("rows")
-        .and_then(serde_json::Value::as_array)
-        .expect("rows array");
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(
         rows.len(),
-        18,
-        "governed registry-drift slice must retain the current eighteen rows"
+        15,
+        "governed registry-drift slice must retain the current fifteen rows"
     );
     assert!(
         rows.iter().any(|row| {
@@ -95,12 +80,22 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
     assert!(
         rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.genotyping")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
                 && row.get("registry_status").and_then(serde_json::Value::as_str)
                     == Some("tool_registered_pair_missing")
         }),
         "bam.genotyping / angsd must remain visible as a pair-missing registry row"
     );
+    for tool_id in ["fastp", "prinseq", "seqfu"] {
+        assert!(
+            !rows.iter().any(|row| {
+                row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+                    && row.get("stage_id").and_then(serde_json::Value::as_str)
+                        == Some("fastq.profile_read_lengths")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            }),
+            "fastq.profile_read_lengths / {tool_id} must no longer drift against the registry"
+        );
+    }
 }
