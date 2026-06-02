@@ -94,6 +94,12 @@ trim_reads_benchmark_policy: fastq.trim_reads
 - every governed `fastq.trim_reads` row must emit trimmed FASTQ outputs, the governed report output, retained-read count, dropped-read count, and bases-removed accounting
 - the retained planned extra `seqpurge` must remain explicitly visible as a non-normalized trim-reads contract until it is admitted and registered instead of silently disappearing from readiness reporting
 
+filter_reads_benchmark_policy: fastq.filter_reads
+- default benchmark backend is `fastp`
+- governed comparison backends are `bbduk`, `prinseq`, and `seqkit`
+- every governed `fastq.filter_reads` row must emit filtered FASTQ outputs, retained-read count, removed-read count, and per-reason removal accounting for `n`, `entropy`, `low_complexity`, `kmer`, `contaminant_kmer`, and `length`
+- the explicit `reads_retained` and `reads_removed` aliases must stay aligned with `reads_out` and `reads_dropped` so downstream comparison code does not need to infer benchmark row semantics from stage-internal metric names
+
 profile_reads_benchmark_policy: fastq.profile_reads
 - default benchmark backend is `seqkit_stats`
 - `seqkit` and `seqfu` are governed comparison backends for general read profiling studies
