@@ -290,14 +290,22 @@ pub struct FastqDetectAdaptersMetrics {
     pub bases_in: u64,
     pub bases_out: u64,
     pub mean_q: f64,
+    #[serde(default)]
+    pub adapter_report: Option<String>,
     pub candidate_adapter_count: u64,
+    #[serde(default)]
+    pub detected_adapter_ids: Vec<String>,
+    #[serde(default)]
+    pub detection_confidence: Option<f64>,
+    #[serde(default)]
+    pub detection_threshold: Option<f64>,
     #[serde(default)]
     pub adapter_trimmed_fraction: Option<f64>,
 }
 
 impl StageMetricSchema for FastqDetectAdaptersMetrics {
     const STAGE: &'static str = "fastq.detect_adapters";
-    const VERSION: i32 = 1;
+    const VERSION: i32 = 2;
 
     fn validate(&self) -> Result<()> {
         if self.reads_out != self.reads_in {
@@ -308,6 +316,40 @@ impl StageMetricSchema for FastqDetectAdaptersMetrics {
         }
         if !self.mean_q.is_finite() || !(0.0..=45.0).contains(&self.mean_q) {
             return Err(BenchError::Validation("mean_q must be within [0, 45]".to_string()));
+        }
+        if let Some(path) = &self.adapter_report {
+            if path.trim().is_empty() {
+                return Err(BenchError::Validation(
+                    "adapter_report must not be empty when present".to_string(),
+                ));
+            }
+        }
+        if self.detected_adapter_ids.len() as u64 != self.candidate_adapter_count {
+            return Err(BenchError::Validation(
+                "detected_adapter_ids length must equal candidate_adapter_count".to_string(),
+            ));
+        }
+        if let Some(confidence) = self.detection_confidence {
+            if !confidence.is_finite() || !(0.0..=1.0).contains(&confidence) {
+                return Err(BenchError::Validation(
+                    "detection_confidence must be within [0, 1]".to_string(),
+                ));
+            }
+        }
+        if let Some(threshold) = self.detection_threshold {
+            if !threshold.is_finite() || !(0.0..=1.0).contains(&threshold) {
+                return Err(BenchError::Validation(
+                    "detection_threshold must be within [0, 1]".to_string(),
+                ));
+            }
+        }
+        if let (Some(confidence), Some(threshold)) = (self.detection_confidence, self.detection_threshold) {
+            if self.candidate_adapter_count > 0 && confidence < threshold {
+                return Err(BenchError::Validation(
+                    "detection_confidence must be >= detection_threshold when adapters are detected"
+                        .to_string(),
+                ));
+            }
         }
         if let Some(fraction) = self.adapter_trimmed_fraction {
             if !fraction.is_finite() || !(0.0..=1.0).contains(&fraction) {

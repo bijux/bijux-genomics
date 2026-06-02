@@ -44,6 +44,10 @@ fn write_local_detect_adapters_smoke_report_materializes_governed_outputs() -> R
     assert!(report_path.is_file(), "local-smoke adapter report must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
+    assert_eq!(
+        payload["schema_version"],
+        serde_json::json!("bijux.fastq.detect_adapters.local_smoke.report.v2")
+    );
     assert_eq!(payload["stage_id"], serde_json::json!("fastq.detect_adapters"));
     assert_eq!(payload["case_count"], serde_json::json!(2));
     assert_eq!(payload["detected_case_count"], serde_json::json!(1));
@@ -54,21 +58,31 @@ fn write_local_detect_adapters_smoke_report_materializes_governed_outputs() -> R
     assert!(cases.iter().any(|case| {
         case["sample_id"] == serde_json::json!("adapter-hit-se")
             && case["adapter_status"] == serde_json::json!("adapter_detected")
+            && case["adapter_report"].as_str().is_some()
             && case["candidate_adapter_count"].as_u64().unwrap_or(0) > 0
+            && case["detected_adapter_ids"]
+                .as_array()
+                .is_some_and(|values| values.iter().any(|value| value == "truseq_universal"))
+            && case["detection_confidence"].as_f64().is_some()
+            && case["detection_threshold"].as_f64().is_some()
             && case["recommended_adapter_preset"] == serde_json::json!("illumina-default")
     }));
     assert!(cases.iter().any(|case| {
         case["sample_id"] == serde_json::json!("adapter-clear-se")
             && case["adapter_status"] == serde_json::json!("below_threshold")
+            && case["adapter_report"].as_str().is_some()
             && case["candidate_adapter_count"] == serde_json::json!(0)
+            && case["detected_adapter_ids"] == serde_json::json!([])
+            && case["detection_confidence"].is_null()
+            && case["detection_threshold"].as_f64().is_some()
             && case["recommended_adapter_preset"].is_null()
     }));
 
     for case in cases {
         let report_json = repo_root.join(
-            case["report_json"]
+            case["adapter_report"]
                 .as_str()
-                .unwrap_or_else(|| panic!("report_json path missing")),
+                .unwrap_or_else(|| panic!("adapter_report path missing")),
         );
         let adapter_evidence_dir = repo_root.join(
             case["adapter_evidence_dir"]

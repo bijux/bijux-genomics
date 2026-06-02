@@ -80,13 +80,17 @@ pub const FASTQ_VALIDATE_METRICS: [MetricId; 17] = [
     MetricId::FailureClass,
 ];
 
-pub const FASTQ_DETECT_ADAPTERS_METRICS: [MetricId; 7] = [
+pub const FASTQ_DETECT_ADAPTERS_METRICS: [MetricId; 11] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::BasesIn,
     MetricId::BasesOut,
     MetricId::MeanQ,
+    MetricId::AdapterReport,
     MetricId::CandidateAdapterCount,
+    MetricId::DetectedAdapterIds,
+    MetricId::DetectionConfidence,
+    MetricId::DetectionThreshold,
     MetricId::AdapterTrimmedFraction,
 ];
 
