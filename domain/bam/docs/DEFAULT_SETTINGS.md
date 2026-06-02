@@ -42,7 +42,6 @@ Purpose: define deterministic defaults for every BAM stage contract.
 - `bam.genotyping`: default `gatk`.
 - `bam.kinship`: default `king`.
 
-single_tool_justification: bam.mapping_summary
 single_tool_justification: bam.complexity
 single_tool_justification: bam.insert_size
 single_tool_justification: bam.gc_bias
@@ -56,7 +55,7 @@ single_tool_justification: bam.haplogroups
 - `bam.align` rationale: prioritize stable alignment baseline with broad BAM ecosystem compatibility.
 - `bam.validate` rationale: use deterministic validation diagnostics for contract enforcement.
 - `bam.qc_pre` rationale: enforce early sanity checks before downstream filtering while preserving a governed reporting companion for operator-facing aggregation.
-- `bam.mapping_summary` rationale: preserve comparable mapping summaries across runs.
+- `bam.mapping_summary` rationale: preserve samtools as the governed baseline while keeping a supported Picard comparison row for alignment-summary contract coverage.
 - `bam.filter` rationale: minimize post-alignment variance while preserving interpretability.
 - `bam.mapq_filter` rationale: deterministic MAPQ gating for reproducible retention metrics.
 - `bam.length_filter` rationale: preserve explicit read-length contract boundaries.
@@ -85,3 +84,5 @@ single_tool_justification: bam.haplogroups
 - `bam.validate`: warning-grade findings are currently empty for governed fixtures; validation failures surface through deterministic refusal-code errors instead of a mixed warning/error model.
 - `bam.qc_pre`: the admitted `samtools` benchmark row and the governed `multiqc` reporting companion must preserve `total_reads`, `mapped_reads`, `unmapped_reads`, `duplicate_flagged_reads`, and `contig_summary`.
 - `bam.qc_pre`: `samtools` remains the primary executor for raw flagstat/idxstats/stats artifacts, while `multiqc` is currently plannable reporting coverage rather than a local-smoke execution backend.
+- `bam.mapping_summary`: the admitted `samtools` row and the governed `picard` comparison row must preserve `mapping_fraction`, `mapped_reads`, `unmapped_reads`, `secondary_reads`, and `supplementary_reads`.
+- `bam.mapping_summary`: `samtools` remains the fixture-backed execution baseline, while `picard` currently contributes supported comparison coverage through alignment-summary metrics plus governed companion artifacts.

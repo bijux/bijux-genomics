@@ -14,7 +14,7 @@ in sync with `bijux-dna-domain-bam` when adding, renaming, or removing stages.
 | `bam.align` | pre | bwa, bowtie2 | aligned BAM, index, flagstat, idxstats, samtools stats |
 | `bam.validate` | pre | samtools | validation report, flagstat |
 | `bam.qc_pre` | pre | samtools | flagstat, idxstats, samtools stats |
-| `bam.mapping_summary` | pre | samtools | flagstat, idxstats, samtools stats, mapping summary |
+| `bam.mapping_summary` | pre | samtools, picard | flagstat, idxstats, mapping stats, mapping summary |
 | `bam.filter` | core | samtools, bamtools | filtered BAM, index, before/after flagstat and idxstats |
 | `bam.mapq_filter` | core | samtools, bamtools | filtered BAM, index, before/after flagstat |
 | `bam.length_filter` | core | samtools, picard | filtered BAM, index, length-filter summary |
@@ -93,7 +93,7 @@ chr1	1	0.12	0.10
 
 ### bam.mapping_summary
 - Required artifacts:
-`flagstat.txt`, `idxstats.txt`, `samtools_stats.txt`, `mapping.summary.json`, `stage.metrics.json`
+`flagstat.txt`, `idxstats.txt`, one governed `stats` artifact (`samtools_stats.txt` or `alignment_summary.metrics.txt`), `mapping.summary.json`, `stage.metrics.json`
 
 ### bam.mapq_filter
 - Required artifacts:
