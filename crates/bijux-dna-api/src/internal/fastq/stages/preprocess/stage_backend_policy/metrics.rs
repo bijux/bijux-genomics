@@ -139,6 +139,58 @@ pub(crate) fn parse_detect_duplicates_premerge_metrics(
     })
 }
 
+pub(crate) fn parse_estimate_library_complexity_prealign_metrics(
+    out_dir: &std::path::Path,
+) -> serde_json::Value {
+    let report_path = out_dir.join("library_complexity_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) =
+            bijux_dna_domain_fastq::observer::parse_estimate_library_complexity_prealign_report(
+                &raw,
+            )
+        {
+            let estimated_complexity = if report.insufficient_data_reason.is_some() {
+                serde_json::Value::Null
+            } else {
+                serde_json::json!(report.estimated_unique_fraction)
+            };
+            let complexity_status = if report.insufficient_data_reason.is_some() {
+                "insufficient_data"
+            } else {
+                "complexity_estimated"
+            };
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.estimate_library_complexity_prealign",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "complexity_policy": report.complexity_policy,
+                "estimate_method": report.estimate_method,
+                "modifies_reads": report.modifies_reads,
+                "advisory_only": report.advisory_only,
+                "reads_in": report.reads_in,
+                "estimated_complexity": estimated_complexity,
+                "estimated_unique_fraction": report.estimated_unique_fraction,
+                "estimated_duplicate_fraction": report.estimated_duplicate_fraction,
+                "insufficient_data_reason": report.insufficient_data_reason,
+                "complexity_status": complexity_status,
+                "kmer_size": report.kmer_size,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.estimate_library_complexity_prealign",
+        "tool": "report_missing",
+        "estimated_complexity": serde_json::Value::Null,
+        "estimated_duplicate_fraction": serde_json::Value::Null,
+        "insufficient_data_reason": serde_json::Value::Null,
+        "complexity_status": "report_missing",
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_filter_reads_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("filter_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {

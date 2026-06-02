@@ -92,6 +92,53 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "report_json": report_path,
             }))
         }
+        "fastq.estimate_library_complexity_prealign" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str())
+                        == Some("library_complexity_report.json")
+                })
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("library_complexity_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_domain_fastq::observer::parse_estimate_library_complexity_prealign_report(
+                    &raw,
+                )
+                .ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.estimate_library_complexity_prealign.extra_artifacts.v1",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "complexity_policy": governed.as_ref().map(|report| report.complexity_policy.clone()),
+                "estimate_method": governed.as_ref().map(|report| report.estimate_method.clone()),
+                "modifies_reads": governed.as_ref().map(|report| report.modifies_reads),
+                "advisory_only": governed.as_ref().map(|report| report.advisory_only),
+                "reads_in": governed.as_ref().map(|report| report.reads_in),
+                "estimated_complexity": governed.as_ref().and_then(|report| {
+                    if report.insufficient_data_reason.is_some() {
+                        None
+                    } else {
+                        Some(report.estimated_unique_fraction)
+                    }
+                }),
+                "estimated_unique_fraction": governed.as_ref().map(|report| report.estimated_unique_fraction),
+                "estimated_duplicate_fraction": governed.as_ref().map(|report| report.estimated_duplicate_fraction),
+                "insufficient_data_reason": governed.as_ref().and_then(|report| report.insufficient_data_reason.clone()),
+                "complexity_status": governed.as_ref().map(|report| {
+                    if report.insufficient_data_reason.is_some() {
+                        "insufficient_data"
+                    } else {
+                        "complexity_estimated"
+                    }
+                }),
+                "kmer_size": governed.as_ref().and_then(|report| report.kmer_size),
+                "report_json": report_path,
+            }))
+        }
         "fastq.trim_reads" => {
             let report_path = execution
                 .outputs
@@ -883,6 +930,47 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn estimate_library_complexity_prealign_execution(
+        stage_root: &std::path::Path,
+    ) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "estimate-library-complexity-prealign-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 0.8,
+            memory_mb: 8.0,
+            outputs: vec![stage_root.join("library_complexity_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "bijux-dna".to_string(),
+        }
+    }
+
+    fn write_estimate_library_complexity_prealign_report(
+        stage_root: &std::path::Path,
+    ) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("library_complexity_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.estimate_library_complexity_prealign.report.v1",
+                "stage": "fastq.estimate_library_complexity_prealign",
+                "stage_id": "fastq.estimate_library_complexity_prealign",
+                "tool_id": "bijux",
+                "paired_mode": "single_end",
+                "complexity_policy": "prealign_kmer",
+                "estimate_method": "kmer_redundancy",
+                "modifies_reads": false,
+                "advisory_only": true,
+                "reads_in": 0,
+                "estimated_unique_fraction": 0.0,
+                "estimated_duplicate_fraction": 0.0,
+                "insufficient_data_reason": "insufficient_reads_for_prealign_complexity_estimation",
+                "kmer_size": 31
+            }"#,
+        )?;
+        Ok(())
+    }
+
     fn trim_terminal_damage_execution(stage_root: &std::path::Path) -> StageResultV1 {
         StageResultV1 {
             run_id: "trim-terminal-damage-fixture".to_string(),
@@ -1316,6 +1404,37 @@ mod stage_artifact_tests {
     }
 
     #[test]
+    fn estimate_library_complexity_prealign_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_estimate_library_complexity_prealign_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.estimate_library_complexity_prealign",
+            &estimate_library_complexity_prealign_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("bijux"));
+        assert_eq!(extra["paired_mode"], serde_json::json!("single_end"));
+        assert_eq!(extra["complexity_policy"], serde_json::json!("prealign_kmer"));
+        assert_eq!(extra["estimate_method"], serde_json::json!("kmer_redundancy"));
+        assert_eq!(extra["reads_in"], serde_json::json!(0));
+        assert_eq!(extra["estimated_complexity"], serde_json::Value::Null);
+        assert_eq!(extra["estimated_duplicate_fraction"], serde_json::json!(0.0));
+        assert_eq!(
+            extra["insufficient_data_reason"],
+            serde_json::json!("insufficient_reads_for_prealign_complexity_estimation")
+        );
+        assert_eq!(extra["complexity_status"], serde_json::json!("insufficient_data"));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("library_complexity_report.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
     fn host_standardized_metrics_writer_uses_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
         write_host_report(temp.path())?;
@@ -1354,6 +1473,33 @@ mod stage_artifact_tests {
         assert_eq!(metrics["duplicate_count"], serde_json::json!(4));
         assert_eq!(metrics["duplicate_fraction"], serde_json::json!(0.3333333333333333));
         assert_eq!(metrics["inspected_pair_count"], serde_json::json!(6));
+        Ok(())
+    }
+
+    #[test]
+    fn estimate_library_complexity_prealign_standardized_metrics_writer_uses_governed_report(
+    ) -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_estimate_library_complexity_prealign_report(temp.path())?;
+        write_stage_standardized_metrics(
+            temp.path(),
+            "fastq.estimate_library_complexity_prealign",
+            temp.path(),
+            &estimate_library_complexity_prealign_execution(temp.path()),
+        )?;
+
+        let metrics: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.metrics.standardized.json"),
+        )?)?;
+        assert_eq!(metrics["tool"], serde_json::json!("bijux"));
+        assert_eq!(metrics["reads_in"], serde_json::json!(0));
+        assert_eq!(metrics["estimated_complexity"], serde_json::Value::Null);
+        assert_eq!(metrics["estimated_duplicate_fraction"], serde_json::json!(0.0));
+        assert_eq!(
+            metrics["insufficient_data_reason"],
+            serde_json::json!("insufficient_reads_for_prealign_complexity_estimation")
+        );
+        assert_eq!(metrics["complexity_status"], serde_json::json!("insufficient_data"));
         Ok(())
     }
 

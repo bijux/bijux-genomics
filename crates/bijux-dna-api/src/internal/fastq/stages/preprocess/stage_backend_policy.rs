@@ -40,7 +40,8 @@ mod tests {
     use super::{
         fastq_backend_allowlist, parse_deplete_host_metrics,
         parse_deplete_reference_contaminants_metrics, parse_deplete_rrna_metrics,
-        parse_detect_duplicates_premerge_metrics, parse_extract_umis_metrics,
+        parse_detect_duplicates_premerge_metrics,
+        parse_estimate_library_complexity_prealign_metrics, parse_extract_umis_metrics,
         parse_filter_low_complexity_metrics, parse_filter_reads_metrics,
         parse_index_reference_metrics, parse_merge_pairs_metrics,
         parse_normalize_abundance_metrics, parse_normalize_primers_metrics,
@@ -243,6 +244,23 @@ mod tests {
     }
 
     #[test]
+    fn estimate_library_complexity_prealign_uses_governed_report_metrics_policy() {
+        assert_eq!(
+            required_metrics_keys("fastq.estimate_library_complexity_prealign"),
+            &[
+                "schema_version",
+                "stage",
+                "tool",
+                "reads_in",
+                "estimated_complexity",
+                "estimated_duplicate_fraction",
+                "insufficient_data_reason",
+                "complexity_status",
+            ]
+        );
+    }
+
+    #[test]
     fn correct_errors_uses_governed_report_metrics_policy() {
         assert_eq!(
             required_metrics_keys("fastq.correct_errors"),
@@ -307,6 +325,47 @@ mod tests {
         assert_eq!(metrics["duplicate_fraction"], serde_json::json!(0.3333333333333333));
         assert_eq!(metrics["inspected_pair_count"], serde_json::json!(6));
         assert_eq!(metrics["advisory_only"], serde_json::json!(true));
+    }
+
+    #[test]
+    fn estimate_library_complexity_prealign_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("library_complexity_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.estimate_library_complexity_prealign.report.v1",
+                "stage": "fastq.estimate_library_complexity_prealign",
+                "stage_id": "fastq.estimate_library_complexity_prealign",
+                "tool_id": "bijux",
+                "paired_mode": "single_end",
+                "complexity_policy": "prealign_kmer",
+                "estimate_method": "kmer_redundancy",
+                "modifies_reads": false,
+                "advisory_only": true,
+                "reads_in": 0,
+                "estimated_unique_fraction": 0.0,
+                "estimated_duplicate_fraction": 0.0,
+                "insufficient_data_reason": "insufficient_reads_for_prealign_complexity_estimation",
+                "kmer_size": 31
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_estimate_library_complexity_prealign_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("bijux"));
+        assert_eq!(metrics["paired_mode"], serde_json::json!("single_end"));
+        assert_eq!(metrics["complexity_policy"], serde_json::json!("prealign_kmer"));
+        assert_eq!(metrics["estimate_method"], serde_json::json!("kmer_redundancy"));
+        assert_eq!(metrics["reads_in"], serde_json::json!(0));
+        assert_eq!(metrics["estimated_complexity"], serde_json::Value::Null);
+        assert_eq!(metrics["estimated_duplicate_fraction"], serde_json::json!(0.0));
+        assert_eq!(
+            metrics["insufficient_data_reason"],
+            serde_json::json!("insufficient_reads_for_prealign_complexity_estimation")
+        );
+        assert_eq!(metrics["complexity_status"], serde_json::json!("insufficient_data"));
     }
 
     #[test]
@@ -1484,6 +1543,16 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "duplicate_count",
             "duplicate_fraction",
             "inspected_pair_count",
+        ],
+        "fastq.estimate_library_complexity_prealign" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "reads_in",
+            "estimated_complexity",
+            "estimated_duplicate_fraction",
+            "insufficient_data_reason",
+            "complexity_status",
         ],
         "fastq.detect_adapters" => {
             &["schema_version", "stage", "tool", "candidate_adapter_count", "adapter_inference"]

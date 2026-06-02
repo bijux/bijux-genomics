@@ -1,9 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
-use bijux_dna_domain_fastq::{
-    EstimateLibraryComplexityPrealignReportV1, PairedMode,
-};
+use bijux_dna_domain_fastq::{EstimateLibraryComplexityPrealignReportV1, PairedMode};
 use serde::{Deserialize, Serialize};
 
 const LOCAL_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_SMOKE_REPORT_SCHEMA_VERSION: &str =
@@ -23,11 +21,13 @@ struct LocalEstimateLibraryComplexityPrealignSmokeCaseReport {
     input_r1: String,
     input_r2: Option<String>,
     reads_in: u64,
+    estimated_complexity: Option<f64>,
     estimated_unique_fraction: f64,
     estimated_duplicate_fraction: f64,
     kmer_size: Option<u32>,
     complexity_policy: String,
     estimate_method: String,
+    insufficient_data_reason: Option<String>,
     complexity_status: LocalEstimateLibraryComplexityPrealignSmokeStatus,
     report_json: String,
 }
@@ -50,20 +50,24 @@ struct LocalEstimateLibraryComplexityPrealignSmokeReport {
 /// or the smoke artifacts cannot be written.
 pub fn write_local_estimate_library_complexity_prealign_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
-    let cases = bijux_dna_planner_fastq::stage_api::local_estimate_library_complexity_prealign_smoke_plans(
-        &repo_root,
-    )?;
-    let output_root = repo_root.join("target/local-smoke/fastq.estimate_library_complexity_prealign");
+    let cases =
+        bijux_dna_planner_fastq::stage_api::local_estimate_library_complexity_prealign_smoke_plans(
+            &repo_root,
+        )?;
+    let output_root =
+        repo_root.join("target/local-smoke/fastq.estimate_library_complexity_prealign");
     bijux_dna_infra::ensure_dir(&output_root)?;
 
     let case_reports = cases
         .iter()
-        .map(|case| materialize_local_estimate_library_complexity_prealign_smoke_case(&repo_root, case))
+        .map(|case| {
+            materialize_local_estimate_library_complexity_prealign_smoke_case(&repo_root, case)
+        })
         .collect::<Result<Vec<_>>>()?;
 
     let summary = LocalEstimateLibraryComplexityPrealignSmokeReport {
-        schema_version:
-            LOCAL_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        schema_version: LOCAL_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_SMOKE_REPORT_SCHEMA_VERSION
+            .to_string(),
         stage_id: "fastq.estimate_library_complexity_prealign".to_string(),
         case_count: case_reports.len() as u64,
         estimated_case_count: case_reports
@@ -108,28 +112,34 @@ fn materialize_local_estimate_library_complexity_prealign_smoke_case(
 
     Ok(LocalEstimateLibraryComplexityPrealignSmokeCaseReport {
         sample_id: case.sample_id.clone(),
-        layout: if case.r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        layout: if case.r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         input_r1: case.r1.display().to_string(),
         input_r2: case.r2.as_ref().map(|path| path.display().to_string()),
         reads_in: report.reads_in,
+        estimated_complexity: estimated_complexity(&report),
         estimated_unique_fraction: report.estimated_unique_fraction,
         estimated_duplicate_fraction: report.estimated_duplicate_fraction,
         kmer_size: report.kmer_size,
         complexity_policy: report.complexity_policy.clone(),
         estimate_method: report.estimate_method.clone(),
+        insufficient_data_reason: report.insufficient_data_reason.clone(),
         complexity_status: complexity_status(&report),
         report_json: path_relative_to_repo(repo_root, &report_json),
     })
 }
 
+fn estimated_complexity(report: &EstimateLibraryComplexityPrealignReportV1) -> Option<f64> {
+    if report.insufficient_data_reason.is_some() {
+        None
+    } else {
+        Some(report.estimated_unique_fraction)
+    }
+}
+
 fn complexity_status(
     report: &EstimateLibraryComplexityPrealignReportV1,
 ) -> LocalEstimateLibraryComplexityPrealignSmokeStatus {
-    if report.reads_in == 0 {
+    if report.insufficient_data_reason.is_some() {
         LocalEstimateLibraryComplexityPrealignSmokeStatus::InsufficientReads
     } else {
         LocalEstimateLibraryComplexityPrealignSmokeStatus::ComplexityEstimated
@@ -145,8 +155,5 @@ fn resolve_plan_dir(repo_root: &Path, out_dir: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .display()
-        .to_string()
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
