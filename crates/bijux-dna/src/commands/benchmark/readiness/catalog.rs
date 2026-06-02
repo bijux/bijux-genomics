@@ -95,8 +95,10 @@ pub(crate) struct ReadinessStageAdmission {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct RegistryToolMatrix {
     pub(crate) tool_stage_pairs: BTreeSet<(String, String)>,
+    pub(crate) pair_sources: BTreeMap<(String, String), Vec<String>>,
     pub(crate) stage_ids_by_tool: BTreeMap<String, Vec<String>>,
     pub(crate) known_tool_ids: BTreeSet<String>,
+    pub(crate) stage_default_rationales: BTreeMap<String, String>,
 }
 
 pub(crate) fn load_benchmark_stage_ids(
@@ -212,8 +214,10 @@ pub(crate) fn load_registry_tool_matrix(repo_root: &Path) -> Result<RegistryTool
         toml::from_str(&raw).with_context(|| format!("parse {}", registry_path.display()))?;
 
     let mut tool_stage_pairs = BTreeSet::<(String, String)>::new();
+    let mut pair_sources = BTreeMap::<(String, String), BTreeSet<String>>::new();
     let mut stage_ids_by_tool = BTreeMap::<String, BTreeSet<String>>::new();
     let mut known_tool_ids = BTreeSet::<String>::new();
+    let mut stage_default_rationales = BTreeMap::<String, String>::new();
 
     for tool in value_array(&parsed, "tools", &registry_path)? {
         let tool_id = required_string(tool, "id", &registry_path)?;
@@ -223,12 +227,25 @@ pub(crate) fn load_registry_tool_matrix(repo_root: &Path) -> Result<RegistryTool
             .chain(string_list(tool, "bindings", &registry_path)?)
         {
             tool_stage_pairs.insert((stage_id.clone(), tool_id.clone()));
+            pair_sources
+                .entry((stage_id.clone(), tool_id.clone()))
+                .or_default()
+                .insert("tools".to_string());
             stage_ids_by_tool.entry(tool_id.clone()).or_default().insert(stage_id);
         }
     }
 
     for stage in value_array(&parsed, "stages", &registry_path)? {
         let stage_id = required_string(stage, "id", &registry_path)?;
+        let default_rationale = stage
+            .get("default_rationale")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("")
+            .trim()
+            .to_string();
+        if !default_rationale.is_empty() {
+            stage_default_rationales.insert(stage_id.clone(), default_rationale);
+        }
         for key in [
             "primary_tools",
             "optional_alternatives",
@@ -238,6 +255,10 @@ pub(crate) fn load_registry_tool_matrix(repo_root: &Path) -> Result<RegistryTool
             for tool_id in string_list(stage, key, &registry_path)? {
                 known_tool_ids.insert(tool_id.clone());
                 tool_stage_pairs.insert((stage_id.clone(), tool_id.clone()));
+                pair_sources
+                    .entry((stage_id.clone(), tool_id.clone()))
+                    .or_default()
+                    .insert(format!("stages.{key}"));
                 stage_ids_by_tool.entry(tool_id).or_default().insert(stage_id.clone());
             }
         }
@@ -245,11 +266,16 @@ pub(crate) fn load_registry_tool_matrix(repo_root: &Path) -> Result<RegistryTool
 
     Ok(RegistryToolMatrix {
         tool_stage_pairs,
+        pair_sources: pair_sources
+            .into_iter()
+            .map(|(pair, sources)| (pair, sources.into_iter().collect::<Vec<_>>()))
+            .collect(),
         stage_ids_by_tool: stage_ids_by_tool
             .into_iter()
             .map(|(tool_id, stage_ids)| (tool_id, stage_ids.into_iter().collect::<Vec<_>>()))
             .collect(),
         known_tool_ids,
+        stage_default_rationales,
     })
 }
 

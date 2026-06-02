@@ -50,6 +50,7 @@ pub use self::readiness::{
     BenchReadinessCommand, BenchReadinessRenderBamToolServingMapArgs,
     BenchReadinessRenderFastqToolServingMapArgs,
     BenchReadinessRenderMissingBenchmarkPairsArgs,
+    BenchReadinessRenderStageRegistryExtraPairsArgs,
     BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
     BenchReadinessRenderOrphanToolsArgs, BenchReadinessRenderUndercoveredStagesArgs,
 };

@@ -151,6 +151,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderStageRegistryExtraPairs(args) => {
+                        crate::commands::benchmark::readiness::stage_registry_extra_pairs::run_render_stage_registry_extra_pairs(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderUnregisteredBenchmarkPairs(args) => {
                         crate::commands::benchmark::readiness::unregistered_benchmark_pairs::run_render_unregistered_benchmark_pairs(
                             args,
