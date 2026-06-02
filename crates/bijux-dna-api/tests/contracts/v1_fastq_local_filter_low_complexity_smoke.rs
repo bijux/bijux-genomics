@@ -99,11 +99,25 @@ fn write_local_filter_low_complexity_smoke_report_materializes_governed_outputs(
     assert_eq!(case_report["reads_in"], serde_json::json!(3));
     assert_eq!(case_report["reads_out"], serde_json::json!(1));
     assert_eq!(case_report["reads_removed_low_complexity"], serde_json::json!(2));
+    assert_eq!(payload["input_reads"], case_report["reads_in"]);
+    assert_eq!(
+        payload["reads_removed_low_complexity"],
+        case_report["reads_removed_low_complexity"]
+    );
+    assert_eq!(payload["output_reads"], case_report["reads_out"]);
     assert_eq!(case_report["entropy_threshold"], serde_json::json!(0.6));
     assert_eq!(case_report["polyx_threshold"], serde_json::json!(8));
     assert_eq!(
         case_report["raw_backend_report_format"],
         serde_json::json!("bijux_filter_low_complexity_trace")
+    );
+    let case_filtered_fastq = repo_root.join(
+        case_report["output_r1"].as_str().unwrap_or_else(|| panic!("output_r1 missing")),
+    );
+    assert!(case_filtered_fastq.is_file(), "case-level filtered FASTQ must exist");
+    assert_eq!(
+        read_gz_fastq_sequences(&filtered_fastq)?,
+        read_gz_fastq_sequences(&case_filtered_fastq)?
     );
 
     let raw_backend_report = repo_root.join(
