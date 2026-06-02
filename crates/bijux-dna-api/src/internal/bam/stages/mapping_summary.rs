@@ -21,23 +21,26 @@ pub fn write_local_mapping_summary_smoke_summary() -> Result<PathBuf> {
     bijux_dna_infra::ensure_dir(&output_root)?;
 
     let mut body = String::from(
-        "sample_id\ttotal_reads\tmapped_reads\tmapping_fraction\treference_name\texpectation_matched\tmapping_summary_json\tflagstat\tidxstats\tsamtools_stats\tstage_metrics\n",
+        "sample_id\ttotal_reads\tmapped_reads\tunmapped_reads\tmapping_fraction\tsecondary_reads\tsupplementary_reads\treference_name\texpectation_matched\tmapping_summary_json\tflagstat\tidxstats\tstats\tstage_metrics\n",
     );
     for case in &cases {
         let row = materialize_local_mapping_summary_smoke_case(&repo_root, case)?;
         writeln!(
             body,
-            "{sample_id}\t{total_reads}\t{mapped_reads}\t{mapping_fraction:.6}\t{reference_name}\t{expectation_matched}\t{mapping_summary_json}\t{flagstat}\t{idxstats}\t{samtools_stats}\t{stage_metrics}",
+            "{sample_id}\t{total_reads}\t{mapped_reads}\t{unmapped_reads}\t{mapping_fraction:.6}\t{secondary_reads}\t{supplementary_reads}\t{reference_name}\t{expectation_matched}\t{mapping_summary_json}\t{flagstat}\t{idxstats}\t{stats}\t{stage_metrics}",
             sample_id = row.sample_id,
             total_reads = row.total_reads,
             mapped_reads = row.mapped_reads,
+            unmapped_reads = row.unmapped_reads,
             mapping_fraction = row.mapping_fraction,
+            secondary_reads = row.secondary_reads,
+            supplementary_reads = row.supplementary_reads,
             reference_name = row.reference_name,
             expectation_matched = row.expectation_matched,
             mapping_summary_json = row.mapping_summary_json,
             flagstat = row.flagstat,
             idxstats = row.idxstats,
-            samtools_stats = row.samtools_stats,
+            stats = row.stats,
             stage_metrics = row.stage_metrics,
         )
         .map_err(|error| anyhow!("write bam.mapping_summary local-smoke TSV row: {error}"))?;
@@ -52,13 +55,16 @@ struct LocalMappingSummarySmokeRow {
     sample_id: String,
     total_reads: u64,
     mapped_reads: u64,
+    unmapped_reads: u64,
     mapping_fraction: f64,
+    secondary_reads: u64,
+    supplementary_reads: u64,
     reference_name: String,
     expectation_matched: bool,
     mapping_summary_json: String,
     flagstat: String,
     idxstats: String,
-    samtools_stats: String,
+    stats: String,
     stage_metrics: String,
 }
 
@@ -75,7 +81,10 @@ fn materialize_local_mapping_summary_smoke_case(
 
     let total_reads = mapping_summary.flagstat.total_reads.unwrap_or(0);
     let mapped_reads = mapping_summary.flagstat.mapped_reads.unwrap_or(0);
+    let unmapped_reads = qc_pre_summary.unmapped_reads;
     let mapping_fraction = derived_mapping_fraction(total_reads, mapped_reads);
+    let secondary_reads = mapping_summary.secondary_reads.unwrap_or(0);
+    let supplementary_reads = mapping_summary.supplementary_reads.unwrap_or(0);
     let reference_name = qc_pre_summary
         .contig_summary
         .iter()
@@ -120,11 +129,12 @@ fn materialize_local_mapping_summary_smoke_case(
             "sample_id": case.sample_id,
             "total_reads": total_reads,
             "mapped_reads": mapped_reads,
+            "unmapped_reads": unmapped_reads,
             "mapping_fraction": mapping_fraction,
             "reference_name": reference_name,
             "proper_pair_reads": mapping_summary.proper_pair_reads,
-            "secondary_reads": mapping_summary.secondary_reads,
-            "supplementary_reads": mapping_summary.supplementary_reads,
+            "secondary_reads": secondary_reads,
+            "supplementary_reads": supplementary_reads,
             "read_group_ids": mapping_summary
                 .read_group_breakdown
                 .iter()
@@ -137,13 +147,16 @@ fn materialize_local_mapping_summary_smoke_case(
         sample_id: case.sample_id.clone(),
         total_reads,
         mapped_reads,
+        unmapped_reads,
         mapping_fraction,
+        secondary_reads,
+        supplementary_reads,
         reference_name,
         expectation_matched,
         mapping_summary_json: path_relative_to_repo(repo_root, &summary_path),
         flagstat: path_relative_to_repo(repo_root, &flagstat_path),
         idxstats: path_relative_to_repo(repo_root, &idxstats_path),
-        samtools_stats: path_relative_to_repo(repo_root, &stats_path),
+        stats: path_relative_to_repo(repo_root, &stats_path),
         stage_metrics: path_relative_to_repo(repo_root, &stage_metrics_path),
     })
 }
