@@ -81,24 +81,16 @@ fn write_local_remove_duplicates_smoke_report_materializes_governed_outputs() ->
     assert_eq!(payload["output_reads"], serde_json::json!(3));
 
     let dedup_fastq = repo_root.join(
-        payload["dedup_fastq_gz"]
-            .as_str()
-            .unwrap_or_else(|| panic!("dedup_fastq_gz missing")),
+        payload["dedup_fastq_gz"].as_str().unwrap_or_else(|| panic!("dedup_fastq_gz missing")),
     );
     assert!(dedup_fastq.is_file(), "top-level dedup FASTQ must exist");
     assert_eq!(
         read_gz_fastq_sequences(&dedup_fastq)?,
-        vec![
-            "ACGTACGT".to_string(),
-            "GGGGTTTT".to_string(),
-            "TTCCAAGG".to_string(),
-        ]
+        vec!["ACGTACGT".to_string(), "GGGGTTTT".to_string(), "TTCCAAGG".to_string(),]
     );
 
     let case_report_path = repo_root.join(
-        payload["case_report_json"]
-            .as_str()
-            .unwrap_or_else(|| panic!("case_report_json missing")),
+        payload["case_report_json"].as_str().unwrap_or_else(|| panic!("case_report_json missing")),
     );
     assert!(case_report_path.is_file(), "per-case dedup report must exist");
     let case_report: serde_json::Value =
@@ -108,6 +100,10 @@ fn write_local_remove_duplicates_smoke_report_materializes_governed_outputs() ->
     assert_eq!(case_report["reads_in"], serde_json::json!(4));
     assert_eq!(case_report["reads_out"], serde_json::json!(3));
     assert_eq!(case_report["duplicates_removed"], serde_json::json!(1));
+    assert_eq!(payload["input_reads"], case_report["reads_in"]);
+    assert_eq!(payload["duplicate_reads"], case_report["duplicates_removed"]);
+    assert_eq!(payload["unique_reads"], case_report["reads_out"]);
+    assert_eq!(payload["output_reads"], case_report["reads_out"]);
     assert_eq!(case_report["dedup_mode"], serde_json::json!("exact"));
     assert_eq!(case_report["keep_order"], serde_json::json!(true));
 
