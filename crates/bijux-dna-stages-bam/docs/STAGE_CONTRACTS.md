@@ -91,6 +91,12 @@ chr1	1	0.12	0.10
 {"schema_version":"bijux.stage.metrics.v1","stage_id":"bam.damage","tool_id":"pydamage","runtime_s":1.2,"wall_time_ms":1200,"memory_mb":256.0,"exit_code":0}
 ```
 
+### bam.validate
+- Required artifacts:
+`validation.json`, `flagstat.txt`, `stage.metrics.json`
+- Local smoke benchmark row:
+`validation.json` and `stage.metrics.json` must preserve the governed `alignment_fixture_encoding` field. The current governed validation fixture set is explicit `sam_text_proxy` coverage rather than binary BAM fixtures.
+
 ### bam.mapping_summary
 - Required artifacts:
 `flagstat.txt`, `idxstats.txt`, one governed `stats` artifact (`samtools_stats.txt` or `alignment_summary.metrics.txt`), `mapping.summary.json`, `stage.metrics.json`
