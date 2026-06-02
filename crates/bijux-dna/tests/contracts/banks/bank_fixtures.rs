@@ -8,8 +8,6 @@ use anyhow::{anyhow, Result};
 #[path = "../../support/workspace_paths.rs"]
 mod test_support;
 
-pub use test_support::{crate_root, repo_root};
-
 pub static CWD_LOCK: Mutex<()> = Mutex::new(());
 
 pub struct EnvGuard {
@@ -36,6 +34,14 @@ impl Drop for EnvGuard {
         }
         let _ = std::env::set_current_dir(&self.cwd);
     }
+}
+
+pub fn crate_root(name: &str) -> Result<PathBuf> {
+    test_support::crate_root(name)
+}
+
+pub fn repo_root() -> Result<PathBuf> {
+    test_support::repo_root()
 }
 
 pub fn with_repo_root<F, T>(f: F) -> Result<T>
