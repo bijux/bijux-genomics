@@ -24,7 +24,7 @@ in sync with `bijux-dna-domain-bam` when adding, renaming, or removing stages.
 | `bam.coverage` | core | mosdepth, samtools, bedtools | coverage summary and depth sidecar |
 | `bam.insert_size` | core | picard | insert-size metrics and histogram |
 | `bam.gc_bias` | core | picard | GC-bias metrics and plot |
-| `bam.endogenous_content` | core | samtools | endogenous-content report |
+| `bam.endogenous_content` | core | samtools | endogenous-content report and summary |
 | `bam.overlap_correction` | core | bamutil | overlap-corrected BAM and index |
 | `bam.damage` | downstream | pydamage, mapdamage2 | DNA damage reports |
 | `bam.authenticity` | downstream | authenticct | authenticity report |
@@ -132,6 +132,12 @@ chr1	1	0.12	0.10
 `gc_bias.metrics.txt`, `gc_bias.plot.pdf`, `gc_bias.summary.json`, `stage.metrics.json`
 - Local smoke benchmark row:
 `gc_bias.tsv` with governed GC-bin, normalized coverage, window count, and read-start count columns
+
+### bam.endogenous_content
+- Required artifacts:
+`endogenous.content.json`, `endogenous.summary.json`, `stage.metrics.json`
+- Local smoke benchmark row:
+`endogenous.content.json` and `stage.metrics.json` must preserve governed `total_reads`, `mapped_reads`, `endogenous_reads`, and `endogenous_fraction` semantics
 
 ## References
 
