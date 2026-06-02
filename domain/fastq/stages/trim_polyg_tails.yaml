@@ -63,6 +63,8 @@ metrics:
     meaning: "Mean base quality after polyG trimming."
   - name: "delta_metrics"
     meaning: "Derived read/base retention and quality deltas for polyG trimming."
+  - name: "trimmed_tail_count"
+    meaning: "Number of reads whose terminal polyG tail was trimmed."
   - name: "bases_trimmed_polyg"
     meaning: "Number of bases removed from polyG tails."
   - name: "polyx_bank_id"

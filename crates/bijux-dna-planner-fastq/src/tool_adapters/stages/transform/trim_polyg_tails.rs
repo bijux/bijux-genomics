@@ -314,6 +314,7 @@ fn wrap_polyg_command_with_report(
         pairs_out: None,
         mean_q_before: None,
         mean_q_after: None,
+        trimmed_tail_count: None,
         bases_trimmed_polyg: None,
         polyx_bank_id: None,
         polyx_bank_hash: None,

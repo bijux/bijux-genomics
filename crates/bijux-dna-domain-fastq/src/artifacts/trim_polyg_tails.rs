@@ -28,6 +28,7 @@ pub struct TrimPolygReportV1 {
     pub pairs_out: Option<u64>,
     pub mean_q_before: Option<f64>,
     pub mean_q_after: Option<f64>,
+    pub trimmed_tail_count: Option<u64>,
     pub bases_trimmed_polyg: Option<u64>,
     pub polyx_bank_id: Option<String>,
     pub polyx_bank_hash: Option<String>,
@@ -67,6 +68,7 @@ mod tests {
             pairs_out: Some(49),
             mean_q_before: Some(27.9),
             mean_q_after: Some(28.4),
+            trimmed_tail_count: Some(12),
             bases_trimmed_polyg: Some(180),
             polyx_bank_id: Some("polyx".to_string()),
             polyx_bank_hash: Some("sha256:polyx".to_string()),
@@ -88,6 +90,7 @@ mod tests {
         assert_eq!(decoded.tool_id, "fastp");
         assert_eq!(decoded.paired_mode, PairedMode::PairedEnd);
         assert_eq!(decoded.threads, 4);
+        assert_eq!(decoded.trimmed_tail_count, Some(12));
         assert_eq!(decoded.bases_trimmed_polyg, Some(180));
         assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("fastp_json"));
     }
