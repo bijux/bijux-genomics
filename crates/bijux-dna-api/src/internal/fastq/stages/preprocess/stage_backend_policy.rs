@@ -212,8 +212,12 @@ mod tests {
                 "unmerged_read_policy",
                 "reads_r1",
                 "reads_r2",
+                "input_pair_count",
                 "reads_merged",
                 "reads_unmerged",
+                "merged_pair_count",
+                "unmerged_pair_count",
+                "discarded_pair_count",
                 "merge_rate",
                 "raw_backend_report_format",
             ]
@@ -1008,8 +1012,12 @@ mod tests {
         assert_eq!(metrics["unmerged_read_policy"], serde_json::json!("omit_unmerged_pairs"));
         assert_eq!(metrics["reads_r1"], serde_json::json!(100));
         assert_eq!(metrics["reads_r2"], serde_json::json!(100));
+        assert_eq!(metrics["input_pair_count"], serde_json::json!(100));
         assert_eq!(metrics["reads_merged"], serde_json::json!(88));
         assert_eq!(metrics["reads_unmerged"], serde_json::json!(12));
+        assert_eq!(metrics["merged_pair_count"], serde_json::json!(88));
+        assert_eq!(metrics["unmerged_pair_count"], serde_json::json!(12));
+        assert_eq!(metrics["discarded_pair_count"], serde_json::json!(0));
         assert_eq!(metrics["merge_rate"], serde_json::json!(0.88));
         assert_eq!(metrics["raw_backend_report_format"], serde_json::Value::Null);
     }
@@ -1605,8 +1613,12 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "unmerged_read_policy",
             "reads_r1",
             "reads_r2",
+            "input_pair_count",
             "reads_merged",
             "reads_unmerged",
+            "merged_pair_count",
+            "unmerged_pair_count",
+            "discarded_pair_count",
             "merge_rate",
             "raw_backend_report_format",
         ],

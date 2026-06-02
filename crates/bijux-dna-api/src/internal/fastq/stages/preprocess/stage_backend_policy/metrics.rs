@@ -600,6 +600,12 @@ pub(crate) fn parse_merge_pairs_metrics(out_dir: &std::path::Path) -> serde_json
     let report_path = out_dir.join("merge_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_merge_pairs_report(&raw) {
+            let input_pair_count = report.reads_r1.min(report.reads_r2);
+            let merged_pair_count = report.reads_merged.min(input_pair_count);
+            let unmerged_pair_count =
+                report.reads_unmerged.min(input_pair_count.saturating_sub(merged_pair_count));
+            let discarded_pair_count =
+                input_pair_count.saturating_sub(merged_pair_count + unmerged_pair_count);
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.merge_pairs",
@@ -612,8 +618,12 @@ pub(crate) fn parse_merge_pairs_metrics(out_dir: &std::path::Path) -> serde_json
                 "unmerged_read_policy": report.unmerged_read_policy,
                 "reads_r1": report.reads_r1,
                 "reads_r2": report.reads_r2,
+                "input_pair_count": input_pair_count,
                 "reads_merged": report.reads_merged,
                 "reads_unmerged": report.reads_unmerged,
+                "merged_pair_count": merged_pair_count,
+                "unmerged_pair_count": unmerged_pair_count,
+                "discarded_pair_count": discarded_pair_count,
                 "merge_rate": report.merge_rate,
                 "runtime_s": report.runtime_s,
                 "memory_mb": report.memory_mb,
@@ -635,8 +645,12 @@ pub(crate) fn parse_merge_pairs_metrics(out_dir: &std::path::Path) -> serde_json
         "unmerged_read_policy": serde_json::Value::Null,
         "reads_r1": serde_json::Value::Null,
         "reads_r2": serde_json::Value::Null,
+        "input_pair_count": serde_json::Value::Null,
         "reads_merged": serde_json::Value::Null,
         "reads_unmerged": serde_json::Value::Null,
+        "merged_pair_count": serde_json::Value::Null,
+        "unmerged_pair_count": serde_json::Value::Null,
+        "discarded_pair_count": serde_json::Value::Null,
         "merge_rate": serde_json::Value::Null,
         "runtime_s": serde_json::Value::Null,
         "memory_mb": serde_json::Value::Null,
