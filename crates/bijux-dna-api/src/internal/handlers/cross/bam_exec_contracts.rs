@@ -203,7 +203,7 @@ mod tests {
         let temp = tempfile::tempdir()?;
         let stage_dir = temp.path().join("complexity");
         bijux_dna_infra::ensure_dir(&stage_dir)?;
-        bijux_dna_infra::atomic_write_bytes(&stage_dir.join("preseq.txt"), b"3\t2\n")?;
+        bijux_dna_infra::atomic_write_bytes(&stage_dir.join("complexity_curve.tsv"), b"3\t2\n")?;
         let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Complexity);
         plan.params = serde_json::json!({ "min_reads": 3, "projection_points": [6, 12] });
         plan.io.inputs[0].path = stage_dir.join("input.bam");

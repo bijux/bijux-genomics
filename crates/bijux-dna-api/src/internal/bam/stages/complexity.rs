@@ -24,9 +24,11 @@ struct LocalComplexitySmokeReport {
     observed_total_reads: u64,
     observed_unique_reads: u64,
     estimated_unique_reads: Option<u64>,
+    estimated_library_size: Option<u64>,
+    saturation_estimate: Option<f64>,
     insufficient_data_reason: Option<String>,
     complexity_report: String,
-    preseq: String,
+    complexity_curve: String,
     complexity_summary: String,
     stage_metrics: String,
 }
@@ -41,6 +43,7 @@ struct LocalComplexityObservation {
     observed_unique_reads: u64,
     projected_unique_reads: Vec<(u64, u64)>,
     estimated_unique_reads: Option<u64>,
+    estimated_library_size: Option<u64>,
     saturation_estimate: Option<f64>,
     min_reads: u64,
     insufficient_data_reason: Option<String>,
@@ -101,7 +104,7 @@ fn materialize_local_complexity_smoke_case(
     bijux_dna_infra::ensure_dir(&case_out_dir)?;
 
     let complexity_report_path = resolve_output_path(repo_root, &case.plan, "complexity_report")?;
-    let preseq_path = resolve_output_path(repo_root, &case.plan, "preseq")?;
+    let complexity_curve_path = resolve_output_path(repo_root, &case.plan, "complexity_curve")?;
     let complexity_summary_path = resolve_output_path(repo_root, &case.plan, "summary")?;
     let stage_metrics_path = resolve_output_path(repo_root, &case.plan, "stage_metrics")?;
 
@@ -123,13 +126,17 @@ fn materialize_local_complexity_smoke_case(
         observed_unique_reads: summary.observed_unique_reads,
         projected_unique_reads: summary.projected_unique_reads.clone(),
         estimated_unique_reads: summary.estimated_unique_reads,
+        estimated_library_size: summary.estimated_library_size,
         saturation_estimate: summary.saturation_estimate,
         min_reads: summary.min_reads,
         insufficient_data_reason: summary.insufficient_data_reason.clone(),
     };
 
     bijux_dna_infra::atomic_write_json(&complexity_report_path, &observation)?;
-    bijux_dna_infra::atomic_write_bytes(&preseq_path, render_preseq(&summary).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(
+        &complexity_curve_path,
+        render_complexity_curve(&summary).as_bytes(),
+    )?;
     bijux_dna_infra::atomic_write_json(&complexity_summary_path, &summary)?;
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
@@ -141,6 +148,8 @@ fn materialize_local_complexity_smoke_case(
             "observed_total_reads": summary.observed_total_reads,
             "observed_unique_reads": summary.observed_unique_reads,
             "estimated_unique_reads": summary.estimated_unique_reads,
+            "estimated_library_size": summary.estimated_library_size,
+            "saturation_estimate": summary.saturation_estimate,
             "min_reads": summary.min_reads,
             "insufficient_data_reason": summary.insufficient_data_reason,
         }),
@@ -161,9 +170,11 @@ fn materialize_local_complexity_smoke_case(
         observed_total_reads: summary.observed_total_reads,
         observed_unique_reads: summary.observed_unique_reads,
         estimated_unique_reads: summary.estimated_unique_reads,
+        estimated_library_size: summary.estimated_library_size,
+        saturation_estimate: summary.saturation_estimate,
         insufficient_data_reason: summary.insufficient_data_reason.clone(),
         complexity_report: path_relative_to_repo(repo_root, &complexity_report_path),
-        preseq: path_relative_to_repo(repo_root, &preseq_path),
+        complexity_curve: path_relative_to_repo(repo_root, &complexity_curve_path),
         complexity_summary: path_relative_to_repo(repo_root, &complexity_summary_path),
         stage_metrics: path_relative_to_repo(repo_root, &stage_metrics_path),
     })
@@ -174,8 +185,8 @@ fn summarize_stage_complexity_outputs(
     plan: &bijux_dna_stage_contract::StagePlanV1,
     input_bam: &Path,
 ) -> Result<bijux_dna_domain_bam::BamComplexitySummaryV1> {
-    let preseq_path = stage_dir.join("preseq.txt");
-    let complexity = bijux_dna_domain_bam::metrics::parse_preseq_estimates(&preseq_path)?;
+    let complexity_curve_path = stage_dir.join("complexity_curve.tsv");
+    let complexity = bijux_dna_domain_bam::metrics::parse_preseq_estimates(&complexity_curve_path)?;
     let observed_total_reads =
         complexity.projected_reads.first().map(|(reads, _)| *reads).unwrap_or(0);
     let min_reads = plan.params.get("min_reads").and_then(serde_json::Value::as_u64).unwrap_or(0);
@@ -198,7 +209,7 @@ fn summarize_stage_complexity_outputs(
     ))
 }
 
-fn render_preseq(summary: &bijux_dna_domain_bam::BamComplexitySummaryV1) -> String {
+fn render_complexity_curve(summary: &bijux_dna_domain_bam::BamComplexitySummaryV1) -> String {
     let mut rendered = String::new();
     for (reads, projected_unique_reads) in &summary.projected_unique_reads {
         use std::fmt::Write as _;

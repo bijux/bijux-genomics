@@ -52,6 +52,8 @@ fn write_local_complexity_smoke_report_materializes_governed_outputs() -> Result
     assert_eq!(payload["observed_total_reads"], serde_json::json!(3));
     assert_eq!(payload["observed_unique_reads"], serde_json::json!(2));
     assert_eq!(payload["estimated_unique_reads"], serde_json::Value::Null);
+    assert_eq!(payload["estimated_library_size"], serde_json::Value::Null);
+    assert_eq!(payload["saturation_estimate"], serde_json::Value::Null);
     assert_eq!(
         payload["insufficient_data_reason"],
         serde_json::json!("insufficient_observed_unique_reads_for_complexity_extrapolation")
@@ -62,8 +64,11 @@ fn write_local_complexity_smoke_report_materializes_governed_outputs() -> Result
             .as_str()
             .unwrap_or_else(|| panic!("complexity_report path missing")),
     );
-    let preseq =
-        repo_root.join(payload["preseq"].as_str().unwrap_or_else(|| panic!("preseq path missing")));
+    let complexity_curve = repo_root.join(
+        payload["complexity_curve"]
+            .as_str()
+            .unwrap_or_else(|| panic!("complexity_curve path missing")),
+    );
     let complexity_summary = repo_root.join(
         payload["complexity_summary"]
             .as_str()
@@ -72,7 +77,7 @@ fn write_local_complexity_smoke_report_materializes_governed_outputs() -> Result
     let stage_metrics = repo_root.join(
         payload["stage_metrics"].as_str().unwrap_or_else(|| panic!("stage_metrics path missing")),
     );
-    for path in [&complexity_report, &preseq, &complexity_summary, &stage_metrics] {
+    for path in [&complexity_report, &complexity_curve, &complexity_summary, &stage_metrics] {
         assert!(path.is_file(), "governed BAM complexity artifact must exist: {}", path.display());
     }
 
@@ -86,13 +91,15 @@ fn write_local_complexity_smoke_report_materializes_governed_outputs() -> Result
     assert_eq!(observation_json["observed_total_reads"], serde_json::json!(3));
     assert_eq!(observation_json["observed_unique_reads"], serde_json::json!(2));
     assert_eq!(observation_json["projected_unique_reads"], serde_json::json!([[3, 2]]));
+    assert_eq!(observation_json["estimated_library_size"], serde_json::Value::Null);
+    assert_eq!(observation_json["saturation_estimate"], serde_json::Value::Null);
     assert_eq!(
         observation_json["insufficient_data_reason"],
         serde_json::json!("insufficient_observed_unique_reads_for_complexity_extrapolation")
     );
 
-    let preseq_body = std::fs::read_to_string(&preseq)?;
-    assert_eq!(preseq_body, "3\t2\n");
+    let complexity_curve_body = std::fs::read_to_string(&complexity_curve)?;
+    assert_eq!(complexity_curve_body, "3\t2\n");
 
     let summary_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&complexity_summary)?)?;
@@ -102,6 +109,8 @@ fn write_local_complexity_smoke_report_materializes_governed_outputs() -> Result
     assert_eq!(summary_json["observed_unique_reads"], serde_json::json!(2));
     assert_eq!(summary_json["projected_unique_reads"], serde_json::json!([[3, 2]]));
     assert_eq!(summary_json["estimated_unique_reads"], serde_json::Value::Null);
+    assert_eq!(summary_json["estimated_library_size"], serde_json::Value::Null);
+    assert_eq!(summary_json["saturation_estimate"], serde_json::Value::Null);
     assert_eq!(summary_json["min_reads"], serde_json::json!(3));
     assert_eq!(
         summary_json["insufficient_data_reason"],
@@ -117,6 +126,8 @@ fn write_local_complexity_smoke_report_materializes_governed_outputs() -> Result
     assert_eq!(stage_metrics_json["method"], serde_json::json!("preseq"));
     assert_eq!(stage_metrics_json["observed_total_reads"], serde_json::json!(3));
     assert_eq!(stage_metrics_json["observed_unique_reads"], serde_json::json!(2));
+    assert_eq!(stage_metrics_json["estimated_library_size"], serde_json::Value::Null);
+    assert_eq!(stage_metrics_json["saturation_estimate"], serde_json::Value::Null);
     assert_eq!(
         stage_metrics_json["insufficient_data_reason"],
         serde_json::json!("insufficient_observed_unique_reads_for_complexity_extrapolation")

@@ -228,7 +228,7 @@ fn stage_postprocess(
             bijux_dna_infra::atomic_write_json(
                 &path,
                 &serde_json::json!({
-                    "preseq": stage_dir.join("preseq.txt"),
+                    "complexity_curve": stage_dir.join("complexity_curve.tsv"),
                     "complexity_report": stage_dir.join("complexity.json"),
                     "summary": stage_dir.join("complexity.summary.json"),
                 }),
