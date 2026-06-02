@@ -24,7 +24,8 @@ pub mod stage_api {
         LocalInsertSizeSmokeCasePlan, LocalLengthFilterSmokeCasePlan,
         LocalMappingSummarySmokeCasePlan, LocalMapqFilterSmokeCasePlan, LocalMarkdupSmokeCasePlan,
         LocalOverlapCorrectionSmokeCasePlan, LocalQcPreSmokeCasePlan,
-        LocalRecalibrationSmokeCasePlan, LocalSexSmokeCasePlan, LocalValidateSmokeCasePlan,
+        LocalRecalibrationSmokeCasePlan, LocalSexSmokeCasePlan,
+        LocalValidateAlignmentFixtureEncoding, LocalValidateSmokeCasePlan,
     };
     #[cfg(feature = "bam_downstream")]
     pub use crate::local_smoke::{

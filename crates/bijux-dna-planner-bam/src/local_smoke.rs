@@ -72,6 +72,7 @@ const DEFAULT_LOCAL_KINSHIP_OUTPUT_DIR: &str = "target/local-smoke/bam.kinship";
 pub struct LocalValidateSmokeCasePlan {
     pub sample_id: String,
     pub bam: PathBuf,
+    pub alignment_fixture_encoding: LocalValidateAlignmentFixtureEncoding,
     pub bam_index: Option<PathBuf>,
     pub reference_fasta: Option<PathBuf>,
     pub expect_pass: bool,
@@ -362,6 +363,12 @@ pub struct LocalKinshipSmokeCasePlan {
     pub plan: bijux_dna_stage_contract::StagePlanV1,
 }
 
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum LocalValidateAlignmentFixtureEncoding {
+    SamTextProxy,
+}
+
 #[derive(Debug, Deserialize)]
 struct LocalValidateSmokeConfig {
     schema_version: String,
@@ -588,6 +595,7 @@ struct LocalKinshipSmokeConfig {
 struct LocalValidateSmokeCase {
     sample_id: String,
     bam: PathBuf,
+    alignment_fixture_encoding: LocalValidateAlignmentFixtureEncoding,
     #[serde(default)]
     bam_index: Option<PathBuf>,
     #[serde(default)]
@@ -1548,6 +1556,7 @@ fn build_local_validate_smoke_case(
     Ok(LocalValidateSmokeCasePlan {
         sample_id: case.sample_id,
         bam: case.bam,
+        alignment_fixture_encoding: case.alignment_fixture_encoding,
         bam_index: case.bam_index,
         reference_fasta: case.reference_fasta,
         expect_pass: case.expect_pass,
