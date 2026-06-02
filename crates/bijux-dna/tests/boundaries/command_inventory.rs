@@ -95,6 +95,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-unregistered-benchmark-pairs",
     "bijux-dna bench readiness render-orphan-tools",
     "bijux-dna bench readiness render-undercovered-stages",
+    "bijux-dna bench readiness validate-tool-execution-modes",
     "bijux-dna bench readiness validate-tool-families",
     "bijux-dna bench local list-stages",
     "bijux-dna bench local validate-hpc-submission-ready",
