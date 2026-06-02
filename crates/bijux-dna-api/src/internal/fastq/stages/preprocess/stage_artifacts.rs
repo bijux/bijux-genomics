@@ -761,11 +761,28 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 bijux_dna_domain_fastq::observer::parse_normalize_primers_report(&raw).ok()
             });
             Some(serde_json::json!({
-                "schema_version": "bijux.fastq.normalize_primers.extra_artifacts.v2",
+                "schema_version": "bijux.fastq.normalize_primers.extra_artifacts.v3",
                 "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
                 "primer_set_id": governed.as_ref().map(|report| report.primer_set_id.clone()),
                 "marker_id": governed.as_ref().and_then(|report| report.marker_id.clone()),
                 "orientation_policy": governed.as_ref().map(|report| report.orientation_policy.clone()),
+                "normalized_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "normalized_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
+                "matched_primers": governed.as_ref().and_then(|report| report.primer_trimmed_reads),
+                "unmatched_reads": governed.as_ref().and_then(|report| {
+                    report
+                        .reads_in
+                        .zip(report.primer_trimmed_reads)
+                        .map(|(reads_in, matched_primers)| reads_in.saturating_sub(matched_primers))
+                }),
+                "trimmed_primer_bases": governed.as_ref().and_then(|report| {
+                    report
+                        .bases_in
+                        .zip(report.bases_out)
+                        .map(|(bases_in, bases_out)| bases_in.saturating_sub(bases_out))
+                }),
                 "primer_orientation_report": governed.as_ref().map(|report| report.primer_orientation_report.clone()),
                 "primer_stats_json": governed.as_ref().map(|report| report.primer_stats_json.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
@@ -991,6 +1008,61 @@ mod stage_artifact_tests {
             stderr: String::new(),
             command: "bowtie2".to_string(),
         }
+    }
+
+    fn normalize_primers_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "normalize-primers-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 2.4,
+            memory_mb: 80.0,
+            outputs: vec![stage_root.join("normalize_primers_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "cutadapt".to_string(),
+        }
+    }
+
+    fn write_normalize_primers_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("normalize_primers_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.normalize_primers.report.v2",
+                "stage": "fastq.normalize_primers",
+                "stage_id": "fastq.normalize_primers",
+                "tool_id": "cutadapt",
+                "paired_mode": "paired_end",
+                "primer_set_id": "16S_universal_v1",
+                "marker_id": "16S",
+                "primer_fasta": "assets/reference/primers/16S_universal_v1.fasta",
+                "orientation_policy": "normalize_to_forward_primer",
+                "max_mismatch_rate": 0.1,
+                "min_overlap_bp": 10,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "normalized_R1.fastq.gz",
+                "output_r2": "normalized_R2.fastq.gz",
+                "reads_in": 200,
+                "reads_out": 200,
+                "bases_in": 1000,
+                "bases_out": 980,
+                "pairs_in": 100,
+                "pairs_out": 100,
+                "primer_trimmed_reads": 190,
+                "primer_trimmed_fraction": 0.95,
+                "orientation_forward_fraction": 0.93,
+                "primer_orientation_report": "primer_orientation.tsv",
+                "primer_stats_json": "primer_stats.json",
+                "raw_backend_report": "primer_stats.json",
+                "raw_backend_report_format": "cutadapt_json",
+                "runtime_s": 2.4,
+                "memory_mb": 80.0,
+                "used_fallback": false,
+                "backend_metrics": {}
+            }"#,
+        )?;
+        Ok(())
     }
 
     fn write_host_report(stage_root: &std::path::Path) -> Result<()> {
@@ -2314,6 +2386,36 @@ mod stage_artifact_tests {
         assert_eq!(
             extra["report_json"],
             serde_json::json!(temp.path().join("trim_polyg_tails_report.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn normalize_primers_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_normalize_primers_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.normalize_primers",
+            &normalize_primers_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("cutadapt"));
+        assert_eq!(extra["paired_mode"], serde_json::json!("paired_end"));
+        assert_eq!(extra["primer_set_id"], serde_json::json!("16S_universal_v1"));
+        assert_eq!(extra["normalized_reads_r1"], serde_json::json!("normalized_R1.fastq.gz"));
+        assert_eq!(extra["normalized_reads_r2"], serde_json::json!("normalized_R2.fastq.gz"));
+        assert_eq!(extra["matched_primers"], serde_json::json!(190));
+        assert_eq!(extra["unmatched_reads"], serde_json::json!(10));
+        assert_eq!(extra["trimmed_primer_bases"], serde_json::json!(20));
+        assert_eq!(extra["primer_orientation_report"], serde_json::json!("primer_orientation.tsv"));
+        assert_eq!(extra["primer_stats_json"], serde_json::json!("primer_stats.json"));
+        assert_eq!(extra["raw_backend_report_format"], serde_json::json!("cutadapt_json"));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("normalize_primers_report.json"))
         );
         Ok(())
     }
