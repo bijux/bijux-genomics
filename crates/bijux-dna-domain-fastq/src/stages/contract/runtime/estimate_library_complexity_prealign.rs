@@ -6,6 +6,7 @@ use anyhow::{anyhow, Result};
 use crate::artifacts::{
     EstimateLibraryComplexityPrealignReportV1,
     ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_REPORT_SCHEMA_VERSION,
+    PREALIGN_COMPLEXITY_INSUFFICIENT_DATA_REASON,
 };
 use crate::params::PairedMode;
 
@@ -70,7 +71,8 @@ pub fn estimate_library_complexity_prealign(
     let unique_units = signatures.len() as u64;
     let estimated_unique_fraction =
         if unit_count == 0 { 0.0 } else { unique_units as f64 / unit_count as f64 };
-    let estimated_duplicate_fraction = 1.0 - estimated_unique_fraction;
+    let estimated_duplicate_fraction =
+        if unit_count == 0 { 0.0 } else { 1.0 - estimated_unique_fraction };
 
     Ok(EstimateLibraryComplexityPrealignReportV1 {
         schema_version: ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_REPORT_SCHEMA_VERSION.to_string(),
@@ -85,13 +87,20 @@ pub fn estimate_library_complexity_prealign(
         reads_in: if paired { (left.len() as u64).saturating_mul(2) } else { left.len() as u64 },
         estimated_unique_fraction,
         estimated_duplicate_fraction,
+        insufficient_data_reason: if unit_count == 0 {
+            Some(PREALIGN_COMPLEXITY_INSUFFICIENT_DATA_REASON.to_string())
+        } else {
+            None
+        },
         kmer_size: Some(effective_k as u32),
     })
 }
 
 #[cfg(test)]
 mod tests {
-    use super::estimate_library_complexity_prealign;
+    use super::{
+        estimate_library_complexity_prealign, PREALIGN_COMPLEXITY_INSUFFICIENT_DATA_REASON,
+    };
 
     fn write_fastq(path: &std::path::Path, records: &[(&str, &str, &str)]) -> anyhow::Result<()> {
         let mut payload = String::new();
@@ -119,6 +128,25 @@ mod tests {
         let report = estimate_library_complexity_prealign(&r1, None, Some(4))?;
         assert_eq!(report.reads_in, 3);
         assert!(report.estimated_duplicate_fraction > 0.0);
+        assert_eq!(report.insufficient_data_reason, None);
+        Ok(())
+    }
+
+    #[test]
+    fn estimate_library_complexity_reports_insufficient_data_for_empty_input() -> anyhow::Result<()>
+    {
+        let temp = bijux_dna_infra::temp_dir("bijux-estimate-complexity-empty")?;
+        let r1 = temp.path().join("r1.fastq");
+        std::fs::write(&r1, "")?;
+
+        let report = estimate_library_complexity_prealign(&r1, None, Some(4))?;
+        assert_eq!(report.reads_in, 0);
+        assert_eq!(report.estimated_unique_fraction, 0.0);
+        assert_eq!(report.estimated_duplicate_fraction, 0.0);
+        assert_eq!(
+            report.insufficient_data_reason.as_deref(),
+            Some(PREALIGN_COMPLEXITY_INSUFFICIENT_DATA_REASON)
+        );
         Ok(())
     }
 }

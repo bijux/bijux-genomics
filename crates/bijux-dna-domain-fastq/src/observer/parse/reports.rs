@@ -1,5 +1,7 @@
 use anyhow::{Context, Result};
 
+use crate::EstimateLibraryComplexityPrealignReportV1;
+
 use super::{
     ClusterOtusReportV1, DetectDuplicatesPremergeReportV1, FilterReadsReportV1,
     IndexReferenceReportV1, InferAsvsReportV1, MergePairsReportV1, NormalizeAbundanceReportV1,
@@ -25,6 +27,15 @@ pub fn parse_detect_duplicates_premerge_report(
     report_json: &str,
 ) -> Result<DetectDuplicatesPremergeReportV1> {
     serde_json::from_str(report_json).context("parse detect duplicates premerge report")
+}
+
+/// # Errors
+/// Returns an error if the governed estimate-library-complexity-prealign report JSON cannot be
+/// parsed.
+pub fn parse_estimate_library_complexity_prealign_report(
+    report_json: &str,
+) -> Result<EstimateLibraryComplexityPrealignReportV1> {
+    serde_json::from_str(report_json).context("parse estimate library complexity prealign report")
 }
 
 /// # Errors

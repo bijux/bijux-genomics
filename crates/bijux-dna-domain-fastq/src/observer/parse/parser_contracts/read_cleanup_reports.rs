@@ -29,6 +29,37 @@ fn parse_detect_duplicates_premerge_report_parses_governed_json() -> Result<()> 
 }
 
 #[test]
+fn parse_estimate_library_complexity_prealign_report_parses_governed_json() -> Result<()> {
+    let parsed = parse_estimate_library_complexity_prealign_report(
+        &serde_json::json!({
+            "schema_version": "bijux.fastq.estimate_library_complexity_prealign.report.v1",
+            "stage": "fastq.estimate_library_complexity_prealign",
+            "stage_id": "fastq.estimate_library_complexity_prealign",
+            "tool_id": "bijux",
+            "paired_mode": "single_end",
+            "complexity_policy": "prealign_kmer",
+            "estimate_method": "kmer_redundancy",
+            "modifies_reads": false,
+            "advisory_only": true,
+            "reads_in": 0,
+            "estimated_unique_fraction": 0.0,
+            "estimated_duplicate_fraction": 0.0,
+            "insufficient_data_reason": "insufficient_reads_for_prealign_complexity_estimation",
+            "kmer_size": 31
+        })
+        .to_string(),
+    )?;
+    assert_eq!(parsed.tool_id, "bijux");
+    assert_eq!(parsed.reads_in, 0);
+    assert_eq!(
+        parsed.insufficient_data_reason.as_deref(),
+        Some("insufficient_reads_for_prealign_complexity_estimation")
+    );
+    assert_f64_eq(parsed.estimated_unique_fraction, 0.0);
+    Ok(())
+}
+
+#[test]
 fn parse_deduplicate_report_parses_fixture() -> Result<()> {
     let raw =
             include_str!("../../../../../bijux-dna-stages-fastq/tests/fixtures/deduplicate/default/deduplicate_report_v1.json");

@@ -40,7 +40,8 @@ pub(super) mod tool_metrics;
 pub use self::sequence::{parse_fastqvalidator_count, parse_length_histogram, parse_seqkit_stats};
 
 pub use self::reports::{
-    parse_cluster_otus_report, parse_detect_duplicates_premerge_report, parse_filter_reads_report,
+    parse_cluster_otus_report, parse_detect_duplicates_premerge_report,
+    parse_estimate_library_complexity_prealign_report, parse_filter_reads_report,
     parse_index_reference_report, parse_infer_asvs_report, parse_merge_pairs_report,
     parse_normalize_abundance_report, parse_normalize_primers_report, parse_report_qc_report,
     parse_screen_taxonomy_report, parse_terminal_damage_report, parse_trim_polyg_report,
