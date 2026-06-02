@@ -99,6 +99,8 @@ metric_ids:
   - duplicate_signal_fraction
   - duplicates_removed
   - duplication_rate
+  - estimated_complexity
+  - insufficient_data_reason
   - emit_unclassified
   - execution_policy
   - failure_class

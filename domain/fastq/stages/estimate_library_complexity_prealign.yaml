@@ -16,8 +16,14 @@ parameters:
     param_type: "string"
     default: "prealign_kmer"
 metrics:
+  - name: "reads_in"
+    meaning: "Number of reads inspected by the governed prealignment library-complexity estimator."
+  - name: "estimated_complexity"
+    meaning: "Canonical prealignment complexity estimate exposed for comparison rows when input data is sufficient."
   - name: "estimated_duplicate_fraction"
     meaning: "Prealignment estimate of library duplication or redundancy."
+  - name: "insufficient_data_reason"
+    meaning: "Deterministic reason emitted when the governed estimator cannot produce a comparable complexity estimate."
 description: "Estimate FASTQ library complexity before alignment-dependent duplicate marking is available."
 required_inputs:
   - reads
