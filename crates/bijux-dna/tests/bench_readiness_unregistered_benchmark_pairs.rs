@@ -123,6 +123,17 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
             "fastq.trim_reads / {tool_id} must not drift against the registry"
         );
     }
+    for tool_id in ["bbduk", "fastp", "prinseq", "seqkit"] {
+        assert!(
+            !rows.iter().any(|row| {
+                row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+                    && row.get("stage_id").and_then(serde_json::Value::as_str)
+                        == Some("fastq.filter_reads")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            }),
+            "fastq.filter_reads / {tool_id} must not drift against the registry"
+        );
+    }
     assert!(
         rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
