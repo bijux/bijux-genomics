@@ -46,6 +46,12 @@ parameters:
     param_type: "bool"
     default: "false"
 metrics:
+  - name: "corrected_reads"
+    meaning: "Number of reads emitted through the corrected FASTQ outputs"
+  - name: "changed_reads"
+    meaning: "Number of reads whose sequence or quality changed during correction"
+  - name: "unchanged_reads"
+    meaning: "Number of reads preserved byte-equivalent across correction outputs"
   - name: "reads_in"
     meaning: "Number of input reads"
   - name: "reads_out"
