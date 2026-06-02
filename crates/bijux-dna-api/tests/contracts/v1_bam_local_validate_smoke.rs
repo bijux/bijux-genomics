@@ -49,6 +49,7 @@ fn write_local_validate_smoke_report_materializes_governed_outputs() -> Result<(
     assert_eq!(cases.len(), 2);
     assert!(cases.iter().any(|case| {
         case["sample_id"] == serde_json::json!("core-v1-coordinate-pass")
+            && case["alignment_fixture_encoding"] == serde_json::json!("sam_text_proxy")
             && case["validation_status"] == serde_json::json!("pass")
             && case["validation_errors"] == serde_json::json!([])
             && case["validation_warnings"] == serde_json::json!([])
@@ -64,6 +65,7 @@ fn write_local_validate_smoke_report_materializes_governed_outputs() -> Result<(
     }));
     assert!(cases.iter().any(|case| {
         case["sample_id"] == serde_json::json!("core-v1-malformed-refusal")
+            && case["alignment_fixture_encoding"] == serde_json::json!("sam_text_proxy")
             && case["validation_status"] == serde_json::json!("refusal")
             && case["validation_errors"] == serde_json::json!(["malformed_alignment_record"])
             && case["validation_warnings"] == serde_json::json!([])
@@ -96,6 +98,10 @@ fn write_local_validate_smoke_report_materializes_governed_outputs() -> Result<(
         let stage_metrics_payload: serde_json::Value =
             serde_json::from_str(&std::fs::read_to_string(&stage_metrics)?)?;
         assert_eq!(stage_metrics_payload["stage_id"], serde_json::json!("bam.validate"));
+        assert_eq!(
+            stage_metrics_payload["alignment_fixture_encoding"], case["alignment_fixture_encoding"],
+            "stage metrics must retain the governed alignment fixture encoding"
+        );
         assert_eq!(
             stage_metrics_payload["validation_status"], case["validation_status"],
             "stage metrics must retain the validation status alias"
