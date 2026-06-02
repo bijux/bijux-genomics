@@ -108,7 +108,7 @@ The governed BAM damage comparison surface now admits `mapdamage2`, `pydamage`, 
 - Required artifacts:
 `validation.json`, `flagstat.txt`, `stage.metrics.json`
 - Local smoke benchmark row:
-`validation.json` and `stage.metrics.json` must preserve the governed `alignment_fixture_encoding` field. The current governed validation fixture set is explicit `sam_text_proxy` coverage rather than binary BAM fixtures.
+`validation.json` and `stage.metrics.json` must preserve the governed `alignment_fixture_encoding` field. The current governed validation fixture set uses an explicit binary BAM pass fixture and a malformed BAM refusal fixture.
 
 ### bam.mapping_summary
 - Required artifacts:

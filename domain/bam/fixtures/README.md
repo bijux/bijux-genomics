@@ -11,9 +11,9 @@ Each fixture file under domain/bam/fixtures/STAGE_ID/*.txt must define:
 - `expected_outputs=<artifact ids or token>`
 - `expected_stdout_patterns=<token list or placeholder>`
 
-For `bam.validate` local-smoke coverage, the governed mini-corpus alignment inputs are explicit
-`sam_text_proxy` fixtures. They retain BAM-stage semantics for deterministic contract checks while
-staying honest that the fixture payload itself is SAM text plus sibling sidecars.
+For `bam.validate` local-smoke coverage, the governed passing fixture is an explicit tiny binary
+BAM with a sibling BAI and shared reference FASTA. The refusal case is an explicit malformed BAM
+payload so deterministic contract checks exercise real BAM parsing rather than SAM-text proxies.
 
 ## Fixture Directories
 - `bam.align`: intent = stage-specific command contract coverage for `bam.align`.
