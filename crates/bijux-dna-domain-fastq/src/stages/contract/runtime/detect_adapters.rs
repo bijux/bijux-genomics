@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use anyhow::Result;
+use sha2::{Digest, Sha256};
 
 use crate::artifacts::{DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION};
 use crate::banks::AdapterBankV1;
@@ -30,14 +31,25 @@ struct DetectionSummary {
 }
 
 fn load_embedded_adapter_candidates() -> Result<Vec<CandidateAdapter>> {
-    let bank: AdapterBankV1 =
-        bijux_dna_infra::formats::parse_yaml(ADAPTER_BANK_YAML).map_err(anyhow::Error::from)?;
+    let bank = load_embedded_adapter_bank()?;
     Ok(bank
         .adapters
         .into_iter()
         .filter(|entry| !entry.sequence.contains('N'))
         .map(|entry| CandidateAdapter { id: entry.id, sequence: entry.sequence })
         .collect())
+}
+
+fn load_embedded_adapter_bank() -> Result<AdapterBankV1> {
+    let bank: AdapterBankV1 =
+        bijux_dna_infra::formats::parse_yaml(ADAPTER_BANK_YAML).map_err(anyhow::Error::from)?;
+    Ok(bank)
+}
+
+fn embedded_adapter_bank_hash() -> String {
+    let digest = Sha256::digest(ADAPTER_BANK_YAML.as_bytes());
+    let hex = digest.iter().map(|byte| format!("{byte:02x}")).collect::<String>();
+    format!("sha256:{hex}")
 }
 
 fn mean_q(qualities: impl Iterator<Item = String>) -> f64 {
@@ -221,13 +233,17 @@ pub fn detect_adapters(
     };
 
     let evidence_engine = params.evidence_engine.to_ascii_lowercase();
-    let normalized_engine = if evidence_engine.contains("cutadapt") {
+    let normalized_engine = if evidence_engine.contains("fastqc") {
+        "fastqc"
+    } else if evidence_engine.contains("cutadapt") {
         "cutadapt"
     } else if evidence_engine.contains("adapterremoval") {
         "adapterremoval"
     } else {
         "fastp"
     };
+    let adapter_bank = load_embedded_adapter_bank()?;
+    let adapter_bank_hash = embedded_adapter_bank_hash();
 
     Ok(DetectAdaptersReportV1 {
         schema_version: DETECT_ADAPTERS_REPORT_SCHEMA_VERSION.to_string(),
@@ -251,9 +267,9 @@ pub fn detect_adapters(
         report_json: report_json.display().to_string(),
         adapter_evidence_dir: adapter_evidence_dir.display().to_string(),
         recommended_adapter_bank_id: (detection.candidate_adapter_count > 0)
-            .then_some("illumina".to_string()),
+            .then_some(adapter_bank.bank_id),
         recommended_adapter_bank_hash: (detection.candidate_adapter_count > 0)
-            .then_some("sha256:governed-adapter-bank".to_string()),
+            .then_some(adapter_bank_hash),
         recommended_adapter_preset: (detection.candidate_adapter_count > 0)
             .then_some("illumina-default".to_string()),
         reads_in,
@@ -338,6 +354,52 @@ mod tests {
         assert_eq!(report.detection_threshold, Some(0.5));
         assert_eq!(report.detection_confidence, Some(0.5));
         assert!(report.recommended_adapter_preset.is_some());
+        Ok(())
+    }
+
+    #[test]
+    fn detect_adapters_preserves_fastqc_evidence_provenance() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-detect-adapters-fastqc")?;
+        let r1 = temp.path().join("r1.fastq");
+        write_fastq(
+            &r1,
+            &[("a", "ACGTAGATCGGAAGAGCTTT", "IIIIIIIIIIIIIIIIIIII")],
+        )?;
+
+        let params = DetectAdaptersEffectiveParams {
+            schema_version: "bijux.fastq.params.detect_adapters.v1".to_string(),
+            paired_mode: PairedMode::SingleEnd,
+            threads: 1,
+            sample_reads: None,
+            inspection_mode: AdapterInspectionMode::EvidenceOnly,
+            report_only: true,
+            evidence_engine: "fastqc".to_string(),
+            evidence_scope: AdapterEvidenceScope::FullInput,
+            evidence_format: AdapterEvidenceFormat::FastqcSummary,
+            evidence_artifact_id: "report_json".to_string(),
+        };
+
+        let report = detect_adapters(
+            &r1,
+            None,
+            &params,
+            &temp.path().join("detect.json"),
+            &temp.path().join("evidence"),
+            None,
+        )?;
+
+        assert_eq!(report.detected_adapter_source, "normalized_fastqc_evidence");
+        assert_eq!(report.raw_backend_report_format.as_deref(), Some("fastqc_normalized"));
+        assert_eq!(
+            report.recommended_adapter_bank_id.as_deref(),
+            Some("bijux-dna-fastq-adapter-bank")
+        );
+        assert!(
+            report
+                .recommended_adapter_bank_hash
+                .as_deref()
+                .is_some_and(|value| value.starts_with("sha256:"))
+        );
         Ok(())
     }
 
