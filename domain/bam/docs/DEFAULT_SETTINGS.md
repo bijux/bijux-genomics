@@ -42,7 +42,6 @@ Purpose: define deterministic defaults for every BAM stage contract.
 - `bam.genotyping`: default `gatk`.
 - `bam.kinship`: default `king`.
 
-single_tool_justification: bam.qc_pre
 single_tool_justification: bam.mapping_summary
 single_tool_justification: bam.complexity
 single_tool_justification: bam.insert_size
@@ -56,7 +55,7 @@ single_tool_justification: bam.haplogroups
 ## Default Rationale
 - `bam.align` rationale: prioritize stable alignment baseline with broad BAM ecosystem compatibility.
 - `bam.validate` rationale: use deterministic validation diagnostics for contract enforcement.
-- `bam.qc_pre` rationale: enforce early sanity checks before downstream filtering.
+- `bam.qc_pre` rationale: enforce early sanity checks before downstream filtering while preserving a governed reporting companion for operator-facing aggregation.
 - `bam.mapping_summary` rationale: preserve comparable mapping summaries across runs.
 - `bam.filter` rationale: minimize post-alignment variance while preserving interpretability.
 - `bam.mapq_filter` rationale: deterministic MAPQ gating for reproducible retention metrics.
@@ -84,3 +83,5 @@ single_tool_justification: bam.haplogroups
 - `bam.align`: current readiness stays `artifact_contract_only` until alignment mapping summaries are promoted from artifact presence to normalized BAM parser semantics.
 - `bam.validate`: the admitted `samtools`, `bedtools`, and `bamtools` benchmark rows must emit `validation_status`, `validation_errors`, `validation_warnings`, and `input_bam_identity`.
 - `bam.validate`: warning-grade findings are currently empty for governed fixtures; validation failures surface through deterministic refusal-code errors instead of a mixed warning/error model.
+- `bam.qc_pre`: the admitted `samtools` benchmark row and the governed `multiqc` reporting companion must preserve `total_reads`, `mapped_reads`, `unmapped_reads`, `duplicate_flagged_reads`, and `contig_summary`.
+- `bam.qc_pre`: `samtools` remains the primary executor for raw flagstat/idxstats/stats artifacts, while `multiqc` is currently plannable reporting coverage rather than a local-smoke execution backend.
