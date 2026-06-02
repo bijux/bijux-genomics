@@ -8,20 +8,40 @@ inputs:
     data_type: "bam"
     cardinality: "One"
 outputs:
-  - name: "insert_size_report_json"
+  - name: "insert_size_report"
+    data_type: "txt"
+    cardinality: "One"
+  - name: "insert_size_histogram"
+    data_type: "pdf"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
     data_type: "json"
     cardinality: "One"
 parameters: []
 metrics:
+  - name: "mean_insert_size"
+    meaning: "Mean observed insert size preserved in the governed BAM insert-size benchmark row"
+  - name: "median_insert_size"
+    meaning: "Median observed insert size preserved in the governed BAM insert-size benchmark row"
+  - name: "standard_deviation"
+    meaning: "Observed insert-size standard deviation preserved in the governed BAM insert-size benchmark row"
+  - name: "read_pairs"
+    meaning: "Observed proper-pair count preserved in the governed BAM insert-size benchmark row"
   - name: "runtime_s"
     meaning: "Wall-clock runtime in seconds"
   - name: "memory_mb"
     meaning: "Peak memory usage in MB"
-description: "BAM insert-size distribution stage contract."
+description: "BAM insert-size contract for governed distribution summaries, histogram output, and benchmark-facing paired-template metrics."
 required_inputs:
   - bam
 required_outputs:
-  - insert_size_report_json
+  - insert_size_report
+  - insert_size_histogram
+  - summary
+  - stage_metrics
 tool_capability_requirements:
   - bam_input
 invariants:
@@ -36,6 +56,7 @@ compatible_tools:
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "paired-end alignment metadata is available for insert-size inference"
+  - "admitted BAM insert-size tools must preserve the governed report, histogram, paired-template count, and insert-size summary contract"
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"

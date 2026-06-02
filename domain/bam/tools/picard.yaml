@@ -11,6 +11,15 @@ stage_ids: ["bam.markdup","bam.length_filter","bam.duplication_metrics","bam.ins
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 stage_contracts:
+  bam.insert_size:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "insert_size_report"
+      - "insert_size_histogram"
+      - "summary"
+      - "stage_metrics"
+    notes: "Picard insert-size coverage must preserve the governed insert-size report, histogram path, mean/median/standard-deviation metrics, and paired-template count contract."
   bam.duplication_metrics:
     required_inputs:
       - "bam"
