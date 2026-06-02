@@ -43,7 +43,7 @@ mod tests {
         parse_detect_duplicates_premerge_metrics,
         parse_estimate_library_complexity_prealign_metrics, parse_extract_umis_metrics,
         parse_filter_low_complexity_metrics, parse_filter_reads_metrics,
-        parse_index_reference_metrics, parse_merge_pairs_metrics,
+        parse_index_reference_metrics, parse_infer_asvs_metrics, parse_merge_pairs_metrics,
         parse_normalize_abundance_metrics, parse_normalize_primers_metrics,
         parse_profile_overrepresented_metrics, parse_profile_read_lengths_metrics,
         parse_profile_reads_metrics, parse_remove_duplicates_metrics, parse_report_qc_metrics,
@@ -1268,6 +1268,57 @@ mod tests {
     }
 
     #[test]
+    fn infer_asvs_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("infer_asvs_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.infer_asvs.report.v2",
+                "stage": "fastq.infer_asvs",
+                "stage_id": "fastq.infer_asvs",
+                "tool_id": "dada2",
+                "paired_mode": "single_end",
+                "denoising_method": "dada2",
+                "pooling_mode": "independent",
+                "chimera_policy": "remove_bimera_denovo",
+                "requires_r_runtime": true,
+                "output_table_kind": "asv_abundance_table",
+                "input_reads_r1": "trimmed_reads.fastq.gz",
+                "input_reads_r2": null,
+                "asv_table_tsv": "asv_table.tsv",
+                "asv_sequences_fasta": "representatives.fasta",
+                "taxonomy_ready_fasta": "taxonomy_ready.fasta",
+                "taxonomy_ready_fastq": "taxonomy_ready.fastq",
+                "report_json": "infer_asvs_report.json",
+                "asv_count": 18,
+                "sample_count": 4,
+                "representative_sequence_count": 18,
+                "used_fallback": false,
+                "raw_backend_report": "infer_asvs_report.json",
+                "raw_backend_report_format": "infer_asvs_governed_report_json",
+                "runtime_s": 12.4,
+                "memory_mb": 384.0,
+                "exit_code": 0,
+                "backend_metrics": {"nonchimera_reads": 1600}
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_infer_asvs_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("dada2"));
+        assert_eq!(metrics["denoising_method"], serde_json::json!("dada2"));
+        assert_eq!(metrics["asv_table_tsv"], serde_json::json!("asv_table.tsv"));
+        assert_eq!(
+            metrics["representative_sequences_fasta"],
+            serde_json::json!("representatives.fasta")
+        );
+        assert_eq!(metrics["asv_count"], serde_json::json!(18));
+        assert_eq!(metrics["sample_count"], serde_json::json!(4));
+    }
+
+    #[test]
     fn screen_taxonomy_standardized_metrics_prefer_governed_report() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("kraken2.classifications.json");
@@ -1912,6 +1963,16 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "table_rows",
             "sample_count",
             "zero_fraction",
+        ],
+        "fastq.infer_asvs" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "denoising_method",
+            "asv_table_tsv",
+            "representative_sequences_fasta",
+            "asv_count",
+            "sample_count",
         ],
         _ => &["schema_version", "stage"],
     }
