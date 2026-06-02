@@ -116,6 +116,10 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         !rows.iter().any(|row| { row.starts_with("fastq\tfastq.normalize_primers\tcutadapt\t") }),
         "TSV must not retain a registry-drift row for fastq.normalize_primers / cutadapt"
     );
+    assert!(
+        !rows.iter().any(|row| { row.starts_with("fastq\tfastq.infer_asvs\tdada2\t") }),
+        "TSV must not retain a registry-drift row for fastq.infer_asvs / dada2"
+    );
     for tool_id in ["bayeshammer", "lighter", "musket", "rcorrector"] {
         assert!(
             !rows.iter().any(|row| {
