@@ -228,6 +228,14 @@ cluster_otus_benchmark_policy: fastq.cluster_otus
 - the benchmark aliases must stay aligned with the governed report contract: `otu_table_tsv` points at the canonical OTU abundance table, `representative_sequences_fasta` points at the canonical representative-sequence FASTA, and `clustering_threshold` stays aligned with the governed `otu_identity` parameter
 - `otu_count` must stay aligned with the distinct OTU identifiers represented in the governed abundance table, and the admitted benchmark row must preserve the configured identity threshold so OTU clustering comparisons stay auditable
 
+normalize_abundance_benchmark_policy: fastq.normalize_abundance
+- default benchmark backend is `seqkit`
+- the current governed benchmark surface admits `seqkit` as the runnable benchmark row and retains `seqfu` as planned registry drift until it is either fully admitted or explicitly removed
+- every governed `fastq.normalize_abundance` row must emit `normalized_abundance_tsv`, `sample_totals`, `normalization_method`, and `numeric_output_valid`
+- `normalized_abundance_tsv` must stay aligned with the canonical governed normalized feature table, and `normalization_method` must stay aligned with the governed `method` parameter selected for the run
+- `sample_totals` must preserve the governed per-sample compositional sums, and `numeric_output_valid` must stay true only when those sums match the expected scale implied by `scale_factor` or the unit-total normalization rule
+- the planned `seqfu` row must remain explicitly visible in readiness and registry-drift reporting until the repo really admits a normalized runtime and registry contract for it
+
 single_tool_justification: fastq.detect_adapters
 single_tool_justification: fastq.deplete_rrna
 single_tool_justification: fastq.extract_umis
