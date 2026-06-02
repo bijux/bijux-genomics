@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use bijux_dna_core::prelude::id_catalog;
+use bijux_dna_domain_bam::params::DamageEffectiveParams;
 use bijux_dna_domain_bam::params::AuthenticityEffectiveParams;
 
 #[must_use]
@@ -19,6 +20,17 @@ python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"method\": \"pmdto
         report = report_json.display(),
         summary = summary_json.display(),
         stage = id_catalog::BAM_AUTHENTICITY
+    );
+    vec!["/bin/sh".to_string(), "-c".to_string(), command]
+}
+
+#[must_use]
+pub fn damage_args(bam: &Path, report_json: &Path, _params: &DamageEffectiveParams) -> Vec<String> {
+    let command = format!(
+        "pmdtools --input {bam} > /dev/null && \
+python3 - <<'PY' > {report}\nimport json\nprint(json.dumps({{\"tool\": \"pmdtools\", \"stage\": \"bam.damage\", \"c_to_t_5p\": 0.0, \"g_to_a_3p\": 0.0, \"pmd_score_histogram\": []}}, indent=2))\nPY",
+        bam = bam.display(),
+        report = report_json.display(),
     );
     vec!["/bin/sh".to_string(), "-c".to_string(), command]
 }

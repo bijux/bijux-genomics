@@ -44,6 +44,11 @@ pub mod damage {
                 &out_dir.join("damage.ngsbriggs.json"),
                 params,
             ),
+            "pmdtools" => crate::tool_adapters::tools::pmdtools::damage_args(
+                bam,
+                &out_dir.join("damage.pmdtools.json"),
+                params,
+            ),
             _ => crate::tool_adapters::tools::pydamage::args(bam, &out_json, params),
         };
         let plan = StagePlanV1 {
@@ -87,7 +92,12 @@ pub mod damage {
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &["damage_pydamage", "damage_mapdamage2", "stage_metrics"],
+            &[
+                "damage_report",
+                "terminal_position_metrics",
+                "parser_output",
+                "stage_metrics",
+            ],
         )
     }
 }

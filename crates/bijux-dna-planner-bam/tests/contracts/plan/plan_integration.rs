@@ -178,11 +178,12 @@ fn mini_local_chain_align_markdup_damage_coverage_has_expected_artifacts() -> Re
         &damage_params,
     )?;
     assert_eq!(damage.stage_id.0, "bam.damage");
+    assert!(damage.io.outputs.iter().any(|o| o.name.as_str() == "damage_report"));
     assert!(damage
         .io
         .outputs
         .iter()
-        .any(|o| o.name.as_str() == "damage_pydamage" || o.name.as_str() == "damage_mapdamage2"));
+        .any(|o| o.name.as_str() == "terminal_position_metrics"));
 
     let coverage_params = bijux_dna_domain_bam::params::CoverageEffectiveParams {
         regions: None,

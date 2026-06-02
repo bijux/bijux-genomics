@@ -167,13 +167,16 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
         damage_tool_profile: Some("ancient".to_string()),
         evidence_only: true,
     };
-    let damage = bijux_dna_planner_bam::tool_adapters::bam::damage::plan(
-        &dummy_tool("pydamage"),
-        bam,
-        out,
-        &damage_params,
-    )?;
-    assert_audit_outputs(BamStage::Damage, &damage);
+    for tool_name in ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
+    {
+        let damage = bijux_dna_planner_bam::tool_adapters::bam::damage::plan(
+            &dummy_tool(tool_name),
+            bam,
+            out,
+            &damage_params,
+        )?;
+        assert_audit_outputs(BamStage::Damage, &damage);
+    }
 
     let authenticity_params = bijux_dna_domain_bam::params::AuthenticityEffectiveParams {
         mode: "aggregate".to_string(),

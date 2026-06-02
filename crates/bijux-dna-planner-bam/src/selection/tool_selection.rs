@@ -18,9 +18,11 @@ pub fn default_tool_for_stage(stage: BamStage) -> ToolId {
 
 #[must_use]
 pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
-    let mut tools = BTreeSet::new();
+    let mut tools = domain_tools_for_stage(stage).into_iter().collect::<BTreeSet<_>>();
     let Some(parsed) = tool_registry_toml() else {
-        return domain_tools_for_stage(stage);
+        let mut tools = tools.into_iter().collect::<Vec<_>>();
+        tools.sort_by(|a, b| a.as_str().cmp(b.as_str()));
+        return tools;
     };
     let Some(entries) = parsed.get("tools").and_then(toml::Value::as_array) else {
         return Vec::new();
@@ -61,11 +63,7 @@ pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
     }
     let mut tools = tools.into_iter().collect::<Vec<_>>();
     tools.sort_by(|a, b| a.as_str().cmp(b.as_str()));
-    if tools.is_empty() {
-        domain_tools_for_stage(stage)
-    } else {
-        tools
-    }
+    tools
 }
 
 #[must_use]

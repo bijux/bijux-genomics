@@ -47,19 +47,22 @@ fn local_damage_smoke_plans_use_governed_bam_fixture() -> Result<()> {
         .iter()
         .map(|artifact| artifact.name.as_str().to_string())
         .collect::<Vec<_>>();
-    assert_eq!(output_names, vec!["damage_pydamage", "damage_mapdamage2", "stage_metrics"]);
+    assert_eq!(
+        output_names,
+        vec!["damage_report", "terminal_position_metrics", "parser_output", "stage_metrics"]
+    );
 
     let damage_output = case
         .plan
         .io
         .outputs
         .iter()
-        .find(|artifact| artifact.name.as_str() == "damage_pydamage")
-        .unwrap_or_else(|| panic!("damage JSON output missing from BAM plan"));
+        .find(|artifact| artifact.name.as_str() == "damage_report")
+        .unwrap_or_else(|| panic!("damage report output missing from BAM plan"));
     assert_eq!(
         damage_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.damage/core-v1-damage-short-fragments/pydamage/damage.pydamage.json"
+            "target/local-smoke/bam.damage/core-v1-damage-short-fragments/pydamage/damage.summary.json"
         )
     );
 
