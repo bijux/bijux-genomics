@@ -221,6 +221,13 @@ infer_asvs_benchmark_policy: fastq.infer_asvs
 - the benchmark aliases must stay aligned with the governed report contract: `asv_table_tsv` points at the canonical abundance table and `representative_sequences_fasta` points at the canonical representative-sequence FASTA
 - `asv_count` must stay aligned with the inferred feature count in the governed ASV table, and `sample_count` must stay aligned with the distinct sample count represented in that table
 
+cluster_otus_benchmark_policy: fastq.cluster_otus
+- default benchmark backend is `vsearch`
+- the current governed benchmark surface is intentionally single-tool and assigned to `fixture:corpus-03-amplicon-mini`
+- every governed `fastq.cluster_otus` row must emit `otu_table_tsv`, `representative_sequences_fasta`, `otu_count`, and `clustering_threshold`
+- the benchmark aliases must stay aligned with the governed report contract: `otu_table_tsv` points at the canonical OTU abundance table, `representative_sequences_fasta` points at the canonical representative-sequence FASTA, and `clustering_threshold` stays aligned with the governed `otu_identity` parameter
+- `otu_count` must stay aligned with the distinct OTU identifiers represented in the governed abundance table, and the admitted benchmark row must preserve the configured identity threshold so OTU clustering comparisons stay auditable
+
 single_tool_justification: fastq.detect_adapters
 single_tool_justification: fastq.deplete_rrna
 single_tool_justification: fastq.extract_umis
