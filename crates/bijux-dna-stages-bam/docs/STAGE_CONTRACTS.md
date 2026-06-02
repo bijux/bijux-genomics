@@ -127,6 +127,12 @@ chr1	1	0.12	0.10
 - Required artifacts:
 `insert_size.metrics.txt`, `insert_size.histogram.pdf`, `insert_size.summary.json`, `stage.metrics.json`
 
+### bam.gc_bias
+- Required artifacts:
+`gc_bias.metrics.txt`, `gc_bias.plot.pdf`, `gc_bias.summary.json`, `stage.metrics.json`
+- Local smoke benchmark row:
+`gc_bias.tsv` with governed GC-bin, normalized coverage, window count, and read-start count columns
+
 ## References
 
 - mapDamage2: Jonsson et al. 2013.
