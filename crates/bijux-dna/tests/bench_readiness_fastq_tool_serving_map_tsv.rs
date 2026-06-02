@@ -78,4 +78,34 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain the governed profile-read-lengths row for {tool_id}"
         );
     }
+    for tool_id in [
+        "adapterremoval",
+        "alientrimmer",
+        "atropos",
+        "bbduk",
+        "cutadapt",
+        "fastp",
+        "fastx_clipper",
+        "leehom",
+        "prinseq",
+        "seqkit",
+        "skewer",
+        "trim_galore",
+        "trimmomatic",
+    ] {
+        assert!(
+            rows.iter().any(|row| {
+                row == &format!(
+                    "{tool_id}\tfastq.trim_reads\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-01-mini"
+                )
+            }),
+            "TSV must retain the governed trim-reads row for {tool_id}"
+        );
+    }
+    assert!(
+        rows.iter().any(|row| {
+            row == &"seqpurge\tfastq.trim_reads\tplanned_contract\tdeclared_only\tnot_normalized\tfixture:corpus-01-mini"
+        }),
+        "TSV must retain the planned seqpurge trim-reads row"
+    );
 }
