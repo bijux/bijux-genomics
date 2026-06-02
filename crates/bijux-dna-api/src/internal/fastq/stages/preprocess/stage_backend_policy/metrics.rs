@@ -426,6 +426,15 @@ pub(crate) fn parse_trim_reads_metrics(out_dir: &std::path::Path) -> serde_json:
     let report_path = out_dir.join("trim_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_trim_reads_report(&raw) {
+            let reads_retained = report.reads_out;
+            let reads_dropped = report
+                .reads_in
+                .zip(report.reads_out)
+                .map(|(reads_in, reads_out)| reads_in.saturating_sub(reads_out));
+            let bases_removed = report
+                .bases_in
+                .zip(report.bases_out)
+                .map(|(bases_in, bases_out)| bases_in.saturating_sub(bases_out));
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.trim_reads",
@@ -448,10 +457,16 @@ pub(crate) fn parse_trim_reads_metrics(out_dir: &std::path::Path) -> serde_json:
                 "contaminant_bank_id": report.contaminant_bank_id,
                 "contaminant_bank_hash": report.contaminant_bank_hash,
                 "contaminant_preset": report.contaminant_preset,
+                "trimmed_reads_r1": report.output_r1,
+                "trimmed_reads_r2": report.output_r2,
+                "report_json": report_path,
                 "reads_in": report.reads_in,
                 "reads_out": report.reads_out,
+                "reads_retained": reads_retained,
+                "reads_dropped": reads_dropped,
                 "bases_in": report.bases_in,
                 "bases_out": report.bases_out,
+                "bases_removed": bases_removed,
                 "pairs_in": report.pairs_in,
                 "pairs_out": report.pairs_out,
                 "mean_q_before": report.mean_q_before,
@@ -460,7 +475,6 @@ pub(crate) fn parse_trim_reads_metrics(out_dir: &std::path::Path) -> serde_json:
                 "memory_mb": report.memory_mb,
                 "raw_backend_report": report.raw_backend_report,
                 "raw_backend_report_format": report.raw_backend_report_format,
-                "report_json": report_path,
             });
         }
     }
