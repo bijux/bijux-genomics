@@ -145,6 +145,12 @@ chr1	1	0.12	0.10
 - Local smoke benchmark row:
 `endogenous.content.json` and `stage.metrics.json` must preserve governed `total_reads`, `mapped_reads`, `endogenous_reads`, and `endogenous_fraction` semantics
 
+### bam.overlap_correction
+- Required artifacts:
+`overlap.corrected.bam`, `overlap.corrected.bam.bai`, `flagstat.before.txt`, `flagstat.after.txt`, `idxstats.before.txt`, `idxstats.after.txt`, `overlap_correction.summary.json`, `stage.metrics.json`
+- Local smoke benchmark row:
+`overlap_correction.summary.json` and `stage.metrics.json` must preserve governed `corrected_pairs` and `corrected_overlap_bases` semantics while the corrected BAM and index remain present beside the before-and-after audit artifacts
+
 ## References
 
 - mapDamage2: Jonsson et al. 2013.
