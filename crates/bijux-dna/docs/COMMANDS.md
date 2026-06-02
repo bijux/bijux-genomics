@@ -141,6 +141,12 @@ Visible aliases are part of the operator surface:
   matrix. Each row carries `domain`, `stage_id`, `tool_id`, `support_status`,
   `registered_tool_ids`, and `reason` so compatible pairs cannot disappear silently before
   readiness review.
+- `bijux-dna bench readiness render-tool-id-normalization`
+  `render-tool-id-normalization` writes
+  `target/bench-readiness/tool-id-normalization.tsv` with one governed row per separator-folded
+  FASTQ or BAM tool-ID alias cluster, carrying `normalized_tool_id`, `canonical_tool_id`,
+  `alias_tool_ids`, `domains`, and `reason` so inconsistent `-` versus `_` benchmark tool naming
+  cannot drift without an explicit canonical mapping.
 - `bijux-dna bench readiness render-stage-registry-extra-pairs`
   `render-stage-registry-extra-pairs` writes
   `target/bench-readiness/stage-registry-extra-pairs.tsv` with one governed row per benchmark-
