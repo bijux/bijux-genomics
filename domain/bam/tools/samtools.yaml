@@ -24,6 +24,15 @@ planned_stage_ids:
 status: supported
 scope: pre_hpc_pre_vcf
 stage_contracts:
+  bam.duplication_metrics:
+    required_inputs:
+    - bam
+    expected_artifacts:
+    - duplication_report
+    - duplication_histogram
+    - summary
+    - stage_metrics
+    notes: Samtools preserves the governed BAM duplication-metrics benchmark row through deterministic duplicate observation, duplication histogram output, and comparable duplicate-burden summary metrics.
   bam.markdup:
     required_inputs:
     - bam

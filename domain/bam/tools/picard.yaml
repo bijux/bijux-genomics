@@ -11,6 +11,15 @@ stage_ids: ["bam.markdup","bam.length_filter","bam.duplication_metrics","bam.ins
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 stage_contracts:
+  bam.duplication_metrics:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "duplication_report"
+      - "duplication_histogram"
+      - "summary"
+      - "stage_metrics"
+    notes: "Picard duplication-metrics coverage must preserve the governed duplicate-count, duplicate-fraction, estimated-library-size, and duplication-histogram contract even while local comparison planning stays plannable-only."
   bam.markdup:
     required_inputs:
       - "bam"
