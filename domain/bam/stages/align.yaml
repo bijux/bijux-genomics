@@ -4,26 +4,61 @@ status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "bam"
 inputs:
-  - name: "bam"
-    data_type: "bam"
+  - name: "fastq_r1"
+    data_type: "fastq"
+    cardinality: "One"
+  - name: "fastq_r2"
+    data_type: "fastq"
+    cardinality: "One"
+  - name: "reference_fasta"
+    data_type: "fasta"
+    cardinality: "One"
+  - name: "reference_index"
+    data_type: "index"
     cardinality: "One"
 outputs:
-  - name: "align_report_json"
+  - name: "align_bam"
+    data_type: "bam"
+    cardinality: "One"
+  - name: "align_bai"
+    data_type: "bai"
+    cardinality: "One"
+  - name: "align_metrics"
     data_type: "json"
     cardinality: "One"
-parameters: []
+  - name: "flagstat"
+    data_type: "txt"
+    cardinality: "One"
+  - name: "idxstats"
+    data_type: "txt"
+    cardinality: "One"
+  - name: "stats"
+    data_type: "txt"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+parameters:
+  - name: "preset"
+    meaning: "Governed aligner preset selected for the stage plan"
+  - name: "read_group"
+    meaning: "Governed read-group identity injected into the aligned BAM"
 metrics:
-  - name: "runtime_s"
-    meaning: "Wall-clock runtime in seconds"
-  - name: "memory_mb"
-    meaning: "Peak memory usage in MB"
-description: "BAM align stage contract."
+  - name: "mapped_reads"
+    meaning: "Mapped-read count derived from governed alignment summaries"
+  - name: "alignment_rate"
+    meaning: "Mapped fraction derived from governed alignment summaries"
+description: "FASTQ-to-BAM alignment contract for governed BAM benchmark admission."
 required_inputs:
-  - bam
+  - fastq_r1
+  - reference_fasta
+  - reference_index
 required_outputs:
-  - align_report_json
+  - align_bam
+  - align_bai
+  - align_metrics
 tool_capability_requirements:
-  - bam_input
+  - SE
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
@@ -34,7 +69,8 @@ compatible_tools:
   - bowtie2
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "default stage assumptions captured"
+  - "optional read-two input is admitted only for paired-end alignment runs"
+  - "reference index assets stay aligned with the selected aligner backend"
 bank_hooks:
   - "reference_bank"
 metrics_schema: "bijux.stage.metrics.v1"
