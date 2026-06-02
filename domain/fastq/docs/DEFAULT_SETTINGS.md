@@ -82,6 +82,12 @@ profile_read_lengths_benchmark_policy: fastq.profile_read_lengths
 - `fastp` must run in report-only mode with trimming and filtering disabled so the benchmark remains pre-trim length profiling instead of quietly reusing a trim contract
 - `prinseq` length profiling may stream all output classes to `/dev/null`, but the invocation must remain non-destructive and produce the governed report plus histogram artifacts
 
+detect_adapters_benchmark_policy: fastq.detect_adapters
+- default benchmark backend is `fastqc`
+- every governed `fastq.detect_adapters` row must emit `adapter_report`, `detected_adapter_ids`, `detection_confidence`, and `detection_threshold`
+- governed adapter identities must resolve to adapter-bank IDs instead of raw sequence fragments, and nested partial rescue motifs must not be double-counted when a stronger parent adapter matches the same read
+- `fastq.report_qc` may reuse the governed adapter report and evidence directory, but it must not invent new adapter identities beyond the canonical detect-adapters report
+
 profile_reads_benchmark_policy: fastq.profile_reads
 - default benchmark backend is `seqkit_stats`
 - `seqkit` and `seqfu` are governed comparison backends for general read profiling studies
