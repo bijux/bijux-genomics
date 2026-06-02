@@ -935,16 +935,26 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
                 bijux_dna_domain_fastq::observer::parse_normalize_abundance_report(&raw).ok()
             });
+            let numeric_output_valid = governed.as_ref().map(|report| {
+                let expected_sum = report.scale_factor.unwrap_or(1.0);
+                report.per_sample_sums.iter().all(|(_, sum)| {
+                    sum.is_finite() && (sum - expected_sum).abs() <= 1.0e-6
+                })
+            });
             Some(serde_json::json!({
-                "schema_version": "bijux.fastq.normalize_abundance.extra_artifacts.v2",
+                "schema_version": "bijux.fastq.normalize_abundance.extra_artifacts.v3",
                 "stage": stage_id,
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "method": governed.as_ref().map(|report| report.method.clone()),
+                "normalization_method": governed.as_ref().map(|report| report.method.clone()),
+                "normalized_abundance_tsv": governed.as_ref().map(|report| report.normalized_abundance_tsv.clone()),
                 "normalized_value_column": governed.as_ref().map(|report| report.normalized_value_column.clone()),
                 "compositional_rule": governed.as_ref().map(|report| report.compositional_rule.clone()),
                 "scale_factor": governed.as_ref().and_then(|report| report.scale_factor),
+                "sample_totals": governed.as_ref().map(|report| report.per_sample_sums.clone()),
                 "feature_count": governed.as_ref().map(|report| report.feature_count),
                 "per_sample_sum_count": governed.as_ref().map(|report| report.per_sample_sums.len()),
+                "numeric_output_valid": numeric_output_valid,
                 "report_json": report_path,
             }))
         }
@@ -1971,6 +1981,56 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn normalize_abundance_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "normalize-abundance-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 1.8,
+            memory_mb: 24.0,
+            outputs: vec![stage_root.join("normalize_abundance_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "seqkit".to_string(),
+        }
+    }
+
+    fn write_normalize_abundance_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("normalize_abundance_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.normalize_abundance.report.v2",
+                "stage": "fastq.normalize_abundance",
+                "stage_id": "fastq.normalize_abundance",
+                "tool_id": "seqkit",
+                "method": "counts_per_million",
+                "input_table": "otu_abundance.tsv",
+                "normalized_abundance_tsv": "abundance_normalized.tsv",
+                "expected_columns": ["sample_id", "feature_id", "abundance"],
+                "input_value_column": "abundance",
+                "normalized_value_column": "counts_per_million",
+                "compositional_rule": "per_sample_sum_to_one_million",
+                "scale_factor": 1000000.0,
+                "table_rows": 12,
+                "sample_count": 2,
+                "feature_count": 4,
+                "zero_fraction": 0.25,
+                "per_sample_sums": [["sample_a", 1000000.0], ["sample_b", 1000000.0]],
+                "runtime_s": 1.8,
+                "memory_mb": 24.0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": null,
+                "used_fallback": false,
+                "backend_metrics": {
+                    "metric_set": {
+                        "table_rows": 12
+                    }
+                }
+            }"#,
+        )?;
+        Ok(())
+    }
+
     #[test]
     fn host_extra_artifacts_prefer_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
@@ -2158,6 +2218,47 @@ mod stage_artifact_tests {
         assert_eq!(extra["output_table_kind"], serde_json::json!("otu_abundance_table"));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("otu_clusters.uc"));
         assert_eq!(extra["raw_backend_report_format"], serde_json::json!("vsearch_uc"));
+        Ok(())
+    }
+
+    #[test]
+    fn normalize_abundance_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_normalize_abundance_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.normalize_abundance",
+            &normalize_abundance_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("seqkit"));
+        assert_eq!(extra["method"], serde_json::json!("counts_per_million"));
+        assert_eq!(
+            extra["normalization_method"],
+            serde_json::json!("counts_per_million")
+        );
+        assert_eq!(
+            extra["normalized_abundance_tsv"],
+            serde_json::json!("abundance_normalized.tsv")
+        );
+        assert_eq!(
+            extra["compositional_rule"],
+            serde_json::json!("per_sample_sum_to_one_million")
+        );
+        assert_eq!(extra["scale_factor"], serde_json::json!(1000000.0));
+        assert_eq!(
+            extra["sample_totals"],
+            serde_json::json!([["sample_a", 1000000.0], ["sample_b", 1000000.0]])
+        );
+        assert_eq!(extra["feature_count"], serde_json::json!(4));
+        assert_eq!(extra["per_sample_sum_count"], serde_json::json!(2));
+        assert_eq!(extra["numeric_output_valid"], serde_json::json!(true));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("normalize_abundance_report.json"))
+        );
         Ok(())
     }
 
