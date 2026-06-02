@@ -267,6 +267,8 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode),
                 "threads": governed.as_ref().map(|report| report.threads),
+                "filtered_fastq_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "filtered_fastq_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
                 "entropy_threshold": governed.as_ref().and_then(|report| report.entropy_threshold),
                 "polyx_threshold": governed.as_ref().and_then(|report| report.polyx_threshold),
                 "reads_removed_low_complexity": governed.as_ref().map(|report| report.reads_removed_low_complexity),
@@ -1236,6 +1238,59 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn filter_low_complexity_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "filter-low-complexity-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 1.1,
+            memory_mb: 64.0,
+            outputs: vec![stage_root.join("low_complexity_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "bbduk".to_string(),
+        }
+    }
+
+    fn write_filter_low_complexity_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("low_complexity_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.filter_low_complexity.report.v2",
+                "stage": "fastq.filter_low_complexity",
+                "stage_id": "fastq.filter_low_complexity",
+                "tool_id": "bbduk",
+                "paired_mode": "single_end",
+                "threads": 8,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "filtered.fastq.gz",
+                "output_r2": null,
+                "report_json": "low_complexity_report.json",
+                "entropy_threshold": 0.5,
+                "polyx_threshold": 20,
+                "reads_in": 100,
+                "reads_out": 92,
+                "reads_removed_low_complexity": 8,
+                "bases_in": 1000,
+                "bases_out": 910,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q_before": 28.0,
+                "mean_q_after": 29.0,
+                "runtime_s": 1.1,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "bbduk.low_complexity.stats",
+                "raw_backend_report_format": "bbduk_stats",
+                "backend_metrics": {
+                    "reads_removed_reported": 8
+                }
+            }"#,
+        )?;
+        Ok(())
+    }
+
     fn remove_duplicates_execution(stage_root: &std::path::Path) -> StageResultV1 {
         StageResultV1 {
             run_id: "remove-duplicates-fixture".to_string(),
@@ -1574,6 +1629,27 @@ mod stage_artifact_tests {
         assert_eq!(extra["reads_removed_by_n"], serde_json::json!(2));
         assert_eq!(extra["reads_removed_by_length"], serde_json::json!(1));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("fastp.filter.json"));
+        Ok(())
+    }
+
+    #[test]
+    fn filter_low_complexity_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_filter_low_complexity_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.filter_low_complexity",
+            &filter_low_complexity_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("bbduk"));
+        assert_eq!(extra["filtered_fastq_r1"], serde_json::json!("filtered.fastq.gz"));
+        assert_eq!(extra["filtered_fastq_r2"], serde_json::Value::Null);
+        assert_eq!(extra["reads_removed_low_complexity"], serde_json::json!(8));
+        assert_eq!(extra["polyx_threshold"], serde_json::json!(20));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("bbduk.low_complexity.stats"));
         Ok(())
     }
 
