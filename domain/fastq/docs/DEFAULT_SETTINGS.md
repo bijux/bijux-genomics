@@ -146,6 +146,13 @@ deplete_rrna_benchmark_policy: fastq.deplete_rrna
 - `retained_reads` must stay aligned with `reads_out`, `removed_reads` must stay aligned with `reads_removed`, and `depletion_rate` must stay aligned with `rrna_fraction_removed` so downstream comparison code does not need stage-specific translation
 - the benchmark row must preserve the governed retained-read role, removed-read role, and retained FASTQ output path so depletion accounting stays auditable even while the truthful benchmark cohort is still single-tool
 
+deplete_host_benchmark_policy: fastq.deplete_host
+- default benchmark backend is `bowtie2`
+- the current governed benchmark surface remains single-tool until the benchmark registry admits an alternative host-depletion backend such as `star`
+- every governed `fastq.deplete_host` row must emit `host_index_artifact_id`, retained FASTQ outputs, removed-host FASTQ outputs, `depleted_reads`, and `host_hit_rate`
+- `host_index_artifact_id` must stay aligned with the governed `reference_index_artifact_id`, `depleted_reads` must stay aligned with `reads_removed`, and `host_hit_rate` must stay aligned with `host_fraction_removed`
+- the benchmark row must preserve the governed retained-read policy and removed-host output provenance so host-hit accounting remains auditable without pretending optional domain-level alternatives are already benchmark-admitted
+
 trim_terminal_damage_benchmark_policy: fastq.trim_terminal_damage
 - default benchmark backend is `cutadapt`
 - governed comparison backends are `adapterremoval` and `seqkit`
