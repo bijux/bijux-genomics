@@ -102,6 +102,14 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             "TSV must not retain a registry-drift row for fastq.trim_polyg_tails / {tool_id}"
         );
     }
+    for tool_id in ["adapterremoval", "cutadapt", "seqkit"] {
+        assert!(
+            !rows.iter().any(|row| {
+                row.starts_with(&format!("fastq\tfastq.trim_terminal_damage\t{tool_id}\t"))
+            }),
+            "TSV must not retain a registry-drift row for fastq.trim_terminal_damage / {tool_id}"
+        );
+    }
     assert!(
         rows.iter().any(|row| {
             row.starts_with("fastq\tfastq.trim_reads\tseqpurge\tplanned_contract\ttool_missing\t")
