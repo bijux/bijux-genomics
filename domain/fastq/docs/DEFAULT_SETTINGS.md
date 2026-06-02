@@ -106,6 +106,12 @@ filter_reads_benchmark_policy: fastq.filter_reads
 - every governed `fastq.filter_reads` row must emit filtered FASTQ outputs, retained-read count, removed-read count, and per-reason removal accounting for `n`, `entropy`, `low_complexity`, `kmer`, `contaminant_kmer`, and `length`
 - the explicit `reads_retained` and `reads_removed` aliases must stay aligned with `reads_out` and `reads_dropped` so downstream comparison code does not need to infer benchmark row semantics from stage-internal metric names
 
+trim_terminal_damage_benchmark_policy: fastq.trim_terminal_damage
+- default benchmark backend is `cutadapt`
+- governed comparison backends are `adapterremoval` and `seqkit`
+- every governed `fastq.trim_terminal_damage` row must emit `trim_5p_bases`, `trim_3p_bases`, `reads_retained`, and `bases_removed`
+- the benchmark row must preserve the governed execution policy and UDG classification so explicit trimming remains distinguishable from preserve-ended policy results
+
 profile_reads_benchmark_policy: fastq.profile_reads
 - default benchmark backend is `seqkit_stats`
 - `seqkit` and `seqfu` are governed comparison backends for general read profiling studies
@@ -120,5 +126,3 @@ single_tool_justification: fastq.normalize_primers
 single_tool_justification: fastq.remove_chimeras
 single_tool_justification: fastq.cluster_otus
 single_tool_justification: fastq.normalize_abundance
-
-single_tool_justification: fastq.trim_terminal_damage
