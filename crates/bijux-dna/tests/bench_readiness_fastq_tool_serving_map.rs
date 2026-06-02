@@ -254,6 +254,21 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
             "FASTQ readiness map must retain the governed correct-errors row for {tool_id}"
         );
     }
+    assert!(
+        rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("sortmerna")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.deplete_rrna")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("governed_benchmark_cohort")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("benchmark_normalized")
+                && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                    == Some("fixture:corpus-01-mini")
+        }),
+        "FASTQ readiness map must retain the governed deplete-rrna row for sortmerna"
+    );
     for tool_id in ["bbduk", "prinseq"] {
         assert!(
             rows.iter().any(|row| {

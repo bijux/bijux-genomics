@@ -150,6 +150,12 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain the governed correct-errors row for {tool_id}"
         );
     }
+    assert!(
+        rows.iter().any(|row| {
+            row == &"sortmerna\tfastq.deplete_rrna\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-01-mini"
+        }),
+        "TSV must retain the governed deplete-rrna row for sortmerna"
+    );
     for tool_id in ["bbduk", "prinseq"] {
         assert!(
             rows.iter().any(|row| {
