@@ -112,8 +112,12 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
             AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Damage => &[
-            AuditArtifact { name: "damage_pydamage", filename: "damage.pydamage.json" },
-            AuditArtifact { name: "damage_mapdamage2", filename: "damage.mapdamage2.txt" },
+            AuditArtifact { name: "damage_report", filename: "damage.summary.json" },
+            AuditArtifact {
+                name: "terminal_position_metrics",
+                filename: "damage.unified_metrics.json",
+            },
+            AuditArtifact { name: "parser_output", filename: "damage.parser_output.json" },
             AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Authenticity => &[

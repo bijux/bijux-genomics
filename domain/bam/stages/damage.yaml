@@ -8,20 +8,38 @@ inputs:
     data_type: "bam"
     cardinality: "One"
 outputs:
-  - name: "damage_report_json"
+  - name: "damage_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "terminal_position_metrics"
+    data_type: "json"
+    cardinality: "One"
+  - name: "parser_output"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
     data_type: "json"
     cardinality: "One"
 parameters: []
 metrics:
+  - name: "terminal_c_to_t_5p"
+    meaning: "Observed 5' terminal C-to-T damage rate preserved in the governed BAM damage benchmark row"
+  - name: "terminal_g_to_a_3p"
+    meaning: "Observed 3' terminal G-to-A damage rate preserved in the governed BAM damage benchmark row"
+  - name: "damage_signal"
+    meaning: "Governed categorical damage signal preserved in the BAM damage benchmark row"
   - name: "runtime_s"
     meaning: "Wall-clock runtime in seconds"
   - name: "memory_mb"
     meaning: "Peak memory usage in MB"
-description: "BAM damage stage contract."
+description: "BAM damage stage contract with governed damage report, terminal-position metrics, parser-output JSON, and benchmark-facing damage signal semantics."
 required_inputs:
   - bam
 required_outputs:
-  - damage_report_json
+  - damage_report
+  - terminal_position_metrics
+  - parser_output
+  - stage_metrics
 tool_capability_requirements:
   - bam_input
 invariants:
@@ -38,7 +56,8 @@ compatible_tools:
   - pmdtools
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "default stage assumptions captured"
+  - "damage tools emit comparable terminal-position evidence from the same aligned BAM input"
+  - "admitted and planned damage rows preserve governed damage-report, terminal-position-metrics, and parser-output semantics even when backend raw artifacts differ"
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"

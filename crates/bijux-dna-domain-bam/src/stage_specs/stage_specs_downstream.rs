@@ -14,7 +14,12 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
             stage,
             required_inputs: &["bam"],
             artifact_policy: ArtifactPolicy {
-                required_outputs: &["damage_pydamage", "damage_mapdamage2", "stage_metrics"],
+                required_outputs: &[
+                    "damage_report",
+                    "terminal_position_metrics",
+                    "parser_output",
+                    "stage_metrics",
+                ],
                 required_audit: super::required_audit_artifacts(stage),
             },
             default_params: BamEffectiveParams::Damage(DamageEffectiveParams {
