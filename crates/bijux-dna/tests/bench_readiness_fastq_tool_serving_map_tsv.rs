@@ -144,6 +144,16 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain the governed trim-terminal-damage row for {tool_id}"
         );
     }
+    for tool_id in ["clumpify", "fastuniq"] {
+        assert!(
+            rows.iter().any(|row| {
+                row == &format!(
+                    "{tool_id}\tfastq.remove_duplicates\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tplanner_only"
+                )
+            }),
+            "TSV must retain the governed remove-duplicates row for {tool_id}"
+        );
+    }
     assert!(
         rows.iter().any(|row| {
             row == &"seqpurge\tfastq.trim_reads\tplanned_contract\tdeclared_only\tnot_normalized\tfixture:corpus-01-mini"

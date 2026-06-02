@@ -239,6 +239,24 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
             "FASTQ readiness map must retain the governed trim-terminal-damage row for {tool_id}"
         );
     }
+    for tool_id in ["clumpify", "fastuniq"] {
+        assert!(
+            rows.iter().any(|row| {
+                row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                    && row.get("stage_id").and_then(serde_json::Value::as_str)
+                        == Some("fastq.remove_duplicates")
+                    && row.get("support_status").and_then(serde_json::Value::as_str)
+                        == Some("governed_benchmark_cohort")
+                    && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                        == Some("runnable")
+                    && row.get("parser_status").and_then(serde_json::Value::as_str)
+                        == Some("benchmark_normalized")
+                    && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                        == Some("planner_only")
+            }),
+            "FASTQ readiness map must retain the governed remove-duplicates row for {tool_id}"
+        );
+    }
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqpurge")
