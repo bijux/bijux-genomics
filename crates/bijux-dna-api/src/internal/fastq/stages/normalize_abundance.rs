@@ -43,11 +43,14 @@ struct LocalNormalizeAbundanceSmokeReport {
     planned_tool_id: String,
     report_tool_id: String,
     method: String,
+    normalization_method: String,
     table_rows: u64,
     sample_count: u64,
     feature_count: u64,
     zero_fraction: f64,
     normalized_abundance_tsv: String,
+    sample_totals: Vec<(String, f64)>,
+    numeric_output_valid: bool,
     case_report_json: String,
 }
 
@@ -679,6 +682,10 @@ fn materialize_local_normalize_abundance_smoke_case(
 
     let top_level_table = output_root.join("normalized_abundance.tsv");
     copy_smoke_artifact(&case_normalized_table, &top_level_table)?;
+    let expected_sum = report.scale_factor.unwrap_or(1.0);
+    let numeric_output_valid = report.per_sample_sums.iter().all(|(_, sum)| {
+        sum.is_finite() && (sum - expected_sum).abs() <= 1.0e-6
+    });
 
     Ok(LocalNormalizeAbundanceSmokeReport {
         schema_version: LOCAL_NORMALIZE_ABUNDANCE_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
@@ -686,12 +693,15 @@ fn materialize_local_normalize_abundance_smoke_case(
         sample_id: case.sample_id.clone(),
         planned_tool_id: case.plan.tool_id.as_str().to_string(),
         report_tool_id: report.tool_id,
+        normalization_method: report.method.clone(),
         method: report.method,
         table_rows: report.table_rows,
         sample_count: report.sample_count,
         feature_count: report.feature_count,
         zero_fraction: report.zero_fraction,
         normalized_abundance_tsv: path_relative_to_repo(repo_root, &top_level_table),
+        sample_totals: report.per_sample_sums,
+        numeric_output_valid,
         case_report_json: path_relative_to_repo(repo_root, &case_report_json),
     })
 }
