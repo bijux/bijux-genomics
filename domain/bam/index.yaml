@@ -110,6 +110,7 @@ stage_tool_compatibility:
   bam.coverage:
   - mosdepth
   - samtools
+  - bedtools
   bam.damage:
   - mapdamage2
   - pydamage
@@ -183,6 +184,7 @@ stage_tool_integration:
   bam.coverage:
     mosdepth: governed_contract
     samtools: governed_contract
+    bedtools: governed_contract
   bam.damage:
     addeam: governed_contract
     damageprofiler: governed_contract
@@ -314,6 +316,7 @@ stage_default_settings:
   bam.coverage:
     mosdepth: { profile: "adna_sane_default", notes: "fast coverage preset" }
     samtools: { profile: "adna_sane_default", notes: "depth fallback preset" }
+    bedtools: { profile: "adna_sane_default", notes: "interval coverage fallback preset" }
   bam.mapping_summary:
     samtools: { profile: "adna_sane_default", notes: "flagstat/stats/idxstats summary preset" }
   bam.endogenous_content:

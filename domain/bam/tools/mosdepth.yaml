@@ -10,13 +10,22 @@ citation: "paper:https://academic.oup.com/bioinformatics/article-abstract/34/5/8
 stage_ids: ["bam.coverage"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
-expected_artifacts: ["coverage_report"]
+stage_contracts:
+  bam.coverage:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "coverage_summary"
+      - "coverage_depth"
+      - "stage_metrics"
+    notes: "Mosdepth preserves the governed BAM coverage benchmark row through deterministic depth summaries, a comparable depth sidecar, and benchmark-facing mean-depth and breadth metrics."
+expected_artifacts: ["coverage_summary", "coverage_depth", "stage_metrics"]
 metrics_schema_id: "bijux.bam.coverage.v1"
 metrics_schema: "bijux.bam.coverage.v1"
 version_cmd: "mosdepth --version"
 help_cmd: "mosdepth --help"
 comparability:
-  comparable_with: ["samtools"]
+  comparable_with: ["bedtools", "samtools"]
   non_comparable_with: []
 comparability_notes: "Comparable only within same stage contract and input constraints."
 capabilities:

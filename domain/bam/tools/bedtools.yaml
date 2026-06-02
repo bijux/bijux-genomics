@@ -7,10 +7,18 @@ default_version: "2.31.1"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://academic.oup.com/bioinformatics/article/26/6/841/244688"
-stage_ids: ["bam.validate","bam.filter"]
+stage_ids: ["bam.validate","bam.filter","bam.coverage"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 stage_contracts:
+  bam.coverage:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "coverage_summary"
+      - "coverage_depth"
+      - "stage_metrics"
+    notes: "Bedtools coverage preserves the governed BAM coverage benchmark row through interval coverage summaries plus a comparable depth sidecar for region-level output."
   bam.filter:
     required_inputs:
       - "bam"
@@ -41,7 +49,7 @@ metrics_schema: "bijux.bam.validation.v1"
 version_cmd: "bedtools --version"
 help_cmd: "bedtools --help"
 comparability:
-  comparable_with: ["bamtools","samtools"]
+  comparable_with: ["bamtools","mosdepth","samtools"]
   non_comparable_with: []
 comparability_notes: "Comparable only within same stage contract and input constraints."
 capabilities:

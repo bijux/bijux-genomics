@@ -24,6 +24,14 @@ planned_stage_ids:
 status: supported
 scope: pre_hpc_pre_vcf
 stage_contracts:
+  bam.coverage:
+    required_inputs:
+    - bam
+    expected_artifacts:
+    - coverage_summary
+    - coverage_depth
+    - stage_metrics
+    notes: Samtools preserves the governed BAM coverage benchmark row through deterministic depth summaries, comparable coverage sidecars, and benchmark-facing mean-depth and breadth metrics.
   bam.duplication_metrics:
     required_inputs:
     - bam

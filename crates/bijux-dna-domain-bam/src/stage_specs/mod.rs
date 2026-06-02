@@ -398,7 +398,7 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "bam.markdup" => vec!["samtools", "picard"],
         "bam.insert_size" | "bam.gc_bias" => vec!["picard"],
         "bam.recalibration" => vec!["gatk"],
-        "bam.coverage" => vec!["mosdepth", "samtools"],
+        "bam.coverage" => vec!["mosdepth", "samtools", "bedtools"],
         "bam.overlap_correction" => vec!["bamutil"],
         "bam.damage" => vec!["mapdamage2", "damageprofiler", "pmdtools", "pydamage"],
         "bam.complexity" => vec!["preseq"],
