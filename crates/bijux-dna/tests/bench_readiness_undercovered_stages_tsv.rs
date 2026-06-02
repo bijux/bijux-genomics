@@ -48,4 +48,8 @@ fn bench_readiness_undercovered_stages_writes_governed_tsv_columns() {
         }),
         "TSV must retain the governed overlap-correction undercoverage gap"
     );
+    assert!(
+        !rows.iter().any(|row| row.starts_with("bam\tbam.filter\t")),
+        "TSV must not retain an undercovered-stage row for bam.filter"
+    );
 }

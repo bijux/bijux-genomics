@@ -54,4 +54,8 @@ fn bench_readiness_missing_benchmark_pairs_writes_governed_tsv_columns() {
         }),
         "TSV must retain the governed bam.damage / addeam gap"
     );
+    assert!(
+        !rows.iter().any(|row| row.starts_with("bam\tbam.filter\t")),
+        "TSV must not retain a missing benchmark-pair row for bam.filter"
+    );
 }

@@ -132,6 +132,12 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         !rows.iter().any(|row| { row.starts_with("bam\tbam.mapping_summary\tpicard\t") }),
         "TSV must not retain a registry-drift row for bam.mapping_summary / picard"
     );
+    for tool_id in ["bamtools", "bedtools", "samtools"] {
+        assert!(
+            !rows.iter().any(|row| { row.starts_with(&format!("bam\tbam.filter\t{tool_id}\t")) }),
+            "TSV must not retain a registry-drift row for bam.filter / {tool_id}"
+        );
+    }
     for tool_id in ["bwa", "bowtie2"] {
         assert!(
             !rows.iter().any(|row| { row.starts_with(&format!("bam\tbam.align\t{tool_id}\t")) }),
