@@ -10,6 +10,16 @@ citation: "paper:https://www.nature.com/articles/nmeth.2375"
 stage_ids: ["bam.complexity"]
 status: "planned"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.complexity:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "complexity_report"
+      - "complexity_curve"
+      - "summary"
+      - "stage_metrics"
+    notes: "Preseq preserves the governed BAM complexity benchmark row through a deterministic complexity curve, summary payload, and stage-metrics aliases even while the current benchmark row remains planned and registry-incomplete."
 expected_artifacts: ["complexity_curve"]
 metrics_schema_id: "bijux.bam.complexity.v1"
 metrics_schema: "bijux.bam.complexity.v1"
