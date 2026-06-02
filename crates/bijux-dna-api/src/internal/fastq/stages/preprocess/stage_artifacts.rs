@@ -893,7 +893,7 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 bijux_dna_domain_fastq::observer::parse_infer_asvs_report(&raw).ok()
             });
             Some(serde_json::json!({
-                "schema_version": "bijux.fastq.infer_asvs.extra_artifacts.v2",
+                "schema_version": "bijux.fastq.infer_asvs.extra_artifacts.v3",
                 "stage": stage_id,
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode),
@@ -901,9 +901,12 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "pooling_mode": governed.as_ref().map(|report| report.pooling_mode.clone()),
                 "chimera_policy": governed.as_ref().map(|report| report.chimera_policy.clone()),
                 "asv_table_tsv": governed.as_ref().map(|report| report.asv_table_tsv.clone()),
+                "representative_sequences_fasta": governed.as_ref().map(|report| report.asv_sequences_fasta.clone()),
                 "asv_sequences_fasta": governed.as_ref().map(|report| report.asv_sequences_fasta.clone()),
                 "taxonomy_ready_fasta": governed.as_ref().map(|report| report.taxonomy_ready_fasta.clone()),
                 "taxonomy_ready_fastq": governed.as_ref().map(|report| report.taxonomy_ready_fastq.clone()),
+                "asv_count": governed.as_ref().map(|report| report.asv_count),
+                "sample_count": governed.as_ref().map(|report| report.sample_count),
                 "representative_sequence_count": governed.as_ref().map(|report| report.representative_sequence_count),
                 "used_fallback": governed.as_ref().map(|report| report.used_fallback),
                 "report_json": report_path,
@@ -1024,6 +1027,20 @@ mod stage_artifact_tests {
         }
     }
 
+    fn infer_asvs_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "infer-asvs-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 12.4,
+            memory_mb: 384.0,
+            outputs: vec![stage_root.join("infer_asvs_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "dada2".to_string(),
+        }
+    }
+
     fn write_normalize_primers_report(stage_root: &std::path::Path) -> Result<()> {
         bijux_dna_infra::write_bytes(
             stage_root.join("normalize_primers_report.json"),
@@ -1060,6 +1077,42 @@ mod stage_artifact_tests {
                 "memory_mb": 80.0,
                 "used_fallback": false,
                 "backend_metrics": {}
+            }"#,
+        )?;
+        Ok(())
+    }
+
+    fn write_infer_asvs_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("infer_asvs_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.infer_asvs.report.v2",
+                "stage": "fastq.infer_asvs",
+                "stage_id": "fastq.infer_asvs",
+                "tool_id": "dada2",
+                "paired_mode": "single_end",
+                "denoising_method": "dada2",
+                "pooling_mode": "independent",
+                "chimera_policy": "remove_bimera_denovo",
+                "requires_r_runtime": true,
+                "output_table_kind": "asv_abundance_table",
+                "input_reads_r1": "trimmed_reads.fastq.gz",
+                "input_reads_r2": null,
+                "asv_table_tsv": "asv_table.tsv",
+                "asv_sequences_fasta": "representatives.fasta",
+                "taxonomy_ready_fasta": "taxonomy_ready.fasta",
+                "taxonomy_ready_fastq": "taxonomy_ready.fastq",
+                "report_json": "infer_asvs_report.json",
+                "asv_count": 18,
+                "sample_count": 4,
+                "representative_sequence_count": 18,
+                "used_fallback": false,
+                "raw_backend_report": "infer_asvs_report.json",
+                "raw_backend_report_format": "infer_asvs_governed_report_json",
+                "runtime_s": 12.4,
+                "memory_mb": 384.0,
+                "exit_code": 0,
+                "backend_metrics": {"nonchimera_reads": 1600}
             }"#,
         )?;
         Ok(())
@@ -2416,6 +2469,38 @@ mod stage_artifact_tests {
         assert_eq!(
             extra["report_json"],
             serde_json::json!(temp.path().join("normalize_primers_report.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn infer_asvs_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_infer_asvs_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.infer_asvs",
+            &infer_asvs_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("dada2"));
+        assert_eq!(extra["denoising_method"], serde_json::json!("dada2"));
+        assert_eq!(extra["asv_table_tsv"], serde_json::json!("asv_table.tsv"));
+        assert_eq!(
+            extra["representative_sequences_fasta"],
+            serde_json::json!("representatives.fasta")
+        );
+        assert_eq!(extra["asv_sequences_fasta"], serde_json::json!("representatives.fasta"));
+        assert_eq!(extra["asv_count"], serde_json::json!(18));
+        assert_eq!(extra["sample_count"], serde_json::json!(4));
+        assert_eq!(extra["representative_sequence_count"], serde_json::json!(18));
+        assert_eq!(extra["taxonomy_ready_fasta"], serde_json::json!("taxonomy_ready.fasta"));
+        assert_eq!(extra["taxonomy_ready_fastq"], serde_json::json!("taxonomy_ready.fastq"));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("infer_asvs_report.json"))
         );
         Ok(())
     }
