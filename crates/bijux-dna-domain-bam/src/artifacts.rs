@@ -282,6 +282,8 @@ pub struct BamMarkdupSummaryV1 {
     #[serde(default)]
     pub duplicate_reads_after: Option<u64>,
     #[serde(default)]
+    pub duplicate_count: Option<u64>,
+    #[serde(default)]
     pub newly_marked_reads: Option<u64>,
     #[serde(default)]
     pub duplicate_reads_removed: Option<u64>,
@@ -289,6 +291,8 @@ pub struct BamMarkdupSummaryV1 {
     pub duplicate_fraction_before: Option<f64>,
     #[serde(default)]
     pub duplicate_fraction_after: Option<f64>,
+    #[serde(default)]
+    pub duplicate_fraction: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -2367,10 +2371,12 @@ pub fn summarize_bam_markdup(
         removed_reads,
         duplicate_reads_before,
         duplicate_reads_after,
+        duplicate_count: duplicate_reads_after,
         newly_marked_reads,
         duplicate_reads_removed,
         duplicate_fraction_before,
         duplicate_fraction_after,
+        duplicate_fraction: duplicate_fraction_after,
     }
 }
 
@@ -5178,10 +5184,12 @@ mod tests {
             removed_reads: 0,
             duplicate_reads_before: Some(0),
             duplicate_reads_after: Some(1),
+            duplicate_count: Some(1),
             newly_marked_reads: Some(1),
             duplicate_reads_removed: None,
             duplicate_fraction_before: Some(0.0),
             duplicate_fraction_after: Some(0.25),
+            duplicate_fraction: Some(0.25),
         };
 
         let json = serde_json::to_value(&payload).expect("serialize markdup summary");
@@ -5964,8 +5972,10 @@ r03\t0\tchr1\t7\t40\t6M\t*\t0\t0\tTTTTTT\tFFFFFF\tRG:Z:rg1\n",
         );
         assert_eq!(marked.duplicate_reads_before, Some(0));
         assert_eq!(marked.duplicate_reads_after, Some(1));
+        assert_eq!(marked.duplicate_count, Some(1));
         assert_eq!(marked.newly_marked_reads, Some(1));
         assert_eq!(marked.duplicate_reads_removed, None);
+        assert_eq!(marked.duplicate_fraction, Some(0.25));
 
         let removed = summarize_bam_markdup(
             "bam.markdup",

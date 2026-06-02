@@ -52,6 +52,8 @@ fn write_local_markdup_smoke_report_materializes_governed_outputs() -> Result<()
     assert_eq!(payload["input_reads"], serde_json::json!(4));
     assert_eq!(payload["output_reads"], serde_json::json!(4));
     assert_eq!(payload["removed_reads"], serde_json::json!(0));
+    assert_eq!(payload["duplicate_count"], serde_json::json!(1));
+    assert_eq!(payload["duplicate_fraction"], serde_json::json!(0.25));
     assert_eq!(payload["duplicate_reads_before"], serde_json::json!(0));
     assert_eq!(payload["duplicate_reads_after"], serde_json::json!(1));
     assert_eq!(payload["newly_marked_reads"], serde_json::json!(1));
@@ -62,6 +64,11 @@ fn write_local_markdup_smoke_report_materializes_governed_outputs() -> Result<()
         payload["markdup_summary"]
             .as_str()
             .unwrap_or_else(|| panic!("markdup_summary path missing")),
+    );
+    let duplicate_metrics = repo_root.join(
+        payload["duplicate_metrics"]
+            .as_str()
+            .unwrap_or_else(|| panic!("duplicate_metrics path missing")),
     );
     let markdup_policy = repo_root.join(
         payload["markdup_policy"].as_str().unwrap_or_else(|| panic!("markdup_policy path missing")),
@@ -93,6 +100,7 @@ fn write_local_markdup_smoke_report_materializes_governed_outputs() -> Result<()
     for path in [
         &marked_bam,
         &markdup_summary,
+        &duplicate_metrics,
         &markdup_policy,
         &markdup_comparison,
         &flagstat_before,
@@ -117,6 +125,8 @@ fn write_local_markdup_smoke_report_materializes_governed_outputs() -> Result<()
     assert_eq!(summary_json["input_reads"], serde_json::json!(4));
     assert_eq!(summary_json["output_reads"], serde_json::json!(4));
     assert_eq!(summary_json["removed_reads"], serde_json::json!(0));
+    assert_eq!(summary_json["duplicate_count"], serde_json::json!(1));
+    assert_eq!(summary_json["duplicate_fraction"], serde_json::json!(0.25));
     assert_eq!(summary_json["duplicate_reads_after"], serde_json::json!(1));
     assert_eq!(summary_json["newly_marked_reads"], serde_json::json!(1));
 

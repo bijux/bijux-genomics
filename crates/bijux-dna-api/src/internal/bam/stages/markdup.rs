@@ -15,10 +15,13 @@ struct LocalMarkdupSmokeReport {
     expectation_matched: bool,
     input_bam: String,
     marked_bam: String,
+    duplicate_metrics: String,
     duplicate_action: String,
     input_reads: u64,
     output_reads: u64,
     removed_reads: u64,
+    duplicate_count: u64,
+    duplicate_fraction: f64,
     duplicate_reads_before: Option<u64>,
     duplicate_reads_after: Option<u64>,
     newly_marked_reads: Option<u64>,
@@ -133,6 +136,14 @@ fn materialize_local_markdup_smoke_case(
     bijux_dna_infra::atomic_write_json(&summary_path, &summary)?;
     bijux_dna_infra::atomic_write_json(&policy_path, &policy)?;
     bijux_dna_infra::atomic_write_json(&comparison_path, &comparison)?;
+    let duplicate_count = summary
+        .duplicate_count
+        .or(summary.duplicate_reads_after)
+        .ok_or_else(|| anyhow!("bam.markdup local-smoke summary is missing duplicate_count"))?;
+    let duplicate_fraction = summary
+        .duplicate_fraction
+        .or(summary.duplicate_fraction_after)
+        .ok_or_else(|| anyhow!("bam.markdup local-smoke summary is missing duplicate_fraction"))?;
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
         &serde_json::json!({
@@ -143,6 +154,8 @@ fn materialize_local_markdup_smoke_case(
             "input_reads": summary.input_reads,
             "output_reads": summary.output_reads,
             "removed_reads": summary.removed_reads,
+            "duplicate_count": duplicate_count,
+            "duplicate_fraction": duplicate_fraction,
             "duplicate_reads_before": summary.duplicate_reads_before,
             "duplicate_reads_after": summary.duplicate_reads_after,
             "newly_marked_reads": summary.newly_marked_reads,
@@ -160,6 +173,7 @@ fn materialize_local_markdup_smoke_case(
         && summary.removed_reads == case.expected_removed_reads
         && summary.duplicate_reads_before == Some(case.expected_duplicate_reads_before)
         && summary.duplicate_reads_after == Some(case.expected_duplicate_reads_after)
+        && (duplicate_fraction - case.expected_duplicate_fraction).abs() <= 1e-9
         && summary.newly_marked_reads == Some(case.expected_newly_marked_reads);
 
     Ok(LocalMarkdupSmokeReport {
@@ -169,10 +183,13 @@ fn materialize_local_markdup_smoke_case(
         expectation_matched,
         input_bam: path_relative_to_repo(repo_root, &input_bam),
         marked_bam: path_relative_to_repo(repo_root, &top_level_marked_bam),
+        duplicate_metrics: path_relative_to_repo(repo_root, &summary_path),
         duplicate_action,
         input_reads: summary.input_reads,
         output_reads: summary.output_reads,
         removed_reads: summary.removed_reads,
+        duplicate_count,
+        duplicate_fraction,
         duplicate_reads_before: summary.duplicate_reads_before,
         duplicate_reads_after: summary.duplicate_reads_after,
         newly_marked_reads: summary.newly_marked_reads,
