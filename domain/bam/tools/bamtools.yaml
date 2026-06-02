@@ -10,6 +10,18 @@ citation: "paper:https://academic.oup.com/bioinformatics/article/27/12/1691/2553
 stage_ids: ["bam.validate","bam.filter","bam.mapq_filter"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.validate:
+    required_inputs:
+      - "bam"
+    optional_inputs:
+      - "bam_index"
+      - "reference_fasta"
+    expected_artifacts:
+      - "validation_report"
+      - "flagstat"
+      - "stage_metrics"
+    notes: "Validation emits the governed validation summary, flagstat companion output, and benchmark-facing stage metrics while preserving optional BAM index and reference identity when present."
 expected_artifacts: ["bam_validation_report"]
 metrics_schema_id: "bijux.bam.validation.v1"
 metrics_schema: "bijux.bam.validation.v1"
