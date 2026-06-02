@@ -24,6 +24,19 @@ planned_stage_ids:
 status: supported
 scope: pre_hpc_pre_vcf
 stage_contracts:
+  bam.markdup:
+    required_inputs:
+    - bam
+    expected_artifacts:
+    - markdup_bam
+    - markdup_bai
+    - flagstat_before
+    - flagstat_after
+    - idxstats_before
+    - idxstats_after
+    - summary
+    - stage_metrics
+    notes: Samtools preserves the governed BAM markdup benchmark row through deterministic duplicate marking, marked-BAM output, before-and-after audit artifacts, and comparable duplicate-burden summary metrics.
   bam.filter:
     required_inputs:
     - bam

@@ -11,6 +11,19 @@ stage_ids: ["bam.markdup","bam.length_filter","bam.duplication_metrics","bam.ins
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 stage_contracts:
+  bam.markdup:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "markdup_bam"
+      - "markdup_bai"
+      - "flagstat_before"
+      - "flagstat_after"
+      - "idxstats_before"
+      - "idxstats_after"
+      - "summary"
+      - "stage_metrics"
+    notes: "Picard markdup coverage must preserve the governed marked-BAM, duplicate-metric, duplicate-count, and duplicate-fraction contract even while local comparison planning currently reuses the GATK MarkDuplicatesSpark execution path."
   bam.length_filter:
     required_inputs:
       - "bam"
