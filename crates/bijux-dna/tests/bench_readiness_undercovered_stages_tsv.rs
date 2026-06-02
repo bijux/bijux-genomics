@@ -41,13 +41,7 @@ fn bench_readiness_undercovered_stages_writes_governed_tsv_columns() {
         Some("domain\tstage_id\tvalid_tool_count\tregistered_tool_count\tvalid_tool_ids\tregistered_tool_ids\tmissing_tool_ids\treason")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 4, "TSV must retain the governed undercovered-stage row count");
-    assert!(
-        rows.iter().any(|row| {
-            row == &"bam\tbam.duplication_metrics\t2\t1\tpicard,samtools\tsamtools\tpicard\tstage `bam.duplication_metrics` admits 2 governed tool options (picard, samtools) but only registers samtools; add picard to avoid a single-backend benchmark slice"
-        }),
-        "TSV must retain the governed duplication-metrics undercoverage gap"
-    );
+    assert_eq!(rows.len(), 1, "TSV must retain the governed undercovered-stage row count");
     assert!(
         rows.iter().any(|row| {
             row == &"bam\tbam.overlap_correction\t2\t1\tbamutil,samtools\tbamutil\tsamtools\tstage `bam.overlap_correction` admits 2 governed tool options (bamutil, samtools) but only registers bamutil; add samtools to avoid a single-backend benchmark slice"

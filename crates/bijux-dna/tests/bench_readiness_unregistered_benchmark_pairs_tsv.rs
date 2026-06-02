@@ -43,7 +43,13 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 15, "TSV must retain the governed unregistered-pair row count");
+    assert_eq!(rows.len(), 13, "TSV must retain the governed unregistered-pair row count");
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bam\tbam.bias_mitigation\tmapdamage2\tsupported\ttool_registered_pair_missing\tbam.damage\tbenchmark matrix references `bam.bias_mitigation` / `mapdamage2` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `mapdamage2`: bam.damage"
+        }),
+        "TSV must retain the governed bam.bias_mitigation / mapdamage2 registry drift row"
+    );
     assert!(
         rows.iter().any(|row| {
             row == &"bam\tbam.genotyping\tangsd\tplanned\ttool_registered_pair_missing\tbam.kinship,bam.sex\tbenchmark matrix references `bam.genotyping` / `angsd` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `angsd`: bam.kinship, bam.sex"
@@ -121,6 +127,10 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
     assert!(
         !rows.iter().any(|row| { row.starts_with("bam\tbam.qc_pre\tmultiqc\t") }),
         "TSV must not retain a registry-drift row for bam.qc_pre / multiqc"
+    );
+    assert!(
+        !rows.iter().any(|row| { row.starts_with("bam\tbam.mapping_summary\tpicard\t") }),
+        "TSV must not retain a registry-drift row for bam.mapping_summary / picard"
     );
     for tool_id in ["bwa", "bowtie2"] {
         assert!(

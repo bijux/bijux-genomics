@@ -46,10 +46,7 @@ fn bench_readiness_missing_benchmark_pairs_reports_governed_gaps() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/missing-benchmark-pairs.tsv")
     );
-    assert_eq!(
-        payload.get("missing_pair_count").and_then(serde_json::Value::as_u64),
-        Some(9)
-    );
+    assert_eq!(payload.get("missing_pair_count").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
     let domain_counts = payload
@@ -58,7 +55,7 @@ fn bench_readiness_missing_benchmark_pairs_reports_governed_gaps() {
         .expect("domain_counts object");
     assert_eq!(
         domain_counts.get("bam").and_then(serde_json::Value::as_u64),
-        Some(9),
+        Some(6),
         "the current missing benchmark-pair slice must be entirely BAM-owned"
     );
     assert!(
@@ -67,7 +64,15 @@ fn bench_readiness_missing_benchmark_pairs_reports_governed_gaps() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 9, "the governed missing-pair slice must retain nine BAM rows");
+    assert_eq!(rows.len(), 6, "the governed missing-pair slice must retain six BAM rows");
+    assert!(
+        rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
+                && row.get("support_status").and_then(serde_json::Value::as_str) == Some("planned")
+        }),
+        "bam.align / samtools must remain visible as a planned missing benchmark pair"
+    );
     assert!(
         rows.iter().any(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str)
@@ -81,12 +86,19 @@ fn bench_readiness_missing_benchmark_pairs_reports_governed_gaps() {
     );
     assert!(
         rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("addeam")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("supported")
+        }),
+        "bam.damage / addeam must remain visible as a missing benchmark pair"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str)
                 == Some("bam.overlap_correction")
-                && row.get("tool_id").and_then(serde_json::Value::as_str)
-                    == Some("samtools")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("planned")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
+                && row.get("support_status").and_then(serde_json::Value::as_str) == Some("planned")
         }),
         "bam.overlap_correction / samtools must remain visible as a planned missing pair"
     );

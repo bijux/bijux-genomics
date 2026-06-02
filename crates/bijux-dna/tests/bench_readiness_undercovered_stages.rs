@@ -49,7 +49,7 @@ fn bench_readiness_undercovered_stages_reports_single_backend_gaps() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(
         payload.get("undercovered_stage_count").and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(1)
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
@@ -59,7 +59,7 @@ fn bench_readiness_undercovered_stages_reports_single_backend_gaps() {
         .expect("domain_counts object");
     assert_eq!(
         domain_counts.get("bam").and_then(serde_json::Value::as_u64),
-        Some(4),
+        Some(1),
         "the current undercovered-stage slice must be entirely BAM-owned"
     );
     assert!(
@@ -68,7 +68,7 @@ fn bench_readiness_undercovered_stages_reports_single_backend_gaps() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 4, "the governed undercovered-stage slice must retain four BAM rows");
+    assert_eq!(rows.len(), 1, "the governed undercovered-stage slice must retain one BAM row");
     assert!(
         rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -80,19 +80,5 @@ fn bench_readiness_undercovered_stages_reports_single_backend_gaps() {
                     == Some(&vec![serde_json::Value::String("samtools".to_string())])
         }),
         "bam.overlap_correction must stay visible as a single-backend benchmark gap"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("bam.markdup")
-                && row.get("valid_tool_ids").and_then(serde_json::Value::as_array)
-                    == Some(
-                        &vec![
-                            serde_json::Value::String("picard".to_string()),
-                            serde_json::Value::String("samtools".to_string()),
-                        ]
-                    )
-        }),
-        "bam.markdup must retain both admitted BAM tool options in the undercoverage report"
     );
 }

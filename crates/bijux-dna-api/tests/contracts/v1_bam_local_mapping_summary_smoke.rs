@@ -52,13 +52,16 @@ fn write_local_mapping_summary_smoke_summary_materializes_governed_outputs() -> 
         "sample_id",
         "total_reads",
         "mapped_reads",
+        "unmapped_reads",
         "mapping_fraction",
+        "secondary_reads",
+        "supplementary_reads",
         "reference_name",
         "expectation_matched",
         "mapping_summary_json",
         "flagstat",
         "idxstats",
-        "samtools_stats",
+        "stats",
         "stage_metrics",
     ] {
         assert!(header_index.contains_key(column), "summary header must contain `{column}`");
@@ -73,19 +76,22 @@ fn write_local_mapping_summary_smoke_summary_materializes_governed_outputs() -> 
         .unwrap_or_else(|| panic!("core-v1-partial-mapping row missing from BAM mapping summary"));
     assert_eq!(row["total_reads"], "3");
     assert_eq!(row["mapped_reads"], "2");
+    assert_eq!(row["unmapped_reads"], "1");
     assert_eq!(row["mapping_fraction"], "0.666667");
+    assert_eq!(row["secondary_reads"], "0");
+    assert_eq!(row["supplementary_reads"], "0");
     assert_eq!(row["reference_name"], "chr1");
     assert_eq!(row["expectation_matched"], "true");
 
     let mapping_summary_json = repo_root.join(&row["mapping_summary_json"]);
     let flagstat = repo_root.join(&row["flagstat"]);
     let idxstats = repo_root.join(&row["idxstats"]);
-    let samtools_stats = repo_root.join(&row["samtools_stats"]);
+    let stats = repo_root.join(&row["stats"]);
     let stage_metrics = repo_root.join(&row["stage_metrics"]);
     assert!(mapping_summary_json.is_file(), "case mapping summary JSON must exist");
     assert!(flagstat.is_file(), "case flagstat must exist");
     assert!(idxstats.is_file(), "case idxstats must exist");
-    assert!(samtools_stats.is_file(), "case samtools stats must exist");
+    assert!(stats.is_file(), "case mapping-summary stats must exist");
     assert!(stage_metrics.is_file(), "case stage metrics must exist");
 
     let mapping_summary: serde_json::Value =
@@ -94,14 +100,8 @@ fn write_local_mapping_summary_smoke_summary_materializes_governed_outputs() -> 
         mapping_summary["schema_version"],
         serde_json::json!("bijux.bam.mapping_summary.v1")
     );
-    assert_eq!(
-        mapping_summary["flagstat"]["total_reads"],
-        serde_json::json!(3)
-    );
-    assert_eq!(
-        mapping_summary["flagstat"]["mapped_reads"],
-        serde_json::json!(2)
-    );
+    assert_eq!(mapping_summary["flagstat"]["total_reads"], serde_json::json!(3));
+    assert_eq!(mapping_summary["flagstat"]["mapped_reads"], serde_json::json!(2));
 
     let stage_metrics_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&stage_metrics)?)?;
@@ -109,6 +109,10 @@ fn write_local_mapping_summary_smoke_summary_materializes_governed_outputs() -> 
         stage_metrics_json["schema_version"],
         serde_json::json!("bijux.bam.mapping_summary.local_smoke.metrics.v1")
     );
+    assert_eq!(stage_metrics_json["mapped_reads"], serde_json::json!(2));
+    assert_eq!(stage_metrics_json["unmapped_reads"], serde_json::json!(1));
+    assert_eq!(stage_metrics_json["secondary_reads"], serde_json::json!(0));
+    assert_eq!(stage_metrics_json["supplementary_reads"], serde_json::json!(0));
     assert_eq!(stage_metrics_json["reference_name"], serde_json::json!("chr1"));
 
     Ok(())
