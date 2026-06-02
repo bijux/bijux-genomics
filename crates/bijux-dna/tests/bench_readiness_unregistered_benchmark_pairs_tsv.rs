@@ -128,6 +128,12 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         !rows.iter().any(|row| { row.starts_with("fastq\tfastq.deplete_host\tbowtie2\t") }),
         "TSV must not retain a registry-drift row for fastq.deplete_host / bowtie2"
     );
+    assert!(
+        !rows.iter().any(|row| {
+            row.starts_with("fastq\tfastq.deplete_reference_contaminants\tbowtie2\t")
+        }),
+        "TSV must not retain a registry-drift row for fastq.deplete_reference_contaminants / bowtie2"
+    );
     for tool_id in ["bbduk", "prinseq"] {
         assert!(
             !rows.iter().any(|row| {
