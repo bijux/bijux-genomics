@@ -718,6 +718,7 @@ mod tests {
                 "pairs_in": 100,
                 "pairs_out": 100,
                 "reads_with_umi": 200,
+                "failed_extractions": 0,
                 "mean_q_before": 30.0,
                 "mean_q_after": 30.0,
                 "runtime_s": 1.4,
@@ -736,7 +737,14 @@ mod tests {
         let metrics = parse_extract_umis_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("umi_tools"));
         assert_eq!(metrics["umi_pattern"], serde_json::json!("NNNNNNNN"));
+        assert_eq!(metrics["extraction_location"], serde_json::json!("read1_prefix"));
+        assert_eq!(metrics["read_name_transform"], serde_json::json!("append_to_header"));
+        assert_eq!(metrics["tag_header_format"], serde_json::json!("append_to_header"));
+        assert_eq!(metrics["downstream_propagation"], serde_json::json!("header_and_report"));
         assert_eq!(metrics["reads_with_umi"], serde_json::json!(200));
+        assert_eq!(metrics["failed_extractions"], serde_json::json!(0));
+        assert_eq!(metrics["extracted_umi_count"], serde_json::json!(200));
+        assert_eq!(metrics["invalid_umi_count"], serde_json::json!(0));
         assert_eq!(metrics["raw_backend_report_format"], serde_json::json!("umi_tools_log"));
     }
 
@@ -1673,9 +1681,19 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "reads_out",
             "reads_removed_low_complexity",
         ],
-        "fastq.extract_umis" => {
-            &["schema_version", "stage", "tool", "reads_in", "reads_out", "reads_with_umi"]
-        }
+        "fastq.extract_umis" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "umi_pattern",
+            "tag_header_format",
+            "downstream_propagation",
+            "reads_in",
+            "reads_out",
+            "reads_with_umi",
+            "extracted_umi_count",
+            "invalid_umi_count",
+        ],
         "fastq.profile_reads" => &[
             "schema_version",
             "stage",
