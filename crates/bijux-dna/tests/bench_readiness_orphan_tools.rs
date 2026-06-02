@@ -46,46 +46,14 @@ fn bench_readiness_orphan_tools_reports_governed_decisions() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/orphan-tools.tsv")
     );
-    assert_eq!(payload.get("orphan_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(payload.get("orphan_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let domain_counts = payload
         .get("domain_counts")
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
-    assert_eq!(
-        domain_counts.get("bam").and_then(serde_json::Value::as_u64),
-        Some(3),
-        "the current orphan-tool slice must be entirely BAM-owned"
-    );
-    assert!(
-        domain_counts.get("fastq").is_none(),
-        "FASTQ currently has no orphan governed tools in the benchmark scope"
-    );
+    assert!(domain_counts.is_empty(), "the orphan-tool slice must now be empty");
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 3, "the governed orphan slice must retain three BAM rows");
-    assert!(
-        rows.iter().any(|row| {
-            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("addeam")
-                && row.get("decision").and_then(serde_json::Value::as_str)
-                    == Some("register_to_stage")
-        }),
-        "addeam must remain visible as a benchmark registration gap"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-                && row.get("tool_id").and_then(serde_json::Value::as_str)
-                    == Some("damageprofiler")
-                && row.get("benchmark_stage_ids").and_then(serde_json::Value::as_array)
-                    == Some(
-                        &vec![
-                            serde_json::Value::String("bam.authenticity".to_string()),
-                            serde_json::Value::String("bam.damage".to_string()),
-                        ]
-                    )
-        }),
-        "damageprofiler must retain both benchmarked BAM stages in the orphan report"
-    );
+    assert!(rows.is_empty(), "the governed orphan slice must now be empty");
 }

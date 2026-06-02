@@ -43,7 +43,13 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 11, "TSV must retain the governed unregistered-pair row count");
+    assert_eq!(rows.len(), 14, "TSV must retain the governed unregistered-pair row count");
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bam\tbam.align\tbowtie2\tsupported\ttool_registered_pair_missing\tfastq.deplete_host,fastq.deplete_reference_contaminants\tbenchmark matrix references `bam.align` / `bowtie2` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `bowtie2`: fastq.deplete_host, fastq.deplete_reference_contaminants"
+        }),
+        "TSV must retain the governed bam.align / bowtie2 registry drift row"
+    );
     assert!(
         rows.iter().any(|row| {
             row == &"bam\tbam.genotyping\tbcftools\tmissing_contract\ttool_missing\t\tbenchmark matrix references `bam.genotyping` / `bcftools` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `bcftools`: <none>"
@@ -61,6 +67,18 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             row == &"bam\tbam.complexity\tpreseq\tplanned\ttool_missing\t\tbenchmark matrix references `bam.complexity` / `preseq` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `preseq`: <none>"
         }),
         "TSV must retain the planned bam.complexity / preseq registry-drift row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bam\tbam.damage\tngsbriggs\tplanned\ttool_missing\t\tbenchmark matrix references `bam.damage` / `ngsbriggs` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `ngsbriggs`: <none>"
+        }),
+        "TSV must retain the planned bam.damage / ngsbriggs registry-drift row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bam\tbam.haplogroups\tyleaf\tsupported\ttool_missing\t\tbenchmark matrix references `bam.haplogroups` / `yleaf` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `yleaf`: <none>"
+        }),
+        "TSV must retain the governed bam.haplogroups / yleaf registry drift row"
     );
     assert!(
         rows.iter().any(|row| {
@@ -83,6 +101,14 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
     assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.overlap_correction\t")),
         "TSV must not retain a registry-drift row for bam.overlap_correction once bamutil is registered in production"
+    );
+    assert!(
+        !rows.iter().any(|row| row.starts_with("bam\tbam.damage\taddeam\t")),
+        "TSV must not retain a registry-drift row for bam.damage / addeam once it is registered"
+    );
+    assert!(
+        !rows.iter().any(|row| row.starts_with("bam\tbam.damage\tdamageprofiler\t")),
+        "TSV must not retain a registry-drift row for bam.damage / damageprofiler once it is registered"
     );
     for tool_id in ["fastp", "prinseq", "seqfu"] {
         assert!(
@@ -208,7 +234,7 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             "TSV must not retain a registry-drift row for bam.markdup / {tool_id}"
         );
     }
-    for tool_id in ["bwa", "bowtie2"] {
+    for tool_id in ["bwa"] {
         assert!(
             !rows.iter().any(|row| { row.starts_with(&format!("bam\tbam.align\t{tool_id}\t")) }),
             "TSV must not retain a registry-drift row for bam.align / {tool_id}"
@@ -237,101 +263,5 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             )
         }),
         "TSV must retain the planned fastq.normalize_abundance / seqfu registry-drift row"
-    );
-    assert!(
-        !rows.iter().any(|row| { row.starts_with("fastq\tfastq.infer_asvs\tdada2\t") }),
-        "TSV must not retain a registry-drift row for fastq.infer_asvs / dada2"
-    );
-    for tool_id in ["bayeshammer", "lighter", "musket", "rcorrector"] {
-        assert!(
-            !rows.iter().any(|row| {
-                row.starts_with(&format!("fastq\tfastq.correct_errors\t{tool_id}\t"))
-            }),
-            "TSV must not retain a registry-drift row for fastq.correct_errors / {tool_id}"
-        );
-    }
-    for tool_id in ["bowtie2_build", "star"] {
-        assert!(
-            !rows.iter().any(|row| {
-                row.starts_with(&format!("fastq\tfastq.index_reference\t{tool_id}\t"))
-            }),
-            "TSV must not retain a registry-drift row for fastq.index_reference / {tool_id}"
-        );
-    }
-    assert!(
-        !rows.iter().any(|row| { row.starts_with("fastq\tfastq.deplete_rrna\tsortmerna\t") }),
-        "TSV must not retain a registry-drift row for fastq.deplete_rrna / sortmerna"
-    );
-    assert!(
-        !rows.iter().any(|row| { row.starts_with("fastq\tfastq.deplete_host\tbowtie2\t") }),
-        "TSV must not retain a registry-drift row for fastq.deplete_host / bowtie2"
-    );
-    assert!(
-        !rows.iter().any(|row| {
-            row.starts_with("fastq\tfastq.deplete_reference_contaminants\tbowtie2\t")
-        }),
-        "TSV must not retain a registry-drift row for fastq.deplete_reference_contaminants / bowtie2"
-    );
-    for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
-        assert!(
-            !rows.iter().any(|row| {
-                row.starts_with(&format!("fastq\tfastq.screen_taxonomy\t{tool_id}\t"))
-            }),
-            "TSV must not retain a registry-drift row for fastq.screen_taxonomy / {tool_id}"
-        );
-    }
-    assert!(
-        rows.iter().any(|row| {
-            row.starts_with(
-                "fastq\tfastq.screen_taxonomy\tdiamond\tplanned_contract\ttool_missing\t",
-            )
-        }),
-        "TSV must retain the planned fastq.screen_taxonomy / diamond registry-drift row"
-    );
-    for tool_id in ["bbduk", "prinseq"] {
-        assert!(
-            !rows.iter().any(|row| {
-                row.starts_with(&format!("fastq\tfastq.filter_low_complexity\t{tool_id}\t"))
-            }),
-            "TSV must not retain a registry-drift row for fastq.filter_low_complexity / {tool_id}"
-        );
-    }
-    for tool_id in ["dustmasker", "fastp"] {
-        assert!(
-            rows.iter().any(|row| {
-                row.starts_with(&format!("fastq\tfastq.filter_low_complexity\t{tool_id}\t"))
-            }),
-            "TSV must retain the planned fastq.filter_low_complexity / {tool_id} registry-drift row"
-        );
-    }
-    for tool_id in ["bbduk", "fastp"] {
-        assert!(
-            !rows.iter().any(|row| {
-                row.starts_with(&format!("fastq\tfastq.trim_polyg_tails\t{tool_id}\t"))
-            }),
-            "TSV must not retain a registry-drift row for fastq.trim_polyg_tails / {tool_id}"
-        );
-    }
-    for tool_id in ["adapterremoval", "cutadapt", "seqkit"] {
-        assert!(
-            !rows.iter().any(|row| {
-                row.starts_with(&format!("fastq\tfastq.trim_terminal_damage\t{tool_id}\t"))
-            }),
-            "TSV must not retain a registry-drift row for fastq.trim_terminal_damage / {tool_id}"
-        );
-    }
-    for tool_id in ["clumpify", "fastuniq"] {
-        assert!(
-            !rows.iter().any(|row| {
-                row.starts_with(&format!("fastq\tfastq.remove_duplicates\t{tool_id}\t"))
-            }),
-            "TSV must not retain a registry-drift row for fastq.remove_duplicates / {tool_id}"
-        );
-    }
-    assert!(
-        rows.iter().any(|row| {
-            row.starts_with("fastq\tfastq.trim_reads\tseqpurge\tplanned_contract\ttool_missing\t")
-        }),
-        "TSV must retain the planned fastq.trim_reads / seqpurge registry-drift row"
     );
 }

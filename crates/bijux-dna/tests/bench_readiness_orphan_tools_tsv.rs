@@ -41,17 +41,5 @@ fn bench_readiness_orphan_tools_writes_governed_tsv_columns() {
         Some("domain\ttool_id\tdecision\tdeclared_stage_ids\tbenchmark_stage_ids\treason")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 3, "TSV must retain the governed orphan-tool row count");
-    assert!(
-        rows.iter().any(|row| {
-            row == &"bam\taddeam\tregister_to_stage\tbam.damage\tbam.damage\ttool `addeam` already declares benchmarked stages bam.damage; register it to the benchmark serving map"
-        }),
-        "TSV must retain the governed addeam registration gap"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row == &"bam\tngsbriggs\tregister_to_stage\tbam.damage\tbam.damage\ttool `ngsbriggs` already declares benchmarked stages bam.damage; register it to the benchmark serving map"
-        }),
-        "TSV must retain the governed ngsbriggs registration gap"
-    );
+    assert!(rows.is_empty(), "TSV must now be empty once all governed tools are registered");
 }
