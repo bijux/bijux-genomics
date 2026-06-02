@@ -398,6 +398,27 @@ mod tests {
     }
 
     #[test]
+    fn load_bam_domain_tool_planning_spec_accepts_overlap_correction_stage() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("bam.overlap_correction".to_string());
+        let tool_id = ToolId::new("bamutil");
+
+        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
+        assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Supported);
+        assert!(
+            metadata.stage_ids.iter().any(|candidate| candidate == &stage_id),
+            "bamutil metadata must retain admitted bam.overlap_correction coverage"
+        );
+
+        let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
+        assert_eq!(spec.tool_id.as_str(), "bamutil");
+        assert_eq!(spec.command.template, vec!["bam".to_string()]);
+        assert_eq!(spec.image.image, "bamutil");
+        assert!(spec.image.digest.is_none());
+        Ok(())
+    }
+
+    #[test]
     fn load_bam_domain_tool_execution_spec_accepts_supported_bowtie2_stage() -> Result<()> {
         let repo_root = repo_root();
         let stage_id = StageId::new("bam.align".to_string());
@@ -545,8 +566,8 @@ mod tests {
     }
 
     #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_supported_length_filter_stage_tools()
-    -> Result<()> {
+    fn load_bam_domain_tool_planning_spec_accepts_supported_length_filter_stage_tools() -> Result<()>
+    {
         let repo_root = repo_root();
         let stage_id = StageId::new("bam.length_filter".to_string());
 
