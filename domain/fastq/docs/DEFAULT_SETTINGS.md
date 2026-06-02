@@ -132,6 +132,13 @@ filter_reads_benchmark_policy: fastq.filter_reads
 - every governed `fastq.filter_reads` row must emit filtered FASTQ outputs, retained-read count, removed-read count, and per-reason removal accounting for `n`, `entropy`, `low_complexity`, `kmer`, `contaminant_kmer`, and `length`
 - the explicit `reads_retained` and `reads_removed` aliases must stay aligned with `reads_out` and `reads_dropped` so downstream comparison code does not need to infer benchmark row semantics from stage-internal metric names
 
+correct_errors_benchmark_policy: fastq.correct_errors
+- default benchmark backend is `rcorrector`
+- governed comparison backends are `bayeshammer`, `lighter`, and `musket`
+- every governed `fastq.correct_errors` row must emit `corrected_reads`, `changed_reads`, `unchanged_reads`, and the governed corrected FASTQ output paths
+- `changed_reads` and `unchanged_reads` must come from real input-versus-output FASTQ comparison instead of inferring correction activity from aggregate quality or base totals
+- the canonical `corrected_reads` count remains the emitted corrected-output read count; it must not be repurposed to mean only reads whose content changed
+
 trim_terminal_damage_benchmark_policy: fastq.trim_terminal_damage
 - default benchmark backend is `cutadapt`
 - governed comparison backends are `adapterremoval` and `seqkit`
