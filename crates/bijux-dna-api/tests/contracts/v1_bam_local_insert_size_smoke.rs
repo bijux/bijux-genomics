@@ -27,6 +27,16 @@ fn repo_root() -> Result<PathBuf> {
     crate::support::repo_root()
 }
 
+fn assert_json_f64(value: &serde_json::Value, expected: f64, label: &str) {
+    let observed = value
+        .as_f64()
+        .unwrap_or_else(|| panic!("{label} must serialize as f64"));
+    assert!(
+        (observed - expected).abs() <= 1e-12,
+        "{label} drifted: observed {observed}, expected {expected}"
+    );
+}
+
 #[test]
 fn write_local_insert_size_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
@@ -52,6 +62,11 @@ fn write_local_insert_size_smoke_report_materializes_governed_outputs() -> Resul
     assert_eq!(payload["read_pairs"], serde_json::json!(3));
     assert_eq!(payload["median_insert_size"], serde_json::json!(20.0));
     assert_eq!(payload["mean_insert_size"], serde_json::json!(21.666666666666668));
+    assert_json_f64(
+        &payload["standard_deviation"],
+        6.236095644623236,
+        "report standard_deviation",
+    );
     assert_eq!(payload["min_insert_size"], serde_json::json!(15));
     assert_eq!(payload["max_insert_size"], serde_json::json!(30));
     assert_eq!(payload["insufficient_pairs_reason"], serde_json::Value::Null);
@@ -82,6 +97,7 @@ fn write_local_insert_size_smoke_report_materializes_governed_outputs() -> Resul
     let raw_report = std::fs::read_to_string(&insert_size_report)?;
     assert!(raw_report.contains("MEDIAN_INSERT_SIZE"));
     assert!(raw_report.contains("READ_PAIRS"));
+    assert!(raw_report.contains("STANDARD_DEVIATION"));
 
     let summary_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&insert_size_summary)?)?;
@@ -92,6 +108,11 @@ fn write_local_insert_size_smoke_report_materializes_governed_outputs() -> Resul
     assert_eq!(summary_json["read_pairs"], serde_json::json!(3));
     assert_eq!(summary_json["median_insert_size"], serde_json::json!(20.0));
     assert_eq!(summary_json["mean_insert_size"], serde_json::json!(21.666666666666668));
+    assert_json_f64(
+        &summary_json["standard_deviation"],
+        6.236095644623236,
+        "summary standard_deviation",
+    );
     assert_eq!(summary_json["min_insert_size"], serde_json::json!(15));
     assert_eq!(summary_json["max_insert_size"], serde_json::json!(30));
     assert_eq!(summary_json["insufficient_pairs_reason"], serde_json::Value::Null);
@@ -106,6 +127,11 @@ fn write_local_insert_size_smoke_report_materializes_governed_outputs() -> Resul
     assert_eq!(stage_metrics_json["read_pairs"], serde_json::json!(3));
     assert_eq!(stage_metrics_json["median_insert_size"], serde_json::json!(20.0));
     assert_eq!(stage_metrics_json["mean_insert_size"], serde_json::json!(21.666666666666668));
+    assert_json_f64(
+        &stage_metrics_json["standard_deviation"],
+        6.236095644623236,
+        "stage_metrics standard_deviation",
+    );
     assert_eq!(stage_metrics_json["min_insert_size"], serde_json::json!(15));
     assert_eq!(stage_metrics_json["max_insert_size"], serde_json::json!(30));
 
