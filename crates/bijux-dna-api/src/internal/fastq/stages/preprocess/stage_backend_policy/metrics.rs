@@ -308,6 +308,8 @@ pub(crate) fn parse_filter_low_complexity_metrics(out_dir: &std::path::Path) -> 
                 "tool": report.tool_id,
                 "paired_mode": report.paired_mode,
                 "threads": report.threads,
+                "filtered_fastq_r1": report.output_r1,
+                "filtered_fastq_r2": report.output_r2,
                 "entropy_threshold": report.entropy_threshold,
                 "polyx_threshold": report.polyx_threshold,
                 "reads_in": report.reads_in,
@@ -329,6 +331,8 @@ pub(crate) fn parse_filter_low_complexity_metrics(out_dir: &std::path::Path) -> 
         "schema_version": "bijux.fastq_stage_metrics.v1",
         "stage": "fastq.filter_low_complexity",
         "tool": "report_missing",
+        "filtered_fastq_r1": serde_json::Value::Null,
+        "filtered_fastq_r2": serde_json::Value::Null,
         "reads_removed_low_complexity": serde_json::Value::Null,
         "report_json": report_path,
     })

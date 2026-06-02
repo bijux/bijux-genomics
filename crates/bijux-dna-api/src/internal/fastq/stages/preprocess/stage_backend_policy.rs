@@ -675,6 +675,8 @@ mod tests {
 
         let metrics = parse_filter_low_complexity_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("bbduk"));
+        assert_eq!(metrics["filtered_fastq_r1"], serde_json::json!("filtered.fastq.gz"));
+        assert_eq!(metrics["filtered_fastq_r2"], serde_json::Value::Null);
         assert_eq!(metrics["reads_removed_low_complexity"], serde_json::json!(8));
         assert_eq!(metrics["polyx_threshold"], serde_json::json!(20));
         assert_eq!(metrics["raw_backend_report_format"], serde_json::json!("bbduk_stats"));
@@ -1654,6 +1656,7 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "schema_version",
             "stage",
             "tool",
+            "filtered_fastq_r1",
             "reads_in",
             "reads_out",
             "reads_removed_low_complexity",
