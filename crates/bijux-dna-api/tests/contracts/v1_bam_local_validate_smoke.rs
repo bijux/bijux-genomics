@@ -50,15 +50,29 @@ fn write_local_validate_smoke_report_materializes_governed_outputs() -> Result<(
     assert!(cases.iter().any(|case| {
         case["sample_id"] == serde_json::json!("core-v1-coordinate-pass")
             && case["validation_status"] == serde_json::json!("pass")
+            && case["validation_errors"] == serde_json::json!([])
+            && case["validation_warnings"] == serde_json::json!([])
             && case["expectation_matched"] == serde_json::json!(true)
             && case["validation_report_present"] == serde_json::json!(true)
+            && case["input_bam_identity"]["input_bam"]
+                == serde_json::json!("assets/toy/core-v1/bam/validation_pass.sam")
+            && case["input_bam_identity"]["bam_index"]
+                == serde_json::json!("assets/toy/core-v1/bam/validation_pass.sam.bai")
+            && case["input_bam_identity"]["reference_fasta"]
+                == serde_json::json!("assets/toy/core-v1/bam/validation_reference.fasta")
             && case["mapped_reads"] == serde_json::json!(2)
     }));
     assert!(cases.iter().any(|case| {
         case["sample_id"] == serde_json::json!("core-v1-malformed-refusal")
             && case["validation_status"] == serde_json::json!("refusal")
+            && case["validation_errors"] == serde_json::json!(["malformed_alignment_record"])
+            && case["validation_warnings"] == serde_json::json!([])
             && case["expectation_matched"] == serde_json::json!(true)
             && case["validation_report_present"] == serde_json::json!(false)
+            && case["input_bam_identity"]["input_bam"]
+                == serde_json::json!("assets/toy/core-v1/bam/validation_malformed.sam")
+            && case["input_bam_identity"]["bam_index"] == serde_json::Value::Null
+            && case["input_bam_identity"]["reference_fasta"] == serde_json::Value::Null
             && case["refusal_codes"].as_array().is_some_and(|codes| {
                 codes.contains(&serde_json::json!("malformed_alignment_record"))
             })
@@ -78,6 +92,26 @@ fn write_local_validate_smoke_report_materializes_governed_outputs() -> Result<(
         assert!(validation_report.is_file(), "case validation report must exist");
         assert!(flagstat.is_file(), "case flagstat must exist");
         assert!(stage_metrics.is_file(), "case stage metrics must exist");
+
+        let stage_metrics_payload: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&stage_metrics)?)?;
+        assert_eq!(stage_metrics_payload["stage_id"], serde_json::json!("bam.validate"));
+        assert_eq!(
+            stage_metrics_payload["validation_status"], case["validation_status"],
+            "stage metrics must retain the validation status alias"
+        );
+        assert_eq!(
+            stage_metrics_payload["validation_errors"], case["validation_errors"],
+            "stage metrics must retain the validation errors alias"
+        );
+        assert_eq!(
+            stage_metrics_payload["validation_warnings"], case["validation_warnings"],
+            "stage metrics must retain the validation warnings alias"
+        );
+        assert_eq!(
+            stage_metrics_payload["input_bam_identity"], case["input_bam_identity"],
+            "stage metrics must retain the input BAM identity payload"
+        );
     }
 
     Ok(())
