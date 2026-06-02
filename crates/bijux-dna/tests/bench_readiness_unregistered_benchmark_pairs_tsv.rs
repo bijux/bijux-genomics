@@ -142,6 +142,20 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         }),
         "TSV must not retain a registry-drift row for fastq.deplete_reference_contaminants / bowtie2"
     );
+    for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+        assert!(
+            !rows.iter().any(|row| {
+                row.starts_with(&format!("fastq\tfastq.screen_taxonomy\t{tool_id}\t"))
+            }),
+            "TSV must not retain a registry-drift row for fastq.screen_taxonomy / {tool_id}"
+        );
+    }
+    assert!(
+        rows.iter().any(|row| {
+            row.starts_with("fastq\tfastq.screen_taxonomy\tdiamond\tplanned_contract\ttool_missing\t")
+        }),
+        "TSV must retain the planned fastq.screen_taxonomy / diamond registry-drift row"
+    );
     for tool_id in ["bbduk", "prinseq"] {
         assert!(
             !rows.iter().any(|row| {

@@ -214,6 +214,30 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         }),
         "fastq.deplete_reference_contaminants / bowtie2 must not drift against the registry"
     );
+    for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+        assert!(
+            !rows.iter().any(|row| {
+                row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+                    && row.get("stage_id").and_then(serde_json::Value::as_str)
+                        == Some("fastq.screen_taxonomy")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            }),
+            "fastq.screen_taxonomy / {tool_id} must not drift against the registry"
+        );
+    }
+    assert!(
+        rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.screen_taxonomy")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("diamond")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("planned_contract")
+                && row.get("registry_status").and_then(serde_json::Value::as_str)
+                    == Some("tool_missing")
+        }),
+        "fastq.screen_taxonomy / diamond must remain visible as planned registry drift"
+    );
     for tool_id in ["bbduk", "prinseq"] {
         assert!(
             !rows.iter().any(|row| {
