@@ -48,6 +48,12 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
         }),
         "TSV must retain the governed fastqc validation row"
     );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bijux_dna\tfastq.detect_duplicates_premerge\tplanned_contract\tdeclared_only\tnot_normalized\tplanner_only"
+        }),
+        "TSV must retain the planned detect-duplicates-premerge row"
+    );
     for tool_id in ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"] {
         assert!(
             rows.iter().any(|row| {

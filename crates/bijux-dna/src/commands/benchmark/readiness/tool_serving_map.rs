@@ -406,6 +406,14 @@ mod tests {
                 && row.parser_status == "comparable"
                 && row.corpus_status == "fixture:corpus-01-mini"
         }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "bijux_dna"
+                && row.stage_id == "fastq.detect_duplicates_premerge"
+                && row.support_status == "planned_contract"
+                && row.adapter_status == "declared_only"
+                && row.parser_status == "not_normalized"
+                && row.corpus_status == "planner_only"
+        }));
         for tool_id in ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"] {
             assert!(report.rows.iter().any(|row| {
                 row.tool_id == tool_id
