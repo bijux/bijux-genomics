@@ -36,7 +36,7 @@ stage_contracts:
     expected_artifacts:
     - qc_json
     - qc_tsv
-    notes: SeqFu read profiling emits governed qc_json and qc_tsv profile artifacts while retaining SeqFu-native statistics as the backend evidence source.
+    notes: SeqFu read profiling retains the governed qc_json and qc_tsv profile artifacts while using the current seqfu compatibility wrapper as the backend stats entrypoint.
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:

@@ -146,9 +146,9 @@ fn profile_reads_command(
             let mut command = vec![
                 "seqfu".to_string(),
                 "stats".to_string(),
-                "--json".to_string(),
-                "--gc".to_string(),
-                "--threads".to_string(),
+                "-a".to_string(),
+                "-T".to_string(),
+                "-j".to_string(),
                 threads.to_string(),
                 r1.display().to_string(),
             ];
@@ -266,7 +266,7 @@ mod tests {
         assert_eq!(plan.resources.threads, 5);
         assert_eq!(
             plan.command.template,
-            vec!["seqfu", "stats", "--json", "--gc", "--threads", "5", "reads_R1.fastq.gz",]
+            vec!["seqfu", "stats", "-a", "-T", "-j", "5", "reads_R1.fastq.gz",]
         );
     }
 }
