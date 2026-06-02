@@ -43,7 +43,7 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 20, "TSV must retain the governed unregistered-pair row count");
+    assert_eq!(rows.len(), 18, "TSV must retain the governed unregistered-pair row count");
     assert!(
         rows.iter().any(|row| {
             row == &"bam\tbam.genotyping\tangsd\tplanned\ttool_registered_pair_missing\tbam.kinship,bam.sex\tbenchmark matrix references `bam.genotyping` / `angsd` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `angsd`: bam.kinship, bam.sex"

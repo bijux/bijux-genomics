@@ -58,4 +58,14 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain the governed validation row for {tool_id}"
         );
     }
+    for tool_id in ["seqfu", "seqkit", "seqkit_stats"] {
+        assert!(
+            rows.iter().any(|row| {
+                row == &format!(
+                    "{tool_id}\tfastq.profile_reads\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-01-mini"
+                )
+            }),
+            "TSV must retain the governed profile-reads row for {tool_id}"
+        );
+    }
 }

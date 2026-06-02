@@ -55,7 +55,7 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         payload
             .get("unregistered_pair_count")
             .and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(18)
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
@@ -65,7 +65,7 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         .expect("domain_counts object");
     assert_eq!(
         domain_counts.get("fastq").and_then(serde_json::Value::as_u64),
-        Some(12)
+        Some(10)
     );
     assert_eq!(
         domain_counts.get("bam").and_then(serde_json::Value::as_u64),
@@ -76,7 +76,11 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         .get("rows")
         .and_then(serde_json::Value::as_array)
         .expect("rows array");
-    assert_eq!(rows.len(), 20, "governed registry-drift slice must retain twenty rows");
+    assert_eq!(
+        rows.len(),
+        18,
+        "governed registry-drift slice must retain the current eighteen rows"
+    );
     assert!(
         rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
