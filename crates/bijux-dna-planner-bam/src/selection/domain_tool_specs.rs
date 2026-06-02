@@ -378,6 +378,26 @@ mod tests {
     }
 
     #[test]
+    fn load_bam_domain_tool_planning_spec_accepts_endogenous_content_stage() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("bam.endogenous_content".to_string());
+        let tool_id = ToolId::new("samtools");
+
+        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
+        assert!(
+            metadata.stage_ids.iter().any(|candidate| candidate == &stage_id),
+            "samtools metadata must retain admitted bam.endogenous_content coverage"
+        );
+
+        let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
+        assert_eq!(spec.tool_id.as_str(), "samtools");
+        assert_eq!(spec.command.template, vec!["samtools".to_string()]);
+        assert_eq!(spec.image.image, "samtools");
+        assert!(spec.image.digest.is_none());
+        Ok(())
+    }
+
+    #[test]
     fn load_bam_domain_tool_execution_spec_accepts_supported_bowtie2_stage() -> Result<()> {
         let repo_root = repo_root();
         let stage_id = StageId::new("bam.align".to_string());
