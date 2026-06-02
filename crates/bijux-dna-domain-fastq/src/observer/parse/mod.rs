@@ -14,14 +14,14 @@ use crate::DuplicateClassEntryV1;
 use crate::{
     ClusterOtusReportV1, CorrectErrorsReportV1, DepleteHostReportV1,
     DepleteReferenceContaminantsReportV1, DepleteRrnaReportV1, DetectAdaptersReportV1,
-    ExtractUmisReportV1, FilterLowComplexityReportV1, FilterReadsReportV1, IndexReferenceReportV1,
-    InferAsvsReportV1, MergePairsReportV1, NormalizeAbundanceReportV1, NormalizePrimersReportV1,
-    OverrepresentedSequenceRowV1, ProfileOverrepresentedReportV1, ProfileReadLengthBinV1,
-    ProfileReadLengthsReportV1, ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1,
-    ProfileReadsReportV1, RemoveChimerasReportV1, RemoveDuplicatesProvenanceV1,
-    RemoveDuplicatesReportV1, ReportQcReportV1, ScreenTaxonomyReportV1,
-    TaxonomyScreenSummaryEntryV1, TerminalDamageReportV1, TrimPolygReportV1, TrimReadsReportV1,
-    ValidatedReadsManifestV1, ValidationReportV1,
+    DetectDuplicatesPremergeReportV1, ExtractUmisReportV1, FilterLowComplexityReportV1,
+    FilterReadsReportV1, IndexReferenceReportV1, InferAsvsReportV1, MergePairsReportV1,
+    NormalizeAbundanceReportV1, NormalizePrimersReportV1, OverrepresentedSequenceRowV1,
+    ProfileOverrepresentedReportV1, ProfileReadLengthBinV1, ProfileReadLengthsReportV1,
+    ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1, ProfileReadsReportV1,
+    RemoveChimerasReportV1, RemoveDuplicatesProvenanceV1, RemoveDuplicatesReportV1,
+    ReportQcReportV1, ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, TerminalDamageReportV1,
+    TrimPolygReportV1, TrimReadsReportV1, ValidatedReadsManifestV1, ValidationReportV1,
 };
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
 
@@ -40,11 +40,11 @@ pub(super) mod tool_metrics;
 pub use self::sequence::{parse_fastqvalidator_count, parse_length_histogram, parse_seqkit_stats};
 
 pub use self::reports::{
-    parse_cluster_otus_report, parse_filter_reads_report, parse_index_reference_report,
-    parse_infer_asvs_report, parse_merge_pairs_report, parse_normalize_abundance_report,
-    parse_normalize_primers_report, parse_report_qc_report, parse_screen_taxonomy_report,
-    parse_terminal_damage_report, parse_trim_polyg_report, parse_trim_reads_report,
-    parse_validated_reads_manifest, parse_validation_report,
+    parse_cluster_otus_report, parse_detect_duplicates_premerge_report, parse_filter_reads_report,
+    parse_index_reference_report, parse_infer_asvs_report, parse_merge_pairs_report,
+    parse_normalize_abundance_report, parse_normalize_primers_report, parse_report_qc_report,
+    parse_screen_taxonomy_report, parse_terminal_damage_report, parse_trim_polyg_report,
+    parse_trim_reads_report, parse_validated_reads_manifest, parse_validation_report,
 };
 
 pub use self::correct_errors::parse_correct_errors_report;

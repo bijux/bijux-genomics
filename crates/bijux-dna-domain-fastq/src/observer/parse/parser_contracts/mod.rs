@@ -6,7 +6,8 @@ use super::tool_metrics::{
 use super::{
     parse_bbduk_reads_removed, parse_correct_errors_report, parse_deduplicate_report,
     parse_deplete_host_report, parse_deplete_reference_contaminants_report,
-    parse_deplete_rrna_report, parse_detect_adapters_report, parse_duplicate_classes_tsv,
+    parse_deplete_rrna_report, parse_detect_adapters_report,
+    parse_detect_duplicates_premerge_report, parse_duplicate_classes_tsv,
     parse_extract_umis_report, parse_fastqvalidator_count, parse_filter_low_complexity_report,
     parse_filter_reads_report, parse_index_reference_report, parse_infer_asvs_report,
     parse_length_histogram, parse_low_complexity_report, parse_profile_overrepresented_report,

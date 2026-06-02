@@ -1,10 +1,10 @@
 use anyhow::{Context, Result};
 
 use super::{
-    ClusterOtusReportV1, FilterReadsReportV1, IndexReferenceReportV1, InferAsvsReportV1,
-    MergePairsReportV1, NormalizeAbundanceReportV1, NormalizePrimersReportV1, ReportQcReportV1,
-    ScreenTaxonomyReportV1, TerminalDamageReportV1, TrimPolygReportV1, TrimReadsReportV1,
-    ValidatedReadsManifestV1, ValidationReportV1,
+    ClusterOtusReportV1, DetectDuplicatesPremergeReportV1, FilterReadsReportV1,
+    IndexReferenceReportV1, InferAsvsReportV1, MergePairsReportV1, NormalizeAbundanceReportV1,
+    NormalizePrimersReportV1, ReportQcReportV1, ScreenTaxonomyReportV1, TerminalDamageReportV1,
+    TrimPolygReportV1, TrimReadsReportV1, ValidatedReadsManifestV1, ValidationReportV1,
 };
 
 /// # Errors
@@ -17,6 +17,14 @@ pub fn parse_validation_report(report_json: &str) -> Result<ValidationReportV1> 
 /// Returns an error if the governed filter-reads report JSON cannot be parsed.
 pub fn parse_filter_reads_report(report_json: &str) -> Result<FilterReadsReportV1> {
     serde_json::from_str(report_json).context("parse filter-reads report")
+}
+
+/// # Errors
+/// Returns an error if the governed detect-duplicates-premerge report JSON cannot be parsed.
+pub fn parse_detect_duplicates_premerge_report(
+    report_json: &str,
+) -> Result<DetectDuplicatesPremergeReportV1> {
+    serde_json::from_str(report_json).context("parse detect duplicates premerge report")
 }
 
 /// # Errors

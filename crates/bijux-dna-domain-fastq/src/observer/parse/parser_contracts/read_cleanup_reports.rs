@@ -1,6 +1,34 @@
 use super::*;
 
 #[test]
+fn parse_detect_duplicates_premerge_report_parses_governed_json() -> Result<()> {
+    let parsed = parse_detect_duplicates_premerge_report(
+        &serde_json::json!({
+            "schema_version": "bijux.fastq.detect_duplicates_premerge.report.v1",
+            "stage": "fastq.detect_duplicates_premerge",
+            "stage_id": "fastq.detect_duplicates_premerge",
+            "tool_id": "bijux",
+            "paired_mode": "paired_end",
+            "duplicate_detection_policy": "report_only",
+            "measurement_scope": "premerge_sequence_signature",
+            "modifies_reads": false,
+            "advisory_only": true,
+            "reads_in": 12,
+            "duplicate_signal_reads": 4,
+            "duplicate_signal_fraction": 0.3333333333333333,
+            "compared_read_pairs": 6
+        })
+        .to_string(),
+    )?;
+    assert_eq!(parsed.tool_id, "bijux");
+    assert_eq!(parsed.reads_in, 12);
+    assert_eq!(parsed.duplicate_signal_reads, 4);
+    assert_eq!(parsed.compared_read_pairs, Some(6));
+    assert_f64_eq(parsed.duplicate_signal_fraction, 0.3333333333333333);
+    Ok(())
+}
+
+#[test]
 fn parse_deduplicate_report_parses_fixture() -> Result<()> {
     let raw =
             include_str!("../../../../../bijux-dna-stages-fastq/tests/fixtures/deduplicate/default/deduplicate_report_v1.json");
