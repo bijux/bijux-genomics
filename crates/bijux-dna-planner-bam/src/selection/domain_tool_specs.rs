@@ -414,4 +414,20 @@ mod tests {
         assert!(spec.image.digest.is_none());
         Ok(())
     }
+
+    #[test]
+    fn load_bam_domain_tool_planning_spec_accepts_supported_picard_mapping_summary_stage(
+    ) -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("bam.mapping_summary".to_string());
+        let tool_id = ToolId::new("picard");
+
+        let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(spec.tool_id.as_str(), "picard");
+        assert_eq!(spec.command.template, vec!["picard".to_string()]);
+        assert_eq!(spec.image.image, "picard");
+        assert!(spec.image.digest.is_none());
+        Ok(())
+    }
 }
