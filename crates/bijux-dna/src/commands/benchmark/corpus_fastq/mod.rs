@@ -1117,6 +1117,132 @@ mod tests {
     }
 
     #[test]
+    fn report_qc_preparation_reuses_existing_validation_backend_artifacts() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let repo_root = temp.path().join("repo");
+        let out_root = temp.path().join("results").join("corpus-01").join("fastq.report_qc");
+        let remote_results = temp.path().join("remote-results");
+        fs::create_dir_all(&repo_root).expect("repo root");
+        fs::create_dir_all(&out_root).expect("out root");
+
+        let workspace = BenchmarkWorkspaceConfig {
+            remote: Some(BenchmarkWorkspaceRemote {
+                corpus_root: Some(
+                    temp.path().join("remote-corpora").join("corpus-01").display().to_string(),
+                ),
+                results_root: Some(remote_results.display().to_string()),
+                ..BenchmarkWorkspaceRemote::default()
+            }),
+            layout: Some(BenchmarkWorkspaceLayout {
+                stage_runs: Some(BenchmarkWorkspaceStageRuns {
+                    remote_results_template: Some(
+                        "{corpus_id}/{stage_id}/cluster-apptainer".to_string(),
+                    ),
+                    ..BenchmarkWorkspaceStageRuns::default()
+                }),
+            }),
+            ..BenchmarkWorkspaceConfig::default()
+        };
+        let corpus_root = temp.path().join("corpus");
+        let sample = CorpusNormalizedSample {
+            sample_id: "sample_0001".to_string(),
+            r1: corpus_root.join("sample_0001_R1.fastq.gz"),
+            r2: Some(corpus_root.join("sample_0001_R2.fastq.gz")),
+            layout: "pe".to_string(),
+        };
+
+        let fastqc_root = remote_results
+            .join("corpus-01")
+            .join("fastq.validate_reads")
+            .join("cluster-apptainer")
+            .join("bench")
+            .join("validate_reads")
+            .join("sample_0001")
+            .join("tools")
+            .join("fastqc");
+        fs::create_dir_all(&fastqc_root).expect("create fastqc validation root");
+        fs::write(fastqc_root.join("validation.json"), "{\n  \"tool_id\": \"fastqc\"\n}\n")
+            .expect("write fastqc validation report");
+        fs::write(
+            fastqc_root.join("validated_reads_manifest.json"),
+            "{\n  \"tool_id\": \"fastqc\"\n}\n",
+        )
+        .expect("write fastqc validated reads manifest");
+
+        let prepared = prepare_report_qc_sample(
+            Path::new("/bin/true"),
+            &repo_root,
+            &workspace,
+            "corpus-01",
+            "cluster-apptainer",
+            &out_root,
+            &sample,
+            true,
+        )
+        .expect("prepare report qc sample");
+        assert_eq!(
+            prepared.run_extra_fields.get("governed_qc_input_count"),
+            Some(&serde_json::Value::Number(serde_json::Number::from(6_u64)))
+        );
+
+        let governed_manifest = out_root
+            .join("bench")
+            .join("report_qc")
+            .join("sample_0001")
+            .join("governed_qc_inputs_manifest.json");
+        let payload: serde_json::Value = serde_json::from_str(
+            &fs::read_to_string(&governed_manifest).expect("read governed manifest"),
+        )
+        .expect("parse governed manifest");
+        let qc_inputs = payload
+            .get("qc_inputs")
+            .and_then(serde_json::Value::as_array)
+            .expect("qc inputs array");
+        assert!(
+            qc_inputs.iter().any(|entry| {
+                entry.get("name").and_then(serde_json::Value::as_str)
+                    == Some("fastq.validate_reads.tool.fastqc.validation_report")
+                    && entry.get("path").and_then(serde_json::Value::as_str).is_some_and(|path| {
+                        path.ends_with(
+                            "/fastq.validate_reads/cluster-apptainer/bench/validate_reads/sample_0001/tools/fastqc/validation.json",
+                        )
+                    })
+            }),
+            "report_qc must reuse an existing fastqc validation report when it is already present"
+        );
+        assert!(
+            qc_inputs.iter().any(|entry| {
+                entry.get("name").and_then(serde_json::Value::as_str)
+                    == Some("fastq.validate_reads.tool.fastqc.validated_reads_manifest")
+                    && entry.get("path").and_then(serde_json::Value::as_str).is_some_and(|path| {
+                        path.ends_with(
+                            "/fastq.validate_reads/cluster-apptainer/bench/validate_reads/sample_0001/tools/fastqc/validated_reads_manifest.json",
+                        )
+                    })
+            }),
+            "report_qc must reuse an existing fastqc lineage manifest when it is already present"
+        );
+    }
+
+    #[test]
+    fn report_qc_manifest_fields_advertise_all_validation_backends() {
+        let fields = super::collect_stage_manifest_fields("fastq.report_qc", &[], &[])
+            .expect("report_qc fields");
+        let tool_ids = fields
+            .get("governed_contributor_tool_ids")
+            .and_then(serde_json::Value::as_array)
+            .expect("governed contributor tool ids");
+        for tool_id in
+            ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqkit_stats", "seqtk"]
+        {
+            assert!(
+                tool_ids.iter().any(|entry| entry.as_str() == Some(tool_id)),
+                "report_qc contributor metadata must advertise {tool_id}"
+            );
+        }
+    }
+
+    #[test]
     fn supports_apptainer_warmup_accepts_apptainer_platform_names() {
         assert!(supports_apptainer_warmup("apptainer-amd64"));
         assert!(supports_apptainer_warmup("cluster-apptainer"));
