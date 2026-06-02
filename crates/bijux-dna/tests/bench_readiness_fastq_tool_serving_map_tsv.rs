@@ -150,6 +150,16 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain the governed correct-errors row for {tool_id}"
         );
     }
+    for tool_id in ["bowtie2_build", "star"] {
+        assert!(
+            rows.iter().any(|row| {
+                row == &format!(
+                    "{tool_id}\tfastq.index_reference\tobserver_specialized_benchmark\trunnable\tcomparable\tplanner_only"
+                )
+            }),
+            "TSV must retain the governed index-reference row for {tool_id}"
+        );
+    }
     assert!(
         rows.iter().any(|row| {
             row == &"sortmerna\tfastq.deplete_rrna\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-01-mini"

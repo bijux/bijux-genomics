@@ -254,6 +254,24 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
             "FASTQ readiness map must retain the governed correct-errors row for {tool_id}"
         );
     }
+    for tool_id in ["bowtie2_build", "star"] {
+        assert!(
+            rows.iter().any(|row| {
+                row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                    && row.get("stage_id").and_then(serde_json::Value::as_str)
+                        == Some("fastq.index_reference")
+                    && row.get("support_status").and_then(serde_json::Value::as_str)
+                        == Some("observer_specialized_benchmark")
+                    && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                        == Some("runnable")
+                    && row.get("parser_status").and_then(serde_json::Value::as_str)
+                        == Some("comparable")
+                    && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                        == Some("planner_only")
+            }),
+            "FASTQ readiness map must retain the governed index-reference row for {tool_id}"
+        );
+    }
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("sortmerna")
