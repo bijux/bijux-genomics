@@ -75,6 +75,13 @@ validation_benchmark_policy: fastq.validate_reads
 - `fastq.report_qc` must consume any governed `fastq.validate_reads` backend artifacts already present in the benchmark output tree, while falling back to bootstrapping `fastqvalidator` when no validation backend has produced report inputs yet
 - `fastq.report_qc` and `fastq.profile_reads` are downstream complements, not substitutes for structural validation
 
+profile_read_lengths_benchmark_policy: fastq.profile_read_lengths
+- default benchmark backend is `seqkit_stats`
+- `fastp`, `prinseq`, and `seqfu` are governed comparison backends for read-length agreement studies
+- every governed `fastq.profile_read_lengths` row must emit `read_count`, `min_read_length`, `mean_read_length`, `median_read_length`, and `max_read_length`
+- `fastp` must run in report-only mode with trimming and filtering disabled so the benchmark remains pre-trim length profiling instead of quietly reusing a trim contract
+- `prinseq` length profiling may stream all output classes to `/dev/null`, but the invocation must remain non-destructive and produce the governed report plus histogram artifacts
+
 profile_reads_benchmark_policy: fastq.profile_reads
 - default benchmark backend is `seqkit_stats`
 - `seqkit` and `seqfu` are governed comparison backends for general read profiling studies
