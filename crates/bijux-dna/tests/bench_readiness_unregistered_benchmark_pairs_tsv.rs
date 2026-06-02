@@ -117,6 +117,10 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         "TSV must not retain a registry-drift row for fastq.normalize_primers / cutadapt"
     );
     assert!(
+        !rows.iter().any(|row| { row.starts_with("fastq\tfastq.remove_chimeras\tvsearch\t") }),
+        "TSV must not retain a registry-drift row for fastq.remove_chimeras / vsearch"
+    );
+    assert!(
         !rows.iter().any(|row| { row.starts_with("fastq\tfastq.infer_asvs\tdada2\t") }),
         "TSV must not retain a registry-drift row for fastq.infer_asvs / dada2"
     );
