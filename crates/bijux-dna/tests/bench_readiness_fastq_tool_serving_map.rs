@@ -236,6 +236,21 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
         }),
         "FASTQ readiness map must retain the governed extract-umis row for umi_tools"
     );
+    assert!(
+        rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("cutadapt")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.normalize_primers")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("governed_benchmark_cohort")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("benchmark_normalized")
+                && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                    == Some("fixture:corpus-03-amplicon-mini")
+        }),
+        "FASTQ readiness map must retain the governed normalize-primers row for cutadapt"
+    );
     for tool_id in ["bayeshammer", "lighter", "musket", "rcorrector"] {
         assert!(
             rows.iter().any(|row| {

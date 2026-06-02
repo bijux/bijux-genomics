@@ -140,6 +140,12 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
         }),
         "TSV must retain the governed extract-umis row for umi_tools"
     );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"cutadapt\tfastq.normalize_primers\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-03-amplicon-mini"
+        }),
+        "TSV must retain the governed normalize-primers row for cutadapt"
+    );
     for tool_id in ["bayeshammer", "lighter", "musket", "rcorrector"] {
         assert!(
             rows.iter().any(|row| {
