@@ -120,6 +120,7 @@
       "sample": "sample"
     },
     "reference": "tests/fixtures/plan_inputs/default/reference.fasta",
+    "reference_index": "reference.fasta",
     "sample_id": "sample",
     "seed_length": null,
     "sensitivity_profile": "default",

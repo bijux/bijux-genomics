@@ -68,7 +68,7 @@
   "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "e2944bad5ac012652771be12c62b7c9c18d96ab09ba6e566ce98e29ad018df9d",
+      "contract_hash": "0db0d871dd99ac2c93026494e2eb088f105318eafb103630737867638adb375d",
       "defaults_diff": {},
       "resource_plan": {
         "cpu_threads": 4,

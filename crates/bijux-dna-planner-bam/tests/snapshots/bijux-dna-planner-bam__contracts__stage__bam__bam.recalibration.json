@@ -5,7 +5,7 @@
     "template": [
       "/bin/sh",
       "-c",
-      "gatk BaseRecalibrator -I tests/fixtures/plan_inputs/default/sample.bam -R tests/fixtures/plan_inputs/default/sample.bam  -O out/recalibration.table && gatk ApplyBQSR -I tests/fixtures/plan_inputs/default/sample.bam -R tests/fixtures/plan_inputs/default/sample.bam --bqsr-recal-file out/recalibration.table -O out/recalibrated.bam && samtools index out/recalibrated.bam out/recalibrated.bam.bai && python - <<'PY' > out/recalibration.summary.json\nimport json\nprint(json.dumps({\"mode\": \"Standard\", \"known_sites\": [], \"recal_report\": \"out/recalibration.table\", \"output_bam\": \"out/recalibrated.bam\"}, indent=2))\nPY"
+      "python - <<'PY' > out/recal.summary.json\nimport json\nprint(json.dumps({\"mode\": \"standard\", \"status\": \"refused\", \"reason\": \"missing_known_sites\", \"known_sites\": [], \"reference\": \"tests/fixtures/plan_inputs/default/reference.fasta\", \"recalibration_report\": \"out/recal.report.txt\", \"output_bam\": \"out/recal.bam\", \"output_bai\": \"out/recal.bam.bai\"}, indent=2))\nPY\necho 'bam.recalibration requires at least one known-sites resource for standard mode' >&2\nexit 2"
     ]
   },
   "effective_params": {
@@ -27,6 +27,12 @@
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
         "role": "bam"
+      },
+      {
+        "name": "reference",
+        "optional": false,
+        "path": "tests/fixtures/plan_inputs/default/reference.fasta",
+        "role": "reference"
       }
     ],
     "outputs": [
@@ -68,6 +74,7 @@
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
     "known_sites": [],
     "mode": "standard",
+    "reference": "tests/fixtures/plan_inputs/default/reference.fasta",
     "skip_criteria": {
       "min_breadth_1x": 0.5,
       "min_mean_coverage": 2.0

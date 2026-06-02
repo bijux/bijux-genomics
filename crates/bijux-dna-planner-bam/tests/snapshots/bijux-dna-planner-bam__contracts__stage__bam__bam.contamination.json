@@ -5,7 +5,7 @@
     "template": [
       "/bin/sh",
       "-c",
-      "schmutzi --bam tests/fixtures/plan_inputs/default/sample.bam --outdir out && if [ -f out/contamination.txt ]; then cp out/contamination.txt out/contamination.json; else : > out/contamination.json; fi && python - <<'PY' > out/contamination.summary.json\nimport json\nprint(json.dumps({\"method\": \"schmutzi\", \"scope\": \"mt\"}, indent=2))\nPY"
+      "schmutzi --bam tests/fixtures/plan_inputs/default/sample.bam --reference tests/fixtures/plan_inputs/default/reference.fasta --outdir out && if [ -f out/contamination.txt ]; then cp out/contamination.txt out/contamination.json; else : > out/contamination.json; fi && python - <<'PY' > out/contamination.summary.json\nimport json\nprint(json.dumps(json.loads(\"{\\n  \\\"assumptions\\\": null,\\n  \\\"emit_confidence_caveats\\\": true,\\n  \\\"method\\\": \\\"schmutzi\\\",\\n  \\\"minimum_mean_coverage\\\": 0.5,\\n  \\\"reference\\\": \\\"tests/fixtures/plan_inputs/default/reference.fasta\\\",\\n  \\\"reference_panels\\\": [],\\n  \\\"scope\\\": \\\"both\\\",\\n  \\\"tool_scope\\\": \\\"mt\\\"\\n}\"), indent=2))\nPY"
     ]
   },
   "effective_params": {
@@ -30,6 +30,18 @@
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
         "role": "bam"
+      },
+      {
+        "name": "bam_bai",
+        "optional": false,
+        "path": "tests/fixtures/plan_inputs/default/sample.bam.bai",
+        "role": "index"
+      },
+      {
+        "name": "reference",
+        "optional": false,
+        "path": "tests/fixtures/plan_inputs/default/reference.fasta",
+        "role": "reference"
       }
     ],
     "outputs": [
@@ -57,11 +69,13 @@
   "out_dir": "out",
   "params": {
     "assumptions": null,
+    "bai": "tests/fixtures/plan_inputs/default/sample.bam.bai",
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
     "chromosome_system": null,
     "emit_confidence_caveats": true,
     "minimum_mean_coverage": 0.5,
     "prior": null,
+    "reference": "tests/fixtures/plan_inputs/default/reference.fasta",
     "reference_panels": [],
     "required_reference_digest": null,
     "scope": "both",
