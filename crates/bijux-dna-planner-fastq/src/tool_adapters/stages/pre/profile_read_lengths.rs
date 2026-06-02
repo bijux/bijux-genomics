@@ -126,26 +126,114 @@ fn profile_lengths_command(
     r2: Option<&Path>,
     threads: u32,
 ) -> Result<Vec<String>> {
-    let rendered = crate::tool_adapters::template_render::render_command_template(
-        &tool.command.template,
-        &[
-            ("threads", Some(threads.to_string())),
-            ("reads_r1", Some(r1.display().to_string())),
-            ("reads_r2", Some(r2.map(|path| path.display().to_string()).unwrap_or_default())),
-        ],
-    )?;
-    let command = rendered.into_iter().filter(|token| !token.is_empty()).collect::<Vec<_>>();
+    let tool_id = tool.tool_id.as_str();
+    let command = match tool_id {
+        "seqkit_stats" => {
+            let rendered = crate::tool_adapters::template_render::render_command_template(
+                &tool.command.template,
+                &[
+                    ("threads", Some(threads.to_string())),
+                    ("reads_r1", Some(r1.display().to_string())),
+                    (
+                        "reads_r2",
+                        Some(r2.map(|path| path.display().to_string()).unwrap_or_default()),
+                    ),
+                ],
+            )?;
+            rendered.into_iter().filter(|token| !token.is_empty()).collect::<Vec<_>>()
+        }
+        "seqfu" => {
+            let mut command = vec![
+                "seqfu".to_string(),
+                "stats".to_string(),
+                "-a".to_string(),
+                "-T".to_string(),
+                "-j".to_string(),
+                threads.to_string(),
+                r1.display().to_string(),
+            ];
+            if let Some(r2) = r2 {
+                command.push(r2.display().to_string());
+            }
+            command
+        }
+        "fastp" => fastp_profile_lengths_command(r1, r2, threads),
+        "prinseq" => prinseq_profile_lengths_command(r1, r2, threads),
+        _ => {
+            return Err(anyhow!(
+                "unsupported read-length profiling tool for stage planning: {tool_id}"
+            ));
+        }
+    };
     if command.is_empty() {
         return Err(anyhow!("profile read lengths command template resolved to an empty command"));
     }
     Ok(command)
 }
 
+fn fastp_profile_lengths_command(r1: &Path, r2: Option<&Path>, threads: u32) -> Vec<String> {
+    let mut command = vec![
+        "fastp".to_string(),
+        "--in1".to_string(),
+        r1.display().to_string(),
+        "--out1".to_string(),
+        "/dev/null".to_string(),
+        "--thread".to_string(),
+        threads.to_string(),
+        "--json".to_string(),
+        "/dev/null".to_string(),
+        "--disable_adapter_trimming".to_string(),
+        "--disable_quality_filtering".to_string(),
+        "--disable_length_filtering".to_string(),
+        "--disable_trim_poly_g".to_string(),
+        "--dont_eval_duplication".to_string(),
+    ];
+    if let Some(r2) = r2 {
+        command.extend([
+            "--in2".to_string(),
+            r2.display().to_string(),
+            "--out2".to_string(),
+            "/dev/null".to_string(),
+        ]);
+    }
+    command
+}
+
+fn prinseq_profile_lengths_command(r1: &Path, r2: Option<&Path>, threads: u32) -> Vec<String> {
+    let mut command = vec![
+        "prinseq++".to_string(),
+        "-threads".to_string(),
+        threads.to_string(),
+        "-fastq".to_string(),
+        r1.display().to_string(),
+        "-out_good".to_string(),
+        "/dev/null".to_string(),
+        "-out_bad".to_string(),
+        "/dev/null".to_string(),
+    ];
+    if let Some(r2) = r2 {
+        command.extend([
+            "-fastq2".to_string(),
+            r2.display().to_string(),
+            "-out_good2".to_string(),
+            "/dev/null".to_string(),
+            "-out_bad2".to_string(),
+            "/dev/null".to_string(),
+            "-out_single".to_string(),
+            "/dev/null".to_string(),
+            "-out_single2".to_string(),
+            "/dev/null".to_string(),
+        ]);
+    }
+    command
+}
+
 #[cfg(test)]
 mod tests {
     use super::plan_with_options;
     use bijux_dna_core::prelude::{
-        ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId, ToolVersion,
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+        ToolVersion,
     };
     use std::path::Path;
 
@@ -154,7 +242,7 @@ mod tests {
             tool_id: ToolId::from_static("seqkit_stats"),
             tool_version: ToolVersion::from("2.8.0"),
             image: ContainerImageRefV1 { image: "bijuxdna/seqkit".to_string(), digest: None },
-            command: bijux_dna_core::prelude::CommandSpecV1 {
+            command: CommandSpecV1 {
                 template: vec![
                     "seqkit_stats".to_string(),
                     "-a".to_string(),
@@ -165,6 +253,21 @@ mod tests {
                     "{{reads_r2}}".to_string(),
                 ],
             },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 2,
+            },
+        }
+    }
+
+    fn stats_tool(tool_id: &'static str) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static(tool_id),
+            tool_version: ToolVersion::from("2.8.0"),
+            image: ContainerImageRefV1 { image: format!("bijuxdna/{tool_id}"), digest: None },
+            command: CommandSpecV1 { template: vec![tool_id.to_string()] },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 1,
@@ -190,6 +293,102 @@ mod tests {
         assert_eq!(
             plan.command.template,
             vec!["seqkit_stats", "-a", "-T", "-j", "6", "reads_R1.fastq.gz", "reads_R2.fastq.gz",]
+        );
+    }
+
+    #[test]
+    fn profile_read_lengths_plan_renders_seqfu_stats_command() {
+        let plan = plan_with_options(
+            &stats_tool("seqfu"),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            Some(5),
+            Some(64),
+        )
+        .expect("plan");
+
+        assert_eq!(plan.resources.threads, 5);
+        assert_eq!(
+            plan.command.template,
+            vec!["seqfu", "stats", "-a", "-T", "-j", "5", "reads_R1.fastq.gz", "reads_R2.fastq.gz",]
+        );
+    }
+
+    #[test]
+    fn profile_read_lengths_plan_renders_fastp_report_only_command() {
+        let plan = plan_with_options(
+            &stats_tool("fastp"),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            Some(4),
+            Some(64),
+        )
+        .expect("plan");
+
+        assert_eq!(plan.resources.threads, 4);
+        assert_eq!(
+            plan.command.template,
+            vec![
+                "fastp",
+                "--in1",
+                "reads_R1.fastq.gz",
+                "--out1",
+                "/dev/null",
+                "--thread",
+                "4",
+                "--json",
+                "/dev/null",
+                "--disable_adapter_trimming",
+                "--disable_quality_filtering",
+                "--disable_length_filtering",
+                "--disable_trim_poly_g",
+                "--dont_eval_duplication",
+                "--in2",
+                "reads_R2.fastq.gz",
+                "--out2",
+                "/dev/null",
+            ]
+        );
+    }
+
+    #[test]
+    fn profile_read_lengths_plan_renders_prinseq_null_output_command() {
+        let plan = plan_with_options(
+            &stats_tool("prinseq"),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            Some(3),
+            Some(64),
+        )
+        .expect("plan");
+
+        assert_eq!(plan.resources.threads, 3);
+        assert_eq!(
+            plan.command.template,
+            vec![
+                "prinseq++",
+                "-threads",
+                "3",
+                "-fastq",
+                "reads_R1.fastq.gz",
+                "-out_good",
+                "/dev/null",
+                "-out_bad",
+                "/dev/null",
+                "-fastq2",
+                "reads_R2.fastq.gz",
+                "-out_good2",
+                "/dev/null",
+                "-out_bad2",
+                "/dev/null",
+                "-out_single",
+                "/dev/null",
+                "-out_single2",
+                "/dev/null",
+            ]
         );
     }
 }
