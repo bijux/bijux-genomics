@@ -879,11 +879,17 @@ pub(crate) fn parse_normalize_abundance_metrics(out_dir: &std::path::Path) -> se
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_normalize_abundance_report(&raw)
         {
+            let expected_sum = report.scale_factor.unwrap_or(1.0);
+            let numeric_output_valid = report.per_sample_sums.iter().all(|(_, sum)| {
+                sum.is_finite() && (sum - expected_sum).abs() <= 1.0e-6
+            });
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.normalize_abundance",
                 "tool": report.tool_id,
                 "method": report.method,
+                "normalization_method": report.method,
+                "normalized_abundance_tsv": report.normalized_abundance_tsv,
                 "input_value_column": report.input_value_column,
                 "normalized_value_column": report.normalized_value_column,
                 "compositional_rule": report.compositional_rule,
@@ -892,7 +898,9 @@ pub(crate) fn parse_normalize_abundance_metrics(out_dir: &std::path::Path) -> se
                 "sample_count": report.sample_count,
                 "feature_count": report.feature_count,
                 "zero_fraction": report.zero_fraction,
+                "sample_totals": report.per_sample_sums,
                 "per_sample_sum_count": report.per_sample_sums.len(),
+                "numeric_output_valid": numeric_output_valid,
                 "used_fallback": report.used_fallback,
                 "raw_backend_report_format": report.raw_backend_report_format,
                 "report_json": report_path,
@@ -904,8 +912,12 @@ pub(crate) fn parse_normalize_abundance_metrics(out_dir: &std::path::Path) -> se
         "stage": "fastq.normalize_abundance",
         "tool": "report_missing",
         "method": serde_json::Value::Null,
+        "normalization_method": serde_json::Value::Null,
+        "normalized_abundance_tsv": serde_json::Value::Null,
         "table_rows": serde_json::Value::Null,
         "sample_count": serde_json::Value::Null,
+        "sample_totals": serde_json::Value::Null,
+        "numeric_output_valid": serde_json::Value::Null,
         "zero_fraction": serde_json::Value::Null,
         "report_json": report_path,
     })

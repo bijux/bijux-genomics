@@ -558,9 +558,12 @@ mod tests {
                 "schema_version",
                 "stage",
                 "tool",
-                "method",
+                "normalization_method",
+                "normalized_abundance_tsv",
                 "table_rows",
                 "sample_count",
+                "sample_totals",
+                "numeric_output_valid",
                 "zero_fraction",
             ]
         );
@@ -1409,9 +1412,19 @@ mod tests {
         let metrics = parse_normalize_abundance_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("seqkit"));
         assert_eq!(metrics["method"], serde_json::json!("counts_per_million"));
+        assert_eq!(metrics["normalization_method"], serde_json::json!("counts_per_million"));
+        assert_eq!(
+            metrics["normalized_abundance_tsv"],
+            serde_json::json!("abundance_normalized.tsv")
+        );
         assert_eq!(metrics["table_rows"], serde_json::json!(12));
         assert_eq!(metrics["sample_count"], serde_json::json!(3));
+        assert_eq!(
+            metrics["sample_totals"],
+            serde_json::json!([["sample_a", 1_000_000.0], ["sample_b", 1_000_000.0]])
+        );
         assert_eq!(metrics["per_sample_sum_count"], serde_json::json!(2));
+        assert_eq!(metrics["numeric_output_valid"], serde_json::json!(true));
     }
 
     #[test]
@@ -2128,9 +2141,12 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "schema_version",
             "stage",
             "tool",
-            "method",
+            "normalization_method",
+            "normalized_abundance_tsv",
             "table_rows",
             "sample_count",
+            "sample_totals",
+            "numeric_output_valid",
             "zero_fraction",
         ],
         "fastq.infer_asvs" => &[
