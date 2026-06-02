@@ -13,7 +13,8 @@ use crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig;
 #[derive(Debug, Clone, Copy)]
 struct ReportQcContributorContract {
     stage_id: &'static str,
-    tool_id: &'static str,
+    candidate_tool_ids: &'static [&'static str],
+    default_tool_id: &'static str,
     artifact_id: &'static str,
     artifact_role: &'static str,
     relative_path: &'static str,
@@ -29,48 +30,55 @@ struct ReportQcUpstreamStage {
 #[derive(Debug, Clone)]
 struct ReportQcContributorArtifact {
     contract: ReportQcContributorContract,
+    tool_id: String,
     path: PathBuf,
 }
 
 const REPORT_QC_CONTRIBUTORS: [ReportQcContributorContract; 6] = [
     ReportQcContributorContract {
         stage_id: "fastq.validate_reads",
-        tool_id: "fastqvalidator",
+        candidate_tool_ids: &["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+        default_tool_id: "fastqvalidator",
         artifact_id: "validation_report",
         artifact_role: "report_json",
         relative_path: "validation.json",
     },
     ReportQcContributorContract {
         stage_id: "fastq.validate_reads",
-        tool_id: "fastqvalidator",
+        candidate_tool_ids: &["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+        default_tool_id: "fastqvalidator",
         artifact_id: "validated_reads_manifest",
         artifact_role: "summary_json",
         relative_path: "validated_reads_manifest.json",
     },
     ReportQcContributorContract {
         stage_id: "fastq.detect_adapters",
-        tool_id: "fastqc",
+        candidate_tool_ids: &["fastqc"],
+        default_tool_id: "fastqc",
         artifact_id: "report_json",
         artifact_role: "report_json",
         relative_path: "adapter_report.json",
     },
     ReportQcContributorContract {
         stage_id: "fastq.detect_adapters",
-        tool_id: "fastqc",
+        candidate_tool_ids: &["fastqc"],
+        default_tool_id: "fastqc",
         artifact_id: "adapter_evidence_dir",
         artifact_role: "stage_report",
         relative_path: "fastqc",
     },
     ReportQcContributorContract {
         stage_id: "fastq.profile_reads",
-        tool_id: "seqkit_stats",
+        candidate_tool_ids: &["seqkit_stats"],
+        default_tool_id: "seqkit_stats",
         artifact_id: "qc_json",
         artifact_role: "metrics_json",
         relative_path: "qc.json",
     },
     ReportQcContributorContract {
         stage_id: "fastq.profile_read_lengths",
-        tool_id: "seqkit_stats",
+        candidate_tool_ids: &["seqkit_stats"],
+        default_tool_id: "seqkit_stats",
         artifact_id: "length_distribution_json",
         artifact_role: "metrics_json",
         relative_path: "length_distribution.json",
@@ -162,7 +170,7 @@ pub(super) fn prepare_report_qc_sample(
         "qc_inputs": artifacts
             .iter()
             .map(|row| serde_json::json!({
-                "name": report_qc_artifact_name(row.contract),
+                "name": report_qc_artifact_name(row),
                 "path": row.path.display().to_string(),
                 "role": row.contract.artifact_role,
                 "optional": false,
@@ -171,9 +179,9 @@ pub(super) fn prepare_report_qc_sample(
         "contributors": artifacts
             .iter()
             .map(|row| serde_json::json!({
-                "contributor_id": report_qc_contributor_id(row.contract),
+                "contributor_id": report_qc_contributor_id(row),
                 "stage_id": row.contract.stage_id,
-                "tool_id": row.contract.tool_id,
+                "tool_id": row.tool_id,
                 "artifact_id": row.contract.artifact_id,
                 "artifact_role": row.contract.artifact_role,
                 "path": row.path.display().to_string(),
@@ -223,19 +231,48 @@ fn report_qc_required_contributor_artifacts(
         .iter()
         .copied()
         .map(|contract| {
-            Ok(ReportQcContributorArtifact {
-                path: report_qc_contributor_artifact_path(
-                    workspace_config,
-                    corpus_id,
-                    sample_id,
-                    contract.stage_id,
-                    contract.tool_id,
-                    contract.relative_path,
-                )?,
-                contract,
-            })
+            resolve_report_qc_contributor_artifact(workspace_config, corpus_id, sample_id, contract)
         })
         .collect()
+}
+
+fn resolve_report_qc_contributor_artifact(
+    workspace_config: &BenchmarkWorkspaceConfig,
+    corpus_id: &str,
+    sample_id: &str,
+    contract: ReportQcContributorContract,
+) -> Result<ReportQcContributorArtifact> {
+    for tool_id in contract.candidate_tool_ids {
+        let path = report_qc_contributor_artifact_path(
+            workspace_config,
+            corpus_id,
+            sample_id,
+            contract.stage_id,
+            tool_id,
+            contract.relative_path,
+        )?;
+        if path.exists() {
+            return Ok(ReportQcContributorArtifact {
+                contract,
+                tool_id: (*tool_id).to_string(),
+                path,
+            });
+        }
+    }
+
+    let default_path = report_qc_contributor_artifact_path(
+        workspace_config,
+        corpus_id,
+        sample_id,
+        contract.stage_id,
+        contract.default_tool_id,
+        contract.relative_path,
+    )?;
+    Ok(ReportQcContributorArtifact {
+        contract,
+        tool_id: contract.default_tool_id.to_string(),
+        path: default_path,
+    })
 }
 
 fn report_qc_contributor_artifact_path(
@@ -322,18 +359,22 @@ fn report_qc_upstream_stage(stage_id: &str) -> Result<ReportQcUpstreamStage> {
         .ok_or_else(|| anyhow!("unsupported report-qc upstream stage `{stage_id}`"))
 }
 
-fn report_qc_contributor_id(contract: ReportQcContributorContract) -> String {
-    format!("{}.{}", contract.stage_id, contract.tool_id)
+fn report_qc_contributor_id(artifact: &ReportQcContributorArtifact) -> String {
+    format!("{}.{}", artifact.contract.stage_id, artifact.tool_id)
 }
 
-fn report_qc_artifact_name(contract: ReportQcContributorContract) -> String {
-    format!("{}.tool.{}.{}", contract.stage_id, contract.tool_id, contract.artifact_id)
+fn report_qc_artifact_name(artifact: &ReportQcContributorArtifact) -> String {
+    format!(
+        "{}.tool.{}.{}",
+        artifact.contract.stage_id, artifact.tool_id, artifact.contract.artifact_id
+    )
 }
 
 pub(super) fn report_qc_contributor_tool_ids() -> Vec<String> {
     REPORT_QC_CONTRIBUTORS
         .iter()
-        .map(|row| row.tool_id.to_string())
+        .flat_map(|row| row.candidate_tool_ids.iter().copied())
+        .map(str::to_string)
         .collect::<BTreeSet<_>>()
         .into_iter()
         .collect()
