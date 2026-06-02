@@ -1,4 +1,5 @@
 use anyhow::Result;
+use bijux_dna_core::prelude::{StageId, ToolId};
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
@@ -85,4 +86,57 @@ fn local_duplication_metrics_smoke_stage_api_surface_stays_callable() {
     ) -> anyhow::Result<
         Vec<bijux_dna_planner_bam::stage_api::LocalDuplicationMetricsSmokeCasePlan>,
     > = bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans;
+}
+
+#[test]
+fn duplication_metrics_plan_accepts_picard_governed_planning_contract() -> Result<()> {
+    let repo_root = repo_root();
+    let stage_id = StageId::new("bam.duplication_metrics".to_string());
+    let tool_id = ToolId::new("picard");
+    let tool_spec = bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
+        &repo_root, &stage_id, &tool_id,
+    )?;
+    let bam = PathBuf::from("assets/toy/core-v1/bam/duplication_metrics_duplicate_cluster.sam");
+    let params = bijux_dna_domain_bam::params::MarkDupEffectiveParams {
+        optical_duplicates: bijux_dna_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
+        umi_policy: bijux_dna_domain_bam::params::UmiPolicy::Ignore,
+        duplicate_action: bijux_dna_domain_bam::params::DuplicateAction::Mark,
+    };
+    let out_dir = PathBuf::from(
+        "target/local-smoke/bam.duplication_metrics/core-v1-duplicate-observation/picard",
+    );
+    let plan = bijux_dna_planner_bam::tool_adapters::stages_post::duplication_metrics::plan(
+        &tool_spec, &bam, &out_dir, &params,
+    )?;
+
+    assert_eq!(plan.stage_id.as_str(), "bam.duplication_metrics");
+    assert_eq!(plan.tool_id.as_str(), "picard");
+    assert_eq!(plan.out_dir, out_dir);
+    assert_eq!(plan.params["optical_duplicates"], serde_json::json!("mark_only"));
+    assert_eq!(plan.params["umi_policy"], serde_json::json!("ignore"));
+    assert_eq!(plan.params["duplicate_action"], serde_json::json!("mark"));
+
+    let output_names = plan
+        .io
+        .outputs
+        .iter()
+        .map(|artifact| artifact.name.as_str().to_string())
+        .collect::<Vec<_>>();
+    assert_eq!(
+        output_names,
+        vec!["duplication_report", "duplication_histogram", "summary", "stage_metrics",]
+    );
+
+    let summary_output =
+        plan.io.outputs.iter().find(|artifact| artifact.name.as_str() == "summary").unwrap_or_else(
+            || panic!("summary output missing from picard BAM duplication-metrics plan"),
+        );
+    assert_eq!(
+        summary_output.path,
+        PathBuf::from(
+            "target/local-smoke/bam.duplication_metrics/core-v1-duplicate-observation/picard/duplication.summary.json"
+        )
+    );
+
+    Ok(())
 }
