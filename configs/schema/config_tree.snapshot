@@ -60,6 +60,7 @@ configs/bench/local/fastq-trim-polyg-tails.toml
 configs/bench/local/fastq-trim-reads.toml
 configs/bench/local/fastq-trim-terminal-damage.toml
 configs/bench/local/fastq-validate-reads.toml
+configs/bench/local/tool-families.toml
 configs/ci/compatibility/deprecations.toml
 configs/ci/compatibility/index.md
 configs/ci/compatibility/release_changes.toml
