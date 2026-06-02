@@ -100,6 +100,22 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             "TSV must not retain a registry-drift row for fastq.filter_reads / {tool_id}"
         );
     }
+    for tool_id in ["bbduk", "prinseq"] {
+        assert!(
+            !rows.iter().any(|row| {
+                row.starts_with(&format!("fastq\tfastq.filter_low_complexity\t{tool_id}\t"))
+            }),
+            "TSV must not retain a registry-drift row for fastq.filter_low_complexity / {tool_id}"
+        );
+    }
+    for tool_id in ["dustmasker", "fastp"] {
+        assert!(
+            rows.iter().any(|row| {
+                row.starts_with(&format!("fastq\tfastq.filter_low_complexity\t{tool_id}\t"))
+            }),
+            "TSV must retain the planned fastq.filter_low_complexity / {tool_id} registry-drift row"
+        );
+    }
     for tool_id in ["bbduk", "fastp"] {
         assert!(
             !rows.iter().any(|row| {

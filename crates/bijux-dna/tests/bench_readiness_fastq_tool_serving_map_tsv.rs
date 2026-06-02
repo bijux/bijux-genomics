@@ -124,6 +124,26 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain the governed filter-reads row for {tool_id}"
         );
     }
+    for tool_id in ["bbduk", "prinseq"] {
+        assert!(
+            rows.iter().any(|row| {
+                row == &format!(
+                    "{tool_id}\tfastq.filter_low_complexity\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tplanner_only"
+                )
+            }),
+            "TSV must retain the governed filter-low-complexity row for {tool_id}"
+        );
+    }
+    for tool_id in ["dustmasker", "fastp"] {
+        assert!(
+            rows.iter().any(|row| {
+                row == &format!(
+                    "{tool_id}\tfastq.filter_low_complexity\tplanned_contract\tdeclared_only\tnot_normalized\tplanner_only"
+                )
+            }),
+            "TSV must retain the planned filter-low-complexity row for {tool_id}"
+        );
+    }
     for tool_id in ["bbduk", "fastp"] {
         assert!(
             rows.iter().any(|row| {
