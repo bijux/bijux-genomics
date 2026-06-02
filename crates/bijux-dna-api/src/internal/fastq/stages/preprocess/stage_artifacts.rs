@@ -846,13 +846,25 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 bijux_dna_domain_fastq::observer::parse_remove_chimeras_report(&raw).ok()
             });
             Some(serde_json::json!({
-                "schema_version": "bijux.fastq.remove_chimeras.extra_artifacts.v2",
+                "schema_version": "bijux.fastq.remove_chimeras.extra_artifacts.v3",
                 "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
                 "method": governed.as_ref().map(|report| report.method.clone()),
                 "detection_scope": governed.as_ref().map(|report| report.detection_scope.clone()),
+                "filtered_representative_sequences": governed.as_ref().map(|report| report.output_reads.clone()),
+                "chimera_metrics_json": governed.as_ref().map(|report| report.chimera_metrics_json.clone()),
+                "reads_in": governed.as_ref().and_then(|report| report.reads_in),
+                "reads_out": governed.as_ref().and_then(|report| report.reads_out),
+                "chimeras_removed": governed.as_ref().and_then(|report| report.chimeras_removed),
+                "chimera_count": governed.as_ref().and_then(|report| report.chimeras_removed),
+                "non_chimera_count": governed.as_ref().and_then(|report| report.reads_out),
+                "chimera_fraction": governed.as_ref().and_then(|report| report.chimera_fraction),
                 "used_fallback": governed.as_ref().map(|report| report.used_fallback),
                 "chimeras_fasta": governed.as_ref().and_then(|report| report.chimeras_fasta.clone()),
                 "uchime_report_tsv": governed.as_ref().and_then(|report| report.uchime_report_tsv.clone()),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
                 "report_json": report_path,
             }))
@@ -1854,6 +1866,57 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn remove_chimeras_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "remove-chimeras-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 1.7,
+            memory_mb: 32.0,
+            outputs: vec![stage_root.join("remove_chimeras_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "vsearch".to_string(),
+        }
+    }
+
+    fn write_remove_chimeras_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("remove_chimeras_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.remove_chimeras.report.v2",
+                "stage": "fastq.remove_chimeras",
+                "stage_id": "fastq.remove_chimeras",
+                "tool_id": "vsearch",
+                "paired_mode": "single_end",
+                "threads": 2,
+                "method": "vsearch_uchime_denovo",
+                "detection_scope": "denovo",
+                "chimera_removed_definition": "reads flagged as de_novo chimeras are excluded from downstream abundance tables",
+                "input_reads": "merged.fastq.gz",
+                "output_reads": "nonchimeras.fastq.gz",
+                "chimera_metrics_json": "chimera_metrics.json",
+                "chimeras_fasta": "chimeras.fasta",
+                "uchime_report_tsv": "uchime.tsv",
+                "reads_in": 100,
+                "reads_out": 92,
+                "chimeras_removed": 8,
+                "chimera_fraction": 0.08,
+                "used_fallback": false,
+                "raw_backend_report": "uchime.tsv",
+                "raw_backend_report_format": "vsearch_uchime_tsv",
+                "runtime_s": 1.7,
+                "memory_mb": 32.0,
+                "exit_code": 0,
+                "backend_metrics": {
+                    "parsed_records": 100,
+                    "flagged_records": 8
+                }
+            }"#,
+        )?;
+        Ok(())
+    }
+
     #[test]
     fn host_extra_artifacts_prefer_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
@@ -2007,6 +2070,45 @@ mod stage_artifact_tests {
         assert_eq!(extra["merge_rate"], serde_json::json!(0.88));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("pear.log"));
         assert_eq!(extra["raw_backend_report_format"], serde_json::json!("pear_log"));
+        Ok(())
+    }
+
+    #[test]
+    fn remove_chimeras_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_remove_chimeras_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.remove_chimeras",
+            &remove_chimeras_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("vsearch"));
+        assert_eq!(extra["paired_mode"], serde_json::json!("single_end"));
+        assert_eq!(extra["threads"], serde_json::json!(2));
+        assert_eq!(extra["method"], serde_json::json!("vsearch_uchime_denovo"));
+        assert_eq!(extra["detection_scope"], serde_json::json!("denovo"));
+        assert_eq!(
+            extra["filtered_representative_sequences"],
+            serde_json::json!("nonchimeras.fastq.gz")
+        );
+        assert_eq!(extra["chimera_metrics_json"], serde_json::json!("chimera_metrics.json"));
+        assert_eq!(extra["reads_in"], serde_json::json!(100));
+        assert_eq!(extra["reads_out"], serde_json::json!(92));
+        assert_eq!(extra["chimeras_removed"], serde_json::json!(8));
+        assert_eq!(extra["chimera_count"], serde_json::json!(8));
+        assert_eq!(extra["non_chimera_count"], serde_json::json!(92));
+        assert_eq!(extra["chimera_fraction"], serde_json::json!(0.08));
+        assert_eq!(extra["chimeras_fasta"], serde_json::json!("chimeras.fasta"));
+        assert_eq!(extra["uchime_report_tsv"], serde_json::json!("uchime.tsv"));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("uchime.tsv"));
+        assert_eq!(extra["raw_backend_report_format"], serde_json::json!("vsearch_uchime_tsv"));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("remove_chimeras_report.json"))
+        );
         Ok(())
     }
 
