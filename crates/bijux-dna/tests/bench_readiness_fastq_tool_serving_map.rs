@@ -203,6 +203,24 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
             "FASTQ readiness map must retain the governed filter-reads row for {tool_id}"
         );
     }
+    for tool_id in ["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "vsearch"] {
+        assert!(
+            rows.iter().any(|row| {
+                row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                    && row.get("stage_id").and_then(serde_json::Value::as_str)
+                        == Some("fastq.merge_pairs")
+                    && row.get("support_status").and_then(serde_json::Value::as_str)
+                        == Some("governed_benchmark_cohort")
+                    && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                        == Some("runnable")
+                    && row.get("parser_status").and_then(serde_json::Value::as_str)
+                        == Some("benchmark_normalized")
+                    && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                        == Some("fixture:corpus-01-mini")
+            }),
+            "FASTQ readiness map must retain the governed merge-pairs row for {tool_id}"
+        );
+    }
     for tool_id in ["bbduk", "prinseq"] {
         assert!(
             rows.iter().any(|row| {

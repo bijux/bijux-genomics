@@ -124,6 +124,16 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain the governed filter-reads row for {tool_id}"
         );
     }
+    for tool_id in ["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "vsearch"] {
+        assert!(
+            rows.iter().any(|row| {
+                row == &format!(
+                    "{tool_id}\tfastq.merge_pairs\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-01-mini"
+                )
+            }),
+            "TSV must retain the governed merge-pairs row for {tool_id}"
+        );
+    }
     for tool_id in ["bbduk", "prinseq"] {
         assert!(
             rows.iter().any(|row| {
