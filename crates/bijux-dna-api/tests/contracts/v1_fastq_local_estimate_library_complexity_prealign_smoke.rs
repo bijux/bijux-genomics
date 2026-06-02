@@ -28,14 +28,9 @@ fn repo_root() -> Result<PathBuf> {
 }
 
 fn assert_json_f64_close(value: &serde_json::Value, expected: f64) {
-    let actual = value
-        .as_f64()
-        .unwrap_or_else(|| panic!("expected JSON float, got {value}"));
+    let actual = value.as_f64().unwrap_or_else(|| panic!("expected JSON float, got {value}"));
     let delta = (actual - expected).abs();
-    assert!(
-        delta <= 1.0e-12,
-        "expected {expected} but observed {actual} (delta {delta})"
-    );
+    assert!(delta <= 1.0e-12, "expected {expected} but observed {actual} (delta {delta})");
 }
 
 #[test]
@@ -52,9 +47,8 @@ fn write_local_estimate_library_complexity_prealign_smoke_report_materializes_go
     let report_path = bijux_dna_api::v1::api::fastq::write_local_estimate_library_complexity_prealign_smoke_report()?;
     assert_eq!(
         report_path,
-        repo_root.join(
-            "target/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json"
-        )
+        repo_root
+            .join("target/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json")
     );
     assert!(report_path.is_file(), "local-smoke complexity summary must exist");
 
@@ -76,16 +70,12 @@ fn write_local_estimate_library_complexity_prealign_smoke_report_materializes_go
         .unwrap_or_else(|| panic!("complexity-hit-pe case missing from complexity summary"));
     assert_eq!(complexity_hit["layout"], serde_json::json!("paired_end"));
     assert_eq!(complexity_hit["reads_in"], serde_json::json!(6));
-    assert_eq!(
-        complexity_hit["estimated_unique_fraction"],
-        serde_json::json!(2.0_f64 / 3.0_f64)
-    );
+    assert_eq!(complexity_hit["estimated_complexity"], serde_json::json!(2.0_f64 / 3.0_f64));
+    assert_eq!(complexity_hit["estimated_unique_fraction"], serde_json::json!(2.0_f64 / 3.0_f64));
     assert_json_f64_close(&complexity_hit["estimated_duplicate_fraction"], 1.0_f64 / 3.0_f64);
     assert_eq!(complexity_hit["kmer_size"], serde_json::json!(4));
-    assert_eq!(
-        complexity_hit["complexity_status"],
-        serde_json::json!("complexity_estimated")
-    );
+    assert_eq!(complexity_hit["insufficient_data_reason"], serde_json::Value::Null);
+    assert_eq!(complexity_hit["complexity_status"], serde_json::json!("complexity_estimated"));
 
     let complexity_clear = cases
         .iter()
@@ -93,19 +83,16 @@ fn write_local_estimate_library_complexity_prealign_smoke_report_materializes_go
         .unwrap_or_else(|| panic!("complexity-clear-pe case missing from complexity summary"));
     assert_eq!(complexity_clear["layout"], serde_json::json!("paired_end"));
     assert_eq!(complexity_clear["reads_in"], serde_json::json!(4));
+    assert_eq!(complexity_clear["estimated_complexity"], serde_json::json!(1.0));
     assert_eq!(complexity_clear["estimated_unique_fraction"], serde_json::json!(1.0));
     assert_eq!(complexity_clear["estimated_duplicate_fraction"], serde_json::json!(0.0));
     assert_eq!(complexity_clear["kmer_size"], serde_json::json!(4));
-    assert_eq!(
-        complexity_clear["complexity_status"],
-        serde_json::json!("complexity_estimated")
-    );
+    assert_eq!(complexity_clear["insufficient_data_reason"], serde_json::Value::Null);
+    assert_eq!(complexity_clear["complexity_status"], serde_json::json!("complexity_estimated"));
 
     for case in cases {
         let report_json = repo_root.join(
-            case["report_json"]
-                .as_str()
-                .unwrap_or_else(|| panic!("report_json path missing")),
+            case["report_json"].as_str().unwrap_or_else(|| panic!("report_json path missing")),
         );
         assert!(report_json.is_file(), "library complexity report must exist");
     }
