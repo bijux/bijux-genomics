@@ -50,8 +50,9 @@ mod support;
 
 use self::support::{
     apply_memory_override, apply_thread_override, benchmark_query_context, build_correction_report,
-    correct_metrics_from_observed_stats, input_output_content_changed, observe_fastq_stats,
-    optional_plan_output_path, parse_quality_encoding, required_plan_output_path,
+    correct_metrics_from_observed_stats, count_corrected_read_changes,
+    input_output_content_changed, observe_fastq_stats, optional_plan_output_path,
+    parse_quality_encoding, required_plan_output_path,
 };
 
 /// # Errors
@@ -175,6 +176,8 @@ struct CorrectOutputObservation {
     output_stats_r1: SeqkitMetrics,
     output_stats_r2: Option<SeqkitMetrics>,
     outputs_changed: bool,
+    changed_reads: u64,
+    unchanged_reads: u64,
 }
 
 struct CorrectRecordContextInputs<'a> {
@@ -445,6 +448,8 @@ fn build_correct_record(
         &outputs.report_path,
         &plan.effective_params,
         &metrics,
+        observation.changed_reads,
+        observation.unchanged_reads,
         execution,
         observation.outputs_changed,
     )?;
@@ -512,7 +517,19 @@ fn observe_correct_outputs(
         &outputs.output_r1,
         outputs.output_r2.as_deref(),
     )?;
-    Ok(CorrectOutputObservation { output_stats_r1, output_stats_r2, outputs_changed })
+    let (changed_reads, unchanged_reads) = count_corrected_read_changes(
+        &bench_inputs.r1,
+        bench_inputs.r2.as_deref(),
+        &outputs.output_r1,
+        outputs.output_r2.as_deref(),
+    )?;
+    Ok(CorrectOutputObservation {
+        output_stats_r1,
+        output_stats_r2,
+        outputs_changed,
+        changed_reads,
+        unchanged_reads,
+    })
 }
 
 fn correct_metric_set(
@@ -541,7 +558,7 @@ fn write_correct_artifacts(
 mod tests {
     use super::{
         apply_thread_override, build_correction_report, correct_metrics_from_observed_stats,
-        optional_plan_output_path, required_plan_output_path,
+        count_corrected_read_changes, optional_plan_output_path, required_plan_output_path,
     };
     use bijux_dna_core::contract::{ArtifactRole, StageIO};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
@@ -689,6 +706,33 @@ mod tests {
     }
 
     #[test]
+    fn count_corrected_read_changes_tracks_changed_and_unchanged_reads() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let input_r1 = temp.path().join("input_R1.fastq");
+        let input_r2 = temp.path().join("input_R2.fastq");
+        let output_r1 = temp.path().join("output_R1.fastq");
+        let output_r2 = temp.path().join("output_R2.fastq");
+
+        std::fs::write(&input_r1, "@read1/1\nACGT\n+\n!!!!\n@read2/1\nTGCA\n+\n####\n")
+            .expect("write input r1");
+        std::fs::write(&input_r2, "@read1/2\nTTTT\n+\n$$$$\n@read2/2\nCCCC\n+\n%%%%\n")
+            .expect("write input r2");
+        std::fs::write(&output_r1, "@read1/1\nACGT\n+\n!!!!\n@read2/1\nTGCT\n+\n####\n")
+            .expect("write output r1");
+        std::fs::write(
+            &output_r2,
+            "@read1/2 changed-header\nTTTT\n+\n$$$$\n@read2/2\nCCCC\n+\n&&&&\n",
+        )
+        .expect("write output r2");
+
+        let (changed_reads, unchanged_reads) =
+            count_corrected_read_changes(&input_r1, Some(&input_r2), &output_r1, Some(&output_r2))
+                .expect("count read changes");
+        assert_eq!(changed_reads, 2);
+        assert_eq!(unchanged_reads, 2);
+    }
+
+    #[test]
     fn optional_corrected_mate_output_can_be_absent() {
         let plan = StagePlanV1 {
             stage_id: StageId::from_static("fastq.correct_errors"),
@@ -789,6 +833,8 @@ mod tests {
                 "conservative_mode": false,
             }),
             &metrics,
+            12,
+            88,
             &StageResultV1 {
                 run_id: "run-1".to_string(),
                 runtime_s: 12.5,
@@ -823,6 +869,8 @@ mod tests {
             report.correction_effect.as_ref().and_then(|effect| effect.get("bases_delta")).cloned(),
             Some(serde_json::json!(-300_i128))
         );
+        assert_eq!(report.changed_reads, Some(12));
+        assert_eq!(report.unchanged_reads, Some(88));
         assert_eq!(report.exit_code, Some(0));
     }
 }

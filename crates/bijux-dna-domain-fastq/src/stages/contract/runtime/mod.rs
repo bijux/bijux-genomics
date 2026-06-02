@@ -24,8 +24,8 @@ mod detect_instrument_artifacts;
 mod edna_branch;
 mod estimate_library_complexity_prealign;
 mod extract_umis;
-mod filter_low_complexity;
 mod fastq_io;
+mod filter_low_complexity;
 mod header_inspection;
 mod interleave_reads;
 mod layout_classification;
@@ -39,10 +39,10 @@ mod prepare_primer_bank;
 mod profile_overrepresented_sequences;
 mod provenance_snapshot;
 mod qc_manifest;
+mod remove_duplicates;
 mod repair_pairs;
 mod screen_taxonomy;
 mod subsample_reads;
-mod remove_duplicates;
 mod trim_reads;
 mod validate_reads;
 
@@ -84,12 +84,20 @@ pub use prepare_primer_bank::prepare_primer_bank;
 pub use profile_overrepresented_sequences::profile_overrepresented_sequences;
 pub use provenance_snapshot::capture_provenance_snapshot;
 pub use qc_manifest::materialize_qc_manifest;
-pub use repair_pairs::repair_pairs;
 pub use remove_duplicates::remove_duplicates;
+pub use repair_pairs::repair_pairs;
 pub use screen_taxonomy::screen_taxonomy;
 pub use subsample_reads::{subsample_reads, SubsampleTarget};
 pub use trim_reads::trim_reads;
 pub use validate_reads::validate_reads;
+
+/// Compare FASTQ inputs and outputs record-by-record to count changed versus unchanged reads.
+///
+/// # Errors
+/// Returns an error when either FASTQ input is malformed.
+pub fn count_changed_fastq_reads(input: &Path, output: &Path) -> Result<(u64, u64)> {
+    fastq_io::count_changed_fastq_reads(input, output)
+}
 
 /// Validate that a stage can accept the provided input kind.
 ///

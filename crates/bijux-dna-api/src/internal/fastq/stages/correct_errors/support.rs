@@ -114,6 +114,30 @@ fn decode_effective_correct_params(
     serde_json::from_value(effective_params.clone()).context("decode effective correction params")
 }
 
+pub(super) fn count_corrected_read_changes(
+    input_r1: &Path,
+    input_r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+) -> Result<(u64, u64)> {
+    let (changed_r1, unchanged_r1) =
+        bijux_dna_domain_fastq::stages::contract::count_changed_fastq_reads(input_r1, output_r1)?;
+    let (changed_r2, unchanged_r2) = match (input_r2, output_r2) {
+        (Some(input_r2), Some(output_r2)) => {
+            bijux_dna_domain_fastq::stages::contract::count_changed_fastq_reads(
+                input_r2, output_r2,
+            )?
+        }
+        (None, None) => (0, 0),
+        _ => {
+            return Err(anyhow!(
+                "correct_errors changed-read counting requires matched input/output mate presence"
+            ));
+        }
+    };
+    Ok((changed_r1 + changed_r2, unchanged_r1 + unchanged_r2))
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(super) fn build_correction_report(
     tool: &str,
@@ -124,6 +148,8 @@ pub(super) fn build_correction_report(
     report_json: &Path,
     effective_params: &serde_json::Value,
     metrics: &FastqCorrectMetrics,
+    changed_reads: u64,
+    unchanged_reads: u64,
     execution: &StageResultV1,
     outputs_changed: bool,
 ) -> Result<CorrectErrorsReportV1> {
@@ -149,6 +175,8 @@ pub(super) fn build_correction_report(
         output_r2: output_r2.map(|path| path.display().to_string()),
         report_json: report_json.display().to_string(),
         corrected_reads: Some(metrics.reads_out),
+        changed_reads: Some(changed_reads),
+        unchanged_reads: Some(unchanged_reads),
         reads_in: Some(metrics.reads_in),
         reads_out: Some(metrics.reads_out),
         bases_in: Some(metrics.bases_in),
