@@ -132,6 +132,13 @@ remove_duplicates_benchmark_policy: fastq.remove_duplicates
 - benchmark rows must keep the stage-native `reads_in`, `reads_out`, and `duplicates_removed` fields aligned with those canonical aliases so deduplication comparisons do not need stage-specific name translation
 - paired-end rows must preserve the pair-count coherence contract alongside the read-count aliases, and single-end rows must leave pair fields empty instead of inventing synthetic mate counts
 
+filter_low_complexity_benchmark_policy: fastq.filter_low_complexity
+- default benchmark backend is `bbduk`
+- governed comparison backend is `prinseq`
+- every governed `fastq.filter_low_complexity` row must emit `reads_removed_low_complexity` plus filtered FASTQ output paths
+- the canonical benchmark row must publish those output paths as `filtered_fastq_r1` and `filtered_fastq_r2` while preserving the governed low-complexity removal count from the report contract
+- retained planned rows for `dustmasker` and `fastp` must remain visible as non-admitted drift until they are either fully admitted and registered or explicitly removed from the benchmark matrix
+
 profile_reads_benchmark_policy: fastq.profile_reads
 - default benchmark backend is `seqkit_stats`
 - `seqkit` and `seqfu` are governed comparison backends for general read profiling studies
