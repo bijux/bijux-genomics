@@ -136,6 +136,14 @@ Visible aliases are part of the operator surface:
   `parser_status`, and `corpus_status`. The report proves which FASTQ benchmark rows are already
   fully renderable with governed support, normalized parsing, and fixture-backed corpus coverage,
   while keeping corpus-blocked and planned-contract rows explicit instead of hidden.
+- `bijux-dna bench readiness render-fastq-adapter-output-contract`
+  `render-fastq-adapter-output-contract` writes
+  `target/bench-readiness/fastq-adapter-output-contract.tsv` with one governed row per FASTQ
+  stage-tool binding in the 27-stage benchmark slice, proving whether each runnable or plannable
+  adapter declares every governed stage artifact in both `tool.outputs` and
+  `execution_contract.expected_outputs`, identifies the normalized metrics artifact and raw output
+  artifacts, and records the deterministic stdout, stderr, and stage-result manifest path
+  templates used by local dry-run execution.
 - `bijux-dna bench readiness render-fastq-tool-serving-map`
   `render-fastq-tool-serving-map` writes `target/bench-readiness/fastq-tool-serving-map.tsv`
   with one governed row per FASTQ stage-tool binding in the 27-stage benchmark slice, carrying
