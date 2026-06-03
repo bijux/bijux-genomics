@@ -866,6 +866,89 @@ fn bench_local_materialize_stage_bam_gc_bias_json_writes_governed_smoke_bundle()
     );
 }
 
+#[test]
+fn bench_local_materialize_stage_bam_endogenous_content_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.endogenous_content",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.endogenous_content")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.endogenous_content/endogenous_content.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.endogenous_content report"),
+    )
+    .expect("parse bam.endogenous_content report");
+
+    assert_eq!(
+        report.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.endogenous_content.local_smoke.report.v1")
+    );
+    assert_eq!(
+        report.get("sample_id").and_then(serde_json::Value::as_str),
+        Some("core-v1-endogenous-partial-mapping")
+    );
+    assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(
+        report.get("method").and_then(serde_json::Value::as_str),
+        Some("mapped_fraction_from_flagstat")
+    );
+    assert_eq!(
+        report.get("host_reference_scope").and_then(serde_json::Value::as_str),
+        Some("human_host")
+    );
+    assert_eq!(report.get("mapped_reads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(report.get("endogenous_reads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(report.get("total_reads").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(report.get("endogenous_fraction").and_then(serde_json::Value::as_f64), Some(0.6));
+    assert_eq!(report.get("prealignment_fraction"), Some(&serde_json::Value::Null));
+
+    let endogenous_report = repo_root.join(
+        report
+            .get("endogenous_report")
+            .and_then(serde_json::Value::as_str)
+            .expect("endogenous report path"),
+    );
+    let endogenous_summary = repo_root.join(
+        report
+            .get("endogenous_summary")
+            .and_then(serde_json::Value::as_str)
+            .expect("endogenous summary path"),
+    );
+    let stage_metrics = repo_root.join(
+        report
+            .get("stage_metrics")
+            .and_then(serde_json::Value::as_str)
+            .expect("stage metrics path"),
+    );
+    assert!(
+        endogenous_report.is_file(),
+        "bam.endogenous_content smoke bundle must expose the governed endogenous-content report"
+    );
+    assert!(
+        endogenous_summary.is_file(),
+        "bam.endogenous_content smoke bundle must expose the governed endogenous-content summary"
+    );
+    assert!(
+        stage_metrics.is_file(),
+        "bam.endogenous_content smoke bundle must expose the governed stage metrics"
+    );
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
