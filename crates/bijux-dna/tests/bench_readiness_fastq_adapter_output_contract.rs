@@ -50,21 +50,15 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(75));
     assert_eq!(payload.get("adapter_row_count").and_then(serde_json::Value::as_u64), Some(68));
     assert_eq!(
-        payload
-            .get("complete_adapter_row_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("complete_adapter_row_count").and_then(serde_json::Value::as_u64),
         Some(68)
     );
     assert_eq!(
-        payload
-            .get("incomplete_adapter_row_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("incomplete_adapter_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
     assert_eq!(
-        payload
-            .get("missing_adapter_row_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("missing_adapter_row_count").and_then(serde_json::Value::as_u64),
         Some(7)
     );
 
@@ -77,9 +71,7 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
                     == Some("fastq.profile_reads")
                 && row.get("output_contract_status").and_then(serde_json::Value::as_str)
                     == Some("complete")
-                && row
-                    .get("normalized_metrics_output_id")
-                    .and_then(serde_json::Value::as_str)
+                && row.get("normalized_metrics_output_id").and_then(serde_json::Value::as_str)
                     == Some("qc_json")
         }),
         "report must retain the governed seqkit_stats profile-reads contract row"
@@ -91,9 +83,7 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
                     == Some("fastq.deplete_host")
                 && row.get("output_contract_status").and_then(serde_json::Value::as_str)
                     == Some("complete")
-                && row
-                    .get("normalized_metrics_output_id")
-                    .and_then(serde_json::Value::as_str)
+                && row.get("normalized_metrics_output_id").and_then(serde_json::Value::as_str)
                     == Some("host_depletion_report_json")
         }),
         "report must retain the governed bowtie2 host-depletion contract row"

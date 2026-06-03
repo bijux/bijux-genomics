@@ -142,17 +142,14 @@ mod tests {
         let stage_id = StageId::new("fastq.profile_reads".to_string());
         let tool_id = ToolId::new("seqkit_stats");
 
-        let contract = load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
+        let contract =
+            load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
 
         assert_eq!(contract.tool_id.as_str(), "seqkit_stats");
         assert_eq!(contract.stage_id.as_str(), "fastq.profile_reads");
         assert!(contract.declared_output_ids.contains(&"qc_json".to_string()));
         assert!(contract.declared_output_ids.contains(&"qc_tsv".to_string()));
-        assert!(
-            contract
-                .execution_expected_output_ids
-                .contains(&"qc_plots_dir".to_string())
-        );
+        assert!(contract.execution_expected_output_ids.contains(&"qc_plots_dir".to_string()));
         assert_eq!(
             contract.stage_expected_artifact_ids,
             vec!["qc_json".to_string(), "qc_tsv".to_string(), "qc_plots_dir".to_string()]
@@ -166,20 +163,13 @@ mod tests {
         let stage_id = StageId::new("fastq.merge_pairs".to_string());
         let tool_id = ToolId::new("vsearch");
 
-        let contract = load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
+        let contract =
+            load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
 
         assert_eq!(contract.tool_id.as_str(), "vsearch");
         assert_eq!(contract.stage_id.as_str(), "fastq.merge_pairs");
-        assert!(
-            contract
-                .declared_output_ids
-                .contains(&"raw_backend_report_txt".to_string())
-        );
-        assert!(
-            contract
-                .execution_expected_output_ids
-                .contains(&"merged_reads".to_string())
-        );
+        assert!(contract.declared_output_ids.contains(&"raw_backend_report_txt".to_string()));
+        assert!(contract.execution_expected_output_ids.contains(&"merged_reads".to_string()));
         assert_eq!(
             contract.stage_expected_artifact_ids,
             vec![

@@ -115,7 +115,9 @@ pub(crate) fn render_fastq_adapter_output_contract(
         .count();
     let missing_adapter_row_count = rows
         .iter()
-        .filter(|row| row.output_contract_status == FastqAdapterOutputContractStatus::MissingAdapter)
+        .filter(|row| {
+            row.output_contract_status == FastqAdapterOutputContractStatus::MissingAdapter
+        })
         .count();
 
     Ok(FastqAdapterOutputContractReport {
@@ -134,8 +136,7 @@ fn render_output_contract_row(
     repo_root: &Path,
     row: &ToolServingMapRow,
 ) -> FastqAdapterOutputContractRow {
-    let stage_output_ids =
-        stage_output_ids_in_manifest_order(&row.stage_id).unwrap_or_default();
+    let stage_output_ids = stage_output_ids_in_manifest_order(&row.stage_id).unwrap_or_default();
     if !row_has_adapter(&row.adapter_status) {
         return FastqAdapterOutputContractRow {
             tool_id: row.tool_id.clone(),
@@ -168,8 +169,10 @@ fn render_output_contract_row(
             let stage_expected_artifact_ids = contract.stage_expected_artifact_ids;
             let normalized_metrics_output_id =
                 normalized_metrics_output_id(&stage_output_ids, &stage_expected_artifact_ids);
-            let raw_output_artifact_ids =
-                raw_output_artifact_ids(&stage_expected_artifact_ids, normalized_metrics_output_id.as_deref());
+            let raw_output_artifact_ids = raw_output_artifact_ids(
+                &stage_expected_artifact_ids,
+                normalized_metrics_output_id.as_deref(),
+            );
             let missing_declarations = collect_missing_declarations(
                 &stage_expected_artifact_ids,
                 &declared_output_ids,
@@ -252,7 +255,9 @@ fn normalized_metrics_output_id(
 ) -> Option<String> {
     let mut candidates = stage_expected_artifact_ids
         .iter()
-        .filter(|artifact_id| stage_output_ids.iter().any(|stage_output_id| stage_output_id == *artifact_id))
+        .filter(|artifact_id| {
+            stage_output_ids.iter().any(|stage_output_id| stage_output_id == *artifact_id)
+        })
         .cloned()
         .collect::<Vec<_>>();
     if candidates.is_empty() {
@@ -274,14 +279,12 @@ fn normalized_metrics_output_id(
         }
     }
 
-    candidates
-        .into_iter()
-        .find(|artifact_id| {
-            !artifact_id.starts_with("raw_backend_report")
-                && (artifact_id.ends_with("_report_json")
-                    || artifact_id.ends_with("_json")
-                    || artifact_id.ends_with("_tsv"))
-        })
+    candidates.into_iter().find(|artifact_id| {
+        !artifact_id.starts_with("raw_backend_report")
+            && (artifact_id.ends_with("_report_json")
+                || artifact_id.ends_with("_json")
+                || artifact_id.ends_with("_tsv"))
+    })
 }
 
 fn raw_output_artifact_ids(
@@ -378,10 +381,7 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
 
 fn sanitize_tsv(value: &str) -> String {
@@ -442,8 +442,7 @@ mod tests {
             row.tool_id == "bowtie2"
                 && row.stage_id == "fastq.deplete_host"
                 && super::output_contract_status_label(row.output_contract_status) == "complete"
-                && row.normalized_metrics_output_id.as_deref()
-                    == Some("host_depletion_report_json")
+                && row.normalized_metrics_output_id.as_deref() == Some("host_depletion_report_json")
                 && row.raw_output_artifact_ids
                     == vec![
                         "host_depleted_reads_r1".to_string(),
