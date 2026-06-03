@@ -374,4 +374,38 @@ mod tests {
                 && row.support_status == "planned_contract"
         }));
     }
+
+    #[test]
+    fn fastq_command_adapter_coverage_writes_governed_tsv_columns() {
+        let root = repo_root();
+        let output_path = PathBuf::from(DEFAULT_FASTQ_COMMAND_ADAPTER_COVERAGE_PATH);
+        let report =
+            render_fastq_command_adapter_coverage(&root, output_path).expect("render coverage");
+        let rendered = std::fs::read_to_string(root.join(&report.output_path))
+            .expect("read rendered fastq command adapter coverage tsv");
+        let rows = rendered.lines().collect::<Vec<_>>();
+
+        assert_eq!(
+            rows.first().copied(),
+            Some(
+                "tool_id\tstage_id\tbenchmark_status\tadapter_coverage\treadiness_gap\tsupport_status\tadapter_status\tparser_status\tcorpus_status\treason"
+            )
+        );
+        assert!(
+            rows.iter().any(|row| {
+                row.starts_with(
+                    "fastqc\tfastq.validate_reads\tbenchmark_ready\tcovered\tnone\tobserver_specialized_benchmark\trunnable\tcomparable\tfixture:corpus-01-mini\t"
+                )
+            }),
+            "the governed FASTQ validation row must remain benchmark-ready and adapter-covered"
+        );
+        assert!(
+            rows.iter().any(|row| {
+                row.starts_with(
+                    "diamond\tfastq.screen_taxonomy\tnot_benchmark_ready\tmissing\tsupport\tplanned_contract\tdeclared_only\tnot_normalized\tfixture:corpus-02-edna-mini\t"
+                )
+            }),
+            "the planned diamond taxonomy row must remain visible as support-blocked"
+        );
+    }
 }
