@@ -76,6 +76,18 @@ fn write_local_qc_pre_config(root: &Path, body: &str) -> Result<()> {
     Ok(())
 }
 
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(
+        repo_root.join("domain/bam/tools/samtools.yaml"),
+        tool_dir.join("samtools.yaml"),
+    )?;
+    Ok(temp)
+}
+
 #[test]
 fn local_qc_pre_smoke_plans_reject_empty_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
@@ -134,5 +146,71 @@ expected_contigs = ["chr1", "chr2"]
     let error = bijux_dna_planner_bam::stage_api::local_qc_pre_smoke_plans(temp.path())
         .expect_err("duplicate sample_id must be rejected before plan construction");
     assert_eq!(error.to_string(), "duplicate local-smoke bam.qc_pre sample_id `duplicate-case`");
+    Ok(())
+}
+
+#[test]
+fn local_qc_pre_smoke_plans_require_expected_contigs() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_qc_pre_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_qc_pre.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "missing-contigs"
+bam = "{bam}"
+expected_total_reads = 3
+expected_mapped_reads = 3
+expected_unmapped_reads = 0
+expected_duplicate_flagged_reads = 1
+expected_contigs = []
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/qc_pre_core_metrics.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_qc_pre_smoke_plans(temp.path())
+        .expect_err("qc_pre smoke cases must declare at least one expected contig");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.qc_pre case `missing-contigs` must declare at least one expected contig"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_qc_pre_smoke_plans_require_balanced_read_totals() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_qc_pre_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_qc_pre.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "imbalanced-counts"
+bam = "{bam}"
+expected_total_reads = 3
+expected_mapped_reads = 2
+expected_unmapped_reads = 0
+expected_duplicate_flagged_reads = 1
+expected_contigs = ["chr1", "chr2"]
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/qc_pre_core_metrics.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_qc_pre_smoke_plans(temp.path())
+        .expect_err("qc_pre smoke totals must satisfy mapped + unmapped == total");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.qc_pre case `imbalanced-counts` must satisfy mapped + unmapped == total"
+    );
     Ok(())
 }
