@@ -865,7 +865,7 @@ const fn default_expect_pass() -> bool {
 /// governed `bam.validate` plans cannot be built.
 pub fn local_validate_smoke_plans(repo_root: &Path) -> Result<Vec<LocalValidateSmokeCasePlan>> {
     let config = load_local_validate_smoke_config(repo_root)?;
-    ensure_unique_sample_ids(&config.cases)?;
+    ensure_unique_validate_sample_ids(&config.cases)?;
 
     let stage = BamStage::Validate;
     let stage_id = StageId::new(stage.as_str().to_string());
@@ -3104,7 +3104,7 @@ fn hydrate_smoke_threads(tool_spec: &mut ToolExecutionSpecV1, threads: Option<u3
     }
 }
 
-fn ensure_unique_sample_ids(cases: &[LocalValidateSmokeCase]) -> Result<()> {
+fn ensure_unique_validate_sample_ids(cases: &[LocalValidateSmokeCase]) -> Result<()> {
     let mut seen = BTreeSet::new();
     for case in cases {
         if case.sample_id.trim().is_empty() {

@@ -21,6 +21,7 @@ toml = { workspace = true }
 bijux-dna-policies.workspace = true
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 insta = { workspace = true, features = ["json", "filters"] }
+tempfile.workspace = true
 
 [features]
 bam_downstream = [
