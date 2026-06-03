@@ -16,6 +16,7 @@ struct LocalLengthFilterSmokeReport {
     expectation_matched: bool,
     input_bam: String,
     filtered_bam: String,
+    filtered_bai: String,
     min_length_threshold: u32,
     input_reads: u64,
     kept_reads: u64,
@@ -101,6 +102,11 @@ fn materialize_local_length_filter_smoke_case(
         &idxstats_after_path,
         render_idxstats(&output_qc_pre).as_bytes(),
     )?;
+    let expectation_matched = summary.input_reads == case.expected_input_reads
+        && summary.kept_reads == case.expected_kept_reads
+        && summary.removed_reads == case.expected_removed_reads
+        && summary.observed_min_length == Some(case.expected_observed_min_length)
+        && summary.observed_max_length == Some(case.expected_observed_max_length);
     bijux_dna_infra::atomic_write_json(&summary_path, &summary)?;
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
@@ -114,6 +120,7 @@ fn materialize_local_length_filter_smoke_case(
             "removed_reads": summary.removed_reads,
             "observed_min_length": summary.observed_min_length,
             "observed_max_length": summary.observed_max_length,
+            "expectation_matched": expectation_matched,
         }),
     )?;
     bijux_dna_infra::atomic_write_bytes(&filtered_bai_path, b"tiny-index\n")?;
@@ -129,12 +136,6 @@ fn materialize_local_length_filter_smoke_case(
         &std::fs::read(&filtered_bai_path)?,
     )?;
 
-    let expectation_matched = summary.input_reads == case.expected_input_reads
-        && summary.kept_reads == case.expected_kept_reads
-        && summary.removed_reads == case.expected_removed_reads
-        && summary.observed_min_length == Some(case.expected_observed_min_length)
-        && summary.observed_max_length == Some(case.expected_observed_max_length);
-
     Ok(LocalLengthFilterSmokeReport {
         schema_version: LOCAL_LENGTH_FILTER_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
         stage_id: "bam.length_filter".to_string(),
@@ -142,6 +143,7 @@ fn materialize_local_length_filter_smoke_case(
         expectation_matched,
         input_bam: path_relative_to_repo(repo_root, &input_bam),
         filtered_bam: path_relative_to_repo(repo_root, &top_level_filtered_bam),
+        filtered_bai: path_relative_to_repo(repo_root, &top_level_filtered_bai),
         min_length_threshold: summary.min_length_threshold,
         input_reads: summary.input_reads,
         kept_reads: summary.kept_reads,
