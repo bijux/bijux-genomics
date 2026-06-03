@@ -225,6 +225,74 @@ fn bench_local_materialize_stage_bam_validate_json_writes_governed_smoke_bundle(
     );
 }
 
+#[test]
+fn bench_local_materialize_stage_bam_qc_pre_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.qc_pre",
+        "--json",
+    ]);
+
+    assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.qc_pre"));
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.qc_pre/qc_pre.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let summary: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.qc_pre summary"),
+    )
+    .expect("parse bam.qc_pre summary");
+
+    assert_eq!(
+        summary.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.qc_pre.local_smoke.report.v1")
+    );
+    assert_eq!(summary.get("case_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(summary.get("all_cases_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert!(
+        summary.get("cases").and_then(serde_json::Value::as_array).is_some_and(|cases| {
+            cases.len() == 1
+                && cases.iter().any(|case| {
+                    case.get("sample_id").and_then(serde_json::Value::as_str)
+                        == Some("core-v1-duplicate-contigs")
+                        && case.get("total_reads").and_then(serde_json::Value::as_u64) == Some(3)
+                        && case.get("mapped_reads").and_then(serde_json::Value::as_u64) == Some(3)
+                        && case.get("unmapped_reads").and_then(serde_json::Value::as_u64) == Some(0)
+                        && case.get("duplicate_flagged_reads").and_then(serde_json::Value::as_u64)
+                            == Some(1)
+                        && case
+                            .get("contig_summary")
+                            .and_then(serde_json::Value::as_array)
+                            .is_some_and(|contigs| {
+                                contigs
+                                    == &vec![
+                                        serde_json::json!({
+                                            "contig": "chr1",
+                                            "length": 100,
+                                            "mapped": 2,
+                                            "unmapped": 0
+                                        }),
+                                        serde_json::json!({
+                                            "contig": "chr2",
+                                            "length": 80,
+                                            "mapped": 1,
+                                            "unmapped": 0
+                                        }),
+                                    ]
+                            })
+                })
+        }),
+        "bam.qc_pre local smoke summary must preserve the governed count and contig contract"
+    );
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
