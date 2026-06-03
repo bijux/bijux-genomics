@@ -1027,6 +1027,92 @@ fn bench_local_materialize_stage_bam_overlap_correction_json_writes_governed_smo
     );
 }
 
+#[test]
+fn bench_local_materialize_stage_bam_damage_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.damage",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.damage")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.damage/damage.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.damage report"),
+    )
+    .expect("parse bam.damage report");
+
+    assert_eq!(
+        report.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.damage.local_smoke.report.v1")
+    );
+    assert_eq!(
+        report.get("sample_id").and_then(serde_json::Value::as_str),
+        Some("core-v1-damage-short-fragments")
+    );
+    assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(report.get("method").and_then(serde_json::Value::as_str), Some("pydamage"));
+    assert_eq!(
+        report.get("tools_seen"),
+        Some(&serde_json::json!(["pydamage", "mapdamage2"]))
+    );
+    assert_eq!(report.get("terminal_c_to_t_5p").and_then(serde_json::Value::as_f64), Some(0.18));
+    assert_eq!(report.get("terminal_g_to_a_3p").and_then(serde_json::Value::as_f64), Some(0.11));
+    assert_eq!(
+        report.get("short_fragment_fraction").and_then(serde_json::Value::as_f64),
+        Some(1.0)
+    );
+    assert_eq!(report.get("damage_signal").and_then(serde_json::Value::as_str), Some("moderate"));
+    assert_eq!(
+        report.get("strict_profile_upgraded").and_then(serde_json::Value::as_bool),
+        Some(false)
+    );
+
+    let damage_report = repo_root.join(
+        report
+            .get("damage_report")
+            .and_then(serde_json::Value::as_str)
+            .expect("damage report path"),
+    );
+    let terminal_position_metrics = repo_root.join(
+        report
+            .get("terminal_position_metrics")
+            .and_then(serde_json::Value::as_str)
+            .expect("terminal position metrics path"),
+    );
+    let stage_metrics = repo_root.join(
+        report
+            .get("stage_metrics")
+            .and_then(serde_json::Value::as_str)
+            .expect("stage metrics path"),
+    );
+    assert!(
+        damage_report.is_file(),
+        "bam.damage smoke bundle must expose the governed damage evidence report"
+    );
+    assert!(
+        terminal_position_metrics.is_file(),
+        "bam.damage smoke bundle must expose the governed terminal-position metrics"
+    );
+    assert!(
+        stage_metrics.is_file(),
+        "bam.damage smoke bundle must expose the governed stage metrics"
+    );
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
