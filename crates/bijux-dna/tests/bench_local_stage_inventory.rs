@@ -1054,6 +1054,114 @@ fn bench_local_materialize_stage_bam_bias_mitigation_json_writes_governed_smoke_
 }
 
 #[test]
+fn bench_local_materialize_stage_bam_recalibration_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.recalibration",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.recalibration")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.recalibration/recalibration.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.recalibration report"),
+    )
+    .expect("parse bam.recalibration report");
+
+    assert_eq!(
+        report.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.recalibration.local_smoke.report.v1")
+    );
+    assert_eq!(
+        report.get("sample_id").and_then(serde_json::Value::as_str),
+        Some("core-v1-recalibration-low-coverage-skip")
+    );
+    assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(report.get("requested_mode").and_then(serde_json::Value::as_str), Some("standard"));
+    assert_eq!(report.get("effective_mode").and_then(serde_json::Value::as_str), Some("skip"));
+    assert_eq!(report.get("status").and_then(serde_json::Value::as_str), Some("skipped"));
+    assert_eq!(report.get("reason").and_then(serde_json::Value::as_str), Some("coverage_below_gate"));
+    assert_eq!(
+        report.get("known_sites"),
+        Some(&serde_json::json!(["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"]))
+    );
+    assert_eq!(
+        report.get("coverage_gate"),
+        Some(&serde_json::json!({
+            "min_mean_coverage": 0.1,
+            "min_breadth_1x": 0.05
+        }))
+    );
+    assert_eq!(
+        report.get("observed_mean_coverage").and_then(serde_json::Value::as_f64),
+        Some(0.024)
+    );
+    assert_eq!(
+        report.get("observed_breadth_1x").and_then(serde_json::Value::as_f64),
+        Some(0.024)
+    );
+    assert_eq!(report.get("output_bam_present").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(
+        report.get("recalibration_report_present").and_then(serde_json::Value::as_bool),
+        Some(true)
+    );
+
+    let recalibrated_bam = repo_root.join(
+        report
+            .get("recalibrated_bam")
+            .and_then(serde_json::Value::as_str)
+            .expect("recalibrated bam path"),
+    );
+    let recalibration_report = repo_root.join(
+        report
+            .get("recalibration_report")
+            .and_then(serde_json::Value::as_str)
+            .expect("recalibration report path"),
+    );
+    let recalibration_summary = repo_root.join(
+        report
+            .get("recalibration_summary")
+            .and_then(serde_json::Value::as_str)
+            .expect("recalibration summary path"),
+    );
+    let stage_metrics = repo_root.join(
+        report
+            .get("stage_metrics")
+            .and_then(serde_json::Value::as_str)
+            .expect("stage metrics path"),
+    );
+    assert!(
+        recalibrated_bam.is_file(),
+        "bam.recalibration smoke bundle must expose the governed recalibrated BAM"
+    );
+    assert!(
+        recalibration_report.is_file(),
+        "bam.recalibration smoke bundle must expose the governed recalibration report"
+    );
+    assert!(
+        recalibration_summary.is_file(),
+        "bam.recalibration smoke bundle must expose the governed recalibration summary"
+    );
+    assert!(
+        stage_metrics.is_file(),
+        "bam.recalibration smoke bundle must expose the governed stage metrics"
+    );
+}
+
+#[test]
 fn bench_local_materialize_stage_bam_sex_json_writes_governed_smoke_bundle() {
     let (repo_root, payload) = run_cli_json_with_repo_root(&[
         "bench",
