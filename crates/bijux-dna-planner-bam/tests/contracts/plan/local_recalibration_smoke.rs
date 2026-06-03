@@ -17,6 +17,15 @@ fn write_local_recalibration_config(root: &Path, body: &str) -> Result<()> {
     Ok(())
 }
 
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(repo_root.join("domain/bam/tools/gatk.yaml"), tool_dir.join("gatk.yaml"))?;
+    Ok(temp)
+}
+
 #[test]
 fn local_recalibration_smoke_plans_use_governed_skip_case() -> Result<()> {
     let repo_root = repo_root();
@@ -121,7 +130,7 @@ fn local_recalibration_smoke_plans_use_governed_skip_case() -> Result<()> {
         .get(2)
         .unwrap_or_else(|| panic!("recalibration plan shell command missing"));
     assert!(command.contains("status=skipped"));
-    assert!(command.contains("reason=requested_skip_mode"));
+    assert!(command.contains("reason=coverage_below_gate"));
 
     Ok(())
 }
@@ -205,6 +214,96 @@ expected_reason = "coverage_below_gate"
     assert_eq!(
         error.to_string(),
         "duplicate local-smoke bam.recalibration sample_id `duplicate-case`"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_recalibration_smoke_plans_require_expected_status_to_match_governed_decision() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_recalibration_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_recalibration.v1"
+tool_id = "gatk"
+threads = 2
+output_dir = "target/local-smoke/bam.recalibration"
+
+[[cases]]
+sample_id = "wrong-status"
+bam = "{bam}"
+reference = "{reference}"
+known_sites = ["{known_sites}"]
+mode = "standard"
+min_mean_coverage = 0.1
+min_breadth_1x = 0.05
+expected_status = "ready_to_run"
+expected_reason = "coverage_below_gate"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam")
+                .display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta")
+                .display(),
+            known_sites = repo_root
+                .join("assets/toy/core-v1/vcf/recalibration_known_sites.vcf")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_recalibration_smoke_plans(temp.path())
+        .expect_err("expected_status must stay aligned with the governed recalibration decision");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.recalibration case `wrong-status` must keep expected_status aligned with the governed recalibration decision"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_recalibration_smoke_plans_require_expected_reason_to_match_governed_decision() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_recalibration_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_recalibration.v1"
+tool_id = "gatk"
+threads = 2
+output_dir = "target/local-smoke/bam.recalibration"
+
+[[cases]]
+sample_id = "wrong-reason"
+bam = "{bam}"
+reference = "{reference}"
+known_sites = ["{known_sites}"]
+mode = "standard"
+min_mean_coverage = 0.1
+min_breadth_1x = 0.05
+expected_status = "skipped"
+expected_reason = "requested_skip_mode"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam")
+                .display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta")
+                .display(),
+            known_sites = repo_root
+                .join("assets/toy/core-v1/vcf/recalibration_known_sites.vcf")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_recalibration_smoke_plans(temp.path())
+        .expect_err("expected_reason must stay aligned with the governed recalibration decision");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.recalibration case `wrong-reason` must keep expected_reason aligned with the governed recalibration decision"
     );
     Ok(())
 }

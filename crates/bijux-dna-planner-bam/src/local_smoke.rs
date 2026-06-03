@@ -3290,7 +3290,18 @@ fn build_local_recalibration_smoke_case(
         BqsrMode::EmitOnly => "emitted_only",
         BqsrMode::Standard => "ready_to_run",
     };
-
+    if case.expected_status != status {
+        return Err(anyhow!(
+            "local-smoke bam.recalibration case `{}` must keep expected_status aligned with the governed recalibration decision",
+            case.sample_id
+        ));
+    }
+    if case.expected_reason != decision_reason {
+        return Err(anyhow!(
+            "local-smoke bam.recalibration case `{}` must keep expected_reason aligned with the governed recalibration decision",
+            case.sample_id
+        ));
+    }
     let params = bijux_dna_domain_bam::params::BqsrEffectiveParams {
         known_sites: case.known_sites.iter().map(|path| path.display().to_string()).collect(),
         mode: effective_mode,
@@ -3310,6 +3321,10 @@ fn build_local_recalibration_smoke_case(
     let plan_params = plan.params.as_object_mut().ok_or_else(|| {
         anyhow!("local-smoke bam.recalibration planner params must serialize as an object")
     })?;
+    // Keep the mocked skip summary aligned with the governed local-smoke decision.
+    for fragment in &mut plan.command.template {
+        *fragment = fragment.replace("requested_skip_mode", decision_reason);
+    }
     plan_params.insert("reference".to_string(), serde_json::json!(case.reference));
     plan_params.insert("requested_mode".to_string(), serde_json::json!(case.mode));
     plan_params.insert("status".to_string(), serde_json::json!(status));
