@@ -1,4 +1,5 @@
 use anyhow::Result;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
@@ -106,4 +107,84 @@ fn local_gc_bias_smoke_stage_api_surface_stays_callable() {
         &Path,
     ) -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalGcBiasSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_gc_bias_smoke_plans;
+}
+
+fn write_local_gc_bias_config(root: &Path, body: &str) -> Result<()> {
+    let config_dir = root.join("configs/bench/local");
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("bam-gc-bias.toml"), body)?;
+    Ok(())
+}
+
+#[test]
+fn local_gc_bias_smoke_plans_reject_empty_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_gc_bias_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_gc_bias.v1"
+tool_id = "picard"
+
+[[cases]]
+sample_id = " "
+bam = "assets/toy/core-v1/bam/gc_bias_window_reads.sam"
+reference = "assets/toy/core-v1/bam/gc_bias_reference_windows.fasta"
+window_size = 10
+
+[[cases.expected_rows]]
+gc_bin = 0
+normalized_coverage = 0.75
+windows = 1
+read_starts = 1
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_gc_bias_smoke_plans(temp.path())
+        .expect_err("empty sample_id must be rejected before gc-bias plan construction");
+    assert_eq!(error.to_string(), "local-smoke bam.gc_bias sample_id must not be empty");
+    Ok(())
+}
+
+#[test]
+fn local_gc_bias_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_gc_bias_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_gc_bias.v1"
+tool_id = "picard"
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/gc_bias_window_reads.sam"
+reference = "assets/toy/core-v1/bam/gc_bias_reference_windows.fasta"
+window_size = 10
+
+[[cases.expected_rows]]
+gc_bin = 0
+normalized_coverage = 0.75
+windows = 1
+read_starts = 1
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/gc_bias_window_reads.sam"
+reference = "assets/toy/core-v1/bam/gc_bias_reference_windows.fasta"
+window_size = 10
+
+[[cases.expected_rows]]
+gc_bin = 50
+normalized_coverage = 1.5
+windows = 1
+read_starts = 2
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_gc_bias_smoke_plans(temp.path())
+        .expect_err("duplicate sample_id must be rejected before gc-bias plan construction");
+    assert_eq!(
+        error.to_string(),
+        "duplicate local-smoke bam.gc_bias sample_id `duplicate-case`"
+    );
+    Ok(())
 }
