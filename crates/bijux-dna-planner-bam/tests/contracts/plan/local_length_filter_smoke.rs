@@ -97,6 +97,18 @@ fn write_local_length_filter_config(root: &Path, body: &str) -> Result<()> {
     Ok(())
 }
 
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(
+        repo_root.join("domain/bam/tools/samtools.yaml"),
+        tool_dir.join("samtools.yaml"),
+    )?;
+    Ok(temp)
+}
+
 #[test]
 fn local_length_filter_smoke_plans_reject_empty_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
@@ -160,6 +172,176 @@ expected_observed_max_length = 12
     assert_eq!(
         error.to_string(),
         "duplicate local-smoke bam.length_filter sample_id `duplicate-case`"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_length_filter_smoke_plans_require_non_zero_min_length() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_length_filter_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_length_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "zero-threshold"
+bam = "{bam}"
+min_length = 0
+expected_input_reads = 4
+expected_kept_reads = 3
+expected_removed_reads = 1
+expected_observed_min_length = 8
+expected_observed_max_length = 12
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/length_threshold_ladder.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_length_filter_smoke_plans(temp.path())
+        .expect_err("length_filter cases must declare a non-zero min_length");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.length_filter case `zero-threshold` must declare a non-zero min_length"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_length_filter_smoke_plans_reject_kept_reads_greater_than_input() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_length_filter_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_length_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "kept-over-input"
+bam = "{bam}"
+min_length = 8
+expected_input_reads = 4
+expected_kept_reads = 5
+expected_removed_reads = 0
+expected_observed_min_length = 8
+expected_observed_max_length = 12
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/length_threshold_ladder.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_length_filter_smoke_plans(temp.path())
+        .expect_err("length_filter cases cannot keep more reads than they start with");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.length_filter case `kept-over-input` cannot declare kept reads greater than input reads"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_length_filter_smoke_plans_require_aligned_removed_read_counts() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_length_filter_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_length_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "removed-count-mismatch"
+bam = "{bam}"
+min_length = 8
+expected_input_reads = 4
+expected_kept_reads = 3
+expected_removed_reads = 0
+expected_observed_min_length = 8
+expected_observed_max_length = 12
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/length_threshold_ladder.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_length_filter_smoke_plans(temp.path())
+        .expect_err("length_filter removed reads must align with input and kept reads");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.length_filter case `removed-count-mismatch` must keep expected removed reads aligned with input and kept reads"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_length_filter_smoke_plans_require_ordered_observed_lengths() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_length_filter_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_length_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "inverted-observed-lengths"
+bam = "{bam}"
+min_length = 8
+expected_input_reads = 4
+expected_kept_reads = 3
+expected_removed_reads = 1
+expected_observed_min_length = 12
+expected_observed_max_length = 8
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/length_threshold_ladder.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_length_filter_smoke_plans(temp.path())
+        .expect_err("length_filter observed min length must stay <= observed max length");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.length_filter case `inverted-observed-lengths` must declare observed min length less than or equal to observed max length"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_length_filter_smoke_plans_require_observed_min_at_or_above_threshold() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_length_filter_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_length_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "observed-min-below-threshold"
+bam = "{bam}"
+min_length = 8
+expected_input_reads = 4
+expected_kept_reads = 3
+expected_removed_reads = 1
+expected_observed_min_length = 7
+expected_observed_max_length = 12
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/length_threshold_ladder.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_length_filter_smoke_plans(temp.path())
+        .expect_err("length_filter observed minimum must stay at or above the threshold");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.length_filter case `observed-min-below-threshold` must keep observed min length at or above the filter threshold"
     );
     Ok(())
 }
