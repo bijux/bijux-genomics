@@ -13,6 +13,7 @@ struct LocalFilterSmokeMetrics {
     expectation_matched: bool,
     input_bam: String,
     filtered_bam: String,
+    filtered_bai: String,
     input_reads: u64,
     kept_reads: u64,
     removed_reads: u64,
@@ -96,6 +97,10 @@ fn materialize_local_filter_smoke_case(
         &idxstats_after_path,
         render_idxstats(&output_qc_pre).as_bytes(),
     )?;
+    let expectation_matched = summary.input_reads == case.expected_input_reads
+        && summary.kept_reads == case.expected_kept_reads
+        && summary.removed_reads == case.expected_removed_reads
+        && summary.active_filters == case.expected_active_filters;
     bijux_dna_infra::atomic_write_json(&summary_path, &summary)?;
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
@@ -106,6 +111,7 @@ fn materialize_local_filter_smoke_case(
             "input_reads": summary.input_reads,
             "kept_reads": summary.kept_reads,
             "removed_reads": summary.removed_reads,
+            "expectation_matched": expectation_matched,
             "active_filters": summary.active_filters.clone(),
         }),
     )?;
@@ -122,11 +128,6 @@ fn materialize_local_filter_smoke_case(
         &std::fs::read(&filtered_bai_path)?,
     )?;
 
-    let expectation_matched = summary.input_reads == case.expected_input_reads
-        && summary.kept_reads == case.expected_kept_reads
-        && summary.removed_reads == case.expected_removed_reads
-        && summary.active_filters == case.expected_active_filters;
-
     Ok(LocalFilterSmokeMetrics {
         schema_version: LOCAL_FILTER_SMOKE_METRICS_SCHEMA_VERSION.to_string(),
         stage_id: "bam.filter".to_string(),
@@ -134,6 +135,7 @@ fn materialize_local_filter_smoke_case(
         expectation_matched,
         input_bam: path_relative_to_repo(repo_root, &input_bam),
         filtered_bam: path_relative_to_repo(repo_root, &top_level_filtered_bam),
+        filtered_bai: path_relative_to_repo(repo_root, &top_level_filtered_bai),
         input_reads: summary.input_reads,
         kept_reads: summary.kept_reads,
         removed_reads: summary.removed_reads,
