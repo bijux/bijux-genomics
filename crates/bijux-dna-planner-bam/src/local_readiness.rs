@@ -255,9 +255,30 @@ pub fn local_contamination_plan(repo_root: &Path) -> Result<bijux_dna_stage_cont
             config.schema_version
         ));
     }
+    if config.sample_id.trim().is_empty() {
+        return Err(anyhow!("local-ready bam.contamination sample_id must not be empty"));
+    }
     if config.reference_panels.is_empty() {
         return Err(anyhow!(
             "local-ready bam.contamination requires at least one governed reference panel"
+        ));
+    }
+    if config
+        .assumptions
+        .as_deref()
+        .map(str::trim)
+        .is_none_or(str::is_empty)
+    {
+        return Err(anyhow!(
+            "local-ready bam.contamination requires a non-empty governed assumptions string"
+        ));
+    }
+    if config
+        .minimum_mean_coverage
+        .is_some_and(|coverage| !coverage.is_finite() || coverage <= 0.0)
+    {
+        return Err(anyhow!(
+            "local-ready bam.contamination minimum_mean_coverage must be finite and greater than zero"
         ));
     }
 

@@ -1,4 +1,6 @@
 use anyhow::Result;
+use std::fs;
+use std::path::Path;
 use std::path::PathBuf;
 
 fn repo_root() -> PathBuf {
@@ -7,6 +9,31 @@ fn repo_root() -> PathBuf {
         .and_then(std::path::Path::parent)
         .unwrap_or_else(|| panic!("workspace root"))
         .to_path_buf()
+}
+
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(
+        repo_root.join("domain/bam/tools/verifybamid2.yaml"),
+        tool_dir.join("verifybamid2.yaml"),
+    )?;
+    let runtime_dir = temp.path().join("configs/runtime/profiles");
+    fs::create_dir_all(&runtime_dir)?;
+    fs::copy(
+        repo_root.join("configs/runtime/profiles/local.toml"),
+        runtime_dir.join("local.toml"),
+    )?;
+    Ok(temp)
+}
+
+fn write_local_contamination_config(root: &Path, body: &str) -> Result<()> {
+    let config_dir = root.join("configs/bench/local");
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("bam-contamination.toml"), body)?;
+    Ok(())
 }
 
 #[test]
@@ -71,7 +98,6 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         contamination_report.path,
         PathBuf::from("target/local-ready/bam.contamination/contamination.json")
     );
-
     assert_eq!(plan.params["scope"], serde_json::json!("nuclear"));
     assert_eq!(
         plan.params["assumptions"],
@@ -107,4 +133,142 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
 fn local_contamination_plan_stage_api_surface_stays_callable() {
     let _: fn(&std::path::Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
         bijux_dna_planner_bam::stage_api::local_contamination_plan;
+}
+
+#[test]
+fn local_contamination_plan_rejects_empty_sample_ids() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_contamination_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_contamination.v1"
+bam = "{bam}"
+bai = "{bai}"
+reference_fasta = "{reference}"
+reference_panels = ["{panel}"]
+tool_id = "verifybamid2"
+sample_id = " "
+scope = "nuclear"
+prior = 0.02
+sex_specific = false
+assumptions = "toy host reference with governed population-af panel for local contamination planning"
+chromosome_system = "xy"
+minimum_mean_coverage = 0.5
+emit_confidence_caveats = true
+threads = 2
+output_dir = "target/local-ready/bam.contamination"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/contamination_panel_screen.sam").display(),
+            bai = repo_root
+                .join("assets/toy/core-v1/bam/contamination_panel_screen.sam.bai")
+                .display(),
+            reference = repo_root
+                .join("assets/reference/host/references/toy_host_reference.fasta")
+                .display(),
+            panel = repo_root
+                .join("assets/reference/host/references/toy_human_contamination_panel.dat")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_contamination_plan(temp.path())
+        .expect_err("empty sample_id must be rejected before contamination plan construction");
+    assert_eq!(error.to_string(), "local-ready bam.contamination sample_id must not be empty");
+    Ok(())
+}
+
+#[test]
+fn local_contamination_plan_requires_governed_assumptions() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_contamination_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_contamination.v1"
+bam = "{bam}"
+bai = "{bai}"
+reference_fasta = "{reference}"
+reference_panels = ["{panel}"]
+tool_id = "verifybamid2"
+sample_id = "missing-assumptions"
+scope = "nuclear"
+prior = 0.02
+sex_specific = false
+assumptions = " "
+chromosome_system = "xy"
+minimum_mean_coverage = 0.5
+emit_confidence_caveats = true
+threads = 2
+output_dir = "target/local-ready/bam.contamination"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/contamination_panel_screen.sam").display(),
+            bai = repo_root
+                .join("assets/toy/core-v1/bam/contamination_panel_screen.sam.bai")
+                .display(),
+            reference = repo_root
+                .join("assets/reference/host/references/toy_host_reference.fasta")
+                .display(),
+            panel = repo_root
+                .join("assets/reference/host/references/toy_human_contamination_panel.dat")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_contamination_plan(temp.path())
+        .expect_err("blank assumptions must be rejected for governed contamination planning");
+    assert_eq!(
+        error.to_string(),
+        "local-ready bam.contamination requires a non-empty governed assumptions string"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_contamination_plan_requires_positive_minimum_mean_coverage() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_contamination_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_contamination.v1"
+bam = "{bam}"
+bai = "{bai}"
+reference_fasta = "{reference}"
+reference_panels = ["{panel}"]
+tool_id = "verifybamid2"
+sample_id = "bad-coverage-threshold"
+scope = "nuclear"
+prior = 0.02
+sex_specific = false
+assumptions = "toy host reference with governed population-af panel for local contamination planning"
+chromosome_system = "xy"
+minimum_mean_coverage = 0.0
+emit_confidence_caveats = true
+threads = 2
+output_dir = "target/local-ready/bam.contamination"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/contamination_panel_screen.sam").display(),
+            bai = repo_root
+                .join("assets/toy/core-v1/bam/contamination_panel_screen.sam.bai")
+                .display(),
+            reference = repo_root
+                .join("assets/reference/host/references/toy_host_reference.fasta")
+                .display(),
+            panel = repo_root
+                .join("assets/reference/host/references/toy_human_contamination_panel.dat")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_contamination_plan(temp.path())
+        .expect_err("non-positive minimum_mean_coverage must be rejected");
+    assert_eq!(
+        error.to_string(),
+        "local-ready bam.contamination minimum_mean_coverage must be finite and greater than zero"
+    );
+    Ok(())
 }
