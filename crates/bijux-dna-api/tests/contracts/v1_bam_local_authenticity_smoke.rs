@@ -148,19 +148,80 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
     assert_eq!(composite_json["score"], serde_json::json!(0.8666666666666667));
     assert_eq!(composite_json["confidence"], serde_json::json!(0.9466666666666668));
     assert_eq!(composite_json["consumed_metrics"]["damage"]["available"], serde_json::json!(true));
+    assert_eq!(composite_json["consumed_metrics"]["damage"]["source"], serde_json::json!("stage_artifact"));
     assert_eq!(
         composite_json["consumed_metrics"]["contamination"]["available"],
         serde_json::json!(true)
+    );
+    assert_eq!(
+        composite_json["consumed_metrics"]["contamination"]["source"],
+        serde_json::json!("stage_artifact")
     );
     assert_eq!(
         composite_json["consumed_metrics"]["complexity"]["available"],
         serde_json::json!(true)
     );
     assert_eq!(
+        composite_json["consumed_metrics"]["complexity"]["source"],
+        serde_json::json!("stage_artifact")
+    );
+    assert_eq!(
         composite_json["consumed_metrics"]["coverage"]["available"],
         serde_json::json!(true)
     );
+    assert_eq!(
+        composite_json["consumed_metrics"]["coverage"]["source"],
+        serde_json::json!("stage_artifact")
+    );
     assert_eq!(composite_json["consumed_metrics"]["mapping"]["available"], serde_json::json!(true));
+    assert_eq!(
+        composite_json["consumed_metrics"]["mapping"]["source"],
+        serde_json::json!("stage_artifact")
+    );
+
+    let damage_path = PathBuf::from(
+        composite_json["consumed_metrics"]["damage"]["path"]
+            .as_str()
+            .unwrap_or_else(|| panic!("damage path missing from authenticity composition")),
+    );
+    let contamination_path = PathBuf::from(
+        composite_json["consumed_metrics"]["contamination"]["path"]
+            .as_str()
+            .unwrap_or_else(|| panic!("contamination path missing from authenticity composition")),
+    );
+    let complexity_path = PathBuf::from(
+        composite_json["consumed_metrics"]["complexity"]["path"]
+            .as_str()
+            .unwrap_or_else(|| panic!("complexity path missing from authenticity composition")),
+    );
+    let coverage_path = PathBuf::from(
+        composite_json["consumed_metrics"]["coverage"]["path"]
+            .as_str()
+            .unwrap_or_else(|| panic!("coverage path missing from authenticity composition")),
+    );
+    let mapping_path = PathBuf::from(
+        composite_json["consumed_metrics"]["mapping"]["path"]
+            .as_str()
+            .unwrap_or_else(|| panic!("mapping path missing from authenticity composition")),
+    );
+    for path in [
+        &damage_path,
+        &contamination_path,
+        &complexity_path,
+        &coverage_path,
+        &mapping_path,
+    ] {
+        assert!(
+            path.is_file(),
+            "authenticity composition input artifact must exist: {}",
+            path.display()
+        );
+    }
+    assert!(damage_path.ends_with("target/local-smoke/bam.authenticity/core-v1-authenticity-composition/damage/damage.unified_metrics.json"));
+    assert!(contamination_path.ends_with("target/local-smoke/bam.authenticity/core-v1-authenticity-composition/contamination/contamination.summary.json"));
+    assert!(complexity_path.ends_with("target/local-smoke/bam.authenticity/core-v1-authenticity-composition/complexity/complexity.summary.json"));
+    assert!(coverage_path.ends_with("target/local-smoke/bam.authenticity/core-v1-authenticity-composition/coverage/coverage.regime.json"));
+    assert!(mapping_path.ends_with("target/local-smoke/bam.authenticity/core-v1-authenticity-composition/mapping_summary/mapping_summary.json"));
 
     let report_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&authenticity_report)?)?;
