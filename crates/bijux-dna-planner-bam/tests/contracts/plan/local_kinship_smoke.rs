@@ -1,6 +1,7 @@
 #![cfg(feature = "bam_downstream")]
 
 use anyhow::Result;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
@@ -9,6 +10,31 @@ fn repo_root() -> PathBuf {
         .and_then(Path::parent)
         .unwrap_or_else(|| panic!("workspace root"))
         .to_path_buf()
+}
+
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(
+        repo_root.join("domain/bam/tools/king.yaml"),
+        tool_dir.join("king.yaml"),
+    )?;
+    let runtime_dir = temp.path().join("configs/runtime/profiles");
+    fs::create_dir_all(&runtime_dir)?;
+    fs::copy(
+        repo_root.join("configs/runtime/profiles/local.toml"),
+        runtime_dir.join("local.toml"),
+    )?;
+    Ok(temp)
+}
+
+fn write_local_kinship_config(root: &Path, body: &str) -> Result<()> {
+    let config_dir = root.join("configs/bench/local");
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("bam-kinship.toml"), body)?;
+    Ok(())
 }
 
 #[test]
@@ -115,4 +141,105 @@ fn local_kinship_smoke_plans_use_governed_pair_expectations() -> Result<()> {
 fn local_kinship_smoke_stage_api_surface_stays_callable() {
     let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalKinshipSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_kinship_smoke_plans;
+}
+
+#[test]
+fn local_kinship_smoke_plans_reject_empty_sample_ids() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_kinship_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_kinship.v1"
+tool_id = "king"
+threads = 2
+output_dir = "target/local-smoke/bam.kinship"
+
+[[cases]]
+sample_id = " "
+bam = "{bam}"
+reference_panel = "toy_human_relatedness_panel"
+reference_build = "grch38"
+population_scope = "human_diploid_panel"
+min_overlap_snps = 5
+requires_cohort_context = true
+expected_status = "insufficient"
+expected_observed_max_overlap_snps = 4
+expected_insufficiency_reason = "insufficient_overlap_snps"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/kinship_low_overlap_pair.sam")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_kinship_smoke_plans(temp.path())
+        .expect_err("empty sample_id must be rejected before kinship smoke planning");
+    assert_eq!(error.to_string(), "local-smoke bam.kinship sample_id must not be empty");
+    Ok(())
+}
+
+#[test]
+fn local_kinship_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_kinship_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_kinship.v1"
+tool_id = "king"
+threads = 2
+output_dir = "target/local-smoke/bam.kinship"
+
+[[cases]]
+sample_id = "duplicate-kinship-case"
+bam = "{insufficient_bam}"
+reference_panel = "toy_human_relatedness_panel"
+reference_build = "grch38"
+population_scope = "human_diploid_panel"
+min_overlap_snps = 5
+requires_cohort_context = true
+expected_status = "insufficient"
+expected_observed_max_overlap_snps = 4
+expected_insufficiency_reason = "insufficient_overlap_snps"
+
+[[cases]]
+sample_id = "duplicate-kinship-case"
+bam = "{valid_bam}"
+reference_panel = "toy_human_relatedness_panel"
+reference_build = "grch38"
+population_scope = "human_diploid_panel"
+min_overlap_snps = 6
+requires_cohort_context = true
+expected_status = "ok"
+expected_observed_max_overlap_snps = 6
+
+[[cases.expected_pairwise_results]]
+sample_a = "sample_a"
+sample_b = "sample_b"
+overlap_snps = 6
+matching_sites = 5
+mismatch_sites = 1
+concordance = 0.833333
+kinship_coefficient = 0.416667
+relationship_label = "first_degree"
+"#,
+            insufficient_bam = repo_root
+                .join("assets/toy/core-v1/bam/kinship_low_overlap_pair.sam")
+                .display(),
+            valid_bam = repo_root
+                .join("assets/toy/core-v1/bam/kinship_related_pair.sam")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_kinship_smoke_plans(temp.path())
+        .expect_err("duplicate sample_ids must be rejected before kinship smoke planning");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.kinship sample_id `duplicate-kinship-case` must be unique"
+    );
+    Ok(())
 }
