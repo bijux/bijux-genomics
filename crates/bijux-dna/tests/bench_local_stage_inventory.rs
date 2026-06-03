@@ -949,6 +949,84 @@ fn bench_local_materialize_stage_bam_endogenous_content_json_writes_governed_smo
     );
 }
 
+#[test]
+fn bench_local_materialize_stage_bam_overlap_correction_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.overlap_correction",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.overlap_correction")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.overlap_correction/overlap_correction.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.overlap_correction report"),
+    )
+    .expect("parse bam.overlap_correction report");
+
+    assert_eq!(
+        report.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.overlap_correction.local_smoke.report.v1")
+    );
+    assert_eq!(
+        report.get("sample_id").and_then(serde_json::Value::as_str),
+        Some("core-v1-paired-overlap")
+    );
+    assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(report.get("method").and_then(serde_json::Value::as_str), Some("bamutil"));
+    assert_eq!(report.get("pair_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(report.get("corrected_pairs").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(
+        report.get("corrected_overlap_bases").and_then(serde_json::Value::as_u64),
+        Some(7)
+    );
+    assert_eq!(report.get("insufficiency_reason"), Some(&serde_json::Value::Null));
+
+    let corrected_bam = repo_root.join(
+        report
+            .get("overlap_corrected_bam")
+            .and_then(serde_json::Value::as_str)
+            .expect("corrected bam path"),
+    );
+    let overlap_summary = repo_root.join(
+        report
+            .get("overlap_correction_summary")
+            .and_then(serde_json::Value::as_str)
+            .expect("overlap summary path"),
+    );
+    let stage_metrics = repo_root.join(
+        report
+            .get("stage_metrics")
+            .and_then(serde_json::Value::as_str)
+            .expect("stage metrics path"),
+    );
+    assert!(
+        corrected_bam.is_file(),
+        "bam.overlap_correction smoke bundle must expose the governed corrected BAM"
+    );
+    assert!(
+        overlap_summary.is_file(),
+        "bam.overlap_correction smoke bundle must expose the governed overlap summary"
+    );
+    assert!(
+        stage_metrics.is_file(),
+        "bam.overlap_correction smoke bundle must expose the governed stage metrics"
+    );
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
