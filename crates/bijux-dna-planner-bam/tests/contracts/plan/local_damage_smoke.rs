@@ -1,4 +1,5 @@
 use anyhow::Result;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
@@ -76,4 +77,72 @@ fn local_damage_smoke_stage_api_surface_stays_callable() {
     )
         -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalDamageSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_damage_smoke_plans;
+}
+
+fn write_local_damage_config(root: &Path, body: &str) -> Result<()> {
+    let config_dir = root.join("configs/bench/local");
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("bam-damage.toml"), body)?;
+    Ok(())
+}
+
+#[test]
+fn local_damage_smoke_plans_reject_empty_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_damage_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_damage.v1"
+tool_id = "pydamage"
+
+[[cases]]
+sample_id = " "
+bam = "assets/toy/core-v1/bam/damage_short_fragments.sam"
+expected_terminal_c_to_t_5p = 0.18
+expected_terminal_g_to_a_3p = 0.11
+expected_short_fragment_fraction = 1.0
+expected_damage_signal = "moderate"
+expected_strict_profile_upgraded = false
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_damage_smoke_plans(temp.path())
+        .expect_err("empty sample_id must be rejected before damage plan construction");
+    assert_eq!(error.to_string(), "local-smoke bam.damage sample_id must not be empty");
+    Ok(())
+}
+
+#[test]
+fn local_damage_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_damage_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_damage.v1"
+tool_id = "pydamage"
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/damage_short_fragments.sam"
+expected_terminal_c_to_t_5p = 0.18
+expected_terminal_g_to_a_3p = 0.11
+expected_short_fragment_fraction = 1.0
+expected_damage_signal = "moderate"
+expected_strict_profile_upgraded = false
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/damage_short_fragments.sam"
+expected_terminal_c_to_t_5p = 0.18
+expected_terminal_g_to_a_3p = 0.11
+expected_short_fragment_fraction = 1.0
+expected_damage_signal = "moderate"
+expected_strict_profile_upgraded = false
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_damage_smoke_plans(temp.path())
+        .expect_err("duplicate sample_id must be rejected before damage plan construction");
+    assert_eq!(error.to_string(), "duplicate local-smoke bam.damage sample_id `duplicate-case`");
+    Ok(())
 }
