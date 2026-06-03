@@ -58,6 +58,9 @@ fn write_local_mapq_filter_smoke_report_materializes_governed_outputs() -> Resul
     let filtered_bam = repo_root.join(
         payload["filtered_bam"].as_str().unwrap_or_else(|| panic!("filtered_bam path missing")),
     );
+    let filtered_bai = repo_root.join(
+        payload["filtered_bai"].as_str().unwrap_or_else(|| panic!("filtered_bai path missing")),
+    );
     let mapq_filter_summary = repo_root.join(
         payload["mapq_filter_summary"]
             .as_str()
@@ -84,6 +87,7 @@ fn write_local_mapq_filter_smoke_report_materializes_governed_outputs() -> Resul
     );
     for path in [
         &filtered_bam,
+        &filtered_bai,
         &mapq_filter_summary,
         &flagstat_before,
         &flagstat_after,
@@ -108,6 +112,23 @@ fn write_local_mapq_filter_smoke_report_materializes_governed_outputs() -> Resul
     assert_eq!(summary_json["kept_reads"], serde_json::json!(3));
     assert_eq!(summary_json["removed_reads"], serde_json::json!(1));
     assert_eq!(summary_json["mapped_reads_removed"], serde_json::json!(1));
+
+    let stage_metrics_json: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&stage_metrics)?)?;
+    assert_eq!(
+        stage_metrics_json["schema_version"],
+        serde_json::json!("bijux.bam.mapq_filter.local_smoke.metrics.v1")
+    );
+    assert_eq!(stage_metrics_json["mapq_threshold"], serde_json::json!(30));
+    assert_eq!(stage_metrics_json["input_reads"], serde_json::json!(4));
+    assert_eq!(stage_metrics_json["kept_reads"], serde_json::json!(3));
+    assert_eq!(stage_metrics_json["removed_reads"], serde_json::json!(1));
+    assert_eq!(stage_metrics_json["mapped_reads_removed"], serde_json::json!(1));
+    assert_eq!(
+        stage_metrics_json["mapped_fraction_retained"],
+        serde_json::json!(0.6666666666666666)
+    );
+    assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 
     Ok(())
 }
