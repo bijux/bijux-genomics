@@ -5,6 +5,8 @@ use serde::Serialize;
 
 const LOCAL_AUTHENTICITY_SMOKE_REPORT_SCHEMA_VERSION: &str =
     "bijux.bam.authenticity.local_smoke.report.v1";
+const LOCAL_AUTHENTICITY_SMOKE_METRICS_SCHEMA_VERSION: &str =
+    "bijux.bam.authenticity.local_smoke.metrics.v1";
 const AUTHENTICITY_COMPOSITION_SCHEMA_VERSION: &str = "bijux.bam.authenticity.composition.v1";
 const AUTHENTICITY_STAGE_METRICS_SCHEMA_VERSION: &str = "bijux.bam.authenticity.stage_metrics.v1";
 const AUTHENTICITY_METRIC_IDS: [&str; 5] =
@@ -314,12 +316,37 @@ fn materialize_local_authenticity_smoke_case(
         && float_matches(authenticity_summary.confidence, case.expected_confidence)
         && authenticity_summary.pmd_like_signal_present == case.expected_pmd_like_signal_present
         && consumed_metrics == case.expected_consumed_metrics;
+    let score_delta = authenticity_summary.score - case.expected_score;
+    let confidence_delta = authenticity_summary.confidence - case.expected_confidence;
 
     let contamination_estimate = composition
         .get("consumed_metrics")
         .and_then(|value| value.get("contamination"))
         .and_then(|value| value.get("estimate"))
         .and_then(serde_json::Value::as_f64);
+
+    bijux_dna_infra::atomic_write_json(
+        &stage_metrics_path,
+        &serde_json::json!({
+            "schema_version": LOCAL_AUTHENTICITY_SMOKE_METRICS_SCHEMA_VERSION,
+            "stage_id": "bam.authenticity",
+            "sample_id": case.sample_id,
+            "method": case.plan.tool_id.as_str(),
+            "expected_score": case.expected_score,
+            "score": authenticity_summary.score,
+            "score_delta": score_delta,
+            "expected_confidence": case.expected_confidence,
+            "confidence": authenticity_summary.confidence,
+            "confidence_delta": confidence_delta,
+            "expected_pmd_like_signal_present": case.expected_pmd_like_signal_present,
+            "pmd_like_signal_present": authenticity_summary.pmd_like_signal_present,
+            "contamination_estimate": contamination_estimate,
+            "expected_consumed_metric_ids": case.expected_consumed_metrics,
+            "consumed_metric_ids": consumed_metrics,
+            "missing_metric_ids": missing_metrics,
+            "expectation_matched": expectation_matched,
+        }),
+    )?;
 
     Ok(LocalAuthenticitySmokeReport {
         schema_version: LOCAL_AUTHENTICITY_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
