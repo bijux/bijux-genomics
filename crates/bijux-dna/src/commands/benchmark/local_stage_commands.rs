@@ -18,7 +18,7 @@ use crate::commands::benchmark::local_stage_inventory::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION: &str = "bijux.bench.local_stage_commands.v2";
+const LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION: &str = "bijux.bench.local_stage_commands.v3";
 const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str = "target/local-ready/rendered-stage-commands.sh";
 const LOCAL_REPORT_QC_CONFIG_PATH: &str = "configs/bench/local/fastq-report-qc.toml";
 const LOCAL_REPORT_QC_CONFIG_SCHEMA_VERSION: &str = "bijux.bench.fastq.local_report_qc.v1";
@@ -41,6 +41,7 @@ pub(crate) struct BenchLocalStageCommandEntry {
     pub(crate) outputs: Vec<BenchLocalStageArtifactEntry>,
     pub(crate) threads: u32,
     pub(crate) memory_mb: u32,
+    pub(crate) argv: Vec<String>,
     pub(crate) command: String,
 }
 
@@ -56,8 +57,17 @@ pub(crate) struct BenchLocalStageCommandManifest {
     pub(crate) schema_version: &'static str,
     pub(crate) script_output_path: String,
     pub(crate) manifest_output_path: String,
+    pub(crate) argv_output_path: String,
     pub(crate) command_count: usize,
     pub(crate) commands: Vec<BenchLocalStageCommandEntry>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct BenchLocalStageCommandArgvEntry {
+    pub(crate) stage_id: String,
+    pub(crate) tool_id: String,
+    pub(crate) readiness_kind: LocalStageReadinessKind,
+    pub(crate) argv: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -271,6 +281,10 @@ pub(crate) fn render_local_stage_commands(
     if let Some(parent) = manifest_output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
+    let argv_output_path = rendered_stage_commands_argv_path(&absolute_output_path);
+    if let Some(parent) = argv_output_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
 
     let mut script = String::from("#!/usr/bin/env bash\nset -euo pipefail\n");
     script.push_str("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../..\" && pwd)\"\n");
@@ -280,10 +294,23 @@ pub(crate) fn render_local_stage_commands(
     }
     fs::write(&absolute_output_path, script)
         .with_context(|| format!("write {}", absolute_output_path.display()))?;
+    let argv_rows = commands
+        .iter()
+        .map(|entry| BenchLocalStageCommandArgvEntry {
+            stage_id: entry.stage_id.clone(),
+            tool_id: entry.tool_id.clone(),
+            readiness_kind: entry.readiness_kind,
+            argv: entry.argv.clone(),
+        })
+        .collect::<Vec<_>>();
+    let rendered_argv =
+        render_stage_command_argv_jsonl(&argv_rows).context("render stage command argv jsonl")?;
+    bijux_dna_infra::atomic_write_bytes(&argv_output_path, rendered_argv.as_bytes())?;
     let manifest = BenchLocalStageCommandManifest {
         schema_version: LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION,
         script_output_path: path_relative_to_repo(repo_root, &absolute_output_path),
         manifest_output_path: path_relative_to_repo(repo_root, &manifest_output_path),
+        argv_output_path: path_relative_to_repo(repo_root, &argv_output_path),
         command_count: commands.len(),
         commands,
     };
@@ -367,6 +394,8 @@ fn build_local_stage_command_entry(
         }
     }
 
+    let argv = rendered_stage_materialize_argv(&bundle.stage_id);
+
     Ok(BenchLocalStageCommandEntry {
         stage_id: bundle.stage_id.clone(),
         readiness_kind: bundle.readiness_kind,
@@ -375,7 +404,8 @@ fn build_local_stage_command_entry(
         outputs: aggregate_plan_artifacts(repo_root, &plans, |plan| &plan.io.outputs),
         threads,
         memory_mb,
-        command: rendered_stage_materialize_command(&bundle.stage_id),
+        command: render_shell_command(&argv),
+        argv,
     })
 }
 
@@ -636,10 +666,39 @@ fn feature_gated_local_stage_plans(_repo_root: &Path, stage_id: &str) -> Result<
     }
 }
 
-fn rendered_stage_materialize_command(stage_id: &str) -> String {
-    format!(
-        "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id {stage_id}"
-    )
+fn rendered_stage_materialize_argv(stage_id: &str) -> Vec<String> {
+    vec![
+        "cargo".to_string(),
+        "run".to_string(),
+        "-q".to_string(),
+        "-p".to_string(),
+        "bijux-dna".to_string(),
+        "--features".to_string(),
+        "bam_downstream".to_string(),
+        "--".to_string(),
+        "bench".to_string(),
+        "local".to_string(),
+        "materialize-stage".to_string(),
+        "--stage-id".to_string(),
+        stage_id.to_string(),
+    ]
+}
+
+fn render_shell_command(argv: &[String]) -> String {
+    argv.iter()
+        .map(|arg| {
+            if arg
+                .chars()
+                .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.' | '/' | ':'))
+            {
+                arg.clone()
+            } else {
+                let escaped = arg.replace('\'', "'\"'\"'");
+                format!("'{escaped}'")
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 fn rendered_stage_commands_manifest_path(script_output_path: &Path) -> PathBuf {
@@ -655,6 +714,32 @@ fn rendered_stage_commands_manifest_path(script_output_path: &Path) -> PathBuf {
         })
         .unwrap_or_else(|| "rendered-stage-commands.json".to_string());
     script_output_path.with_file_name(json_name)
+}
+
+fn rendered_stage_commands_argv_path(script_output_path: &Path) -> PathBuf {
+    let argv_name = script_output_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(|name| {
+            if let Some(stem) = name.strip_suffix(".sh") {
+                format!("{stem}.argv.jsonl")
+            } else {
+                format!("{name}.argv.jsonl")
+            }
+        })
+        .unwrap_or_else(|| "rendered-stage-commands.argv.jsonl".to_string());
+    script_output_path.with_file_name(argv_name)
+}
+
+fn render_stage_command_argv_jsonl(rows: &[BenchLocalStageCommandArgvEntry]) -> Result<String> {
+    let mut rendered = String::new();
+    for row in rows {
+        let line =
+            serde_json::to_string(row).context("serialize local stage command argv row to json")?;
+        rendered.push_str(&line);
+        rendered.push('\n');
+    }
+    Ok(rendered)
 }
 
 fn materialize_local_report_qc_smoke_report(repo_root: &Path) -> Result<PathBuf> {
@@ -899,6 +984,10 @@ mod tests {
             rendered.manifest_output_path,
             "target/local-ready/rendered-stage-commands.json"
         );
+        assert_eq!(
+            rendered.argv_output_path,
+            "target/local-ready/rendered-stage-commands.argv.jsonl"
+        );
         assert!(rendered.commands.iter().any(|entry| entry.stage_id == "fastq.report_qc"));
         assert!(rendered.commands.iter().all(|entry| {
             !entry.tool_id.is_empty()
@@ -906,8 +995,39 @@ mod tests {
                 && !entry.outputs.is_empty()
                 && entry.threads >= 1
                 && entry.memory_mb >= 1024
+                && entry.argv.first().is_some_and(|arg| arg == "cargo")
+                && entry.argv.iter().any(|arg| arg == "--stage-id")
+                && entry.argv.last().is_some_and(|arg| arg == &entry.stage_id)
                 && entry.command.contains("bench local materialize-stage")
                 && entry.command.contains(&entry.stage_id)
+        }));
+    }
+
+    #[cfg(feature = "bam_downstream")]
+    #[test]
+    fn rendered_local_stage_commands_write_governed_argv_jsonl() {
+        let root = repo_root();
+        let rendered =
+            render_local_stage_commands(&root, PathBuf::from(DEFAULT_RENDERED_STAGE_COMMANDS_PATH))
+                .expect("render local stage commands");
+
+        let argv_path = root.join(&rendered.argv_output_path);
+        let argv_jsonl =
+            std::fs::read_to_string(&argv_path).expect("read rendered stage command argv jsonl");
+        let rows = argv_jsonl.lines().collect::<Vec<_>>();
+
+        assert_eq!(rows.len(), 51);
+        let parsed = rows
+            .iter()
+            .map(|line| serde_json::from_str::<serde_json::Value>(line).expect("parse argv row"))
+            .collect::<Vec<_>>();
+        assert!(parsed.iter().all(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str).is_some()
+                && row.get("tool_id").and_then(serde_json::Value::as_str).is_some()
+                && row.get("argv").and_then(serde_json::Value::as_array).is_some_and(|argv| {
+                    argv.first().and_then(serde_json::Value::as_str) == Some("cargo")
+                        && argv.iter().any(|arg| arg.as_str() == Some("--stage-id"))
+                })
         }));
     }
 
