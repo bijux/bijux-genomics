@@ -98,7 +98,32 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         contamination_report.path,
         PathBuf::from("target/local-ready/bam.contamination/contamination.json")
     );
+    let contamination_summary = plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "summary")
+        .unwrap_or_else(|| panic!("summary output missing from local-ready plan"));
+    assert_eq!(
+        contamination_summary.path,
+        PathBuf::from("target/local-ready/bam.contamination/contamination.summary.json")
+    );
+    let stage_metrics = plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "stage_metrics")
+        .unwrap_or_else(|| panic!("stage_metrics output missing from local-ready plan"));
+    assert_eq!(
+        stage_metrics.path,
+        PathBuf::from("target/local-ready/bam.contamination/stage.metrics.json")
+    );
     assert_eq!(plan.params["scope"], serde_json::json!("nuclear"));
+    assert_eq!(plan.params["prior"], serde_json::json!(0.02));
+    assert_eq!(plan.params["sex_specific"], serde_json::json!(false));
+    assert_eq!(plan.params["chromosome_system"], serde_json::json!("xy"));
+    assert_eq!(plan.params["minimum_mean_coverage"], serde_json::json!(0.5));
+    assert_eq!(plan.params["emit_confidence_caveats"], serde_json::json!(true));
     assert_eq!(
         plan.params["assumptions"],
         serde_json::json!(
@@ -111,8 +136,24 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     );
     assert_eq!(plan.params["sample_id"], serde_json::json!("core-v1-contamination-panel-screen"));
     assert_eq!(plan.params["tool"], serde_json::json!("verifybamid2"));
+    assert_eq!(
+        plan.params["required_reference_digest"],
+        serde_json::json!("0a04f81952deb68c204e8ae67e0573cb97d348f18ab1b527630d57c294028cf5")
+    );
+    assert_eq!(plan.params["tool_scope"], serde_json::json!("nuclear"));
     assert_eq!(plan.effective_params["chromosome_system"], serde_json::json!("xy"));
     assert_eq!(plan.effective_params["minimum_mean_coverage"], serde_json::json!(0.5));
+    assert_eq!(
+        plan.effective_params["assumptions"],
+        serde_json::json!(
+            "toy host reference with governed population-af panel for local contamination planning"
+        )
+    );
+    assert_eq!(
+        plan.effective_params["required_reference_digest"],
+        serde_json::json!("0a04f81952deb68c204e8ae67e0573cb97d348f18ab1b527630d57c294028cf5")
+    );
+    assert_eq!(plan.effective_params["emit_confidence_caveats"], serde_json::json!(true));
 
     let command =
         plan.command.template.iter().last().unwrap_or_else(|| {
@@ -122,8 +163,9 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         command.contains("assets/toy/core-v1/bam/contamination_panel_screen.sam.bai")
             && command.contains("assets/reference/host/references/toy_host_reference.fasta")
             && command.contains("assets/reference/host/references/toy_human_contamination_panel.dat")
-            && command.contains("target/local-ready/bam.contamination/contamination"),
-        "local-ready contamination command must carry the governed BAI, reference, panel, and output prefix"
+            && command.contains("target/local-ready/bam.contamination/contamination")
+            && command.contains("target/local-ready/bam.contamination/contamination.summary.json"),
+        "local-ready contamination command must carry the governed BAI, reference, panel, report prefix, and summary output"
     );
 
     Ok(())
