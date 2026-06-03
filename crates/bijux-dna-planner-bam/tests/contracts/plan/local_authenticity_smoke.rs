@@ -1,4 +1,5 @@
 use anyhow::Result;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
@@ -100,4 +101,99 @@ fn local_authenticity_smoke_stage_api_surface_stays_callable() {
     ) -> anyhow::Result<
         Vec<bijux_dna_planner_bam::stage_api::LocalAuthenticitySmokeCasePlan>,
     > = bijux_dna_planner_bam::stage_api::local_authenticity_smoke_plans;
+}
+
+fn write_local_authenticity_config(root: &Path, body: &str) -> Result<()> {
+    let config_dir = root.join("configs/bench/local");
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("bam-authenticity.toml"), body)?;
+    Ok(())
+}
+
+#[test]
+fn local_authenticity_smoke_plans_reject_empty_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_authenticity_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_authenticity.v1"
+tool_id = "authenticct"
+
+[[cases]]
+sample_id = " "
+bam = "assets/toy/core-v1/bam/authenticity_composition_short_fragments.sam"
+damage_terminal_c_to_t_5p = 0.18
+damage_terminal_g_to_a_3p = 0.11
+contamination_method = "mitochondrial_panel_screen"
+contamination_estimate = 0.03
+contamination_ci_low = 0.01
+contamination_ci_high = 0.05
+complexity_min_reads = 3
+complexity_projection_points = [6, 12]
+coverage_depth_thresholds = [1, 5, 10]
+expected_score = 0.8666666666666667
+expected_confidence = 0.9466666666666668
+expected_pmd_like_signal_present = true
+expected_consumed_metrics = ["damage", "contamination", "complexity", "coverage", "mapping"]
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_authenticity_smoke_plans(temp.path())
+        .expect_err("empty sample_id must be rejected before authenticity plan construction");
+    assert_eq!(error.to_string(), "local-smoke bam.authenticity sample_id must not be empty");
+    Ok(())
+}
+
+#[test]
+fn local_authenticity_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_authenticity_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_authenticity.v1"
+tool_id = "authenticct"
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/authenticity_composition_short_fragments.sam"
+damage_terminal_c_to_t_5p = 0.18
+damage_terminal_g_to_a_3p = 0.11
+contamination_method = "mitochondrial_panel_screen"
+contamination_estimate = 0.03
+contamination_ci_low = 0.01
+contamination_ci_high = 0.05
+complexity_min_reads = 3
+complexity_projection_points = [6, 12]
+coverage_depth_thresholds = [1, 5, 10]
+expected_score = 0.8666666666666667
+expected_confidence = 0.9466666666666668
+expected_pmd_like_signal_present = true
+expected_consumed_metrics = ["damage", "contamination", "complexity", "coverage", "mapping"]
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/authenticity_composition_short_fragments.sam"
+damage_terminal_c_to_t_5p = 0.18
+damage_terminal_g_to_a_3p = 0.11
+contamination_method = "mitochondrial_panel_screen"
+contamination_estimate = 0.03
+contamination_ci_low = 0.01
+contamination_ci_high = 0.05
+complexity_min_reads = 3
+complexity_projection_points = [6, 12]
+coverage_depth_thresholds = [1, 5, 10]
+expected_score = 0.8666666666666667
+expected_confidence = 0.9466666666666668
+expected_pmd_like_signal_present = true
+expected_consumed_metrics = ["damage", "contamination", "complexity", "coverage", "mapping"]
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_authenticity_smoke_plans(temp.path())
+        .expect_err("duplicate sample_id must be rejected before authenticity plan construction");
+    assert_eq!(
+        error.to_string(),
+        "duplicate local-smoke bam.authenticity sample_id `duplicate-case`"
+    );
+    Ok(())
 }
