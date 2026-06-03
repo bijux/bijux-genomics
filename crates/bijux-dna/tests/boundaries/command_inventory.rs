@@ -88,6 +88,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench corpus-fastq-publication-status",
     "bijux-dna bench corpus-fastq-published-dossiers",
     "bijux-dna bench readiness render-command-argv",
+    "bijux-dna bench readiness render-stage-tool-resources",
     "bijux-dna bench readiness render-bam-adapter-output-contract",
     "bijux-dna bench readiness render-bam-stage-decision-table",
     "bijux-dna bench readiness render-bam-command-adapter-coverage",
