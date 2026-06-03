@@ -1,4 +1,5 @@
 use anyhow::Result;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
@@ -7,6 +8,13 @@ fn repo_root() -> PathBuf {
         .and_then(Path::parent)
         .unwrap_or_else(|| panic!("workspace root"))
         .to_path_buf()
+}
+
+fn write_local_recalibration_config(root: &Path, body: &str) -> Result<()> {
+    let config_dir = root.join("configs/bench/local");
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("bam-recalibration.toml"), body)?;
+    Ok(())
 }
 
 #[test]
@@ -125,4 +133,78 @@ fn local_recalibration_smoke_stage_api_surface_stays_callable() {
     ) -> anyhow::Result<
         Vec<bijux_dna_planner_bam::stage_api::LocalRecalibrationSmokeCasePlan>,
     > = bijux_dna_planner_bam::stage_api::local_recalibration_smoke_plans;
+}
+
+#[test]
+fn local_recalibration_smoke_plans_reject_empty_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_recalibration_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_recalibration.v1"
+tool_id = "gatk"
+threads = 2
+output_dir = "target/local-smoke/bam.recalibration"
+
+[[cases]]
+sample_id = " "
+bam = "assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam"
+reference = "assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta"
+known_sites = ["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"]
+mode = "standard"
+min_mean_coverage = 0.1
+min_breadth_1x = 0.05
+expected_status = "skipped"
+expected_reason = "coverage_below_gate"
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_recalibration_smoke_plans(temp.path())
+        .expect_err("empty sample ids must be rejected");
+    assert_eq!(error.to_string(), "local-smoke bam.recalibration sample_id must not be empty");
+    Ok(())
+}
+
+#[test]
+fn local_recalibration_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_recalibration_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_recalibration.v1"
+tool_id = "gatk"
+threads = 2
+output_dir = "target/local-smoke/bam.recalibration"
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam"
+reference = "assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta"
+known_sites = ["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"]
+mode = "standard"
+min_mean_coverage = 0.1
+min_breadth_1x = 0.05
+expected_status = "skipped"
+expected_reason = "coverage_below_gate"
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam"
+reference = "assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta"
+known_sites = ["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"]
+mode = "standard"
+min_mean_coverage = 0.1
+min_breadth_1x = 0.05
+expected_status = "skipped"
+expected_reason = "coverage_below_gate"
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_recalibration_smoke_plans(temp.path())
+        .expect_err("duplicate sample ids must be rejected");
+    assert_eq!(
+        error.to_string(),
+        "duplicate local-smoke bam.recalibration sample_id `duplicate-case`"
+    );
+    Ok(())
 }
