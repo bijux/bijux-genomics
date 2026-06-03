@@ -97,16 +97,13 @@ fn bench_local_validate_slurm_shell_syntax_refuses_invalid_sbatch_syntax() {
     assert_eq!(scripts.len(), 1);
     assert_eq!(scripts[0].get("ok").and_then(serde_json::Value::as_bool), Some(false));
     assert!(
-        scripts[0]
-            .get("findings")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|findings| {
-                findings.iter().any(|finding| {
-                    finding
-                        .as_str()
-                        .is_some_and(|text| text.contains("syntax error") || text.contains("unexpected end of file"))
+        scripts[0].get("findings").and_then(serde_json::Value::as_array).is_some_and(|findings| {
+            findings.iter().any(|finding| {
+                finding.as_str().is_some_and(|text| {
+                    text.contains("syntax error") || text.contains("unexpected end of file")
                 })
-            }),
+            })
+        }),
         "report must capture the bash -n syntax failure"
     );
 }
@@ -164,10 +161,9 @@ fn bench_local_validate_slurm_shell_syntax_accepts_governed_fastq_and_bam_script
     assert_eq!(scripts.len(), 51);
     assert!(scripts.iter().all(|entry| {
         entry.get("ok").and_then(serde_json::Value::as_bool) == Some(true)
-            && entry
-                .get("script_path")
-                .and_then(serde_json::Value::as_str)
-                .is_some_and(|path| path.starts_with("target/slurm-dry-run/") && path.ends_with(".sbatch"))
+            && entry.get("script_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
+                path.starts_with("target/slurm-dry-run/") && path.ends_with(".sbatch")
+            })
     }));
 }
 
@@ -207,12 +203,6 @@ fn bench_local_validate_slurm_shell_syntax_writes_governed_report_path() {
     let written_payload: serde_json::Value =
         serde_json::from_slice(&std::fs::read(&report_path).expect("read governed report"))
             .expect("parse governed report");
-    assert_eq!(
-        written_payload.get("script_count").and_then(serde_json::Value::as_u64),
-        Some(51)
-    );
-    assert_eq!(
-        written_payload.get("ok").and_then(serde_json::Value::as_bool),
-        Some(true)
-    );
+    assert_eq!(written_payload.get("script_count").and_then(serde_json::Value::as_u64), Some(51));
+    assert_eq!(written_payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 }

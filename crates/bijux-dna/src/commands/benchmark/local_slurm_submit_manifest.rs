@@ -115,7 +115,8 @@ pub(crate) fn render_slurm_submit_manifest(
     let absolute_root = if root_path.is_absolute() { root_path } else { repo_root.join(root_path) };
     let absolute_output =
         if output_path.is_absolute() { output_path } else { repo_root.join(output_path) };
-    fs::create_dir_all(&absolute_root).with_context(|| format!("create {}", absolute_root.display()))?;
+    fs::create_dir_all(&absolute_root)
+        .with_context(|| format!("create {}", absolute_root.display()))?;
 
     let fastq_scripts = render_local_slurm_scripts(
         repo_root,
@@ -158,10 +159,10 @@ pub(crate) fn render_slurm_submit_manifest(
 
     let mut jobs = Vec::new();
     for domain in [BenchLocalDomain::Fastq, BenchLocalDomain::Bam] {
-        let inventory = crate::commands::benchmark::local_stage_inventory::load_local_stage_inventory(
-            repo_root,
-            domain,
-        )?;
+        let inventory =
+            crate::commands::benchmark::local_stage_inventory::load_local_stage_inventory(
+                repo_root, domain,
+            )?;
         for stage in inventory.stages {
             let stage_id = stage.stage_id;
             let command = command_index
@@ -256,7 +257,8 @@ fn build_submit_job(
     let sample_id = (sample_ids.len() == 1).then(|| sample_ids[0].clone());
     let corpus_id = job.fixture_id.clone();
     let job_name = slurm_job_name(&job.command.stage_id);
-    let scope_root = slurm_job_scope_root(root_path, &job.command, corpus_id.as_deref(), sample_id.as_deref());
+    let scope_root =
+        slurm_job_scope_root(root_path, &job.command, corpus_id.as_deref(), sample_id.as_deref());
     let stdout_path = scope_root.join("stdout.log");
     let stderr_path = scope_root.join("stderr.log");
 
@@ -288,9 +290,7 @@ fn build_submit_job(
     })
 }
 
-fn derive_job_dependencies(
-    jobs: &[BenchLocalSlurmSubmitInputs],
-) -> BTreeMap<String, Vec<String>> {
+fn derive_job_dependencies(jobs: &[BenchLocalSlurmSubmitInputs]) -> BTreeMap<String, Vec<String>> {
     let mut output_to_stage = BTreeMap::<String, String>::new();
     for job in jobs {
         for output in &job.command.outputs {
@@ -346,21 +346,27 @@ fn load_fixture_sample_index(repo_root: &Path) -> Result<BTreeMap<String, Fixtur
     for fixture in matrix.fixtures {
         let manifest_path = repo_root.join(&fixture.fixture_manifest);
         let sample_ids = match detect_fixture_schema(&manifest_path)? {
-            FixtureSchema::Fastq => fastq::validate_fastq_corpus_fixture_manifest_path(repo_root, &manifest_path)?
-                .samples
-                .into_iter()
-                .map(|sample| sample.sample_id)
-                .collect(),
-            FixtureSchema::Bam => bam::validate_bam_corpus_fixture_manifest_path(repo_root, &manifest_path)?
-                .samples
-                .into_iter()
-                .map(|sample| sample.sample_id)
-                .collect(),
-            FixtureSchema::Edna => edna::validate_edna_corpus_fixture_manifest_path(repo_root, &manifest_path)?
-                .samples
-                .into_iter()
-                .map(|sample| sample.sample_id)
-                .collect(),
+            FixtureSchema::Fastq => {
+                fastq::validate_fastq_corpus_fixture_manifest_path(repo_root, &manifest_path)?
+                    .samples
+                    .into_iter()
+                    .map(|sample| sample.sample_id)
+                    .collect()
+            }
+            FixtureSchema::Bam => {
+                bam::validate_bam_corpus_fixture_manifest_path(repo_root, &manifest_path)?
+                    .samples
+                    .into_iter()
+                    .map(|sample| sample.sample_id)
+                    .collect()
+            }
+            FixtureSchema::Edna => {
+                edna::validate_edna_corpus_fixture_manifest_path(repo_root, &manifest_path)?
+                    .samples
+                    .into_iter()
+                    .map(|sample| sample.sample_id)
+                    .collect()
+            }
             FixtureSchema::Amplicon => {
                 amplicon::validate_amplicon_corpus_fixture_manifest_path(repo_root, &manifest_path)?
                     .samples
@@ -369,8 +375,10 @@ fn load_fixture_sample_index(repo_root: &Path) -> Result<BTreeMap<String, Fixtur
                     .collect()
             }
             FixtureSchema::Damage => {
-                vec![damage::validate_bam_damage_fixture_manifest_path(repo_root, &manifest_path)?
-                    .sample_id]
+                vec![
+                    damage::validate_bam_damage_fixture_manifest_path(repo_root, &manifest_path)?
+                        .sample_id,
+                ]
             }
         };
         index.insert(fixture.fixture_id, FixtureSampleIndex { sample_ids });
@@ -387,15 +395,14 @@ enum FixtureSchema {
 }
 
 fn detect_fixture_schema(manifest_path: &Path) -> Result<FixtureSchema> {
-    let raw =
-        fs::read_to_string(manifest_path).with_context(|| format!("read {}", manifest_path.display()))?;
-    let parsed = raw
-        .parse::<toml::Table>()
-        .with_context(|| format!("parse {}", manifest_path.display()))?;
-    let schema_version = parsed
-        .get("schema_version")
-        .and_then(toml::Value::as_str)
-        .ok_or_else(|| anyhow!("fixture manifest is missing `schema_version`: {}", manifest_path.display()))?;
+    let raw = fs::read_to_string(manifest_path)
+        .with_context(|| format!("read {}", manifest_path.display()))?;
+    let parsed =
+        raw.parse::<toml::Table>().with_context(|| format!("parse {}", manifest_path.display()))?;
+    let schema_version =
+        parsed.get("schema_version").and_then(toml::Value::as_str).ok_or_else(|| {
+            anyhow!("fixture manifest is missing `schema_version`: {}", manifest_path.display())
+        })?;
     match schema_version {
         fastq::FASTQ_CORPUS_FIXTURE_SCHEMA_VERSION => Ok(FixtureSchema::Fastq),
         bam::BAM_CORPUS_FIXTURE_SCHEMA_VERSION => Ok(FixtureSchema::Bam),

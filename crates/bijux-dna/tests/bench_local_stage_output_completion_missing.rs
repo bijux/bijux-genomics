@@ -55,11 +55,14 @@ fn bench_local_check_output_completion_reports_incomplete_stage_when_fake_output
         .and_then(serde_json::Value::as_array)
         .expect("stages array")
         .iter()
-        .find(|stage| stage.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.report_qc"))
+        .find(|stage| {
+            stage.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.report_qc")
+        })
         .and_then(|stage| stage.get("outputs").and_then(serde_json::Value::as_array))
         .and_then(|outputs| {
             outputs.iter().find(|artifact| {
-                artifact.get("artifact_id").and_then(serde_json::Value::as_str) == Some("report_json")
+                artifact.get("artifact_id").and_then(serde_json::Value::as_str)
+                    == Some("report_json")
                     && artifact
                         .get("fake_run_path")
                         .and_then(serde_json::Value::as_str)
@@ -82,35 +85,30 @@ fn bench_local_check_output_completion_reports_incomplete_stage_when_fake_output
     ]);
 
     assert_eq!(payload.get("complete").and_then(serde_json::Value::as_bool), Some(false));
-    assert!(
-        payload
-            .get("incomplete_stage_count")
-            .and_then(serde_json::Value::as_u64)
-            .is_some_and(|count| count >= 1)
-    );
+    assert!(payload
+        .get("incomplete_stage_count")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count >= 1));
     let stage = payload
         .get("stages")
         .and_then(serde_json::Value::as_array)
         .expect("stages array")
         .iter()
-        .find(|stage| stage.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.report_qc"))
+        .find(|stage| {
+            stage.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.report_qc")
+        })
         .expect("fastq.report_qc stage");
     assert_eq!(stage.get("complete").and_then(serde_json::Value::as_bool), Some(false));
-    assert!(
-        stage
-            .get("missing_output_count")
-            .and_then(serde_json::Value::as_u64)
-            .is_some_and(|count| count >= 1)
-    );
-    assert!(
-        stage
-            .get("missing_outputs")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|outputs| outputs.iter().any(|artifact| {
-                artifact
-                    .get("expected_fake_run_path")
-                    .and_then(serde_json::Value::as_str)
-                    .is_some_and(|path| path.ends_with("report_qc_report.json"))
-            }))
-    );
+    assert!(stage
+        .get("missing_output_count")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count >= 1));
+    assert!(stage.get("missing_outputs").and_then(serde_json::Value::as_array).is_some_and(
+        |outputs| outputs.iter().any(|artifact| {
+            artifact
+                .get("expected_fake_run_path")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|path| path.ends_with("report_qc_report.json"))
+        })
+    ));
 }

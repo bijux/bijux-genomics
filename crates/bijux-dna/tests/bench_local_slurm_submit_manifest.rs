@@ -60,8 +60,10 @@ fn bench_local_render_slurm_submit_manifest_requires_bam_downstream_feature() {
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_slurm_submit_manifest_reports_governed_51_job_slice() {
-    let payload =
-        run_cargo_cli_json(&["bench", "local", "render-slurm-submit-manifest", "--json"], "bam_downstream");
+    let payload = run_cargo_cli_json(
+        &["bench", "local", "render-slurm-submit-manifest", "--json"],
+        "bam_downstream",
+    );
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -87,15 +89,16 @@ fn bench_local_render_slurm_submit_manifest_reports_governed_51_job_slice() {
         job.get("job_name").and_then(serde_json::Value::as_str).is_some()
             && job.get("domain").and_then(serde_json::Value::as_str).is_some()
             && job.get("tool_id").and_then(serde_json::Value::as_str).is_some()
-            && job
-                .get("script_path")
-                .and_then(serde_json::Value::as_str)
-                .is_some_and(|path| path.starts_with("target/slurm-dry-run/") && path.ends_with(".sbatch"))
+            && job.get("script_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
+                path.starts_with("target/slurm-dry-run/") && path.ends_with(".sbatch")
+            })
             && job
                 .get("logs")
                 .and_then(|logs| logs.get("stdout_path"))
                 .and_then(serde_json::Value::as_str)
-                .is_some_and(|path| path.starts_with("target/slurm-dry-run/runs/local-benchmark-dry-run/"))
+                .is_some_and(|path| {
+                    path.starts_with("target/slurm-dry-run/runs/local-benchmark-dry-run/")
+                })
             && job.get("outputs").and_then(serde_json::Value::as_array).is_some()
             && job.get("dependencies").and_then(serde_json::Value::as_array).is_some()
     }));
@@ -104,22 +107,23 @@ fn bench_local_render_slurm_submit_manifest_reports_governed_51_job_slice() {
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_slurm_submit_manifest_captures_governed_metadata_fields() {
-    let payload =
-        run_cargo_cli_json(&["bench", "local", "render-slurm-submit-manifest", "--json"], "bam_downstream");
+    let payload = run_cargo_cli_json(
+        &["bench", "local", "render-slurm-submit-manifest", "--json"],
+        "bam_downstream",
+    );
     let jobs = payload.get("jobs").and_then(serde_json::Value::as_array).expect("jobs array");
 
     let screen_taxonomy = jobs
         .iter()
-        .find(|job| job.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.screen_taxonomy"))
+        .find(|job| {
+            job.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.screen_taxonomy")
+        })
         .expect("screen taxonomy job");
     assert_eq!(
         screen_taxonomy.get("corpus_id").and_then(serde_json::Value::as_str),
         Some("corpus-02-edna-mini")
     );
-    assert_eq!(
-        screen_taxonomy.get("sample_id").and_then(serde_json::Value::as_str),
-        None
-    );
+    assert_eq!(screen_taxonomy.get("sample_id").and_then(serde_json::Value::as_str), None);
     assert_eq!(
         screen_taxonomy
             .get("sample_ids")
@@ -145,10 +149,7 @@ fn bench_local_render_slurm_submit_manifest_captures_governed_metadata_fields() 
         Some("core-v1-damage-short-fragments")
     );
     assert_eq!(
-        bam_damage
-            .get("sample_ids")
-            .and_then(serde_json::Value::as_array)
-            .map(|rows| rows.len()),
+        bam_damage.get("sample_ids").and_then(serde_json::Value::as_array).map(|rows| rows.len()),
         Some(1)
     );
     assert!(
@@ -161,7 +162,9 @@ fn bench_local_render_slurm_submit_manifest_captures_governed_metadata_fields() 
 
     let index_reference = jobs
         .iter()
-        .find(|job| job.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.index_reference"))
+        .find(|job| {
+            job.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.index_reference")
+        })
         .expect("index reference job");
     assert_eq!(index_reference.get("corpus_id"), Some(&serde_json::Value::Null));
     assert_eq!(index_reference.get("sample_id"), Some(&serde_json::Value::Null));

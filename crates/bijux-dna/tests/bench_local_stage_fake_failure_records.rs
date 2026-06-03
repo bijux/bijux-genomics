@@ -62,10 +62,8 @@ fn bench_local_fake_run_failures_writes_failure_records_and_stderr_files() {
         manifest.get("failures").and_then(serde_json::Value::as_array).expect("failures array");
     assert_eq!(failures.len(), 2);
     for failure in failures {
-        let stderr_path = failure
-            .get("stderr_path")
-            .and_then(serde_json::Value::as_str)
-            .expect("stderr path");
+        let stderr_path =
+            failure.get("stderr_path").and_then(serde_json::Value::as_str).expect("stderr path");
         let failure_record_path = failure
             .get("failure_record_path")
             .and_then(serde_json::Value::as_str)
@@ -75,10 +73,7 @@ fn bench_local_fake_run_failures_writes_failure_records_and_stderr_files() {
             .and_then(serde_json::Value::as_u64)
             .expect("failed output count");
         assert!(repo_root.join(stderr_path).is_file(), "stderr file must exist");
-        assert!(
-            repo_root.join(failure_record_path).is_file(),
-            "failure record file must exist"
-        );
+        assert!(repo_root.join(failure_record_path).is_file(), "failure record file must exist");
         assert!(failed_output_count >= 1, "failure record must list missing outputs");
     }
 }

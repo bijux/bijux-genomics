@@ -902,11 +902,7 @@ outputs = ["align_bam", "align_bai", "align_metrics"]
             report.nodes.iter().any(|node| {
                 node.stage_id == "fastq.trim_reads"
                     && node.outputs
-                        == vec![
-                            "trimmed_reads_r1_path",
-                            "trimmed_reads_r2_path",
-                            "trim_metrics",
-                        ]
+                        == vec!["trimmed_reads_r1_path", "trimmed_reads_r2_path", "trim_metrics"]
             }),
             "fastq.trim_reads must emit explicit R1 and R2 path outputs for cross-domain alignment"
         );

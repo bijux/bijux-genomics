@@ -8,8 +8,7 @@ use serde::Serialize;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const LOCAL_SLURM_SHELL_SYNTAX_SCHEMA_VERSION: &str =
-    "bijux.bench.local_slurm_shell_syntax.v1";
+const LOCAL_SLURM_SHELL_SYNTAX_SCHEMA_VERSION: &str = "bijux.bench.local_slurm_shell_syntax.v1";
 const DEFAULT_SLURM_DRY_RUN_ROOT: &str = "target/slurm-dry-run";
 const DEFAULT_SLURM_BASH_N_REPORT_PATH: &str = "target/slurm-dry-run/bash-n-report.json";
 
@@ -97,10 +96,7 @@ pub(crate) fn validate_slurm_shell_syntax(
     if report.ok {
         Ok(report)
     } else {
-        Err(anyhow!(
-            "slurm shell syntax validation failed; see {}",
-            report.report_path
-        ))
+        Err(anyhow!("slurm shell syntax validation failed; see {}", report.report_path))
     }
 }
 

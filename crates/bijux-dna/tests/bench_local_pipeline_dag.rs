@@ -393,25 +393,23 @@ fn bench_local_pipeline_dag_validates_fastq_to_bam_contract() {
                                 .any(|value| value.as_str() == Some("trimmed_reads_r2_path"))
                     },
                 )
-                && node
-                    .get("external_inputs")
-                    .and_then(serde_json::Value::as_array)
-                    .is_some_and(|inputs| {
+                && node.get("external_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
                         inputs.iter().any(|value| {
                             value.as_str() == Some("alignment_reference_fasta_contract")
                         }) && inputs.iter().any(|value| {
                             value.as_str() == Some("alignment_reference_index_contract")
-                        }) && inputs.iter().any(|value| {
-                            value.as_str() == Some("alignment_read_group_contract")
-                        })
-                    })
+                        }) && inputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("alignment_read_group_contract"))
+                    },
+                )
         }),
         "bam.align must consume trimmed FASTQ path outputs plus the governed alignment contracts"
     );
     assert!(
         nodes.iter().any(|node| {
-            node.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("bam.mapping_summary")
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.mapping_summary")
                 && node.get("depends_on").and_then(serde_json::Value::as_array).is_some_and(
                     |deps| {
                         deps.iter().any(|value| value.as_str() == Some("bam.align"))
