@@ -92,6 +92,18 @@ fn write_local_coverage_config(root: &Path, body: &str) -> Result<()> {
     Ok(())
 }
 
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(
+        repo_root.join("domain/bam/tools/samtools.yaml"),
+        tool_dir.join("samtools.yaml"),
+    )?;
+    Ok(temp)
+}
+
 #[test]
 fn local_coverage_smoke_plans_reject_empty_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
@@ -176,6 +188,368 @@ covered_bases = 3
     assert_eq!(
         error.to_string(),
         "duplicate local-smoke bam.coverage sample_id `duplicate-case`"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_coverage_smoke_plans_require_depth_thresholds() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_coverage_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_coverage.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "missing-thresholds"
+bam = "{bam}"
+regions = "{regions}"
+depth_thresholds = []
+expected_coverage_regime = "low_pass"
+
+[[cases.expected_rows]]
+region_id = "chr1_window"
+contig = "chr1"
+start = 1
+end = 6
+length = 6
+mean_depth = 1.3333333333333333
+breadth_1x = 1.0
+covered_bases = 6
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
+            regions = repo_root
+                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans(temp.path())
+        .expect_err("coverage cases must declare at least one depth threshold");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.coverage case `missing-thresholds` must declare at least one depth threshold"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_coverage_smoke_plans_reject_zero_depth_thresholds() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_coverage_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_coverage.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "zero-threshold"
+bam = "{bam}"
+regions = "{regions}"
+depth_thresholds = [0, 5]
+expected_coverage_regime = "low_pass"
+
+[[cases.expected_rows]]
+region_id = "chr1_window"
+contig = "chr1"
+start = 1
+end = 6
+length = 6
+mean_depth = 1.3333333333333333
+breadth_1x = 1.0
+covered_bases = 6
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
+            regions = repo_root
+                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans(temp.path())
+        .expect_err("coverage thresholds must stay greater than zero");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.coverage case `zero-threshold` must keep depth thresholds greater than zero"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_coverage_smoke_plans_require_strictly_increasing_depth_thresholds() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_coverage_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_coverage.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "unordered-thresholds"
+bam = "{bam}"
+regions = "{regions}"
+depth_thresholds = [5, 5]
+expected_coverage_regime = "low_pass"
+
+[[cases.expected_rows]]
+region_id = "chr1_window"
+contig = "chr1"
+start = 1
+end = 6
+length = 6
+mean_depth = 1.3333333333333333
+breadth_1x = 1.0
+covered_bases = 6
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
+            regions = repo_root
+                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans(temp.path())
+        .expect_err("coverage thresholds must be strictly increasing");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.coverage case `unordered-thresholds` must keep depth thresholds strictly increasing"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_coverage_smoke_plans_require_non_empty_expected_coverage_regime() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_coverage_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_coverage.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "empty-regime"
+bam = "{bam}"
+regions = "{regions}"
+depth_thresholds = [1, 5]
+expected_coverage_regime = " "
+
+[[cases.expected_rows]]
+region_id = "chr1_window"
+contig = "chr1"
+start = 1
+end = 6
+length = 6
+mean_depth = 1.3333333333333333
+breadth_1x = 1.0
+covered_bases = 6
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
+            regions = repo_root
+                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans(temp.path())
+        .expect_err("coverage cases must declare a non-empty regime");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.coverage case `empty-regime` must declare a non-empty expected coverage regime"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_coverage_smoke_plans_reject_empty_region_identifiers() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_coverage_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_coverage.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "empty-region-id"
+bam = "{bam}"
+regions = "{regions}"
+depth_thresholds = [1, 5]
+expected_coverage_regime = "low_pass"
+
+[[cases.expected_rows]]
+region_id = " "
+contig = "chr1"
+start = 1
+end = 6
+length = 6
+mean_depth = 1.3333333333333333
+breadth_1x = 1.0
+covered_bases = 6
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
+            regions = repo_root
+                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans(temp.path())
+        .expect_err("coverage cases must not declare empty region identifiers");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.coverage case `empty-region-id` must not declare empty region identifiers"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_coverage_smoke_plans_reject_duplicate_region_ids() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_coverage_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_coverage.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "duplicate-region"
+bam = "{bam}"
+regions = "{regions}"
+depth_thresholds = [1, 5]
+expected_coverage_regime = "low_pass"
+
+[[cases.expected_rows]]
+region_id = "chr1_window"
+contig = "chr1"
+start = 1
+end = 6
+length = 6
+mean_depth = 1.3333333333333333
+breadth_1x = 1.0
+covered_bases = 6
+
+[[cases.expected_rows]]
+region_id = "chr1_window"
+contig = "chr2"
+start = 2
+end = 5
+length = 4
+mean_depth = 0.75
+breadth_1x = 0.75
+covered_bases = 3
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
+            regions = repo_root
+                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans(temp.path())
+        .expect_err("coverage cases cannot repeat expected region identifiers");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.coverage case `duplicate-region` declared duplicate region `chr1_window`"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_coverage_smoke_plans_reject_misaligned_row_lengths() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_coverage_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_coverage.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "length-mismatch"
+bam = "{bam}"
+regions = "{regions}"
+depth_thresholds = [1, 5]
+expected_coverage_regime = "low_pass"
+
+[[cases.expected_rows]]
+region_id = "chr1_window"
+contig = "chr1"
+start = 1
+end = 6
+length = 5
+mean_depth = 1.3333333333333333
+breadth_1x = 1.0
+covered_bases = 6
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
+            regions = repo_root
+                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans(temp.path())
+        .expect_err("expected row length must align with coordinates");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.coverage case `length-mismatch` must keep expected row length aligned with region coordinates"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_coverage_smoke_plans_reject_covered_bases_greater_than_length() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_coverage_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_coverage.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "covered-bases-over-length"
+bam = "{bam}"
+regions = "{regions}"
+depth_thresholds = [1, 5]
+expected_coverage_regime = "low_pass"
+
+[[cases.expected_rows]]
+region_id = "chr1_window"
+contig = "chr1"
+start = 1
+end = 6
+length = 6
+mean_depth = 1.3333333333333333
+breadth_1x = 1.0
+covered_bases = 7
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
+            regions = repo_root
+                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans(temp.path())
+        .expect_err("covered bases cannot exceed region length");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.coverage case `covered-bases-over-length` cannot declare covered bases greater than region length"
     );
     Ok(())
 }
