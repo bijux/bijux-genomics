@@ -100,6 +100,13 @@ fn materialize_local_qc_pre_smoke_case(
     let stats_path = resolve_output_path(repo_root, &case.plan, "stats")?;
     let stage_metrics_path = resolve_output_path(repo_root, &case.plan, "stage_metrics")?;
     let qc_pre_summary_path = case_out_dir.join("qc_pre.summary.json");
+    let observed_contigs =
+        summary.contig_summary.iter().map(|contig| contig.contig.clone()).collect::<Vec<_>>();
+    let expectation_matched = summary.total_reads == case.expected_total_reads
+        && summary.mapped_reads == case.expected_mapped_reads
+        && summary.unmapped_reads == case.expected_unmapped_reads
+        && summary.duplicate_flagged_reads == case.expected_duplicate_flagged_reads
+        && observed_contigs == case.expected_contigs;
 
     bijux_dna_infra::atomic_write_bytes(&flagstat_path, render_flagstat(&summary).as_bytes())?;
     bijux_dna_infra::atomic_write_bytes(&idxstats_path, render_idxstats(&summary).as_bytes())?;
@@ -114,6 +121,8 @@ fn materialize_local_qc_pre_smoke_case(
             "mapped_reads": summary.mapped_reads,
             "unmapped_reads": summary.unmapped_reads,
             "duplicate_flagged_reads": summary.duplicate_flagged_reads,
+            "reference_mismatch": summary.reference_mismatch,
+            "expectation_matched": expectation_matched,
             "contig_summary": summary
                 .contig_summary
                 .iter()
@@ -128,8 +137,6 @@ fn materialize_local_qc_pre_smoke_case(
     )?;
     bijux_dna_infra::atomic_write_json(&qc_pre_summary_path, &summary)?;
 
-    let observed_contigs =
-        summary.contig_summary.iter().map(|contig| contig.contig.clone()).collect::<Vec<_>>();
     let contig_summary = summary
         .contig_summary
         .iter()
@@ -140,11 +147,6 @@ fn materialize_local_qc_pre_smoke_case(
             unmapped: contig.unmapped,
         })
         .collect::<Vec<_>>();
-    let expectation_matched = summary.total_reads == case.expected_total_reads
-        && summary.mapped_reads == case.expected_mapped_reads
-        && summary.unmapped_reads == case.expected_unmapped_reads
-        && summary.duplicate_flagged_reads == case.expected_duplicate_flagged_reads
-        && observed_contigs == case.expected_contigs;
 
     Ok(LocalQcPreSmokeCaseReport {
         sample_id: case.sample_id.clone(),
