@@ -134,12 +134,57 @@ fn write_local_recalibration_smoke_report_materializes_governed_outputs() -> Res
         stage_metrics_json["schema_version"],
         serde_json::json!("bijux.bam.recalibration.local_smoke.metrics.v1")
     );
+    assert_eq!(stage_metrics_json["expected_requested_mode"], serde_json::json!("standard"));
     assert_eq!(stage_metrics_json["requested_mode"], serde_json::json!("standard"));
+    assert_eq!(stage_metrics_json["expected_effective_mode"], serde_json::json!("skip"));
     assert_eq!(stage_metrics_json["effective_mode"], serde_json::json!("skip"));
+    assert_eq!(stage_metrics_json["expected_status"], serde_json::json!("skipped"));
     assert_eq!(stage_metrics_json["status"], serde_json::json!("skipped"));
+    assert_eq!(stage_metrics_json["expected_reason"], serde_json::json!("coverage_below_gate"));
     assert_eq!(stage_metrics_json["reason"], serde_json::json!("coverage_below_gate"));
+    assert_eq!(
+        stage_metrics_json["expected_known_sites"],
+        serde_json::json!(["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"])
+    );
+    assert_eq!(
+        stage_metrics_json["known_sites"],
+        serde_json::json!(["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"])
+    );
+    assert_eq!(
+        stage_metrics_json["expected_coverage_gate"],
+        serde_json::json!({
+            "min_mean_coverage": 0.1,
+            "min_breadth_1x": 0.05
+        })
+    );
+    assert_eq!(
+        stage_metrics_json["coverage_gate"],
+        serde_json::json!({
+            "min_mean_coverage": 0.1,
+            "min_breadth_1x": 0.05
+        })
+    );
     assert_eq!(stage_metrics_json["observed_mean_coverage"], serde_json::json!(0.024));
+    assert!(
+        (stage_metrics_json["mean_coverage_margin"]
+            .as_f64()
+            .unwrap_or_else(|| panic!("mean_coverage_margin missing"))
+            + 0.076)
+            .abs()
+            <= 1e-12
+    );
     assert_eq!(stage_metrics_json["observed_breadth_1x"], serde_json::json!(0.024));
+    assert!(
+        (stage_metrics_json["breadth_1x_margin"]
+            .as_f64()
+            .unwrap_or_else(|| panic!("breadth_1x_margin missing"))
+            + 0.026)
+            .abs()
+            <= 1e-12
+    );
+    assert_eq!(stage_metrics_json["output_bam_present"], serde_json::json!(true));
+    assert_eq!(stage_metrics_json["recalibration_report_present"], serde_json::json!(true));
+    assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 
     Ok(())
 }
