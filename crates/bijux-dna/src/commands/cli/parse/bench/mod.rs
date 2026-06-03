@@ -47,9 +47,9 @@ pub use self::publication::{
     BenchCorpusFastqReportArgs, BenchPublicationTargetsArgs,
 };
 pub use self::readiness::{
-    BenchReadinessCommand, BenchReadinessRenderBamStageDecisionTableArgs,
-    BenchReadinessRenderBamToolServingMapArgs, BenchReadinessRenderFastqToolServingMapArgs,
-    BenchReadinessRenderFastqCommandAdapterCoverageArgs,
+    BenchReadinessCommand, BenchReadinessRenderBamCommandAdapterCoverageArgs,
+    BenchReadinessRenderBamStageDecisionTableArgs, BenchReadinessRenderBamToolServingMapArgs,
+    BenchReadinessRenderFastqCommandAdapterCoverageArgs, BenchReadinessRenderFastqToolServingMapArgs,
     BenchReadinessRenderMissingBenchmarkPairsArgs, BenchReadinessRenderOrphanToolsArgs,
     BenchReadinessRenderStageRegistryExtraPairsArgs, BenchReadinessRenderToolIdNormalizationArgs,
     BenchReadinessRenderUndercoveredStagesArgs, BenchReadinessRenderUnregisteredBenchmarkPairsArgs,

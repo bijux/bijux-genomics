@@ -4,6 +4,8 @@ use clap::{Args, Subcommand};
 pub enum BenchReadinessCommand {
     #[command(name = "render-bam-stage-decision-table")]
     RenderBamStageDecisionTable(BenchReadinessRenderBamStageDecisionTableArgs),
+    #[command(name = "render-bam-command-adapter-coverage")]
+    RenderBamCommandAdapterCoverage(BenchReadinessRenderBamCommandAdapterCoverageArgs),
     #[command(name = "render-fastq-command-adapter-coverage")]
     RenderFastqCommandAdapterCoverage(BenchReadinessRenderFastqCommandAdapterCoverageArgs),
     #[command(name = "render-fastq-tool-serving-map")]
@@ -30,6 +32,14 @@ pub enum BenchReadinessCommand {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamStageDecisionTableArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamCommandAdapterCoverageArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

@@ -141,6 +141,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamCommandAdapterCoverage(args) => {
+                        crate::commands::benchmark::readiness::bam_command_adapter_coverage::run_render_bam_command_adapter_coverage(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderFastqCommandAdapterCoverage(args) => {
                         crate::commands::benchmark::readiness::fastq_command_adapter_coverage::run_render_fastq_command_adapter_coverage(
                             args,
