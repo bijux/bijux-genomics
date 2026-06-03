@@ -453,6 +453,65 @@ fn bench_local_materialize_stage_bam_mapq_filter_json_writes_governed_smoke_bund
     assert!(!filtered_body.contains("mapq10"));
 }
 
+#[test]
+fn bench_local_materialize_stage_bam_length_filter_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.length_filter",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.length_filter")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.length_filter/length_filter.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.length_filter report"),
+    )
+    .expect("parse bam.length_filter report");
+
+    assert_eq!(
+        report.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.length_filter.local_smoke.report.v1")
+    );
+    assert_eq!(
+        report.get("sample_id").and_then(serde_json::Value::as_str),
+        Some("core-v1-length-threshold")
+    );
+    assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(report.get("min_length_threshold").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(report.get("input_reads").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(report.get("kept_reads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(report.get("removed_reads").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(report.get("observed_min_length").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(report.get("observed_max_length").and_then(serde_json::Value::as_u64), Some(12));
+
+    let filtered_bam = repo_root.join(
+        report.get("filtered_bam").and_then(serde_json::Value::as_str).expect("filtered bam path"),
+    );
+    let filtered_bai = repo_root.join(
+        report.get("filtered_bai").and_then(serde_json::Value::as_str).expect("filtered bai path"),
+    );
+    assert!(filtered_bai.is_file(), "bam.length_filter smoke bundle must expose the curated BAI");
+
+    let filtered_body = std::fs::read_to_string(&filtered_bam).expect("read length filtered bam");
+    assert!(filtered_body.contains("len12"));
+    assert!(filtered_body.contains("len8"));
+    assert!(filtered_body.contains("unmapped10"));
+    assert!(!filtered_body.contains("len5"));
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
