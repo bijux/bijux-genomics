@@ -160,3 +160,57 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
     );
     Ok(())
 }
+
+#[test]
+fn write_local_haplogroups_plan_preserves_governed_command_metadata() -> Result<()> {
+    let repo_root = repo_root()?;
+    let _guard = RepoRootOverrideGuard::install(&repo_root);
+    let output_dir = repo_root.join("target/local-ready/bam.haplogroups");
+    if output_dir.exists() {
+        std::fs::remove_dir_all(&output_dir)?;
+    }
+
+    let plan_path = bijux_dna_api::v1::api::bam::write_local_haplogroups_plan()?;
+    let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
+
+    assert_eq!(
+        payload["out_dir"],
+        serde_json::json!("target/local-ready/bam.haplogroups")
+    );
+    assert_eq!(payload["effective_params"]["min_coverage"], serde_json::json!(2.0));
+    assert_eq!(
+        payload["effective_params"]["reference_build"],
+        serde_json::json!("hg38")
+    );
+    assert_eq!(
+        payload["effective_params"]["population_scope"],
+        serde_json::json!("human_y_haplogroup_panel")
+    );
+    assert_eq!(
+        payload["effective_params"]["reference_panel"],
+        serde_json::json!("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+    );
+    assert_eq!(
+        payload["effective_params"]["refuse_without_population_context"],
+        serde_json::json!(true)
+    );
+
+    let command = payload["command"]["template"]
+        .as_array()
+        .and_then(|template| template.last())
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or_else(|| panic!("local-ready haplogroups plan must serialize a shell command"));
+    assert!(
+        command.contains("yleaf -bam assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
+            && command.contains("--reference_genome hg38")
+            && command.contains(
+                "target/local-ready/bam.haplogroups/haplogroups.summary.json"
+            )
+            && command.contains("\"population_scope\":\"human_y_haplogroup_panel\"")
+            && command.contains("\"min_coverage\":2.0")
+            && command.contains("\"assignment_output_prefix\":\"target/local-ready/bam.haplogroups/haplogroups\""),
+        "local-ready haplogroups command must preserve the governed tool, reference build, summary, population scope, coverage gate, and assignment output prefix"
+    );
+
+    Ok(())
+}
