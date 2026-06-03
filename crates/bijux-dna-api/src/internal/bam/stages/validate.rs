@@ -116,6 +116,12 @@ fn materialize_local_validate_smoke_case(
         &flagstat_path,
         render_flagstat(&summary.flagstat).as_bytes(),
     )?;
+    let expectation_matched = summary.validation_report_present == case.expect_pass
+        && case
+            .required_refusal_codes
+            .iter()
+            .all(|code| summary.refusal_codes.iter().any(|observed| observed == code));
+
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
         &serde_json::json!({
@@ -126,6 +132,7 @@ fn materialize_local_validate_smoke_case(
                 bijux_dna_planner_bam::stage_api::LocalValidateAlignmentFixtureEncoding::BinaryBam => "binary_bam",
             },
             "validation_status": if summary.validation_report_present { "pass" } else { "refusal" },
+            "expectation_matched": expectation_matched,
             "validation_report_present": summary.validation_report_present,
             "validation_errors": summary.refusal_codes,
             "validation_warnings": Vec::<String>::new(),
@@ -140,12 +147,6 @@ fn materialize_local_validate_smoke_case(
             "duplicate_reads": summary.flagstat.duplicate_reads,
         }),
     )?;
-
-    let expectation_matched = summary.validation_report_present == case.expect_pass
-        && case
-            .required_refusal_codes
-            .iter()
-            .all(|code| summary.refusal_codes.iter().any(|observed| observed == code));
 
     Ok(LocalValidateSmokeCaseReport {
         sample_id: case.sample_id.clone(),
