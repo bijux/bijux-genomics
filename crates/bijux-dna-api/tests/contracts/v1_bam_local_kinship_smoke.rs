@@ -179,3 +179,56 @@ fn write_local_kinship_smoke_report_materializes_governed_outputs() -> Result<()
 
     Ok(())
 }
+
+#[test]
+fn write_local_kinship_smoke_report_writes_governed_tool_reports() -> Result<()> {
+    let repo_root = repo_root()?;
+    let _guard = RepoRootOverrideGuard::install(&repo_root);
+    let output_dir = repo_root.join("target/local-smoke/bam.kinship");
+    if output_dir.exists() {
+        std::fs::remove_dir_all(&output_dir)?;
+    }
+
+    let report_path = bijux_dna_api::v1::api::bam::write_local_kinship_smoke_report()?;
+    let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
+
+    let insufficient = case_by_sample_id(&payload, "core-v1-kinship-insufficient-overlap");
+    let insufficient_report_path = repo_root.join(
+        insufficient["kinship_report"]
+            .as_str()
+            .unwrap_or_else(|| panic!("insufficient kinship_report path missing")),
+    );
+    let insufficient_report: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&insufficient_report_path)?)?;
+    assert_eq!(
+        insufficient_report["schema_version"],
+        serde_json::json!("bijux.bam.kinship.v1")
+    );
+    assert_eq!(insufficient_report["status"], serde_json::json!("insufficient"));
+    assert_eq!(insufficient_report["pair_count"], serde_json::json!(0));
+    assert_eq!(
+        insufficient_report["insufficiency_reason"],
+        serde_json::json!("insufficient_overlap_snps")
+    );
+    assert_eq!(insufficient_report["pairwise_results"], serde_json::json!([]));
+
+    let valid = case_by_sample_id(&payload, "core-v1-kinship-related-pair");
+    let valid_report_path = repo_root.join(
+        valid["kinship_report"]
+            .as_str()
+            .unwrap_or_else(|| panic!("valid kinship_report path missing")),
+    );
+    let valid_report: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&valid_report_path)?)?;
+    assert_eq!(valid_report["schema_version"], serde_json::json!("bijux.bam.kinship.v1"));
+    assert_eq!(valid_report["status"], serde_json::json!("ok"));
+    assert_eq!(valid_report["pair_count"], serde_json::json!(1));
+    assert_eq!(valid_report["observed_max_overlap_snps"], serde_json::json!(6));
+    assert_eq!(valid_report["pairwise_results"][0]["sample_a"], serde_json::json!("sample_a"));
+    assert_eq!(
+        valid_report["pairwise_results"][0]["relationship_label"],
+        serde_json::json!("first_degree")
+    );
+
+    Ok(())
+}
