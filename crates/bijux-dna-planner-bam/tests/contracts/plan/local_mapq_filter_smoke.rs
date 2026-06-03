@@ -98,6 +98,18 @@ fn write_local_mapq_filter_config(root: &Path, body: &str) -> Result<()> {
     Ok(())
 }
 
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(
+        repo_root.join("domain/bam/tools/samtools.yaml"),
+        tool_dir.join("samtools.yaml"),
+    )?;
+    Ok(temp)
+}
+
 #[test]
 fn local_mapq_filter_smoke_plans_reject_empty_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
@@ -161,6 +173,142 @@ expected_mapped_fraction_retained = 0.6666666666666666
     assert_eq!(
         error.to_string(),
         "duplicate local-smoke bam.mapq_filter sample_id `duplicate-case`"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_mapq_filter_smoke_plans_require_non_zero_threshold() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_mapq_filter_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_mapq_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "zero-threshold"
+bam = "{bam}"
+mapq_threshold = 0
+expected_input_reads = 4
+expected_kept_reads = 3
+expected_removed_reads = 1
+expected_mapped_reads_removed = 1
+expected_mapped_fraction_retained = 0.6666666666666666
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/mapq_threshold_ladder.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_mapq_filter_smoke_plans(temp.path())
+        .expect_err("mapq_filter cases must declare a non-zero threshold");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.mapq_filter case `zero-threshold` must declare a non-zero mapq_threshold"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_mapq_filter_smoke_plans_reject_kept_reads_greater_than_input() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_mapq_filter_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_mapq_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "kept-over-input"
+bam = "{bam}"
+mapq_threshold = 30
+expected_input_reads = 4
+expected_kept_reads = 5
+expected_removed_reads = 0
+expected_mapped_reads_removed = 0
+expected_mapped_fraction_retained = 1.0
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/mapq_threshold_ladder.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_mapq_filter_smoke_plans(temp.path())
+        .expect_err("mapq_filter cases cannot keep more reads than they start with");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.mapq_filter case `kept-over-input` cannot declare kept reads greater than input reads"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_mapq_filter_smoke_plans_require_aligned_removed_read_counts() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_mapq_filter_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_mapq_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "removed-count-mismatch"
+bam = "{bam}"
+mapq_threshold = 30
+expected_input_reads = 4
+expected_kept_reads = 3
+expected_removed_reads = 0
+expected_mapped_reads_removed = 1
+expected_mapped_fraction_retained = 0.6666666666666666
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/mapq_threshold_ladder.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_mapq_filter_smoke_plans(temp.path())
+        .expect_err("mapq_filter removed reads must align with input and kept reads");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.mapq_filter case `removed-count-mismatch` must keep expected removed reads aligned with input and kept reads"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_mapq_filter_smoke_plans_require_fraction_within_unit_interval() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_mapq_filter_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_mapq_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "fraction-out-of-range"
+bam = "{bam}"
+mapq_threshold = 30
+expected_input_reads = 4
+expected_kept_reads = 3
+expected_removed_reads = 1
+expected_mapped_reads_removed = 1
+expected_mapped_fraction_retained = 1.5
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/mapq_threshold_ladder.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_mapq_filter_smoke_plans(temp.path())
+        .expect_err("mapq_filter fraction must stay within [0, 1]");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.mapq_filter case `fraction-out-of-range` must declare mapped_fraction_retained within [0, 1]"
     );
     Ok(())
 }
