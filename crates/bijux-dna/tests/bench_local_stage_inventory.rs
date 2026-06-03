@@ -395,6 +395,64 @@ fn bench_local_materialize_stage_bam_filter_json_writes_governed_smoke_bundle() 
     assert!(!filtered_body.contains("unmap001"));
 }
 
+#[test]
+fn bench_local_materialize_stage_bam_mapq_filter_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.mapq_filter",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.mapq_filter")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.mapq_filter/mapq_filter.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.mapq_filter report"),
+    )
+    .expect("parse bam.mapq_filter report");
+
+    assert_eq!(
+        report.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.mapq_filter.local_smoke.report.v1")
+    );
+    assert_eq!(
+        report.get("sample_id").and_then(serde_json::Value::as_str),
+        Some("core-v1-mapq-threshold")
+    );
+    assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(report.get("mapq_threshold").and_then(serde_json::Value::as_u64), Some(30));
+    assert_eq!(report.get("input_reads").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(report.get("kept_reads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(report.get("removed_reads").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(report.get("mapped_reads_removed").and_then(serde_json::Value::as_u64), Some(1));
+
+    let filtered_bam = repo_root.join(
+        report.get("filtered_bam").and_then(serde_json::Value::as_str).expect("filtered bam path"),
+    );
+    let filtered_bai = repo_root.join(
+        report.get("filtered_bai").and_then(serde_json::Value::as_str).expect("filtered bai path"),
+    );
+    assert!(filtered_bai.is_file(), "bam.mapq_filter smoke bundle must expose the curated BAI");
+
+    let filtered_body = std::fs::read_to_string(&filtered_bam).expect("read mapq filtered bam");
+    assert!(filtered_body.contains("mapq60"));
+    assert!(filtered_body.contains("mapq30"));
+    assert!(filtered_body.contains("unmapped"));
+    assert!(!filtered_body.contains("mapq10"));
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
