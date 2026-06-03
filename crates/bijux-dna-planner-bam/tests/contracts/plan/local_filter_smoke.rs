@@ -1,5 +1,6 @@
 use anyhow::Result;
 use bijux_dna_core::prelude::{StageId, ToolId};
+use std::fs;
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
@@ -90,6 +91,89 @@ fn local_filter_smoke_plans_use_governed_mixed_constraint_fixture() -> Result<()
 fn local_filter_smoke_stage_api_surface_stays_callable() {
     let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalFilterSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_filter_smoke_plans;
+}
+
+fn write_local_filter_config(root: &Path, body: &str) -> Result<()> {
+    let config_dir = root.join("configs/bench/local");
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("bam-filter.toml"), body)?;
+    Ok(())
+}
+
+#[test]
+fn local_filter_smoke_plans_reject_empty_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_filter_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = " "
+bam = "assets/toy/core-v1/bam/filter_mixed_constraints.sam"
+expected_input_reads = 5
+expected_kept_reads = 1
+expected_removed_reads = 4
+expected_active_filters = ["mapq_threshold", "exclude_flags", "min_length", "remove_duplicates"]
+mapq_threshold = 20
+include_flags = []
+exclude_flags = [4]
+min_length = 8
+remove_duplicates = true
+base_quality_threshold = 20
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_filter_smoke_plans(temp.path())
+        .expect_err("empty sample_id must be rejected before plan construction");
+    assert_eq!(error.to_string(), "local-smoke bam.filter sample_id must not be empty");
+    Ok(())
+}
+
+#[test]
+fn local_filter_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_filter_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/filter_mixed_constraints.sam"
+expected_input_reads = 5
+expected_kept_reads = 1
+expected_removed_reads = 4
+expected_active_filters = ["mapq_threshold", "exclude_flags", "min_length", "remove_duplicates"]
+mapq_threshold = 20
+include_flags = []
+exclude_flags = [4]
+min_length = 8
+remove_duplicates = true
+base_quality_threshold = 20
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/filter_mixed_constraints.sam"
+expected_input_reads = 5
+expected_kept_reads = 1
+expected_removed_reads = 4
+expected_active_filters = ["mapq_threshold", "exclude_flags", "min_length", "remove_duplicates"]
+mapq_threshold = 20
+include_flags = []
+exclude_flags = [4]
+min_length = 8
+remove_duplicates = true
+base_quality_threshold = 20
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_filter_smoke_plans(temp.path())
+        .expect_err("duplicate sample_id must be rejected before plan construction");
+    assert_eq!(error.to_string(), "duplicate local-smoke bam.filter sample_id `duplicate-case`");
+    Ok(())
 }
 
 #[test]
