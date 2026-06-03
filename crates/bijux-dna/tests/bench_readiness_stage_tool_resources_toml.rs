@@ -1,0 +1,62 @@
+#![allow(clippy::expect_used)]
+
+use std::process::Command;
+
+#[path = "contracts/banks/bank_fixtures.rs"]
+mod support;
+
+fn run_cli(args: &[&str]) -> std::process::Output {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(args)
+        .output()
+        .expect("run cli")
+}
+
+#[test]
+fn bench_readiness_stage_tool_resources_writes_governed_toml_file() {
+    let output = run_cli(&["bench", "readiness", "render-stage-tool-resources"]);
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let repo_root = support::repo_root().expect("repo root");
+    let config_path = repo_root.join("configs/bench/local/stage-tool-resources.toml");
+    let raw = std::fs::read_to_string(&config_path).expect("read config");
+    let parsed: toml::Value = toml::from_str(&raw).expect("parse config");
+
+    assert_eq!(
+        parsed.get("schema_version").and_then(toml::Value::as_str),
+        Some("bijux.bench.local_stage_tool_resources.v1")
+    );
+    assert_eq!(
+        parsed.get("classification_scope").and_then(toml::Value::as_str),
+        Some("benchmark_ready_command_resources")
+    );
+    let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
+    assert_eq!(rows.len(), 54);
+    assert!(rows.iter().all(|row| {
+        row.get("threads").and_then(toml::Value::as_integer).unwrap_or_default() > 0
+            && row.get("memory_gb").and_then(toml::Value::as_integer).unwrap_or_default() > 0
+            && row.get("walltime_minutes").and_then(toml::Value::as_integer).unwrap_or_default() > 0
+            && row.get("scratch_gb").and_then(toml::Value::as_integer).unwrap_or_default() > 0
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.profile_read_lengths")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("seqfu")
+    }));
+}
