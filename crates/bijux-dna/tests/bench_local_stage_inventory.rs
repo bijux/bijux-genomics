@@ -512,6 +512,63 @@ fn bench_local_materialize_stage_bam_length_filter_json_writes_governed_smoke_bu
     assert!(!filtered_body.contains("len5"));
 }
 
+#[test]
+fn bench_local_materialize_stage_bam_markdup_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.markdup",
+        "--json",
+    ]);
+
+    assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.markdup"));
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.markdup/duplicates.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.markdup report"),
+    )
+    .expect("parse bam.markdup report");
+
+    assert_eq!(
+        report.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.markdup.local_smoke.report.v1")
+    );
+    assert_eq!(
+        report.get("sample_id").and_then(serde_json::Value::as_str),
+        Some("core-v1-markdup-cluster")
+    );
+    assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(report.get("duplicate_action").and_then(serde_json::Value::as_str), Some("mark"));
+    assert_eq!(report.get("input_reads").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(report.get("output_reads").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(report.get("removed_reads").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(report.get("duplicate_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(report.get("duplicate_reads_after").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(report.get("newly_marked_reads").and_then(serde_json::Value::as_u64), Some(1));
+
+    let marked_bam = repo_root.join(
+        report.get("marked_bam").and_then(serde_json::Value::as_str).expect("marked bam path"),
+    );
+    let marked_bai = repo_root.join(
+        report.get("marked_bai").and_then(serde_json::Value::as_str).expect("marked bai path"),
+    );
+    assert!(marked_bai.is_file(), "bam.markdup smoke bundle must expose the curated BAI");
+
+    let marked_body = std::fs::read_to_string(&marked_bam).expect("read marked bam");
+    assert!(marked_body.contains("dup_primary"));
+    assert!(marked_body.contains("dup_copy\t1024\tchr1\t5"));
+    assert!(marked_body.contains("unique_support"));
+    assert!(marked_body.contains("unmapped_support"));
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
