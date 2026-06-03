@@ -366,4 +366,38 @@ mod tests {
                 && row.support_status == "missing_contract"
         }));
     }
+
+    #[test]
+    fn bam_command_adapter_coverage_writes_governed_tsv_columns() {
+        let root = repo_root();
+        let output_path = PathBuf::from(DEFAULT_BAM_COMMAND_ADAPTER_COVERAGE_PATH);
+        let report =
+            render_bam_command_adapter_coverage(&root, output_path).expect("render coverage");
+        let rendered = std::fs::read_to_string(root.join(&report.output_path))
+            .expect("read rendered bam command adapter coverage tsv");
+        let rows = rendered.lines().collect::<Vec<_>>();
+
+        assert_eq!(
+            rows.first().copied(),
+            Some(
+                "tool_id\tstage_id\tbenchmark_status\tadapter_coverage\treadiness_gap\tsupport_status\tadapter_status\tparser_status\tcorpus_status\treason"
+            )
+        );
+        assert!(
+            rows.iter().any(|row| {
+                row.starts_with(
+                    "samtools\tbam.validate\tbenchmark_ready\tcovered\tnone\tsupported\tplannable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\t"
+                )
+            }),
+            "the governed BAM validation row must remain benchmark-ready and adapter-covered"
+        );
+        assert!(
+            rows.iter().any(|row| {
+                row.starts_with(
+                    "bcftools\tbam.genotyping\tnot_benchmark_ready\tmissing\tsupport\tmissing_contract\tdeclared_only\tartifact_contract_only\tplanner_only\t"
+                )
+            }),
+            "the governed BAM genotyping support gap must remain visible through the bcftools row"
+        );
+    }
 }
