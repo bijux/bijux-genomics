@@ -45,6 +45,8 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
     assert_eq!(payload["tool_id"], serde_json::json!("verifybamid2"));
     assert_eq!(payload["resources"]["threads"], serde_json::json!(2));
     assert_eq!(payload["resources"]["mem_gb"], serde_json::json!(8));
+    assert_eq!(payload["params"]["sample_id"], serde_json::json!("core-v1-contamination-panel-screen"));
+    assert_eq!(payload["params"]["tool"], serde_json::json!("verifybamid2"));
     let inputs = payload["io"]["inputs"]
         .as_array()
         .unwrap_or_else(|| panic!("plan inputs must serialize as an array"));
@@ -81,6 +83,11 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
         serde_json::json!("assets/reference/host/references/toy_human_contamination_panel.dat")
     );
     assert_eq!(payload["params"]["scope"], serde_json::json!("nuclear"));
+    assert_eq!(payload["params"]["prior"], serde_json::json!(0.02));
+    assert_eq!(payload["params"]["sex_specific"], serde_json::json!(false));
+    assert_eq!(payload["params"]["chromosome_system"], serde_json::json!("xy"));
+    assert_eq!(payload["params"]["minimum_mean_coverage"], serde_json::json!(0.5));
+    assert_eq!(payload["params"]["emit_confidence_caveats"], serde_json::json!(true));
     assert_eq!(
         payload["params"]["reference_panels"],
         serde_json::json!(["assets/reference/host/references/toy_human_contamination_panel.dat"])
@@ -90,6 +97,24 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
         serde_json::json!(
             "toy host reference with governed population-af panel for local contamination planning"
         )
+    );
+    assert_eq!(
+        payload["params"]["required_reference_digest"],
+        serde_json::json!("0a04f81952deb68c204e8ae67e0573cb97d348f18ab1b527630d57c294028cf5")
+    );
+    assert_eq!(payload["params"]["tool_scope"], serde_json::json!("nuclear"));
+    assert_eq!(payload["effective_params"]["chromosome_system"], serde_json::json!("xy"));
+    assert_eq!(payload["effective_params"]["minimum_mean_coverage"], serde_json::json!(0.5));
+    assert_eq!(payload["effective_params"]["emit_confidence_caveats"], serde_json::json!(true));
+    assert_eq!(
+        payload["effective_params"]["assumptions"],
+        serde_json::json!(
+            "toy host reference with governed population-af panel for local contamination planning"
+        )
+    );
+    assert_eq!(
+        payload["effective_params"]["required_reference_digest"],
+        serde_json::json!("0a04f81952deb68c204e8ae67e0573cb97d348f18ab1b527630d57c294028cf5")
     );
     let outputs = payload["io"]["outputs"]
         .as_array()
@@ -135,8 +160,12 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
             |part| part.as_str().is_some_and(|shell| {
                 shell.contains("assets/reference/host/references/toy_human_contamination_panel.dat")
             })
+        ) && command.iter().any(
+            |part| part.as_str().is_some_and(|shell| {
+                shell.contains("target/local-ready/bam.contamination/contamination.summary.json")
+            })
         )),
-        "local-ready contamination command must carry the governed BAI, reference, and panel paths"
+        "local-ready contamination command must carry the governed BAI, reference, panel, and summary-output paths"
     );
     Ok(())
 }
