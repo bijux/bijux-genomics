@@ -122,11 +122,38 @@ fn write_local_bias_mitigation_smoke_report_materializes_governed_outputs() -> R
         stage_metrics_json["schema_version"],
         serde_json::json!("bijux.bam.bias_mitigation.local_smoke.metrics.v1")
     );
+    assert_eq!(stage_metrics_json["expected_method"], serde_json::json!("mapdamage2"));
     assert_eq!(stage_metrics_json["method"], serde_json::json!("mapdamage2"));
+    assert_eq!(stage_metrics_json["expected_metric_name"], serde_json::json!("gc_bias_score"));
     assert_eq!(stage_metrics_json["metric_name"], serde_json::json!("gc_bias_score"));
+    assert_eq!(
+        stage_metrics_json["expected_pre_mitigation_metric"],
+        serde_json::json!(0.25)
+    );
     assert_eq!(stage_metrics_json["pre_mitigation_metric"], serde_json::json!(0.25));
+    assert_eq!(
+        stage_metrics_json["pre_mitigation_metric_delta"],
+        serde_json::json!(0.0)
+    );
+    assert_eq!(
+        stage_metrics_json["expected_post_mitigation_metric"],
+        serde_json::json!(0.125)
+    );
     assert_eq!(stage_metrics_json["post_mitigation_metric"], serde_json::json!(0.125));
+    assert_eq!(
+        stage_metrics_json["post_mitigation_metric_delta"],
+        serde_json::json!(0.0)
+    );
     assert_eq!(stage_metrics_json["metric_delta"], serde_json::json!(0.125));
+    assert_eq!(
+        stage_metrics_json["mitigation_actions"],
+        serde_json::json!(["gc_bias_correction"])
+    );
+    assert_eq!(stage_metrics_json["consumed_metrics"], serde_json::json!(["gc_bias_score"]));
+    assert_eq!(
+        stage_metrics_json["mitigation_projection_basis"],
+        serde_json::json!("policy_projection")
+    );
     assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 
     Ok(())
