@@ -2504,9 +2504,27 @@ fn build_local_overlap_correction_smoke_case(
             bam_abs.display()
         ));
     }
+    if case.expected_pair_count == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.overlap_correction case `{}` must declare expected_pair_count greater than zero",
+            case.sample_id
+        ));
+    }
     if case.expected_corrected_pairs > case.expected_pair_count {
         return Err(anyhow!(
             "local-smoke bam.overlap_correction case `{}` cannot declare corrected pairs greater than pair count",
+            case.sample_id
+        ));
+    }
+    if case.expected_corrected_pairs > 0 && case.expected_corrected_overlap_bases == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.overlap_correction case `{}` must declare positive expected_corrected_overlap_bases when expected_corrected_pairs is greater than zero",
+            case.sample_id
+        ));
+    }
+    if case.expected_corrected_pairs == 0 && case.expected_corrected_overlap_bases > 0 {
+        return Err(anyhow!(
+            "local-smoke bam.overlap_correction case `{}` must keep expected_corrected_overlap_bases at zero when expected_corrected_pairs is zero",
             case.sample_id
         ));
     }

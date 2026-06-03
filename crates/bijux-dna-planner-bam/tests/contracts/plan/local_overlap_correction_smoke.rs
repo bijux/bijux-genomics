@@ -98,6 +98,15 @@ fn write_local_overlap_correction_config(root: &Path, body: &str) -> Result<()> 
     Ok(())
 }
 
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(repo_root.join("domain/bam/tools/bamutil.yaml"), tool_dir.join("bamutil.yaml"))?;
+    Ok(temp)
+}
+
 #[test]
 fn local_overlap_correction_smoke_plans_reject_empty_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
@@ -152,6 +161,130 @@ expected_corrected_overlap_bases = 7
     assert_eq!(
         error.to_string(),
         "duplicate local-smoke bam.overlap_correction sample_id `duplicate-case`"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_overlap_correction_smoke_plans_require_positive_pair_count() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_overlap_correction_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_overlap_correction.v1"
+tool_id = "bamutil"
+
+[[cases]]
+sample_id = "zero-pairs"
+bam = "{bam}"
+expected_pair_count = 0
+expected_corrected_pairs = 0
+expected_corrected_overlap_bases = 0
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_overlap_correction_smoke_plans(temp.path())
+        .expect_err("overlap-correction cases must declare pair_count greater than zero");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.overlap_correction case `zero-pairs` must declare expected_pair_count greater than zero"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_overlap_correction_smoke_plans_reject_corrected_pairs_above_pair_count() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_overlap_correction_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_overlap_correction.v1"
+tool_id = "bamutil"
+
+[[cases]]
+sample_id = "too-many-corrected-pairs"
+bam = "{bam}"
+expected_pair_count = 2
+expected_corrected_pairs = 3
+expected_corrected_overlap_bases = 7
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_overlap_correction_smoke_plans(temp.path())
+        .expect_err("corrected_pairs must not exceed pair_count");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.overlap_correction case `too-many-corrected-pairs` cannot declare corrected pairs greater than pair count"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_overlap_correction_smoke_plans_require_overlap_bases_when_pairs_corrected() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_overlap_correction_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_overlap_correction.v1"
+tool_id = "bamutil"
+
+[[cases]]
+sample_id = "missing-overlap-bases"
+bam = "{bam}"
+expected_pair_count = 2
+expected_corrected_pairs = 1
+expected_corrected_overlap_bases = 0
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_overlap_correction_smoke_plans(temp.path())
+        .expect_err("corrected pairs must imply corrected overlap bases");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.overlap_correction case `missing-overlap-bases` must declare positive expected_corrected_overlap_bases when expected_corrected_pairs is greater than zero"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_overlap_correction_smoke_plans_require_zero_overlap_bases_when_no_pairs_corrected() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_overlap_correction_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_overlap_correction.v1"
+tool_id = "bamutil"
+
+[[cases]]
+sample_id = "orphan-overlap-bases"
+bam = "{bam}"
+expected_pair_count = 2
+expected_corrected_pairs = 0
+expected_corrected_overlap_bases = 5
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_overlap_correction_smoke_plans(temp.path())
+        .expect_err("overlap bases must stay zero when no pairs are corrected");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.overlap_correction case `orphan-overlap-bases` must keep expected_corrected_overlap_bases at zero when expected_corrected_pairs is zero"
     );
     Ok(())
 }
