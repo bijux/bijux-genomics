@@ -5,6 +5,8 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "1.0.0"
 install_kind: "container"
+container:
+  image: "bijuxdna/pydamage:1.0.0"
 license: "GPL-3.0"
 citation: "paper:https://pubmed.ncbi.nlm.nih.gov/34395085/"
 outputs:

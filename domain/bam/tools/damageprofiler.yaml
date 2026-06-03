@@ -5,6 +5,8 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "1.1"
 install_kind: "container"
+container:
+  image: "bijuxdna/damageprofiler:1.1"
 license: "GPL-3.0"
 citation: "paper:https://academic.oup.com/bioinformatics/article/37/20/3652/6247758"
 outputs:

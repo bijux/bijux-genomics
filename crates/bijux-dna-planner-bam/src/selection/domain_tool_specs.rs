@@ -479,6 +479,32 @@ mod tests {
     }
 
     #[test]
+    fn load_bam_domain_tool_execution_spec_accepts_benchmark_ready_validate_and_damage_tools(
+    ) -> Result<()> {
+        let repo_root = repo_root();
+        for (stage_name, tool_name, expected_image) in [
+            ("bam.validate", "bamtools", "bijuxdna/bamtools:2.5.2"),
+            ("bam.validate", "bedtools", "bijuxdna/bedtools:2.31.1"),
+            ("bam.validate", "samtools", "bijuxdna/samtools:1.21"),
+            ("bam.damage", "damageprofiler", "bijuxdna/damageprofiler:1.1"),
+            ("bam.damage", "mapdamage2", "bijuxdna/mapdamage2:2.2.2"),
+            ("bam.damage", "pmdtools", "bijuxdna/pmdtools:0.60"),
+            ("bam.damage", "pydamage", "bijuxdna/pydamage:1.0.0"),
+        ] {
+            let stage_id = StageId::new(stage_name.to_string());
+            let tool_id = ToolId::new(tool_name);
+
+            let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
+
+            assert_eq!(spec.tool_id.as_str(), tool_name);
+            assert_eq!(spec.command.template, vec![tool_name.to_string()]);
+            assert_eq!(spec.image.image, expected_image);
+            assert!(spec.image.digest.is_none());
+        }
+        Ok(())
+    }
+
+    #[test]
     fn load_bam_domain_tool_execution_spec_accepts_supported_yleaf_stage() -> Result<()> {
         let repo_root = repo_root();
         let stage_id = StageId::new("bam.haplogroups".to_string());
@@ -510,7 +536,8 @@ mod tests {
     }
 
     #[test]
-    fn load_bam_domain_tool_planning_spec_tolerates_missing_container_metadata() -> Result<()> {
+    fn load_bam_domain_tool_planning_spec_accepts_validate_stage_with_container_metadata(
+    ) -> Result<()> {
         let repo_root = repo_root();
         let stage_id = StageId::new("bam.validate".to_string());
         let tool_id = ToolId::new("samtools");
@@ -519,7 +546,7 @@ mod tests {
 
         assert_eq!(spec.tool_id.as_str(), "samtools");
         assert_eq!(spec.command.template, vec!["samtools".to_string()]);
-        assert_eq!(spec.image.image, "samtools");
+        assert_eq!(spec.image.image, "bijuxdna/samtools:1.21");
         assert!(spec.image.digest.is_none());
         Ok(())
     }
