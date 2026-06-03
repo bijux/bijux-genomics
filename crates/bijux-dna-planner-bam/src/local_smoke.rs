@@ -61,6 +61,8 @@ const LOCAL_DAMAGE_CONFIG_PATH: &str = "configs/bench/local/bam-damage.toml";
 const DEFAULT_LOCAL_DAMAGE_OUTPUT_DIR: &str = "target/local-smoke/bam.damage";
 const LOCAL_AUTHENTICITY_CONFIG_PATH: &str = "configs/bench/local/bam-authenticity.toml";
 const DEFAULT_LOCAL_AUTHENTICITY_OUTPUT_DIR: &str = "target/local-smoke/bam.authenticity";
+const LOCAL_AUTHENTICITY_EXPECTED_METRIC_IDS: [&str; 5] =
+    ["damage", "contamination", "complexity", "coverage", "mapping"];
 const LOCAL_SEX_CONFIG_PATH: &str = "configs/bench/local/bam-sex.toml";
 const DEFAULT_LOCAL_SEX_OUTPUT_DIR: &str = "target/local-smoke/bam.sex";
 #[cfg(feature = "bam_downstream")]
@@ -2416,6 +2418,10 @@ fn validate_local_gc_bias_expected_rows(
     Ok(())
 }
 
+fn float_matches(left: f64, right: f64) -> bool {
+    (left - right).abs() <= 1e-9
+}
+
 fn build_local_endogenous_content_smoke_case(
     repo_root: &Path,
     tool_spec: &ToolExecutionSpecV1,
@@ -2675,6 +2681,20 @@ fn build_local_authenticity_smoke_case(
             case.sample_id
         ));
     }
+    if case.contamination_ci_low > case.contamination_ci_high {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep contamination_ci_low less than or equal to contamination_ci_high",
+            case.sample_id
+        ));
+    }
+    if case.contamination_estimate < case.contamination_ci_low
+        || case.contamination_estimate > case.contamination_ci_high
+    {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep contamination_estimate within the declared confidence interval",
+            case.sample_id
+        ));
+    }
     if case.contamination_method.trim().is_empty() {
         return Err(anyhow!(
             "local-smoke bam.authenticity case `{}` must declare a non-empty contamination_method",
@@ -2702,6 +2722,41 @@ fn build_local_authenticity_smoke_case(
     if case.expected_consumed_metrics.is_empty() {
         return Err(anyhow!(
             "local-smoke bam.authenticity case `{}` must declare expected_consumed_metrics",
+            case.sample_id
+        ));
+    }
+    if case.expected_consumed_metrics
+        != LOCAL_AUTHENTICITY_EXPECTED_METRIC_IDS.map(str::to_string)
+    {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep expected_consumed_metrics aligned with the governed composition inputs",
+            case.sample_id
+        ));
+    }
+
+    let governed_advisory = bijux_dna_domain_bam::summarize_tiny_bam_authenticity_advisory(
+        &bam_abs,
+        &bijux_dna_domain_bam::metrics::DamageMetricsV1 {
+            c_to_t_5p: case.damage_terminal_c_to_t_5p,
+            g_to_a_3p: case.damage_terminal_g_to_a_3p,
+            pmd_score_histogram: Vec::new(),
+        },
+    )?;
+    if !float_matches(case.expected_score, governed_advisory.score) {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep expected_score aligned with the governed authenticity advisory",
+            case.sample_id
+        ));
+    }
+    if !float_matches(case.expected_confidence, governed_advisory.confidence) {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep expected_confidence aligned with the governed authenticity advisory",
+            case.sample_id
+        ));
+    }
+    if case.expected_pmd_like_signal_present != governed_advisory.pmd_like_signal_present {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep expected_pmd_like_signal_present aligned with the governed authenticity advisory",
             case.sample_id
         ));
     }
