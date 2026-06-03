@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use bijux_dna_core::ids::{StageId, ToolId};
-use bijux_dna_domain_bam::stage_output_ids_in_manifest_order;
+use bijux_dna_domain_bam::stage_specs::stage_output_ids_in_manifest_order;
 use bijux_dna_planner_bam::stage_api::load_bam_domain_tool_stage_output_contract;
 use serde::Serialize;
 
