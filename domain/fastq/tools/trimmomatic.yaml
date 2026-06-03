@@ -19,6 +19,12 @@ outputs:
   - name: "trimmed_reads_r1"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "trimmed_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
 metrics_parser: "fastq_trim_v1"
 constraints:
   runtime: "local"
@@ -31,7 +37,9 @@ execution_contract:
   optional_inputs:
     - "reads_r2"
   expected_outputs:
-    - "trimmomatic.fastq.gz"
+    - "trimmed_reads_r1"
+    - "trimmed_reads_r2"
+    - "report_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 

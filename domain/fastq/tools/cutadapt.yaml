@@ -19,6 +19,27 @@ outputs:
   - name: "trimmed_reads_r1"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "trimmed_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "normalized_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "normalized_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
+  - name: "raw_backend_report_json"
+    data_type: "json"
+    cardinality: "One"
+  - name: "primer_orientation_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "primer_stats_json"
+    data_type: "json"
+    cardinality: "One"
 metrics_parser: "fastq_trim_v1"
 constraints:
   runtime: "local"
@@ -31,7 +52,14 @@ execution_contract:
   optional_inputs:
     - "reads_r2"
   expected_outputs:
-    - "cutadapt.fastq.gz"
+    - "trimmed_reads_r1"
+    - "trimmed_reads_r2"
+    - "normalized_reads_r1"
+    - "normalized_reads_r2"
+    - "report_json"
+    - "raw_backend_report_json"
+    - "primer_orientation_report"
+    - "primer_stats_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 
