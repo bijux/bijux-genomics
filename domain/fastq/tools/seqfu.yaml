@@ -61,3 +61,34 @@ capabilities:
 - SE
 - PE
 - qc
+outputs:
+- name: report_json
+  data_type: json
+  cardinality: One
+- name: length_distribution_tsv
+  data_type: tsv
+  cardinality: One
+- name: length_distribution_json
+  data_type: json
+  cardinality: One
+- name: normalized_abundance_tsv
+  data_type: tsv
+  cardinality: One
+- name: qc_json
+  data_type: json
+  cardinality: One
+- name: qc_tsv
+  data_type: tsv
+  cardinality: One
+execution_contract:
+  required_inputs:
+  - reads_r1
+  expected_outputs:
+  - report_json
+  - length_distribution_tsv
+  - length_distribution_json
+  - normalized_abundance_tsv
+  - qc_json
+  - qc_tsv
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true

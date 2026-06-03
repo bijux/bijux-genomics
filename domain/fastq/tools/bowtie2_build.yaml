@@ -9,6 +9,21 @@ license: "GPL-3.0"
 citation: "paper:https://www.nature.com/articles/nmeth.1923"
 container:
   image: "bijuxdna/bowtie2_build"
+outputs:
+  - name: "reference_index"
+    data_type: "dir"
+    cardinality: "One"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "reference_fasta"
+  expected_outputs:
+    - "reference_index"
+    - "report_json"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids:
   - "fastq.index_reference"
 stage_contracts:

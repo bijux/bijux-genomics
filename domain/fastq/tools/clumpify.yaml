@@ -41,11 +41,10 @@ execution_contract:
     - "reads_r2"
   expected_outputs:
     - "dedup_reads_r1"
+    - "dedup_reads_r2"
     - "duplicate_classes_tsv"
     - "duplicate_provenance_json"
     - "report_json"
-  optional_outputs:
-    - "dedup_reads_r2"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 upstream: "https://jgi.doe.gov/data-and-tools/software-tools/bbtools/"

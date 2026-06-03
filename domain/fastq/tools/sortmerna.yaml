@@ -10,6 +10,39 @@ container:
   digest: sha256:2021b21d075d06404339ec019b9729f2dfb820685c86835df654c2fb7d8b447c
 command_template:
 - sortmerna
+outputs:
+- name: rrna_filtered_reads_r1
+  data_type: fastq
+  cardinality: Many
+- name: rrna_filtered_reads_r2
+  data_type: fastq
+  cardinality: Many
+- name: rrna_removed_reads_r1
+  data_type: fastq
+  cardinality: Many
+- name: rrna_removed_reads_r2
+  data_type: fastq
+  cardinality: Many
+- name: rrna_report_tsv
+  data_type: tsv
+  cardinality: One
+- name: rrna_report_json
+  data_type: json
+  cardinality: One
+execution_contract:
+  required_inputs:
+  - reads_r1
+  optional_inputs:
+  - reads_r2
+  expected_outputs:
+  - rrna_filtered_reads_r1
+  - rrna_filtered_reads_r2
+  - rrna_removed_reads_r1
+  - rrna_removed_reads_r2
+  - rrna_report_tsv
+  - rrna_report_json
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 license: GPL-3.0
 citation: paper:https://academic.oup.com/bioinformatics/article/28/24/3211/246053
 stage_ids:

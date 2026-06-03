@@ -18,6 +18,9 @@ outputs:
   - name: "screen_report_tsv"
     data_type: "tsv"
     cardinality: "Many"
+  - name: "classification_report_json"
+    data_type: "json"
+    cardinality: "One"
 metrics_parser: "centrifuge_v1"
 constraints:
   runtime: "local"

@@ -9,6 +9,48 @@ license: "GPL-3.0"
 citation: "paper:https://www.nature.com/articles/nmeth.1923"
 container:
   image: "bijuxdna/bowtie2"
+outputs:
+  - name: "host_depleted_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "host_depleted_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "removed_host_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "removed_host_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "contaminant_screened_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "contaminant_screened_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "host_depletion_report_json"
+    data_type: "json"
+    cardinality: "One"
+  - name: "contaminant_screen_report_json"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "reads_r1"
+    - "reference_index"
+  optional_inputs:
+    - "reads_r2"
+  expected_outputs:
+    - "host_depleted_reads_r1"
+    - "host_depleted_reads_r2"
+    - "removed_host_reads_r1"
+    - "removed_host_reads_r2"
+    - "contaminant_screened_reads_r1"
+    - "contaminant_screened_reads_r2"
+    - "host_depletion_report_json"
+    - "contaminant_screen_report_json"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids:
   - "fastq.deplete_host"
   - "fastq.deplete_reference_contaminants"
