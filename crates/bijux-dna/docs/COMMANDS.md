@@ -115,6 +115,11 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench corpus-fastq-report`
 - `bijux-dna bench corpus-fastq-publication-status`
 - `bijux-dna bench corpus-fastq-published-dossiers`
+- `bijux-dna bench readiness render-bam-stage-decision-table`
+  `render-bam-stage-decision-table` writes `target/bench-readiness/bam-stage-decision-table.tsv`
+  with one governed row per BAM stage in the 24-stage local benchmark slice, classifying each
+  stage as `benchmark_ready`, `needs_adapter`, `needs_parser`, `needs_corpus`, or
+  `future_not_in_hpc_round` from the current registry, adapter, parser, and corpus surfaces.
 - `bijux-dna bench readiness render-fastq-tool-serving-map`
   `render-fastq-tool-serving-map` writes `target/bench-readiness/fastq-tool-serving-map.tsv`
   with one governed row per FASTQ stage-tool binding in the 27-stage benchmark slice, carrying
