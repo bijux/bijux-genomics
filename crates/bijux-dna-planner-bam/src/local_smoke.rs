@@ -2435,6 +2435,12 @@ fn build_local_endogenous_content_smoke_case(
             case.sample_id
         ));
     }
+    if case.expected_total_reads == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.endogenous_content case `{}` must declare expected_total_reads greater than zero",
+            case.sample_id
+        ));
+    }
     if case.expected_mapped_reads > case.expected_total_reads {
         return Err(anyhow!(
             "local-smoke bam.endogenous_content case `{}` cannot declare mapped reads greater than total reads",
@@ -2450,6 +2456,13 @@ fn build_local_endogenous_content_smoke_case(
     if case.expected_method.trim().is_empty() {
         return Err(anyhow!(
             "local-smoke bam.endogenous_content case `{}` must declare a non-empty expected_method",
+            case.sample_id
+        ));
+    }
+    let expected_fraction = case.expected_mapped_reads as f64 / case.expected_total_reads as f64;
+    if (case.expected_endogenous_fraction - expected_fraction).abs() > 1e-9 {
+        return Err(anyhow!(
+            "local-smoke bam.endogenous_content case `{}` must keep expected_endogenous_fraction aligned with expected_mapped_reads and expected_total_reads",
             case.sample_id
         ));
     }

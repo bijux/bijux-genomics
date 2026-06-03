@@ -87,6 +87,15 @@ fn write_local_endogenous_content_config(root: &Path, body: &str) -> Result<()> 
     Ok(())
 }
 
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(repo_root.join("domain/bam/tools/samtools.yaml"), tool_dir.join("samtools.yaml"))?;
+    Ok(temp)
+}
+
 #[test]
 fn local_endogenous_content_smoke_plans_reject_empty_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
@@ -147,6 +156,204 @@ expected_method = "mapped_fraction_from_flagstat"
     assert_eq!(
         error.to_string(),
         "duplicate local-smoke bam.endogenous_content sample_id `duplicate-case`"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_endogenous_content_smoke_plans_require_non_empty_host_scope() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_endogenous_content_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_endogenous_content.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "blank-host-scope"
+bam = "{bam}"
+host_reference_scope = " "
+expected_total_reads = 5
+expected_mapped_reads = 3
+expected_endogenous_fraction = 0.6
+expected_method = "mapped_fraction_from_flagstat"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_endogenous_content_smoke_plans(temp.path())
+        .expect_err("host_reference_scope must not be blank");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.endogenous_content case `blank-host-scope` must declare a non-empty host_reference_scope"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_endogenous_content_smoke_plans_require_positive_total_reads() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_endogenous_content_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_endogenous_content.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "zero-total-reads"
+bam = "{bam}"
+host_reference_scope = "human_host"
+expected_total_reads = 0
+expected_mapped_reads = 0
+expected_endogenous_fraction = 0.0
+expected_method = "mapped_fraction_from_flagstat"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_endogenous_content_smoke_plans(temp.path())
+        .expect_err("endogenous-content cases must declare total reads greater than zero");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.endogenous_content case `zero-total-reads` must declare expected_total_reads greater than zero"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_endogenous_content_smoke_plans_reject_mapped_reads_above_total() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_endogenous_content_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_endogenous_content.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "mapped-above-total"
+bam = "{bam}"
+host_reference_scope = "human_host"
+expected_total_reads = 5
+expected_mapped_reads = 6
+expected_endogenous_fraction = 1.0
+expected_method = "mapped_fraction_from_flagstat"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_endogenous_content_smoke_plans(temp.path())
+        .expect_err("mapped reads must not exceed total reads");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.endogenous_content case `mapped-above-total` cannot declare mapped reads greater than total reads"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_endogenous_content_smoke_plans_require_fraction_within_unit_interval() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_endogenous_content_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_endogenous_content.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "fraction-out-of-range"
+bam = "{bam}"
+host_reference_scope = "human_host"
+expected_total_reads = 5
+expected_mapped_reads = 3
+expected_endogenous_fraction = 1.1
+expected_method = "mapped_fraction_from_flagstat"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_endogenous_content_smoke_plans(temp.path())
+        .expect_err("endogenous fraction must stay within [0, 1]");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.endogenous_content case `fraction-out-of-range` must keep expected_endogenous_fraction within [0, 1]"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_endogenous_content_smoke_plans_require_fraction_to_match_counts() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_endogenous_content_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_endogenous_content.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "fraction-mismatch"
+bam = "{bam}"
+host_reference_scope = "human_host"
+expected_total_reads = 5
+expected_mapped_reads = 3
+expected_endogenous_fraction = 0.61
+expected_method = "mapped_fraction_from_flagstat"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_endogenous_content_smoke_plans(temp.path())
+        .expect_err("governed endogenous fraction must agree with mapped and total reads");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.endogenous_content case `fraction-mismatch` must keep expected_endogenous_fraction aligned with expected_mapped_reads and expected_total_reads"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_endogenous_content_smoke_plans_require_non_empty_expected_method() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_endogenous_content_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_endogenous_content.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "blank-method"
+bam = "{bam}"
+host_reference_scope = "human_host"
+expected_total_reads = 5
+expected_mapped_reads = 3
+expected_endogenous_fraction = 0.6
+expected_method = " "
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_endogenous_content_smoke_plans(temp.path())
+        .expect_err("expected_method must not be blank");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.endogenous_content case `blank-method` must declare a non-empty expected_method"
     );
     Ok(())
 }
