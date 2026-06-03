@@ -332,6 +332,69 @@ fn bench_local_materialize_stage_bam_mapping_summary_json_writes_governed_smoke_
     );
 }
 
+#[test]
+fn bench_local_materialize_stage_bam_filter_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.filter",
+        "--json",
+    ]);
+
+    assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.filter"));
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.filter/filter_metrics.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let metrics: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.filter metrics"),
+    )
+    .expect("parse bam.filter metrics");
+
+    assert_eq!(
+        metrics.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.filter.local_smoke.metrics.v1")
+    );
+    assert_eq!(
+        metrics.get("sample_id").and_then(serde_json::Value::as_str),
+        Some("core-v1-general-filter")
+    );
+    assert_eq!(metrics.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(metrics.get("input_reads").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(metrics.get("kept_reads").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(metrics.get("removed_reads").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(
+        metrics.get("active_filters"),
+        Some(&serde_json::json!([
+            "mapq_threshold",
+            "exclude_flags",
+            "min_length",
+            "remove_duplicates"
+        ]))
+    );
+
+    let filtered_bam = repo_root.join(
+        metrics.get("filtered_bam").and_then(serde_json::Value::as_str).expect("filtered bam path"),
+    );
+    let filtered_bai = repo_root.join(
+        metrics.get("filtered_bai").and_then(serde_json::Value::as_str).expect("filtered bai path"),
+    );
+    assert!(filtered_bai.is_file(), "bam.filter smoke bundle must expose the curated BAI");
+
+    let filtered_body = std::fs::read_to_string(&filtered_bam).expect("read filtered bam");
+    assert!(filtered_body.contains("good001"));
+    assert!(!filtered_body.contains("lowq001"));
+    assert!(!filtered_body.contains("short001"));
+    assert!(!filtered_body.contains("dup001"));
+    assert!(!filtered_body.contains("unmap001"));
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
