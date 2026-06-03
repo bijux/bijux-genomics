@@ -71,6 +71,51 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
         payload["params"]["sample_id"],
         serde_json::json!("core-v1-genotyping-panel-sites")
     );
+    assert_eq!(payload["params"]["tool"], serde_json::json!("angsd"));
+
+    let inputs = payload["io"]["inputs"]
+        .as_array()
+        .unwrap_or_else(|| panic!("plan inputs must serialize as an array"));
+    let bam = inputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("bam"))
+        .unwrap_or_else(|| panic!("bam input missing from local-ready genotyping payload"));
+    assert_eq!(
+        bam["path"],
+        serde_json::json!("assets/toy/core-v1/bam/genotyping_panel_sites.sam")
+    );
+    let bai = inputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("bam_bai"))
+        .unwrap_or_else(|| panic!("bam_bai input missing from local-ready genotyping payload"));
+    assert_eq!(
+        bai["path"],
+        serde_json::json!("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai")
+    );
+    let reference = inputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("reference"))
+        .unwrap_or_else(|| panic!("reference input missing from local-ready genotyping payload"));
+    assert_eq!(
+        reference["path"],
+        serde_json::json!("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
+    );
+    let sites = inputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("sites"))
+        .unwrap_or_else(|| panic!("sites input missing from local-ready genotyping payload"));
+    assert_eq!(
+        sites["path"],
+        serde_json::json!("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
+    );
+    let regions = inputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("regions"))
+        .unwrap_or_else(|| panic!("regions input missing from local-ready genotyping payload"));
+    assert_eq!(
+        regions["path"],
+        serde_json::json!("assets/toy/core-v1/bam/genotyping_target_regions.txt")
+    );
 
     let outputs = payload["io"]["outputs"]
         .as_array()
@@ -82,6 +127,30 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
     assert_eq!(
         bcf["path"],
         serde_json::json!("target/local-ready/bam.genotyping/genotyping.bcf")
+    );
+    let vcf = outputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("genotyping_vcf"))
+        .unwrap_or_else(|| panic!("genotyping_vcf output missing from local-ready payload"));
+    assert_eq!(
+        vcf["path"],
+        serde_json::json!("target/local-ready/bam.genotyping/genotyping.vcf.gz")
+    );
+    let tbi = outputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("genotyping_vcf_tbi"))
+        .unwrap_or_else(|| panic!("genotyping_vcf_tbi output missing from local-ready payload"));
+    assert_eq!(
+        tbi["path"],
+        serde_json::json!("target/local-ready/bam.genotyping/genotyping.vcf.gz.tbi")
+    );
+    let gl = outputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("genotyping_gl"))
+        .unwrap_or_else(|| panic!("genotyping_gl output missing from local-ready payload"));
+    assert_eq!(
+        gl["path"],
+        serde_json::json!("target/local-ready/bam.genotyping/genotyping.gl.json")
     );
 
     assert!(
