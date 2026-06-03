@@ -129,8 +129,23 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
     );
     assert_eq!(stage_metrics_json["tool_id"], serde_json::json!("pydamage"));
     assert_eq!(stage_metrics_json["tools_seen"], serde_json::json!(["pydamage", "mapdamage2"]));
+    assert_eq!(stage_metrics_json["expected_terminal_c_to_t_5p"], serde_json::json!(0.18));
+    assert_eq!(stage_metrics_json["terminal_c_to_t_5p"], serde_json::json!(0.18));
+    assert_eq!(stage_metrics_json["terminal_c_to_t_5p_delta"], serde_json::json!(0.0));
+    assert_eq!(stage_metrics_json["expected_terminal_g_to_a_3p"], serde_json::json!(0.11));
+    assert_eq!(stage_metrics_json["terminal_g_to_a_3p"], serde_json::json!(0.11));
+    assert_eq!(stage_metrics_json["terminal_g_to_a_3p_delta"], serde_json::json!(0.0));
+    assert_eq!(stage_metrics_json["expected_short_fragment_fraction"], serde_json::json!(1.0));
+    assert_eq!(stage_metrics_json["short_fragment_fraction"], serde_json::json!(1.0));
+    assert_eq!(stage_metrics_json["short_fragment_fraction_delta"], serde_json::json!(0.0));
+    assert_eq!(stage_metrics_json["expected_damage_signal"], serde_json::json!("moderate"));
     assert_eq!(stage_metrics_json["damage_signal"], serde_json::json!("moderate"));
+    assert_eq!(
+        stage_metrics_json["expected_strict_profile_upgraded"],
+        serde_json::json!(false)
+    );
     assert_eq!(stage_metrics_json["strict_profile_upgraded"], serde_json::json!(false));
+    assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 
     Ok(())
 }
