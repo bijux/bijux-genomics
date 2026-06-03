@@ -1,4 +1,5 @@
 use anyhow::Result;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
@@ -66,4 +67,72 @@ fn local_qc_pre_smoke_stage_api_surface_stays_callable() {
     )
         -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalQcPreSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_qc_pre_smoke_plans;
+}
+
+fn write_local_qc_pre_config(root: &Path, body: &str) -> Result<()> {
+    let config_dir = root.join("configs/bench/local");
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("bam-qc-pre.toml"), body)?;
+    Ok(())
+}
+
+#[test]
+fn local_qc_pre_smoke_plans_reject_empty_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_qc_pre_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_qc_pre.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = " "
+bam = "assets/toy/core-v1/bam/qc_pre_core_metrics.sam"
+expected_total_reads = 3
+expected_mapped_reads = 3
+expected_unmapped_reads = 0
+expected_duplicate_flagged_reads = 1
+expected_contigs = ["chr1", "chr2"]
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_qc_pre_smoke_plans(temp.path())
+        .expect_err("empty sample_id must be rejected before plan construction");
+    assert_eq!(error.to_string(), "local-smoke bam.qc_pre sample_id must not be empty");
+    Ok(())
+}
+
+#[test]
+fn local_qc_pre_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_qc_pre_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_qc_pre.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/qc_pre_core_metrics.sam"
+expected_total_reads = 3
+expected_mapped_reads = 3
+expected_unmapped_reads = 0
+expected_duplicate_flagged_reads = 1
+expected_contigs = ["chr1", "chr2"]
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/qc_pre_core_metrics.sam"
+expected_total_reads = 3
+expected_mapped_reads = 3
+expected_unmapped_reads = 0
+expected_duplicate_flagged_reads = 1
+expected_contigs = ["chr1", "chr2"]
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_qc_pre_smoke_plans(temp.path())
+        .expect_err("duplicate sample_id must be rejected before plan construction");
+    assert_eq!(error.to_string(), "duplicate local-smoke bam.qc_pre sample_id `duplicate-case`");
+    Ok(())
 }
