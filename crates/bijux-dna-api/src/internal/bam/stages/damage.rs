@@ -232,6 +232,34 @@ fn materialize_local_damage_smoke_case(
             )
             && summary.damage_signal == case.expected_damage_signal
             && summary.strict_profile_upgraded == case.expected_strict_profile_upgraded;
+    let terminal_c_to_t_5p_delta = summary.terminal_c_to_t_5p - case.expected_terminal_c_to_t_5p;
+    let terminal_g_to_a_3p_delta = summary.terminal_g_to_a_3p - case.expected_terminal_g_to_a_3p;
+    let short_fragment_fraction_delta =
+        summary.short_fragment_fraction - case.expected_short_fragment_fraction;
+
+    bijux_dna_infra::atomic_write_json(
+        &stage_metrics_path,
+        &serde_json::json!({
+            "schema_version": DAMAGE_STAGE_METRICS_SCHEMA_VERSION,
+            "stage_id": "bam.damage",
+            "tool_id": case.plan.tool_id.as_str(),
+            "tools_seen": tools_seen,
+            "expected_terminal_c_to_t_5p": case.expected_terminal_c_to_t_5p,
+            "terminal_c_to_t_5p": summary.terminal_c_to_t_5p,
+            "terminal_c_to_t_5p_delta": terminal_c_to_t_5p_delta,
+            "expected_terminal_g_to_a_3p": case.expected_terminal_g_to_a_3p,
+            "terminal_g_to_a_3p": summary.terminal_g_to_a_3p,
+            "terminal_g_to_a_3p_delta": terminal_g_to_a_3p_delta,
+            "expected_short_fragment_fraction": case.expected_short_fragment_fraction,
+            "short_fragment_fraction": summary.short_fragment_fraction,
+            "short_fragment_fraction_delta": short_fragment_fraction_delta,
+            "expected_damage_signal": case.expected_damage_signal,
+            "damage_signal": summary.damage_signal,
+            "expected_strict_profile_upgraded": case.expected_strict_profile_upgraded,
+            "strict_profile_upgraded": summary.strict_profile_upgraded,
+            "expectation_matched": expectation_matched,
+        }),
+    )?;
 
     Ok(LocalDamageSmokeReport {
         schema_version: LOCAL_DAMAGE_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
