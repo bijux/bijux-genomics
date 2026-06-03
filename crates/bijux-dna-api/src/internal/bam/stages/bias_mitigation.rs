@@ -255,6 +255,10 @@ fn materialize_local_bias_mitigation_smoke_case(
         && summary_json.metric_name == case.expected_metric_name
         && float_matches(pre_mitigation_metric, case.expected_pre_mitigation_metric)
         && float_matches(post_mitigation_metric, case.expected_post_mitigation_metric);
+    let pre_mitigation_metric_delta =
+        pre_mitigation_metric - case.expected_pre_mitigation_metric;
+    let post_mitigation_metric_delta =
+        post_mitigation_metric - case.expected_post_mitigation_metric;
 
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
@@ -262,10 +266,16 @@ fn materialize_local_bias_mitigation_smoke_case(
             "schema_version": LOCAL_BIAS_MITIGATION_SMOKE_METRICS_SCHEMA_VERSION,
             "stage_id": "bam.bias_mitigation",
             "sample_id": case.sample_id,
+            "expected_method": case.plan.tool_id.as_str(),
             "method": summary_json.method,
+            "expected_metric_name": case.expected_metric_name,
             "metric_name": summary_json.metric_name,
+            "expected_pre_mitigation_metric": case.expected_pre_mitigation_metric,
             "pre_mitigation_metric": pre_mitigation_metric,
+            "pre_mitigation_metric_delta": pre_mitigation_metric_delta,
+            "expected_post_mitigation_metric": case.expected_post_mitigation_metric,
             "post_mitigation_metric": post_mitigation_metric,
+            "post_mitigation_metric_delta": post_mitigation_metric_delta,
             "metric_delta": metric_delta,
             "mitigation_actions": summary_json.mitigation_actions,
             "consumed_metrics": summary_json.consumed_metrics,
