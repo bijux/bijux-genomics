@@ -103,6 +103,15 @@ fn write_local_complexity_config(root: &Path, body: &str) -> Result<()> {
     Ok(())
 }
 
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(repo_root.join("domain/bam/tools/preseq.yaml"), tool_dir.join("preseq.yaml"))?;
+    Ok(temp)
+}
+
 #[test]
 fn local_complexity_smoke_plans_reject_empty_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
@@ -163,6 +172,272 @@ expected_insufficient_data_reason = "insufficient_observed_unique_reads_for_comp
     assert_eq!(
         error.to_string(),
         "duplicate local-smoke bam.complexity sample_id `duplicate-case`"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_complexity_smoke_plans_require_non_zero_min_reads() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_complexity_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_complexity.v1"
+tool_id = "preseq"
+
+[[cases]]
+sample_id = "zero-min-reads"
+bam = "{bam}"
+min_reads = 0
+projection_points = [6, 12]
+expected_observed_total_reads = 3
+expected_observed_unique_reads = 2
+expected_insufficient_data_reason = "insufficient_observed_unique_reads_for_complexity_extrapolation"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/complexity_sparse_reads.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_complexity_smoke_plans(temp.path())
+        .expect_err("complexity cases must declare min_reads greater than zero");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.complexity case `zero-min-reads` must declare min_reads greater than zero"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_complexity_smoke_plans_require_projection_points() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_complexity_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_complexity.v1"
+tool_id = "preseq"
+
+[[cases]]
+sample_id = "missing-projection-points"
+bam = "{bam}"
+min_reads = 3
+projection_points = []
+expected_observed_total_reads = 3
+expected_observed_unique_reads = 2
+expected_insufficient_data_reason = "insufficient_observed_unique_reads_for_complexity_extrapolation"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/complexity_sparse_reads.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_complexity_smoke_plans(temp.path())
+        .expect_err("complexity cases must declare at least one projection point");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.complexity case `missing-projection-points` must declare at least one projection point"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_complexity_smoke_plans_reject_zero_projection_points() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_complexity_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_complexity.v1"
+tool_id = "preseq"
+
+[[cases]]
+sample_id = "zero-projection-point"
+bam = "{bam}"
+min_reads = 3
+projection_points = [0, 12]
+expected_observed_total_reads = 3
+expected_observed_unique_reads = 2
+expected_insufficient_data_reason = "insufficient_observed_unique_reads_for_complexity_extrapolation"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/complexity_sparse_reads.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_complexity_smoke_plans(temp.path())
+        .expect_err("projection points must stay greater than zero");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.complexity case `zero-projection-point` must keep projection points greater than zero"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_complexity_smoke_plans_require_strictly_increasing_projection_points() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_complexity_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_complexity.v1"
+tool_id = "preseq"
+
+[[cases]]
+sample_id = "unordered-projection-points"
+bam = "{bam}"
+min_reads = 3
+projection_points = [12, 12]
+expected_observed_total_reads = 3
+expected_observed_unique_reads = 2
+expected_insufficient_data_reason = "insufficient_observed_unique_reads_for_complexity_extrapolation"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/complexity_sparse_reads.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_complexity_smoke_plans(temp.path())
+        .expect_err("projection points must be strictly increasing");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.complexity case `unordered-projection-points` must keep projection points strictly increasing"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_complexity_smoke_plans_reject_unique_reads_greater_than_total_reads() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_complexity_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_complexity.v1"
+tool_id = "preseq"
+
+[[cases]]
+sample_id = "unique-over-total"
+bam = "{bam}"
+min_reads = 3
+projection_points = [6, 12]
+expected_observed_total_reads = 3
+expected_observed_unique_reads = 4
+expected_insufficient_data_reason = "insufficient_observed_unique_reads_for_complexity_extrapolation"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/complexity_sparse_reads.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_complexity_smoke_plans(temp.path())
+        .expect_err("unique reads cannot exceed observed total reads");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.complexity case `unique-over-total` cannot declare unique reads greater than observed total reads"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_complexity_smoke_plans_require_exactly_one_complexity_outcome() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_complexity_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_complexity.v1"
+tool_id = "preseq"
+
+[[cases]]
+sample_id = "ambiguous-complexity-outcome"
+bam = "{bam}"
+min_reads = 3
+projection_points = [6, 12]
+expected_observed_total_reads = 3
+expected_observed_unique_reads = 2
+expected_estimated_unique_reads = 5
+expected_insufficient_data_reason = "insufficient_observed_unique_reads_for_complexity_extrapolation"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/complexity_sparse_reads.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_complexity_smoke_plans(temp.path())
+        .expect_err("complexity outcome must be either an estimate or an insufficiency reason");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.complexity case `ambiguous-complexity-outcome` must declare exactly one of expected_estimated_unique_reads or expected_insufficient_data_reason"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_complexity_smoke_plans_reject_estimated_unique_reads_below_observed_unique_reads()
+-> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_complexity_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_complexity.v1"
+tool_id = "preseq"
+
+[[cases]]
+sample_id = "estimate-below-observed"
+bam = "{bam}"
+min_reads = 3
+projection_points = [6, 12]
+expected_observed_total_reads = 3
+expected_observed_unique_reads = 2
+expected_estimated_unique_reads = 1
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/complexity_sparse_reads.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_complexity_smoke_plans(temp.path())
+        .expect_err("estimated unique reads must stay above observed unique reads");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.complexity case `estimate-below-observed` must keep estimated unique reads greater than or equal to observed unique reads"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_complexity_smoke_plans_reject_empty_insufficiency_reason() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_complexity_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_complexity.v1"
+tool_id = "preseq"
+
+[[cases]]
+sample_id = "empty-insufficiency-reason"
+bam = "{bam}"
+min_reads = 3
+projection_points = [6, 12]
+expected_observed_total_reads = 3
+expected_observed_unique_reads = 2
+expected_insufficient_data_reason = ""
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/complexity_sparse_reads.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_complexity_smoke_plans(temp.path())
+        .expect_err("empty insufficiency reasons must be rejected");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.complexity case `empty-insufficiency-reason` must not declare an empty insufficiency reason"
     );
     Ok(())
 }
