@@ -146,6 +146,12 @@ fn materialize_local_recalibration_smoke_case(
             .with_context(|| format!("read {}", recalibration_summary_path.display()))?,
     )
     .with_context(|| format!("parse {}", recalibration_summary_path.display()))?;
+    let expectation_matched = summary.status == case.expected_status
+        && summary.reason == case.expected_reason
+        && summary.requested_mode == case.requested_mode
+        && summary.effective_mode == case.effective_mode;
+    let mean_coverage_margin = summary.observed_mean_coverage - case.min_mean_coverage;
+    let breadth_1x_margin = summary.observed_breadth_1x - case.min_breadth_1x;
 
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
@@ -153,27 +159,38 @@ fn materialize_local_recalibration_smoke_case(
             "schema_version": LOCAL_RECALIBRATION_SMOKE_METRICS_SCHEMA_VERSION,
             "stage_id": "bam.recalibration",
             "sample_id": case.sample_id,
+            "expected_requested_mode": case.requested_mode,
             "requested_mode": summary.requested_mode,
+            "expected_effective_mode": case.effective_mode,
             "effective_mode": summary.effective_mode,
+            "expected_status": case.expected_status,
             "status": summary.status,
+            "expected_reason": case.expected_reason,
             "reason": summary.reason,
+            "expected_known_sites": case
+                .known_sites
+                .iter()
+                .map(|path| path_relative_to_repo(repo_root, &repo_root.join(path)))
+                .collect::<Vec<_>>(),
             "known_sites": summary
                 .known_sites
                 .iter()
                 .map(|path| path_relative_to_repo(repo_root, path))
                 .collect::<Vec<_>>(),
+            "expected_coverage_gate": {
+                "min_mean_coverage": case.min_mean_coverage,
+                "min_breadth_1x": case.min_breadth_1x,
+            },
             "coverage_gate": summary.coverage_gate,
             "observed_mean_coverage": summary.observed_mean_coverage,
+            "mean_coverage_margin": mean_coverage_margin,
             "observed_breadth_1x": summary.observed_breadth_1x,
+            "breadth_1x_margin": breadth_1x_margin,
             "output_bam_present": summary.output_bam_present,
             "recalibration_report_present": summary.recalibration_report_present,
+            "expectation_matched": expectation_matched,
         }),
     )?;
-
-    let expectation_matched = summary.status == case.expected_status
-        && summary.reason == case.expected_reason
-        && summary.requested_mode == case.requested_mode
-        && summary.effective_mode == case.effective_mode;
 
     Ok(LocalRecalibrationSmokeReport {
         schema_version: LOCAL_RECALIBRATION_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
