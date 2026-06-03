@@ -8,6 +8,8 @@ use serde::Serialize;
 use super::tool_serving_map::{
     render_fastq_tool_serving_map, ToolServingMapRow, DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH,
 };
+use crate::commands::cli::parse;
+use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_COMMAND_ADAPTER_COVERAGE_PATH: &str =
     "target/bench-readiness/fastq-command-adapter-coverage.tsv";
@@ -64,6 +66,24 @@ pub(crate) struct FastqCommandAdapterCoverageReport {
     pub(crate) benchmark_ready_adapter_missing_row_count: usize,
     pub(crate) readiness_gap_counts: BTreeMap<String, usize>,
     pub(crate) rows: Vec<FastqCommandAdapterCoverageRow>,
+}
+
+pub(crate) fn run_render_fastq_command_adapter_coverage(
+    args: &parse::BenchReadinessRenderFastqCommandAdapterCoverageArgs,
+) -> Result<()> {
+    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let report = render_fastq_command_adapter_coverage(
+        &repo_root,
+        args.output
+            .clone()
+            .unwrap_or_else(|| PathBuf::from(DEFAULT_FASTQ_COMMAND_ADAPTER_COVERAGE_PATH)),
+    )?;
+    if args.json {
+        render::json::print_pretty(&report)?;
+    } else {
+        println!("{}", report.output_path);
+    }
+    Ok(())
 }
 
 pub(crate) fn render_fastq_command_adapter_coverage(

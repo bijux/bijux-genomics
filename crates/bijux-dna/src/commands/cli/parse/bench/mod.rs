@@ -49,6 +49,7 @@ pub use self::publication::{
 pub use self::readiness::{
     BenchReadinessCommand, BenchReadinessRenderBamStageDecisionTableArgs,
     BenchReadinessRenderBamToolServingMapArgs, BenchReadinessRenderFastqToolServingMapArgs,
+    BenchReadinessRenderFastqCommandAdapterCoverageArgs,
     BenchReadinessRenderMissingBenchmarkPairsArgs, BenchReadinessRenderOrphanToolsArgs,
     BenchReadinessRenderStageRegistryExtraPairsArgs, BenchReadinessRenderToolIdNormalizationArgs,
     BenchReadinessRenderUndercoveredStagesArgs, BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
