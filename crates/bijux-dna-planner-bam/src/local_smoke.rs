@@ -367,7 +367,6 @@ pub struct LocalKinshipSmokeCasePlan {
 #[serde(rename_all = "snake_case")]
 pub enum LocalValidateAlignmentFixtureEncoding {
     BinaryBam,
-    SamTextProxy,
 }
 
 #[derive(Debug, Deserialize)]
@@ -3789,4 +3788,31 @@ fn load_local_kinship_smoke_config(repo_root: &Path) -> Result<LocalKinshipSmoke
         return Err(anyhow!("local-smoke bam.kinship must declare at least one governed case"));
     }
     Ok(config)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::LocalValidateSmokeConfig;
+
+    #[test]
+    fn local_validate_smoke_config_rejects_sam_text_proxy_fixtures() {
+        let config = r#"
+schema_version = "bijux.bench.bam.local_validate.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "proxy-refusal"
+bam = "assets/toy/core-v1/bam/validation_malformed.bam"
+alignment_fixture_encoding = "sam_text_proxy"
+expect_pass = false
+required_refusal_codes = ["malformed_alignment_record"]
+"#;
+
+        let error = toml::from_str::<LocalValidateSmokeConfig>(config)
+            .expect_err("sam_text_proxy should not deserialize for bam.validate local smoke");
+        assert!(
+            error.to_string().contains("unknown variant `sam_text_proxy`"),
+            "unexpected deserialize error: {error}"
+        );
+    }
 }
