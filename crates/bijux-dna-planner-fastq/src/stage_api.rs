@@ -7,7 +7,8 @@ pub use crate::qc_contract::{
 pub use crate::selection::args;
 pub use crate::selection::{
     allowed_tools_for_stage, default_tool_for_stage, load_fastq_domain_tool_contract_metadata,
-    load_fastq_domain_tool_execution_spec, FastqDomainToolContractMetadata,
+    load_fastq_domain_tool_execution_spec, load_fastq_domain_tool_stage_output_contract,
+    FastqDomainToolContractMetadata, FastqDomainToolStageOutputContract,
     FastqDomainToolSupportLevel,
 };
 pub use crate::tool_adapters::fastq;
