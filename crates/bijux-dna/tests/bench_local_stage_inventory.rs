@@ -1502,6 +1502,77 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
     );
 }
 
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_materialize_stage_bam_haplogroups_json_writes_governed_plan_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.haplogroups",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.haplogroups")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/bam.haplogroups/plan.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let plan: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&artifact_path).expect("read bam.haplogroups plan"))
+            .expect("parse bam.haplogroups plan");
+
+    assert_eq!(plan.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.haplogroups"));
+    assert_eq!(plan.get("tool_id").and_then(serde_json::Value::as_str), Some("yleaf"));
+    assert_eq!(
+        plan.get("out_dir").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/bam.haplogroups")
+    );
+    assert_eq!(
+        plan.get("params").and_then(|params| params.get("sample_id")),
+        Some(&serde_json::json!("core-v1-haplogroups-y-panel-screen"))
+    );
+    assert_eq!(
+        plan.get("params").and_then(|params| params.get("reference_panel_id")),
+        Some(&serde_json::json!("toy-human-y-hg38"))
+    );
+    assert_eq!(
+        plan.get("params").and_then(|params| params.get("coverage_gate")),
+        Some(&serde_json::json!({ "min_coverage": 2.0 }))
+    );
+
+    let haplogroups_report = plan["io"]["outputs"]
+        .as_array()
+        .and_then(|outputs| {
+            outputs.iter().find(|artifact| artifact["name"] == serde_json::json!("haplogroups"))
+        })
+        .unwrap_or_else(|| panic!("haplogroups output missing from CLI materialized plan"));
+    assert_eq!(
+        haplogroups_report["path"],
+        serde_json::json!("target/local-ready/bam.haplogroups/haplogroups.json")
+    );
+    assert!(
+        plan["command"]["template"].as_array().is_some_and(|command| command.iter().any(
+            |part| part.as_str().is_some_and(|shell| {
+                shell.contains("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
+                    && shell.contains("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
+                    && shell.contains("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+                    && shell.contains("--reference_genome hg38")
+                    && shell.contains("target/local-ready/bam.haplogroups/haplogroups")
+            })
+        )),
+        "CLI materialized haplogroups plan must carry the governed BAM, BAI, panel, reference build, and assignment output prefix"
+    );
+}
+
 #[test]
 fn bench_local_materialize_stage_bam_damage_json_writes_governed_smoke_bundle() {
     let (repo_root, payload) = run_cli_json_with_repo_root(&[
