@@ -45,6 +45,41 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
     assert_eq!(payload["tool_id"], serde_json::json!("verifybamid2"));
     assert_eq!(payload["resources"]["threads"], serde_json::json!(2));
     assert_eq!(payload["resources"]["mem_gb"], serde_json::json!(8));
+    let inputs = payload["io"]["inputs"]
+        .as_array()
+        .unwrap_or_else(|| panic!("plan inputs must serialize as an array"));
+    let bam = inputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("bam"))
+        .unwrap_or_else(|| panic!("bam input missing from local-ready contamination plan payload"));
+    assert_eq!(
+        bam["path"],
+        serde_json::json!("assets/toy/core-v1/bam/contamination_panel_screen.sam")
+    );
+    let bai = inputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("bam_bai"))
+        .unwrap_or_else(|| panic!("bam_bai input missing from local-ready contamination plan payload"));
+    assert_eq!(
+        bai["path"],
+        serde_json::json!("assets/toy/core-v1/bam/contamination_panel_screen.sam.bai")
+    );
+    let reference = inputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("reference"))
+        .unwrap_or_else(|| panic!("reference input missing from local-ready contamination plan payload"));
+    assert_eq!(
+        reference["path"],
+        serde_json::json!("assets/reference/host/references/toy_host_reference.fasta")
+    );
+    let reference_panel = inputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("reference_panel"))
+        .unwrap_or_else(|| panic!("reference_panel input missing from local-ready contamination plan payload"));
+    assert_eq!(
+        reference_panel["path"],
+        serde_json::json!("assets/reference/host/references/toy_human_contamination_panel.dat")
+    );
     assert_eq!(payload["params"]["scope"], serde_json::json!("nuclear"));
     assert_eq!(
         payload["params"]["reference_panels"],
@@ -70,6 +105,22 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
     assert_eq!(
         contamination_report["path"],
         serde_json::json!("target/local-ready/bam.contamination/contamination.json")
+    );
+    let contamination_summary = outputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("summary"))
+        .unwrap_or_else(|| panic!("summary output missing from local-ready contamination plan payload"));
+    assert_eq!(
+        contamination_summary["path"],
+        serde_json::json!("target/local-ready/bam.contamination/contamination.summary.json")
+    );
+    let stage_metrics = outputs
+        .iter()
+        .find(|artifact| artifact["name"] == serde_json::json!("stage_metrics"))
+        .unwrap_or_else(|| panic!("stage_metrics output missing from local-ready contamination plan payload"));
+    assert_eq!(
+        stage_metrics["path"],
+        serde_json::json!("target/local-ready/bam.contamination/stage.metrics.json")
     );
     assert!(
         payload["command"]["template"].as_array().is_some_and(|command| command.iter().any(
