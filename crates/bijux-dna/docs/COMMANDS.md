@@ -115,6 +115,10 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench corpus-fastq-report`
 - `bijux-dna bench corpus-fastq-publication-status`
 - `bijux-dna bench corpus-fastq-published-dossiers`
+- `bijux-dna bench readiness render-command-argv`
+  `render-command-argv` writes `target/bench-readiness/rendered-commands.argv.jsonl` with one
+  governed JSON row per benchmark command, preserving the executable and arguments as a separated
+  `argv` array so local benchmark rendering is reproducible without shell-parsing ambiguity.
 - `bijux-dna bench readiness render-bam-stage-decision-table`
   `render-bam-stage-decision-table` writes `target/bench-readiness/bam-stage-decision-table.tsv`
   with one governed row per BAM stage in the 24-stage local benchmark slice, classifying each
@@ -338,7 +342,8 @@ Visible aliases are part of the operator surface:
   render-slurm-scripts --domain bam`.
 - `bijux-dna bench local render-stage-commands`
   `render-stage-commands` writes both `target/local-ready/rendered-stage-commands.sh` and the
-  machine-readable companion `target/local-ready/rendered-stage-commands.json`.
+  machine-readable companions `target/local-ready/rendered-stage-commands.json` and
+  `target/local-ready/rendered-stage-commands.argv.jsonl`.
 - `bijux-dna bench schema`
 - `bijux-dna bench fastq trim-reads`
 - `bijux-dna bench fastq trim-polyg-tails`
