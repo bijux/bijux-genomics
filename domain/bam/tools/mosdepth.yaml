@@ -7,6 +7,25 @@ default_version: "0.3.10"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://academic.oup.com/bioinformatics/article-abstract/34/5/867/4583630"
+outputs:
+  - name: "coverage_summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "coverage_depth"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  expected_outputs:
+    - "coverage_summary"
+    - "coverage_depth"
+    - "stage_metrics"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids: ["bam.coverage"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"

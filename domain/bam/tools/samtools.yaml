@@ -7,6 +7,92 @@ default_version: '1.21'
 install_kind: container
 license: MIT
 citation: paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC2723002/
+outputs:
+- name: validation_report
+  data_type: json
+  cardinality: One
+- name: flagstat
+  data_type: text
+  cardinality: One
+- name: stage_metrics
+  data_type: json
+  cardinality: One
+- name: idxstats
+  data_type: text
+  cardinality: One
+- name: stats
+  data_type: text
+  cardinality: One
+- name: summary
+  data_type: json
+  cardinality: One
+- name: filtered_bam
+  data_type: bam
+  cardinality: One
+- name: filtered_bai
+  data_type: bai
+  cardinality: One
+- name: flagstat_before
+  data_type: text
+  cardinality: One
+- name: flagstat_after
+  data_type: text
+  cardinality: One
+- name: idxstats_before
+  data_type: text
+  cardinality: One
+- name: idxstats_after
+  data_type: text
+  cardinality: One
+- name: markdup_bam
+  data_type: bam
+  cardinality: One
+- name: markdup_bai
+  data_type: bai
+  cardinality: One
+- name: duplication_report
+  data_type: json
+  cardinality: One
+- name: duplication_histogram
+  data_type: png
+  cardinality: One
+- name: coverage_summary
+  data_type: json
+  cardinality: One
+- name: coverage_depth
+  data_type: tsv
+  cardinality: One
+- name: endogenous_report
+  data_type: json
+  cardinality: One
+execution_contract:
+  required_inputs:
+  - bam
+  optional_inputs:
+  - bam_index
+  - reference_fasta
+  expected_outputs:
+  - validation_report
+  - flagstat
+  - stage_metrics
+  - idxstats
+  - stats
+  - summary
+  - filtered_bam
+  - filtered_bai
+  - flagstat_before
+  - flagstat_after
+  - idxstats_before
+  - idxstats_after
+  - markdup_bam
+  - markdup_bai
+  - duplication_report
+  - duplication_histogram
+  - coverage_summary
+  - coverage_depth
+  - endogenous_report
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids:
 - bam.validate
 - bam.qc_pre
