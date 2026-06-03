@@ -154,6 +154,14 @@ fn materialize_local_duplication_metrics_smoke_case(
     )?;
     bijux_dna_infra::atomic_write_json(&duplication_summary_path, &summary)?;
     let _policy = write_stage_duplication_policy(&case_out_dir, &case.plan)?;
+
+    let expectation_matched = summary.examined_reads == case.expected_examined_reads
+        && summary.duplicate_reads == case.expected_duplicate_reads
+        && (summary.duplicate_fraction - case.expected_duplicate_fraction).abs() <= 1e-9
+        && summary.estimated_library_size == case.expected_estimated_library_size
+        && summary.insufficient_library_size_reason
+            == case.expected_insufficient_library_size_reason;
+
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
         &serde_json::json!({
@@ -167,15 +175,9 @@ fn materialize_local_duplication_metrics_smoke_case(
             "duplicate_fraction": summary.duplicate_fraction,
             "estimated_library_size": summary.estimated_library_size,
             "insufficient_library_size_reason": summary.insufficient_library_size_reason,
+            "expectation_matched": expectation_matched,
         }),
     )?;
-
-    let expectation_matched = summary.examined_reads == case.expected_examined_reads
-        && summary.duplicate_reads == case.expected_duplicate_reads
-        && (summary.duplicate_fraction - case.expected_duplicate_fraction).abs() <= 1e-9
-        && summary.estimated_library_size == case.expected_estimated_library_size
-        && summary.insufficient_library_size_reason
-            == case.expected_insufficient_library_size_reason;
 
     Ok(LocalDuplicationMetricsSmokeReport {
         schema_version: LOCAL_DUPLICATION_METRICS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
