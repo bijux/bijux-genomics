@@ -133,6 +133,14 @@ fn materialize_local_endogenous_content_smoke_case(
             written_summary.endogenous_fraction,
             case.expected_endogenous_fraction,
         );
+    let mapped_read_delta =
+        i64::try_from(written_summary.mapped_reads).unwrap_or(i64::MAX)
+            - i64::try_from(case.expected_mapped_reads).unwrap_or(i64::MAX);
+    let total_read_delta =
+        i64::try_from(written_summary.total_reads).unwrap_or(i64::MAX)
+            - i64::try_from(case.expected_total_reads).unwrap_or(i64::MAX);
+    let endogenous_fraction_delta =
+        written_summary.endogenous_fraction - case.expected_endogenous_fraction;
 
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
@@ -140,12 +148,21 @@ fn materialize_local_endogenous_content_smoke_case(
             "schema_version": LOCAL_ENDOGENOUS_CONTENT_SMOKE_METRICS_SCHEMA_VERSION,
             "stage_id": "bam.endogenous_content",
             "sample_id": case.sample_id,
+            "expected_method": case.expected_method,
             "method": written_summary.method,
+            "expected_host_reference_scope": case.host_reference_scope,
             "host_reference_scope": written_summary.host_reference_scope,
+            "expected_mapped_reads": case.expected_mapped_reads,
             "mapped_reads": written_summary.mapped_reads,
+            "mapped_read_delta": mapped_read_delta,
+            "expected_endogenous_reads": case.expected_mapped_reads,
             "endogenous_reads": written_summary.endogenous_reads,
+            "expected_total_reads": case.expected_total_reads,
             "total_reads": written_summary.total_reads,
+            "total_read_delta": total_read_delta,
+            "expected_endogenous_fraction": case.expected_endogenous_fraction,
             "endogenous_fraction": written_summary.endogenous_fraction,
+            "endogenous_fraction_delta": endogenous_fraction_delta,
             "prealignment_fraction": written_summary.prealignment_fraction,
             "expectation_matched": expectation_matched,
         }),
