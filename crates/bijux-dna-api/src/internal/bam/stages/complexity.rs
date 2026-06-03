@@ -138,6 +138,12 @@ fn materialize_local_complexity_smoke_case(
         render_complexity_curve(&summary).as_bytes(),
     )?;
     bijux_dna_infra::atomic_write_json(&complexity_summary_path, &summary)?;
+
+    let expectation_matched = summary.observed_total_reads == case.expected_observed_total_reads
+        && summary.observed_unique_reads == case.expected_observed_unique_reads
+        && summary.estimated_unique_reads == case.expected_estimated_unique_reads
+        && summary.insufficient_data_reason == case.expected_insufficient_data_reason;
+
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
         &serde_json::json!({
@@ -152,13 +158,9 @@ fn materialize_local_complexity_smoke_case(
             "saturation_estimate": summary.saturation_estimate,
             "min_reads": summary.min_reads,
             "insufficient_data_reason": summary.insufficient_data_reason,
+            "expectation_matched": expectation_matched,
         }),
     )?;
-
-    let expectation_matched = summary.observed_total_reads == case.expected_observed_total_reads
-        && summary.observed_unique_reads == case.expected_observed_unique_reads
-        && summary.estimated_unique_reads == case.expected_estimated_unique_reads
-        && summary.insufficient_data_reason == case.expected_insufficient_data_reason;
 
     Ok(LocalComplexitySmokeReport {
         schema_version: LOCAL_COMPLEXITY_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
