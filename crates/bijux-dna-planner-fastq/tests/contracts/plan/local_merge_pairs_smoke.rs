@@ -20,8 +20,14 @@ fn local_merge_pairs_smoke_plans_use_governed_overlap_fixture() -> Result<()> {
         panic!("expected exactly one merge smoke case");
     };
     assert_eq!(case.sample_id, "merge-signal-pe");
-    assert_eq!(case.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_with_merge_overlap_R1.fastq"));
-    assert_eq!(case.r2, PathBuf::from("assets/toy/core-v1/fastq/reads_with_merge_overlap_R2.fastq"));
+    assert_eq!(
+        case.r1,
+        PathBuf::from("assets/toy/core-v1/fastq/reads_with_merge_overlap_R1.fastq")
+    );
+    assert_eq!(
+        case.r2,
+        PathBuf::from("assets/toy/core-v1/fastq/reads_with_merge_overlap_R2.fastq")
+    );
     assert_eq!(case.merge_overlap, 8);
     assert_eq!(case.min_length, 12);
     assert_eq!(case.unmerged_read_policy, UnmergedReadPolicy::EmitUnmergedPairs);

@@ -21,10 +21,7 @@ fn local_detect_adapters_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
         .unwrap_or_else(|| panic!("adapter-hit-se case missing from local adapter smoke plans"));
     assert_eq!(adapter_hit.plan.stage_id.as_str(), "fastq.detect_adapters");
     assert_eq!(adapter_hit.plan.tool_id.as_str(), "fastqc");
-    assert_eq!(
-        adapter_hit.r1,
-        PathBuf::from("assets/toy/core-v1/fastq/reads_with_adapter.fastq")
-    );
+    assert_eq!(adapter_hit.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_with_adapter.fastq"));
     assert_eq!(adapter_hit.r2, None);
     assert_eq!(
         adapter_hit.plan.out_dir,
@@ -36,10 +33,7 @@ fn local_detect_adapters_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
         .iter()
         .find(|case| case.sample_id == "adapter-clear-se")
         .unwrap_or_else(|| panic!("adapter-clear-se case missing from local adapter smoke plans"));
-    assert_eq!(
-        adapter_clear.r1,
-        PathBuf::from("assets/toy/core-v1/fastq/reads_1.fastq")
-    );
+    assert_eq!(adapter_clear.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_1.fastq"));
     assert_eq!(adapter_clear.r2, None);
     assert_eq!(
         adapter_clear.plan.out_dir,
@@ -47,7 +41,9 @@ fn local_detect_adapters_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
     );
     assert_eq!(
         adapter_clear.plan.params["adapter_evidence_dir"],
-        serde_json::json!("target/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc/fastqc")
+        serde_json::json!(
+            "target/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc/fastqc"
+        )
     );
 
     Ok(())

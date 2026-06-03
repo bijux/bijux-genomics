@@ -20,10 +20,7 @@ fn local_filter_low_complexity_smoke_plans_use_governed_low_complexity_fixture()
         panic!("expected exactly one low-complexity smoke case");
     };
     assert_eq!(case.sample_id, "low-complexity-se");
-    assert_eq!(
-        case.r1,
-        PathBuf::from("assets/toy/core-v1/fastq/reads_with_low_complexity.fastq")
-    );
+    assert_eq!(case.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_with_low_complexity.fastq"));
     assert_eq!(case.r2, None);
     assert!((case.entropy_threshold - 0.6).abs() < f64::EPSILON);
     assert_eq!(case.polyx_threshold, Some(8));
@@ -68,6 +65,7 @@ fn local_filter_low_complexity_smoke_plans_use_governed_low_complexity_fixture()
 fn local_filter_low_complexity_smoke_stage_api_surface_stays_callable() {
     let _: fn(
         &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalFilterLowComplexitySmokeCasePlan>> =
-        bijux_dna_planner_fastq::stage_api::local_filter_low_complexity_smoke_plans;
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalFilterLowComplexitySmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_filter_low_complexity_smoke_plans;
 }

@@ -3,9 +3,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 
-use crate::artifacts::{
-    FilterLowComplexityReportV1, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,
-};
+use crate::artifacts::{FilterLowComplexityReportV1, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION};
 use crate::params::quality::filter_low_complexity::FilterLowComplexityEffectiveParams;
 use crate::params::PairedMode;
 

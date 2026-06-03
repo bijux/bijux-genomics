@@ -71,6 +71,7 @@ fn local_remove_duplicates_smoke_plans_use_governed_duplicate_fixture() -> Resul
 fn local_remove_duplicates_smoke_stage_api_surface_stays_callable() {
     let _: fn(
         &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalRemoveDuplicatesSmokeCasePlan>> =
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalRemoveDuplicatesSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_remove_duplicates_smoke_plans;
 }

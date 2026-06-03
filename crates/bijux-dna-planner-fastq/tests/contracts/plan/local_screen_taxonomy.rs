@@ -18,10 +18,7 @@ fn local_screen_taxonomy_plan_uses_governed_corpus02_inputs() -> Result<()> {
     assert_eq!(plan.tool_id.as_str(), "kraken2");
     assert_eq!(plan.resources.threads, 4);
     assert_eq!(plan.resources.mem_gb, 16);
-    assert_eq!(
-        plan.out_dir,
-        PathBuf::from("target/local-ready/fastq.screen_taxonomy")
-    );
+    assert_eq!(plan.out_dir, PathBuf::from("target/local-ready/fastq.screen_taxonomy"));
 
     let input_r1 = plan
         .io
@@ -52,7 +49,9 @@ fn local_screen_taxonomy_plan_uses_governed_corpus02_inputs() -> Result<()> {
         .outputs
         .iter()
         .find(|artifact| artifact.name.as_str() == "screen_report_tsv")
-        .unwrap_or_else(|| panic!("screen_report_tsv output missing from local-ready taxonomy plan"));
+        .unwrap_or_else(|| {
+            panic!("screen_report_tsv output missing from local-ready taxonomy plan")
+        });
     assert_eq!(
         summary_output.path,
         PathBuf::from("target/local-ready/fastq.screen_taxonomy/kraken2.report.tsv")
@@ -76,7 +75,9 @@ fn local_screen_taxonomy_plan_uses_governed_corpus02_inputs() -> Result<()> {
         .outputs
         .iter()
         .find(|artifact| artifact.name.as_str() == "unclassified_reads_r1")
-        .unwrap_or_else(|| panic!("unclassified_reads_r1 output missing from local-ready taxonomy plan"));
+        .unwrap_or_else(|| {
+            panic!("unclassified_reads_r1 output missing from local-ready taxonomy plan")
+        });
     assert_eq!(
         unclassified_r1_output.path,
         PathBuf::from("target/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq")
@@ -88,10 +89,7 @@ fn local_screen_taxonomy_plan_uses_governed_corpus02_inputs() -> Result<()> {
     );
     assert_eq!(plan.params["tool"], serde_json::json!("kraken2"));
     assert_eq!(plan.params["threads"], serde_json::json!(4));
-    assert_eq!(
-        plan.effective_params["emit_unclassified"],
-        serde_json::json!(true)
-    );
+    assert_eq!(plan.effective_params["emit_unclassified"], serde_json::json!(true));
     assert_eq!(
         plan.effective_params["database_catalog_id"],
         serde_json::json!("taxonomy_reference")

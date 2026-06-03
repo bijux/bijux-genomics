@@ -12,19 +12,15 @@ fn repo_root() -> PathBuf {
 #[test]
 fn local_trim_terminal_damage_smoke_plans_use_governed_toy_fixture() -> Result<()> {
     let repo_root = repo_root();
-    let plans = bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_smoke_plans(
-        &repo_root,
-    )?;
+    let plans =
+        bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_smoke_plans(&repo_root)?;
     assert_eq!(plans.len(), 1, "governed terminal-damage smoke should keep one curated case");
 
     let case = &plans[0];
     assert_eq!(case.sample_id, "ancient-se");
     assert_eq!(case.plan.stage_id.as_str(), "fastq.trim_terminal_damage");
     assert_eq!(case.plan.tool_id.as_str(), "cutadapt");
-    assert_eq!(
-        case.r1,
-        PathBuf::from("assets/toy/core-v1/fastq/reads_with_adapter.fastq")
-    );
+    assert_eq!(case.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_with_adapter.fastq"));
     assert_eq!(case.r2, None);
     assert_eq!(
         case.plan.out_dir,
@@ -52,6 +48,7 @@ fn local_trim_terminal_damage_smoke_plans_use_governed_toy_fixture() -> Result<(
 fn local_trim_terminal_damage_smoke_stage_api_surface_stays_callable() {
     let _: fn(
         &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalTrimTerminalDamageSmokeCasePlan>> =
-        bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_smoke_plans;
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalTrimTerminalDamageSmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_smoke_plans;
 }

@@ -95,10 +95,7 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("bijux_dna"),
             tool_version: "workspace".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux-dna".to_string(),
-                digest: None,
-            },
+            image: ContainerImageRefV1 { image: "bijux-dna".to_string(), digest: None },
             command: CommandSpecV1 { template: vec!["bijux-dna".to_string()] },
             resources: ToolConstraints {
                 runtime: "local".to_string(),

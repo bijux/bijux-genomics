@@ -12,18 +12,14 @@ fn repo_root() -> PathBuf {
 #[test]
 fn local_trim_polyg_tails_smoke_plans_use_governed_toy_fixture() -> Result<()> {
     let repo_root = repo_root();
-    let plans =
-        bijux_dna_planner_fastq::stage_api::local_trim_polyg_tails_smoke_plans(&repo_root)?;
+    let plans = bijux_dna_planner_fastq::stage_api::local_trim_polyg_tails_smoke_plans(&repo_root)?;
     assert_eq!(plans.len(), 1, "governed polyG smoke should keep one curated case");
 
     let case = &plans[0];
     assert_eq!(case.sample_id, "novaseq-se");
     assert_eq!(case.plan.stage_id.as_str(), "fastq.trim_polyg_tails");
     assert_eq!(case.plan.tool_id.as_str(), "fastp");
-    assert_eq!(
-        case.r1,
-        PathBuf::from("assets/toy/core-v1/fastq/reads_with_polyg.fastq")
-    );
+    assert_eq!(case.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_with_polyg.fastq"));
     assert_eq!(case.r2, None);
     assert_eq!(case.min_polyg_run, 6);
     assert_eq!(
@@ -45,6 +41,9 @@ fn local_trim_polyg_tails_smoke_plans_use_governed_toy_fixture() -> Result<()> {
 
 #[test]
 fn local_trim_polyg_tails_smoke_stage_api_surface_stays_callable() {
-    let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalTrimPolygTailsSmokeCasePlan>> =
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalTrimPolygTailsSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_trim_polyg_tails_smoke_plans;
 }

@@ -1,16 +1,13 @@
 use std::collections::BTreeSet;
 
+use bijux_dna_core::ids::StageId;
 use bijux_dna_domain_fastq::execution_support::{
     benchmark_cohort_stage_ids, execution_support_for_stage, ExecutionStatus,
 };
 use bijux_dna_domain_fastq::{FASTQ_LOCAL_BENCH_STAGE_ID_CATALOG, FASTQ_STAGE_ID_CATALOG};
-use bijux_dna_core::ids::StageId;
 
 fn local_stage_ids() -> BTreeSet<String> {
-    FASTQ_LOCAL_BENCH_STAGE_ID_CATALOG
-        .iter()
-        .map(|stage_id| (*stage_id).to_string())
-        .collect()
+    FASTQ_LOCAL_BENCH_STAGE_ID_CATALOG.iter().map(|stage_id| (*stage_id).to_string()).collect()
 }
 
 #[test]
@@ -50,12 +47,10 @@ fn local_fastq_benchmark_catalog_matches_benchmark_surface_plus_local_dry_runs()
         .map(|stage_id| stage_id.to_string())
         .collect::<BTreeSet<_>>();
     let expected = benchmark_surface
-        .union(
-            &BTreeSet::from([
-                "fastq.detect_duplicates_premerge".to_string(),
-                "fastq.estimate_library_complexity_prealign".to_string(),
-            ]),
-        )
+        .union(&BTreeSet::from([
+            "fastq.detect_duplicates_premerge".to_string(),
+            "fastq.estimate_library_complexity_prealign".to_string(),
+        ]))
         .cloned()
         .collect::<BTreeSet<_>>();
 
@@ -67,10 +62,9 @@ fn local_fastq_benchmark_catalog_matches_benchmark_surface_plus_local_dry_runs()
 
 #[test]
 fn local_only_dry_run_stages_remain_declared_only_in_execution_support() {
-    for stage_id in [
-        "fastq.detect_duplicates_premerge",
-        "fastq.estimate_library_complexity_prealign",
-    ] {
+    for stage_id in
+        ["fastq.detect_duplicates_premerge", "fastq.estimate_library_complexity_prealign"]
+    {
         let support = execution_support_for_stage(&StageId::from_static(stage_id))
             .unwrap_or_else(|| panic!("{stage_id} must stay in FASTQ execution support"));
         assert_eq!(

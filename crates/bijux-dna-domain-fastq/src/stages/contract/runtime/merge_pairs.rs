@@ -45,7 +45,8 @@ pub fn merge_pairs(
     let mut unmerged_right = Vec::<FastqRecord>::new();
 
     for (left_record, right_record) in left.iter().cloned().zip(right.iter().cloned()) {
-        if let Some((sequence, quality)) = merge_record_pair(&left_record, &right_record, minimum_overlap)
+        if let Some((sequence, quality)) =
+            merge_record_pair(&left_record, &right_record, minimum_overlap)
         {
             merged_records.push(FastqRecord {
                 header: left_record.header.clone(),
@@ -65,14 +66,8 @@ pub fn merge_pairs(
 
     write_fastq_records(merged_reads, &merged_records)?;
     if params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
-        write_fastq_records(
-            unmerged_reads_r1.expect("validated above"),
-            &unmerged_left,
-        )?;
-        write_fastq_records(
-            unmerged_reads_r2.expect("validated above"),
-            &unmerged_right,
-        )?;
+        write_fastq_records(unmerged_reads_r1.expect("validated above"), &unmerged_left)?;
+        write_fastq_records(unmerged_reads_r2.expect("validated above"), &unmerged_right)?;
     }
 
     let reads_merged = merged_records.len() as u64;
@@ -131,10 +126,8 @@ fn merge_record_pair(
     let maximum_overlap = left.sequence.len().min(right_sequence.len());
     for overlap in (minimum_overlap..=maximum_overlap).rev() {
         if left.sequence.ends_with(&right_sequence[..overlap]) {
-            let merged_sequence =
-                format!("{}{}", left.sequence, &right_sequence[overlap..]);
-            let merged_quality =
-                format!("{}{}", left.quality, &right_quality[overlap..]);
+            let merged_sequence = format!("{}{}", left.sequence, &right_sequence[overlap..]);
+            let merged_quality = format!("{}{}", left.quality, &right_quality[overlap..]);
             return Some((merged_sequence, merged_quality));
         }
     }
@@ -159,7 +152,9 @@ fn reverse_complement(sequence: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::merge_pairs;
-    use crate::params::merge::{MergeEffectiveParams, MergeEngine, UnmergedReadPolicy, MERGE_SCHEMA_VERSION};
+    use crate::params::merge::{
+        MergeEffectiveParams, MergeEngine, UnmergedReadPolicy, MERGE_SCHEMA_VERSION,
+    };
     use crate::params::PairedMode;
     use crate::stages::contract::runtime::fastq_io::read_fastq_records;
 

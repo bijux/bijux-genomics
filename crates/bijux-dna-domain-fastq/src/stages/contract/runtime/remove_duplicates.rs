@@ -132,7 +132,8 @@ pub fn remove_duplicates(
         output_r1: output_r1.display().to_string(),
         output_r2: output_r2.map(|path| path.display().to_string()),
         raw_backend_report: raw_backend_report.map(|path| path.display().to_string()),
-        raw_backend_report_format: raw_backend_report.map(|_| "bijux_remove_duplicates_trace".to_string()),
+        raw_backend_report_format: raw_backend_report
+            .map(|_| "bijux_remove_duplicates_trace".to_string()),
     };
     bijux_dna_infra::atomic_write_json(duplicate_provenance_json, &provenance)?;
 
@@ -172,7 +173,8 @@ pub fn remove_duplicates(
         duplicate_provenance_json: Some(duplicate_provenance_json.display().to_string()),
         duplicate_classes: vec![duplicate_class],
         raw_backend_report: raw_backend_report.map(|path| path.display().to_string()),
-        raw_backend_report_format: raw_backend_report.map(|_| "bijux_remove_duplicates_trace".to_string()),
+        raw_backend_report_format: raw_backend_report
+            .map(|_| "bijux_remove_duplicates_trace".to_string()),
         runtime_s: None,
         memory_mb: None,
     };

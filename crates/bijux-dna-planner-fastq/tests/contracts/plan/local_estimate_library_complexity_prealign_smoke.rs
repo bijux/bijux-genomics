@@ -10,7 +10,8 @@ fn repo_root() -> PathBuf {
 }
 
 #[test]
-fn local_estimate_library_complexity_prealign_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
+fn local_estimate_library_complexity_prealign_smoke_plans_use_governed_toy_fixtures() -> Result<()>
+{
     let repo_root = repo_root();
     let plans =
         bijux_dna_planner_fastq::stage_api::local_estimate_library_complexity_prealign_smoke_plans(
@@ -22,14 +23,11 @@ fn local_estimate_library_complexity_prealign_smoke_plans_use_governed_toy_fixtu
         "governed local-smoke config must keep complexity-hit and clear coverage"
     );
 
-    let complexity_hit = plans
-        .iter()
-        .find(|case| case.sample_id == "complexity-hit-pe")
-        .unwrap_or_else(|| panic!("complexity-hit-pe case missing from local complexity smoke plans"));
-    assert_eq!(
-        complexity_hit.plan.stage_id.as_str(),
-        "fastq.estimate_library_complexity_prealign"
-    );
+    let complexity_hit =
+        plans.iter().find(|case| case.sample_id == "complexity-hit-pe").unwrap_or_else(|| {
+            panic!("complexity-hit-pe case missing from local complexity smoke plans")
+        });
+    assert_eq!(complexity_hit.plan.stage_id.as_str(), "fastq.estimate_library_complexity_prealign");
     assert_eq!(complexity_hit.plan.tool_id.as_str(), "bijux_dna");
     assert_eq!(
         complexity_hit.r1,
@@ -54,18 +52,12 @@ fn local_estimate_library_complexity_prealign_smoke_plans_use_governed_toy_fixtu
         )
     );
 
-    let complexity_clear = plans
-        .iter()
-        .find(|case| case.sample_id == "complexity-clear-pe")
-        .unwrap_or_else(|| panic!("complexity-clear-pe case missing from local complexity smoke plans"));
-    assert_eq!(
-        complexity_clear.r1,
-        PathBuf::from("assets/toy/core-v1/fastq/reads_1.fastq")
-    );
-    assert_eq!(
-        complexity_clear.r2,
-        Some(PathBuf::from("assets/toy/core-v1/fastq/reads_2.fastq"))
-    );
+    let complexity_clear =
+        plans.iter().find(|case| case.sample_id == "complexity-clear-pe").unwrap_or_else(|| {
+            panic!("complexity-clear-pe case missing from local complexity smoke plans")
+        });
+    assert_eq!(complexity_clear.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_1.fastq"));
+    assert_eq!(complexity_clear.r2, Some(PathBuf::from("assets/toy/core-v1/fastq/reads_2.fastq")));
     assert_eq!(
         complexity_clear.plan.out_dir,
         PathBuf::from(
@@ -76,14 +68,8 @@ fn local_estimate_library_complexity_prealign_smoke_plans_use_governed_toy_fixtu
         complexity_clear.plan.effective_params["paired_mode"],
         serde_json::json!("paired_end")
     );
-    assert_eq!(
-        complexity_clear.plan.effective_params["advisory_only"],
-        serde_json::json!(true)
-    );
-    assert_eq!(
-        complexity_clear.plan.effective_params["kmer_size"],
-        serde_json::json!(4)
-    );
+    assert_eq!(complexity_clear.plan.effective_params["advisory_only"], serde_json::json!(true));
+    assert_eq!(complexity_clear.plan.effective_params["kmer_size"], serde_json::json!(4));
 
     Ok(())
 }

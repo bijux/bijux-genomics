@@ -12,9 +12,10 @@ fn repo_root() -> PathBuf {
 #[test]
 fn local_profile_overrepresented_sequences_smoke_plans_use_governed_repeat_fixture() -> Result<()> {
     let repo_root = repo_root();
-    let plans = bijux_dna_planner_fastq::stage_api::local_profile_overrepresented_sequences_smoke_plans(
-        &repo_root,
-    )?;
+    let plans =
+        bijux_dna_planner_fastq::stage_api::local_profile_overrepresented_sequences_smoke_plans(
+            &repo_root,
+        )?;
     assert_eq!(plans.len(), 1, "governed overrepresented smoke should keep one focused case");
 
     let case = &plans[0];

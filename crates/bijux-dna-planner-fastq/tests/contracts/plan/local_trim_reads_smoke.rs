@@ -21,10 +21,7 @@ fn local_trim_reads_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
         .unwrap_or_else(|| panic!("single-end trim smoke case missing"));
     assert_eq!(se_case.plan.stage_id.as_str(), "fastq.trim_reads");
     assert_eq!(se_case.plan.tool_id.as_str(), "fastp");
-    assert_eq!(
-        se_case.r1,
-        PathBuf::from("assets/toy/core-v1/fastq/reads_with_trim_signals.fastq")
-    );
+    assert_eq!(se_case.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_with_trim_signals.fastq"));
     assert_eq!(se_case.r2, None);
     assert_eq!(se_case.min_length, 4);
     assert_eq!(se_case.quality_cutoff, Some(20));

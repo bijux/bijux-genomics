@@ -76,6 +76,9 @@ fn local_correct_errors_smoke_plans_use_governed_paired_fixture() -> Result<()> 
 
 #[test]
 fn local_correct_errors_smoke_stage_api_surface_stays_callable() {
-    let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalCorrectErrorsSmokeCasePlan>> =
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalCorrectErrorsSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_correct_errors_smoke_plans;
 }

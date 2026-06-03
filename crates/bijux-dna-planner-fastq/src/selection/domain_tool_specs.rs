@@ -94,18 +94,9 @@ pub fn load_fastq_domain_tool_contract_metadata(
         }
     };
 
-    let stage_ids = parsed
-        .stage_ids
-        .iter()
-        .cloned()
-        .map(StageId::new)
-        .collect::<Vec<_>>();
-    let planned_stage_ids = parsed
-        .planned_stage_ids
-        .iter()
-        .cloned()
-        .map(StageId::new)
-        .collect::<Vec<_>>();
+    let stage_ids = parsed.stage_ids.iter().cloned().map(StageId::new).collect::<Vec<_>>();
+    let planned_stage_ids =
+        parsed.planned_stage_ids.iter().cloned().map(StageId::new).collect::<Vec<_>>();
 
     Ok(FastqDomainToolContractMetadata {
         tool_id: tool_id.clone(),
@@ -297,9 +288,7 @@ mod tests {
             "seqpurge metadata must retain admitted FASTQ stages"
         );
         assert_eq!(
-            metadata
-                .pair_support_level(&StageId::new("fastq.trim_reads".to_string()))
-                .as_str(),
+            metadata.pair_support_level(&StageId::new("fastq.trim_reads".to_string())).as_str(),
             "planned"
         );
         Ok(())
@@ -325,9 +314,7 @@ mod tests {
             "seqfu must retain planned normalize-abundance admission"
         );
         assert_eq!(
-            metadata
-                .pair_support_level(&StageId::new("fastq.profile_reads".to_string()))
-                .as_str(),
+            metadata.pair_support_level(&StageId::new("fastq.profile_reads".to_string())).as_str(),
             "supported"
         );
         assert_eq!(

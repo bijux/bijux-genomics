@@ -456,9 +456,8 @@ fn kraken2_screen_script(
     } else {
         shell_quote_path(r1)
     };
-    let unclassified_clause = unclassified_output_pattern.map_or_else(String::new, |path| {
-        format!(" --unclassified-out {}", shell_quote_path(path))
-    });
+    let unclassified_clause = unclassified_output_pattern
+        .map_or_else(String::new, |path| format!(" --unclassified-out {}", shell_quote_path(path)));
     format!(
         "mkdir -p {db}\n\
          kraken2 --db {db} --threads {threads} --report {native_report} --output {native_assignments}{unclassified_clause} {reads}\n\

@@ -122,7 +122,10 @@ fn profile_reads_command(
                 &[
                     ("threads", Some(threads.to_string())),
                     ("reads_r1", Some(r1.display().to_string())),
-                    ("reads_r2", Some(r2.map(|path| path.display().to_string()).unwrap_or_default())),
+                    (
+                        "reads_r2",
+                        Some(r2.map(|path| path.display().to_string()).unwrap_or_default()),
+                    ),
                 ],
             )?;
             rendered.into_iter().filter(|token| !token.is_empty()).collect::<Vec<_>>()
@@ -248,7 +251,16 @@ mod tests {
         assert_eq!(plan.resources.threads, 6);
         assert_eq!(
             plan.command.template,
-            vec!["seqkit", "stats", "-a", "-T", "-j", "6", "reads_R1.fastq.gz", "reads_R2.fastq.gz",]
+            vec![
+                "seqkit",
+                "stats",
+                "-a",
+                "-T",
+                "-j",
+                "6",
+                "reads_R1.fastq.gz",
+                "reads_R2.fastq.gz",
+            ]
         );
     }
 

@@ -40,7 +40,8 @@ pub fn profile_overrepresented_sequences(
         ));
     }
 
-    let observed_paired_mode = if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd };
+    let observed_paired_mode =
+        if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd };
     if params.paired_mode != observed_paired_mode {
         return Err(anyhow!(
             "fastq.profile_overrepresented_sequences paired_mode mismatch: params={}, inputs={}",
@@ -134,7 +135,8 @@ pub fn profile_overrepresented_sequences(
         memory_mb: None,
         exit_code: Some(0),
         raw_backend_report: raw_backend_report.map(|path| path.display().to_string()),
-        raw_backend_report_format: raw_backend_report.map(|_| RAW_BACKEND_REPORT_FORMAT.to_string()),
+        raw_backend_report_format: raw_backend_report
+            .map(|_| RAW_BACKEND_REPORT_FORMAT.to_string()),
     };
     bijux_dna_infra::atomic_write_json(report_json, &report)?;
     Ok(report)
@@ -145,16 +147,9 @@ fn ranked_rows(
     total_sequences: u64,
     top_k: u32,
 ) -> Vec<OverrepresentedSequenceRowV1> {
-    let mut ranked = counts
-        .iter()
-        .map(|(sequence, count)| (sequence.clone(), *count))
-        .collect::<Vec<_>>();
-    ranked.sort_by(|left, right| {
-        right
-            .1
-            .cmp(&left.1)
-            .then_with(|| left.0.cmp(&right.0))
-    });
+    let mut ranked =
+        counts.iter().map(|(sequence, count)| (sequence.clone(), *count)).collect::<Vec<_>>();
+    ranked.sort_by(|left, right| right.1.cmp(&left.1).then_with(|| left.0.cmp(&right.0)));
     ranked
         .into_iter()
         .take(top_k as usize)

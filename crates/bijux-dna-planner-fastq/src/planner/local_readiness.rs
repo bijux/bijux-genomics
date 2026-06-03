@@ -7,9 +7,9 @@ use bijux_dna_domain_fastq::{STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY};
 use serde::Deserialize;
 
 use crate::selection::{
-    load_fastq_domain_tool_execution_spec, select_deplete_host_tools, select_deplete_rrna_tools,
-    select_deplete_reference_contaminants_tools, select_index_reference_tools,
-    select_screen_tools,
+    load_fastq_domain_tool_execution_spec, select_deplete_host_tools,
+    select_deplete_reference_contaminants_tools, select_deplete_rrna_tools,
+    select_index_reference_tools, select_screen_tools,
 };
 use crate::tool_adapters::fastq::deplete_host::plan_host_depletion_with_options;
 use crate::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen_with_options;
@@ -30,8 +30,7 @@ const DEFAULT_LOCAL_DEPLETE_REFERENCE_CONTAMINANTS_OUTPUT_DIR: &str =
 const DEFAULT_LOCAL_INDEX_REFERENCE_OUTPUT_DIR: &str = "target/local-ready/fastq.index_reference";
 const DEFAULT_LOCAL_DEPLETE_HOST_OUTPUT_DIR: &str = "target/local-ready/fastq.deplete_host";
 const DEFAULT_LOCAL_DEPLETE_RRNA_OUTPUT_DIR: &str = "target/local-ready/fastq.deplete_rrna";
-const DEFAULT_LOCAL_SCREEN_TAXONOMY_OUTPUT_DIR: &str =
-    "target/local-ready/fastq.screen_taxonomy";
+const DEFAULT_LOCAL_SCREEN_TAXONOMY_OUTPUT_DIR: &str = "target/local-ready/fastq.screen_taxonomy";
 
 #[derive(Debug, Deserialize)]
 struct LocalIndexReferencePlanConfig {
@@ -172,9 +171,8 @@ pub fn local_deplete_host_plan(repo_root: &Path) -> Result<bijux_dna_stage_contr
 
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
-    let out_dir = config
-        .output_dir
-        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DEPLETE_HOST_OUTPUT_DIR));
+    let out_dir =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DEPLETE_HOST_OUTPUT_DIR));
 
     plan_host_depletion_with_options(
         &tool_spec,
@@ -232,9 +230,9 @@ pub fn local_deplete_reference_contaminants_plan(
 
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
-    let out_dir = config.output_dir.unwrap_or_else(|| {
-        PathBuf::from(DEFAULT_LOCAL_DEPLETE_REFERENCE_CONTAMINANTS_OUTPUT_DIR)
-    });
+    let out_dir = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DEPLETE_REFERENCE_CONTAMINANTS_OUTPUT_DIR));
 
     plan_contaminant_screen_with_options(
         &tool_spec,
@@ -285,9 +283,8 @@ pub fn local_deplete_rrna_plan(repo_root: &Path) -> Result<bijux_dna_stage_contr
 
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
-    let out_dir = config
-        .output_dir
-        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DEPLETE_RRNA_OUTPUT_DIR));
+    let out_dir =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DEPLETE_RRNA_OUTPUT_DIR));
 
     plan_rrna_with_options(
         &tool_spec,
@@ -417,9 +414,7 @@ fn load_local_deplete_reference_contaminants_plan_config(
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     let config: LocalDepleteReferenceContaminantsPlanConfig =
         toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
-    if config.schema_version
-        != "bijux.bench.fastq.local_deplete_reference_contaminants.v1"
-    {
+    if config.schema_version != "bijux.bench.fastq.local_deplete_reference_contaminants.v1" {
         return Err(anyhow!(
             "unsupported local-ready fastq.deplete_reference_contaminants schema_version `{}`",
             config.schema_version
@@ -470,14 +465,7 @@ fn ensure_bowtie2_index_prefix_exists(prefix: &Path, label: &str) -> Result<()> 
         .ok_or_else(|| anyhow!("{label} reference index prefix has no file name"))?
         .to_string_lossy()
         .into_owned();
-    let required_suffixes = [
-        ".1.bt2",
-        ".2.bt2",
-        ".3.bt2",
-        ".4.bt2",
-        ".rev.1.bt2",
-        ".rev.2.bt2",
-    ];
+    let required_suffixes = [".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"];
     let missing = required_suffixes
         .into_iter()
         .map(|suffix| prefix.with_file_name(format!("{file_name}{suffix}")))
@@ -493,10 +481,7 @@ fn ensure_bowtie2_index_prefix_exists(prefix: &Path, label: &str) -> Result<()> 
 
 fn ensure_taxonomy_database_root_exists(prefix: &Path, tool_id: &str, label: &str) -> Result<()> {
     if !prefix.is_dir() {
-        return Err(anyhow!(
-            "{label} taxonomy database root is missing: {}",
-            prefix.display()
-        ));
+        return Err(anyhow!("{label} taxonomy database root is missing: {}", prefix.display()));
     }
     match tool_id {
         "kraken2" => ensure_required_directory(&prefix.join("kraken2"), label, "Kraken2 database"),
@@ -515,11 +500,7 @@ fn ensure_taxonomy_database_root_exists(prefix: &Path, tool_id: &str, label: &st
                 label,
                 "Kaiju taxonomy nodes",
             )?;
-            ensure_required_file(
-                &prefix.join("taxonomy/names.dmp"),
-                label,
-                "Kaiju taxonomy names",
-            )
+            ensure_required_file(&prefix.join("taxonomy/names.dmp"), label, "Kaiju taxonomy names")
         }
         _ => Err(anyhow!(
             "{label} does not support taxonomy database validation for tool `{tool_id}`"
@@ -531,10 +512,7 @@ fn ensure_required_directory(path: &Path, label: &str, kind: &str) -> Result<()>
     if path.is_dir() {
         Ok(())
     } else {
-        Err(anyhow!(
-            "{label} {kind} is missing: {}",
-            path.display()
-        ))
+        Err(anyhow!("{label} {kind} is missing: {}", path.display()))
     }
 }
 
@@ -542,9 +520,6 @@ fn ensure_required_file(path: &Path, label: &str, kind: &str) -> Result<()> {
     if path.is_file() {
         Ok(())
     } else {
-        Err(anyhow!(
-            "{label} {kind} is missing: {}",
-            path.display()
-        ))
+        Err(anyhow!("{label} {kind} is missing: {}", path.display()))
     }
 }

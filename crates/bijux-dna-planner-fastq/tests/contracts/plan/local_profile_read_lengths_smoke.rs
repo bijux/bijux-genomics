@@ -55,7 +55,7 @@ fn local_profile_read_lengths_smoke_plans_use_governed_toy_fixtures() -> Result<
 fn local_profile_read_lengths_smoke_stage_api_surface_stays_callable() {
     let _: fn(
         &Path,
-    )
-        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalProfileReadLengthsSmokeCasePlan>> =
-        bijux_dna_planner_fastq::stage_api::local_profile_read_lengths_smoke_plans;
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalProfileReadLengthsSmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_profile_read_lengths_smoke_plans;
 }
