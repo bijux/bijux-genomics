@@ -1573,6 +1573,80 @@ fn bench_local_materialize_stage_bam_haplogroups_json_writes_governed_plan_bundl
     );
 }
 
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_materialize_stage_bam_genotyping_json_writes_governed_plan_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.genotyping",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.genotyping")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/bam.genotyping/plan.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let plan: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&artifact_path).expect("read bam.genotyping plan"))
+            .expect("parse bam.genotyping plan");
+
+    assert_eq!(plan.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.genotyping"));
+    assert_eq!(plan.get("tool_id").and_then(serde_json::Value::as_str), Some("angsd"));
+    assert_eq!(
+        plan.get("out_dir").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/bam.genotyping")
+    );
+    assert_eq!(
+        plan.get("params").and_then(|params| params.get("sample_id")),
+        Some(&serde_json::json!("core-v1-genotyping-panel-sites"))
+    );
+    assert_eq!(
+        plan.get("params").and_then(|params| params.get("producer_contract")),
+        Some(&serde_json::json!({
+            "bcf": "target/local-ready/bam.genotyping/genotyping.bcf",
+            "gl": "target/local-ready/bam.genotyping/genotyping.gl.json",
+            "tbi": "target/local-ready/bam.genotyping/genotyping.vcf.gz.tbi",
+            "vcf": "target/local-ready/bam.genotyping/genotyping.vcf.gz"
+        }))
+    );
+
+    let genotyping_bcf = plan["io"]["outputs"]
+        .as_array()
+        .and_then(|outputs| {
+            outputs.iter().find(|artifact| artifact["name"] == serde_json::json!("genotyping_bcf"))
+        })
+        .unwrap_or_else(|| panic!("genotyping_bcf output missing from CLI materialized plan"));
+    assert_eq!(
+        genotyping_bcf["path"],
+        serde_json::json!("target/local-ready/bam.genotyping/genotyping.bcf")
+    );
+    assert!(
+        plan["command"]["template"].as_array().is_some_and(|command| command.iter().any(
+            |part| part.as_str().is_some_and(|shell| {
+                shell.contains("assets/toy/core-v1/bam/genotyping_panel_sites.sam")
+                    && shell.contains("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai")
+                    && shell.contains("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
+                    && shell.contains("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
+                    && shell.contains("assets/toy/core-v1/bam/genotyping_target_regions.txt")
+                    && shell.contains("target/local-ready/bam.genotyping/genotyping.bcf")
+                    && shell.contains("target/local-ready/bam.genotyping/genotyping.vcf.gz")
+            })
+        )),
+        "CLI materialized genotyping plan must carry the governed BAM, BAI, reference, sites, regions, and variant output paths"
+    );
+}
+
 #[test]
 fn bench_local_materialize_stage_bam_damage_json_writes_governed_smoke_bundle() {
     let (repo_root, payload) = run_cli_json_with_repo_root(&[
