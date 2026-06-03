@@ -950,6 +950,83 @@ fn bench_local_materialize_stage_bam_endogenous_content_json_writes_governed_smo
 }
 
 #[test]
+fn bench_local_materialize_stage_bam_sex_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.sex",
+        "--json",
+    ]);
+
+    assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.sex"));
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.sex/sex.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let report: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&artifact_path).expect("read bam.sex report"))
+            .expect("parse bam.sex report");
+
+    assert_eq!(
+        report.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.sex.local_smoke.report.v1")
+    );
+    assert_eq!(
+        report.get("sample_id").and_then(serde_json::Value::as_str),
+        Some("core-v1-sex-xy-autosome-male")
+    );
+    assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(report.get("method").and_then(serde_json::Value::as_str), Some("rxy"));
+    assert_eq!(report.get("chromosome_system").and_then(serde_json::Value::as_str), Some("xy"));
+    assert_eq!(report.get("minimum_y_sites").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(report.get("x_coverage").and_then(serde_json::Value::as_f64), Some(0.5));
+    assert_eq!(report.get("y_coverage").and_then(serde_json::Value::as_f64), Some(0.5));
+    assert_eq!(report.get("autosomal_coverage").and_then(serde_json::Value::as_f64), Some(1.0));
+    assert_eq!(report.get("x_to_y_ratio").and_then(serde_json::Value::as_f64), Some(1.0));
+    assert_eq!(report.get("call").and_then(serde_json::Value::as_str), Some("male"));
+    assert_eq!(report.get("confidence").and_then(serde_json::Value::as_f64), Some(0.9));
+    assert_eq!(report.get("status").and_then(serde_json::Value::as_str), Some("ok"));
+    assert_eq!(report.get("insufficiency_reason"), Some(&serde_json::Value::Null));
+
+    let sex_report = repo_root.join(
+        report
+            .get("sex_report")
+            .and_then(serde_json::Value::as_str)
+            .expect("sex report path"),
+    );
+    let sex_summary = repo_root.join(
+        report
+            .get("sex_summary")
+            .and_then(serde_json::Value::as_str)
+            .expect("sex summary path"),
+    );
+    let stage_metrics = repo_root.join(
+        report
+            .get("stage_metrics")
+            .and_then(serde_json::Value::as_str)
+            .expect("stage metrics path"),
+    );
+    assert!(
+        sex_report.is_file(),
+        "bam.sex smoke bundle must expose the governed sex report"
+    );
+    assert!(
+        sex_summary.is_file(),
+        "bam.sex smoke bundle must expose the governed sex summary"
+    );
+    assert!(
+        stage_metrics.is_file(),
+        "bam.sex smoke bundle must expose the governed stage metrics"
+    );
+}
+
+#[test]
 fn bench_local_materialize_stage_bam_overlap_correction_json_writes_governed_smoke_bundle() {
     let (repo_root, payload) = run_cli_json_with_repo_root(&[
         "bench",
