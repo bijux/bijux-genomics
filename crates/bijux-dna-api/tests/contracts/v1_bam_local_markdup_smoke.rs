@@ -60,6 +60,8 @@ fn write_local_markdup_smoke_report_materializes_governed_outputs() -> Result<()
 
     let marked_bam = repo_root
         .join(payload["marked_bam"].as_str().unwrap_or_else(|| panic!("marked_bam path missing")));
+    let marked_bai = repo_root
+        .join(payload["marked_bai"].as_str().unwrap_or_else(|| panic!("marked_bai path missing")));
     let markdup_summary = repo_root.join(
         payload["markdup_summary"]
             .as_str()
@@ -99,6 +101,7 @@ fn write_local_markdup_smoke_report_materializes_governed_outputs() -> Result<()
     );
     for path in [
         &marked_bam,
+        &marked_bai,
         &markdup_summary,
         &duplicate_metrics,
         &markdup_policy,
@@ -144,6 +147,23 @@ fn write_local_markdup_smoke_report_materializes_governed_outputs() -> Result<()
         serde_json::json!("bijux.bam.duplicate_comparison.v1")
     );
     assert_eq!(comparison_json["comparable"], serde_json::json!(true));
+
+    let stage_metrics_json: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&stage_metrics)?)?;
+    assert_eq!(
+        stage_metrics_json["schema_version"],
+        serde_json::json!("bijux.bam.markdup.local_smoke.metrics.v1")
+    );
+    assert_eq!(stage_metrics_json["duplicate_action"], serde_json::json!("mark"));
+    assert_eq!(stage_metrics_json["input_reads"], serde_json::json!(4));
+    assert_eq!(stage_metrics_json["output_reads"], serde_json::json!(4));
+    assert_eq!(stage_metrics_json["removed_reads"], serde_json::json!(0));
+    assert_eq!(stage_metrics_json["duplicate_count"], serde_json::json!(1));
+    assert_eq!(stage_metrics_json["duplicate_fraction"], serde_json::json!(0.25));
+    assert_eq!(stage_metrics_json["duplicate_reads_before"], serde_json::json!(0));
+    assert_eq!(stage_metrics_json["duplicate_reads_after"], serde_json::json!(1));
+    assert_eq!(stage_metrics_json["newly_marked_reads"], serde_json::json!(1));
+    assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 
     Ok(())
 }
