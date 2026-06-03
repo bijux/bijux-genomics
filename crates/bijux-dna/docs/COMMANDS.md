@@ -128,6 +128,14 @@ Visible aliases are part of the operator surface:
   `parser_status`, and `corpus_status`. The report proves which BAM benchmark rows are already
   fully renderable with parser-fixture-validated outputs and fixture-backed corpus coverage while
   keeping parser-blocked, corpus-blocked, and support-blocked rows explicit.
+- `bijux-dna bench readiness render-bam-adapter-output-contract`
+  `render-bam-adapter-output-contract` writes
+  `target/bench-readiness/bam-adapter-output-contract.tsv` with one governed row per BAM
+  stage-tool binding in the 24-stage benchmark slice, proving whether each runnable or plannable
+  adapter declares every governed stage artifact in both `tool.outputs` and
+  `execution_contract.expected_outputs`, identifies the normalized metrics artifact and
+  stage-specific raw backend artifacts where applicable, and records the deterministic stdout,
+  stderr, and stage-result manifest path templates used by local dry-run execution.
 - `bijux-dna bench readiness render-fastq-command-adapter-coverage`
   `render-fastq-command-adapter-coverage` writes
   `target/bench-readiness/fastq-command-adapter-coverage.tsv` with one governed row per FASTQ
