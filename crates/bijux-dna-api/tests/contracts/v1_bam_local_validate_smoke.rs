@@ -107,6 +107,10 @@ fn write_local_validate_smoke_report_materializes_governed_outputs() -> Result<(
             "stage metrics must retain the validation status alias"
         );
         assert_eq!(
+            stage_metrics_payload["expectation_matched"], case["expectation_matched"],
+            "stage metrics must retain the governed expectation match state"
+        );
+        assert_eq!(
             stage_metrics_payload["validation_errors"], case["validation_errors"],
             "stage metrics must retain the validation errors alias"
         );
