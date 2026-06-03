@@ -7,8 +7,8 @@ use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
 use bijux_dna_core::prelude::ArtifactId;
 use noodles_bam as bam;
 use noodles_sam::alignment::record::data::field::{Tag, Value};
-use noodles_sam::header::record::value::map::read_group::tag as read_group_tag;
 use noodles_sam::header::record::value::map::header::{sort_order::COORDINATE, tag::SORT_ORDER};
+use noodles_sam::header::record::value::map::read_group::tag as read_group_tag;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -153,6 +153,16 @@ pub struct BamValidationSummaryV1 {
     pub validation_report_present: bool,
     #[serde(default)]
     pub refusal_codes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BamTinyAlignmentInspectionV1 {
+    pub sort_order: Option<String>,
+    pub header_contigs: Vec<String>,
+    pub header_sample_ids: Vec<String>,
+    pub read_group_ids: Vec<String>,
+    pub mapped_record_contigs: Vec<String>,
+    pub record_count: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -1092,6 +1102,39 @@ fn parse_tiny_alignment(path: &Path) -> Result<TinySamDocument> {
     }
 }
 
+pub fn inspect_tiny_alignment(path: &Path) -> Result<BamTinyAlignmentInspectionV1> {
+    let document = parse_tiny_alignment(path)?;
+    let mut header_contigs = document.references.clone();
+    header_contigs.sort();
+    header_contigs.dedup();
+
+    let mut header_sample_ids = document.read_group_samples.clone();
+    header_sample_ids.sort();
+    header_sample_ids.dedup();
+
+    let mut read_group_ids = document.read_groups.clone();
+    read_group_ids.sort();
+    read_group_ids.dedup();
+
+    let mut mapped_record_contigs = document
+        .records
+        .iter()
+        .filter(|record| record.is_mapped())
+        .map(|record| record.rname.clone())
+        .collect::<Vec<_>>();
+    mapped_record_contigs.sort();
+    mapped_record_contigs.dedup();
+
+    Ok(BamTinyAlignmentInspectionV1 {
+        sort_order: document.sort_order,
+        header_contigs,
+        header_sample_ids,
+        read_group_ids,
+        mapped_record_contigs,
+        record_count: document.records.len() as u64,
+    })
+}
+
 fn parse_tiny_sam(path: &Path) -> Result<TinySamDocument> {
     let mut document = TinySamDocument::default();
     let payload = std::fs::read_to_string(path)?;
@@ -1222,10 +1265,7 @@ fn parse_tiny_bam(path: &Path) -> Result<TinySamDocument> {
     for (name, reference_sequence) in header.reference_sequences() {
         let reference_name = String::from_utf8_lossy(name.as_ref()).into_owned();
         document.references.push(reference_name.clone());
-        document.reference_lengths.insert(
-            reference_name,
-            reference_sequence.length().get() as u64,
-        );
+        document.reference_lengths.insert(reference_name, reference_sequence.length().get() as u64);
     }
 
     for (read_group_id, read_group) in header.read_groups() {
@@ -1255,7 +1295,9 @@ fn parse_tiny_bam(path: &Path) -> Result<TinySamDocument> {
             .get(&Tag::READ_GROUP)
             .transpose()?
             .map(|value| match value {
-                Value::String(read_group) => Ok(String::from_utf8_lossy(read_group.as_ref()).into_owned()),
+                Value::String(read_group) => {
+                    Ok(String::from_utf8_lossy(read_group.as_ref()).into_owned())
+                }
                 _ => Err(anyhow!("BAM READ_GROUP tag is not a string")),
             })
             .transpose()?;
@@ -4231,8 +4273,13 @@ pub fn summarize_tiny_bam_kinship(
             let Some(calls_b) = sample_site_calls.get(sample_b) else {
                 continue;
             };
-            let (overlap_snps, result) =
-                build_tiny_kinship_pair_result(sample_a, sample_b, calls_a, calls_b, min_overlap_snps);
+            let (overlap_snps, result) = build_tiny_kinship_pair_result(
+                sample_a,
+                sample_b,
+                calls_a,
+                calls_b,
+                min_overlap_snps,
+            );
             observed_max_overlap_snps = observed_max_overlap_snps.max(overlap_snps);
             if let Some(result) = result {
                 pairwise_results.push(result);
@@ -5840,12 +5887,49 @@ r001\t99\tchr1\n",
         let bai = repo_root.join("assets/toy/core-v1/bam/validation_pass.bam.bai");
         let reference = repo_root.join("assets/toy/core-v1/bam/validation_reference.fasta");
 
-        let summary =
-            execute_bam_validation(&bam, Some(&bai), Some(&reference)).expect("validate BAM fixture");
+        let summary = execute_bam_validation(&bam, Some(&bai), Some(&reference))
+            .expect("validate BAM fixture");
         assert!(summary.validation_report_present);
         assert!(summary.refusal_codes.is_empty());
         assert_eq!(summary.flagstat.total_reads, Some(2));
         assert_eq!(summary.flagstat.mapped_reads, Some(2));
+    }
+
+    #[test]
+    fn inspect_tiny_alignment_accepts_governed_binary_bam_fixture() {
+        let repo_root = workspace_root();
+        let bam = repo_root.join("assets/toy/core-v1/bam/validation_pass.bam");
+
+        let inspection = inspect_tiny_alignment(&bam).expect("inspect BAM fixture");
+        assert_eq!(inspection.sort_order.as_deref(), Some("coordinate"));
+        assert_eq!(inspection.header_contigs, vec!["chr1".to_string()]);
+        assert_eq!(inspection.header_sample_ids, vec!["core-v1-pass".to_string()]);
+        assert_eq!(inspection.read_group_ids.len(), 1);
+        assert_eq!(inspection.mapped_record_contigs, vec!["chr1".to_string()]);
+        assert_eq!(inspection.record_count, 2);
+    }
+
+    #[test]
+    fn inspect_tiny_alignment_accepts_text_sam_fixture() {
+        let temp = unique_temp_dir("inspect-tiny-alignment-sam");
+        let sam = temp.join("fixture.sam");
+        std::fs::write(
+            &sam,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chranc\tLN:64\n\
+@RG\tID:rg-adna\tSM:adna_like_damage\n\
+read1\t99\tchranc\t5\t42\t8M\t=\t13\t8\tCCTTCCAA\tFFFFFFFF\tRG:Z:rg-adna\n\
+read1\t147\tchranc\t13\t42\t8M\t=\t5\t-8\tTTCCAAGG\tFFFFFFFF\tRG:Z:rg-adna\n",
+        )
+        .expect("write SAM fixture");
+
+        let inspection = inspect_tiny_alignment(&sam).expect("inspect SAM fixture");
+        assert_eq!(inspection.sort_order.as_deref(), Some("coordinate"));
+        assert_eq!(inspection.header_contigs, vec!["chranc".to_string()]);
+        assert_eq!(inspection.header_sample_ids, vec!["adna_like_damage".to_string()]);
+        assert_eq!(inspection.read_group_ids, vec!["rg-adna".to_string()]);
+        assert_eq!(inspection.mapped_record_contigs, vec!["chranc".to_string()]);
+        assert_eq!(inspection.record_count, 2);
     }
 
     #[test]
@@ -6762,10 +6846,7 @@ pair_b\t0\tchr1\t1\t60\t6M\t*\t0\t0\tACGTTC\tFFFFFF\tRG:Z:rg_b\n",
         assert_eq!(insufficient.observed_max_overlap_snps, 4);
         assert_eq!(insufficient.pair_count, 0);
         assert_eq!(insufficient.status, "insufficient");
-        assert_eq!(
-            insufficient.insufficiency_reason.as_deref(),
-            Some("insufficient_overlap_snps")
-        );
+        assert_eq!(insufficient.insufficiency_reason.as_deref(), Some("insufficient_overlap_snps"));
         assert!(insufficient.pairwise_results.is_empty());
 
         let valid = summarize_tiny_bam_kinship(
