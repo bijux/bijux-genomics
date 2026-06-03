@@ -1,4 +1,5 @@
 use anyhow::Result;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
@@ -7,6 +8,13 @@ fn repo_root() -> PathBuf {
         .and_then(Path::parent)
         .unwrap_or_else(|| panic!("workspace root"))
         .to_path_buf()
+}
+
+fn write_local_sex_config(root: &Path, body: &str) -> Result<()> {
+    let config_dir = root.join("configs/bench/local");
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("bam-sex.toml"), body)?;
+    Ok(())
 }
 
 #[test]
@@ -92,4 +100,84 @@ fn local_sex_smoke_stage_api_surface_stays_callable() {
         &Path,
     ) -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalSexSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_sex_smoke_plans;
+}
+
+#[test]
+fn local_sex_smoke_plans_reject_empty_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_sex_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_sex.v1"
+tool_id = "rxy"
+threads = 2
+output_dir = "target/local-smoke/bam.sex"
+
+[[cases]]
+sample_id = " "
+bam = "assets/toy/core-v1/bam/sex_xy_autosome_male.sam"
+reference = "assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta"
+chromosome_system = "xy"
+minimum_y_sites = 5
+expected_method = "rxy"
+expected_x_coverage = 0.5
+expected_y_coverage = 0.5
+expected_autosomal_coverage = 1.0
+expected_call = "male"
+expected_confidence = 0.9
+expected_status = "ok"
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_sex_smoke_plans(temp.path())
+        .expect_err("empty sample_id must be rejected before sex smoke plan construction");
+    assert_eq!(error.to_string(), "local-smoke bam.sex sample_id must not be empty");
+    Ok(())
+}
+
+#[test]
+fn local_sex_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_sex_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_sex.v1"
+tool_id = "rxy"
+threads = 2
+output_dir = "target/local-smoke/bam.sex"
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/sex_xy_autosome_male.sam"
+reference = "assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta"
+chromosome_system = "xy"
+minimum_y_sites = 5
+expected_method = "rxy"
+expected_x_coverage = 0.5
+expected_y_coverage = 0.5
+expected_autosomal_coverage = 1.0
+expected_call = "male"
+expected_confidence = 0.9
+expected_status = "ok"
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/sex_xy_autosome_male.sam"
+reference = "assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta"
+chromosome_system = "xy"
+minimum_y_sites = 5
+expected_method = "rxy"
+expected_x_coverage = 0.5
+expected_y_coverage = 0.5
+expected_autosomal_coverage = 1.0
+expected_call = "male"
+expected_confidence = 0.9
+expected_status = "ok"
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_sex_smoke_plans(temp.path())
+        .expect_err("duplicate sample_id must be rejected before sex smoke plan construction");
+    assert_eq!(error.to_string(), "duplicate local-smoke bam.sex sample_id `duplicate-case`");
+    Ok(())
 }
