@@ -141,6 +141,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderStageToolResources(args) => {
+                        crate::commands::benchmark::readiness::stage_tool_resources::run_render_stage_tool_resources(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamStageDecisionTable(args) => {
                         crate::commands::benchmark::readiness::bam_stage_decision_table::run_render_bam_stage_decision_table(
                         args,
