@@ -107,6 +107,17 @@ fn materialize_local_insert_size_smoke_case(
             .with_context(|| format!("read {}", insert_size_summary_path.display()))?,
     )
     .with_context(|| format!("parse {}", insert_size_summary_path.display()))?;
+
+    let expectation_matched = written_summary.read_pairs == case.expected_read_pairs
+        && float_matches(
+            written_summary.median_insert_size,
+            Some(case.expected_median_insert_size),
+        )
+        && float_matches(written_summary.mean_insert_size, Some(case.expected_mean_insert_size))
+        && written_summary.min_insert_size == Some(case.expected_min_insert_size)
+        && written_summary.max_insert_size == Some(case.expected_max_insert_size)
+        && written_summary.insufficient_pairs_reason.is_none();
+
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
         &serde_json::json!({
@@ -121,18 +132,9 @@ fn materialize_local_insert_size_smoke_case(
             "min_insert_size": written_summary.min_insert_size,
             "max_insert_size": written_summary.max_insert_size,
             "insufficient_pairs_reason": written_summary.insufficient_pairs_reason,
+            "expectation_matched": expectation_matched,
         }),
     )?;
-
-    let expectation_matched = written_summary.read_pairs == case.expected_read_pairs
-        && float_matches(
-            written_summary.median_insert_size,
-            Some(case.expected_median_insert_size),
-        )
-        && float_matches(written_summary.mean_insert_size, Some(case.expected_mean_insert_size))
-        && written_summary.min_insert_size == Some(case.expected_min_insert_size)
-        && written_summary.max_insert_size == Some(case.expected_max_insert_size)
-        && written_summary.insufficient_pairs_reason.is_none();
 
     Ok(LocalInsertSizeSmokeReport {
         schema_version: LOCAL_INSERT_SIZE_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
