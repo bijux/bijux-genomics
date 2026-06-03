@@ -64,6 +64,11 @@ fn write_local_filter_smoke_report_materializes_governed_outputs() -> Result<()>
             .as_str()
             .unwrap_or_else(|| panic!("filtered_bam path missing")),
     );
+    let filtered_bai = repo_root.join(
+        payload["filtered_bai"]
+            .as_str()
+            .unwrap_or_else(|| panic!("filtered_bai path missing")),
+    );
     let filter_summary = repo_root.join(
         payload["filter_summary"]
             .as_str()
@@ -96,6 +101,7 @@ fn write_local_filter_smoke_report_materializes_governed_outputs() -> Result<()>
     );
     for path in [
         &filtered_bam,
+        &filtered_bai,
         &filter_summary,
         &flagstat_before,
         &flagstat_after,
@@ -122,6 +128,21 @@ fn write_local_filter_smoke_report_materializes_governed_outputs() -> Result<()>
     assert_eq!(filter_summary_json["input_reads"], serde_json::json!(5));
     assert_eq!(filter_summary_json["kept_reads"], serde_json::json!(1));
     assert_eq!(filter_summary_json["removed_reads"], serde_json::json!(4));
+
+    let stage_metrics_json: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&stage_metrics)?)?;
+    assert_eq!(
+        stage_metrics_json["schema_version"],
+        serde_json::json!("bijux.bam.filter.local_smoke.metrics.v1")
+    );
+    assert_eq!(stage_metrics_json["input_reads"], serde_json::json!(5));
+    assert_eq!(stage_metrics_json["kept_reads"], serde_json::json!(1));
+    assert_eq!(stage_metrics_json["removed_reads"], serde_json::json!(4));
+    assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
+    assert_eq!(
+        stage_metrics_json["active_filters"],
+        serde_json::json!(["mapq_threshold", "exclude_flags", "min_length", "remove_duplicates"])
+    );
 
     Ok(())
 }
