@@ -9,7 +9,6 @@ const LOCAL_VALIDATE_SMOKE_REPORT_SCHEMA_VERSION: &str = "bijux.bam.validate.loc
 #[serde(rename_all = "snake_case")]
 enum LocalValidateAlignmentFixtureEncoding {
     BinaryBam,
-    SamTextProxy,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -125,7 +124,6 @@ fn materialize_local_validate_smoke_case(
             "sample_id": case.sample_id,
             "alignment_fixture_encoding": match case.alignment_fixture_encoding {
                 bijux_dna_planner_bam::stage_api::LocalValidateAlignmentFixtureEncoding::BinaryBam => "binary_bam",
-                bijux_dna_planner_bam::stage_api::LocalValidateAlignmentFixtureEncoding::SamTextProxy => "sam_text_proxy",
             },
             "validation_status": if summary.validation_report_present { "pass" } else { "refusal" },
             "validation_report_present": summary.validation_report_present,
@@ -154,9 +152,6 @@ fn materialize_local_validate_smoke_case(
         alignment_fixture_encoding: match case.alignment_fixture_encoding {
             bijux_dna_planner_bam::stage_api::LocalValidateAlignmentFixtureEncoding::BinaryBam => {
                 LocalValidateAlignmentFixtureEncoding::BinaryBam
-            }
-            bijux_dna_planner_bam::stage_api::LocalValidateAlignmentFixtureEncoding::SamTextProxy => {
-                LocalValidateAlignmentFixtureEncoding::SamTextProxy
             }
         },
         validation_status: if summary.validation_report_present {
