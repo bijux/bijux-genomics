@@ -83,6 +83,18 @@ fn write_local_mapping_summary_config(root: &Path, body: &str) -> Result<()> {
     Ok(())
 }
 
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(
+        repo_root.join("domain/bam/tools/samtools.yaml"),
+        tool_dir.join("samtools.yaml"),
+    )?;
+    Ok(temp)
+}
+
 #[test]
 fn local_mapping_summary_smoke_plans_reject_empty_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
@@ -143,6 +155,108 @@ expected_reference_name = "chr1"
     assert_eq!(
         error.to_string(),
         "duplicate local-smoke bam.mapping_summary sample_id `duplicate-case`"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_mapping_summary_smoke_plans_require_expected_reference_name() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_mapping_summary_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_mapping_summary.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "missing-reference"
+bam = "{bam}"
+expected_total_reads = 3
+expected_mapped_reads = 2
+expected_mapping_fraction = 0.6666666666666666
+expected_reference_name = " "
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/mapping_summary_partial_mapping.sam")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_mapping_summary_smoke_plans(temp.path())
+        .expect_err("mapping_summary cases must declare a non-empty expected reference name");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.mapping_summary case `missing-reference` must declare a non-empty expected reference name"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_mapping_summary_smoke_plans_reject_mapped_reads_greater_than_total() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_mapping_summary_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_mapping_summary.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "mapped-over-total"
+bam = "{bam}"
+expected_total_reads = 3
+expected_mapped_reads = 4
+expected_mapping_fraction = 1.0
+expected_reference_name = "chr1"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/mapping_summary_partial_mapping.sam")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_mapping_summary_smoke_plans(temp.path())
+        .expect_err("mapping_summary cases cannot declare mapped reads greater than total reads");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.mapping_summary case `mapped-over-total` cannot declare mapped reads greater than total reads"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_mapping_summary_smoke_plans_require_mapping_fraction_alignment() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_mapping_summary_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_mapping_summary.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "fraction-mismatch"
+bam = "{bam}"
+expected_total_reads = 3
+expected_mapped_reads = 2
+expected_mapping_fraction = 0.5
+expected_reference_name = "chr1"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/mapping_summary_partial_mapping.sam")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_mapping_summary_smoke_plans(temp.path())
+        .expect_err("mapping_summary cases must align expected fraction with mapped and total");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.mapping_summary case `fraction-mismatch` must keep expected mapping fraction aligned with mapped and total reads"
     );
     Ok(())
 }
