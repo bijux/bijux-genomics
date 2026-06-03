@@ -2589,6 +2589,33 @@ fn build_local_damage_smoke_case(
             case.sample_id
         ));
     }
+    if !matches!(case.expected_damage_signal.as_str(), "low" | "moderate" | "high") {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` must declare expected_damage_signal as one of `low`, `moderate`, or `high`",
+            case.sample_id
+        ));
+    }
+    let terminal_damage =
+        case.expected_terminal_c_to_t_5p.max(case.expected_terminal_g_to_a_3p);
+    let governed_damage_signal = if terminal_damage >= 0.20 {
+        "high"
+    } else if terminal_damage >= 0.10 {
+        "moderate"
+    } else {
+        "low"
+    };
+    if case.expected_damage_signal != governed_damage_signal {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` must keep expected_damage_signal aligned with the governed terminal damage thresholds",
+            case.sample_id
+        ));
+    }
+    if case.expected_strict_profile_upgraded {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` must keep expected_strict_profile_upgraded false for the governed evidence-only damage profile",
+            case.sample_id
+        ));
+    }
 
     let params = DamageEffectiveParams {
         udg_model: bijux_dna_domain_bam::params::UdgModel::NonUdg,
