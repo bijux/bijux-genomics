@@ -1,4 +1,5 @@
 use anyhow::Result;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
@@ -93,4 +94,75 @@ fn local_complexity_smoke_stage_api_surface_stays_callable() {
     ) -> anyhow::Result<
         Vec<bijux_dna_planner_bam::stage_api::LocalComplexitySmokeCasePlan>,
     > = bijux_dna_planner_bam::stage_api::local_complexity_smoke_plans;
+}
+
+fn write_local_complexity_config(root: &Path, body: &str) -> Result<()> {
+    let config_dir = root.join("configs/bench/local");
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("bam-complexity.toml"), body)?;
+    Ok(())
+}
+
+#[test]
+fn local_complexity_smoke_plans_reject_empty_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_complexity_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_complexity.v1"
+tool_id = "preseq"
+
+[[cases]]
+sample_id = " "
+bam = "assets/toy/core-v1/bam/complexity_sparse_reads.sam"
+min_reads = 3
+projection_points = [6, 12]
+expected_observed_total_reads = 3
+expected_observed_unique_reads = 2
+expected_insufficient_data_reason = "insufficient_observed_unique_reads_for_complexity_extrapolation"
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_complexity_smoke_plans(temp.path())
+        .expect_err("empty sample_id must be rejected before plan construction");
+    assert_eq!(error.to_string(), "local-smoke bam.complexity sample_id must not be empty");
+    Ok(())
+}
+
+#[test]
+fn local_complexity_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_complexity_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_complexity.v1"
+tool_id = "preseq"
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/complexity_sparse_reads.sam"
+min_reads = 3
+projection_points = [6, 12]
+expected_observed_total_reads = 3
+expected_observed_unique_reads = 2
+expected_insufficient_data_reason = "insufficient_observed_unique_reads_for_complexity_extrapolation"
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/complexity_sparse_reads.sam"
+min_reads = 3
+projection_points = [6, 12]
+expected_observed_total_reads = 3
+expected_observed_unique_reads = 2
+expected_insufficient_data_reason = "insufficient_observed_unique_reads_for_complexity_extrapolation"
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_complexity_smoke_plans(temp.path())
+        .expect_err("duplicate sample_id must be rejected before plan construction");
+    assert_eq!(
+        error.to_string(),
+        "duplicate local-smoke bam.complexity sample_id `duplicate-case`"
+    );
+    Ok(())
 }
