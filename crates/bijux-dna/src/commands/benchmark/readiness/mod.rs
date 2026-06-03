@@ -1,3 +1,4 @@
+pub(crate) mod bam_stage_decision_table;
 pub(crate) mod catalog;
 pub(crate) mod missing_benchmark_pairs;
 pub(crate) mod orphan_tools;

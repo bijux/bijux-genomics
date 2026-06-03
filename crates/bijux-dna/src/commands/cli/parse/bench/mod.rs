@@ -47,11 +47,11 @@ pub use self::publication::{
     BenchCorpusFastqReportArgs, BenchPublicationTargetsArgs,
 };
 pub use self::readiness::{
-    BenchReadinessCommand, BenchReadinessRenderBamToolServingMapArgs,
-    BenchReadinessRenderFastqToolServingMapArgs, BenchReadinessRenderMissingBenchmarkPairsArgs,
-    BenchReadinessRenderOrphanToolsArgs, BenchReadinessRenderStageRegistryExtraPairsArgs,
-    BenchReadinessRenderToolIdNormalizationArgs, BenchReadinessRenderUndercoveredStagesArgs,
-    BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
+    BenchReadinessCommand, BenchReadinessRenderBamStageDecisionTableArgs,
+    BenchReadinessRenderBamToolServingMapArgs, BenchReadinessRenderFastqToolServingMapArgs,
+    BenchReadinessRenderMissingBenchmarkPairsArgs, BenchReadinessRenderOrphanToolsArgs,
+    BenchReadinessRenderStageRegistryExtraPairsArgs, BenchReadinessRenderToolIdNormalizationArgs,
+    BenchReadinessRenderUndercoveredStagesArgs, BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
     BenchReadinessValidateToolExecutionModesArgs, BenchReadinessValidateToolFamiliesArgs,
 };
 pub use self::suite::BenchRunArgs;
