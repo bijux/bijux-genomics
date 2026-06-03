@@ -464,6 +464,21 @@ mod tests {
     }
 
     #[test]
+    fn load_bam_domain_tool_execution_spec_accepts_addeam_damage_stage() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("bam.damage".to_string());
+        let tool_id = ToolId::new("addeam");
+
+        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(spec.tool_id.as_str(), "addeam");
+        assert_eq!(spec.command.template, vec!["addeam".to_string()]);
+        assert_eq!(spec.image.image, "bijuxdna/addeam:1.0.0");
+        assert!(spec.image.digest.is_none());
+        Ok(())
+    }
+
+    #[test]
     fn load_bam_domain_tool_execution_spec_accepts_supported_yleaf_stage() -> Result<()> {
         let repo_root = repo_root();
         let stage_id = StageId::new("bam.haplogroups".to_string());

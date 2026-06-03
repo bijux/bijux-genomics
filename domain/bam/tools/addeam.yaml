@@ -5,6 +5,8 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "1.0.0"
 install_kind: "container"
+container:
+  image: "bijuxdna/addeam:1.0.0"
 license: "GPL-3.0"
 citation: "paper:https://academic.oup.com/bioinformatics/article/doi/10.1093/bioinformatics/btaf407/8205671"
 outputs:
