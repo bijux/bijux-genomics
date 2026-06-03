@@ -17,6 +17,15 @@ fn write_local_sex_config(root: &Path, body: &str) -> Result<()> {
     Ok(())
 }
 
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(repo_root.join("domain/bam/tools/rxy.yaml"), tool_dir.join("rxy.yaml"))?;
+    Ok(temp)
+}
+
 #[test]
 fn local_sex_smoke_plans_use_governed_bam_reference_and_expectations() -> Result<()> {
     let repo_root = repo_root();
@@ -100,6 +109,178 @@ fn local_sex_smoke_stage_api_surface_stays_callable() {
         &Path,
     ) -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalSexSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_sex_smoke_plans;
+}
+
+#[test]
+fn local_sex_smoke_plans_require_expected_method_to_match_governed_tool() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_sex_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_sex.v1"
+tool_id = "rxy"
+threads = 2
+output_dir = "target/local-smoke/bam.sex"
+
+[[cases]]
+sample_id = "wrong-method"
+bam = "{bam}"
+reference = "{reference}"
+chromosome_system = "xy"
+minimum_y_sites = 5
+expected_method = "angsd"
+expected_x_coverage = 0.5
+expected_y_coverage = 0.5
+expected_autosomal_coverage = 1.0
+expected_call = "male"
+expected_confidence = 0.9
+expected_status = "ok"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/sex_xy_autosome_male.sam").display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_sex_smoke_plans(temp.path())
+        .expect_err("expected_method must stay aligned with the governed sex tool");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.sex case `wrong-method` must keep expected_method aligned with the governed sex tool"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_sex_smoke_plans_require_expected_call_to_match_governed_summary() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_sex_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_sex.v1"
+tool_id = "rxy"
+threads = 2
+output_dir = "target/local-smoke/bam.sex"
+
+[[cases]]
+sample_id = "wrong-call"
+bam = "{bam}"
+reference = "{reference}"
+chromosome_system = "xy"
+minimum_y_sites = 5
+expected_method = "rxy"
+expected_x_coverage = 0.5
+expected_y_coverage = 0.5
+expected_autosomal_coverage = 1.0
+expected_call = "female"
+expected_confidence = 0.9
+expected_status = "ok"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/sex_xy_autosome_male.sam").display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_sex_smoke_plans(temp.path())
+        .expect_err("expected_call must stay aligned with the governed sex summary");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.sex case `wrong-call` must keep expected_call aligned with the governed sex summary"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_sex_smoke_plans_require_expected_x_coverage_to_match_governed_summary() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_sex_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_sex.v1"
+tool_id = "rxy"
+threads = 2
+output_dir = "target/local-smoke/bam.sex"
+
+[[cases]]
+sample_id = "wrong-x-coverage"
+bam = "{bam}"
+reference = "{reference}"
+chromosome_system = "xy"
+minimum_y_sites = 5
+expected_method = "rxy"
+expected_x_coverage = 0.6
+expected_y_coverage = 0.5
+expected_autosomal_coverage = 1.0
+expected_call = "male"
+expected_confidence = 0.9
+expected_status = "ok"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/sex_xy_autosome_male.sam").display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_sex_smoke_plans(temp.path())
+        .expect_err("expected_x_coverage must stay aligned with the governed sex summary");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.sex case `wrong-x-coverage` must keep expected_x_coverage aligned with the governed sex summary"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_sex_smoke_plans_require_expected_status_to_match_governed_summary() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_sex_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_sex.v1"
+tool_id = "rxy"
+threads = 2
+output_dir = "target/local-smoke/bam.sex"
+
+[[cases]]
+sample_id = "wrong-status"
+bam = "{bam}"
+reference = "{reference}"
+chromosome_system = "xy"
+minimum_y_sites = 5
+expected_method = "rxy"
+expected_x_coverage = 0.5
+expected_y_coverage = 0.5
+expected_autosomal_coverage = 1.0
+expected_call = "male"
+expected_confidence = 0.9
+expected_status = "insufficient_coverage"
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/sex_xy_autosome_male.sam").display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_sex_smoke_plans(temp.path())
+        .expect_err("expected_status must stay aligned with the governed sex summary");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.sex case `wrong-status` must keep expected_status aligned with the governed sex summary"
+    );
+    Ok(())
 }
 
 #[test]

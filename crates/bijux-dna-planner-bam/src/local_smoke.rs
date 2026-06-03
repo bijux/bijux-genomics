@@ -2846,6 +2846,56 @@ fn build_local_sex_smoke_case(
             case.sample_id
         ));
     }
+    if case.expected_method != tool_spec.tool_id.as_str() {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_method aligned with the governed sex tool",
+            case.sample_id
+        ));
+    }
+
+    let governed_summary = bijux_dna_domain_bam::summarize_tiny_bam_sex(
+        &bam_abs,
+        &reference_abs,
+        case.expected_method.as_str(),
+        Some(case.chromosome_system.as_str()),
+        Some(case.minimum_y_sites),
+    )?;
+    if !float_matches(case.expected_x_coverage, governed_summary.x_coverage) {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_x_coverage aligned with the governed sex summary",
+            case.sample_id
+        ));
+    }
+    if !float_matches(case.expected_y_coverage, governed_summary.y_coverage) {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_y_coverage aligned with the governed sex summary",
+            case.sample_id
+        ));
+    }
+    if !float_matches(case.expected_autosomal_coverage, governed_summary.autosomal_coverage) {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_autosomal_coverage aligned with the governed sex summary",
+            case.sample_id
+        ));
+    }
+    if case.expected_call != governed_summary.call {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_call aligned with the governed sex summary",
+            case.sample_id
+        ));
+    }
+    if !float_matches(case.expected_confidence, governed_summary.confidence) {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_confidence aligned with the governed sex summary",
+            case.sample_id
+        ));
+    }
+    if case.expected_status != governed_summary.status {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_status aligned with the governed sex summary",
+            case.sample_id
+        ));
+    }
 
     let params = bijux_dna_domain_bam::params::SexEffectiveParams {
         expected_sex: None,
