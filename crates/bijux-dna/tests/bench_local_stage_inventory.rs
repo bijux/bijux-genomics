@@ -1647,6 +1647,74 @@ fn bench_local_materialize_stage_bam_genotyping_json_writes_governed_plan_bundle
     );
 }
 
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_materialize_stage_bam_kinship_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.kinship",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.kinship")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.kinship/kinship.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let report: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&artifact_path).expect("read bam.kinship report"))
+            .expect("parse bam.kinship report");
+
+    assert_eq!(report.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.kinship"));
+    assert_eq!(
+        report.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.kinship.local_smoke.report.v1")
+    );
+    assert_eq!(report.get("case_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(report.get("all_cases_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert!(
+        report.get("cases").and_then(serde_json::Value::as_array).is_some_and(|cases| {
+            cases.iter().any(|case| {
+                case.get("sample_id").and_then(serde_json::Value::as_str)
+                    == Some("core-v1-kinship-insufficient-overlap")
+                    && case.get("status").and_then(serde_json::Value::as_str)
+                        == Some("insufficient")
+                    && case.get("insufficiency_reason").and_then(serde_json::Value::as_str)
+                        == Some("insufficient_overlap_snps")
+            }) && cases.iter().any(|case| {
+                case.get("sample_id").and_then(serde_json::Value::as_str)
+                    == Some("core-v1-kinship-related-pair")
+                    && case.get("status").and_then(serde_json::Value::as_str) == Some("ok")
+                    && case.get("pair_count").and_then(serde_json::Value::as_u64) == Some(1)
+                    && case
+                        .get("pairwise_results")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|pairs| {
+                            pairs.iter().any(|pair| {
+                                pair.get("sample_a").and_then(serde_json::Value::as_str)
+                                    == Some("sample_a")
+                                    && pair.get("sample_b").and_then(serde_json::Value::as_str)
+                                        == Some("sample_b")
+                                    && pair.get("relationship_label").and_then(serde_json::Value::as_str)
+                                        == Some("first_degree")
+                            })
+                        })
+            })
+        }),
+        "bam.kinship local smoke report must preserve the governed insufficient and valid pair cases"
+    );
+}
+
 #[test]
 fn bench_local_materialize_stage_bam_damage_json_writes_governed_smoke_bundle() {
     let (repo_root, payload) = run_cli_json_with_repo_root(&[
