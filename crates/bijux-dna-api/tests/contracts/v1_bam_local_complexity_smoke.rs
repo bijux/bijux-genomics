@@ -126,12 +126,15 @@ fn write_local_complexity_smoke_report_materializes_governed_outputs() -> Result
     assert_eq!(stage_metrics_json["method"], serde_json::json!("preseq"));
     assert_eq!(stage_metrics_json["observed_total_reads"], serde_json::json!(3));
     assert_eq!(stage_metrics_json["observed_unique_reads"], serde_json::json!(2));
+    assert_eq!(stage_metrics_json["estimated_unique_reads"], serde_json::Value::Null);
     assert_eq!(stage_metrics_json["estimated_library_size"], serde_json::Value::Null);
     assert_eq!(stage_metrics_json["saturation_estimate"], serde_json::Value::Null);
+    assert_eq!(stage_metrics_json["min_reads"], serde_json::json!(3));
     assert_eq!(
         stage_metrics_json["insufficient_data_reason"],
         serde_json::json!("insufficient_observed_unique_reads_for_complexity_extrapolation")
     );
+    assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 
     Ok(())
 }
