@@ -107,12 +107,19 @@ fn materialize_local_sex_smoke_case(
         Some(case.minimum_y_sites),
     )?;
     let expectation_matched = summary.method == case.expected_method
+        && summary.chromosome_system.as_deref() == Some(case.chromosome_system.as_str())
+        && summary.minimum_y_sites == Some(case.minimum_y_sites)
         && float_matches(summary.x_coverage, case.expected_x_coverage)
         && float_matches(summary.y_coverage, case.expected_y_coverage)
         && float_matches(summary.autosomal_coverage, case.expected_autosomal_coverage)
         && summary.call == case.expected_call
         && float_matches(summary.confidence, case.expected_confidence)
         && summary.status == case.expected_status;
+    let x_coverage_delta = summary.x_coverage - case.expected_x_coverage;
+    let y_coverage_delta = summary.y_coverage - case.expected_y_coverage;
+    let autosomal_coverage_delta =
+        summary.autosomal_coverage - case.expected_autosomal_coverage;
+    let confidence_delta = summary.confidence - case.expected_confidence;
 
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
@@ -120,15 +127,28 @@ fn materialize_local_sex_smoke_case(
             "schema_version": LOCAL_SEX_SMOKE_METRICS_SCHEMA_VERSION,
             "stage_id": "bam.sex",
             "sample_id": case.sample_id,
+            "expected_method": case.expected_method,
             "method": summary.method,
+            "expected_chromosome_system": case.chromosome_system,
             "chromosome_system": summary.chromosome_system,
+            "expected_minimum_y_sites": case.minimum_y_sites,
             "minimum_y_sites": summary.minimum_y_sites,
+            "expected_x_coverage": case.expected_x_coverage,
             "x_coverage": summary.x_coverage,
+            "x_coverage_delta": x_coverage_delta,
+            "expected_y_coverage": case.expected_y_coverage,
             "y_coverage": summary.y_coverage,
+            "y_coverage_delta": y_coverage_delta,
+            "expected_autosomal_coverage": case.expected_autosomal_coverage,
             "autosomal_coverage": summary.autosomal_coverage,
+            "autosomal_coverage_delta": autosomal_coverage_delta,
             "x_to_y_ratio": summary.x_to_y_ratio,
+            "expected_call": case.expected_call,
             "call": summary.call,
+            "expected_confidence": case.expected_confidence,
             "confidence": summary.confidence,
+            "confidence_delta": confidence_delta,
+            "expected_status": case.expected_status,
             "status": summary.status,
             "insufficiency_reason": summary.insufficiency_reason,
             "expectation_matched": expectation_matched,
