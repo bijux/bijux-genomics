@@ -122,6 +122,8 @@ fn write_local_qc_pre_smoke_report_materializes_governed_outputs() -> Result<()>
     assert_eq!(stage_metrics_payload["mapped_reads"], serde_json::json!(3));
     assert_eq!(stage_metrics_payload["unmapped_reads"], serde_json::json!(0));
     assert_eq!(stage_metrics_payload["duplicate_flagged_reads"], serde_json::json!(1));
+    assert_eq!(stage_metrics_payload["reference_mismatch"], serde_json::json!(false));
+    assert_eq!(stage_metrics_payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(
         stage_metrics_payload["contig_summary"],
         serde_json::json!([
