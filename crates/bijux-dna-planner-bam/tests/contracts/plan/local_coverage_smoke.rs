@@ -1,4 +1,5 @@
 use anyhow::Result;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
@@ -82,4 +83,99 @@ fn local_coverage_smoke_stage_api_surface_stays_callable() {
     )
         -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalCoverageSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans;
+}
+
+fn write_local_coverage_config(root: &Path, body: &str) -> Result<()> {
+    let config_dir = root.join("configs/bench/local");
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("bam-coverage.toml"), body)?;
+    Ok(())
+}
+
+#[test]
+fn local_coverage_smoke_plans_reject_empty_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_coverage_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_coverage.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = " "
+bam = "assets/toy/core-v1/bam/coverage_target_windows.sam"
+regions = "assets/toy/core-v1/bam/coverage_target_windows.bed"
+depth_thresholds = [1, 5]
+expected_coverage_regime = "low_pass"
+
+[[cases.expected_rows]]
+region_id = "chr1_window"
+contig = "chr1"
+start = 1
+end = 6
+length = 6
+mean_depth = 1.3333333333333333
+breadth_1x = 1.0
+covered_bases = 6
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans(temp.path())
+        .expect_err("empty sample_id must be rejected before plan construction");
+    assert_eq!(error.to_string(), "local-smoke bam.coverage sample_id must not be empty");
+    Ok(())
+}
+
+#[test]
+fn local_coverage_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    write_local_coverage_config(
+        temp.path(),
+        r#"
+schema_version = "bijux.bench.bam.local_coverage.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/coverage_target_windows.sam"
+regions = "assets/toy/core-v1/bam/coverage_target_windows.bed"
+depth_thresholds = [1, 5]
+expected_coverage_regime = "low_pass"
+
+[[cases.expected_rows]]
+region_id = "chr1_window"
+contig = "chr1"
+start = 1
+end = 6
+length = 6
+mean_depth = 1.3333333333333333
+breadth_1x = 1.0
+covered_bases = 6
+
+[[cases]]
+sample_id = "duplicate-case"
+bam = "assets/toy/core-v1/bam/coverage_target_windows.sam"
+regions = "assets/toy/core-v1/bam/coverage_target_windows.bed"
+depth_thresholds = [1, 5]
+expected_coverage_regime = "low_pass"
+
+[[cases.expected_rows]]
+region_id = "chr2_window"
+contig = "chr2"
+start = 2
+end = 5
+length = 4
+mean_depth = 0.75
+breadth_1x = 0.75
+covered_bases = 3
+"#,
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans(temp.path())
+        .expect_err("duplicate sample_id must be rejected before plan construction");
+    assert_eq!(
+        error.to_string(),
+        "duplicate local-smoke bam.coverage sample_id `duplicate-case`"
+    );
+    Ok(())
 }
