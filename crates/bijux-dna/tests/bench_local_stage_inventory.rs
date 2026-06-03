@@ -293,6 +293,45 @@ fn bench_local_materialize_stage_bam_qc_pre_json_writes_governed_smoke_bundle() 
     );
 }
 
+#[test]
+fn bench_local_materialize_stage_bam_mapping_summary_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.mapping_summary",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.mapping_summary")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.mapping_summary/mapping_summary.tsv")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let body = std::fs::read_to_string(&artifact_path).expect("read bam.mapping_summary TSV");
+    let mut lines = body.lines();
+    let header = lines.next().expect("mapping_summary header");
+    assert_eq!(
+        header,
+        "sample_id\ttotal_reads\tmapped_reads\tunmapped_reads\tmapping_fraction\tsecondary_reads\tsupplementary_reads\treference_name\texpectation_matched\tmapping_summary_json\tflagstat\tidxstats\tstats\tstage_metrics"
+    );
+
+    let rows = lines.collect::<Vec<_>>();
+    assert_eq!(rows.len(), 1, "mapping_summary smoke bundle must contain exactly one row");
+    assert_eq!(
+        rows[0],
+        "core-v1-partial-mapping\t3\t2\t1\t0.666667\t0\t0\tchr1\ttrue\ttarget/local-smoke/bam.mapping_summary/core-v1-partial-mapping/samtools/mapping.summary.json\ttarget/local-smoke/bam.mapping_summary/core-v1-partial-mapping/samtools/flagstat.txt\ttarget/local-smoke/bam.mapping_summary/core-v1-partial-mapping/samtools/idxstats.txt\ttarget/local-smoke/bam.mapping_summary/core-v1-partial-mapping/samtools/samtools_stats.txt\ttarget/local-smoke/bam.mapping_summary/core-v1-partial-mapping/samtools/stage.metrics.json"
+    );
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
