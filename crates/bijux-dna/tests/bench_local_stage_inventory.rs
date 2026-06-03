@@ -569,6 +569,78 @@ fn bench_local_materialize_stage_bam_markdup_json_writes_governed_smoke_bundle()
     assert!(marked_body.contains("unmapped_support"));
 }
 
+#[test]
+fn bench_local_materialize_stage_bam_duplication_metrics_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.duplication_metrics",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.duplication_metrics")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.duplication_metrics/duplication_metrics.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.duplication_metrics report"),
+    )
+    .expect("parse bam.duplication_metrics report");
+
+    assert_eq!(
+        report.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.duplication_metrics.local_smoke.report.v1")
+    );
+    assert_eq!(
+        report.get("sample_id").and_then(serde_json::Value::as_str),
+        Some("core-v1-duplicate-observation")
+    );
+    assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(report.get("examined_reads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(report.get("duplicate_reads").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(report.get("duplicate_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(
+        report.get("duplicate_fraction").and_then(serde_json::Value::as_f64),
+        Some(1.0 / 3.0)
+    );
+    assert_eq!(report.get("estimated_library_size"), Some(&serde_json::Value::Null));
+    assert_eq!(
+        report.get("insufficient_library_size_reason").and_then(serde_json::Value::as_str),
+        Some("tiny_smoke_duplicate_observation_is_insufficient_for_library_size_estimate")
+    );
+
+    let duplication_summary = repo_root.join(
+        report
+            .get("duplication_summary")
+            .and_then(serde_json::Value::as_str)
+            .expect("duplication summary path"),
+    );
+    let stage_metrics = repo_root.join(
+        report
+            .get("stage_metrics")
+            .and_then(serde_json::Value::as_str)
+            .expect("stage metrics path"),
+    );
+    assert!(
+        duplication_summary.is_file(),
+        "bam.duplication_metrics smoke bundle must expose the governed duplication summary"
+    );
+    assert!(
+        stage_metrics.is_file(),
+        "bam.duplication_metrics smoke bundle must expose the governed stage metrics"
+    );
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
