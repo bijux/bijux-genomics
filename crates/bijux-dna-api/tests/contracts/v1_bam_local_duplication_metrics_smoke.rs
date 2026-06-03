@@ -158,6 +158,14 @@ fn write_local_duplication_metrics_smoke_report_materializes_governed_outputs() 
     assert_eq!(stage_metrics_json["duplicate_reads"], serde_json::json!(1));
     assert_eq!(stage_metrics_json["duplicate_count"], serde_json::json!(1));
     assert_eq!(stage_metrics_json["duplicate_fraction"], serde_json::json!(1.0 / 3.0));
+    assert_eq!(stage_metrics_json["estimated_library_size"], serde_json::Value::Null);
+    assert_eq!(
+        stage_metrics_json["insufficient_library_size_reason"],
+        serde_json::json!(
+            "tiny_smoke_duplicate_observation_is_insufficient_for_library_size_estimate"
+        )
+    );
+    assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 
     Ok(())
 }
