@@ -91,12 +91,7 @@ pub(crate) fn render_fastq_command_adapter_coverage(
     output_path: PathBuf,
 ) -> Result<FastqCommandAdapterCoverageReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
-    let tool_map = render_fastq_tool_serving_map(
-        repo_root,
-        PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH),
-    )?;
-
-    let rows = tool_map.rows.iter().map(render_coverage_row).collect::<Vec<_>>();
+    let (stage_count, tool_count, rows) = collect_fastq_command_adapter_coverage_rows(repo_root)?;
 
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -135,8 +130,8 @@ pub(crate) fn render_fastq_command_adapter_coverage(
     Ok(FastqCommandAdapterCoverageReport {
         schema_version: FASTQ_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION,
         output_path: path_relative_to_repo(repo_root, &output_path),
-        stage_count: tool_map.stage_count,
-        tool_count: tool_map.tool_count,
+        stage_count,
+        tool_count,
         row_count: rows.len(),
         benchmark_ready_row_count,
         benchmark_ready_adapter_covered_row_count,
@@ -144,6 +139,17 @@ pub(crate) fn render_fastq_command_adapter_coverage(
         readiness_gap_counts,
         rows,
     })
+}
+
+pub(crate) fn collect_fastq_command_adapter_coverage_rows(
+    repo_root: &Path,
+) -> Result<(usize, usize, Vec<FastqCommandAdapterCoverageRow>)> {
+    let tool_map = render_fastq_tool_serving_map(
+        repo_root,
+        PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH),
+    )?;
+    let rows = tool_map.rows.iter().map(render_coverage_row).collect::<Vec<_>>();
+    Ok((tool_map.stage_count, tool_map.tool_count, rows))
 }
 
 fn render_coverage_row(row: &ToolServingMapRow) -> FastqCommandAdapterCoverageRow {
