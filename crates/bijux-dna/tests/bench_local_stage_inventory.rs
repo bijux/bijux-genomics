@@ -101,7 +101,7 @@ fn bench_local_render_stage_commands_json_reports_governed_51_command_slice() {
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.local_stage_commands.v2")
+        Some("bijux.bench.local_stage_commands.v3")
     );
     assert_eq!(
         payload.get("script_output_path").and_then(serde_json::Value::as_str),
@@ -110,6 +110,10 @@ fn bench_local_render_stage_commands_json_reports_governed_51_command_slice() {
     assert_eq!(
         payload.get("manifest_output_path").and_then(serde_json::Value::as_str),
         Some("target/local-ready/rendered-stage-commands.json")
+    );
+    assert_eq!(
+        payload.get("argv_output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/rendered-stage-commands.argv.jsonl")
     );
     assert_eq!(payload.get("command_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(
@@ -127,6 +131,10 @@ fn bench_local_render_stage_commands_json_reports_governed_51_command_slice() {
                     && entry.get("tool_id").and_then(serde_json::Value::as_str).is_some()
                     && entry.get("threads").and_then(serde_json::Value::as_u64).is_some()
                     && entry.get("memory_mb").and_then(serde_json::Value::as_u64).is_some()
+                    && entry.get("argv").and_then(serde_json::Value::as_array).is_some_and(|argv| {
+                        argv.first().and_then(serde_json::Value::as_str) == Some("cargo")
+                            && argv.iter().any(|arg| arg.as_str() == Some("--stage-id"))
+                    })
                     && entry.get("command").and_then(serde_json::Value::as_str).is_some()
                     && entry
                         .get("inputs")
@@ -1788,8 +1796,10 @@ fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
 
     let script_path = repo_root.join("target/local-ready/rendered-stage-commands.sh");
     let manifest_path = repo_root.join("target/local-ready/rendered-stage-commands.json");
+    let argv_path = repo_root.join("target/local-ready/rendered-stage-commands.argv.jsonl");
     assert!(script_path.is_file(), "rendered script must exist");
     assert!(manifest_path.is_file(), "rendered JSON manifest must exist");
+    assert!(argv_path.is_file(), "rendered argv JSONL companion must exist");
 
     let syntax = Command::new("bash").arg("-n").arg(&script_path).output().expect("run bash -n");
     assert!(syntax.status.success(), "bash -n failed: {}", String::from_utf8_lossy(&syntax.stderr));
@@ -1799,4 +1809,16 @@ fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
         script.lines().filter(|line| line.starts_with("cargo run -q -p bijux-dna")).count(),
         51
     );
+
+    let argv_jsonl = std::fs::read_to_string(&argv_path).expect("read rendered argv JSONL");
+    let argv_rows = argv_jsonl.lines().collect::<Vec<_>>();
+    assert_eq!(argv_rows.len(), 51);
+    assert!(argv_rows.iter().all(|line| {
+        serde_json::from_str::<serde_json::Value>(line).ok().is_some_and(|row| {
+            row.get("argv").and_then(serde_json::Value::as_array).is_some_and(|argv| {
+                argv.first().and_then(serde_json::Value::as_str) == Some("cargo")
+                    && argv.iter().any(|arg| arg.as_str() == Some("--stage-id"))
+            })
+        })
+    }));
 }
