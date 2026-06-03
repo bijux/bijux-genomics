@@ -19,6 +19,18 @@ fn write_local_bias_mitigation_config(root: &Path, body: &str) -> Result<()> {
     Ok(())
 }
 
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(
+        repo_root.join("domain/bam/tools/mapdamage2.yaml"),
+        tool_dir.join("mapdamage2.yaml"),
+    )?;
+    Ok(temp)
+}
+
 #[test]
 fn local_bias_mitigation_smoke_plans_use_governed_bam_reference_and_expectations() -> Result<()> {
     let repo_root = repo_root();
@@ -107,6 +119,135 @@ fn local_bias_mitigation_smoke_stage_api_surface_stays_callable() {
         &Path,
     ) -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalBiasMitigationSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_bias_mitigation_smoke_plans;
+}
+
+#[test]
+fn local_bias_mitigation_smoke_plans_require_expected_metric_name_to_match_governed_summary(
+) -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_bias_mitigation_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_bias_mitigation.v1"
+tool_id = "mapdamage2"
+threads = 2
+output_dir = "target/local-smoke/bam.bias_mitigation"
+
+[[cases]]
+sample_id = "wrong-metric-name"
+bam = "{bam}"
+reference = "{reference}"
+window_size = 10
+gc_bias_correction = true
+map_bias_correction = false
+expected_metric_name = "map_bias_score"
+expected_pre_mitigation_metric = 0.25
+expected_post_mitigation_metric = 0.125
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/bias_mitigation_gc_window_reads.sam")
+                .display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/bias_mitigation_reference_windows.fasta")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_bias_mitigation_smoke_plans(temp.path())
+        .expect_err("expected_metric_name must stay aligned with the governed bias summary");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.bias_mitigation case `wrong-metric-name` must keep expected_metric_name aligned with the governed bias summary"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_bias_mitigation_smoke_plans_require_expected_pre_metric_to_match_governed_summary(
+) -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_bias_mitigation_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_bias_mitigation.v1"
+tool_id = "mapdamage2"
+threads = 2
+output_dir = "target/local-smoke/bam.bias_mitigation"
+
+[[cases]]
+sample_id = "wrong-pre-metric"
+bam = "{bam}"
+reference = "{reference}"
+window_size = 10
+gc_bias_correction = true
+map_bias_correction = false
+expected_metric_name = "gc_bias_score"
+expected_pre_mitigation_metric = 0.3
+expected_post_mitigation_metric = 0.125
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/bias_mitigation_gc_window_reads.sam")
+                .display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/bias_mitigation_reference_windows.fasta")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_bias_mitigation_smoke_plans(temp.path())
+        .expect_err("expected_pre_mitigation_metric must stay aligned with the governed summary");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.bias_mitigation case `wrong-pre-metric` must keep expected_pre_mitigation_metric aligned with the governed bias summary"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_bias_mitigation_smoke_plans_require_expected_post_metric_to_match_governed_summary(
+) -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_bias_mitigation_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_bias_mitigation.v1"
+tool_id = "mapdamage2"
+threads = 2
+output_dir = "target/local-smoke/bam.bias_mitigation"
+
+[[cases]]
+sample_id = "wrong-post-metric"
+bam = "{bam}"
+reference = "{reference}"
+window_size = 10
+gc_bias_correction = true
+map_bias_correction = false
+expected_metric_name = "gc_bias_score"
+expected_pre_mitigation_metric = 0.25
+expected_post_mitigation_metric = 0.2
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/bias_mitigation_gc_window_reads.sam")
+                .display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/bias_mitigation_reference_windows.fasta")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_bias_mitigation_smoke_plans(temp.path())
+        .expect_err("expected_post_mitigation_metric must stay aligned with the governed summary");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.bias_mitigation case `wrong-post-metric` must keep expected_post_mitigation_metric aligned with the governed bias summary"
+    );
+    Ok(())
 }
 
 #[test]

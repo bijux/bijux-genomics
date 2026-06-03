@@ -3153,6 +3153,44 @@ fn build_local_bias_mitigation_smoke_case(
             case.sample_id
         ));
     }
+    let governed_summary = bijux_dna_domain_bam::summarize_tiny_bam_bias_mitigation(
+        &bam_abs,
+        &reference_abs,
+        tool_spec.tool_id.as_str(),
+        case.window_size,
+        case.gc_bias_correction,
+        case.map_bias_correction,
+    )?;
+    if case.expected_metric_name != governed_summary.metric_name {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` must keep expected_metric_name aligned with the governed bias summary",
+            case.sample_id
+        ));
+    }
+    let governed_pre_metric = governed_summary.pre_mitigation_metric.ok_or_else(|| {
+        anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` governed bias summary is missing pre_mitigation_metric",
+            case.sample_id
+        )
+    })?;
+    if !float_matches(case.expected_pre_mitigation_metric, governed_pre_metric) {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` must keep expected_pre_mitigation_metric aligned with the governed bias summary",
+            case.sample_id
+        ));
+    }
+    let governed_post_metric = governed_summary.post_mitigation_metric.ok_or_else(|| {
+        anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` governed bias summary is missing post_mitigation_metric",
+            case.sample_id
+        )
+    })?;
+    if !float_matches(case.expected_post_mitigation_metric, governed_post_metric) {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` must keep expected_post_mitigation_metric aligned with the governed bias summary",
+            case.sample_id
+        ));
+    }
 
     let params = bijux_dna_domain_bam::params::BiasMitigationEffectiveParams {
         gc_bias_correction: case.gc_bias_correction,
