@@ -100,6 +100,18 @@ fn write_local_filter_config(root: &Path, body: &str) -> Result<()> {
     Ok(())
 }
 
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(
+        repo_root.join("domain/bam/tools/samtools.yaml"),
+        tool_dir.join("samtools.yaml"),
+    )?;
+    Ok(temp)
+}
+
 #[test]
 fn local_filter_smoke_plans_reject_empty_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
@@ -173,6 +185,158 @@ base_quality_threshold = 20
     let error = bijux_dna_planner_bam::stage_api::local_filter_smoke_plans(temp.path())
         .expect_err("duplicate sample_id must be rejected before plan construction");
     assert_eq!(error.to_string(), "duplicate local-smoke bam.filter sample_id `duplicate-case`");
+    Ok(())
+}
+
+#[test]
+fn local_filter_smoke_plans_require_aligned_removed_read_counts() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_filter_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "removed-count-mismatch"
+bam = "{bam}"
+expected_input_reads = 5
+expected_kept_reads = 1
+expected_removed_reads = 3
+expected_active_filters = ["mapq_threshold", "exclude_flags", "min_length", "remove_duplicates"]
+mapq_threshold = 20
+include_flags = []
+exclude_flags = [4]
+min_length = 8
+remove_duplicates = true
+base_quality_threshold = 20
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/filter_mixed_constraints.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_filter_smoke_plans(temp.path())
+        .expect_err("filter smoke removed reads must align with input and kept reads");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.filter case `removed-count-mismatch` must keep expected removed reads aligned with input and kept reads"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_filter_smoke_plans_require_active_filters() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_filter_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "missing-active-filters"
+bam = "{bam}"
+expected_input_reads = 5
+expected_kept_reads = 1
+expected_removed_reads = 4
+expected_active_filters = []
+mapq_threshold = 20
+include_flags = []
+exclude_flags = [4]
+min_length = 8
+remove_duplicates = true
+base_quality_threshold = 20
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/filter_mixed_constraints.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_filter_smoke_plans(temp.path())
+        .expect_err("filter smoke cases must declare at least one active filter");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.filter case `missing-active-filters` must declare at least one active filter"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_filter_smoke_plans_reject_empty_active_filter_names() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_filter_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "empty-active-filter"
+bam = "{bam}"
+expected_input_reads = 5
+expected_kept_reads = 1
+expected_removed_reads = 4
+expected_active_filters = ["mapq_threshold", " "]
+mapq_threshold = 20
+include_flags = []
+exclude_flags = [4]
+min_length = 8
+remove_duplicates = true
+base_quality_threshold = 20
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/filter_mixed_constraints.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_filter_smoke_plans(temp.path())
+        .expect_err("filter smoke cases must not declare empty active filter names");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.filter case `empty-active-filter` must not declare empty active filter names"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_filter_smoke_plans_reject_duplicate_active_filters() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_filter_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_filter.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "duplicate-active-filter"
+bam = "{bam}"
+expected_input_reads = 5
+expected_kept_reads = 1
+expected_removed_reads = 4
+expected_active_filters = ["mapq_threshold", "mapq_threshold"]
+mapq_threshold = 20
+include_flags = []
+exclude_flags = [4]
+min_length = 8
+remove_duplicates = true
+base_quality_threshold = 20
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/filter_mixed_constraints.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_filter_smoke_plans(temp.path())
+        .expect_err("filter smoke cases must not declare duplicate active filters");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.filter case `duplicate-active-filter` declared duplicate active filter `mapq_threshold`"
+    );
     Ok(())
 }
 
