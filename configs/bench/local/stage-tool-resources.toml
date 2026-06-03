@@ -1,0 +1,548 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Governed resource hints for benchmark-ready FASTQ and BAM stage-tool commands.
+# authority = bijux-dna-bench
+# stability = evolving
+
+schema_version = "bijux.bench.local_stage_tool_resources.v1"
+classification_scope = "benchmark_ready_command_resources"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+tool_id = "addeam"
+threads = 1
+memory_gb = 1
+walltime_minutes = 8
+scratch_gb = 1
+resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+tool_id = "damageprofiler"
+threads = 1
+memory_gb = 1
+walltime_minutes = 8
+scratch_gb = 1
+resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+tool_id = "mapdamage2"
+threads = 1
+memory_gb = 1
+walltime_minutes = 8
+scratch_gb = 1
+resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+tool_id = "pmdtools"
+threads = 1
+memory_gb = 1
+walltime_minutes = 8
+scratch_gb = 1
+resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+tool_id = "pydamage"
+threads = 1
+memory_gb = 1
+walltime_minutes = 8
+scratch_gb = 1
+resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.validate"
+tool_id = "bamtools"
+threads = 3
+memory_gb = 2
+walltime_minutes = 7
+scratch_gb = 2
+resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.validate"
+tool_id = "bedtools"
+threads = 3
+memory_gb = 2
+walltime_minutes = 7
+scratch_gb = 2
+resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.validate"
+tool_id = "samtools"
+threads = 3
+memory_gb = 2
+walltime_minutes = 7
+scratch_gb = 2
+resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.cluster_otus"
+tool_id = "vsearch"
+threads = 2
+memory_gb = 8
+walltime_minutes = 30
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.correct_errors"
+tool_id = "bayeshammer"
+threads = 4
+memory_gb = 16
+walltime_minutes = 30
+scratch_gb = 8
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.correct_errors"
+tool_id = "lighter"
+threads = 4
+memory_gb = 8
+walltime_minutes = 30
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.correct_errors"
+tool_id = "musket"
+threads = 4
+memory_gb = 8
+walltime_minutes = 30
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.correct_errors"
+tool_id = "rcorrector"
+threads = 4
+memory_gb = 8
+walltime_minutes = 30
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.deplete_host"
+tool_id = "bowtie2"
+threads = 1
+memory_gb = 1
+walltime_minutes = 20
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.deplete_reference_contaminants"
+tool_id = "bowtie2"
+threads = 1
+memory_gb = 1
+walltime_minutes = 20
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.deplete_rrna"
+tool_id = "sortmerna"
+threads = 1
+memory_gb = 1
+walltime_minutes = 20
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.infer_asvs"
+tool_id = "dada2"
+threads = 4
+memory_gb = 16
+walltime_minutes = 45
+scratch_gb = 8
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
+tool_id = "adapterremoval"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
+tool_id = "bbmerge"
+threads = 2
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
+tool_id = "flash2"
+threads = 2
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
+tool_id = "leehom"
+threads = 2
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
+tool_id = "pear"
+threads = 2
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
+tool_id = "vsearch"
+threads = 2
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.normalize_primers"
+tool_id = "cutadapt"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_read_lengths"
+tool_id = "fastp"
+threads = 4
+memory_gb = 8
+walltime_minutes = 10
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_read_lengths"
+tool_id = "prinseq"
+threads = 4
+memory_gb = 8
+walltime_minutes = 10
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_read_lengths"
+tool_id = "seqfu"
+threads = 1
+memory_gb = 1
+walltime_minutes = 10
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_read_lengths"
+tool_id = "seqkit_stats"
+threads = 2
+memory_gb = 2
+walltime_minutes = 10
+scratch_gb = 2
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_reads"
+tool_id = "seqfu"
+threads = 1
+memory_gb = 1
+walltime_minutes = 10
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_reads"
+tool_id = "seqkit"
+threads = 2
+memory_gb = 4
+walltime_minutes = 10
+scratch_gb = 2
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_reads"
+tool_id = "seqkit_stats"
+threads = 2
+memory_gb = 2
+walltime_minutes = 10
+scratch_gb = 2
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.remove_chimeras"
+tool_id = "vsearch"
+threads = 2
+memory_gb = 8
+walltime_minutes = 30
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.screen_taxonomy"
+tool_id = "centrifuge"
+threads = 4
+memory_gb = 16
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.screen_taxonomy"
+tool_id = "kaiju"
+threads = 4
+memory_gb = 16
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.screen_taxonomy"
+tool_id = "kraken2"
+threads = 4
+memory_gb = 16
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.screen_taxonomy"
+tool_id = "krakenuniq"
+threads = 1
+memory_gb = 1
+walltime_minutes = 20
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "adapterremoval"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "alientrimmer"
+threads = 1
+memory_gb = 1
+walltime_minutes = 15
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "atropos"
+threads = 2
+memory_gb = 4
+walltime_minutes = 15
+scratch_gb = 2
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "bbduk"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "cutadapt"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "fastp"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "fastx_clipper"
+threads = 1
+memory_gb = 1
+walltime_minutes = 15
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "leehom"
+threads = 2
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "prinseq"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "seqkit"
+threads = 2
+memory_gb = 4
+walltime_minutes = 15
+scratch_gb = 2
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "skewer"
+threads = 1
+memory_gb = 1
+walltime_minutes = 15
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "trim_galore"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "trimmomatic"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.validate_reads"
+tool_id = "fastq_scan"
+threads = 4
+memory_gb = 8
+walltime_minutes = 10
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.validate_reads"
+tool_id = "fastqc"
+threads = 4
+memory_gb = 8
+walltime_minutes = 10
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.validate_reads"
+tool_id = "fastqvalidator"
+threads = 4
+memory_gb = 8
+walltime_minutes = 10
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.validate_reads"
+tool_id = "fqtools"
+threads = 4
+memory_gb = 8
+walltime_minutes = 10
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.validate_reads"
+tool_id = "seqtk"
+threads = 4
+memory_gb = 8
+walltime_minutes = 10
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
