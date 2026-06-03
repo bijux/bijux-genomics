@@ -57,14 +57,9 @@ fn bench_local_validate_damage_fixture_json_reports_governed_corpus_01_adna_meta
         payload.get("sample_id").and_then(serde_json::Value::as_str),
         Some("adna_damage_non_udg")
     );
+    assert_eq!(payload.get("udg_model").and_then(serde_json::Value::as_str), Some("non_udg"));
     assert_eq!(
-        payload.get("udg_model").and_then(serde_json::Value::as_str),
-        Some("non_udg")
-    );
-    assert_eq!(
-        payload
-            .get("expected_terminal_pattern_class")
-            .and_then(serde_json::Value::as_str),
+        payload.get("expected_terminal_pattern_class").and_then(serde_json::Value::as_str),
         Some("ct5p_dominant")
     );
     assert!(payload

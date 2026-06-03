@@ -9,8 +9,7 @@ use super::{path_relative_to_repo, resolve_manifest_relative_path};
 pub(crate) const DEFAULT_CORPUS_01_ADNA_DAMAGE_MANIFEST_PATH: &str =
     "tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml";
 pub(crate) const BAM_DAMAGE_FIXTURE_SCHEMA_VERSION: &str = "bijux.bench.bam_damage_fixture.v1";
-const BAM_DAMAGE_FIXTURE_EXPECTATION_SCHEMA_VERSION: &str =
-    "bijux.bench.bam_damage_expectation.v1";
+const BAM_DAMAGE_FIXTURE_EXPECTATION_SCHEMA_VERSION: &str = "bijux.bench.bam_damage_expectation.v1";
 const BAM_DAMAGE_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.bam_damage_fixture_validation.v1";
 
@@ -189,10 +188,7 @@ fn validate_bam_damage_fixture_manifest_contract(
     manifest: &BamDamageFixtureManifest,
 ) -> Result<()> {
     if manifest.schema_version != BAM_DAMAGE_FIXTURE_SCHEMA_VERSION {
-        return Err(anyhow!(
-            "unsupported BAM damage fixture schema `{}`",
-            manifest.schema_version
-        ));
+        return Err(anyhow!("unsupported BAM damage fixture schema `{}`", manifest.schema_version));
     }
     if manifest.fixture_id.trim().is_empty() {
         return Err(anyhow!("BAM damage fixture must declare a non-empty `fixture_id`"));
@@ -222,9 +218,7 @@ fn validate_bam_damage_fixture_manifest_contract(
         ));
     }
     if manifest.source_paths.is_empty() {
-        return Err(anyhow!(
-            "BAM damage fixture must declare at least one `source_paths` entry"
-        ));
+        return Err(anyhow!("BAM damage fixture must declare at least one `source_paths` entry"));
     }
     Ok(())
 }
@@ -245,14 +239,10 @@ fn validate_bam_damage_fixture_expectation_contract(
         return Err(anyhow!("BAM damage expectation must declare a non-empty `sample_id`"));
     }
     if !(0.0..=1.0).contains(&expectation.terminal_c_to_t_5p) {
-        return Err(anyhow!(
-            "BAM damage expectation must keep `terminal_c_to_t_5p` within [0, 1]"
-        ));
+        return Err(anyhow!("BAM damage expectation must keep `terminal_c_to_t_5p` within [0, 1]"));
     }
     if !(0.0..=1.0).contains(&expectation.terminal_g_to_a_3p) {
-        return Err(anyhow!(
-            "BAM damage expectation must keep `terminal_g_to_a_3p` within [0, 1]"
-        ));
+        return Err(anyhow!("BAM damage expectation must keep `terminal_g_to_a_3p` within [0, 1]"));
     }
     if !(0.0..=1.0).contains(&expectation.short_fragment_fraction) {
         return Err(anyhow!(
@@ -269,11 +259,7 @@ fn ensure_fixture_file(path: &Path, suffix: &str, label: &str) -> Result<()> {
     if !path.is_file() {
         return Err(anyhow!("{label} is missing: {}", path.display()));
     }
-    if !path
-        .file_name()
-        .and_then(|name| name.to_str())
-        .is_some_and(|name| name.ends_with(suffix))
-    {
+    if !path.file_name().and_then(|name| name.to_str()).is_some_and(|name| name.ends_with(suffix)) {
         return Err(anyhow!("{label} must end with `{suffix}`"));
     }
     Ok(())
@@ -288,16 +274,14 @@ fn ensure_reference_fasta(path: &Path) -> Result<()> {
         .and_then(|name| name.to_str())
         .is_some_and(|name| name.ends_with(".fasta") || name.ends_with(".fa"))
     {
-        return Err(anyhow!(
-            "BAM damage fixture reference FASTA must end with `.fasta` or `.fa`"
-        ));
+        return Err(anyhow!("BAM damage fixture reference FASTA must end with `.fasta` or `.fa`"));
     }
     Ok(())
 }
 
 fn parse_reference_contigs(reference_fasta: &Path) -> Result<Vec<String>> {
-    let payload =
-        fs::read_to_string(reference_fasta).with_context(|| format!("read {}", reference_fasta.display()))?;
+    let payload = fs::read_to_string(reference_fasta)
+        .with_context(|| format!("read {}", reference_fasta.display()))?;
     let mut contigs = Vec::new();
     for line in payload.lines() {
         if let Some(header) = line.strip_prefix('>') {
@@ -313,14 +297,13 @@ fn parse_reference_contigs(reference_fasta: &Path) -> Result<Vec<String>> {
 }
 
 fn parse_tiny_sam_header(bam_path: &Path) -> Result<TinySamHeaderSummary> {
-    let payload = fs::read_to_string(bam_path).with_context(|| format!("read {}", bam_path.display()))?;
+    let payload =
+        fs::read_to_string(bam_path).with_context(|| format!("read {}", bam_path.display()))?;
     let mut header = TinySamHeaderSummary::default();
     for (line_index, line) in payload.lines().enumerate() {
         if line.starts_with("@SQ") {
-            let contig = line
-                .split('\t')
-                .find_map(|field| field.strip_prefix("SN:"))
-                .ok_or_else(|| {
+            let contig =
+                line.split('\t').find_map(|field| field.strip_prefix("SN:")).ok_or_else(|| {
                     anyhow!(
                         "malformed SAM header at line {}: `@SQ` is missing `SN:`",
                         line_index + 1
@@ -328,10 +311,8 @@ fn parse_tiny_sam_header(bam_path: &Path) -> Result<TinySamHeaderSummary> {
                 })?;
             header.contigs.push(contig.to_string());
         } else if line.starts_with("@RG") {
-            let sample_id = line
-                .split('\t')
-                .find_map(|field| field.strip_prefix("SM:"))
-                .ok_or_else(|| {
+            let sample_id =
+                line.split('\t').find_map(|field| field.strip_prefix("SM:")).ok_or_else(|| {
                     anyhow!(
                         "malformed SAM header at line {}: `@RG` is missing `SM:`",
                         line_index + 1
@@ -415,7 +396,11 @@ mod tests {
             root.join("tests/fixtures/corpora/corpus-01-adna-damage-mini/expected_damage.json"),
         )
         .expect("read governed expected damage")
-        .replacen("\"sample_id\": \"adna_damage_non_udg\"", "\"sample_id\": \"other_sample\"", 1);
+        .replacen(
+            "\"sample_id\": \"adna_damage_non_udg\"",
+            "\"sample_id\": \"other_sample\"",
+            1,
+        );
         fs::write(&expectation_path, broken).expect("write broken expectation");
 
         let error = validate_bam_damage_fixture_manifest_path(&root, &manifest_path)

@@ -1323,18 +1323,16 @@ mod tests {
             .get("governed_contributor_tool_ids")
             .and_then(serde_json::Value::as_array)
             .expect("governed contributor tool ids");
-        for tool_id in
-            [
-                "fastq_scan",
-                "fastqc",
-                "fastqvalidator",
-                "fqtools",
-                "seqfu",
-                "seqkit",
-                "seqkit_stats",
-                "seqtk",
-            ]
-        {
+        for tool_id in [
+            "fastq_scan",
+            "fastqc",
+            "fastqvalidator",
+            "fqtools",
+            "seqfu",
+            "seqkit",
+            "seqkit_stats",
+            "seqtk",
+        ] {
             assert!(
                 tool_ids.iter().any(|entry| entry.as_str() == Some(tool_id)),
                 "report_qc contributor metadata must advertise {tool_id}"

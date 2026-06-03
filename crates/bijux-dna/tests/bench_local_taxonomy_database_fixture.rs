@@ -57,10 +57,7 @@ fn bench_local_validate_taxonomy_database_fixture_json_reports_governed_taxonomy
         payload.get("sequence_index_path").and_then(serde_json::Value::as_str),
         Some("tests/fixtures/databases/taxonomy-mini/kraken2/hash.k2d")
     );
-    assert_eq!(
-        payload.get("source_record_count").and_then(serde_json::Value::as_u64),
-        Some(3)
-    );
+    assert_eq!(payload.get("source_record_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(payload.get("taxa_count").and_then(serde_json::Value::as_u64), Some(3));
     assert!(payload.get("valid").and_then(serde_json::Value::as_bool) == Some(true));
     assert!(payload

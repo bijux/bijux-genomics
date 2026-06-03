@@ -3,10 +3,7 @@ use std::collections::BTreeSet;
 use bijux_dna_domain_bam::{BAM_LOCAL_BENCH_STAGE_ID_CATALOG, BAM_STAGE_ID_CATALOG};
 
 fn local_stage_ids() -> BTreeSet<String> {
-    BAM_LOCAL_BENCH_STAGE_ID_CATALOG
-        .iter()
-        .map(|stage_id| (*stage_id).to_string())
-        .collect()
+    BAM_LOCAL_BENCH_STAGE_ID_CATALOG.iter().map(|stage_id| (*stage_id).to_string()).collect()
 }
 
 #[test]

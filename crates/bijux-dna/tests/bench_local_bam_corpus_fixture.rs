@@ -64,10 +64,14 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_corpus_01_bam_m
             && samples.iter().any(|sample| {
                 sample.get("sample_id").and_then(serde_json::Value::as_str)
                     == Some("adna_like_damage")
-                    && sample.get("observed_contigs").and_then(serde_json::Value::as_array).is_some_and(|contigs| {
-                        contigs.len() == 1
-                            && contigs.first().and_then(serde_json::Value::as_str) == Some("chranc")
-                    })
+                    && sample
+                        .get("observed_contigs")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|contigs| {
+                            contigs.len() == 1
+                                && contigs.first().and_then(serde_json::Value::as_str)
+                                    == Some("chranc")
+                        })
                     && sample
                         .get("observed_header_sample_ids")
                         .and_then(serde_json::Value::as_array)

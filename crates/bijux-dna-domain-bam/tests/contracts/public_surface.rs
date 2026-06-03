@@ -113,8 +113,7 @@ fn stage_id_catalog_matches_stage_enum() {
 #[test]
 fn local_benchmark_stage_catalog_matches_full_stage_catalog() {
     assert_eq!(
-        BAM_LOCAL_BENCH_STAGE_ID_CATALOG,
-        BAM_STAGE_ID_CATALOG,
+        BAM_LOCAL_BENCH_STAGE_ID_CATALOG, BAM_STAGE_ID_CATALOG,
         "BAM local benchmark stage catalog must cover every implemented BAM stage",
     );
 }
