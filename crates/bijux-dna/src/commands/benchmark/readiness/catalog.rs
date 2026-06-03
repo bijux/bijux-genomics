@@ -99,6 +99,17 @@ pub(crate) struct RegistryToolMatrix {
     pub(crate) stage_ids_by_tool: BTreeMap<String, Vec<String>>,
     pub(crate) known_tool_ids: BTreeSet<String>,
     pub(crate) stage_default_rationales: BTreeMap<String, String>,
+    pub(crate) stage_policies: BTreeMap<String, RegistryStagePolicy>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct RegistryStagePolicy {
+    pub(crate) stage_id: String,
+    pub(crate) primary_tool_ids: Vec<String>,
+    pub(crate) optional_alternative_tool_ids: Vec<String>,
+    pub(crate) validation_tool_ids: Vec<String>,
+    pub(crate) reporting_tool_ids: Vec<String>,
+    pub(crate) default_rationale: String,
 }
 
 pub(crate) fn load_benchmark_stage_ids(
@@ -106,11 +117,7 @@ pub(crate) fn load_benchmark_stage_ids(
     domain: ReadinessDomain,
 ) -> Result<BTreeSet<String>> {
     let inventory = load_local_stage_inventory(repo_root, domain.bench_local_domain())?;
-    Ok(inventory
-        .stages
-        .iter()
-        .map(|entry| entry.stage_id.clone())
-        .collect::<BTreeSet<_>>())
+    Ok(inventory.stages.iter().map(|entry| entry.stage_id.clone()).collect::<BTreeSet<_>>())
 }
 
 pub(crate) fn load_tool_contracts(
@@ -218,6 +225,7 @@ pub(crate) fn load_registry_tool_matrix(repo_root: &Path) -> Result<RegistryTool
     let mut stage_ids_by_tool = BTreeMap::<String, BTreeSet<String>>::new();
     let mut known_tool_ids = BTreeSet::<String>::new();
     let mut stage_default_rationales = BTreeMap::<String, String>::new();
+    let mut stage_policies = BTreeMap::<String, RegistryStagePolicy>::new();
 
     for tool in value_array(&parsed, "tools", &registry_path)? {
         let tool_id = required_string(tool, "id", &registry_path)?;
@@ -237,6 +245,11 @@ pub(crate) fn load_registry_tool_matrix(repo_root: &Path) -> Result<RegistryTool
 
     for stage in value_array(&parsed, "stages", &registry_path)? {
         let stage_id = required_string(stage, "id", &registry_path)?;
+        let primary_tool_ids = string_list(stage, "primary_tools", &registry_path)?;
+        let optional_alternative_tool_ids =
+            string_list(stage, "optional_alternatives", &registry_path)?;
+        let validation_tool_ids = string_list(stage, "validation_tools", &registry_path)?;
+        let reporting_tool_ids = string_list(stage, "reporting_tools", &registry_path)?;
         let default_rationale = stage
             .get("default_rationale")
             .and_then(toml::Value::as_str)
@@ -244,14 +257,21 @@ pub(crate) fn load_registry_tool_matrix(repo_root: &Path) -> Result<RegistryTool
             .trim()
             .to_string();
         if !default_rationale.is_empty() {
-            stage_default_rationales.insert(stage_id.clone(), default_rationale);
+            stage_default_rationales.insert(stage_id.clone(), default_rationale.clone());
         }
-        for key in [
-            "primary_tools",
-            "optional_alternatives",
-            "validation_tools",
-            "reporting_tools",
-        ] {
+        stage_policies.insert(
+            stage_id.clone(),
+            RegistryStagePolicy {
+                stage_id: stage_id.clone(),
+                primary_tool_ids: primary_tool_ids.clone(),
+                optional_alternative_tool_ids: optional_alternative_tool_ids.clone(),
+                validation_tool_ids: validation_tool_ids.clone(),
+                reporting_tool_ids: reporting_tool_ids.clone(),
+                default_rationale: default_rationale.clone(),
+            },
+        );
+        for key in ["primary_tools", "optional_alternatives", "validation_tools", "reporting_tools"]
+        {
             for tool_id in string_list(stage, key, &registry_path)? {
                 known_tool_ids.insert(tool_id.clone());
                 tool_stage_pairs.insert((stage_id.clone(), tool_id.clone()));
@@ -276,6 +296,7 @@ pub(crate) fn load_registry_tool_matrix(repo_root: &Path) -> Result<RegistryTool
             .collect(),
         known_tool_ids,
         stage_default_rationales,
+        stage_policies,
     })
 }
 
@@ -304,10 +325,61 @@ fn string_list(value: &toml::Value, key: &str, path: &Path) -> Result<Vec<String
         .ok_or_else(|| anyhow!("{} field `{}` must be an array", path.display(), key))?;
     rows.iter()
         .map(|entry| {
-            entry
-                .as_str()
-                .map(str::to_string)
-                .ok_or_else(|| anyhow!("{} field `{}` must contain only strings", path.display(), key))
+            entry.as_str().map(str::to_string).ok_or_else(|| {
+                anyhow!("{} field `{}` must contain only strings", path.display(), key)
+            })
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::load_registry_tool_matrix;
+
+    fn repo_root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .expect("canonicalize repo root")
+    }
+
+    #[test]
+    fn registry_tool_matrix_retains_bam_stage_policy_priorities() {
+        let matrix = load_registry_tool_matrix(&repo_root()).expect("load registry tool matrix");
+
+        let damage = matrix.stage_policies.get("bam.damage").expect("bam.damage policy");
+        assert_eq!(damage.primary_tool_ids, vec!["mapdamage2".to_string()]);
+        assert_eq!(
+            damage.optional_alternative_tool_ids,
+            vec![
+                "addeam".to_string(),
+                "damageprofiler".to_string(),
+                "pmdtools".to_string(),
+                "pydamage".to_string()
+            ]
+        );
+        assert_eq!(
+            damage.default_rationale,
+            "Damage baseline preserves comparability with historical aDNA runs."
+        );
+
+        let bam_qc_pre = matrix.stage_policies.get("bam.qc_pre").expect("bam.qc_pre policy");
+        assert_eq!(bam_qc_pre.primary_tool_ids, vec!["samtools".to_string()]);
+        assert_eq!(bam_qc_pre.reporting_tool_ids, vec!["multiqc".to_string()]);
+
+        assert!(
+            !matrix.stage_policies.contains_key("bam.genotyping"),
+            "bam.genotyping must remain outside the governed benchmark registry until its stage policy is explicitly added"
+        );
+        assert!(
+            !matrix.stage_policies.contains_key("bam.recalibration"),
+            "bam.recalibration must remain outside the governed benchmark registry until its stage policy is explicitly added"
+        );
+        assert!(
+            !matrix.stage_policies.contains_key("bam.complexity"),
+            "bam.complexity must remain outside the governed benchmark registry until its stage policy is explicitly added"
+        );
+    }
 }
