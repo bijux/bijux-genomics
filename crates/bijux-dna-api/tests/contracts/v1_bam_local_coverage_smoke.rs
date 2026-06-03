@@ -133,7 +133,10 @@ fn write_local_coverage_smoke_summary_materializes_governed_outputs() -> Result<
         stage_metrics_json["schema_version"],
         serde_json::json!("bijux.bam.coverage.local_smoke.metrics.v1")
     );
+    assert_eq!(stage_metrics_json["depth_thresholds"], serde_json::json!([1, 5]));
     assert_eq!(stage_metrics_json["observed_coverage_regime"], serde_json::json!("low_pass"));
+    assert_eq!(stage_metrics_json["expected_region_count"], serde_json::json!(2));
+    assert_eq!(stage_metrics_json["observed_region_count"], serde_json::json!(2));
     assert_eq!(stage_metrics_json["case_expectation_matched"], serde_json::json!(true));
     assert_eq!(stage_metrics_json["region_ids"], serde_json::json!(["chr1_window", "chr2_window"]));
 
