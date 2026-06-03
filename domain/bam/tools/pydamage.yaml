@@ -7,9 +7,47 @@ default_version: "1.0.0"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://pubmed.ncbi.nlm.nih.gov/34395085/"
+outputs:
+  - name: "damage_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "terminal_position_metrics"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "parser_output"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+  - name: "damage_profile"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  expected_outputs:
+    - "damage_report"
+    - "terminal_position_metrics"
+    - "parser_output"
+    - "stage_metrics"
+    - "damage_profile"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids: ["bam.damage"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.damage:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "damage_report"
+      - "terminal_position_metrics"
+      - "parser_output"
+      - "stage_metrics"
+      - "damage_profile"
+    notes: "PyDamage damage coverage preserves the governed damage report surface together with the native damage profile artifact."
 expected_artifacts: ["damage_profile"]
 metrics_schema_id: "bijux.bam.damage.v1"
 metrics_schema: "bijux.bam.damage.v1"

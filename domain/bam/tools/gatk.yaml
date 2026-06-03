@@ -7,9 +7,47 @@ default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC2928508/"
+outputs:
+  - name: "recal_bam"
+    data_type: "bam"
+    cardinality: "One"
+  - name: "recal_bai"
+    data_type: "bai"
+    cardinality: "One"
+  - name: "recal_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  expected_outputs:
+    - "recal_bam"
+    - "recal_bai"
+    - "recal_report"
+    - "summary"
+    - "stage_metrics"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids: ["bam.recalibration"]
 status: "planned"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.recalibration:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "recal_bam"
+      - "recal_bai"
+      - "recal_report"
+      - "summary"
+      - "stage_metrics"
+    notes: "GATK recalibration coverage preserves the governed recalibrated BAM, report, summary, and stage metrics artifacts."
 expected_artifacts: ["recal_report"]
 metrics_schema_id: "bijux.bam.recalibration.v1"
 metrics_schema: "bijux.bam.recalibration.v1"

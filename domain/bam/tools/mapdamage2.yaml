@@ -7,9 +7,70 @@ default_version: "2.2.2"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://academic.oup.com/bioinformatics/article/29/13/1682/184965"
+outputs:
+  - name: "damage_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "terminal_position_metrics"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "parser_output"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+  - name: "damage_profile"
+    data_type: "json"
+    cardinality: "One"
+  - name: "damage_plot"
+    data_type: "png"
+    cardinality: "One"
+  - name: "bias_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  expected_outputs:
+    - "damage_report"
+    - "terminal_position_metrics"
+    - "parser_output"
+    - "stage_metrics"
+    - "damage_profile"
+    - "damage_plot"
+    - "bias_report"
+    - "summary"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids: ["bam.damage","bam.bias_mitigation"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.damage:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "damage_report"
+      - "terminal_position_metrics"
+      - "parser_output"
+      - "stage_metrics"
+      - "damage_profile"
+      - "damage_plot"
+    notes: "mapDamage damage coverage preserves the governed damage report surface together with the native profile and plot artifacts."
+  bam.bias_mitigation:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "bias_report"
+      - "summary"
+      - "stage_metrics"
+      - "damage_profile"
+      - "damage_plot"
+    notes: "mapDamage bias-mitigation coverage preserves the governed bias report surface while retaining the native damage evidence artifacts."
 expected_artifacts: ["damage_profile","damage_plot","bias_report"]
 metrics_schema_id: "bijux.bam.damage.v1"
 metrics_schema: "bijux.bam.damage.v1"

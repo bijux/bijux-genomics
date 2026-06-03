@@ -7,9 +7,52 @@ default_version: "planned"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC11646307/"
+outputs:
+  - name: "damage_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "terminal_position_metrics"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "parser_output"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+  - name: "damage_profile"
+    data_type: "json"
+    cardinality: "One"
+  - name: "damage_parameters"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  expected_outputs:
+    - "damage_report"
+    - "terminal_position_metrics"
+    - "parser_output"
+    - "stage_metrics"
+    - "damage_profile"
+    - "damage_parameters"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids: ["bam.damage"]
 status: "planned"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.damage:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "damage_report"
+      - "terminal_position_metrics"
+      - "parser_output"
+      - "stage_metrics"
+      - "damage_profile"
+      - "damage_parameters"
+    notes: "ngsBriggs damage coverage preserves the governed damage report surface together with the native profile and parameter outputs."
 expected_artifacts: ["damage_profile","damage_parameters"]
 metrics_schema_id: "bijux.bam.damage.v1"
 metrics_schema: "bijux.bam.damage.v1"

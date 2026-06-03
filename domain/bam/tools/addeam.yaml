@@ -7,9 +7,52 @@ default_version: "1.0.0"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://academic.oup.com/bioinformatics/article/doi/10.1093/bioinformatics/btaf407/8205671"
+outputs:
+  - name: "damage_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "terminal_position_metrics"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "parser_output"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+  - name: "damage_profile"
+    data_type: "json"
+    cardinality: "One"
+  - name: "damage_clusters"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  expected_outputs:
+    - "damage_report"
+    - "terminal_position_metrics"
+    - "parser_output"
+    - "stage_metrics"
+    - "damage_profile"
+    - "damage_clusters"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids: ["bam.damage"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.damage:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "damage_report"
+      - "terminal_position_metrics"
+      - "parser_output"
+      - "stage_metrics"
+      - "damage_profile"
+      - "damage_clusters"
+    notes: "AdDeam damage coverage preserves the governed damage report surface together with the native clustered damage evidence outputs."
 expected_artifacts: ["damage_profile","damage_clusters"]
 metrics_schema_id: "bijux.bam.damage.v1"
 metrics_schema: "bijux.bam.damage.v1"

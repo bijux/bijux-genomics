@@ -7,9 +7,70 @@ default_version: "0.60"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://doi.org/10.1073/pnas.1318934111"
+outputs:
+  - name: "damage_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "terminal_position_metrics"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "parser_output"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+  - name: "authenticity_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "pmd_scores"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "damage_profile"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  expected_outputs:
+    - "damage_report"
+    - "terminal_position_metrics"
+    - "parser_output"
+    - "stage_metrics"
+    - "authenticity_report"
+    - "summary"
+    - "pmd_scores"
+    - "damage_profile"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids: ["bam.damage","bam.authenticity"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.damage:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "damage_report"
+      - "terminal_position_metrics"
+      - "parser_output"
+      - "stage_metrics"
+      - "pmd_scores"
+      - "damage_profile"
+    notes: "PMDtools damage coverage preserves the governed damage report surface together with the native PMD score table and damage profile artifacts."
+  bam.authenticity:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "authenticity_report"
+      - "summary"
+      - "stage_metrics"
+      - "pmd_scores"
+      - "damage_profile"
+    notes: "PMDtools authenticity coverage preserves the governed authenticity report surface while retaining the native PMD score table and damage profile artifacts."
 expected_artifacts: ["pmd_scores","damage_profile"]
 metrics_schema_id: "bijux.bam.authenticity.v1"
 metrics_schema: "bijux.bam.authenticity.v1"

@@ -9,9 +9,47 @@ container:
   image: "bijuxdna/contammix"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
+outputs:
+  - name: "contamination_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+  - name: "contamination_estimate"
+    data_type: "json"
+    cardinality: "One"
+  - name: "contammix_report"
+    data_type: "text"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  expected_outputs:
+    - "contamination_report"
+    - "summary"
+    - "stage_metrics"
+    - "contamination_estimate"
+    - "contammix_report"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids: ["bam.contamination"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.contamination:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "contamination_report"
+      - "summary"
+      - "stage_metrics"
+      - "contamination_estimate"
+      - "contammix_report"
+    notes: "ContamMix contamination coverage preserves the governed contamination report surface together with the native contamination estimate and backend report."
 expected_artifacts: ["contamination_estimate","contammix_report"]
 metrics_schema_id: "bijux.bam.contamination.v1"
 metrics_schema: "bijux.bam.contamination.v1"

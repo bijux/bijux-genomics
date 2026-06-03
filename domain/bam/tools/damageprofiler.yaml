@@ -7,9 +7,70 @@ default_version: "1.1"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://academic.oup.com/bioinformatics/article/37/20/3652/6247758"
+outputs:
+  - name: "damage_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "terminal_position_metrics"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "parser_output"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+  - name: "damage_profile"
+    data_type: "json"
+    cardinality: "One"
+  - name: "damage_plot"
+    data_type: "png"
+    cardinality: "One"
+  - name: "authenticity_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  expected_outputs:
+    - "damage_report"
+    - "terminal_position_metrics"
+    - "parser_output"
+    - "stage_metrics"
+    - "damage_profile"
+    - "damage_plot"
+    - "authenticity_report"
+    - "summary"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids: ["bam.damage","bam.authenticity"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.damage:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "damage_report"
+      - "terminal_position_metrics"
+      - "parser_output"
+      - "stage_metrics"
+      - "damage_profile"
+      - "damage_plot"
+    notes: "DamageProfiler damage coverage preserves the governed damage report surface together with the native profile and plot artifacts."
+  bam.authenticity:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "authenticity_report"
+      - "summary"
+      - "stage_metrics"
+      - "damage_profile"
+      - "damage_plot"
+    notes: "DamageProfiler authenticity coverage preserves the governed authenticity report surface while retaining the native damage evidence artifacts."
 expected_artifacts: ["damage_profile","damage_plot"]
 metrics_schema_id: "bijux.bam.damage.v1"
 metrics_schema: "bijux.bam.damage.v1"

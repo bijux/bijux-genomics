@@ -7,9 +7,37 @@ default_version: "2.3.0"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://academic.oup.com/bioinformatics/article/26/22/2867/228512"
+outputs:
+  - name: "kinship_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  expected_outputs:
+    - "kinship_report"
+    - "summary"
+    - "stage_metrics"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids: ["bam.kinship"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.kinship:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "kinship_report"
+      - "summary"
+      - "stage_metrics"
+    notes: "KING kinship coverage preserves the governed kinship report, summary, and stage metrics artifacts."
 expected_artifacts: ["kinship_report"]
 metrics_schema_id: "bijux.bam.kinship.v1"
 metrics_schema: "bijux.bam.kinship.v1"

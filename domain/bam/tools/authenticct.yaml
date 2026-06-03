@@ -7,9 +7,37 @@ default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://genomebiology.biomedcentral.com/articles/10.1186/s13059-020-02123-y"
+outputs:
+  - name: "authenticity_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  expected_outputs:
+    - "authenticity_report"
+    - "summary"
+    - "stage_metrics"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids: ["bam.authenticity"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.authenticity:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "authenticity_report"
+      - "summary"
+      - "stage_metrics"
+    notes: "AuthentiCT preserves the governed authenticity report surface through a normalized report, summary, and stage metrics."
 expected_artifacts: ["authenticity_report"]
 metrics_schema_id: "bijux.bam.authenticity.v1"
 metrics_schema: "bijux.bam.authenticity.v1"
