@@ -122,10 +122,20 @@ fn write_local_overlap_correction_smoke_report_materializes_governed_outputs() -
         serde_json::json!("bijux.bam.overlap_correction.local_smoke.metrics.v1")
     );
     assert_eq!(stage_metrics_json["method"], serde_json::json!("bamutil"));
+    assert_eq!(stage_metrics_json["expected_pair_count"], serde_json::json!(2));
     assert_eq!(stage_metrics_json["pair_count"], serde_json::json!(2));
+    assert_eq!(stage_metrics_json["pair_count_delta"], serde_json::json!(0));
+    assert_eq!(stage_metrics_json["expected_corrected_pairs"], serde_json::json!(1));
     assert_eq!(stage_metrics_json["corrected_pairs"], serde_json::json!(1));
+    assert_eq!(stage_metrics_json["corrected_pair_delta"], serde_json::json!(0));
+    assert_eq!(
+        stage_metrics_json["expected_corrected_overlap_bases"],
+        serde_json::json!(7)
+    );
     assert_eq!(stage_metrics_json["corrected_overlap_bases"], serde_json::json!(7));
+    assert_eq!(stage_metrics_json["corrected_overlap_base_delta"], serde_json::json!(0));
     assert_eq!(stage_metrics_json["insufficiency_reason"], serde_json::Value::Null);
+    assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 
     Ok(())
 }
