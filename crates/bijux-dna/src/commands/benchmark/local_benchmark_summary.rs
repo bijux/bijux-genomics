@@ -141,9 +141,16 @@ pub(crate) fn render_local_benchmark_summary(
         }
     }
 
-    if !absolute_fake_run_root.exists() {
-        fake_run_local_stage_commands(repo_root, absolute_fake_run_root.clone())?;
-    }
+    // Always refresh the fake-run tree so the benchmark summary cannot inherit
+    // stale partial outputs from an earlier local check.
+    fake_run_local_stage_commands(repo_root, absolute_fake_run_root.clone())?;
+    // Render the comparison template before deriving completion and runtime rollups,
+    // because that helper also refreshes the fake-run tree.
+    let tool_comparison = render_local_tool_comparison_template(
+        repo_root,
+        absolute_fake_run_root.clone(),
+        PathBuf::from(DEFAULT_TOOL_COMPARISON_TEMPLATE_PATH),
+    )?;
     let manifest_completion = check_local_stage_manifest_completion(
         repo_root,
         absolute_fake_run_root.clone(),
@@ -158,11 +165,6 @@ pub(crate) fn render_local_benchmark_summary(
         repo_root,
         absolute_fake_run_root.clone(),
         PathBuf::from(DEFAULT_RUNTIME_METRICS_REPORT_PATH),
-    )?;
-    let tool_comparison = render_local_tool_comparison_template(
-        repo_root,
-        absolute_fake_run_root.clone(),
-        PathBuf::from(DEFAULT_TOOL_COMPARISON_TEMPLATE_PATH),
     )?;
 
     let output_by_stage = output_completion
