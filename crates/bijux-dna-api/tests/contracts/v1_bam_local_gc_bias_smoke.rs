@@ -123,9 +123,12 @@ fn write_local_gc_bias_smoke_summary_materializes_governed_outputs() -> Result<(
         serde_json::json!("bijux.bam.gc_bias.local_smoke.metrics.v1")
     );
     assert_eq!(stage_metrics_json["window_size"], serde_json::json!(10));
+    assert_eq!(stage_metrics_json["expected_row_count"], serde_json::json!(3));
+    assert_eq!(stage_metrics_json["observed_row_count"], serde_json::json!(3));
     assert_eq!(stage_metrics_json["gc_bias_score"], serde_json::json!(0.25));
     assert_eq!(stage_metrics_json["at_dropout"], serde_json::json!(25.0));
     assert_eq!(stage_metrics_json["gc_dropout"], serde_json::json!(25.0));
+    assert_eq!(stage_metrics_json["insufficient_reference_reason"], serde_json::Value::Null);
     assert_eq!(stage_metrics_json["observed_gc_bins"], serde_json::json!([0, 50, 100]));
     assert_eq!(stage_metrics_json["row_expectation_matched"], serde_json::json!(true));
     assert_eq!(stage_metrics_json["case_expectation_matched"], serde_json::json!(true));

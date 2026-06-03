@@ -167,6 +167,8 @@ fn materialize_local_gc_bias_smoke_case(
             "stage_id": "bam.gc_bias",
             "sample_id": case.sample_id,
             "window_size": case.window_size,
+            "expected_row_count": case.expected_rows.len(),
+            "observed_row_count": rows.len(),
             "gc_bias_score": summary.gc_bias_score,
             "at_dropout": summary.at_dropout,
             "gc_dropout": summary.gc_dropout,
