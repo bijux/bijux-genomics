@@ -10,8 +10,8 @@ cohort = "human_like"
 alignment_path = "aligned/human_like_validation.bam"
 index_path = "aligned/human_like_validation.bam.bai"
 expected_contigs = ["chr1"]
-expected_header_sample_ids = ["human_like_validation"]
-expected_read_group_ids = ["rg-human"]
+expected_header_sample_ids = ["core-v1-pass"]
+expected_read_group_ids = ["rg1"]
 expected_record_count = 2
 source_paths = ["assets/toy/core-v1/bam/validation_pass.bam"]
 

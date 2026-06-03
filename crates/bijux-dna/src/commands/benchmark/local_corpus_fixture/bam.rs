@@ -3,6 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_domain_bam::inspect_tiny_alignment;
 use serde::{Deserialize, Serialize};
 
 use super::{path_relative_to_repo, resolve_manifest_relative_path};
@@ -65,16 +66,6 @@ pub(crate) struct BamCorpusFixtureValidationReport {
     pub(crate) samples: Vec<BamCorpusFixtureSampleValidationReport>,
 }
 
-#[derive(Debug, Clone, Default)]
-struct TinySamDocument {
-    sort_order: Option<String>,
-    header_contigs: Vec<String>,
-    read_group_ids: Vec<String>,
-    header_sample_ids: Vec<String>,
-    mapped_record_contigs: Vec<String>,
-    record_count: u64,
-}
-
 pub(crate) fn validate_bam_corpus_fixture_manifest_path(
     repo_root: &Path,
     manifest_path: &Path,
@@ -97,9 +88,7 @@ pub(crate) fn validate_bam_corpus_fixture_manifest_path(
         .and_then(|name| name.to_str())
         .is_some_and(|name| name.ends_with(".fasta") || name.ends_with(".fa"))
     {
-        return Err(anyhow!(
-            "BAM corpus fixture reference FASTA must end with `.fasta` or `.fa`"
-        ));
+        return Err(anyhow!("BAM corpus fixture reference FASTA must end with `.fasta` or `.fa`"));
     }
     let reference_contigs = parse_reference_contigs(&reference_fasta)?;
     if reference_contigs.is_empty() {
@@ -113,12 +102,7 @@ pub(crate) fn validate_bam_corpus_fixture_manifest_path(
         .samples
         .iter()
         .map(|sample| {
-            validate_bam_corpus_fixture_sample(
-                repo_root,
-                manifest_dir,
-                &reference_contigs,
-                sample,
-            )
+            validate_bam_corpus_fixture_sample(repo_root, manifest_dir, &reference_contigs, sample)
         })
         .collect::<Result<Vec<_>>>()?;
 
@@ -141,12 +125,11 @@ fn load_bam_corpus_fixture_manifest_path(manifest_path: &Path) -> Result<BamCorp
     toml::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))
 }
 
-fn validate_bam_corpus_fixture_manifest_contract(manifest: &BamCorpusFixtureManifest) -> Result<()> {
+fn validate_bam_corpus_fixture_manifest_contract(
+    manifest: &BamCorpusFixtureManifest,
+) -> Result<()> {
     if manifest.schema_version != BAM_CORPUS_FIXTURE_SCHEMA_VERSION {
-        return Err(anyhow!(
-            "unsupported BAM corpus fixture schema `{}`",
-            manifest.schema_version
-        ));
+        return Err(anyhow!("unsupported BAM corpus fixture schema `{}`", manifest.schema_version));
     }
     if manifest.corpus_id.trim().is_empty() {
         return Err(anyhow!("BAM corpus fixture must declare a non-empty `corpus_id`"));
@@ -164,9 +147,7 @@ fn validate_bam_corpus_fixture_manifest_contract(manifest: &BamCorpusFixtureMani
     let mut sample_ids = BTreeSet::new();
     for sample in &manifest.samples {
         if sample.sample_id.trim().is_empty() {
-            return Err(anyhow!(
-                "BAM corpus fixture samples must declare a non-empty `sample_id`"
-            ));
+            return Err(anyhow!("BAM corpus fixture samples must declare a non-empty `sample_id`"));
         }
         if !sample_ids.insert(sample.sample_id.clone()) {
             return Err(anyhow!("BAM corpus fixture repeats sample_id `{}`", sample.sample_id));
@@ -183,11 +164,7 @@ fn validate_bam_corpus_fixture_manifest_contract(manifest: &BamCorpusFixtureMani
                 sample.sample_id
             ));
         }
-        if sample
-            .expected_contigs
-            .iter()
-            .any(|contig| contig.trim().is_empty())
-        {
+        if sample.expected_contigs.iter().any(|contig| contig.trim().is_empty()) {
             return Err(anyhow!(
                 "BAM corpus fixture sample `{}` has an empty `expected_contigs` entry",
                 sample.sample_id
@@ -238,10 +215,10 @@ fn validate_bam_corpus_fixture_sample(
     if !alignment_path
         .file_name()
         .and_then(|name| name.to_str())
-        .is_some_and(|name| name.ends_with(".sam"))
+        .is_some_and(|name| name.ends_with(".sam") || name.ends_with(".bam"))
     {
         return Err(anyhow!(
-            "BAM corpus fixture sample `{}` alignment path must end with `.sam`",
+            "BAM corpus fixture sample `{}` alignment path must end with `.sam` or `.bam`",
             sample.sample_id
         ));
     }
@@ -264,9 +241,7 @@ fn validate_bam_corpus_fixture_sample(
             sample.sample_id
         ));
     }
-    if fs::metadata(&index_path)
-        .with_context(|| format!("stat {}", index_path.display()))?
-        .len()
+    if fs::metadata(&index_path).with_context(|| format!("stat {}", index_path.display()))?.len()
         == 0
     {
         return Err(anyhow!(
@@ -275,7 +250,7 @@ fn validate_bam_corpus_fixture_sample(
         ));
     }
 
-    let document = parse_tiny_sam_document(&alignment_path)?;
+    let document = inspect_tiny_alignment(&alignment_path)?;
     if document.sort_order.as_deref() != Some("coordinate") {
         return Err(anyhow!(
             "BAM corpus fixture sample `{}` must be coordinate-sorted",
@@ -326,7 +301,8 @@ fn validate_bam_corpus_fixture_sample(
         ));
     }
 
-    let observed_header_sample_ids = BTreeSet::from_iter(document.header_sample_ids.iter().cloned());
+    let observed_header_sample_ids =
+        BTreeSet::from_iter(document.header_sample_ids.iter().cloned());
     let declared_header_sample_ids =
         BTreeSet::from_iter(sample.expected_header_sample_ids.iter().cloned());
     if observed_header_sample_ids != declared_header_sample_ids {
@@ -350,8 +326,7 @@ fn validate_bam_corpus_fixture_sample(
         ));
     }
 
-    let mapped_record_contigs =
-        BTreeSet::from_iter(document.mapped_record_contigs.iter().cloned());
+    let mapped_record_contigs = BTreeSet::from_iter(document.mapped_record_contigs.iter().cloned());
     if !mapped_record_contigs.iter().all(|contig| observed_contigs.contains(contig)) {
         return Err(anyhow!(
             "BAM corpus fixture sample `{}` has mapped records on contigs absent from `@SQ`",
@@ -404,96 +379,6 @@ fn parse_reference_contigs(reference_fasta: &Path) -> Result<BTreeSet<String>> {
     Ok(contigs)
 }
 
-fn parse_tiny_sam_document(alignment_path: &Path) -> Result<TinySamDocument> {
-    let payload =
-        fs::read_to_string(alignment_path).with_context(|| format!("read {}", alignment_path.display()))?;
-    let mut document = TinySamDocument::default();
-    for (line_index, line) in payload.lines().enumerate() {
-        if line.trim().is_empty() {
-            continue;
-        }
-        if line.starts_with('@') {
-            let fields = line.split('\t').collect::<Vec<_>>();
-            match fields.first().copied() {
-                Some("@HD") => {
-                    for field in &fields[1..] {
-                        if let Some(sort_order) = field.strip_prefix("SO:") {
-                            document.sort_order = Some(sort_order.to_string());
-                        }
-                    }
-                }
-                Some("@SQ") => {
-                    let mut contig_name = None::<String>;
-                    for field in &fields[1..] {
-                        if let Some(name) = field.strip_prefix("SN:") {
-                            contig_name = Some(name.to_string());
-                            break;
-                        }
-                    }
-                    let contig_name = contig_name.ok_or_else(|| {
-                        anyhow!(
-                            "malformed SAM header at line {}: `@SQ` is missing `SN:`",
-                            line_index + 1
-                        )
-                    })?;
-                    document.header_contigs.push(contig_name);
-                }
-                Some("@RG") => {
-                    let mut read_group_id = None::<String>;
-                    let mut sample_id = None::<String>;
-                    for field in &fields[1..] {
-                        if let Some(value) = field.strip_prefix("ID:") {
-                            read_group_id = Some(value.to_string());
-                        } else if let Some(value) = field.strip_prefix("SM:") {
-                            sample_id = Some(value.to_string());
-                        }
-                    }
-                    document
-                        .read_group_ids
-                        .push(read_group_id.ok_or_else(|| {
-                            anyhow!(
-                                "malformed SAM header at line {}: `@RG` is missing `ID:`",
-                                line_index + 1
-                            )
-                        })?);
-                    document
-                        .header_sample_ids
-                        .push(sample_id.ok_or_else(|| {
-                            anyhow!(
-                                "malformed SAM header at line {}: `@RG` is missing `SM:`",
-                                line_index + 1
-                            )
-                        })?);
-                }
-                _ => {}
-            }
-            continue;
-        }
-
-        let fields = line.split('\t').collect::<Vec<_>>();
-        if fields.len() < 11 {
-            return Err(anyhow!(
-                "malformed SAM record at line {}: expected at least 11 fields",
-                line_index + 1
-            ));
-        }
-        let contig = fields[2];
-        if contig != "*" {
-            document.mapped_record_contigs.push(contig.to_string());
-        }
-        document.record_count = document.record_count.saturating_add(1);
-    }
-    document.header_contigs.sort();
-    document.header_contigs.dedup();
-    document.read_group_ids.sort();
-    document.read_group_ids.dedup();
-    document.header_sample_ids.sort();
-    document.header_sample_ids.dedup();
-    document.mapped_record_contigs.sort();
-    document.mapped_record_contigs.dedup();
-    Ok(document)
-}
-
 #[cfg(test)]
 mod tests {
     use std::fs;
@@ -540,7 +425,7 @@ mod tests {
         let broken = fs::read_to_string(root.join(DEFAULT_CORPUS_01_BAM_MINI_MANIFEST_PATH))
             .expect("read governed corpus-01 bam mini manifest")
             .replacen(
-                "expected_header_sample_ids = [\"human_like_validation\"]",
+                "expected_header_sample_ids = [\"core-v1-pass\"]",
                 "expected_header_sample_ids = [\"unexpected_sample\"]",
                 1,
             );
