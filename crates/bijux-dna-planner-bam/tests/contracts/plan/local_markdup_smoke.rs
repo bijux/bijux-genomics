@@ -98,6 +98,18 @@ fn write_local_markdup_config(root: &Path, body: &str) -> Result<()> {
     Ok(())
 }
 
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(
+        repo_root.join("domain/bam/tools/samtools.yaml"),
+        tool_dir.join("samtools.yaml"),
+    )?;
+    Ok(temp)
+}
+
 #[test]
 fn local_markdup_smoke_plans_reject_empty_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
@@ -173,6 +185,234 @@ expected_newly_marked_reads = 1
     assert_eq!(
         error.to_string(),
         "duplicate local-smoke bam.markdup sample_id `duplicate-case`"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_markdup_smoke_plans_reject_output_reads_greater_than_input() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_markdup_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_markdup.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "output-over-input"
+bam = "{bam}"
+duplicate_action = "mark"
+optical_duplicates = "mark_only"
+umi_policy = "ignore"
+expected_input_reads = 4
+expected_output_reads = 5
+expected_removed_reads = 0
+expected_duplicate_reads_before = 0
+expected_duplicate_reads_after = 1
+expected_duplicate_fraction = 0.2
+expected_newly_marked_reads = 1
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_markdup_smoke_plans(temp.path())
+        .expect_err("markdup cases cannot declare output reads greater than input reads");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.markdup case `output-over-input` cannot declare output reads greater than input reads"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_markdup_smoke_plans_require_removed_reads_alignment() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_markdup_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_markdup.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "removed-count-mismatch"
+bam = "{bam}"
+duplicate_action = "mark"
+optical_duplicates = "mark_only"
+umi_policy = "ignore"
+expected_input_reads = 4
+expected_output_reads = 4
+expected_removed_reads = 1
+expected_duplicate_reads_before = 0
+expected_duplicate_reads_after = 1
+expected_duplicate_fraction = 0.25
+expected_newly_marked_reads = 1
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_markdup_smoke_plans(temp.path())
+        .expect_err("markdup removed reads must align with input and output reads");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.markdup case `removed-count-mismatch` must keep expected removed reads aligned with input and output reads"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_markdup_smoke_plans_require_duplicate_fraction_alignment() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_markdup_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_markdup.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "fraction-mismatch"
+bam = "{bam}"
+duplicate_action = "mark"
+optical_duplicates = "mark_only"
+umi_policy = "ignore"
+expected_input_reads = 4
+expected_output_reads = 4
+expected_removed_reads = 0
+expected_duplicate_reads_before = 0
+expected_duplicate_reads_after = 1
+expected_duplicate_fraction = 0.5
+expected_newly_marked_reads = 1
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_markdup_smoke_plans(temp.path())
+        .expect_err("markdup duplicate fraction must align with output and duplicate reads");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.markdup case `fraction-mismatch` must keep duplicate fraction aligned with output and duplicate reads"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_markdup_smoke_plans_reject_newly_marked_reads_greater_than_duplicates_after() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_markdup_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_markdup.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "newly-marked-over-duplicates"
+bam = "{bam}"
+duplicate_action = "mark"
+optical_duplicates = "mark_only"
+umi_policy = "ignore"
+expected_input_reads = 4
+expected_output_reads = 4
+expected_removed_reads = 0
+expected_duplicate_reads_before = 0
+expected_duplicate_reads_after = 1
+expected_duplicate_fraction = 0.25
+expected_newly_marked_reads = 2
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_markdup_smoke_plans(temp.path())
+        .expect_err("markdup newly marked reads cannot exceed duplicates after processing");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.markdup case `newly-marked-over-duplicates` cannot declare newly marked reads greater than duplicate reads after processing"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_markdup_smoke_plans_reject_removed_reads_for_mark_action() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_markdup_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_markdup.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "mark-action-removes-reads"
+bam = "{bam}"
+duplicate_action = "mark"
+optical_duplicates = "mark_only"
+umi_policy = "ignore"
+expected_input_reads = 4
+expected_output_reads = 3
+expected_removed_reads = 1
+expected_duplicate_reads_before = 0
+expected_duplicate_reads_after = 1
+expected_duplicate_fraction = 0.3333333333333333
+expected_newly_marked_reads = 1
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_markdup_smoke_plans(temp.path())
+        .expect_err("markdup mark action must not remove reads");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.markdup case `mark-action-removes-reads` must not remove reads when duplicate_action is mark"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_markdup_smoke_plans_reject_newly_marked_reads_for_remove_action() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_markdup_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_markdup.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "remove-action-newly-marked"
+bam = "{bam}"
+duplicate_action = "remove"
+optical_duplicates = "mark_only"
+umi_policy = "ignore"
+expected_input_reads = 4
+expected_output_reads = 3
+expected_removed_reads = 1
+expected_duplicate_reads_before = 0
+expected_duplicate_reads_after = 1
+expected_duplicate_fraction = 0.3333333333333333
+expected_newly_marked_reads = 1
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_markdup_smoke_plans(temp.path())
+        .expect_err("markdup remove action must not declare newly marked reads");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.markdup case `remove-action-newly-marked` must not declare newly marked reads when duplicate_action is remove"
     );
     Ok(())
 }
