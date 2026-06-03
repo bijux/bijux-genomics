@@ -243,3 +243,112 @@ relationship_label = "first_degree"
     );
     Ok(())
 }
+
+#[test]
+fn local_kinship_smoke_plans_reject_pairwise_results_for_insufficient_cases() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_kinship_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_kinship.v1"
+tool_id = "king"
+threads = 2
+output_dir = "target/local-smoke/bam.kinship"
+
+[[cases]]
+sample_id = "insufficient-case-with-pairs"
+bam = "{bam}"
+reference_panel = "toy_human_relatedness_panel"
+reference_build = "grch38"
+population_scope = "human_diploid_panel"
+min_overlap_snps = 5
+requires_cohort_context = true
+expected_status = "insufficient"
+expected_observed_max_overlap_snps = 4
+expected_insufficiency_reason = "insufficient_overlap_snps"
+
+[[cases.expected_pairwise_results]]
+sample_a = "sample_a"
+sample_b = "sample_b"
+overlap_snps = 4
+matching_sites = 3
+mismatch_sites = 1
+concordance = 0.75
+kinship_coefficient = 0.125
+relationship_label = "unrelated"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/kinship_low_overlap_pair.sam")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_kinship_smoke_plans(temp.path())
+        .expect_err("insufficient kinship cases must not declare pairwise results");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.kinship case `insufficient-case-with-pairs` must not declare pairwise results when expected_status is insufficient"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_kinship_smoke_plans_reject_duplicate_pairwise_sample_combinations() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_kinship_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_kinship.v1"
+tool_id = "king"
+threads = 2
+output_dir = "target/local-smoke/bam.kinship"
+
+[[cases]]
+sample_id = "duplicate-pairwise-combination"
+bam = "{bam}"
+reference_panel = "toy_human_relatedness_panel"
+reference_build = "grch38"
+population_scope = "human_diploid_panel"
+min_overlap_snps = 6
+requires_cohort_context = true
+expected_status = "ok"
+expected_observed_max_overlap_snps = 6
+
+[[cases.expected_pairwise_results]]
+sample_a = "sample_a"
+sample_b = "sample_b"
+overlap_snps = 6
+matching_sites = 5
+mismatch_sites = 1
+concordance = 0.833333
+kinship_coefficient = 0.416667
+relationship_label = "first_degree"
+
+[[cases.expected_pairwise_results]]
+sample_a = "sample_b"
+sample_b = "sample_a"
+overlap_snps = 6
+matching_sites = 5
+mismatch_sites = 1
+concordance = 0.833333
+kinship_coefficient = 0.416667
+relationship_label = "first_degree"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/kinship_related_pair.sam")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_kinship_smoke_plans(temp.path())
+        .expect_err("duplicate pairwise sample combinations must be rejected");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.kinship case `duplicate-pairwise-combination` declared a duplicate pairwise sample combination"
+    );
+    Ok(())
+}
