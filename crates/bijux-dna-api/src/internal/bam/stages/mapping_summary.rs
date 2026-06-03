@@ -132,6 +132,7 @@ fn materialize_local_mapping_summary_smoke_case(
             "unmapped_reads": unmapped_reads,
             "mapping_fraction": mapping_fraction,
             "reference_name": reference_name,
+            "expectation_matched": expectation_matched,
             "proper_pair_reads": mapping_summary.proper_pair_reads,
             "secondary_reads": secondary_reads,
             "supplementary_reads": supplementary_reads,
