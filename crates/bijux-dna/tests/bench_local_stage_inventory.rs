@@ -1145,6 +1145,75 @@ fn bench_local_materialize_stage_bam_authenticity_json_writes_governed_smoke_bun
 }
 
 #[test]
+fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.contamination",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.contamination")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/bam.contamination/plan.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let plan: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&artifact_path).expect("read bam.contamination plan"))
+            .expect("parse bam.contamination plan");
+
+    assert_eq!(plan.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.contamination"));
+    assert_eq!(plan.get("tool_id").and_then(serde_json::Value::as_str), Some("verifybamid2"));
+    assert_eq!(
+        plan.get("out_dir").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/bam.contamination")
+    );
+    assert_eq!(
+        plan.get("params").and_then(|params| params.get("sample_id")),
+        Some(&serde_json::json!("core-v1-contamination-panel-screen"))
+    );
+    assert_eq!(
+        plan.get("params").and_then(|params| params.get("scope")),
+        Some(&serde_json::json!("nuclear"))
+    );
+    assert_eq!(
+        plan.get("params").and_then(|params| params.get("reference_panels")),
+        Some(&serde_json::json!(["assets/reference/host/references/toy_human_contamination_panel.dat"]))
+    );
+
+    let contamination_report = plan["io"]["outputs"]
+        .as_array()
+        .and_then(|outputs| {
+            outputs.iter().find(|artifact| artifact["name"] == serde_json::json!("contamination_report"))
+        })
+        .unwrap_or_else(|| panic!("contamination_report output missing from CLI materialized plan"));
+    assert_eq!(
+        contamination_report["path"],
+        serde_json::json!("target/local-ready/bam.contamination/contamination.json")
+    );
+    assert!(
+        plan["command"]["template"].as_array().is_some_and(|command| command.iter().any(
+            |part| part.as_str().is_some_and(|shell| {
+                shell.contains("assets/toy/core-v1/bam/contamination_panel_screen.sam.bai")
+                    && shell.contains("assets/reference/host/references/toy_host_reference.fasta")
+                    && shell.contains("assets/reference/host/references/toy_human_contamination_panel.dat")
+                    && shell.contains("target/local-ready/bam.contamination/contamination.summary.json")
+            })
+        )),
+        "CLI materialized contamination plan must carry the governed BAI, reference, panel, and summary output paths"
+    );
+}
+
+#[test]
 fn bench_local_materialize_stage_bam_damage_json_writes_governed_smoke_bundle() {
     let (repo_root, payload) = run_cli_json_with_repo_root(&[
         "bench",
