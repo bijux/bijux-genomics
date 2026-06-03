@@ -823,6 +823,49 @@ fn bench_local_materialize_stage_bam_insert_size_json_writes_governed_smoke_bund
     );
 }
 
+#[test]
+fn bench_local_materialize_stage_bam_gc_bias_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.gc_bias",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.gc_bias")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.gc_bias/gc_bias.tsv")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let gc_bias_tsv = std::fs::read_to_string(&artifact_path).expect("read bam.gc_bias summary");
+    assert!(gc_bias_tsv.contains("sample_id\tgc_bin\tnormalized_coverage\twindows\tread_starts"));
+    assert!(gc_bias_tsv.contains("core-v1-gc-window-ladder\t0\t0.750000\t1\t1"));
+    assert!(gc_bias_tsv.contains("core-v1-gc-window-ladder\t50\t1.500000\t1\t2"));
+    assert!(gc_bias_tsv.contains("core-v1-gc-window-ladder\t100\t0.750000\t1\t1"));
+
+    let gc_bias_summary = repo_root
+        .join("target/local-smoke/bam.gc_bias/core-v1-gc-window-ladder/picard/gc_bias.summary.json");
+    let stage_metrics =
+        repo_root.join("target/local-smoke/bam.gc_bias/core-v1-gc-window-ladder/picard/stage.metrics.json");
+    assert!(
+        gc_bias_summary.is_file(),
+        "bam.gc_bias smoke bundle must expose the governed gc-bias summary json"
+    );
+    assert!(
+        stage_metrics.is_file(),
+        "bam.gc_bias smoke bundle must expose the governed stage metrics"
+    );
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
