@@ -103,10 +103,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
     let repo_root = repo_root();
     let tool_dir = temp.path().join("domain/bam/tools");
     fs::create_dir_all(&tool_dir)?;
-    fs::copy(
-        repo_root.join("domain/bam/tools/samtools.yaml"),
-        tool_dir.join("samtools.yaml"),
-    )?;
+    fs::copy(repo_root.join("domain/bam/tools/samtools.yaml"), tool_dir.join("samtools.yaml"))?;
     Ok(temp)
 }
 
@@ -318,12 +315,9 @@ fn mapq_filter_plan_accepts_bamtools_governed_planning_contract() -> Result<()> 
     let repo_root = repo_root();
     let stage_id = StageId::new("bam.mapq_filter".to_string());
     let tool_id = ToolId::new("bamtools");
-    let tool_spec =
-        bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
-            &repo_root,
-            &stage_id,
-            &tool_id,
-        )?;
+    let tool_spec = bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
+        &repo_root, &stage_id, &tool_id,
+    )?;
     let bam = PathBuf::from("assets/toy/core-v1/bam/mapq_threshold_ladder.sam");
     let params = bijux_dna_domain_bam::params::FilterEffectiveParams {
         mapq_threshold: 30,
@@ -333,7 +327,8 @@ fn mapq_filter_plan_accepts_bamtools_governed_planning_contract() -> Result<()> 
         remove_duplicates: false,
         base_quality_threshold: 20,
     };
-    let out_dir = PathBuf::from("target/local-smoke/bam.mapq_filter/core-v1-mapq-threshold/bamtools");
+    let out_dir =
+        PathBuf::from("target/local-smoke/bam.mapq_filter/core-v1-mapq-threshold/bamtools");
     let plan = bijux_dna_planner_bam::tool_adapters::stages_pre::mapq_filter::plan(
         &tool_spec, &bam, &out_dir, &params,
     )?;

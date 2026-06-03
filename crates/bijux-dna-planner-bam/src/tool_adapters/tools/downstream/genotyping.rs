@@ -29,25 +29,24 @@ pub fn args_with_outputs(
 ) -> Vec<String> {
     let min_posterior = params.min_posterior.unwrap_or(0.0);
     let min_call_rate = params.min_call_rate.unwrap_or(0.0);
-    let bam_index_check =
-        context.bam_index.map_or_else(String::new, |path| format!("test -f {} && ", path.display()));
-    let reference_check =
-        context.reference.map_or_else(String::new, |path| format!("test -f {} && ", path.display()));
+    let bam_index_check = context
+        .bam_index
+        .map_or_else(String::new, |path| format!("test -f {} && ", path.display()));
+    let reference_check = context
+        .reference
+        .map_or_else(String::new, |path| format!("test -f {} && ", path.display()));
     let sites_check =
         context.sites.map_or_else(String::new, |path| format!("test -f {} && ", path.display()));
     let regions_check =
         context.regions.map_or_else(String::new, |path| format!("test -f {} && ", path.display()));
-    let sites_arg = context
-        .sites
-        .map_or_else(String::new, |path| format!(" -sites {}", path.display()));
-    let regions_arg = context
-        .regions
-        .map_or_else(String::new, |path| format!(" -rf {}", path.display()));
+    let sites_arg =
+        context.sites.map_or_else(String::new, |path| format!(" -sites {}", path.display()));
+    let regions_arg =
+        context.regions.map_or_else(String::new, |path| format!(" -rf {}", path.display()));
     let reference_json =
         context.reference.map(|path| path.display().to_string()).unwrap_or_default();
     let sites_json = context.sites.map(|path| path.display().to_string()).unwrap_or_default();
-    let regions_json =
-        context.regions.map(|path| path.display().to_string()).unwrap_or_default();
+    let regions_json = context.regions.map(|path| path.display().to_string()).unwrap_or_default();
     let bcf_path = outputs
         .bcf
         .map_or_else(|| outputs.report.with_extension("bcf"), std::path::Path::to_path_buf);

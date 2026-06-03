@@ -27,10 +27,7 @@ fn local_insert_size_smoke_plans_use_governed_paired_fixture() -> Result<()> {
     assert_eq!(case.plan.stage_id.as_str(), "bam.insert_size");
     assert_eq!(case.plan.tool_id.as_str(), "picard");
     assert_eq!(case.plan.resources.threads, 2);
-    assert_eq!(
-        case.bam,
-        PathBuf::from("assets/toy/core-v1/bam/insert_size_paired_triplet.sam")
-    );
+    assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/insert_size_paired_triplet.sam"));
     assert_eq!(case.expected_read_pairs, 3);
     assert!((case.expected_median_insert_size - 20.0).abs() <= 1e-9);
     assert!((case.expected_mean_insert_size - 21.666666666666668).abs() <= 1e-9);
@@ -78,9 +75,9 @@ fn local_insert_size_smoke_plans_use_governed_paired_fixture() -> Result<()> {
 fn local_insert_size_smoke_stage_api_surface_stays_callable() {
     let _: fn(
         &Path,
-    )
-        -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalInsertSizeSmokeCasePlan>> =
-        bijux_dna_planner_bam::stage_api::local_insert_size_smoke_plans;
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_bam::stage_api::LocalInsertSizeSmokeCasePlan>,
+    > = bijux_dna_planner_bam::stage_api::local_insert_size_smoke_plans;
 }
 
 fn write_local_insert_size_config(root: &Path, body: &str) -> Result<()> {

@@ -17,10 +17,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
     let repo_root = repo_root();
     let tool_dir = temp.path().join("domain/bam/tools");
     fs::create_dir_all(&tool_dir)?;
-    fs::copy(
-        repo_root.join("domain/bam/tools/king.yaml"),
-        tool_dir.join("king.yaml"),
-    )?;
+    fs::copy(repo_root.join("domain/bam/tools/king.yaml"), tool_dir.join("king.yaml"))?;
     let runtime_dir = temp.path().join("configs/runtime/profiles");
     fs::create_dir_all(&runtime_dir)?;
     fs::copy(
@@ -68,19 +65,14 @@ fn local_kinship_smoke_plans_use_governed_pair_expectations() -> Result<()> {
     assert!(insufficient.expected_pairwise_results.is_empty());
     assert_eq!(
         insufficient.plan.out_dir,
-        PathBuf::from(
-            "target/local-smoke/bam.kinship/core-v1-kinship-insufficient-overlap/king"
-        )
+        PathBuf::from("target/local-smoke/bam.kinship/core-v1-kinship-insufficient-overlap/king")
     );
     assert_eq!(
         insufficient.plan.params["reference_panel"],
         serde_json::json!("toy_human_relatedness_panel")
     );
     assert_eq!(insufficient.plan.params["min_overlap_snps"], serde_json::json!(5));
-    assert_eq!(
-        insufficient.plan.params["requires_cohort_context"],
-        serde_json::json!(true)
-    );
+    assert_eq!(insufficient.plan.params["requires_cohort_context"], serde_json::json!(true));
 
     let valid = plans
         .iter()
@@ -88,10 +80,7 @@ fn local_kinship_smoke_plans_use_governed_pair_expectations() -> Result<()> {
         .unwrap_or_else(|| panic!("governed BAM kinship valid pair case missing"));
     assert_eq!(valid.plan.stage_id.as_str(), "bam.kinship");
     assert_eq!(valid.plan.tool_id.as_str(), "king");
-    assert_eq!(
-        valid.bam,
-        PathBuf::from("assets/toy/core-v1/bam/kinship_related_pair.sam")
-    );
+    assert_eq!(valid.bam, PathBuf::from("assets/toy/core-v1/bam/kinship_related_pair.sam"));
     assert_eq!(valid.reference_panel, "toy_human_relatedness_panel");
     assert_eq!(valid.reference_build, "grch38");
     assert_eq!(valid.population_scope, "human_diploid_panel");
@@ -139,7 +128,10 @@ fn local_kinship_smoke_plans_use_governed_pair_expectations() -> Result<()> {
 
 #[test]
 fn local_kinship_smoke_stage_api_surface_stays_callable() {
-    let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalKinshipSmokeCasePlan>> =
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalKinshipSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_kinship_smoke_plans;
 }
 
@@ -168,9 +160,7 @@ expected_status = "insufficient"
 expected_observed_max_overlap_snps = 4
 expected_insufficiency_reason = "insufficient_overlap_snps"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/kinship_low_overlap_pair.sam")
-                .display(),
+            bam = repo_root.join("assets/toy/core-v1/bam/kinship_low_overlap_pair.sam").display(),
         ),
     )?;
 
@@ -226,12 +216,9 @@ concordance = 0.833333
 kinship_coefficient = 0.416667
 relationship_label = "first_degree"
 "#,
-            insufficient_bam = repo_root
-                .join("assets/toy/core-v1/bam/kinship_low_overlap_pair.sam")
-                .display(),
-            valid_bam = repo_root
-                .join("assets/toy/core-v1/bam/kinship_related_pair.sam")
-                .display(),
+            insufficient_bam =
+                repo_root.join("assets/toy/core-v1/bam/kinship_low_overlap_pair.sam").display(),
+            valid_bam = repo_root.join("assets/toy/core-v1/bam/kinship_related_pair.sam").display(),
         ),
     )?;
 
@@ -279,9 +266,7 @@ concordance = 0.75
 kinship_coefficient = 0.125
 relationship_label = "unrelated"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/kinship_low_overlap_pair.sam")
-                .display(),
+            bam = repo_root.join("assets/toy/core-v1/bam/kinship_low_overlap_pair.sam").display(),
         ),
     )?;
 
@@ -338,9 +323,7 @@ concordance = 0.833333
 kinship_coefficient = 0.416667
 relationship_label = "first_degree"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/kinship_related_pair.sam")
-                .display(),
+            bam = repo_root.join("assets/toy/core-v1/bam/kinship_related_pair.sam").display(),
         ),
     )?;
 

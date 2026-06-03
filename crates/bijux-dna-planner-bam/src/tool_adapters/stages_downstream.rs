@@ -56,10 +56,7 @@ pub mod haplogroups {
             image: tool.image.clone(),
             command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
-            io: StageIO {
-                inputs,
-                outputs,
-            },
+            io: StageIO { inputs, outputs },
             out_dir: out_dir.to_path_buf(),
             params: serde_json::json!({
                 "bam": bam,

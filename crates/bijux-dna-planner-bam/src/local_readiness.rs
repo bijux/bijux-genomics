@@ -263,19 +263,12 @@ pub fn local_contamination_plan(repo_root: &Path) -> Result<bijux_dna_stage_cont
             "local-ready bam.contamination requires at least one governed reference panel"
         ));
     }
-    if config
-        .assumptions
-        .as_deref()
-        .map(str::trim)
-        .is_none_or(str::is_empty)
-    {
+    if config.assumptions.as_deref().map(str::trim).is_none_or(str::is_empty) {
         return Err(anyhow!(
             "local-ready bam.contamination requires a non-empty governed assumptions string"
         ));
     }
-    if config
-        .minimum_mean_coverage
-        .is_some_and(|coverage| !coverage.is_finite() || coverage <= 0.0)
+    if config.minimum_mean_coverage.is_some_and(|coverage| !coverage.is_finite() || coverage <= 0.0)
     {
         return Err(anyhow!(
             "local-ready bam.contamination minimum_mean_coverage must be finite and greater than zero"
@@ -361,21 +354,15 @@ pub fn local_genotyping_plan(repo_root: &Path) -> Result<bijux_dna_stage_contrac
         ));
     }
     if config.sample_id.trim().is_empty() {
-        return Err(anyhow!(
-            "local-ready bam.genotyping sample_id must not be empty"
-        ));
+        return Err(anyhow!("local-ready bam.genotyping sample_id must not be empty"));
     }
-    if config
-        .min_posterior
-        .is_some_and(|value| !value.is_finite() || !(0.0..=1.0).contains(&value))
+    if config.min_posterior.is_some_and(|value| !value.is_finite() || !(0.0..=1.0).contains(&value))
     {
         return Err(anyhow!(
             "local-ready bam.genotyping min_posterior must be finite and within [0, 1]"
         ));
     }
-    if config
-        .min_call_rate
-        .is_some_and(|value| !value.is_finite() || !(0.0..=1.0).contains(&value))
+    if config.min_call_rate.is_some_and(|value| !value.is_finite() || !(0.0..=1.0).contains(&value))
     {
         return Err(anyhow!(
             "local-ready bam.genotyping min_call_rate must be finite and within [0, 1]"
@@ -454,24 +441,16 @@ pub fn local_haplogroups_plan(repo_root: &Path) -> Result<bijux_dna_stage_contra
         ));
     }
     if config.sample_id.trim().is_empty() {
-        return Err(anyhow!(
-            "local-ready bam.haplogroups sample_id must not be empty"
-        ));
+        return Err(anyhow!("local-ready bam.haplogroups sample_id must not be empty"));
     }
     if config.reference_panel_id.trim().is_empty() {
-        return Err(anyhow!(
-            "local-ready bam.haplogroups reference_panel_id must not be empty"
-        ));
+        return Err(anyhow!("local-ready bam.haplogroups reference_panel_id must not be empty"));
     }
     if config.reference_build.trim().is_empty() {
-        return Err(anyhow!(
-            "local-ready bam.haplogroups reference_build must not be empty"
-        ));
+        return Err(anyhow!("local-ready bam.haplogroups reference_build must not be empty"));
     }
     if config.population_scope.trim().is_empty() {
-        return Err(anyhow!(
-            "local-ready bam.haplogroups population_scope must not be empty"
-        ));
+        return Err(anyhow!("local-ready bam.haplogroups population_scope must not be empty"));
     }
     let min_coverage = config.min_coverage.ok_or_else(|| {
         anyhow!("local-ready bam.haplogroups min_coverage must be finite and greater than zero")
@@ -502,10 +481,7 @@ pub fn local_haplogroups_plan(repo_root: &Path) -> Result<bijux_dna_stage_contra
     let reference_abs = repo_root.join(&config.reference_fasta);
     ensure_required_file(&reference_abs, "local-ready bam.haplogroups reference FASTA")?;
     let reference_panel_abs = repo_root.join(&config.reference_panel);
-    ensure_required_file(
-        &reference_panel_abs,
-        "local-ready bam.haplogroups reference panel",
-    )?;
+    ensure_required_file(&reference_panel_abs, "local-ready bam.haplogroups reference panel")?;
 
     let mut tool_spec = load_bam_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
@@ -542,21 +518,13 @@ pub fn local_haplogroups_plan(repo_root: &Path) -> Result<bijux_dna_stage_contra
         ArtifactRole::Reference,
     );
 
-    let params = plan.params.as_object_mut().ok_or_else(|| {
-        anyhow!("bam.haplogroups local-ready plan params must be a JSON object")
-    })?;
-    params.insert(
-        "reference_panel_id".to_string(),
-        serde_json::json!(config.reference_panel_id),
-    );
-    params.insert(
-        "reference_fasta".to_string(),
-        serde_json::json!(config.reference_fasta),
-    );
-    params.insert(
-        "coverage_gate".to_string(),
-        serde_json::json!({ "min_coverage": min_coverage }),
-    );
+    let params = plan
+        .params
+        .as_object_mut()
+        .ok_or_else(|| anyhow!("bam.haplogroups local-ready plan params must be a JSON object"))?;
+    params.insert("reference_panel_id".to_string(), serde_json::json!(config.reference_panel_id));
+    params.insert("reference_fasta".to_string(), serde_json::json!(config.reference_fasta));
+    params.insert("coverage_gate".to_string(), serde_json::json!({ "min_coverage": min_coverage }));
     params.insert("sample_id".to_string(), serde_json::json!(config.sample_id));
     params.insert("tool".to_string(), serde_json::json!(tool_id.as_str()));
 

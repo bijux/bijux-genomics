@@ -139,9 +139,8 @@ expected_confidence = 0.9
 expected_status = "ok"
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/sex_xy_autosome_male.sam").display(),
-            reference = repo_root
-                .join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta")
-                .display(),
+            reference =
+                repo_root.join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta").display(),
         ),
     )?;
 
@@ -182,9 +181,8 @@ expected_confidence = 0.9
 expected_status = "ok"
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/sex_xy_autosome_male.sam").display(),
-            reference = repo_root
-                .join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta")
-                .display(),
+            reference =
+                repo_root.join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta").display(),
         ),
     )?;
 
@@ -225,9 +223,8 @@ expected_confidence = 0.9
 expected_status = "ok"
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/sex_xy_autosome_male.sam").display(),
-            reference = repo_root
-                .join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta")
-                .display(),
+            reference =
+                repo_root.join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta").display(),
         ),
     )?;
 
@@ -268,9 +265,8 @@ expected_confidence = 0.9
 expected_status = "insufficient_coverage"
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/sex_xy_autosome_male.sam").display(),
-            reference = repo_root
-                .join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta")
-                .display(),
+            reference =
+                repo_root.join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta").display(),
         ),
     )?;
 

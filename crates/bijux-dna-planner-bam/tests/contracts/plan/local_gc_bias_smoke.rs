@@ -27,10 +27,7 @@ fn local_gc_bias_smoke_plans_use_governed_reference_and_bam() -> Result<()> {
     assert_eq!(case.plan.stage_id.as_str(), "bam.gc_bias");
     assert_eq!(case.plan.tool_id.as_str(), "picard");
     assert_eq!(case.plan.resources.threads, 2);
-    assert_eq!(
-        case.bam,
-        PathBuf::from("assets/toy/core-v1/bam/gc_bias_window_reads.sam")
-    );
+    assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/gc_bias_window_reads.sam"));
     assert_eq!(
         case.reference,
         PathBuf::from("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta")
@@ -80,10 +77,7 @@ fn local_gc_bias_smoke_plans_use_governed_reference_and_bam() -> Result<()> {
         .iter()
         .map(|artifact| artifact.name.as_str().to_string())
         .collect::<Vec<_>>();
-    assert_eq!(
-        output_names,
-        vec!["gc_bias_report", "gc_bias_plot", "summary", "stage_metrics"]
-    );
+    assert_eq!(output_names, vec!["gc_bias_report", "gc_bias_plot", "summary", "stage_metrics"]);
 
     let summary_output = case
         .plan
@@ -106,7 +100,8 @@ fn local_gc_bias_smoke_plans_use_governed_reference_and_bam() -> Result<()> {
 fn local_gc_bias_smoke_stage_api_surface_stays_callable() {
     let _: fn(
         &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalGcBiasSmokeCasePlan>> =
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalGcBiasSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_gc_bias_smoke_plans;
 }
 
@@ -192,10 +187,7 @@ read_starts = 2
 
     let error = bijux_dna_planner_bam::stage_api::local_gc_bias_smoke_plans(temp.path())
         .expect_err("duplicate sample_id must be rejected before gc-bias plan construction");
-    assert_eq!(
-        error.to_string(),
-        "duplicate local-smoke bam.gc_bias sample_id `duplicate-case`"
-    );
+    assert_eq!(error.to_string(), "duplicate local-smoke bam.gc_bias sample_id `duplicate-case`");
     Ok(())
 }
 
@@ -223,9 +215,8 @@ windows = 1
 read_starts = 1
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
-            reference = repo_root
-                .join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta")
-                .display(),
+            reference =
+                repo_root.join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta").display(),
         ),
     )?;
 
@@ -257,9 +248,8 @@ window_size = 10
 expected_rows = []
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
-            reference = repo_root
-                .join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta")
-                .display(),
+            reference =
+                repo_root.join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta").display(),
         ),
     )?;
 
@@ -302,9 +292,8 @@ windows = 1
 read_starts = 2
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
-            reference = repo_root
-                .join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta")
-                .display(),
+            reference =
+                repo_root.join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta").display(),
         ),
     )?;
 
@@ -341,9 +330,8 @@ windows = 0
 read_starts = 1
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
-            reference = repo_root
-                .join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta")
-                .display(),
+            reference =
+                repo_root.join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta").display(),
         ),
     )?;
 
@@ -380,9 +368,8 @@ windows = 1
 read_starts = 1
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
-            reference = repo_root
-                .join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta")
-                .display(),
+            reference =
+                repo_root.join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta").display(),
         ),
     )?;
 

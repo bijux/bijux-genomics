@@ -81,10 +81,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
     let repo_root = repo_root();
     let tool_dir = temp.path().join("domain/bam/tools");
     fs::create_dir_all(&tool_dir)?;
-    fs::copy(
-        repo_root.join("domain/bam/tools/samtools.yaml"),
-        tool_dir.join("samtools.yaml"),
-    )?;
+    fs::copy(repo_root.join("domain/bam/tools/samtools.yaml"), tool_dir.join("samtools.yaml"))?;
     Ok(temp)
 }
 

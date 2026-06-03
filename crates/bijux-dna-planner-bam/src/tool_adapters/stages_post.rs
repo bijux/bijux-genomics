@@ -378,7 +378,9 @@ pub mod coverage {
 pub mod endogenous_content {
     use std::path::Path;
 
-    use bijux_dna_core::prelude::{ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
     use bijux_dna_domain_bam::params::EndogenousContentEffectiveParams;
     use bijux_dna_stage_contract::{StageIO, StagePlanV1};
 
@@ -400,22 +402,12 @@ pub mod endogenous_content {
         let flagstat = out_dir.join("flagstat.txt");
         let report = out_dir.join("endogenous.content.json");
         let command = match tool.tool_id.as_str() {
-            "samtools" => {
-                crate::tool_adapters::tools::samtools::endogenous_content_args(
-                    bam,
-                    &flagstat,
-                    &report,
-                    params,
-                )
-            }
-            _ => {
-                crate::tool_adapters::tools::samtools::endogenous_content_args(
-                    bam,
-                    &flagstat,
-                    &report,
-                    params,
-                )
-            }
+            "samtools" => crate::tool_adapters::tools::samtools::endogenous_content_args(
+                bam, &flagstat, &report, params,
+            ),
+            _ => crate::tool_adapters::tools::samtools::endogenous_content_args(
+                bam, &flagstat, &report, params,
+            ),
         };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
@@ -444,9 +436,9 @@ pub mod endogenous_content {
                 "refuse_without_host_reference": params.refuse_without_host_reference,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-            serde_json::to_value(params).map_err(|error| {
-                anyhow::anyhow!("BAM stage effective params must serialize: {error}")
-            })?,
+                serde_json::to_value(params).map_err(|error| {
+                    anyhow::anyhow!("BAM stage effective params must serialize: {error}")
+                })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
             operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,

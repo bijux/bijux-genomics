@@ -357,12 +357,15 @@ pub mod mapping_summary {
             out_dir.join("samtools_stats.txt")
         };
         let summary = out_dir.join("mapping.summary.json");
-        if let Some(output) = outputs.iter_mut().find(|artifact| artifact.name.as_str() == "stats") {
+        if let Some(output) = outputs.iter_mut().find(|artifact| artifact.name.as_str() == "stats")
+        {
             output.path = stats.clone();
         }
         let command_template = if tool.tool_id.as_str() == "picard" {
-            let metrics_command = crate::tool_adapters::tools::core::picard::
-                collect_alignment_summary_metrics_args(bam, &stats)
+            let metrics_command =
+                crate::tool_adapters::tools::core::picard::collect_alignment_summary_metrics_args(
+                    bam, &stats,
+                )
                 .join(" ");
             let command = format!(
                 "{metrics_command} && \

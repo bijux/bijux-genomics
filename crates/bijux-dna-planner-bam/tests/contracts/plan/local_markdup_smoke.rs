@@ -103,10 +103,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
     let repo_root = repo_root();
     let tool_dir = temp.path().join("domain/bam/tools");
     fs::create_dir_all(&tool_dir)?;
-    fs::copy(
-        repo_root.join("domain/bam/tools/samtools.yaml"),
-        tool_dir.join("samtools.yaml"),
-    )?;
+    fs::copy(repo_root.join("domain/bam/tools/samtools.yaml"), tool_dir.join("samtools.yaml"))?;
     Ok(temp)
 }
 
@@ -182,10 +179,7 @@ expected_newly_marked_reads = 1
 
     let error = bijux_dna_planner_bam::stage_api::local_markdup_smoke_plans(temp.path())
         .expect_err("duplicate sample_id must be rejected before plan construction");
-    assert_eq!(
-        error.to_string(),
-        "duplicate local-smoke bam.markdup sample_id `duplicate-case`"
-    );
+    assert_eq!(error.to_string(), "duplicate local-smoke bam.markdup sample_id `duplicate-case`");
     Ok(())
 }
 
@@ -304,7 +298,8 @@ expected_newly_marked_reads = 1
 }
 
 #[test]
-fn local_markdup_smoke_plans_reject_newly_marked_reads_greater_than_duplicates_after() -> Result<()> {
+fn local_markdup_smoke_plans_reject_newly_marked_reads_greater_than_duplicates_after() -> Result<()>
+{
     let temp = stage_api_temp_repo()?;
     let repo_root = repo_root();
     write_local_markdup_config(
@@ -422,12 +417,9 @@ fn markdup_plan_accepts_picard_governed_planning_contract() -> Result<()> {
     let repo_root = repo_root();
     let stage_id = StageId::new("bam.markdup".to_string());
     let tool_id = ToolId::new("picard");
-    let tool_spec =
-        bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
-            &repo_root,
-            &stage_id,
-            &tool_id,
-        )?;
+    let tool_spec = bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
+        &repo_root, &stage_id, &tool_id,
+    )?;
     let bam = PathBuf::from("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam");
     let params = bijux_dna_domain_bam::params::MarkDupEffectiveParams {
         optical_duplicates: bijux_dna_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,

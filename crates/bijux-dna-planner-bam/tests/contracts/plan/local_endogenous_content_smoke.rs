@@ -38,7 +38,9 @@ fn local_endogenous_content_smoke_plans_use_governed_bam_and_host_scope() -> Res
     assert_eq!(case.expected_method, "mapped_fraction_from_flagstat");
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.endogenous_content/core-v1-endogenous-partial-mapping/samtools")
+        PathBuf::from(
+            "target/local-smoke/bam.endogenous_content/core-v1-endogenous-partial-mapping/samtools"
+        )
     );
     assert_eq!(
         case.plan.params["bam"],
@@ -76,8 +78,9 @@ fn local_endogenous_content_smoke_plans_use_governed_bam_and_host_scope() -> Res
 fn local_endogenous_content_smoke_stage_api_surface_stays_callable() {
     let _: fn(
         &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalEndogenousContentSmokeCasePlan>> =
-        bijux_dna_planner_bam::stage_api::local_endogenous_content_smoke_plans;
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_bam::stage_api::LocalEndogenousContentSmokeCasePlan>,
+    > = bijux_dna_planner_bam::stage_api::local_endogenous_content_smoke_plans;
 }
 
 fn write_local_endogenous_content_config(root: &Path, body: &str) -> Result<()> {
@@ -152,7 +155,9 @@ expected_method = "mapped_fraction_from_flagstat"
     )?;
 
     let error = bijux_dna_planner_bam::stage_api::local_endogenous_content_smoke_plans(temp.path())
-        .expect_err("duplicate sample_id must be rejected before endogenous-content plan construction");
+        .expect_err(
+            "duplicate sample_id must be rejected before endogenous-content plan construction",
+        );
     assert_eq!(
         error.to_string(),
         "duplicate local-smoke bam.endogenous_content sample_id `duplicate-case`"
@@ -180,7 +185,9 @@ expected_mapped_reads = 3
 expected_endogenous_fraction = 0.6
 expected_method = "mapped_fraction_from_flagstat"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam").display(),
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam")
+                .display(),
         ),
     )?;
 
@@ -213,7 +220,9 @@ expected_mapped_reads = 0
 expected_endogenous_fraction = 0.0
 expected_method = "mapped_fraction_from_flagstat"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam").display(),
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam")
+                .display(),
         ),
     )?;
 
@@ -246,7 +255,9 @@ expected_mapped_reads = 6
 expected_endogenous_fraction = 1.0
 expected_method = "mapped_fraction_from_flagstat"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam").display(),
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam")
+                .display(),
         ),
     )?;
 
@@ -279,7 +290,9 @@ expected_mapped_reads = 3
 expected_endogenous_fraction = 1.1
 expected_method = "mapped_fraction_from_flagstat"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam").display(),
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam")
+                .display(),
         ),
     )?;
 
@@ -312,7 +325,9 @@ expected_mapped_reads = 3
 expected_endogenous_fraction = 0.61
 expected_method = "mapped_fraction_from_flagstat"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam").display(),
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam")
+                .display(),
         ),
     )?;
 
@@ -345,7 +360,9 @@ expected_mapped_reads = 3
 expected_endogenous_fraction = 0.6
 expected_method = " "
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam").display(),
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam")
+                .display(),
         ),
     )?;
 

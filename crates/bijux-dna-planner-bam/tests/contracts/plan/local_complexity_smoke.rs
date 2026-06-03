@@ -376,8 +376,8 @@ expected_insufficient_data_reason = "insufficient_observed_unique_reads_for_comp
 }
 
 #[test]
-fn local_complexity_smoke_plans_reject_estimated_unique_reads_below_observed_unique_reads()
--> Result<()> {
+fn local_complexity_smoke_plans_reject_estimated_unique_reads_below_observed_unique_reads(
+) -> Result<()> {
     let temp = stage_api_temp_repo()?;
     let repo_root = repo_root();
     write_local_complexity_config(

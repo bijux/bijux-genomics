@@ -88,10 +88,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
     let repo_root = repo_root();
     let tool_dir = temp.path().join("domain/bam/tools");
     fs::create_dir_all(&tool_dir)?;
-    fs::copy(
-        repo_root.join("domain/bam/tools/samtools.yaml"),
-        tool_dir.join("samtools.yaml"),
-    )?;
+    fs::copy(repo_root.join("domain/bam/tools/samtools.yaml"), tool_dir.join("samtools.yaml"))?;
     Ok(temp)
 }
 
@@ -116,10 +113,7 @@ expected_reference_name = "chr1"
 
     let error = bijux_dna_planner_bam::stage_api::local_mapping_summary_smoke_plans(temp.path())
         .expect_err("empty sample_id must be rejected before plan construction");
-    assert_eq!(
-        error.to_string(),
-        "local-smoke bam.mapping_summary sample_id must not be empty"
-    );
+    assert_eq!(error.to_string(), "local-smoke bam.mapping_summary sample_id must not be empty");
     Ok(())
 }
 
@@ -267,15 +261,14 @@ fn mapping_summary_plan_accepts_picard_governed_planning_contract() -> Result<()
     let stage_id = StageId::new("bam.mapping_summary".to_string());
     let tool_id = ToolId::new("picard");
     let tool_spec = bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
-        &repo_root,
-        &stage_id,
-        &tool_id,
+        &repo_root, &stage_id, &tool_id,
     )?;
     let bam = PathBuf::from("assets/toy/core-v1/bam/mapping_summary_partial_mapping.sam");
     let out_dir =
         PathBuf::from("target/local-smoke/bam.mapping_summary/core-v1-partial-mapping/picard");
-    let plan =
-        bijux_dna_planner_bam::tool_adapters::stages_pre::mapping_summary::plan(&tool_spec, &bam, &out_dir)?;
+    let plan = bijux_dna_planner_bam::tool_adapters::stages_pre::mapping_summary::plan(
+        &tool_spec, &bam, &out_dir,
+    )?;
 
     assert_eq!(plan.stage_id.as_str(), "bam.mapping_summary");
     assert_eq!(plan.tool_id.as_str(), "picard");

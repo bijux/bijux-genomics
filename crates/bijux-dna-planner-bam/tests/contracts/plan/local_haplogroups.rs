@@ -17,10 +17,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
     let repo_root = repo_root();
     let tool_dir = temp.path().join("domain/bam/tools");
     fs::create_dir_all(&tool_dir)?;
-    fs::copy(
-        repo_root.join("domain/bam/tools/yleaf.yaml"),
-        tool_dir.join("yleaf.yaml"),
-    )?;
+    fs::copy(repo_root.join("domain/bam/tools/yleaf.yaml"), tool_dir.join("yleaf.yaml"))?;
     let runtime_dir = temp.path().join("configs/runtime/profiles");
     fs::create_dir_all(&runtime_dir)?;
     fs::copy(
@@ -102,10 +99,7 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
         PathBuf::from("target/local-ready/bam.haplogroups/haplogroups.json")
     );
 
-    assert_eq!(
-        plan.params["reference_panel_id"],
-        serde_json::json!("toy-human-y-hg38")
-    );
+    assert_eq!(plan.params["reference_panel_id"], serde_json::json!("toy-human-y-hg38"));
     assert_eq!(
         plan.params["reference_panel"],
         serde_json::json!("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
@@ -115,27 +109,16 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
         serde_json::json!("assets/reference/host/references/toy_human_y_reference.fasta")
     );
     assert_eq!(plan.params["reference_build"], serde_json::json!("hg38"));
-    assert_eq!(
-        plan.params["population_scope"],
-        serde_json::json!("human_y_haplogroup_panel")
-    );
-    assert_eq!(
-        plan.params["coverage_gate"],
-        serde_json::json!({ "min_coverage": 2.0 })
-    );
-    assert_eq!(
-        plan.params["sample_id"],
-        serde_json::json!("core-v1-haplogroups-y-panel-screen")
-    );
+    assert_eq!(plan.params["population_scope"], serde_json::json!("human_y_haplogroup_panel"));
+    assert_eq!(plan.params["coverage_gate"], serde_json::json!({ "min_coverage": 2.0 }));
+    assert_eq!(plan.params["sample_id"], serde_json::json!("core-v1-haplogroups-y-panel-screen"));
     assert_eq!(plan.params["tool"], serde_json::json!("yleaf"));
     assert_eq!(plan.effective_params["min_coverage"], serde_json::json!(2.0));
 
-    let command = plan
-        .command
-        .template
-        .iter()
-        .last()
-        .unwrap_or_else(|| panic!("bam.haplogroups command template must contain a shell body"));
+    let command =
+        plan.command.template.iter().last().unwrap_or_else(|| {
+            panic!("bam.haplogroups command template must contain a shell body")
+        });
     assert!(
         command.contains("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
             && command.contains("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
@@ -177,9 +160,7 @@ refuse_without_population_context = true
 threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
-                .display(),
+            bam = repo_root.join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam").display(),
             bai = repo_root
                 .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
                 .display(),
@@ -221,9 +202,7 @@ refuse_without_population_context = true
 threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
-                .display(),
+            bam = repo_root.join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam").display(),
             bai = repo_root
                 .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
                 .display(),
@@ -268,9 +247,7 @@ refuse_without_population_context = true
 threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
-                .display(),
+            bam = repo_root.join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam").display(),
             bai = repo_root
                 .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
                 .display(),
@@ -285,10 +262,7 @@ output_dir = "target/local-ready/bam.haplogroups"
 
     let error = bijux_dna_planner_bam::stage_api::local_haplogroups_plan(temp.path())
         .expect_err("blank reference_build must be rejected for governed haplogroups planning");
-    assert_eq!(
-        error.to_string(),
-        "local-ready bam.haplogroups reference_build must not be empty"
-    );
+    assert_eq!(error.to_string(), "local-ready bam.haplogroups reference_build must not be empty");
     Ok(())
 }
 
@@ -315,9 +289,7 @@ refuse_without_population_context = true
 threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
-                .display(),
+            bam = repo_root.join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam").display(),
             bai = repo_root
                 .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
                 .display(),
@@ -332,10 +304,7 @@ output_dir = "target/local-ready/bam.haplogroups"
 
     let error = bijux_dna_planner_bam::stage_api::local_haplogroups_plan(temp.path())
         .expect_err("blank population_scope must be rejected for governed haplogroups planning");
-    assert_eq!(
-        error.to_string(),
-        "local-ready bam.haplogroups population_scope must not be empty"
-    );
+    assert_eq!(error.to_string(), "local-ready bam.haplogroups population_scope must not be empty");
     Ok(())
 }
 
@@ -362,9 +331,7 @@ refuse_without_population_context = true
 threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
-                .display(),
+            bam = repo_root.join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam").display(),
             bai = repo_root
                 .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
                 .display(),

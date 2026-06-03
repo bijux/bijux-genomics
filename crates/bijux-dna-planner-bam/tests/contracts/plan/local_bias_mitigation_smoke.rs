@@ -24,10 +24,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
     let repo_root = repo_root();
     let tool_dir = temp.path().join("domain/bam/tools");
     fs::create_dir_all(&tool_dir)?;
-    fs::copy(
-        repo_root.join("domain/bam/tools/mapdamage2.yaml"),
-        tool_dir.join("mapdamage2.yaml"),
-    )?;
+    fs::copy(repo_root.join("domain/bam/tools/mapdamage2.yaml"), tool_dir.join("mapdamage2.yaml"))?;
     Ok(temp)
 }
 
@@ -117,8 +114,9 @@ fn local_bias_mitigation_smoke_plans_use_governed_bam_reference_and_expectations
 fn local_bias_mitigation_smoke_stage_api_surface_stays_callable() {
     let _: fn(
         &Path,
-    ) -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalBiasMitigationSmokeCasePlan>> =
-        bijux_dna_planner_bam::stage_api::local_bias_mitigation_smoke_plans;
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_bam::stage_api::LocalBiasMitigationSmokeCasePlan>,
+    > = bijux_dna_planner_bam::stage_api::local_bias_mitigation_smoke_plans;
 }
 
 #[test]

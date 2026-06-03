@@ -24,10 +24,7 @@ fn local_filter_smoke_plans_use_governed_mixed_constraint_fixture() -> Result<()
     assert_eq!(case.plan.stage_id.as_str(), "bam.filter");
     assert_eq!(case.plan.tool_id.as_str(), "samtools");
     assert_eq!(case.plan.resources.threads, 4);
-    assert_eq!(
-        case.bam,
-        PathBuf::from("assets/toy/core-v1/bam/filter_mixed_constraints.sam")
-    );
+    assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/filter_mixed_constraints.sam"));
     assert_eq!(case.expected_input_reads, 5);
     assert_eq!(case.expected_kept_reads, 1);
     assert_eq!(case.expected_removed_reads, 4);
@@ -89,7 +86,10 @@ fn local_filter_smoke_plans_use_governed_mixed_constraint_fixture() -> Result<()
 
 #[test]
 fn local_filter_smoke_stage_api_surface_stays_callable() {
-    let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalFilterSmokeCasePlan>> =
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalFilterSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_filter_smoke_plans;
 }
 
@@ -105,10 +105,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
     let repo_root = repo_root();
     let tool_dir = temp.path().join("domain/bam/tools");
     fs::create_dir_all(&tool_dir)?;
-    fs::copy(
-        repo_root.join("domain/bam/tools/samtools.yaml"),
-        tool_dir.join("samtools.yaml"),
-    )?;
+    fs::copy(repo_root.join("domain/bam/tools/samtools.yaml"), tool_dir.join("samtools.yaml"))?;
     Ok(temp)
 }
 
@@ -346,15 +343,12 @@ fn filter_plan_accepts_bamtools_and_bedtools_governed_planning_contracts() -> Re
     let stage_id = StageId::new("bam.filter".to_string());
     let bam = PathBuf::from("assets/toy/core-v1/bam/filter_mixed_constraints.sam");
 
-    for (tool, expected_command_fragment) in [
-        ("bamtools", "bamtools stats -in"),
-        ("bedtools", "bedtools bamtobed -i"),
-    ] {
+    for (tool, expected_command_fragment) in
+        [("bamtools", "bamtools stats -in"), ("bedtools", "bedtools bamtobed -i")]
+    {
         let tool_id = ToolId::new(tool);
         let tool_spec = bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
-            &repo_root,
-            &stage_id,
-            &tool_id,
+            &repo_root, &stage_id, &tool_id,
         )?;
         let params = bijux_dna_domain_bam::params::FilterEffectiveParams {
             mapq_threshold: 20,
@@ -364,9 +358,8 @@ fn filter_plan_accepts_bamtools_and_bedtools_governed_planning_contracts() -> Re
             remove_duplicates: true,
             base_quality_threshold: 20,
         };
-        let out_dir = PathBuf::from(format!(
-            "target/local-smoke/bam.filter/core-v1-general-filter/{tool}"
-        ));
+        let out_dir =
+            PathBuf::from(format!("target/local-smoke/bam.filter/core-v1-general-filter/{tool}"));
         let plan = bijux_dna_planner_bam::tool_adapters::stages_pre::filter::plan(
             &tool_spec, &bam, &out_dir, &params,
         )?;

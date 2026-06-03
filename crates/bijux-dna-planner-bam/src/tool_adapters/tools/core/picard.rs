@@ -1,10 +1,7 @@
 use std::path::Path;
 
 #[must_use]
-pub fn collect_alignment_summary_metrics_args(
-    bam: &Path,
-    report: &Path,
-) -> Vec<String> {
+pub fn collect_alignment_summary_metrics_args(bam: &Path, report: &Path) -> Vec<String> {
     vec![
         "picard".to_string(),
         "CollectAlignmentSummaryMetrics".to_string(),

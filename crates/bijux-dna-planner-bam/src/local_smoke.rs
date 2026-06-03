@@ -2601,8 +2601,7 @@ fn build_local_damage_smoke_case(
             case.sample_id
         ));
     }
-    let terminal_damage =
-        case.expected_terminal_c_to_t_5p.max(case.expected_terminal_g_to_a_3p);
+    let terminal_damage = case.expected_terminal_c_to_t_5p.max(case.expected_terminal_g_to_a_3p);
     let governed_damage_signal = if terminal_damage >= 0.20 {
         "high"
     } else if terminal_damage >= 0.10 {
@@ -2725,8 +2724,7 @@ fn build_local_authenticity_smoke_case(
             case.sample_id
         ));
     }
-    if case.expected_consumed_metrics
-        != LOCAL_AUTHENTICITY_EXPECTED_METRIC_IDS.map(str::to_string)
+    if case.expected_consumed_metrics != LOCAL_AUTHENTICITY_EXPECTED_METRIC_IDS.map(str::to_string)
     {
         return Err(anyhow!(
             "local-smoke bam.authenticity case `{}` must keep expected_consumed_metrics aligned with the governed composition inputs",

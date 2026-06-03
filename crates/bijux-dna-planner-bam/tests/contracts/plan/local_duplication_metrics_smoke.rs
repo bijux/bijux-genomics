@@ -101,10 +101,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
     let repo_root = repo_root();
     let tool_dir = temp.path().join("domain/bam/tools");
     fs::create_dir_all(&tool_dir)?;
-    fs::copy(
-        repo_root.join("domain/bam/tools/samtools.yaml"),
-        tool_dir.join("samtools.yaml"),
-    )?;
+    fs::copy(repo_root.join("domain/bam/tools/samtools.yaml"), tool_dir.join("samtools.yaml"))?;
     Ok(temp)
 }
 
@@ -130,8 +127,9 @@ expected_insufficient_library_size_reason = "tiny_smoke_duplicate_observation_is
 "#,
     )?;
 
-    let error = bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(temp.path())
-        .expect_err("empty sample_id must be rejected before plan construction");
+    let error =
+        bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(temp.path())
+            .expect_err("empty sample_id must be rejected before plan construction");
     assert_eq!(
         error.to_string(),
         "local-smoke bam.duplication_metrics sample_id must not be empty"
@@ -172,8 +170,9 @@ expected_insufficient_library_size_reason = "tiny_smoke_duplicate_observation_is
 "#,
     )?;
 
-    let error = bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(temp.path())
-        .expect_err("duplicate sample_id must be rejected before plan construction");
+    let error =
+        bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(temp.path())
+            .expect_err("duplicate sample_id must be rejected before plan construction");
     assert_eq!(
         error.to_string(),
         "duplicate local-smoke bam.duplication_metrics sample_id `duplicate-case`"
@@ -182,8 +181,8 @@ expected_insufficient_library_size_reason = "tiny_smoke_duplicate_observation_is
 }
 
 #[test]
-fn local_duplication_metrics_smoke_plans_reject_duplicate_reads_greater_than_examined()
--> Result<()> {
+fn local_duplication_metrics_smoke_plans_reject_duplicate_reads_greater_than_examined() -> Result<()>
+{
     let temp = stage_api_temp_repo()?;
     let repo_root = repo_root();
     write_local_duplication_metrics_config(
@@ -210,8 +209,9 @@ expected_insufficient_library_size_reason = "tiny_smoke_duplicate_observation_is
         ),
     )?;
 
-    let error = bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(temp.path())
-        .expect_err("duplicate reads cannot exceed examined reads");
+    let error =
+        bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(temp.path())
+            .expect_err("duplicate reads cannot exceed examined reads");
     assert_eq!(
         error.to_string(),
         "local-smoke bam.duplication_metrics case `duplicates-over-examined` cannot declare duplicate reads greater than examined reads"
@@ -247,8 +247,9 @@ expected_insufficient_library_size_reason = "tiny_smoke_duplicate_observation_is
         ),
     )?;
 
-    let error = bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(temp.path())
-        .expect_err("duplicate fraction must stay within [0, 1]");
+    let error =
+        bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(temp.path())
+            .expect_err("duplicate fraction must stay within [0, 1]");
     assert_eq!(
         error.to_string(),
         "local-smoke bam.duplication_metrics case `fraction-out-of-range` must declare duplicate fraction within [0, 1]"
@@ -284,8 +285,9 @@ expected_insufficient_library_size_reason = "tiny_smoke_duplicate_observation_is
         ),
     )?;
 
-    let error = bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(temp.path())
-        .expect_err("duplicate fraction must align with examined and duplicate reads");
+    let error =
+        bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(temp.path())
+            .expect_err("duplicate fraction must align with examined and duplicate reads");
     assert_eq!(
         error.to_string(),
         "local-smoke bam.duplication_metrics case `fraction-mismatch` must keep duplicate fraction aligned with examined and duplicate reads"
@@ -322,8 +324,11 @@ expected_insufficient_library_size_reason = "tiny_smoke_duplicate_observation_is
         ),
     )?;
 
-    let error = bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(temp.path())
-        .expect_err("library-size expectation must be either an estimate or an insufficiency reason");
+    let error =
+        bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(temp.path())
+            .expect_err(
+                "library-size expectation must be either an estimate or an insufficiency reason",
+            );
     assert_eq!(
         error.to_string(),
         "local-smoke bam.duplication_metrics case `ambiguous-library-size` must declare exactly one of expected_estimated_library_size or expected_insufficient_library_size_reason"
@@ -359,8 +364,9 @@ expected_insufficient_library_size_reason = ""
         ),
     )?;
 
-    let error = bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(temp.path())
-        .expect_err("empty insufficiency reasons must be rejected");
+    let error =
+        bijux_dna_planner_bam::stage_api::local_duplication_metrics_smoke_plans(temp.path())
+            .expect_err("empty insufficiency reasons must be rejected");
     assert_eq!(
         error.to_string(),
         "local-smoke bam.duplication_metrics case `empty-insufficiency-reason` must not declare an empty insufficiency reason"

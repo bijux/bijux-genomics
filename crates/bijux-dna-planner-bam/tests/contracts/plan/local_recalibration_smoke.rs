@@ -219,7 +219,8 @@ expected_reason = "coverage_below_gate"
 }
 
 #[test]
-fn local_recalibration_smoke_plans_require_expected_status_to_match_governed_decision() -> Result<()> {
+fn local_recalibration_smoke_plans_require_expected_status_to_match_governed_decision() -> Result<()>
+{
     let temp = stage_api_temp_repo()?;
     let repo_root = repo_root();
     write_local_recalibration_config(
@@ -248,9 +249,8 @@ expected_reason = "coverage_below_gate"
             reference = repo_root
                 .join("assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta")
                 .display(),
-            known_sites = repo_root
-                .join("assets/toy/core-v1/vcf/recalibration_known_sites.vcf")
-                .display(),
+            known_sites =
+                repo_root.join("assets/toy/core-v1/vcf/recalibration_known_sites.vcf").display(),
         ),
     )?;
 
@@ -264,7 +264,8 @@ expected_reason = "coverage_below_gate"
 }
 
 #[test]
-fn local_recalibration_smoke_plans_require_expected_reason_to_match_governed_decision() -> Result<()> {
+fn local_recalibration_smoke_plans_require_expected_reason_to_match_governed_decision() -> Result<()>
+{
     let temp = stage_api_temp_repo()?;
     let repo_root = repo_root();
     write_local_recalibration_config(
@@ -293,9 +294,8 @@ expected_reason = "requested_skip_mode"
             reference = repo_root
                 .join("assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta")
                 .display(),
-            known_sites = repo_root
-                .join("assets/toy/core-v1/vcf/recalibration_known_sites.vcf")
-                .display(),
+            known_sites =
+                repo_root.join("assets/toy/core-v1/vcf/recalibration_known_sites.vcf").display(),
         ),
     )?;
 

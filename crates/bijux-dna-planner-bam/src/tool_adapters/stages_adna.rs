@@ -92,12 +92,7 @@ pub mod damage {
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &[
-                "damage_report",
-                "terminal_position_metrics",
-                "parser_output",
-                "stage_metrics",
-            ],
+            &["damage_report", "terminal_position_metrics", "parser_output", "stage_metrics"],
         )
     }
 }

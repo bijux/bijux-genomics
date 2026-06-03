@@ -17,10 +17,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
     let repo_root = repo_root();
     let tool_dir = temp.path().join("domain/bam/tools");
     fs::create_dir_all(&tool_dir)?;
-    fs::copy(
-        repo_root.join("domain/bam/tools/angsd.yaml"),
-        tool_dir.join("angsd.yaml"),
-    )?;
+    fs::copy(repo_root.join("domain/bam/tools/angsd.yaml"), tool_dir.join("angsd.yaml"))?;
     let runtime_dir = temp.path().join("configs/runtime/profiles");
     fs::create_dir_all(&runtime_dir)?;
     fs::copy(
@@ -62,10 +59,7 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         .iter()
         .find(|artifact| artifact.name.as_str() == "bam_bai")
         .unwrap_or_else(|| panic!("bam_bai input missing from local-ready genotyping plan"));
-    assert_eq!(
-        bai.path,
-        PathBuf::from("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai")
-    );
+    assert_eq!(bai.path, PathBuf::from("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai"));
 
     let reference = plan
         .io
@@ -130,10 +124,7 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         plan.params["producer_contract"]["vcf"],
         serde_json::json!("target/local-ready/bam.genotyping/genotyping.vcf.gz")
     );
-    assert_eq!(
-        plan.params["sample_id"],
-        serde_json::json!("core-v1-genotyping-panel-sites")
-    );
+    assert_eq!(plan.params["sample_id"], serde_json::json!("core-v1-genotyping-panel-sites"));
     assert_eq!(plan.params["tool"], serde_json::json!("angsd"));
     assert_eq!(plan.effective_params["caller"], serde_json::json!("angsd"));
     assert_eq!(plan.effective_params["min_posterior"], serde_json::json!(0.9));
@@ -185,21 +176,14 @@ min_call_rate = 0.5
 threads = 2
 output_dir = "target/local-ready/bam.genotyping"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/genotyping_panel_sites.sam")
-                .display(),
-            bai = repo_root
-                .join("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai")
-                .display(),
-            reference = repo_root
-                .join("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
-                .display(),
-            sites = repo_root
-                .join("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
-                .display(),
-            regions = repo_root
-                .join("assets/toy/core-v1/bam/genotyping_target_regions.txt")
-                .display(),
+            bam = repo_root.join("assets/toy/core-v1/bam/genotyping_panel_sites.sam").display(),
+            bai = repo_root.join("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai").display(),
+            reference =
+                repo_root.join("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta").display(),
+            sites =
+                repo_root.join("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf").display(),
+            regions =
+                repo_root.join("assets/toy/core-v1/bam/genotyping_target_regions.txt").display(),
         ),
     )?;
 
@@ -230,21 +214,14 @@ min_call_rate = 0.5
 threads = 2
 output_dir = "target/local-ready/bam.genotyping"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/genotyping_panel_sites.sam")
-                .display(),
-            bai = repo_root
-                .join("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai")
-                .display(),
-            reference = repo_root
-                .join("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
-                .display(),
-            sites = repo_root
-                .join("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
-                .display(),
-            regions = repo_root
-                .join("assets/toy/core-v1/bam/genotyping_target_regions.txt")
-                .display(),
+            bam = repo_root.join("assets/toy/core-v1/bam/genotyping_panel_sites.sam").display(),
+            bai = repo_root.join("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai").display(),
+            reference =
+                repo_root.join("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta").display(),
+            sites =
+                repo_root.join("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf").display(),
+            regions =
+                repo_root.join("assets/toy/core-v1/bam/genotyping_target_regions.txt").display(),
         ),
     )?;
 
@@ -278,21 +255,14 @@ min_call_rate = -0.1
 threads = 2
 output_dir = "target/local-ready/bam.genotyping"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/genotyping_panel_sites.sam")
-                .display(),
-            bai = repo_root
-                .join("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai")
-                .display(),
-            reference = repo_root
-                .join("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
-                .display(),
-            sites = repo_root
-                .join("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
-                .display(),
-            regions = repo_root
-                .join("assets/toy/core-v1/bam/genotyping_target_regions.txt")
-                .display(),
+            bam = repo_root.join("assets/toy/core-v1/bam/genotyping_panel_sites.sam").display(),
+            bai = repo_root.join("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai").display(),
+            reference =
+                repo_root.join("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta").display(),
+            sites =
+                repo_root.join("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf").display(),
+            regions =
+                repo_root.join("assets/toy/core-v1/bam/genotyping_target_regions.txt").display(),
         ),
     )?;
 

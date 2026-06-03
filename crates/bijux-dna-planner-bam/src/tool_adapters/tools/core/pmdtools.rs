@@ -1,8 +1,8 @@
 use std::path::Path;
 
 use bijux_dna_core::prelude::id_catalog;
-use bijux_dna_domain_bam::params::DamageEffectiveParams;
 use bijux_dna_domain_bam::params::AuthenticityEffectiveParams;
+use bijux_dna_domain_bam::params::DamageEffectiveParams;
 
 #[must_use]
 pub fn filter_args(

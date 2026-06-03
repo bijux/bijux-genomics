@@ -157,7 +157,9 @@ expected_corrected_overlap_bases = 7
     )?;
 
     let error = bijux_dna_planner_bam::stage_api::local_overlap_correction_smoke_plans(temp.path())
-        .expect_err("duplicate sample_id must be rejected before overlap-correction plan construction");
+        .expect_err(
+            "duplicate sample_id must be rejected before overlap-correction plan construction",
+        );
     assert_eq!(
         error.to_string(),
         "duplicate local-smoke bam.overlap_correction sample_id `duplicate-case`"
@@ -183,7 +185,9 @@ expected_pair_count = 0
 expected_corrected_pairs = 0
 expected_corrected_overlap_bases = 0
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam").display(),
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam")
+                .display(),
         ),
     )?;
 
@@ -214,7 +218,9 @@ expected_pair_count = 2
 expected_corrected_pairs = 3
 expected_corrected_overlap_bases = 7
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam").display(),
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam")
+                .display(),
         ),
     )?;
 
@@ -245,7 +251,9 @@ expected_pair_count = 2
 expected_corrected_pairs = 1
 expected_corrected_overlap_bases = 0
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam").display(),
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam")
+                .display(),
         ),
     )?;
 
@@ -259,7 +267,8 @@ expected_corrected_overlap_bases = 0
 }
 
 #[test]
-fn local_overlap_correction_smoke_plans_require_zero_overlap_bases_when_no_pairs_corrected() -> Result<()> {
+fn local_overlap_correction_smoke_plans_require_zero_overlap_bases_when_no_pairs_corrected(
+) -> Result<()> {
     let temp = stage_api_temp_repo()?;
     let repo_root = repo_root();
     write_local_overlap_correction_config(
@@ -276,7 +285,9 @@ expected_pair_count = 2
 expected_corrected_pairs = 0
 expected_corrected_overlap_bases = 5
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam").display(),
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam")
+                .display(),
         ),
     )?;
 

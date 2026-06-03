@@ -97,10 +97,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
     let repo_root = repo_root();
     let tool_dir = temp.path().join("domain/bam/tools");
     fs::create_dir_all(&tool_dir)?;
-    fs::copy(
-        repo_root.join("domain/bam/tools/samtools.yaml"),
-        tool_dir.join("samtools.yaml"),
-    )?;
+    fs::copy(repo_root.join("domain/bam/tools/samtools.yaml"), tool_dir.join("samtools.yaml"))?;
     Ok(temp)
 }
 
@@ -185,10 +182,7 @@ covered_bases = 3
 
     let error = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans(temp.path())
         .expect_err("duplicate sample_id must be rejected before plan construction");
-    assert_eq!(
-        error.to_string(),
-        "duplicate local-smoke bam.coverage sample_id `duplicate-case`"
-    );
+    assert_eq!(error.to_string(), "duplicate local-smoke bam.coverage sample_id `duplicate-case`");
     Ok(())
 }
 
@@ -221,9 +215,8 @@ breadth_1x = 1.0
 covered_bases = 6
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions = repo_root
-                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
-                .display(),
+            regions =
+                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
         ),
     )?;
 
@@ -265,9 +258,8 @@ breadth_1x = 1.0
 covered_bases = 6
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions = repo_root
-                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
-                .display(),
+            regions =
+                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
         ),
     )?;
 
@@ -309,9 +301,8 @@ breadth_1x = 1.0
 covered_bases = 6
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions = repo_root
-                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
-                .display(),
+            regions =
+                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
         ),
     )?;
 
@@ -353,9 +344,8 @@ breadth_1x = 1.0
 covered_bases = 6
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions = repo_root
-                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
-                .display(),
+            regions =
+                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
         ),
     )?;
 
@@ -397,9 +387,8 @@ breadth_1x = 1.0
 covered_bases = 6
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions = repo_root
-                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
-                .display(),
+            regions =
+                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
         ),
     )?;
 
@@ -451,9 +440,8 @@ breadth_1x = 0.75
 covered_bases = 3
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions = repo_root
-                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
-                .display(),
+            regions =
+                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
         ),
     )?;
 
@@ -495,9 +483,8 @@ breadth_1x = 1.0
 covered_bases = 6
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions = repo_root
-                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
-                .display(),
+            regions =
+                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
         ),
     )?;
 
@@ -539,9 +526,8 @@ breadth_1x = 1.0
 covered_bases = 7
 "#,
             bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions = repo_root
-                .join("assets/toy/core-v1/bam/coverage_target_windows.bed")
-                .display(),
+            regions =
+                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
         ),
     )?;
 
