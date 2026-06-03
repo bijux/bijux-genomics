@@ -949,6 +949,110 @@ fn bench_local_materialize_stage_bam_endogenous_content_json_writes_governed_smo
     );
 }
 
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_materialize_stage_bam_bias_mitigation_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.bias_mitigation",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.bias_mitigation")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.bias_mitigation/bias_mitigation.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.bias_mitigation report"),
+    )
+    .expect("parse bam.bias_mitigation report");
+
+    assert_eq!(
+        report.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.bias_mitigation.local_smoke.report.v1")
+    );
+    assert_eq!(
+        report.get("sample_id").and_then(serde_json::Value::as_str),
+        Some("core-v1-bias-mitigation-gc-window-ladder")
+    );
+    assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(report.get("method").and_then(serde_json::Value::as_str), Some("mapdamage2"));
+    assert_eq!(report.get("metric_name").and_then(serde_json::Value::as_str), Some("gc_bias_score"));
+    assert_eq!(
+        report.get("pre_mitigation_metric").and_then(serde_json::Value::as_f64),
+        Some(0.25)
+    );
+    assert_eq!(
+        report.get("post_mitigation_metric").and_then(serde_json::Value::as_f64),
+        Some(0.125)
+    );
+    assert_eq!(report.get("metric_delta").and_then(serde_json::Value::as_f64), Some(0.125));
+    assert_eq!(
+        report.get("mitigation_projection_basis").and_then(serde_json::Value::as_str),
+        Some("policy_projection")
+    );
+    assert_eq!(
+        report.get("mitigation_actions"),
+        Some(&serde_json::json!(["gc_bias_correction"]))
+    );
+    assert_eq!(
+        report.get("consumed_metrics"),
+        Some(&serde_json::json!(["gc_bias_score"]))
+    );
+
+    let bias_report = repo_root.join(
+        report
+            .get("bias_report")
+            .and_then(serde_json::Value::as_str)
+            .expect("bias report path"),
+    );
+    let bias_summary = repo_root.join(
+        report
+            .get("bias_summary")
+            .and_then(serde_json::Value::as_str)
+            .expect("bias summary path"),
+    );
+    let bias_policy = repo_root.join(
+        report
+            .get("bias_policy")
+            .and_then(serde_json::Value::as_str)
+            .expect("bias policy path"),
+    );
+    let stage_metrics = repo_root.join(
+        report
+            .get("stage_metrics")
+            .and_then(serde_json::Value::as_str)
+            .expect("stage metrics path"),
+    );
+    assert!(
+        bias_report.is_file(),
+        "bam.bias_mitigation smoke bundle must expose the governed bias report"
+    );
+    assert!(
+        bias_summary.is_file(),
+        "bam.bias_mitigation smoke bundle must expose the governed bias summary"
+    );
+    assert!(
+        bias_policy.is_file(),
+        "bam.bias_mitigation smoke bundle must expose the governed bias policy"
+    );
+    assert!(
+        stage_metrics.is_file(),
+        "bam.bias_mitigation smoke bundle must expose the governed stage metrics"
+    );
+}
+
 #[test]
 fn bench_local_materialize_stage_bam_sex_json_writes_governed_smoke_bundle() {
     let (repo_root, payload) = run_cli_json_with_repo_root(&[
