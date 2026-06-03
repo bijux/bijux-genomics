@@ -105,15 +105,29 @@ fn write_local_sex_smoke_report_materializes_governed_outputs() -> Result<()> {
         stage_metrics_json["schema_version"],
         serde_json::json!("bijux.bam.sex.local_smoke.metrics.v1")
     );
+    assert_eq!(stage_metrics_json["expected_method"], serde_json::json!("rxy"));
     assert_eq!(stage_metrics_json["method"], serde_json::json!("rxy"));
+    assert_eq!(stage_metrics_json["expected_chromosome_system"], serde_json::json!("xy"));
     assert_eq!(stage_metrics_json["chromosome_system"], serde_json::json!("xy"));
+    assert_eq!(stage_metrics_json["expected_minimum_y_sites"], serde_json::json!(5));
     assert_eq!(stage_metrics_json["minimum_y_sites"], serde_json::json!(5));
+    assert_eq!(stage_metrics_json["expected_x_coverage"], serde_json::json!(0.5));
     assert_eq!(stage_metrics_json["x_coverage"], serde_json::json!(0.5));
+    assert_eq!(stage_metrics_json["x_coverage_delta"], serde_json::json!(0.0));
+    assert_eq!(stage_metrics_json["expected_y_coverage"], serde_json::json!(0.5));
     assert_eq!(stage_metrics_json["y_coverage"], serde_json::json!(0.5));
+    assert_eq!(stage_metrics_json["y_coverage_delta"], serde_json::json!(0.0));
+    assert_eq!(stage_metrics_json["expected_autosomal_coverage"], serde_json::json!(1.0));
     assert_eq!(stage_metrics_json["autosomal_coverage"], serde_json::json!(1.0));
+    assert_eq!(stage_metrics_json["autosomal_coverage_delta"], serde_json::json!(0.0));
+    assert_eq!(stage_metrics_json["expected_call"], serde_json::json!("male"));
     assert_eq!(stage_metrics_json["call"], serde_json::json!("male"));
+    assert_eq!(stage_metrics_json["expected_confidence"], serde_json::json!(0.9));
     assert_eq!(stage_metrics_json["confidence"], serde_json::json!(0.9));
+    assert_eq!(stage_metrics_json["confidence_delta"], serde_json::json!(0.0));
+    assert_eq!(stage_metrics_json["expected_status"], serde_json::json!("ok"));
     assert_eq!(stage_metrics_json["status"], serde_json::json!("ok"));
+    assert_eq!(stage_metrics_json["insufficiency_reason"], serde_json::Value::Null);
     assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 
     Ok(())
