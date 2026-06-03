@@ -1,6 +1,7 @@
 #![cfg(feature = "bam_downstream")]
 
 use anyhow::Result;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
@@ -9,6 +10,31 @@ fn repo_root() -> PathBuf {
         .and_then(Path::parent)
         .unwrap_or_else(|| panic!("workspace root"))
         .to_path_buf()
+}
+
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(
+        repo_root.join("domain/bam/tools/angsd.yaml"),
+        tool_dir.join("angsd.yaml"),
+    )?;
+    let runtime_dir = temp.path().join("configs/runtime/profiles");
+    fs::create_dir_all(&runtime_dir)?;
+    fs::copy(
+        repo_root.join("configs/runtime/profiles/local.toml"),
+        runtime_dir.join("local.toml"),
+    )?;
+    Ok(temp)
+}
+
+fn write_local_genotyping_config(root: &Path, body: &str) -> Result<()> {
+    let config_dir = root.join("configs/bench/local");
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("bam-genotyping.toml"), body)?;
+    Ok(())
 }
 
 #[test]
@@ -136,4 +162,49 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
 fn local_genotyping_plan_stage_api_surface_stays_callable() {
     let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
         bijux_dna_planner_bam::stage_api::local_genotyping_plan;
+}
+
+#[test]
+fn local_genotyping_plan_rejects_empty_sample_ids() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_genotyping_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_genotyping.v1"
+bam = "{bam}"
+bai = "{bai}"
+reference_fasta = "{reference}"
+sites_vcf = "{sites}"
+regions = "{regions}"
+tool_id = "angsd"
+sample_id = " "
+min_posterior = 0.9
+min_call_rate = 0.5
+threads = 2
+output_dir = "target/local-ready/bam.genotyping"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/genotyping_panel_sites.sam")
+                .display(),
+            bai = repo_root
+                .join("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai")
+                .display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
+                .display(),
+            sites = repo_root
+                .join("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
+                .display(),
+            regions = repo_root
+                .join("assets/toy/core-v1/bam/genotyping_target_regions.txt")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_genotyping_plan(temp.path())
+        .expect_err("empty sample_id must be rejected before genotyping plan construction");
+    assert_eq!(error.to_string(), "local-ready bam.genotyping sample_id must not be empty");
+    Ok(())
 }

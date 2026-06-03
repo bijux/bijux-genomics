@@ -360,6 +360,11 @@ pub fn local_genotyping_plan(repo_root: &Path) -> Result<bijux_dna_stage_contrac
             config.schema_version
         ));
     }
+    if config.sample_id.trim().is_empty() {
+        return Err(anyhow!(
+            "local-ready bam.genotyping sample_id must not be empty"
+        ));
+    }
 
     let local_profile = load_local_runtime_profile(repo_root)?;
     let stage = BamStage::Genotyping;
