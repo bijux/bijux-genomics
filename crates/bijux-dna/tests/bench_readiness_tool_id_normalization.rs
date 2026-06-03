@@ -37,12 +37,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_tool_id_normalization_reports_empty_governed_alias_set() {
-    let payload = run_cli_json(&[
-        "bench",
-        "readiness",
-        "render-tool-id-normalization",
-        "--json",
-    ]);
+    let payload = run_cli_json(&["bench", "readiness", "render-tool-id-normalization", "--json"]);
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.tool_id_normalization.v1")
@@ -51,10 +46,7 @@ fn bench_readiness_tool_id_normalization_reports_empty_governed_alias_set() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/tool-id-normalization.tsv")
     );
-    assert_eq!(
-        payload.get("cluster_count").and_then(serde_json::Value::as_u64),
-        Some(0)
-    );
+    assert_eq!(payload.get("cluster_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(
         payload.get("rows").and_then(serde_json::Value::as_array).map(Vec::len),

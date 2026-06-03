@@ -73,10 +73,8 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
     );
     assert!(
         rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str)
-                == Some("damageprofiler")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.damage")
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("damageprofiler")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
                 && row.get("support_status").and_then(serde_json::Value::as_str)
                     == Some("supported")
                 && row.get("adapter_status").and_then(serde_json::Value::as_str)
@@ -153,8 +151,7 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ngsbriggs")
                 && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("planned")
+                && row.get("support_status").and_then(serde_json::Value::as_str) == Some("planned")
                 && row.get("adapter_status").and_then(serde_json::Value::as_str)
                     == Some("plannable")
                 && row.get("parser_status").and_then(serde_json::Value::as_str)

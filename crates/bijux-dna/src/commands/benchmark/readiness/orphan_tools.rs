@@ -35,7 +35,9 @@ pub(crate) struct OrphanToolsReport {
     pub(crate) rows: Vec<OrphanToolRow>,
 }
 
-pub(crate) fn run_render_orphan_tools(args: &parse::BenchReadinessRenderOrphanToolsArgs) -> Result<()> {
+pub(crate) fn run_render_orphan_tools(
+    args: &parse::BenchReadinessRenderOrphanToolsArgs,
+) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let report = render_orphan_tools(
         &repo_root,
@@ -49,21 +51,22 @@ pub(crate) fn run_render_orphan_tools(args: &parse::BenchReadinessRenderOrphanTo
     Ok(())
 }
 
-pub(crate) fn render_orphan_tools(repo_root: &Path, output_path: PathBuf) -> Result<OrphanToolsReport> {
+pub(crate) fn render_orphan_tools(
+    repo_root: &Path,
+    output_path: PathBuf,
+) -> Result<OrphanToolsReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
-    let fastq_map =
-        render_fastq_tool_serving_map(repo_root, PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH))?;
+    let fastq_map = render_fastq_tool_serving_map(
+        repo_root,
+        PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH),
+    )?;
     let bam_map =
         render_bam_tool_serving_map(repo_root, PathBuf::from(DEFAULT_BAM_TOOL_SERVING_MAP_PATH))?;
 
     let covered_tool_ids = BTreeMap::from([
         (
             ReadinessDomain::Fastq,
-            fastq_map
-                .rows
-                .iter()
-                .map(|row| row.tool_id.clone())
-                .collect::<BTreeSet<_>>(),
+            fastq_map.rows.iter().map(|row| row.tool_id.clone()).collect::<BTreeSet<_>>(),
         ),
         (
             ReadinessDomain::Bam,
@@ -82,7 +85,8 @@ pub(crate) fn render_orphan_tools(repo_root: &Path, output_path: PathBuf) -> Res
             }
             let declared_stage_ids = contract.admitted_stage_ids();
             let benchmark_stage_ids = contract.benchmark_stage_overlap(&benchmark_stage_ids);
-            let (decision, reason) = orphan_decision(&contract.tool_id, &declared_stage_ids, &benchmark_stage_ids);
+            let (decision, reason) =
+                orphan_decision(&contract.tool_id, &declared_stage_ids, &benchmark_stage_ids);
             rows.push(OrphanToolRow {
                 domain: domain.as_str().to_string(),
                 tool_id: contract.tool_id,
@@ -93,7 +97,9 @@ pub(crate) fn render_orphan_tools(repo_root: &Path, output_path: PathBuf) -> Res
             });
         }
     }
-    rows.sort_by(|left, right| left.domain.cmp(&right.domain).then_with(|| left.tool_id.cmp(&right.tool_id)));
+    rows.sort_by(|left, right| {
+        left.domain.cmp(&right.domain).then_with(|| left.tool_id.cmp(&right.tool_id))
+    });
 
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -196,8 +202,8 @@ mod tests {
     #[test]
     fn orphan_tools_report_retains_governed_tool_decisions() {
         let root = repo_root();
-        let report =
-            render_orphan_tools(&root, PathBuf::from(DEFAULT_ORPHAN_TOOLS_PATH)).expect("render orphan tools");
+        let report = render_orphan_tools(&root, PathBuf::from(DEFAULT_ORPHAN_TOOLS_PATH))
+            .expect("render orphan tools");
 
         assert_eq!(report.schema_version, ORPHAN_TOOLS_SCHEMA_VERSION);
         assert!(!report.rows.is_empty(), "orphan tool report must retain governed orphan rows");

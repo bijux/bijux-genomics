@@ -63,8 +63,10 @@ pub(crate) fn render_unregistered_benchmark_pairs(
 ) -> Result<UnregisteredBenchmarkPairsReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
     let registry = load_registry_tool_matrix(repo_root)?;
-    let fastq_map =
-        render_fastq_tool_serving_map(repo_root, PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH))?;
+    let fastq_map = render_fastq_tool_serving_map(
+        repo_root,
+        PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH),
+    )?;
     let bam_map =
         render_bam_tool_serving_map(repo_root, PathBuf::from(DEFAULT_BAM_TOOL_SERVING_MAP_PATH))?;
 
@@ -104,10 +106,7 @@ fn collect_unregistered_rows(
 ) -> Vec<UnregisteredBenchmarkPairRow> {
     let mut rows = Vec::new();
     for row in &report.rows {
-        if registry
-            .tool_stage_pairs
-            .contains(&(row.stage_id.clone(), row.tool_id.clone()))
-        {
+        if registry.tool_stage_pairs.contains(&(row.stage_id.clone(), row.tool_id.clone())) {
             continue;
         }
         let registry_status = if registry.known_tool_ids.contains(&row.tool_id) {
@@ -115,11 +114,8 @@ fn collect_unregistered_rows(
         } else {
             "tool_missing"
         };
-        let registered_stage_ids = registry
-            .stage_ids_by_tool
-            .get(&row.tool_id)
-            .cloned()
-            .unwrap_or_default();
+        let registered_stage_ids =
+            registry.stage_ids_by_tool.get(&row.tool_id).cloned().unwrap_or_default();
         rows.push(UnregisteredBenchmarkPairRow {
             domain: report.domain.to_string(),
             stage_id: row.stage_id.clone(),
@@ -176,10 +172,7 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
 
 #[cfg(test)]
@@ -207,10 +200,7 @@ mod tests {
         )
         .expect("render unregistered benchmark pairs");
 
-        assert_eq!(
-            report.schema_version,
-            UNREGISTERED_BENCHMARK_PAIRS_SCHEMA_VERSION
-        );
+        assert_eq!(report.schema_version, UNREGISTERED_BENCHMARK_PAIRS_SCHEMA_VERSION);
         assert_eq!(report.unregistered_pair_count, 20);
         assert!(!report.ok, "report must fail while registry drift remains");
         assert_eq!(report.domain_counts.get("fastq"), Some(&12));
@@ -226,7 +216,8 @@ mod tests {
                 && row.stage_id == "bam.genotyping"
                 && row.tool_id == "angsd"
                 && row.registry_status == "tool_registered_pair_missing"
-                && row.registered_stage_ids == vec!["bam.kinship".to_string(), "bam.sex".to_string()]
+                && row.registered_stage_ids
+                    == vec!["bam.kinship".to_string(), "bam.sex".to_string()]
         }));
     }
 }

@@ -652,10 +652,7 @@ fn bench_local_materialize_stage_bam_complexity_json_writes_governed_smoke_bundl
         "--json",
     ]);
 
-    assert_eq!(
-        payload.get("stage_id").and_then(serde_json::Value::as_str),
-        Some("bam.complexity")
-    );
+    assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.complexity"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
         Some("target/local-smoke/bam.complexity/complexity.json")
@@ -721,10 +718,7 @@ fn bench_local_materialize_stage_bam_coverage_json_writes_governed_smoke_bundle(
         "--json",
     ]);
 
-    assert_eq!(
-        payload.get("stage_id").and_then(serde_json::Value::as_str),
-        Some("bam.coverage")
-    );
+    assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.coverage"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
         Some("target/local-smoke/bam.coverage/coverage.tsv")
@@ -834,10 +828,7 @@ fn bench_local_materialize_stage_bam_gc_bias_json_writes_governed_smoke_bundle()
         "--json",
     ]);
 
-    assert_eq!(
-        payload.get("stage_id").and_then(serde_json::Value::as_str),
-        Some("bam.gc_bias")
-    );
+    assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.gc_bias"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
         Some("target/local-smoke/bam.gc_bias/gc_bias.tsv")
@@ -852,10 +843,11 @@ fn bench_local_materialize_stage_bam_gc_bias_json_writes_governed_smoke_bundle()
     assert!(gc_bias_tsv.contains("core-v1-gc-window-ladder\t50\t1.500000\t1\t2"));
     assert!(gc_bias_tsv.contains("core-v1-gc-window-ladder\t100\t0.750000\t1\t1"));
 
-    let gc_bias_summary = repo_root
-        .join("target/local-smoke/bam.gc_bias/core-v1-gc-window-ladder/picard/gc_bias.summary.json");
-    let stage_metrics =
-        repo_root.join("target/local-smoke/bam.gc_bias/core-v1-gc-window-ladder/picard/stage.metrics.json");
+    let gc_bias_summary = repo_root.join(
+        "target/local-smoke/bam.gc_bias/core-v1-gc-window-ladder/picard/gc_bias.summary.json",
+    );
+    let stage_metrics = repo_root
+        .join("target/local-smoke/bam.gc_bias/core-v1-gc-window-ladder/picard/stage.metrics.json");
     assert!(
         gc_bias_summary.is_file(),
         "bam.gc_bias smoke bundle must expose the governed gc-bias summary json"
@@ -988,11 +980,11 @@ fn bench_local_materialize_stage_bam_bias_mitigation_json_writes_governed_smoke_
     );
     assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(report.get("method").and_then(serde_json::Value::as_str), Some("mapdamage2"));
-    assert_eq!(report.get("metric_name").and_then(serde_json::Value::as_str), Some("gc_bias_score"));
     assert_eq!(
-        report.get("pre_mitigation_metric").and_then(serde_json::Value::as_f64),
-        Some(0.25)
+        report.get("metric_name").and_then(serde_json::Value::as_str),
+        Some("gc_bias_score")
     );
+    assert_eq!(report.get("pre_mitigation_metric").and_then(serde_json::Value::as_f64), Some(0.25));
     assert_eq!(
         report.get("post_mitigation_metric").and_then(serde_json::Value::as_f64),
         Some(0.125)
@@ -1002,32 +994,17 @@ fn bench_local_materialize_stage_bam_bias_mitigation_json_writes_governed_smoke_
         report.get("mitigation_projection_basis").and_then(serde_json::Value::as_str),
         Some("policy_projection")
     );
-    assert_eq!(
-        report.get("mitigation_actions"),
-        Some(&serde_json::json!(["gc_bias_correction"]))
-    );
-    assert_eq!(
-        report.get("consumed_metrics"),
-        Some(&serde_json::json!(["gc_bias_score"]))
-    );
+    assert_eq!(report.get("mitigation_actions"), Some(&serde_json::json!(["gc_bias_correction"])));
+    assert_eq!(report.get("consumed_metrics"), Some(&serde_json::json!(["gc_bias_score"])));
 
     let bias_report = repo_root.join(
-        report
-            .get("bias_report")
-            .and_then(serde_json::Value::as_str)
-            .expect("bias report path"),
+        report.get("bias_report").and_then(serde_json::Value::as_str).expect("bias report path"),
     );
     let bias_summary = repo_root.join(
-        report
-            .get("bias_summary")
-            .and_then(serde_json::Value::as_str)
-            .expect("bias summary path"),
+        report.get("bias_summary").and_then(serde_json::Value::as_str).expect("bias summary path"),
     );
     let bias_policy = repo_root.join(
-        report
-            .get("bias_policy")
-            .and_then(serde_json::Value::as_str)
-            .expect("bias policy path"),
+        report.get("bias_policy").and_then(serde_json::Value::as_str).expect("bias policy path"),
     );
     let stage_metrics = repo_root.join(
         report
@@ -1093,7 +1070,10 @@ fn bench_local_materialize_stage_bam_recalibration_json_writes_governed_smoke_bu
     assert_eq!(report.get("requested_mode").and_then(serde_json::Value::as_str), Some("standard"));
     assert_eq!(report.get("effective_mode").and_then(serde_json::Value::as_str), Some("skip"));
     assert_eq!(report.get("status").and_then(serde_json::Value::as_str), Some("skipped"));
-    assert_eq!(report.get("reason").and_then(serde_json::Value::as_str), Some("coverage_below_gate"));
+    assert_eq!(
+        report.get("reason").and_then(serde_json::Value::as_str),
+        Some("coverage_below_gate")
+    );
     assert_eq!(
         report.get("known_sites"),
         Some(&serde_json::json!(["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"]))
@@ -1109,10 +1089,7 @@ fn bench_local_materialize_stage_bam_recalibration_json_writes_governed_smoke_bu
         report.get("observed_mean_coverage").and_then(serde_json::Value::as_f64),
         Some(0.024)
     );
-    assert_eq!(
-        report.get("observed_breadth_1x").and_then(serde_json::Value::as_f64),
-        Some(0.024)
-    );
+    assert_eq!(report.get("observed_breadth_1x").and_then(serde_json::Value::as_f64), Some(0.024));
     assert_eq!(report.get("output_bam_present").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(
         report.get("recalibration_report_present").and_then(serde_json::Value::as_bool),
@@ -1181,9 +1158,10 @@ fn bench_local_materialize_stage_bam_sex_json_writes_governed_smoke_bundle() {
     let artifact_path = repo_root.join(
         payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
     );
-    let report: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(&artifact_path).expect("read bam.sex report"))
-            .expect("parse bam.sex report");
+    let report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.sex report"),
+    )
+    .expect("parse bam.sex report");
 
     assert_eq!(
         report.get("schema_version").and_then(serde_json::Value::as_str),
@@ -1207,16 +1185,10 @@ fn bench_local_materialize_stage_bam_sex_json_writes_governed_smoke_bundle() {
     assert_eq!(report.get("insufficiency_reason"), Some(&serde_json::Value::Null));
 
     let sex_report = repo_root.join(
-        report
-            .get("sex_report")
-            .and_then(serde_json::Value::as_str)
-            .expect("sex report path"),
+        report.get("sex_report").and_then(serde_json::Value::as_str).expect("sex report path"),
     );
     let sex_summary = repo_root.join(
-        report
-            .get("sex_summary")
-            .and_then(serde_json::Value::as_str)
-            .expect("sex summary path"),
+        report.get("sex_summary").and_then(serde_json::Value::as_str).expect("sex summary path"),
     );
     let stage_metrics = repo_root.join(
         report
@@ -1224,18 +1196,9 @@ fn bench_local_materialize_stage_bam_sex_json_writes_governed_smoke_bundle() {
             .and_then(serde_json::Value::as_str)
             .expect("stage metrics path"),
     );
-    assert!(
-        sex_report.is_file(),
-        "bam.sex smoke bundle must expose the governed sex report"
-    );
-    assert!(
-        sex_summary.is_file(),
-        "bam.sex smoke bundle must expose the governed sex summary"
-    );
-    assert!(
-        stage_metrics.is_file(),
-        "bam.sex smoke bundle must expose the governed stage metrics"
-    );
+    assert!(sex_report.is_file(), "bam.sex smoke bundle must expose the governed sex report");
+    assert!(sex_summary.is_file(), "bam.sex smoke bundle must expose the governed sex summary");
+    assert!(stage_metrics.is_file(), "bam.sex smoke bundle must expose the governed stage metrics");
 }
 
 #[test]
@@ -1278,10 +1241,7 @@ fn bench_local_materialize_stage_bam_overlap_correction_json_writes_governed_smo
     assert_eq!(report.get("method").and_then(serde_json::Value::as_str), Some("bamutil"));
     assert_eq!(report.get("pair_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(report.get("corrected_pairs").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(
-        report.get("corrected_overlap_bases").and_then(serde_json::Value::as_u64),
-        Some(7)
-    );
+    assert_eq!(report.get("corrected_overlap_bases").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(report.get("insufficiency_reason"), Some(&serde_json::Value::Null));
 
     let corrected_bam = repo_root.join(
@@ -1456,9 +1416,10 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
     let artifact_path = repo_root.join(
         payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
     );
-    let plan: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(&artifact_path).expect("read bam.contamination plan"))
-            .expect("parse bam.contamination plan");
+    let plan: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.contamination plan"),
+    )
+    .expect("parse bam.contamination plan");
 
     assert_eq!(plan.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.contamination"));
     assert_eq!(plan.get("tool_id").and_then(serde_json::Value::as_str), Some("verifybamid2"));
@@ -1476,15 +1437,21 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
     );
     assert_eq!(
         plan.get("params").and_then(|params| params.get("reference_panels")),
-        Some(&serde_json::json!(["assets/reference/host/references/toy_human_contamination_panel.dat"]))
+        Some(&serde_json::json!([
+            "assets/reference/host/references/toy_human_contamination_panel.dat"
+        ]))
     );
 
     let contamination_report = plan["io"]["outputs"]
         .as_array()
         .and_then(|outputs| {
-            outputs.iter().find(|artifact| artifact["name"] == serde_json::json!("contamination_report"))
+            outputs
+                .iter()
+                .find(|artifact| artifact["name"] == serde_json::json!("contamination_report"))
         })
-        .unwrap_or_else(|| panic!("contamination_report output missing from CLI materialized plan"));
+        .unwrap_or_else(|| {
+            panic!("contamination_report output missing from CLI materialized plan")
+        });
     assert_eq!(
         contamination_report["path"],
         serde_json::json!("target/local-ready/bam.contamination/contamination.json")
@@ -1526,9 +1493,10 @@ fn bench_local_materialize_stage_bam_haplogroups_json_writes_governed_plan_bundl
     let artifact_path = repo_root.join(
         payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
     );
-    let plan: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(&artifact_path).expect("read bam.haplogroups plan"))
-            .expect("parse bam.haplogroups plan");
+    let plan: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.haplogroups plan"),
+    )
+    .expect("parse bam.haplogroups plan");
 
     assert_eq!(plan.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.haplogroups"));
     assert_eq!(plan.get("tool_id").and_then(serde_json::Value::as_str), Some("yleaf"));
@@ -1585,10 +1553,7 @@ fn bench_local_materialize_stage_bam_genotyping_json_writes_governed_plan_bundle
         "--json",
     ]);
 
-    assert_eq!(
-        payload.get("stage_id").and_then(serde_json::Value::as_str),
-        Some("bam.genotyping")
-    );
+    assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.genotyping"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
         Some("target/local-ready/bam.genotyping/plan.json")
@@ -1597,9 +1562,10 @@ fn bench_local_materialize_stage_bam_genotyping_json_writes_governed_plan_bundle
     let artifact_path = repo_root.join(
         payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
     );
-    let plan: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(&artifact_path).expect("read bam.genotyping plan"))
-            .expect("parse bam.genotyping plan");
+    let plan: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.genotyping plan"),
+    )
+    .expect("parse bam.genotyping plan");
 
     assert_eq!(plan.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.genotyping"));
     assert_eq!(plan.get("tool_id").and_then(serde_json::Value::as_str), Some("angsd"));
@@ -1659,10 +1625,7 @@ fn bench_local_materialize_stage_bam_kinship_json_writes_governed_smoke_bundle()
         "--json",
     ]);
 
-    assert_eq!(
-        payload.get("stage_id").and_then(serde_json::Value::as_str),
-        Some("bam.kinship")
-    );
+    assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.kinship"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
         Some("target/local-smoke/bam.kinship/kinship.json")
@@ -1671,9 +1634,10 @@ fn bench_local_materialize_stage_bam_kinship_json_writes_governed_smoke_bundle()
     let artifact_path = repo_root.join(
         payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
     );
-    let report: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(&artifact_path).expect("read bam.kinship report"))
-            .expect("parse bam.kinship report");
+    let report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.kinship report"),
+    )
+    .expect("parse bam.kinship report");
 
     assert_eq!(report.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.kinship"));
     assert_eq!(
@@ -1726,10 +1690,7 @@ fn bench_local_materialize_stage_bam_damage_json_writes_governed_smoke_bundle() 
         "--json",
     ]);
 
-    assert_eq!(
-        payload.get("stage_id").and_then(serde_json::Value::as_str),
-        Some("bam.damage")
-    );
+    assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.damage"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
         Some("target/local-smoke/bam.damage/damage.json")
@@ -1753,10 +1714,7 @@ fn bench_local_materialize_stage_bam_damage_json_writes_governed_smoke_bundle() 
     );
     assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(report.get("method").and_then(serde_json::Value::as_str), Some("pydamage"));
-    assert_eq!(
-        report.get("tools_seen"),
-        Some(&serde_json::json!(["pydamage", "mapdamage2"]))
-    );
+    assert_eq!(report.get("tools_seen"), Some(&serde_json::json!(["pydamage", "mapdamage2"])));
     assert_eq!(report.get("terminal_c_to_t_5p").and_then(serde_json::Value::as_f64), Some(0.18));
     assert_eq!(report.get("terminal_g_to_a_3p").and_then(serde_json::Value::as_f64), Some(0.11));
     assert_eq!(

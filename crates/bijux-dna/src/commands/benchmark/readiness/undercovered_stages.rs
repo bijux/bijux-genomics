@@ -15,8 +15,7 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_UNDERCOVERED_STAGES_PATH: &str =
     "target/bench-readiness/undercovered-stages.tsv";
-const UNDERCOVERED_STAGES_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.undercovered_stages.v1";
+const UNDERCOVERED_STAGES_SCHEMA_VERSION: &str = "bijux.bench.readiness.undercovered_stages.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct UndercoveredStageRow {
@@ -47,9 +46,7 @@ pub(crate) fn run_render_undercovered_stages(
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let report = render_undercovered_stages(
         &repo_root,
-        args.output
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_UNDERCOVERED_STAGES_PATH)),
+        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_UNDERCOVERED_STAGES_PATH)),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -64,16 +61,15 @@ pub(crate) fn render_undercovered_stages(
     output_path: PathBuf,
 ) -> Result<UndercoveredStagesReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
-    let fastq_map =
-        render_fastq_tool_serving_map(repo_root, PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH))?;
+    let fastq_map = render_fastq_tool_serving_map(
+        repo_root,
+        PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH),
+    )?;
     let bam_map =
         render_bam_tool_serving_map(repo_root, PathBuf::from(DEFAULT_BAM_TOOL_SERVING_MAP_PATH))?;
 
     let registered_tool_ids = BTreeMap::from([
-        (
-            ReadinessDomain::Fastq,
-            stage_to_registered_tool_ids(&fastq_map.rows),
-        ),
+        (ReadinessDomain::Fastq, stage_to_registered_tool_ids(&fastq_map.rows)),
         (ReadinessDomain::Bam, stage_to_registered_tool_ids(&bam_map.rows)),
     ]);
 
@@ -120,7 +116,9 @@ pub(crate) fn render_undercovered_stages(
             });
         }
     }
-    rows.sort_by(|left, right| left.domain.cmp(&right.domain).then_with(|| left.stage_id.cmp(&right.stage_id)));
+    rows.sort_by(|left, right| {
+        left.domain.cmp(&right.domain).then_with(|| left.stage_id.cmp(&right.stage_id))
+    });
 
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -149,10 +147,7 @@ fn stage_to_registered_tool_ids(
 ) -> BTreeMap<String, BTreeSet<String>> {
     let mut registered = BTreeMap::<String, BTreeSet<String>>::new();
     for row in rows {
-        registered
-            .entry(row.stage_id.clone())
-            .or_default()
-            .insert(row.tool_id.clone());
+        registered.entry(row.stage_id.clone()).or_default().insert(row.tool_id.clone());
     }
     registered
 }
@@ -212,8 +207,9 @@ mod tests {
     #[test]
     fn undercovered_stages_report_retains_stage_level_findings() {
         let root = repo_root();
-        let report = render_undercovered_stages(&root, PathBuf::from(DEFAULT_UNDERCOVERED_STAGES_PATH))
-            .expect("render undercovered stages");
+        let report =
+            render_undercovered_stages(&root, PathBuf::from(DEFAULT_UNDERCOVERED_STAGES_PATH))
+                .expect("render undercovered stages");
 
         assert_eq!(report.schema_version, UNDERCOVERED_STAGES_SCHEMA_VERSION);
         assert_eq!(report.stage_count, 51);

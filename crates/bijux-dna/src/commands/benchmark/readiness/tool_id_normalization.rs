@@ -14,8 +14,7 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_TOOL_ID_NORMALIZATION_PATH: &str =
     "target/bench-readiness/tool-id-normalization.tsv";
-const TOOL_ID_NORMALIZATION_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.tool_id_normalization.v1";
+const TOOL_ID_NORMALIZATION_SCHEMA_VERSION: &str = "bijux.bench.readiness.tool_id_normalization.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct ToolIdNormalizationRow {
@@ -41,9 +40,7 @@ pub(crate) fn run_render_tool_id_normalization(
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let report = render_tool_id_normalization(
         &repo_root,
-        args.output
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_TOOL_ID_NORMALIZATION_PATH)),
+        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_TOOL_ID_NORMALIZATION_PATH)),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -58,23 +55,19 @@ pub(crate) fn render_tool_id_normalization(
     output_path: PathBuf,
 ) -> Result<ToolIdNormalizationReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
-    let fastq_map =
-        render_fastq_tool_serving_map(repo_root, PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH))?;
+    let fastq_map = render_fastq_tool_serving_map(
+        repo_root,
+        PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH),
+    )?;
     let bam_map =
         render_bam_tool_serving_map(repo_root, PathBuf::from(DEFAULT_BAM_TOOL_SERVING_MAP_PATH))?;
 
     let mut domains_by_tool_id = BTreeMap::<String, BTreeSet<String>>::new();
     for row in &fastq_map.rows {
-        domains_by_tool_id
-            .entry(row.tool_id.clone())
-            .or_default()
-            .insert("fastq".to_string());
+        domains_by_tool_id.entry(row.tool_id.clone()).or_default().insert("fastq".to_string());
     }
     for row in &bam_map.rows {
-        domains_by_tool_id
-            .entry(row.tool_id.clone())
-            .or_default()
-            .insert("bam".to_string());
+        domains_by_tool_id.entry(row.tool_id.clone()).or_default().insert("bam".to_string());
     }
 
     let mut tool_ids_by_normalized = BTreeMap::<String, BTreeSet<String>>::new();
@@ -161,17 +154,12 @@ fn canonical_preference(tool_id: &str) -> (usize, usize, String) {
     let hyphen_count = tool_id.matches('-').count();
     let underscore_count = tool_id.matches('_').count();
     let separator_penalty = hyphen_count + underscore_count;
-    (
-        separator_penalty,
-        hyphen_count,
-        tool_id.to_ascii_lowercase(),
-    )
+    (separator_penalty, hyphen_count, tool_id.to_ascii_lowercase())
 }
 
 fn render_tool_id_normalization_tsv(rows: &[ToolIdNormalizationRow]) -> String {
-    let mut rendered = String::from(
-        "normalized_tool_id\tcanonical_tool_id\talias_tool_ids\tdomains\treason\n",
-    );
+    let mut rendered =
+        String::from("normalized_tool_id\tcanonical_tool_id\talias_tool_ids\tdomains\treason\n");
     for row in rows {
         rendered.push_str(&format!(
             "{}\t{}\t{}\t{}\t{}\n",
@@ -198,10 +186,7 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
 
 #[cfg(test)]
@@ -229,11 +214,9 @@ mod tests {
     #[test]
     fn tool_id_normalization_report_stays_empty_without_alias_clusters() {
         let root = repo_root();
-        let report = render_tool_id_normalization(
-            &root,
-            PathBuf::from(DEFAULT_TOOL_ID_NORMALIZATION_PATH),
-        )
-        .expect("render tool id normalization");
+        let report =
+            render_tool_id_normalization(&root, PathBuf::from(DEFAULT_TOOL_ID_NORMALIZATION_PATH))
+                .expect("render tool id normalization");
 
         assert_eq!(report.schema_version, TOOL_ID_NORMALIZATION_SCHEMA_VERSION);
         assert_eq!(report.cluster_count, 0);

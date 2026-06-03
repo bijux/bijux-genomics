@@ -96,11 +96,7 @@ pub(crate) fn render_fastq_command_adapter_coverage(
         PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH),
     )?;
 
-    let rows = tool_map
-        .rows
-        .iter()
-        .map(render_coverage_row)
-        .collect::<Vec<_>>();
+    let rows = tool_map.rows.iter().map(render_coverage_row).collect::<Vec<_>>();
 
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -288,10 +284,7 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
 
 fn sanitize_tsv(value: &str) -> String {
@@ -323,10 +316,7 @@ mod tests {
         )
         .expect("render FASTQ command adapter coverage");
 
-        assert_eq!(
-            report.schema_version,
-            FASTQ_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION
-        );
+        assert_eq!(report.schema_version, FASTQ_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.stage_count, 27);
         assert_eq!(report.tool_count, 45);
         assert_eq!(report.row_count, 75);

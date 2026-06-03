@@ -61,7 +61,11 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(7));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 14, "governed registry-drift slice must retain the current fourteen rows");
+    assert_eq!(
+        rows.len(),
+        14,
+        "governed registry-drift slice must retain the current fourteen rows"
+    );
     assert!(
         rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")

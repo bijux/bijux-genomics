@@ -44,9 +44,7 @@ pub(crate) fn run_render_missing_benchmark_pairs(
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let report = render_missing_benchmark_pairs(
         &repo_root,
-        args.output
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_MISSING_BENCHMARK_PAIRS_PATH)),
+        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_MISSING_BENCHMARK_PAIRS_PATH)),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -61,8 +59,10 @@ pub(crate) fn render_missing_benchmark_pairs(
     output_path: PathBuf,
 ) -> Result<MissingBenchmarkPairsReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
-    let fastq_map =
-        render_fastq_tool_serving_map(repo_root, PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH))?;
+    let fastq_map = render_fastq_tool_serving_map(
+        repo_root,
+        PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH),
+    )?;
     let bam_map =
         render_bam_tool_serving_map(repo_root, PathBuf::from(DEFAULT_BAM_TOOL_SERVING_MAP_PATH))?;
 
@@ -138,10 +138,7 @@ pub(crate) fn render_missing_benchmark_pairs(
 fn registered_pairs_by_stage(rows: &[ToolServingMapRow]) -> BTreeMap<String, BTreeSet<String>> {
     let mut registered = BTreeMap::<String, BTreeSet<String>>::new();
     for row in rows {
-        registered
-            .entry(row.stage_id.clone())
-            .or_default()
-            .insert(row.tool_id.clone());
+        registered.entry(row.stage_id.clone()).or_default().insert(row.tool_id.clone());
     }
     registered
 }
@@ -176,10 +173,7 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
 
 #[cfg(test)]
