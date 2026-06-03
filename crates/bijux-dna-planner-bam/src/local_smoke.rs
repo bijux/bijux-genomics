@@ -2347,12 +2347,7 @@ fn build_local_gc_bias_smoke_case(
             case.sample_id
         ));
     }
-    if case.expected_rows.is_empty() {
-        return Err(anyhow!(
-            "local-smoke bam.gc_bias case `{}` must declare at least one expected GC bin row",
-            case.sample_id
-        ));
-    }
+    validate_local_gc_bias_expected_rows(&case.sample_id, &case.expected_rows)?;
 
     let params = CoverageEffectiveParams {
         regions: None,
@@ -2376,6 +2371,45 @@ fn build_local_gc_bias_smoke_case(
         expected_rows: case.expected_rows,
         plan,
     })
+}
+
+fn validate_local_gc_bias_expected_rows(
+    sample_id: &str,
+    expected_rows: &[LocalGcBiasSmokeExpectedRow],
+) -> Result<()> {
+    if expected_rows.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.gc_bias case `{}` must declare at least one expected GC bin row",
+            sample_id
+        ));
+    }
+
+    let mut seen_gc_bins = BTreeSet::new();
+    for row in expected_rows {
+        if !seen_gc_bins.insert(row.gc_bin) {
+            return Err(anyhow!(
+                "local-smoke bam.gc_bias case `{}` must not repeat expected gc_bin `{}`",
+                sample_id,
+                row.gc_bin
+            ));
+        }
+        if row.windows == 0 {
+            return Err(anyhow!(
+                "local-smoke bam.gc_bias case `{}` must keep expected gc_bin `{}` windows greater than zero",
+                sample_id,
+                row.gc_bin
+            ));
+        }
+        if !row.normalized_coverage.is_finite() || row.normalized_coverage < 0.0 {
+            return Err(anyhow!(
+                "local-smoke bam.gc_bias case `{}` must keep expected gc_bin `{}` normalized_coverage finite and non-negative",
+                sample_id,
+                row.gc_bin
+            ));
+        }
+    }
+
+    Ok(())
 }
 
 fn build_local_endogenous_content_smoke_case(

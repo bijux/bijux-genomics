@@ -116,6 +116,15 @@ fn write_local_gc_bias_config(root: &Path, body: &str) -> Result<()> {
     Ok(())
 }
 
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(repo_root.join("domain/bam/tools/picard.yaml"), tool_dir.join("picard.yaml"))?;
+    Ok(temp)
+}
+
 #[test]
 fn local_gc_bias_smoke_plans_reject_empty_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
@@ -185,6 +194,202 @@ read_starts = 2
     assert_eq!(
         error.to_string(),
         "duplicate local-smoke bam.gc_bias sample_id `duplicate-case`"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_gc_bias_smoke_plans_require_non_zero_window_size() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_gc_bias_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_gc_bias.v1"
+tool_id = "picard"
+
+[[cases]]
+sample_id = "zero-window"
+bam = "{bam}"
+reference = "{reference}"
+window_size = 0
+
+[[cases.expected_rows]]
+gc_bin = 0
+normalized_coverage = 0.75
+windows = 1
+read_starts = 1
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_gc_bias_smoke_plans(temp.path())
+        .expect_err("gc-bias cases must declare window_size greater than zero");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.gc_bias case `zero-window` must declare window_size greater than zero"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_gc_bias_smoke_plans_require_expected_gc_rows() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_gc_bias_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_gc_bias.v1"
+tool_id = "picard"
+
+[[cases]]
+sample_id = "missing-rows"
+bam = "{bam}"
+reference = "{reference}"
+window_size = 10
+expected_rows = []
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_gc_bias_smoke_plans(temp.path())
+        .expect_err("gc-bias cases must declare at least one expected row");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.gc_bias case `missing-rows` must declare at least one expected GC bin row"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_gc_bias_smoke_plans_reject_duplicate_expected_gc_bins() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_gc_bias_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_gc_bias.v1"
+tool_id = "picard"
+
+[[cases]]
+sample_id = "duplicate-gc-bin"
+bam = "{bam}"
+reference = "{reference}"
+window_size = 10
+
+[[cases.expected_rows]]
+gc_bin = 50
+normalized_coverage = 1.0
+windows = 1
+read_starts = 1
+
+[[cases.expected_rows]]
+gc_bin = 50
+normalized_coverage = 1.2
+windows = 1
+read_starts = 2
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_gc_bias_smoke_plans(temp.path())
+        .expect_err("gc-bias rows must not repeat the same GC bin");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.gc_bias case `duplicate-gc-bin` must not repeat expected gc_bin `50`"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_gc_bias_smoke_plans_require_positive_expected_windows() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_gc_bias_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_gc_bias.v1"
+tool_id = "picard"
+
+[[cases]]
+sample_id = "zero-windows"
+bam = "{bam}"
+reference = "{reference}"
+window_size = 10
+
+[[cases.expected_rows]]
+gc_bin = 0
+normalized_coverage = 0.75
+windows = 0
+read_starts = 1
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_gc_bias_smoke_plans(temp.path())
+        .expect_err("gc-bias rows must declare at least one reference window");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.gc_bias case `zero-windows` must keep expected gc_bin `0` windows greater than zero"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_gc_bias_smoke_plans_require_non_negative_normalized_coverage() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_gc_bias_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_gc_bias.v1"
+tool_id = "picard"
+
+[[cases]]
+sample_id = "negative-coverage"
+bam = "{bam}"
+reference = "{reference}"
+window_size = 10
+
+[[cases.expected_rows]]
+gc_bin = 0
+normalized_coverage = -0.1
+windows = 1
+read_starts = 1
+"#,
+            bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_gc_bias_smoke_plans(temp.path())
+        .expect_err("gc-bias rows must keep normalized coverage non-negative");
+    assert_eq!(
+        error.to_string(),
+        "local-smoke bam.gc_bias case `negative-coverage` must keep expected gc_bin `0` normalized_coverage finite and non-negative"
     );
     Ok(())
 }
