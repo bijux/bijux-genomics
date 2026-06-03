@@ -641,6 +641,75 @@ fn bench_local_materialize_stage_bam_duplication_metrics_json_writes_governed_sm
     );
 }
 
+#[test]
+fn bench_local_materialize_stage_bam_complexity_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.complexity",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.complexity")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.complexity/complexity.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.complexity report"),
+    )
+    .expect("parse bam.complexity report");
+
+    assert_eq!(
+        report.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.complexity.local_smoke.report.v1")
+    );
+    assert_eq!(
+        report.get("sample_id").and_then(serde_json::Value::as_str),
+        Some("core-v1-complexity-insufficient")
+    );
+    assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(report.get("observed_total_reads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(report.get("observed_unique_reads").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(report.get("estimated_unique_reads"), Some(&serde_json::Value::Null));
+    assert_eq!(report.get("estimated_library_size"), Some(&serde_json::Value::Null));
+    assert_eq!(report.get("saturation_estimate"), Some(&serde_json::Value::Null));
+    assert_eq!(
+        report.get("insufficient_data_reason").and_then(serde_json::Value::as_str),
+        Some("insufficient_observed_unique_reads_for_complexity_extrapolation")
+    );
+
+    let complexity_curve = repo_root.join(
+        report
+            .get("complexity_curve")
+            .and_then(serde_json::Value::as_str)
+            .expect("complexity curve path"),
+    );
+    let stage_metrics = repo_root.join(
+        report
+            .get("stage_metrics")
+            .and_then(serde_json::Value::as_str)
+            .expect("stage metrics path"),
+    );
+    assert!(
+        complexity_curve.is_file(),
+        "bam.complexity smoke bundle must expose the governed complexity curve"
+    );
+    assert!(
+        stage_metrics.is_file(),
+        "bam.complexity smoke bundle must expose the governed stage metrics"
+    );
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
