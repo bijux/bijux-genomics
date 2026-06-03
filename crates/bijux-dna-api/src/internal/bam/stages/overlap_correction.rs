@@ -150,6 +150,23 @@ fn materialize_local_overlap_correction_smoke_case(
     written_summary.output_bam = relative_path(repo_root, &written_summary.output_bam);
     bijux_dna_infra::atomic_write_json(&summary_path, &written_summary)?;
 
+    let expectation_matched = written_summary.pair_count == Some(case.expected_pair_count)
+        && written_summary.corrected_pairs == Some(case.expected_corrected_pairs)
+        && written_summary.corrected_overlap_bases == Some(case.expected_corrected_overlap_bases)
+        && written_summary.insufficiency_reason.is_none();
+    let observed_pair_count = written_summary.pair_count.unwrap_or(0);
+    let observed_corrected_pairs = written_summary.corrected_pairs.unwrap_or(0);
+    let observed_corrected_overlap_bases = written_summary.corrected_overlap_bases.unwrap_or(0);
+    let pair_count_delta =
+        i64::try_from(observed_pair_count).unwrap_or(i64::MAX)
+            - i64::try_from(case.expected_pair_count).unwrap_or(i64::MAX);
+    let corrected_pair_delta =
+        i64::try_from(observed_corrected_pairs).unwrap_or(i64::MAX)
+            - i64::try_from(case.expected_corrected_pairs).unwrap_or(i64::MAX);
+    let corrected_overlap_base_delta =
+        i64::try_from(observed_corrected_overlap_bases).unwrap_or(i64::MAX)
+            - i64::try_from(case.expected_corrected_overlap_bases).unwrap_or(i64::MAX);
+
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
         &serde_json::json!({
@@ -157,10 +174,17 @@ fn materialize_local_overlap_correction_smoke_case(
             "stage_id": OVERLAP_CORRECTION_STAGE_ID,
             "sample_id": case.sample_id,
             "method": case.plan.tool_id.as_str(),
+            "expected_pair_count": case.expected_pair_count,
             "pair_count": written_summary.pair_count,
+            "pair_count_delta": pair_count_delta,
+            "expected_corrected_pairs": case.expected_corrected_pairs,
             "corrected_pairs": written_summary.corrected_pairs,
+            "corrected_pair_delta": corrected_pair_delta,
+            "expected_corrected_overlap_bases": case.expected_corrected_overlap_bases,
             "corrected_overlap_bases": written_summary.corrected_overlap_bases,
+            "corrected_overlap_base_delta": corrected_overlap_base_delta,
             "insufficiency_reason": written_summary.insufficiency_reason,
+            "expectation_matched": expectation_matched,
         }),
     )?;
 
@@ -174,11 +198,6 @@ fn materialize_local_overlap_correction_smoke_case(
         &top_level_corrected_bai,
         &std::fs::read(&corrected_bai_path)?,
     )?;
-
-    let expectation_matched = written_summary.pair_count == Some(case.expected_pair_count)
-        && written_summary.corrected_pairs == Some(case.expected_corrected_pairs)
-        && written_summary.corrected_overlap_bases == Some(case.expected_corrected_overlap_bases)
-        && written_summary.insufficiency_reason.is_none();
 
     summary.input_bam = relative_path(repo_root, &summary.input_bam);
     summary.output_bam = relative_path(repo_root, &summary.output_bam);
