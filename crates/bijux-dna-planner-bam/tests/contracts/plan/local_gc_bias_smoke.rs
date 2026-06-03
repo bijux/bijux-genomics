@@ -71,6 +71,7 @@ fn local_gc_bias_smoke_plans_use_governed_reference_and_bam() -> Result<()> {
         case.plan.params["reference"],
         serde_json::json!("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta")
     );
+    assert_eq!(case.plan.params["window_size"], serde_json::json!(10));
 
     let output_names = case
         .plan

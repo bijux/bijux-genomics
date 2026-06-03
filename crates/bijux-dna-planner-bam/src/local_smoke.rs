@@ -2355,13 +2355,17 @@ fn build_local_gc_bias_smoke_case(
         regime_mode: "advisory_and_enforced".to_string(),
     };
     let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
-    let plan = crate::tool_adapters::bam::gc_bias::plan(
+    let mut plan = crate::tool_adapters::bam::gc_bias::plan(
         tool_spec,
         &case.bam,
         &case.reference,
         &out_dir,
         &params,
     )?;
+    let plan_params = plan.params.as_object_mut().ok_or_else(|| {
+        anyhow!("local-smoke bam.gc_bias planner params must serialize as an object")
+    })?;
+    plan_params.insert("window_size".to_string(), serde_json::json!(case.window_size));
 
     Ok(LocalGcBiasSmokeCasePlan {
         sample_id: case.sample_id,
