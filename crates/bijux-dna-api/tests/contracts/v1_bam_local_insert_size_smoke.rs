@@ -134,6 +134,8 @@ fn write_local_insert_size_smoke_report_materializes_governed_outputs() -> Resul
     );
     assert_eq!(stage_metrics_json["min_insert_size"], serde_json::json!(15));
     assert_eq!(stage_metrics_json["max_insert_size"], serde_json::json!(30));
+    assert_eq!(stage_metrics_json["insufficient_pairs_reason"], serde_json::Value::Null);
+    assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 
     Ok(())
 }
