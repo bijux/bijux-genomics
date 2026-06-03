@@ -992,9 +992,8 @@ fn validate_remove_chimeras_compatibility_metrics(
             non_chimera_count
         ));
     }
-    let filtered_representative_sequences = metrics
-        .get("filtered_representative_sequences")
-        .and_then(serde_json::Value::as_str);
+    let filtered_representative_sequences =
+        metrics.get("filtered_representative_sequences").and_then(serde_json::Value::as_str);
     if filtered_representative_sequences != Some(report.output_reads.as_str()) {
         return Err(anyhow!(
             "remove_chimeras compatibility filtered representative sequence path mismatch: expected {:?}, observed {:?}",

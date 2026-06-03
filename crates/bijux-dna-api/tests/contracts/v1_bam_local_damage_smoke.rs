@@ -111,10 +111,7 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
         serde_json::json!("bijux.bam.damage.parser_output.v1")
     );
     assert_eq!(parser_output_json["stage_id"], serde_json::json!("bam.damage"));
-    assert_eq!(
-        parser_output_json["parsed_tools"][0]["tool_id"],
-        serde_json::json!("pydamage")
-    );
+    assert_eq!(parser_output_json["parsed_tools"][0]["tool_id"], serde_json::json!("pydamage"));
 
     let advisory_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&advisory_boundary)?)?;
@@ -140,10 +137,7 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
     assert_eq!(stage_metrics_json["short_fragment_fraction_delta"], serde_json::json!(0.0));
     assert_eq!(stage_metrics_json["expected_damage_signal"], serde_json::json!("moderate"));
     assert_eq!(stage_metrics_json["damage_signal"], serde_json::json!("moderate"));
-    assert_eq!(
-        stage_metrics_json["expected_strict_profile_upgraded"],
-        serde_json::json!(false)
-    );
+    assert_eq!(stage_metrics_json["expected_strict_profile_upgraded"], serde_json::json!(false));
     assert_eq!(stage_metrics_json["strict_profile_upgraded"], serde_json::json!(false));
     assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 

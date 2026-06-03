@@ -111,9 +111,8 @@ fn write_local_filter_low_complexity_smoke_report_materializes_governed_outputs(
         case_report["raw_backend_report_format"],
         serde_json::json!("bijux_filter_low_complexity_trace")
     );
-    let case_filtered_fastq = repo_root.join(
-        case_report["output_r1"].as_str().unwrap_or_else(|| panic!("output_r1 missing")),
-    );
+    let case_filtered_fastq = repo_root
+        .join(case_report["output_r1"].as_str().unwrap_or_else(|| panic!("output_r1 missing")));
     assert!(case_filtered_fastq.is_file(), "case-level filtered FASTQ must exist");
     assert_eq!(
         read_gz_fastq_sequences(&filtered_fastq)?,

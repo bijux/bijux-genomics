@@ -148,7 +148,10 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
     assert_eq!(composite_json["score"], serde_json::json!(0.8666666666666667));
     assert_eq!(composite_json["confidence"], serde_json::json!(0.9466666666666668));
     assert_eq!(composite_json["consumed_metrics"]["damage"]["available"], serde_json::json!(true));
-    assert_eq!(composite_json["consumed_metrics"]["damage"]["source"], serde_json::json!("stage_artifact"));
+    assert_eq!(
+        composite_json["consumed_metrics"]["damage"]["source"],
+        serde_json::json!("stage_artifact")
+    );
     assert_eq!(
         composite_json["consumed_metrics"]["contamination"]["available"],
         serde_json::json!(true)
@@ -204,13 +207,8 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
             .as_str()
             .unwrap_or_else(|| panic!("mapping path missing from authenticity composition")),
     );
-    for path in [
-        &damage_path,
-        &contamination_path,
-        &complexity_path,
-        &coverage_path,
-        &mapping_path,
-    ] {
+    for path in [&damage_path, &contamination_path, &complexity_path, &coverage_path, &mapping_path]
+    {
         assert!(
             path.is_file(),
             "authenticity composition input artifact must exist: {}",
@@ -235,7 +233,10 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
         stage_metrics_json["schema_version"],
         serde_json::json!("bijux.bam.authenticity.local_smoke.metrics.v1")
     );
-    assert_eq!(stage_metrics_json["sample_id"], serde_json::json!("core-v1-authenticity-composition"));
+    assert_eq!(
+        stage_metrics_json["sample_id"],
+        serde_json::json!("core-v1-authenticity-composition")
+    );
     assert_eq!(stage_metrics_json["method"], serde_json::json!("authenticct"));
     assert_eq!(stage_metrics_json["expected_score"], serde_json::json!(0.8666666666666667));
     assert_eq!(stage_metrics_json["score"], serde_json::json!(0.8666666666666667));
@@ -243,10 +244,7 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
     assert_eq!(stage_metrics_json["expected_confidence"], serde_json::json!(0.9466666666666668));
     assert_eq!(stage_metrics_json["confidence"], serde_json::json!(0.9466666666666668));
     assert_eq!(stage_metrics_json["confidence_delta"], serde_json::json!(0.0));
-    assert_eq!(
-        stage_metrics_json["expected_pmd_like_signal_present"],
-        serde_json::json!(true)
-    );
+    assert_eq!(stage_metrics_json["expected_pmd_like_signal_present"], serde_json::json!(true));
     assert_eq!(stage_metrics_json["pmd_like_signal_present"], serde_json::json!(true));
     assert_eq!(stage_metrics_json["contamination_estimate"], serde_json::json!(0.03));
     assert_eq!(

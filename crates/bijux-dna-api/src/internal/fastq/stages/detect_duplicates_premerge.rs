@@ -99,11 +99,7 @@ fn materialize_local_detect_duplicates_premerge_smoke_case(
 
     Ok(LocalDetectDuplicatesPremergeSmokeCaseReport {
         sample_id: case.sample_id.clone(),
-        layout: if case.r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        layout: if case.r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         input_r1: case.r1.display().to_string(),
         input_r2: case.r2.as_ref().map(|path| path.display().to_string()),
         reads_in: report.reads_in,
@@ -136,8 +132,5 @@ fn resolve_plan_dir(repo_root: &Path, out_dir: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .display()
-        .to_string()
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }

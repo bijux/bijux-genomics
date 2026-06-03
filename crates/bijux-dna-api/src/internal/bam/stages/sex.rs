@@ -117,8 +117,7 @@ fn materialize_local_sex_smoke_case(
         && summary.status == case.expected_status;
     let x_coverage_delta = summary.x_coverage - case.expected_x_coverage;
     let y_coverage_delta = summary.y_coverage - case.expected_y_coverage;
-    let autosomal_coverage_delta =
-        summary.autosomal_coverage - case.expected_autosomal_coverage;
+    let autosomal_coverage_delta = summary.autosomal_coverage - case.expected_autosomal_coverage;
     let confidence_delta = summary.confidence - case.expected_confidence;
 
     bijux_dna_infra::atomic_write_json(

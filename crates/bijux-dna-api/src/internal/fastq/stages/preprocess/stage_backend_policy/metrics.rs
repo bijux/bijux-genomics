@@ -880,9 +880,10 @@ pub(crate) fn parse_normalize_abundance_metrics(out_dir: &std::path::Path) -> se
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_normalize_abundance_report(&raw)
         {
             let expected_sum = report.scale_factor.unwrap_or(1.0);
-            let numeric_output_valid = report.per_sample_sums.iter().all(|(_, sum)| {
-                sum.is_finite() && (sum - expected_sum).abs() <= 1.0e-6
-            });
+            let numeric_output_valid = report
+                .per_sample_sums
+                .iter()
+                .all(|(_, sum)| sum.is_finite() && (sum - expected_sum).abs() <= 1.0e-6);
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.normalize_abundance",

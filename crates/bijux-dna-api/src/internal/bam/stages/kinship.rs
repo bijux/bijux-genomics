@@ -7,11 +7,9 @@ use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
 #[cfg(feature = "bam_downstream")]
-const LOCAL_KINSHIP_SMOKE_REPORT_SCHEMA_VERSION: &str =
-    "bijux.bam.kinship.local_smoke.report.v1";
+const LOCAL_KINSHIP_SMOKE_REPORT_SCHEMA_VERSION: &str = "bijux.bam.kinship.local_smoke.report.v1";
 #[cfg(feature = "bam_downstream")]
-const LOCAL_KINSHIP_SMOKE_METRICS_SCHEMA_VERSION: &str =
-    "bijux.bam.kinship.local_smoke.metrics.v1";
+const LOCAL_KINSHIP_SMOKE_METRICS_SCHEMA_VERSION: &str = "bijux.bam.kinship.local_smoke.metrics.v1";
 #[cfg(feature = "bam_downstream")]
 const KINSHIP_TOOL_REPORT_SCHEMA_VERSION: &str = "bijux.bam.kinship.v1";
 #[cfg(feature = "bam_downstream")]
@@ -223,11 +221,8 @@ fn kinship_summary_matches_case(
         && summary.observed_max_overlap_snps == case.expected_observed_max_overlap_snps
         && summary.insufficiency_reason == case.expected_insufficiency_reason
         && summary.pairwise_results.len() == case.expected_pairwise_results.len()
-        && summary
-            .pairwise_results
-            .iter()
-            .zip(case.expected_pairwise_results.iter())
-            .all(|(observed, expected)| {
+        && summary.pairwise_results.iter().zip(case.expected_pairwise_results.iter()).all(
+            |(observed, expected)| {
                 observed.sample_a == expected.sample_a
                     && observed.sample_b == expected.sample_b
                     && observed.overlap_snps == expected.overlap_snps
@@ -236,7 +231,8 @@ fn kinship_summary_matches_case(
                     && float_matches(observed.concordance, expected.concordance)
                     && float_matches(observed.kinship_coefficient, expected.kinship_coefficient)
                     && observed.relationship_label == expected.relationship_label
-            })
+            },
+        )
 }
 
 #[cfg(feature = "bam_downstream")]
@@ -292,12 +288,7 @@ fn resolve_bam_input_path(
         .iter()
         .find(|artifact| artifact.role == bijux_dna_core::contract::ArtifactRole::Bam)
         .map(|artifact| artifact.path.clone())
-        .or_else(|| {
-            plan.params
-                .get("bam")
-                .and_then(serde_json::Value::as_str)
-                .map(PathBuf::from)
-        })
+        .or_else(|| plan.params.get("bam").and_then(serde_json::Value::as_str).map(PathBuf::from))
         .unwrap_or_else(|| stage_dir.join("in.bam"));
     Ok(resolve_stage_input_path(&input_bam))
 }
@@ -315,10 +306,7 @@ fn required_string_param(
 }
 
 #[cfg(feature = "bam_downstream")]
-fn required_u32_param(
-    plan: &bijux_dna_stage_contract::StagePlanV1,
-    key: &str,
-) -> Result<u32> {
+fn required_u32_param(plan: &bijux_dna_stage_contract::StagePlanV1, key: &str) -> Result<u32> {
     plan.params
         .get(key)
         .and_then(serde_json::Value::as_u64)

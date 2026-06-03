@@ -149,9 +149,10 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_profile_overrepresented_sequences_smoke_summary() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
-    let cases = bijux_dna_planner_fastq::stage_api::local_profile_overrepresented_sequences_smoke_plans(
-        &repo_root,
-    )?;
+    let cases =
+        bijux_dna_planner_fastq::stage_api::local_profile_overrepresented_sequences_smoke_plans(
+            &repo_root,
+        )?;
     let [case] = cases.as_slice() else {
         return Err(anyhow!(
             "governed fastq.profile_overrepresented_sequences local smoke must resolve exactly one case"
@@ -179,9 +180,7 @@ fn materialize_local_profile_overrepresented_sequences_smoke_case(
         case.plan.effective_params.clone(),
     )
     .map_err(|error| {
-        anyhow!(
-            "decode profile-overrepresented local-smoke effective params: {error}"
-        )
+        anyhow!("decode profile-overrepresented local-smoke effective params: {error}")
     })?;
 
     let input_r1 = repo_root.join(&case.r1);
@@ -198,10 +197,7 @@ fn materialize_local_profile_overrepresented_sequences_smoke_case(
         resolve_smoke_path(repo_root, required_output_path(&case.plan, "report_json")?);
     let raw_backend_report = resolve_smoke_path(
         repo_root,
-        &case
-            .plan
-            .out_dir
-            .join("profile_overrepresented_sequences.local.log"),
+        &case.plan.out_dir.join("profile_overrepresented_sequences.local.log"),
     );
 
     let mut report = bijux_dna_domain_fastq::stages::contract::profile_overrepresented_sequences(
@@ -226,9 +222,7 @@ fn materialize_local_profile_overrepresented_sequences_smoke_case(
     copy_smoke_artifact(&case_output_tsv, &top_level_tsv)?;
 
     let top_row = report.rows.first().ok_or_else(|| {
-        anyhow!(
-            "profile_overrepresented_sequences local smoke expected at least one ranked row"
-        )
+        anyhow!("profile_overrepresented_sequences local smoke expected at least one ranked row")
     })?;
 
     Ok(LocalProfileOverrepresentedSequencesSmokeReport {
@@ -948,10 +942,7 @@ fn resolve_smoke_path(repo_root: &Path, path: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .display()
-        .to_string()
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
 
 fn copy_smoke_artifact(from: &Path, to: &Path) -> Result<()> {

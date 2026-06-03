@@ -628,7 +628,10 @@ fn materialize_local_cluster_otus_smoke_case(
         sample_count: report.sample_count,
         representative_sequence_count: report.representative_sequence_count,
         otu_table_tsv: path_relative_to_repo(repo_root, &top_level_otu_table),
-        representative_sequences_fasta: path_relative_to_repo(repo_root, &top_level_representatives),
+        representative_sequences_fasta: path_relative_to_repo(
+            repo_root,
+            &top_level_representatives,
+        ),
         otu_representatives_fasta: path_relative_to_repo(repo_root, &top_level_representatives),
         case_report_json: path_relative_to_repo(repo_root, &case_report_json),
         taxonomy_ready_fasta: path_relative_to_repo(repo_root, &case_taxonomy_fasta),

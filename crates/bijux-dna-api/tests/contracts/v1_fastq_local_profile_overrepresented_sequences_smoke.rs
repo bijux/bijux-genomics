@@ -42,7 +42,8 @@ fn write_local_profile_overrepresented_sequences_smoke_summary_materializes_gove
         )?;
     assert_eq!(
         summary_path,
-        repo_root.join("target/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv")
+        repo_root
+            .join("target/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv")
     );
     assert!(summary_path.is_file(), "top-level overrepresented TSV must exist");
 
@@ -52,10 +53,7 @@ fn write_local_profile_overrepresented_sequences_smoke_summary_materializes_gove
     let report_path = output_dir.join("report.json");
     assert!(report_path.is_file(), "top-level summary report must exist");
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
-    assert_eq!(
-        payload["stage_id"],
-        serde_json::json!("fastq.profile_overrepresented_sequences")
-    );
+    assert_eq!(payload["stage_id"], serde_json::json!("fastq.profile_overrepresented_sequences"));
     assert_eq!(payload["sample_id"], serde_json::json!("known-repeat-se"));
     assert_eq!(payload["planned_tool_id"], serde_json::json!("seqkit"));
     assert_eq!(payload["report_tool_id"], serde_json::json!("bijux"));
@@ -65,9 +63,7 @@ fn write_local_profile_overrepresented_sequences_smoke_summary_materializes_gove
     assert_eq!(payload["flagged_sequences"], serde_json::json!(1));
 
     let case_report_path = repo_root.join(
-        payload["case_report_json"]
-            .as_str()
-            .ok_or_else(|| anyhow!("case_report_json missing"))?,
+        payload["case_report_json"].as_str().ok_or_else(|| anyhow!("case_report_json missing"))?,
     );
     assert!(case_report_path.is_file(), "case report JSON must exist");
     let case_report: serde_json::Value =

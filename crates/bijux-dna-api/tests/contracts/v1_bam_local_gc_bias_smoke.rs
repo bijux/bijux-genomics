@@ -89,7 +89,8 @@ fn write_local_gc_bias_smoke_summary_materializes_governed_outputs() -> Result<(
     let gc_bias_metrics = repo_root.join(&zero_gc_row["gc_bias_metrics"]);
     let gc_bias_plot = repo_root.join(&zero_gc_row["gc_bias_plot"]);
     let stage_metrics = repo_root.join(&zero_gc_row["stage_metrics"]);
-    for path in [&gc_bias_tsv, &gc_bias_summary_json, &gc_bias_metrics, &gc_bias_plot, &stage_metrics]
+    for path in
+        [&gc_bias_tsv, &gc_bias_summary_json, &gc_bias_metrics, &gc_bias_plot, &stage_metrics]
     {
         assert!(path.is_file(), "governed BAM gc-bias artifact must exist: {}", path.display());
     }

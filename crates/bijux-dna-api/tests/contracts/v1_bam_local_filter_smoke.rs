@@ -37,10 +37,7 @@ fn write_local_filter_smoke_report_materializes_governed_outputs() -> Result<()>
     }
 
     let report_path = bijux_dna_api::v1::api::bam::write_local_filter_smoke_report()?;
-    assert_eq!(
-        report_path,
-        repo_root.join("target/local-smoke/bam.filter/filter_metrics.json")
-    );
+    assert_eq!(report_path, repo_root.join("target/local-smoke/bam.filter/filter_metrics.json"));
     assert!(report_path.is_file(), "local-smoke BAM filter metrics must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
@@ -60,19 +57,13 @@ fn write_local_filter_smoke_report_materializes_governed_outputs() -> Result<()>
     );
 
     let filtered_bam = repo_root.join(
-        payload["filtered_bam"]
-            .as_str()
-            .unwrap_or_else(|| panic!("filtered_bam path missing")),
+        payload["filtered_bam"].as_str().unwrap_or_else(|| panic!("filtered_bam path missing")),
     );
     let filtered_bai = repo_root.join(
-        payload["filtered_bai"]
-            .as_str()
-            .unwrap_or_else(|| panic!("filtered_bai path missing")),
+        payload["filtered_bai"].as_str().unwrap_or_else(|| panic!("filtered_bai path missing")),
     );
     let filter_summary = repo_root.join(
-        payload["filter_summary"]
-            .as_str()
-            .unwrap_or_else(|| panic!("filter_summary path missing")),
+        payload["filter_summary"].as_str().unwrap_or_else(|| panic!("filter_summary path missing")),
     );
     let flagstat_before = repo_root.join(
         payload["flagstat_before"]
@@ -80,9 +71,7 @@ fn write_local_filter_smoke_report_materializes_governed_outputs() -> Result<()>
             .unwrap_or_else(|| panic!("flagstat_before path missing")),
     );
     let flagstat_after = repo_root.join(
-        payload["flagstat_after"]
-            .as_str()
-            .unwrap_or_else(|| panic!("flagstat_after path missing")),
+        payload["flagstat_after"].as_str().unwrap_or_else(|| panic!("flagstat_after path missing")),
     );
     let idxstats_before = repo_root.join(
         payload["idxstats_before"]
@@ -90,14 +79,10 @@ fn write_local_filter_smoke_report_materializes_governed_outputs() -> Result<()>
             .unwrap_or_else(|| panic!("idxstats_before path missing")),
     );
     let idxstats_after = repo_root.join(
-        payload["idxstats_after"]
-            .as_str()
-            .unwrap_or_else(|| panic!("idxstats_after path missing")),
+        payload["idxstats_after"].as_str().unwrap_or_else(|| panic!("idxstats_after path missing")),
     );
     let stage_metrics = repo_root.join(
-        payload["stage_metrics"]
-            .as_str()
-            .unwrap_or_else(|| panic!("stage_metrics path missing")),
+        payload["stage_metrics"].as_str().unwrap_or_else(|| panic!("stage_metrics path missing")),
     );
     for path in [
         &filtered_bam,
@@ -121,10 +106,7 @@ fn write_local_filter_smoke_report_materializes_governed_outputs() -> Result<()>
 
     let filter_summary_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&filter_summary)?)?;
-    assert_eq!(
-        filter_summary_json["schema_version"],
-        serde_json::json!("bijux.bam.filter.v1")
-    );
+    assert_eq!(filter_summary_json["schema_version"], serde_json::json!("bijux.bam.filter.v1"));
     assert_eq!(filter_summary_json["input_reads"], serde_json::json!(5));
     assert_eq!(filter_summary_json["kept_reads"], serde_json::json!(1));
     assert_eq!(filter_summary_json["removed_reads"], serde_json::json!(4));

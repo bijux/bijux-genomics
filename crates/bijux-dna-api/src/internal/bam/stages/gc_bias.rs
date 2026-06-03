@@ -133,8 +133,11 @@ fn materialize_local_gc_bias_smoke_case(
 
     let input_bam = repo_root.join(&case.bam);
     let reference_fasta = repo_root.join(&case.reference);
-    let (mut summary, rows) =
-        bijux_dna_domain_bam::summarize_tiny_bam_gc_bias(&input_bam, &reference_fasta, case.window_size)?;
+    let (mut summary, rows) = bijux_dna_domain_bam::summarize_tiny_bam_gc_bias(
+        &input_bam,
+        &reference_fasta,
+        case.window_size,
+    )?;
     summary.input_bam = relative_path(repo_root, &summary.input_bam);
     summary.reference_fasta = relative_path(repo_root, &summary.reference_fasta);
 
@@ -147,15 +150,17 @@ fn materialize_local_gc_bias_smoke_case(
         b"%PDF-1.4\n% bijux bam gc-bias local smoke plot placeholder\n",
     )?;
     bijux_dna_infra::atomic_write_json(&gc_bias_summary_json, &summary)?;
-    bijux_dna_infra::atomic_write_bytes(&gc_bias_tsv, render_case_gc_bias_tsv(&rows, &summary).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(
+        &gc_bias_tsv,
+        render_case_gc_bias_tsv(&rows, &summary).as_bytes(),
+    )?;
 
-    let expected_by_gc_bin = case
-        .expected_rows
-        .iter()
-        .map(|row| (row.gc_bin, row))
-        .collect::<HashMap<_, _>>();
+    let expected_by_gc_bin =
+        case.expected_rows.iter().map(|row| (row.gc_bin, row)).collect::<HashMap<_, _>>();
     let row_expectation_matched = rows.iter().all(|row| {
-        expected_by_gc_bin.get(&row.gc_bin).is_some_and(|expected| gc_bias_row_matches(row, expected))
+        expected_by_gc_bin
+            .get(&row.gc_bin)
+            .is_some_and(|expected| gc_bias_row_matches(row, expected))
     });
     let case_expectation_matched =
         summary.insufficient_reference_reason.is_none() && row_expectation_matched;
@@ -205,8 +210,9 @@ fn materialize_local_gc_bias_smoke_case(
     Ok(rows
         .into_iter()
         .map(|row| {
-            let row_match =
-                expected_by_gc_bin.get(&row.gc_bin).is_some_and(|expected| gc_bias_row_matches(&row, expected));
+            let row_match = expected_by_gc_bin
+                .get(&row.gc_bin)
+                .is_some_and(|expected| gc_bias_row_matches(&row, expected));
             LocalGcBiasSmokeRow {
                 sample_id: case.sample_id.clone(),
                 gc_bin: row.gc_bin.to_string(),
@@ -242,8 +248,9 @@ fn render_case_gc_bias_tsv(
     rows: &[bijux_dna_domain_bam::BamGcBiasBinSummaryV1],
     summary: &bijux_dna_domain_bam::BamGcBiasSummaryV1,
 ) -> String {
-    let mut body =
-        String::from("gc_bin\tnormalized_coverage\twindows\tread_starts\tinsufficient_reference_reason\n");
+    let mut body = String::from(
+        "gc_bin\tnormalized_coverage\twindows\tread_starts\tinsufficient_reference_reason\n",
+    );
     if rows.is_empty() {
         let _ = writeln!(
             body,
@@ -313,7 +320,9 @@ fn resolve_output_path(
         .iter()
         .find(|artifact| artifact.name.as_str() == output_id)
         .map(|artifact| artifact.path.clone())
-        .ok_or_else(|| anyhow!("bam.gc_bias local-smoke plan is missing governed output `{output_id}`"))?;
+        .ok_or_else(|| {
+            anyhow!("bam.gc_bias local-smoke plan is missing governed output `{output_id}`")
+        })?;
     Ok(resolve_plan_path(repo_root, &path))
 }
 

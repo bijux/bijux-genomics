@@ -59,11 +59,10 @@ fn write_local_deplete_host_plan_materializes_governed_target_output() -> Result
     );
     assert_eq!(payload["effective_params"]["emit_removed_reads"], serde_json::json!(true));
     assert!(
-        payload["command"]["template"]
-            .as_array()
-            .is_some_and(|command| command.iter().any(|part| {
-                part == "assets/reference/host/references/toy_host_reference"
-            }) && command.iter().any(|part| {
+        payload["command"]["template"].as_array().is_some_and(|command| command
+            .iter()
+            .any(|part| { part == "assets/reference/host/references/toy_host_reference" })
+            && command.iter().any(|part| {
                 part == "target/local-ready/fastq.deplete_host/bowtie2.host.metrics.txt"
             })),
         "local-ready plan command must carry the governed Bowtie2 host-depletion command"

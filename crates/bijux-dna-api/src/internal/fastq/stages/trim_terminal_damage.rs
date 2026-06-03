@@ -102,7 +102,8 @@ fn admitted_stage_tools() -> Vec<String> {
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_trim_terminal_damage_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
-    let cases = bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_smoke_plans(&repo_root)?;
+    let cases =
+        bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_smoke_plans(&repo_root)?;
     let [case] = cases.as_slice() else {
         return Err(anyhow!(
             "local-smoke fastq.trim_terminal_damage expects exactly one governed case, found {}",
@@ -112,7 +113,8 @@ pub fn write_local_trim_terminal_damage_smoke_report() -> Result<PathBuf> {
 
     let output_root = repo_root.join("target/local-smoke/fastq.trim_terminal_damage");
     bijux_dna_infra::ensure_dir(&output_root)?;
-    let metrics = materialize_local_trim_terminal_damage_smoke_case(&repo_root, case, &output_root)?;
+    let metrics =
+        materialize_local_trim_terminal_damage_smoke_case(&repo_root, case, &output_root)?;
     let metrics_path = output_root.join("metrics.json");
     bijux_dna_infra::atomic_write_json(&metrics_path, &metrics)?;
     Ok(metrics_path)
@@ -383,11 +385,13 @@ fn materialize_local_trim_terminal_damage_smoke_case(
     let input_records = read_local_fastq_records(&input_r1)?;
     let trimmed_records = input_records
         .iter()
-        .map(|record| trim_local_fastq_record(
-            record,
-            effective_params.trim_5p_bases as usize,
-            effective_params.trim_3p_bases as usize,
-        ))
+        .map(|record| {
+            trim_local_fastq_record(
+                record,
+                effective_params.trim_5p_bases as usize,
+                effective_params.trim_3p_bases as usize,
+            )
+        })
         .collect::<Vec<_>>();
 
     write_local_fastq_records(&output_r1, &trimmed_records)?;
@@ -399,7 +403,8 @@ fn materialize_local_trim_terminal_damage_smoke_case(
     let output_reads = trimmed_records.len() as u64;
     let input_bases = total_bases(&input_records);
     let output_bases = total_bases(&trimmed_records);
-    let report_path = resolve_output_path(repo_root, &required_plan_output_path(&case.plan, "report_json")?);
+    let report_path =
+        resolve_output_path(repo_root, &required_plan_output_path(&case.plan, "report_json")?);
     let report = bijux_dna_domain_fastq::TerminalDamageReportV1 {
         schema_version: bijux_dna_domain_fastq::TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_TRIM_TERMINAL_DAMAGE.as_str().to_string(),
@@ -557,10 +562,7 @@ fn resolve_output_path(repo_root: &Path, path: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .display()
-        .to_string()
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
 
 fn total_bases(records: &[LocalFastqRecord]) -> u64 {
@@ -614,15 +616,12 @@ fn read_local_fastq_records(path: &Path) -> Result<Vec<LocalFastqRecord>> {
     let mut records = Vec::new();
     while let Some(header) = lines.next() {
         let header = header?;
-        let sequence = lines
-            .next()
-            .ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
-        let plus = lines
-            .next()
-            .ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
-        let quality = lines
-            .next()
-            .ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
+        let sequence =
+            lines.next().ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
+        let plus =
+            lines.next().ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
+        let quality =
+            lines.next().ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
         records.push(LocalFastqRecord { header, sequence, plus, quality });
     }
     Ok(records)
@@ -639,8 +638,7 @@ fn write_local_fastq_records(path: &Path, records: &[LocalFastqRecord]) -> Resul
         .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
     {
         let file = std::fs::File::create(path)?;
-        let mut encoder =
-            flate2::write::GzEncoder::new(file, flate2::Compression::default());
+        let mut encoder = flate2::write::GzEncoder::new(file, flate2::Compression::default());
         for record in records {
             writeln!(encoder, "{}", record.header)?;
             writeln!(encoder, "{}", record.sequence)?;

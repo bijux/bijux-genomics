@@ -59,9 +59,9 @@ fn write_local_deplete_rrna_plan_materializes_governed_target_output() -> Result
     );
     assert_eq!(payload["effective_params"]["emit_removed_reads"], serde_json::json!(true));
     assert!(
-        payload["command"]["template"][2]
-            .as_str()
-            .is_some_and(|script| script.contains("sortmerna") && script.contains("removed_rrna.fastq.gz")),
+        payload["command"]["template"][2].as_str().is_some_and(|script| script
+            .contains("sortmerna")
+            && script.contains("removed_rrna.fastq.gz")),
         "local-ready plan command must carry the governed SortMeRNA dry-run command"
     );
     Ok(())

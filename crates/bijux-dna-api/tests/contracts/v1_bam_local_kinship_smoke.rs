@@ -32,7 +32,9 @@ fn repo_root() -> Result<PathBuf> {
 fn case_by_sample_id<'a>(payload: &'a serde_json::Value, sample_id: &str) -> &'a serde_json::Value {
     payload["cases"]
         .as_array()
-        .and_then(|cases| cases.iter().find(|case| case["sample_id"] == serde_json::json!(sample_id)))
+        .and_then(|cases| {
+            cases.iter().find(|case| case["sample_id"] == serde_json::json!(sample_id))
+        })
         .unwrap_or_else(|| panic!("case `{sample_id}` missing from bam.kinship smoke report"))
 }
 
@@ -93,10 +95,7 @@ fn write_local_kinship_smoke_report_materializes_governed_outputs() -> Result<()
     assert_eq!(valid["pairwise_results"][0]["matching_sites"], serde_json::json!(5));
     assert_eq!(valid["pairwise_results"][0]["mismatch_sites"], serde_json::json!(1));
     assert_eq!(valid["pairwise_results"][0]["concordance"], serde_json::json!(0.833333));
-    assert_eq!(
-        valid["pairwise_results"][0]["kinship_coefficient"],
-        serde_json::json!(0.416667)
-    );
+    assert_eq!(valid["pairwise_results"][0]["kinship_coefficient"], serde_json::json!(0.416667));
     assert_eq!(
         valid["pairwise_results"][0]["relationship_label"],
         serde_json::json!("first_degree")
@@ -119,9 +118,7 @@ fn write_local_kinship_smoke_report_materializes_governed_outputs() -> Result<()
                 .unwrap_or_else(|| panic!("kinship_segments path missing")),
         );
         let stage_metrics = repo_root.join(
-            case["stage_metrics"]
-                .as_str()
-                .unwrap_or_else(|| panic!("stage_metrics path missing")),
+            case["stage_metrics"].as_str().unwrap_or_else(|| panic!("stage_metrics path missing")),
         );
         for path in [&kinship_report, &kinship_summary, &kinship_segments, &stage_metrics] {
             assert!(path.is_file(), "governed BAM kinship artifact must exist: {}", path.display());
@@ -135,10 +132,7 @@ fn write_local_kinship_smoke_report_materializes_governed_outputs() -> Result<()
     );
     let valid_summary: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&valid_summary_path)?)?;
-    assert_eq!(
-        valid_summary["schema_version"],
-        serde_json::json!("bijux.bam.kinship_summary.v1")
-    );
+    assert_eq!(valid_summary["schema_version"], serde_json::json!("bijux.bam.kinship_summary.v1"));
     assert_eq!(valid_summary["stage_id"], serde_json::json!("bam.kinship"));
     assert_eq!(valid_summary["method"], serde_json::json!("king"));
     assert_eq!(valid_summary["reference_panel"], serde_json::json!("toy_human_relatedness_panel"));
@@ -153,9 +147,7 @@ fn write_local_kinship_smoke_report_materializes_governed_outputs() -> Result<()
     );
     let valid_segments = std::fs::read_to_string(&valid_segments_path)?;
     assert!(
-        valid_segments.contains(
-            "sample_a\tsample_b\t6\t5\t1\t0.833333\t0.416667\tfirst_degree"
-        ),
+        valid_segments.contains("sample_a\tsample_b\t6\t5\t1\t0.833333\t0.416667\tfirst_degree"),
         "kinship segments report must contain the governed valid pair row"
     );
 
@@ -200,10 +192,7 @@ fn write_local_kinship_smoke_report_writes_governed_tool_reports() -> Result<()>
     );
     let insufficient_report: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&insufficient_report_path)?)?;
-    assert_eq!(
-        insufficient_report["schema_version"],
-        serde_json::json!("bijux.bam.kinship.v1")
-    );
+    assert_eq!(insufficient_report["schema_version"], serde_json::json!("bijux.bam.kinship.v1"));
     assert_eq!(insufficient_report["status"], serde_json::json!("insufficient"));
     assert_eq!(insufficient_report["pair_count"], serde_json::json!(0));
     assert_eq!(
@@ -257,7 +246,10 @@ fn write_local_kinship_smoke_report_writes_governed_stage_metrics() -> Result<()
         insufficient_metrics["schema_version"],
         serde_json::json!("bijux.bam.kinship.local_smoke.metrics.v1")
     );
-    assert_eq!(insufficient_metrics["sample_id"], serde_json::json!("core-v1-kinship-insufficient-overlap"));
+    assert_eq!(
+        insufficient_metrics["sample_id"],
+        serde_json::json!("core-v1-kinship-insufficient-overlap")
+    );
     assert_eq!(insufficient_metrics["pair_count"], serde_json::json!(0));
     assert_eq!(insufficient_metrics["expectation_matched"], serde_json::json!(true));
 

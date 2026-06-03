@@ -28,7 +28,8 @@ fn repo_root() -> Result<PathBuf> {
 }
 
 #[test]
-fn write_local_detect_duplicates_premerge_smoke_report_materializes_governed_outputs() -> Result<()> {
+fn write_local_detect_duplicates_premerge_smoke_report_materializes_governed_outputs() -> Result<()>
+{
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
     let output_dir = repo_root.join("target/local-smoke/fastq.detect_duplicates_premerge");
@@ -60,15 +61,9 @@ fn write_local_detect_duplicates_premerge_smoke_report_materializes_governed_out
     assert_eq!(duplicate_hit["layout"], serde_json::json!("paired_end"));
     assert_eq!(duplicate_hit["reads_in"], serde_json::json!(6));
     assert_eq!(duplicate_hit["duplicate_signal_reads"], serde_json::json!(2));
-    assert_eq!(
-        duplicate_hit["duplicate_signal_fraction"],
-        serde_json::json!(2.0_f64 / 6.0_f64)
-    );
+    assert_eq!(duplicate_hit["duplicate_signal_fraction"], serde_json::json!(2.0_f64 / 6.0_f64));
     assert_eq!(duplicate_hit["inspected_read_pair_count"], serde_json::json!(3));
-    assert_eq!(
-        duplicate_hit["duplicate_status"],
-        serde_json::json!("duplicate_signal_detected")
-    );
+    assert_eq!(duplicate_hit["duplicate_status"], serde_json::json!("duplicate_signal_detected"));
 
     let duplicate_clear = cases
         .iter()
@@ -79,16 +74,11 @@ fn write_local_detect_duplicates_premerge_smoke_report_materializes_governed_out
     assert_eq!(duplicate_clear["duplicate_signal_reads"], serde_json::json!(0));
     assert_eq!(duplicate_clear["duplicate_signal_fraction"], serde_json::json!(0.0));
     assert_eq!(duplicate_clear["inspected_read_pair_count"], serde_json::json!(2));
-    assert_eq!(
-        duplicate_clear["duplicate_status"],
-        serde_json::json!("no_duplicate_signal")
-    );
+    assert_eq!(duplicate_clear["duplicate_status"], serde_json::json!("no_duplicate_signal"));
 
     for case in cases {
         let report_json = repo_root.join(
-            case["report_json"]
-                .as_str()
-                .unwrap_or_else(|| panic!("report_json path missing")),
+            case["report_json"].as_str().unwrap_or_else(|| panic!("report_json path missing")),
         );
         assert!(report_json.is_file(), "duplicate signal report must exist");
     }

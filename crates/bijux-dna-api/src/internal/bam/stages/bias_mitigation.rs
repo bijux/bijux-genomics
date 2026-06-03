@@ -110,22 +110,16 @@ pub(crate) fn write_stage_bias_mitigation_artifacts(
                 .map(PathBuf::from)
                 .map(|path| resolve_stage_input_path(&path))
         });
-    let gc_bias_correction = plan
-        .params
-        .get("gc_bias_correction")
-        .and_then(serde_json::Value::as_bool)
-        .unwrap_or(false);
+    let gc_bias_correction =
+        plan.params.get("gc_bias_correction").and_then(serde_json::Value::as_bool).unwrap_or(false);
     let map_bias_correction = plan
         .params
         .get("map_bias_correction")
         .and_then(serde_json::Value::as_bool)
         .unwrap_or(false);
 
-    let policy_path = write_stage_bias_mitigation_policy(
-        stage_dir,
-        gc_bias_correction,
-        map_bias_correction,
-    )?;
+    let policy_path =
+        write_stage_bias_mitigation_policy(stage_dir, gc_bias_correction, map_bias_correction)?;
     let report_path = stage_dir.join("bias.json");
     let summary_path = stage_dir.join("bias.summary.json");
     let stage_metrics_path = stage_dir.join("stage.metrics.json");
@@ -243,9 +237,9 @@ fn materialize_local_bias_mitigation_smoke_case(
     let post_mitigation_metric = summary_json.post_mitigation_metric.ok_or_else(|| {
         anyhow!("bam.bias_mitigation local-smoke summary is missing post_mitigation_metric")
     })?;
-    let metric_delta = summary_json
-        .metric_delta
-        .ok_or_else(|| anyhow!("bam.bias_mitigation local-smoke summary is missing metric_delta"))?;
+    let metric_delta = summary_json.metric_delta.ok_or_else(|| {
+        anyhow!("bam.bias_mitigation local-smoke summary is missing metric_delta")
+    })?;
     let mitigation_projection_basis = summary_json
         .mitigation_projection_basis
         .clone()
@@ -255,8 +249,7 @@ fn materialize_local_bias_mitigation_smoke_case(
         && summary_json.metric_name == case.expected_metric_name
         && float_matches(pre_mitigation_metric, case.expected_pre_mitigation_metric)
         && float_matches(post_mitigation_metric, case.expected_post_mitigation_metric);
-    let pre_mitigation_metric_delta =
-        pre_mitigation_metric - case.expected_pre_mitigation_metric;
+    let pre_mitigation_metric_delta = pre_mitigation_metric - case.expected_pre_mitigation_metric;
     let post_mitigation_metric_delta =
         post_mitigation_metric - case.expected_post_mitigation_metric;
 
@@ -307,7 +300,9 @@ fn materialize_local_bias_mitigation_smoke_case(
 }
 
 #[cfg(feature = "bam_downstream")]
-fn bias_tool_report(summary: &bijux_dna_domain_bam::BamBiasMitigationSummaryV1) -> serde_json::Value {
+fn bias_tool_report(
+    summary: &bijux_dna_domain_bam::BamBiasMitigationSummaryV1,
+) -> serde_json::Value {
     serde_json::json!({
         "schema_version": BIAS_MITIGATION_TOOL_REPORT_SCHEMA_VERSION,
         "method": summary.method,

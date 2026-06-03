@@ -79,7 +79,8 @@ struct LocalNormalizePrimersSmokeReport {
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_normalize_primers_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
-    let cases = bijux_dna_planner_fastq::stage_api::local_normalize_primers_smoke_plans(&repo_root)?;
+    let cases =
+        bijux_dna_planner_fastq::stage_api::local_normalize_primers_smoke_plans(&repo_root)?;
     let [case] = cases.as_slice() else {
         return Err(anyhow!(
             "local-smoke fastq.normalize_primers expects exactly one governed case, found {}",
@@ -845,13 +846,11 @@ fn materialize_local_normalize_primers_smoke_case(
     )
     .context("decode normalize primers local-smoke effective params")?;
     let input_r1 = repo_root.join(&case.r1);
-    let output_r1 = resolve_repo_path(repo_root, &artifact_path(&case.plan, "normalized_reads_r1")?);
-    let report_json =
-        resolve_repo_path(repo_root, &artifact_path(&case.plan, "report_json")?);
-    let orientation_report = resolve_repo_path(
-        repo_root,
-        &artifact_path(&case.plan, "primer_orientation_report")?,
-    );
+    let output_r1 =
+        resolve_repo_path(repo_root, &artifact_path(&case.plan, "normalized_reads_r1")?);
+    let report_json = resolve_repo_path(repo_root, &artifact_path(&case.plan, "report_json")?);
+    let orientation_report =
+        resolve_repo_path(repo_root, &artifact_path(&case.plan, "primer_orientation_report")?);
     let primer_stats_json =
         resolve_repo_path(repo_root, &artifact_path(&case.plan, "primer_stats_json")?);
 
@@ -964,10 +963,7 @@ fn resolve_repo_path(repo_root: &Path, path: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .display()
-        .to_string()
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
 
 fn observe_fastq_record_count(path: &Path) -> Result<u64> {

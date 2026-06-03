@@ -61,16 +61,12 @@ fn write_local_correct_errors_smoke_plan_materializes_governed_target_output() -
     assert_eq!(payload["params"]["quality_encoding"], serde_json::json!("phred33"));
     assert_eq!(payload["params"]["conservative_mode"], serde_json::json!(false));
     assert_eq!(payload["effective_params"]["paired_mode"], serde_json::json!("paired_end"));
-    assert_eq!(
-        payload["effective_params"]["correction_engine"],
-        serde_json::json!("rcorrector")
-    );
+    assert_eq!(payload["effective_params"]["correction_engine"], serde_json::json!("rcorrector"));
     assert!(
-        payload["command"]["template"]
-            .as_array()
-            .is_some_and(|command| command.iter().any(|part| part.as_str().is_some_and(|part| {
-                part.contains("run_rcorrector.pl")
-            })) && command.iter().any(|part| part.as_str().is_some_and(|part| {
+        payload["command"]["template"].as_array().is_some_and(|command| command
+            .iter()
+            .any(|part| part.as_str().is_some_and(|part| { part.contains("run_rcorrector.pl") }))
+            && command.iter().any(|part| part.as_str().is_some_and(|part| {
                 part.contains("assets/toy/core-v1/fastq/reads_1.fastq")
                     && part.contains("assets/toy/core-v1/fastq/reads_2.fastq")
             }))),

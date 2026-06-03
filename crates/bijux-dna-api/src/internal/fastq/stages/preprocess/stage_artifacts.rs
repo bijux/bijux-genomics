@@ -937,9 +937,10 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
             });
             let numeric_output_valid = governed.as_ref().map(|report| {
                 let expected_sum = report.scale_factor.unwrap_or(1.0);
-                report.per_sample_sums.iter().all(|(_, sum)| {
-                    sum.is_finite() && (sum - expected_sum).abs() <= 1.0e-6
-                })
+                report
+                    .per_sample_sums
+                    .iter()
+                    .all(|(_, sum)| sum.is_finite() && (sum - expected_sum).abs() <= 1.0e-6)
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.normalize_abundance.extra_artifacts.v3",
@@ -2204,10 +2205,7 @@ mod stage_artifact_tests {
         assert_eq!(extra["threads"], serde_json::json!(4));
         assert_eq!(extra["otu_table"], serde_json::json!("otu_abundance.tsv"));
         assert_eq!(extra["otu_table_tsv"], serde_json::json!("otu_abundance.tsv"));
-        assert_eq!(
-            extra["otu_representatives"],
-            serde_json::json!("otu_representatives.fasta")
-        );
+        assert_eq!(extra["otu_representatives"], serde_json::json!("otu_representatives.fasta"));
         assert_eq!(
             extra["representative_sequences_fasta"],
             serde_json::json!("otu_representatives.fasta")
@@ -2235,18 +2233,12 @@ mod stage_artifact_tests {
             serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
         assert_eq!(extra["tool"], serde_json::json!("seqkit"));
         assert_eq!(extra["method"], serde_json::json!("counts_per_million"));
-        assert_eq!(
-            extra["normalization_method"],
-            serde_json::json!("counts_per_million")
-        );
+        assert_eq!(extra["normalization_method"], serde_json::json!("counts_per_million"));
         assert_eq!(
             extra["normalized_abundance_tsv"],
             serde_json::json!("abundance_normalized.tsv")
         );
-        assert_eq!(
-            extra["compositional_rule"],
-            serde_json::json!("per_sample_sum_to_one_million")
-        );
+        assert_eq!(extra["compositional_rule"], serde_json::json!("per_sample_sum_to_one_million"));
         assert_eq!(extra["scale_factor"], serde_json::json!(1000000.0));
         assert_eq!(
             extra["sample_totals"],

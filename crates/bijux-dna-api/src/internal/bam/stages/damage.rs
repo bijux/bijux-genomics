@@ -205,11 +205,8 @@ fn materialize_local_damage_smoke_case(
     )?;
     write_udg_regime(&case_out_dir, &case.plan)?;
     let summary_path = write_stage_damage_artifacts(&case_out_dir, &case.plan)?;
-    let terminal_position_metrics_path = resolve_output_path(
-        repo_root,
-        &case.plan,
-        "terminal_position_metrics",
-    )?;
+    let terminal_position_metrics_path =
+        resolve_output_path(repo_root, &case.plan, "terminal_position_metrics")?;
     let parser_output_path = resolve_output_path(repo_root, &case.plan, "parser_output")?;
     let advisory_boundary_path = case_out_dir.join("advisory_boundary.json");
     let udg_regime_path = case_out_dir.join("udg_regime.json");
@@ -275,7 +272,10 @@ fn materialize_local_damage_smoke_case(
         damage_signal: summary.damage_signal,
         strict_profile_upgraded: summary.strict_profile_upgraded,
         damage_report: path_relative_to_repo(repo_root, &summary_path),
-        terminal_position_metrics: path_relative_to_repo(repo_root, &terminal_position_metrics_path),
+        terminal_position_metrics: path_relative_to_repo(
+            repo_root,
+            &terminal_position_metrics_path,
+        ),
         parser_output: path_relative_to_repo(repo_root, &parser_output_path),
         advisory_boundary: path_relative_to_repo(repo_root, &advisory_boundary_path),
         udg_regime: path_relative_to_repo(repo_root, &udg_regime_path),

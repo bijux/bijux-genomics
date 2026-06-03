@@ -61,14 +61,16 @@ fn write_local_trim_terminal_damage_smoke_report_materializes_governed_outputs()
         std::fs::remove_dir_all(&output_dir)?;
     }
 
-    let metrics_path = bijux_dna_api::v1::api::fastq::write_local_trim_terminal_damage_smoke_report()?;
+    let metrics_path =
+        bijux_dna_api::v1::api::fastq::write_local_trim_terminal_damage_smoke_report()?;
     assert_eq!(
         metrics_path,
         repo_root.join("target/local-smoke/fastq.trim_terminal_damage/metrics.json")
     );
     assert!(metrics_path.is_file(), "local terminal-damage metrics must exist");
 
-    let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&metrics_path)?)?;
+    let payload: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&metrics_path)?)?;
     assert_eq!(payload["stage_id"], serde_json::json!("fastq.trim_terminal_damage"));
     assert_eq!(payload["sample_id"], serde_json::json!("ancient-se"));
     assert_eq!(payload["tool_id"], serde_json::json!("cutadapt"));
@@ -84,25 +86,17 @@ fn write_local_trim_terminal_damage_smoke_report_materializes_governed_outputs()
     assert_eq!(payload["used_fallback"], serde_json::json!(true));
 
     let trimmed_fastq = repo_root.join(
-        payload["trimmed_fastq_gz"]
-            .as_str()
-            .unwrap_or_else(|| panic!("trimmed_fastq_gz missing")),
+        payload["trimmed_fastq_gz"].as_str().unwrap_or_else(|| panic!("trimmed_fastq_gz missing")),
     );
     assert!(trimmed_fastq.is_file(), "top-level trimmed FASTQ must exist");
     let sequences = read_gz_fastq_sequences(&trimmed_fastq)?;
     assert_eq!(
         sequences,
-        vec![
-            "GTAGATCGGAAGAGCTT".to_string(),
-            "CAGTGACTGGAGTTCAGACGTGTGCTCTTCCGATC".to_string(),
-        ]
+        vec!["GTAGATCGGAAGAGCTT".to_string(), "CAGTGACTGGAGTTCAGACGTGTGCTCTTCCGATC".to_string(),]
     );
 
-    let report_json = repo_root.join(
-        payload["report_json"]
-            .as_str()
-            .unwrap_or_else(|| panic!("report_json missing")),
-    );
+    let report_json = repo_root
+        .join(payload["report_json"].as_str().unwrap_or_else(|| panic!("report_json missing")));
     assert!(report_json.is_file(), "terminal-damage report must exist");
     let report: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_json)?)?;
     assert_eq!(report["stage_id"], serde_json::json!("fastq.trim_terminal_damage"));

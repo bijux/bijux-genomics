@@ -37,10 +37,7 @@ fn write_local_screen_taxonomy_plan_materializes_governed_target_output() -> Res
     }
 
     let plan_path = bijux_dna_api::v1::api::fastq::write_local_screen_taxonomy_plan()?;
-    assert_eq!(
-        plan_path,
-        repo_root.join("target/local-ready/fastq.screen_taxonomy/plan.json")
-    );
+    assert_eq!(plan_path, repo_root.join("target/local-ready/fastq.screen_taxonomy/plan.json"));
     assert!(plan_path.is_file(), "local-ready taxonomy plan artifact must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
@@ -60,13 +57,12 @@ fn write_local_screen_taxonomy_plan_materializes_governed_target_output() -> Res
         payload["params"]["database_root"],
         serde_json::json!("assets/reference/taxonomy/references/mock_community_taxonomy")
     );
-    assert_eq!(
-        payload["effective_params"]["emit_unclassified"],
-        serde_json::json!(true)
-    );
+    assert_eq!(payload["effective_params"]["emit_unclassified"], serde_json::json!(true));
     assert_eq!(
         payload["params"]["unclassified_reads_r1"],
-        serde_json::json!("target/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq")
+        serde_json::json!(
+            "target/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq"
+        )
     );
     assert!(
         payload["command"]["template"]

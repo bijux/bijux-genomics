@@ -157,15 +157,13 @@ fn materialize_local_overlap_correction_smoke_case(
     let observed_pair_count = written_summary.pair_count.unwrap_or(0);
     let observed_corrected_pairs = written_summary.corrected_pairs.unwrap_or(0);
     let observed_corrected_overlap_bases = written_summary.corrected_overlap_bases.unwrap_or(0);
-    let pair_count_delta =
-        i64::try_from(observed_pair_count).unwrap_or(i64::MAX)
-            - i64::try_from(case.expected_pair_count).unwrap_or(i64::MAX);
-    let corrected_pair_delta =
-        i64::try_from(observed_corrected_pairs).unwrap_or(i64::MAX)
-            - i64::try_from(case.expected_corrected_pairs).unwrap_or(i64::MAX);
-    let corrected_overlap_base_delta =
-        i64::try_from(observed_corrected_overlap_bases).unwrap_or(i64::MAX)
-            - i64::try_from(case.expected_corrected_overlap_bases).unwrap_or(i64::MAX);
+    let pair_count_delta = i64::try_from(observed_pair_count).unwrap_or(i64::MAX)
+        - i64::try_from(case.expected_pair_count).unwrap_or(i64::MAX);
+    let corrected_pair_delta = i64::try_from(observed_corrected_pairs).unwrap_or(i64::MAX)
+        - i64::try_from(case.expected_corrected_pairs).unwrap_or(i64::MAX);
+    let corrected_overlap_base_delta = i64::try_from(observed_corrected_overlap_bases)
+        .unwrap_or(i64::MAX)
+        - i64::try_from(case.expected_corrected_overlap_bases).unwrap_or(i64::MAX);
 
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,

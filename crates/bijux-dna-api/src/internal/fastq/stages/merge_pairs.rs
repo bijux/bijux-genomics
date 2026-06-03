@@ -137,8 +137,9 @@ fn materialize_local_merge_pairs_smoke_case(
     case: &bijux_dna_planner_fastq::LocalMergePairsSmokeCasePlan,
     output_root: &Path,
 ) -> Result<LocalMergePairsSmokeReport> {
-    let effective_params = serde_json::from_value::<MergeEffectiveParams>(case.plan.effective_params.clone())
-        .context("decode merge pairs local-smoke effective params")?;
+    let effective_params =
+        serde_json::from_value::<MergeEffectiveParams>(case.plan.effective_params.clone())
+            .context("decode merge pairs local-smoke effective params")?;
     let input_r1 = repo_root.join(&case.r1);
     let input_r2 = repo_root.join(&case.r2);
     let case_merged_reads =
@@ -157,13 +158,10 @@ fn materialize_local_merge_pairs_smoke_case(
             bijux_dna_infra::ensure_dir(parent)?;
         }
     }
-    for path in [
-        case_unmerged_r1.as_ref(),
-        case_unmerged_r2.as_ref(),
-        case_raw_backend_report.as_ref(),
-    ]
-    .into_iter()
-    .flatten()
+    for path in
+        [case_unmerged_r1.as_ref(), case_unmerged_r2.as_ref(), case_raw_backend_report.as_ref()]
+            .into_iter()
+            .flatten()
     {
         if let Some(parent) = path.parent() {
             bijux_dna_infra::ensure_dir(parent)?;
@@ -188,19 +186,24 @@ fn materialize_local_merge_pairs_smoke_case(
         case_unmerged_r1.as_ref().map(|path| path_relative_to_repo(repo_root, path));
     report.unmerged_reads_r2 =
         case_unmerged_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path));
-    report.raw_backend_report = case_raw_backend_report
-        .as_ref()
-        .map(|path| path_relative_to_repo(repo_root, path));
+    report.raw_backend_report =
+        case_raw_backend_report.as_ref().map(|path| path_relative_to_repo(repo_root, path));
     write_governed_merge_report(&case_report_json, &report)?;
 
     let top_level_merged = output_root.join("merged.fastq.gz");
     copy_fastq_artifact(&case_merged_reads, &top_level_merged)?;
-    let top_level_unmerged_r1 = case_unmerged_r1.as_ref().map(|_| output_root.join("unmerged/R1.fastq.gz"));
-    let top_level_unmerged_r2 = case_unmerged_r2.as_ref().map(|_| output_root.join("unmerged/R2.fastq.gz"));
-    if let (Some(source), Some(destination)) = (case_unmerged_r1.as_ref(), top_level_unmerged_r1.as_ref()) {
+    let top_level_unmerged_r1 =
+        case_unmerged_r1.as_ref().map(|_| output_root.join("unmerged/R1.fastq.gz"));
+    let top_level_unmerged_r2 =
+        case_unmerged_r2.as_ref().map(|_| output_root.join("unmerged/R2.fastq.gz"));
+    if let (Some(source), Some(destination)) =
+        (case_unmerged_r1.as_ref(), top_level_unmerged_r1.as_ref())
+    {
         copy_fastq_artifact(source, destination)?;
     }
-    if let (Some(source), Some(destination)) = (case_unmerged_r2.as_ref(), top_level_unmerged_r2.as_ref()) {
+    if let (Some(source), Some(destination)) =
+        (case_unmerged_r2.as_ref(), top_level_unmerged_r2.as_ref())
+    {
         copy_fastq_artifact(source, destination)?;
     }
 
@@ -245,10 +248,7 @@ fn optional_plan_output_path<'a>(plan: &'a StagePlanV1, artifact_name: &str) -> 
 }
 
 fn optional_plan_param_path(plan: &StagePlanV1, key: &str) -> Option<PathBuf> {
-    plan.params
-        .get(key)
-        .and_then(serde_json::Value::as_str)
-        .map(PathBuf::from)
+    plan.params.get(key).and_then(serde_json::Value::as_str).map(PathBuf::from)
 }
 
 fn resolve_output_path(repo_root: &Path, path: &Path) -> PathBuf {
@@ -260,10 +260,7 @@ fn resolve_output_path(repo_root: &Path, path: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .display()
-        .to_string()
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
 
 fn copy_fastq_artifact(source: &Path, destination: &Path) -> Result<()> {
@@ -294,8 +291,7 @@ fn copy_fastq_artifact(source: &Path, destination: &Path) -> Result<()> {
         } else {
             Box::new(std::io::BufReader::new(input))
         };
-        let mut writer =
-            flate2::write::GzEncoder::new(output, flate2::Compression::default());
+        let mut writer = flate2::write::GzEncoder::new(output, flate2::Compression::default());
         std::io::copy(&mut reader, &mut writer).with_context(|| {
             format!(
                 "compress local merge smoke artifact from {} to {}",

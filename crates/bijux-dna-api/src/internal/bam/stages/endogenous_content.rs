@@ -69,14 +69,10 @@ pub(crate) fn write_stage_endogenous_content_artifacts(
         .iter()
         .find(|artifact| artifact.role == bijux_dna_core::contract::ArtifactRole::Bam)
         .map_or_else(|| stage_dir.join("in.bam"), |artifact| artifact.path.clone());
-    let host_reference_scope = plan
-        .params
-        .get("host_reference_scope")
-        .and_then(serde_json::Value::as_str);
-    let prealignment_fraction = plan
-        .params
-        .get("prealignment_fraction")
-        .and_then(serde_json::Value::as_f64);
+    let host_reference_scope =
+        plan.params.get("host_reference_scope").and_then(serde_json::Value::as_str);
+    let prealignment_fraction =
+        plan.params.get("prealignment_fraction").and_then(serde_json::Value::as_f64);
     let summary = summarize_stage_endogenous_content_outputs(
         stage_dir,
         &input_bam,
@@ -129,16 +125,11 @@ fn materialize_local_endogenous_content_smoke_case(
         && written_summary.mapped_reads == case.expected_mapped_reads
         && written_summary.host_reference_scope.as_deref()
             == Some(case.host_reference_scope.as_str())
-        && float_matches(
-            written_summary.endogenous_fraction,
-            case.expected_endogenous_fraction,
-        );
-    let mapped_read_delta =
-        i64::try_from(written_summary.mapped_reads).unwrap_or(i64::MAX)
-            - i64::try_from(case.expected_mapped_reads).unwrap_or(i64::MAX);
-    let total_read_delta =
-        i64::try_from(written_summary.total_reads).unwrap_or(i64::MAX)
-            - i64::try_from(case.expected_total_reads).unwrap_or(i64::MAX);
+        && float_matches(written_summary.endogenous_fraction, case.expected_endogenous_fraction);
+    let mapped_read_delta = i64::try_from(written_summary.mapped_reads).unwrap_or(i64::MAX)
+        - i64::try_from(case.expected_mapped_reads).unwrap_or(i64::MAX);
+    let total_read_delta = i64::try_from(written_summary.total_reads).unwrap_or(i64::MAX)
+        - i64::try_from(case.expected_total_reads).unwrap_or(i64::MAX);
     let endogenous_fraction_delta =
         written_summary.endogenous_fraction - case.expected_endogenous_fraction;
 
@@ -210,16 +201,18 @@ fn parse_flagstat_counts(path: &Path) -> Result<(u64, u64)> {
     let mut mapped_reads = None;
     for line in body.lines() {
         if total_reads.is_none() && line.contains(" in total ") {
-            total_reads = line.split_whitespace().next().and_then(|value| value.parse::<u64>().ok());
+            total_reads =
+                line.split_whitespace().next().and_then(|value| value.parse::<u64>().ok());
         }
         if mapped_reads.is_none() && line.contains(" mapped ") {
-            mapped_reads = line.split_whitespace().next().and_then(|value| value.parse::<u64>().ok());
+            mapped_reads =
+                line.split_whitespace().next().and_then(|value| value.parse::<u64>().ok());
         }
     }
-    let total_reads =
-        total_reads.ok_or_else(|| anyhow!("flagstat report missing total read count: {}", path.display()))?;
-    let mapped_reads =
-        mapped_reads.ok_or_else(|| anyhow!("flagstat report missing mapped read count: {}", path.display()))?;
+    let total_reads = total_reads
+        .ok_or_else(|| anyhow!("flagstat report missing total read count: {}", path.display()))?;
+    let mapped_reads = mapped_reads
+        .ok_or_else(|| anyhow!("flagstat report missing mapped read count: {}", path.display()))?;
     Ok((total_reads, mapped_reads))
 }
 

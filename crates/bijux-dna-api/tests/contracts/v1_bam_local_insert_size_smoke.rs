@@ -28,9 +28,7 @@ fn repo_root() -> Result<PathBuf> {
 }
 
 fn assert_json_f64(value: &serde_json::Value, expected: f64, label: &str) {
-    let observed = value
-        .as_f64()
-        .unwrap_or_else(|| panic!("{label} must serialize as f64"));
+    let observed = value.as_f64().unwrap_or_else(|| panic!("{label} must serialize as f64"));
     assert!(
         (observed - expected).abs() <= 1e-12,
         "{label} drifted: observed {observed}, expected {expected}"
@@ -62,11 +60,7 @@ fn write_local_insert_size_smoke_report_materializes_governed_outputs() -> Resul
     assert_eq!(payload["read_pairs"], serde_json::json!(3));
     assert_eq!(payload["median_insert_size"], serde_json::json!(20.0));
     assert_eq!(payload["mean_insert_size"], serde_json::json!(21.666666666666668));
-    assert_json_f64(
-        &payload["standard_deviation"],
-        6.236095644623236,
-        "report standard_deviation",
-    );
+    assert_json_f64(&payload["standard_deviation"], 6.236095644623236, "report standard_deviation");
     assert_eq!(payload["min_insert_size"], serde_json::json!(15));
     assert_eq!(payload["max_insert_size"], serde_json::json!(30));
     assert_eq!(payload["insufficient_pairs_reason"], serde_json::Value::Null);

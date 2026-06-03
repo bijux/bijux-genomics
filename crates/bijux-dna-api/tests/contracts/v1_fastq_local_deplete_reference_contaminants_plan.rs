@@ -46,10 +46,7 @@ fn write_local_deplete_reference_contaminants_plan_materializes_governed_target_
     assert!(plan_path.is_file(), "local-ready plan artifact must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
-    assert_eq!(
-        payload["stage_id"],
-        serde_json::json!("fastq.deplete_reference_contaminants")
-    );
+    assert_eq!(payload["stage_id"], serde_json::json!("fastq.deplete_reference_contaminants"));
     assert_eq!(payload["tool_id"], serde_json::json!("bowtie2"));
     assert_eq!(payload["resources"]["threads"], serde_json::json!(4));
     assert_eq!(payload["resources"]["mem_gb"], serde_json::json!(8));

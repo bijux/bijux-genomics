@@ -58,34 +58,33 @@ fn write_local_bias_mitigation_smoke_report_materializes_governed_outputs() -> R
     assert_eq!(payload["pre_mitigation_metric"], serde_json::json!(0.25));
     assert_eq!(payload["post_mitigation_metric"], serde_json::json!(0.125));
     assert_eq!(payload["metric_delta"], serde_json::json!(0.125));
-    assert_eq!(
-        payload["mitigation_projection_basis"],
-        serde_json::json!("policy_projection")
-    );
-    assert_eq!(
-        payload["mitigation_actions"],
-        serde_json::json!(["gc_bias_correction"])
-    );
+    assert_eq!(payload["mitigation_projection_basis"], serde_json::json!("policy_projection"));
+    assert_eq!(payload["mitigation_actions"], serde_json::json!(["gc_bias_correction"]));
     assert_eq!(payload["consumed_metrics"], serde_json::json!(["gc_bias_score"]));
 
-    let bias_report =
-        repo_root.join(payload["bias_report"].as_str().unwrap_or_else(|| panic!("bias_report path missing")));
-    let bias_summary =
-        repo_root.join(payload["bias_summary"].as_str().unwrap_or_else(|| panic!("bias_summary path missing")));
-    let bias_policy =
-        repo_root.join(payload["bias_policy"].as_str().unwrap_or_else(|| panic!("bias_policy path missing")));
-    let stage_metrics =
-        repo_root.join(payload["stage_metrics"].as_str().unwrap_or_else(|| panic!("stage_metrics path missing")));
+    let bias_report = repo_root.join(
+        payload["bias_report"].as_str().unwrap_or_else(|| panic!("bias_report path missing")),
+    );
+    let bias_summary = repo_root.join(
+        payload["bias_summary"].as_str().unwrap_or_else(|| panic!("bias_summary path missing")),
+    );
+    let bias_policy = repo_root.join(
+        payload["bias_policy"].as_str().unwrap_or_else(|| panic!("bias_policy path missing")),
+    );
+    let stage_metrics = repo_root.join(
+        payload["stage_metrics"].as_str().unwrap_or_else(|| panic!("stage_metrics path missing")),
+    );
     for path in [&bias_report, &bias_summary, &bias_policy, &stage_metrics] {
-        assert!(path.is_file(), "governed BAM bias-mitigation artifact must exist: {}", path.display());
+        assert!(
+            path.is_file(),
+            "governed BAM bias-mitigation artifact must exist: {}",
+            path.display()
+        );
     }
 
     let report_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&bias_report)?)?;
-    assert_eq!(
-        report_json["schema_version"],
-        serde_json::json!("bijux.bam.bias_mitigation.v1")
-    );
+    assert_eq!(report_json["schema_version"], serde_json::json!("bijux.bam.bias_mitigation.v1"));
     assert_eq!(report_json["method"], serde_json::json!("mapdamage2"));
     assert_eq!(report_json["metric_name"], serde_json::json!("gc_bias_score"));
     assert_eq!(report_json["pre_mitigation_metric"], serde_json::json!(0.25));
@@ -126,29 +125,14 @@ fn write_local_bias_mitigation_smoke_report_materializes_governed_outputs() -> R
     assert_eq!(stage_metrics_json["method"], serde_json::json!("mapdamage2"));
     assert_eq!(stage_metrics_json["expected_metric_name"], serde_json::json!("gc_bias_score"));
     assert_eq!(stage_metrics_json["metric_name"], serde_json::json!("gc_bias_score"));
-    assert_eq!(
-        stage_metrics_json["expected_pre_mitigation_metric"],
-        serde_json::json!(0.25)
-    );
+    assert_eq!(stage_metrics_json["expected_pre_mitigation_metric"], serde_json::json!(0.25));
     assert_eq!(stage_metrics_json["pre_mitigation_metric"], serde_json::json!(0.25));
-    assert_eq!(
-        stage_metrics_json["pre_mitigation_metric_delta"],
-        serde_json::json!(0.0)
-    );
-    assert_eq!(
-        stage_metrics_json["expected_post_mitigation_metric"],
-        serde_json::json!(0.125)
-    );
+    assert_eq!(stage_metrics_json["pre_mitigation_metric_delta"], serde_json::json!(0.0));
+    assert_eq!(stage_metrics_json["expected_post_mitigation_metric"], serde_json::json!(0.125));
     assert_eq!(stage_metrics_json["post_mitigation_metric"], serde_json::json!(0.125));
-    assert_eq!(
-        stage_metrics_json["post_mitigation_metric_delta"],
-        serde_json::json!(0.0)
-    );
+    assert_eq!(stage_metrics_json["post_mitigation_metric_delta"], serde_json::json!(0.0));
     assert_eq!(stage_metrics_json["metric_delta"], serde_json::json!(0.125));
-    assert_eq!(
-        stage_metrics_json["mitigation_actions"],
-        serde_json::json!(["gc_bias_correction"])
-    );
+    assert_eq!(stage_metrics_json["mitigation_actions"], serde_json::json!(["gc_bias_correction"]));
     assert_eq!(stage_metrics_json["consumed_metrics"], serde_json::json!(["gc_bias_score"]));
     assert_eq!(
         stage_metrics_json["mitigation_projection_basis"],

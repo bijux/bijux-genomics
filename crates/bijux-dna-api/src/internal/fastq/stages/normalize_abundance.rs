@@ -683,9 +683,10 @@ fn materialize_local_normalize_abundance_smoke_case(
     let top_level_table = output_root.join("normalized_abundance.tsv");
     copy_smoke_artifact(&case_normalized_table, &top_level_table)?;
     let expected_sum = report.scale_factor.unwrap_or(1.0);
-    let numeric_output_valid = report.per_sample_sums.iter().all(|(_, sum)| {
-        sum.is_finite() && (sum - expected_sum).abs() <= 1.0e-6
-    });
+    let numeric_output_valid = report
+        .per_sample_sums
+        .iter()
+        .all(|(_, sum)| sum.is_finite() && (sum - expected_sum).abs() <= 1.0e-6);
 
     Ok(LocalNormalizeAbundanceSmokeReport {
         schema_version: LOCAL_NORMALIZE_ABUNDANCE_SMOKE_REPORT_SCHEMA_VERSION.to_string(),

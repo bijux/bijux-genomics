@@ -61,10 +61,7 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
         payload["params"]["population_scope"],
         serde_json::json!("human_y_haplogroup_panel")
     );
-    assert_eq!(
-        payload["params"]["coverage_gate"],
-        serde_json::json!({ "min_coverage": 2.0 })
-    );
+    assert_eq!(payload["params"]["coverage_gate"], serde_json::json!({ "min_coverage": 2.0 }));
     assert_eq!(
         payload["params"]["sample_id"],
         serde_json::json!("core-v1-haplogroups-y-panel-screen")
@@ -84,7 +81,9 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
     let bai = inputs
         .iter()
         .find(|artifact| artifact["name"] == serde_json::json!("bam_bai"))
-        .unwrap_or_else(|| panic!("bam_bai input missing from local-ready haplogroups plan payload"));
+        .unwrap_or_else(|| {
+            panic!("bam_bai input missing from local-ready haplogroups plan payload")
+        });
     assert_eq!(
         bai["path"],
         serde_json::json!("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
@@ -126,7 +125,9 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
     let summary = outputs
         .iter()
         .find(|artifact| artifact["name"] == serde_json::json!("summary"))
-        .unwrap_or_else(|| panic!("summary output missing from local-ready haplogroups plan payload"));
+        .unwrap_or_else(|| {
+            panic!("summary output missing from local-ready haplogroups plan payload")
+        });
     assert_eq!(
         summary["path"],
         serde_json::json!("target/local-ready/bam.haplogroups/haplogroups.summary.json")
@@ -173,15 +174,9 @@ fn write_local_haplogroups_plan_preserves_governed_command_metadata() -> Result<
     let plan_path = bijux_dna_api::v1::api::bam::write_local_haplogroups_plan()?;
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
 
-    assert_eq!(
-        payload["out_dir"],
-        serde_json::json!("target/local-ready/bam.haplogroups")
-    );
+    assert_eq!(payload["out_dir"], serde_json::json!("target/local-ready/bam.haplogroups"));
     assert_eq!(payload["effective_params"]["min_coverage"], serde_json::json!(2.0));
-    assert_eq!(
-        payload["effective_params"]["reference_build"],
-        serde_json::json!("hg38")
-    );
+    assert_eq!(payload["effective_params"]["reference_build"], serde_json::json!("hg38"));
     assert_eq!(
         payload["effective_params"]["population_scope"],
         serde_json::json!("human_y_haplogroup_panel")
