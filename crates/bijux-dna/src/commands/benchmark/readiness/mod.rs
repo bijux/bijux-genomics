@@ -1,3 +1,4 @@
+pub(crate) mod bam_adapter_output_contract;
 pub(crate) mod bam_command_adapter_coverage;
 pub(crate) mod bam_stage_decision_table;
 pub(crate) mod catalog;

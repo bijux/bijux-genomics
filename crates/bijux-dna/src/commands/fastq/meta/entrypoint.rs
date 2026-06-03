@@ -138,12 +138,17 @@ pub(crate) fn handle_meta_commands(
                 BenchCommand::Readiness { command } => match command {
                     cli::BenchReadinessCommand::RenderBamStageDecisionTable(args) => {
                         crate::commands::benchmark::readiness::bam_stage_decision_table::run_render_bam_stage_decision_table(
-                            args,
-                        )?;
+                        args,
+                    )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamAdapterOutputContract(args) => {
+                        crate::commands::benchmark::readiness::bam_adapter_output_contract::run_render_bam_adapter_output_contract(
+                        args,
+                    )?;
                     }
                     cli::BenchReadinessCommand::RenderBamCommandAdapterCoverage(args) => {
                         crate::commands::benchmark::readiness::bam_command_adapter_coverage::run_render_bam_command_adapter_coverage(
-                            args,
+                        args,
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderFastqAdapterOutputContract(args) => {

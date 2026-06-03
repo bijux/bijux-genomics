@@ -2,6 +2,8 @@ use clap::{Args, Subcommand};
 
 #[derive(Debug, Subcommand)]
 pub enum BenchReadinessCommand {
+    #[command(name = "render-bam-adapter-output-contract")]
+    RenderBamAdapterOutputContract(BenchReadinessRenderBamAdapterOutputContractArgs),
     #[command(name = "render-bam-stage-decision-table")]
     RenderBamStageDecisionTable(BenchReadinessRenderBamStageDecisionTableArgs),
     #[command(name = "render-bam-command-adapter-coverage")]
@@ -30,6 +32,14 @@ pub enum BenchReadinessCommand {
     RenderOrphanTools(BenchReadinessRenderOrphanToolsArgs),
     #[command(name = "render-undercovered-stages")]
     RenderUndercoveredStages(BenchReadinessRenderUndercoveredStagesArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamAdapterOutputContractArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
 }
 
 #[derive(Debug, Args)]
