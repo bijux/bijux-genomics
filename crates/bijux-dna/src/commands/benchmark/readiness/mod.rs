@@ -1,6 +1,7 @@
 pub(crate) mod bam_stage_decision_table;
 pub(crate) mod bam_command_adapter_coverage;
 pub(crate) mod catalog;
+pub(crate) mod fastq_adapter_output_contract;
 pub(crate) mod fastq_command_adapter_coverage;
 pub(crate) mod missing_benchmark_pairs;
 pub(crate) mod orphan_tools;
