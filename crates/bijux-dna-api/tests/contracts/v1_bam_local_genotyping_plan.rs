@@ -179,3 +179,42 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
     );
     Ok(())
 }
+
+#[test]
+fn write_local_genotyping_plan_preserves_governed_command_metadata() -> Result<()> {
+    let repo_root = repo_root()?;
+    let _guard = RepoRootOverrideGuard::install(&repo_root);
+    let output_dir = repo_root.join("target/local-ready/bam.genotyping");
+    if output_dir.exists() {
+        std::fs::remove_dir_all(&output_dir)?;
+    }
+
+    let plan_path = bijux_dna_api::v1::api::bam::write_local_genotyping_plan()?;
+    let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
+
+    assert_eq!(
+        payload["out_dir"],
+        serde_json::json!("target/local-ready/bam.genotyping")
+    );
+    assert_eq!(payload["effective_params"]["caller"], serde_json::json!("angsd"));
+    assert_eq!(payload["effective_params"]["min_posterior"], serde_json::json!(0.9));
+    assert_eq!(payload["effective_params"]["min_call_rate"], serde_json::json!(0.5));
+
+    let command = payload["command"]["template"]
+        .as_array()
+        .and_then(|template| template.last())
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or_else(|| panic!("local-ready genotyping plan must serialize a shell command"));
+    assert!(
+        command.contains("angsd -i assets/toy/core-v1/bam/genotyping_panel_sites.sam")
+            && command.contains("-sites assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
+            && command.contains("-rf assets/toy/core-v1/bam/genotyping_target_regions.txt")
+            && command.contains("target/local-ready/bam.genotyping/genotyping.summary.json")
+            && command.contains("\"min_posterior\": 0.9")
+            && command.contains("\"min_call_rate\": 0.5")
+            && command.contains("\"bcf_source\": \"target/local-ready/bam.genotyping/genotyping.bcf\""),
+        "local-ready genotyping command must preserve the governed caller, sites, regions, summary, threshold metadata, and BCF source contract"
+    );
+
+    Ok(())
+}
