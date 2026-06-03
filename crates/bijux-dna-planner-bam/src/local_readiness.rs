@@ -432,6 +432,16 @@ pub fn local_haplogroups_plan(repo_root: &Path) -> Result<bijux_dna_stage_contra
             config.schema_version
         ));
     }
+    if config.sample_id.trim().is_empty() {
+        return Err(anyhow!(
+            "local-ready bam.haplogroups sample_id must not be empty"
+        ));
+    }
+    if config.reference_panel_id.trim().is_empty() {
+        return Err(anyhow!(
+            "local-ready bam.haplogroups reference_panel_id must not be empty"
+        ));
+    }
 
     let local_profile = load_local_runtime_profile(repo_root)?;
     let stage = BamStage::Haplogroups;

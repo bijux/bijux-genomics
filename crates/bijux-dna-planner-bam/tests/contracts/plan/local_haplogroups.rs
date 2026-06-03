@@ -1,6 +1,7 @@
 #![cfg(feature = "bam_downstream")]
 
 use anyhow::Result;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
@@ -9,6 +10,31 @@ fn repo_root() -> PathBuf {
         .and_then(Path::parent)
         .unwrap_or_else(|| panic!("workspace root"))
         .to_path_buf()
+}
+
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(
+        repo_root.join("domain/bam/tools/yleaf.yaml"),
+        tool_dir.join("yleaf.yaml"),
+    )?;
+    let runtime_dir = temp.path().join("configs/runtime/profiles");
+    fs::create_dir_all(&runtime_dir)?;
+    fs::copy(
+        repo_root.join("configs/runtime/profiles/local.toml"),
+        runtime_dir.join("local.toml"),
+    )?;
+    Ok(temp)
+}
+
+fn write_local_haplogroups_config(root: &Path, body: &str) -> Result<()> {
+    let config_dir = root.join("configs/bench/local");
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("bam-haplogroups.toml"), body)?;
+    Ok(())
 }
 
 #[test]
@@ -126,4 +152,95 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
 fn local_haplogroups_plan_stage_api_surface_stays_callable() {
     let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
         bijux_dna_planner_bam::stage_api::local_haplogroups_plan;
+}
+
+#[test]
+fn local_haplogroups_plan_rejects_empty_sample_ids() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_haplogroups_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_haplogroups.v1"
+bam = "{bam}"
+bai = "{bai}"
+reference_fasta = "{reference}"
+reference_panel_id = "toy-human-y-hg38"
+reference_panel = "{panel}"
+tool_id = "yleaf"
+sample_id = " "
+reference_build = "hg38"
+population_scope = "human_y_haplogroup_panel"
+min_coverage = 2.0
+refuse_without_population_context = true
+threads = 2
+output_dir = "target/local-ready/bam.haplogroups"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
+                .display(),
+            bai = repo_root
+                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
+                .display(),
+            reference = repo_root
+                .join("assets/reference/host/references/toy_human_y_reference.fasta")
+                .display(),
+            panel = repo_root
+                .join("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_haplogroups_plan(temp.path())
+        .expect_err("empty sample_id must be rejected before haplogroups plan construction");
+    assert_eq!(error.to_string(), "local-ready bam.haplogroups sample_id must not be empty");
+    Ok(())
+}
+
+#[test]
+fn local_haplogroups_plan_requires_reference_panel_ids() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_haplogroups_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_haplogroups.v1"
+bam = "{bam}"
+bai = "{bai}"
+reference_fasta = "{reference}"
+reference_panel_id = " "
+reference_panel = "{panel}"
+tool_id = "yleaf"
+sample_id = "missing-panel-id"
+reference_build = "hg38"
+population_scope = "human_y_haplogroup_panel"
+min_coverage = 2.0
+refuse_without_population_context = true
+threads = 2
+output_dir = "target/local-ready/bam.haplogroups"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
+                .display(),
+            bai = repo_root
+                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
+                .display(),
+            reference = repo_root
+                .join("assets/reference/host/references/toy_human_y_reference.fasta")
+                .display(),
+            panel = repo_root
+                .join("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_haplogroups_plan(temp.path())
+        .expect_err("blank reference_panel_id must be rejected for governed haplogroups planning");
+    assert_eq!(
+        error.to_string(),
+        "local-ready bam.haplogroups reference_panel_id must not be empty"
+    );
+    Ok(())
 }
