@@ -365,6 +365,22 @@ pub fn local_genotyping_plan(repo_root: &Path) -> Result<bijux_dna_stage_contrac
             "local-ready bam.genotyping sample_id must not be empty"
         ));
     }
+    if config
+        .min_posterior
+        .is_some_and(|value| !value.is_finite() || !(0.0..=1.0).contains(&value))
+    {
+        return Err(anyhow!(
+            "local-ready bam.genotyping min_posterior must be finite and within [0, 1]"
+        ));
+    }
+    if config
+        .min_call_rate
+        .is_some_and(|value| !value.is_finite() || !(0.0..=1.0).contains(&value))
+    {
+        return Err(anyhow!(
+            "local-ready bam.genotyping min_call_rate must be finite and within [0, 1]"
+        ));
+    }
 
     let local_profile = load_local_runtime_profile(repo_root)?;
     let stage = BamStage::Genotyping;

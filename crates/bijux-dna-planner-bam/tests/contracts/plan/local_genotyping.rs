@@ -208,3 +208,99 @@ output_dir = "target/local-ready/bam.genotyping"
     assert_eq!(error.to_string(), "local-ready bam.genotyping sample_id must not be empty");
     Ok(())
 }
+
+#[test]
+fn local_genotyping_plan_requires_posteriors_within_unit_interval() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_genotyping_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_genotyping.v1"
+bam = "{bam}"
+bai = "{bai}"
+reference_fasta = "{reference}"
+sites_vcf = "{sites}"
+regions = "{regions}"
+tool_id = "angsd"
+sample_id = "bad-posterior-threshold"
+min_posterior = 1.1
+min_call_rate = 0.5
+threads = 2
+output_dir = "target/local-ready/bam.genotyping"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/genotyping_panel_sites.sam")
+                .display(),
+            bai = repo_root
+                .join("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai")
+                .display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
+                .display(),
+            sites = repo_root
+                .join("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
+                .display(),
+            regions = repo_root
+                .join("assets/toy/core-v1/bam/genotyping_target_regions.txt")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_genotyping_plan(temp.path())
+        .expect_err("out-of-range min_posterior must be rejected for governed genotyping planning");
+    assert_eq!(
+        error.to_string(),
+        "local-ready bam.genotyping min_posterior must be finite and within [0, 1]"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_genotyping_plan_requires_call_rates_within_unit_interval() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_genotyping_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_genotyping.v1"
+bam = "{bam}"
+bai = "{bai}"
+reference_fasta = "{reference}"
+sites_vcf = "{sites}"
+regions = "{regions}"
+tool_id = "angsd"
+sample_id = "bad-call-rate-threshold"
+min_posterior = 0.9
+min_call_rate = -0.1
+threads = 2
+output_dir = "target/local-ready/bam.genotyping"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/genotyping_panel_sites.sam")
+                .display(),
+            bai = repo_root
+                .join("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai")
+                .display(),
+            reference = repo_root
+                .join("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
+                .display(),
+            sites = repo_root
+                .join("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
+                .display(),
+            regions = repo_root
+                .join("assets/toy/core-v1/bam/genotyping_target_regions.txt")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_genotyping_plan(temp.path())
+        .expect_err("out-of-range min_call_rate must be rejected for governed genotyping planning");
+    assert_eq!(
+        error.to_string(),
+        "local-ready bam.genotyping min_call_rate must be finite and within [0, 1]"
+    );
+    Ok(())
+}
