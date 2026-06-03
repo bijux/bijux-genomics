@@ -1028,6 +1028,123 @@ fn bench_local_materialize_stage_bam_overlap_correction_json_writes_governed_smo
 }
 
 #[test]
+fn bench_local_materialize_stage_bam_authenticity_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.authenticity",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.authenticity")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.authenticity/authenticity.json")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_path).expect("read bam.authenticity report"),
+    )
+    .expect("parse bam.authenticity report");
+
+    assert_eq!(
+        report.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bam.authenticity.local_smoke.report.v1")
+    );
+    assert_eq!(
+        report.get("sample_id").and_then(serde_json::Value::as_str),
+        Some("core-v1-authenticity-composition")
+    );
+    assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(report.get("method").and_then(serde_json::Value::as_str), Some("authenticct"));
+    assert_eq!(
+        report.get("consumed_metrics"),
+        Some(&serde_json::json!(["damage", "contamination", "complexity", "coverage", "mapping"]))
+    );
+    assert_eq!(report.get("missing_metrics"), Some(&serde_json::json!([])));
+
+    let authenticity_report = repo_root.join(
+        report
+            .get("authenticity_report")
+            .and_then(serde_json::Value::as_str)
+            .expect("authenticity report path"),
+    );
+    let authenticity_summary = repo_root.join(
+        report
+            .get("authenticity_summary")
+            .and_then(serde_json::Value::as_str)
+            .expect("authenticity summary path"),
+    );
+    let authenticity_composite = repo_root.join(
+        report
+            .get("authenticity_composite")
+            .and_then(serde_json::Value::as_str)
+            .expect("authenticity composite path"),
+    );
+    let stage_metrics = repo_root.join(
+        report
+            .get("stage_metrics")
+            .and_then(serde_json::Value::as_str)
+            .expect("stage metrics path"),
+    );
+    let damage_unified_metrics = repo_root.join(
+        report
+            .get("damage_unified_metrics")
+            .and_then(serde_json::Value::as_str)
+            .expect("damage unified metrics path"),
+    );
+    let contamination_summary = repo_root.join(
+        report
+            .get("contamination_summary")
+            .and_then(serde_json::Value::as_str)
+            .expect("contamination summary path"),
+    );
+    let complexity_summary = repo_root.join(
+        report
+            .get("complexity_summary")
+            .and_then(serde_json::Value::as_str)
+            .expect("complexity summary path"),
+    );
+    let coverage_regime = repo_root.join(
+        report
+            .get("coverage_regime")
+            .and_then(serde_json::Value::as_str)
+            .expect("coverage regime path"),
+    );
+    let mapping_summary = repo_root.join(
+        report
+            .get("mapping_summary")
+            .and_then(serde_json::Value::as_str)
+            .expect("mapping summary path"),
+    );
+    for path in [
+        &authenticity_report,
+        &authenticity_summary,
+        &authenticity_composite,
+        &stage_metrics,
+        &damage_unified_metrics,
+        &contamination_summary,
+        &complexity_summary,
+        &coverage_regime,
+        &mapping_summary,
+    ] {
+        assert!(
+            path.is_file(),
+            "bam.authenticity smoke bundle must expose the governed composition artifact: {}",
+            path.display()
+        );
+    }
+}
+
+#[test]
 fn bench_local_materialize_stage_bam_damage_json_writes_governed_smoke_bundle() {
     let (repo_root, payload) = run_cli_json_with_repo_root(&[
         "bench",
