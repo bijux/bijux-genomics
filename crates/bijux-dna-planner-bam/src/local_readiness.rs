@@ -442,6 +442,24 @@ pub fn local_haplogroups_plan(repo_root: &Path) -> Result<bijux_dna_stage_contra
             "local-ready bam.haplogroups reference_panel_id must not be empty"
         ));
     }
+    if config.reference_build.trim().is_empty() {
+        return Err(anyhow!(
+            "local-ready bam.haplogroups reference_build must not be empty"
+        ));
+    }
+    if config.population_scope.trim().is_empty() {
+        return Err(anyhow!(
+            "local-ready bam.haplogroups population_scope must not be empty"
+        ));
+    }
+    let min_coverage = config.min_coverage.ok_or_else(|| {
+        anyhow!("local-ready bam.haplogroups min_coverage must be finite and greater than zero")
+    })?;
+    if !min_coverage.is_finite() || min_coverage <= 0.0 {
+        return Err(anyhow!(
+            "local-ready bam.haplogroups min_coverage must be finite and greater than zero"
+        ));
+    }
 
     let local_profile = load_local_runtime_profile(repo_root)?;
     let stage = BamStage::Haplogroups;
@@ -475,7 +493,7 @@ pub fn local_haplogroups_plan(repo_root: &Path) -> Result<bijux_dna_stage_contra
     let params = HaplogroupEffectiveParams {
         reference_panel: config.reference_panel.display().to_string(),
         reference_build: config.reference_build,
-        min_coverage: config.min_coverage,
+        min_coverage: Some(min_coverage),
         population_scope: Some(config.population_scope),
         refuse_without_population_context: config.refuse_without_population_context,
     };
@@ -516,7 +534,7 @@ pub fn local_haplogroups_plan(repo_root: &Path) -> Result<bijux_dna_stage_contra
     );
     params.insert(
         "coverage_gate".to_string(),
-        serde_json::json!({ "min_coverage": config.min_coverage }),
+        serde_json::json!({ "min_coverage": min_coverage }),
     );
     params.insert("sample_id".to_string(), serde_json::json!(config.sample_id));
     params.insert("tool".to_string(), serde_json::json!(tool_id.as_str()));

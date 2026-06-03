@@ -244,3 +244,144 @@ output_dir = "target/local-ready/bam.haplogroups"
     );
     Ok(())
 }
+
+#[test]
+fn local_haplogroups_plan_requires_reference_builds() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_haplogroups_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_haplogroups.v1"
+bam = "{bam}"
+bai = "{bai}"
+reference_fasta = "{reference}"
+reference_panel_id = "toy-human-y-hg38"
+reference_panel = "{panel}"
+tool_id = "yleaf"
+sample_id = "missing-reference-build"
+reference_build = " "
+population_scope = "human_y_haplogroup_panel"
+min_coverage = 2.0
+refuse_without_population_context = true
+threads = 2
+output_dir = "target/local-ready/bam.haplogroups"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
+                .display(),
+            bai = repo_root
+                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
+                .display(),
+            reference = repo_root
+                .join("assets/reference/host/references/toy_human_y_reference.fasta")
+                .display(),
+            panel = repo_root
+                .join("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_haplogroups_plan(temp.path())
+        .expect_err("blank reference_build must be rejected for governed haplogroups planning");
+    assert_eq!(
+        error.to_string(),
+        "local-ready bam.haplogroups reference_build must not be empty"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_haplogroups_plan_requires_population_scopes() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_haplogroups_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_haplogroups.v1"
+bam = "{bam}"
+bai = "{bai}"
+reference_fasta = "{reference}"
+reference_panel_id = "toy-human-y-hg38"
+reference_panel = "{panel}"
+tool_id = "yleaf"
+sample_id = "missing-population-scope"
+reference_build = "hg38"
+population_scope = " "
+min_coverage = 2.0
+refuse_without_population_context = true
+threads = 2
+output_dir = "target/local-ready/bam.haplogroups"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
+                .display(),
+            bai = repo_root
+                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
+                .display(),
+            reference = repo_root
+                .join("assets/reference/host/references/toy_human_y_reference.fasta")
+                .display(),
+            panel = repo_root
+                .join("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_haplogroups_plan(temp.path())
+        .expect_err("blank population_scope must be rejected for governed haplogroups planning");
+    assert_eq!(
+        error.to_string(),
+        "local-ready bam.haplogroups population_scope must not be empty"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_haplogroups_plan_requires_positive_minimum_coverage() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_haplogroups_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_haplogroups.v1"
+bam = "{bam}"
+bai = "{bai}"
+reference_fasta = "{reference}"
+reference_panel_id = "toy-human-y-hg38"
+reference_panel = "{panel}"
+tool_id = "yleaf"
+sample_id = "non-positive-coverage-gate"
+reference_build = "hg38"
+population_scope = "human_y_haplogroup_panel"
+min_coverage = 0.0
+refuse_without_population_context = true
+threads = 2
+output_dir = "target/local-ready/bam.haplogroups"
+"#,
+            bam = repo_root
+                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
+                .display(),
+            bai = repo_root
+                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
+                .display(),
+            reference = repo_root
+                .join("assets/reference/host/references/toy_human_y_reference.fasta")
+                .display(),
+            panel = repo_root
+                .join("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+                .display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_haplogroups_plan(temp.path())
+        .expect_err("non-positive min_coverage must be rejected for governed haplogroups planning");
+    assert_eq!(
+        error.to_string(),
+        "local-ready bam.haplogroups min_coverage must be finite and greater than zero"
+    );
+    Ok(())
+}
