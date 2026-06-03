@@ -356,4 +356,19 @@ mod tests {
         assert!(spec.image.digest.is_none());
         Ok(())
     }
+
+    #[test]
+    fn load_fastq_domain_tool_execution_spec_accepts_seqfu_profile_stage() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("fastq.profile_read_lengths".to_string());
+        let tool_id = ToolId::new("seqfu");
+
+        let spec = load_fastq_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(spec.tool_id.as_str(), "seqfu");
+        assert_eq!(spec.command.template, vec!["seqfu".to_string()]);
+        assert_eq!(spec.image.image, "bijuxdna/seqfu:planned");
+        assert!(spec.image.digest.is_none());
+        Ok(())
+    }
 }

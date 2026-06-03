@@ -5,6 +5,8 @@ versioning_strategy: pinned
 pin_strategy: pinned
 default_version: planned
 install_kind: container
+container:
+  image: bijuxdna/seqfu:planned
 license: GPL-3.0
 citation: paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC8148589/
 stage_ids:
