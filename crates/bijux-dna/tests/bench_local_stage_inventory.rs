@@ -710,6 +710,50 @@ fn bench_local_materialize_stage_bam_complexity_json_writes_governed_smoke_bundl
     );
 }
 
+#[test]
+fn bench_local_materialize_stage_bam_coverage_json_writes_governed_smoke_bundle() {
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.coverage",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("bam.coverage")
+    );
+    assert_eq!(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/bam.coverage/coverage.tsv")
+    );
+
+    let artifact_path = repo_root.join(
+        payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
+    );
+    let coverage_tsv = std::fs::read_to_string(&artifact_path).expect("read bam.coverage summary");
+    assert!(coverage_tsv.contains("sample_id\tregion_id\tcontig"));
+    assert!(coverage_tsv.contains("core-v1-target-windows\tchr1_window\tchr1"));
+    assert!(coverage_tsv.contains("core-v1-target-windows\tchr2_window\tchr2"));
+    assert!(coverage_tsv.contains("low_pass\ttrue\ttrue"));
+
+    let case_summary = repo_root.join(
+        "target/local-smoke/bam.coverage/core-v1-target-windows/samtools/coverage.summary.json",
+    );
+    let stage_metrics = repo_root
+        .join("target/local-smoke/bam.coverage/core-v1-target-windows/samtools/stage.metrics.json");
+    assert!(
+        case_summary.is_file(),
+        "bam.coverage smoke bundle must expose the governed coverage summary json"
+    );
+    assert!(
+        stage_metrics.is_file(),
+        "bam.coverage smoke bundle must expose the governed stage metrics"
+    );
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
