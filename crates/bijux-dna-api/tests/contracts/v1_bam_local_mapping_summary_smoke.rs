@@ -114,6 +114,7 @@ fn write_local_mapping_summary_smoke_summary_materializes_governed_outputs() -> 
     assert_eq!(stage_metrics_json["secondary_reads"], serde_json::json!(0));
     assert_eq!(stage_metrics_json["supplementary_reads"], serde_json::json!(0));
     assert_eq!(stage_metrics_json["reference_name"], serde_json::json!("chr1"));
+    assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 
     Ok(())
 }
