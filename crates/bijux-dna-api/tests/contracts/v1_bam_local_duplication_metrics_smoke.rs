@@ -49,7 +49,7 @@ fn write_local_duplication_metrics_smoke_report_materializes_governed_outputs() 
         payload["schema_version"],
         serde_json::json!("bijux.bam.duplication_metrics.local_smoke.report.v1")
     );
-    assert_eq!(payload["sample_id"], serde_json::json!("core-v1-duplicate-observation"));
+    assert_eq!(payload["sample_id"], serde_json::json!("human_like_duplicate_cluster"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(payload["method"], serde_json::json!("samtools"));
     assert_eq!(payload["examined_reads"], serde_json::json!(3));

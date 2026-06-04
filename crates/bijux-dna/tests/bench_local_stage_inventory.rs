@@ -611,7 +611,7 @@ fn bench_local_materialize_stage_bam_duplication_metrics_json_writes_governed_sm
     );
     assert_eq!(
         report.get("sample_id").and_then(serde_json::Value::as_str),
-        Some("core-v1-duplicate-observation")
+        Some("human_like_duplicate_cluster")
     );
     assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(report.get("examined_reads").and_then(serde_json::Value::as_u64), Some(3));
