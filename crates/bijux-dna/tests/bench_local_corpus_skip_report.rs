@@ -88,6 +88,16 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
     );
     assert!(
         skips.iter().any(|skip| {
+            skip.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.merge_pairs")
+                && skip.get("corpus_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-02-edna-mini")
+                && skip.get("replacement_corpus_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-01-mini")
+        }),
+        "fixture-backed merge-pairs skips must name the governed FASTQ corpus replacement"
+    );
+    assert!(
+        skips.iter().any(|skip| {
             skip.get("stage_id").and_then(serde_json::Value::as_str)
                 == Some("fastq.estimate_library_complexity_prealign")
                 && skip.get("corpus_id").and_then(serde_json::Value::as_str)

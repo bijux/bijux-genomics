@@ -95,6 +95,17 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
     assert!(
         stages.iter().any(|stage| {
             stage.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.merge_pairs")
+                && stage.get("fixture_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-01-mini")
+                && stage.get("compatibility_kind").and_then(serde_json::Value::as_str)
+                    == Some("fixture")
+        }),
+        "merge_pairs must map to the governed general FASTQ corpus once merge-overlap coverage is owned there"
+    );
+    assert!(
+        stages.iter().any(|stage| {
+            stage.get("stage_id").and_then(serde_json::Value::as_str)
                 == Some("fastq.estimate_library_complexity_prealign")
                 && stage.get("fixture_id").and_then(serde_json::Value::as_str)
                     == Some("corpus-01-mini")
