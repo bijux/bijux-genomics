@@ -1321,7 +1321,7 @@ fn bench_local_materialize_stage_bam_authenticity_json_writes_governed_smoke_bun
     );
     assert_eq!(
         report.get("sample_id").and_then(serde_json::Value::as_str),
-        Some("core-v1-authenticity-composition")
+        Some("adna_like_damage")
     );
     assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(report.get("method").and_then(serde_json::Value::as_str), Some("authenticct"));
