@@ -63,6 +63,14 @@ fn bench_readiness_fastq_adapter_output_contract_writes_governed_tsv_columns() {
     assert!(
         rows.iter().any(|row| {
             row.starts_with(
+                "pear\tfastq.merge_pairs\trunnable\tcomplete\tmerged_reads,unmerged_reads_r1,unmerged_reads_r2,report_json,raw_backend_report_txt\tmerged_reads,unmerged_reads_r1,unmerged_reads_r2,report_json,raw_backend_report_txt\t"
+            ) && row.contains("\treport_json\t")
+        }),
+        "TSV must retain the governed merge-pairs contract row for pear"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row.starts_with(
                 "bijux_dna\tfastq.estimate_library_complexity_prealign\tdeclared_only\tmissing_adapter\tlibrary_complexity_report\t"
             ) && row.ends_with("\tadapter\trow `fastq.estimate_library_complexity_prealign` / `bijux_dna` has no runnable or plannable FASTQ adapter (`declared_only`)")
         }),
