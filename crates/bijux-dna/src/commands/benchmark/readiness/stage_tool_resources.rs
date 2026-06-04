@@ -295,12 +295,6 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::path::PathBuf;
 
-    use super::{
-        render_stage_tool_resources, StageToolResourcesConfig, DEFAULT_STAGE_TOOL_RESOURCES_PATH,
-        FASTQ_RESOURCE_ORIGIN, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION,
-        STAGE_TOOL_RESOURCES_SCOPE,
-    };
-
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../..")
@@ -311,6 +305,10 @@ mod tests {
     #[cfg(feature = "bam_downstream")]
     #[test]
     fn render_stage_tool_resources_reports_governed_benchmark_ready_row_slice() {
+        use super::{
+            render_stage_tool_resources, DEFAULT_STAGE_TOOL_RESOURCES_PATH, FASTQ_RESOURCE_ORIGIN,
+        };
+
         let root = repo_root();
         let report =
             render_stage_tool_resources(&root, PathBuf::from(DEFAULT_STAGE_TOOL_RESOURCES_PATH))
@@ -337,6 +335,12 @@ mod tests {
     #[cfg(feature = "bam_downstream")]
     #[test]
     fn render_stage_tool_resources_writes_governed_toml_contract() {
+        use super::{
+            render_stage_tool_resources, StageToolResourcesConfig,
+            DEFAULT_STAGE_TOOL_RESOURCES_PATH, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION,
+            STAGE_TOOL_RESOURCES_SCOPE,
+        };
+
         let root = repo_root();
         let output_path = root.join(DEFAULT_STAGE_TOOL_RESOURCES_PATH);
         let _report =

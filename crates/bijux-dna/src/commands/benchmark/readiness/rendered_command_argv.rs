@@ -109,8 +109,6 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::path::PathBuf;
 
-    use super::{render_command_argv, DEFAULT_RENDERED_COMMAND_ARGV_PATH};
-
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../..")
@@ -121,6 +119,8 @@ mod tests {
     #[cfg(feature = "bam_downstream")]
     #[test]
     fn rendered_command_argv_reports_governed_51_row_slice() {
+        use super::{render_command_argv, DEFAULT_RENDERED_COMMAND_ARGV_PATH};
+
         let root = repo_root();
         let report = render_command_argv(&root, PathBuf::from(DEFAULT_RENDERED_COMMAND_ARGV_PATH))
             .expect("render command argv");
