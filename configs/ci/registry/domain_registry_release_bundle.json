@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "509ee362206cdbccddc15e4163587ddfcf405cf6",
-  "bundle_checksum_sha256": "82becc5f5a59ba33924dcb6f7a3a8589de28f2ca732fe4ba1b22c3227e1ce627",
+  "source_commit": "ba3c02c9dc724858e8a6b18abe1f17e4c1af47c0",
+  "bundle_checksum_sha256": "697121e3082dafd00e454cc3ad19bbd06026451f565dd8b9a17e98bc34007214",
   "domains": [
     {
       "domain_id": "bam",
@@ -2915,9 +2915,7 @@
             "bam.qc_pre",
             "bam.validate"
           ],
-          "planned_stage_ids": [
-            "bam.align"
-          ],
+          "planned_stage_ids": [],
           "expected_artifacts": [
             "bam_index",
             "bam_stats"
@@ -3566,7 +3564,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "5acbfe2e63f2805a135e19be6981d31c77998cfccca24c1be8ff4533de5ffd55"
+      "checksum_sha256": "39266a886a9d7678d7ea946ef454f1acfe71b9186b1f976e59c4f8dd9778d105"
     },
     {
       "domain_id": "fastq",
@@ -12419,7 +12417,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "3b4fe8999ddcda9d5d9b8bd59a30b5bead84ca92512bf6458d9afdba52b1110c"
+      "checksum_sha256": "5c6a9a8d337cf73ba1d538d622662d288ae61ec3f72f81184343b86c32ad4a0e"
     },
     {
       "domain_id": "vcf",
@@ -14677,7 +14675,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "88d4f128ea8dd20511577eb4d730d4be519ffd3254d0f2c27463a3c541aef7a9"
+      "checksum_sha256": "1c5e36ec82addf32442f38b57e5c193409a2b13743240ef53f5cda8fc622fbf3"
     }
   ]
 }
