@@ -51,19 +51,19 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(94));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(97));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(94)
+        Some(97)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(93));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(96));
     assert_eq!(
         payload.get("container_declared_row_count").and_then(serde_json::Value::as_u64),
-        Some(93)
+        Some(96)
     );
     assert_eq!(
         payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
-        Some(94)
+        Some(97)
     );
     assert_eq!(payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
@@ -78,7 +78,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(31)
+        Some(34)
     );
 
     assert_eq!(
@@ -86,7 +86,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("execution_mode_counts")
             .and_then(|value| value.get("containerized"))
             .and_then(serde_json::Value::as_u64),
-        Some(75)
+        Some(77)
     );
     assert_eq!(
         payload
@@ -114,7 +114,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("execution_mode_counts")
             .and_then(|value| value.get("python"))
             .and_then(serde_json::Value::as_u64),
-        Some(7)
+        Some(8)
     );
     assert_eq!(
         payload
@@ -149,6 +149,25 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .and_then(serde_json::Value::as_str)
             .is_some_and(|value| value.starts_with("bijuxdna/cutadapt@sha256:")),
         "cutadapt row must preserve the governed container declaration"
+    );
+    let bam_authenticity = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.authenticity")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("authenticct")
+        })
+        .expect("bam authenticity authenticct row");
+    assert_eq!(
+        bam_authenticity.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("containerized")
+    );
+    assert_eq!(
+        bam_authenticity.get("command_entrypoint").and_then(serde_json::Value::as_str),
+        Some("authenticct")
+    );
+    assert_eq!(
+        bam_authenticity.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/authenticct:1.0.0")
     );
     let bamutil_overlap = rows
         .iter()
@@ -341,9 +360,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         Some("containerized")
     );
     assert_eq!(
-        bam_endogenous_content
-            .get("command_entrypoint")
-            .and_then(serde_json::Value::as_str),
+        bam_endogenous_content.get("command_entrypoint").and_then(serde_json::Value::as_str),
         Some("samtools")
     );
     assert_eq!(
