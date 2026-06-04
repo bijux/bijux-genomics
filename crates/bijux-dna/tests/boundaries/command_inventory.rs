@@ -112,6 +112,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench local validate-corpus-stage-compatibility",
     "bijux-dna bench local render-corpus-skip-report",
     "bijux-dna bench local validate-taxonomy-database-fixture",
+    "bijux-dna bench local judge-taxonomy-output",
     "bijux-dna bench local validate-slurm-dependencies",
     "bijux-dna bench local validate-slurm-shell-syntax",
     "bijux-dna bench local validate-slurm-script-bodies",
