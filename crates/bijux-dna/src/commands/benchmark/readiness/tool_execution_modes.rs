@@ -329,7 +329,7 @@ fn validate_mode_definition(mode: &ToolExecutionModeDefinition) -> Result<()> {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-struct RuntimeProbe {
+pub(crate) struct RuntimeProbe {
     #[serde(default)]
     install_kind: Option<String>,
     #[serde(default)]
@@ -343,16 +343,18 @@ struct RuntimeProbe {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-struct RuntimeProbeContainer {
+pub(crate) struct RuntimeProbeContainer {
     image: String,
+    #[serde(default)]
+    digest: Option<String>,
 }
 
 impl RuntimeProbe {
-    fn install_kind(&self) -> &str {
+    pub(crate) fn install_kind(&self) -> &str {
         self.install_kind.as_deref().unwrap_or("container")
     }
 
-    fn has_required_field(&self, field: &str) -> bool {
+    pub(crate) fn has_required_field(&self, field: &str) -> bool {
         match field {
             "install_kind" => {
                 self.install_kind.as_deref().map(str::trim).is_some_and(|value| !value.is_empty())
@@ -373,9 +375,42 @@ impl RuntimeProbe {
             _ => false,
         }
     }
+
+    pub(crate) fn container_id(&self) -> Option<String> {
+        self.container.as_ref().and_then(|container| {
+            let image = container.image.trim();
+            if image.is_empty() {
+                return None;
+            }
+            match container.digest.as_deref().map(str::trim).filter(|digest| !digest.is_empty()) {
+                Some(digest) => Some(format!("{image}@{digest}")),
+                None => Some(image.to_string()),
+            }
+        })
+    }
+
+    pub(crate) fn command_entrypoint(&self) -> Option<String> {
+        self.command_template
+            .first()
+            .and_then(|value| extract_command_token(value))
+            .or_else(|| self.help_cmd.as_deref().and_then(extract_command_token))
+            .or_else(|| self.version_cmd.as_deref().and_then(extract_command_token))
+    }
 }
 
-fn load_runtime_probe(repo_root: &Path, domain: &str, tool_id: &str) -> Result<RuntimeProbe> {
+fn extract_command_token(raw: &str) -> Option<String> {
+    raw.split_whitespace()
+        .next()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(ToOwned::to_owned)
+}
+
+pub(crate) fn load_runtime_probe(
+    repo_root: &Path,
+    domain: &str,
+    tool_id: &str,
+) -> Result<RuntimeProbe> {
     let mut probe_domains = vec![domain.to_string()];
     for fallback in ["fastq", "bam", "vcf"] {
         if !probe_domains.iter().any(|candidate| candidate == fallback) {
@@ -475,7 +510,7 @@ mod tests {
         assert_eq!(report.schema_version, TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.classification_scope, "primary_operator_runtime");
         assert_eq!(report.mode_count, 6);
-        assert_eq!(report.tool_count, 66);
+        assert_eq!(report.tool_count, 69);
         assert!(report.valid, "tool execution mode config must validate cleanly");
 
         let bijux_dna =

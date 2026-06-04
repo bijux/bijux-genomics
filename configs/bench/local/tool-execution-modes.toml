@@ -22,6 +22,7 @@ required_runtime_fields = ["help_cmd", "install_kind", "version_cmd"]
 summary = "Benchmarked tools whose governed operator runtime is a direct CLI inside a managed container image."
 tool_ids = [
   "adapterremoval",
+  "addeam",
   "alientrimmer",
   "angsd",
   "authenticct",
@@ -38,6 +39,7 @@ tool_ids = [
   "centrifuge",
   "clumpify",
   "contammix",
+  "damageprofiler",
   "diamond",
   "dustmasker",
   "fastp",
@@ -56,6 +58,7 @@ tool_ids = [
   "mapdamage2",
   "mosdepth",
   "musket",
+  "ngsbriggs",
   "pear",
   "preseq",
   "prinseq",
