@@ -313,10 +313,10 @@ mod tests {
         assert_eq!(report.stage_count, 24);
         assert_eq!(report.tool_count, 26);
         assert_eq!(report.row_count, 51);
-        assert_eq!(report.benchmark_ready_row_count, 30);
-        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 30);
+        assert_eq!(report.benchmark_ready_row_count, 31);
+        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 31);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
-        assert_eq!(report.readiness_gap_counts.get("parser"), Some(&15));
+        assert_eq!(report.readiness_gap_counts.get("parser"), Some(&14));
         assert_eq!(report.readiness_gap_counts.get("support"), Some(&6));
         assert!(
             report.readiness_gap_counts.get("corpus").is_none(),
@@ -374,6 +374,15 @@ mod tests {
                 && row.corpus_status == "fixture:corpus-01-bam-mini"
         }));
         assert!(report.rows.iter().any(|row| {
+            row.tool_id == "bamutil"
+                && row.stage_id == "bam.overlap_correction"
+                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
+                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
+                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
             row.tool_id == "bwa"
                 && row.stage_id == "bam.align"
                 && super::benchmark_status_label(row.benchmark_status) == "not_benchmark_ready"
@@ -422,6 +431,14 @@ mod tests {
                 )
             }),
             "the governed BAM endogenous-content row must now be benchmark-ready and adapter-covered"
+        );
+        assert!(
+            rows.iter().any(|row| {
+                row.starts_with(
+                    "bamutil\tbam.overlap_correction\tbenchmark_ready\tcovered\tnone\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\t"
+                )
+            }),
+            "the governed BAM overlap-correction row must now be benchmark-ready and adapter-covered"
         );
         assert!(
             rows.iter().any(|row| {

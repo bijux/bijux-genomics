@@ -99,6 +99,20 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
     );
     assert!(
         rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bamutil")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.overlap_correction")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                    == Some("runnable")
+                && row.get("output_contract_status").and_then(serde_json::Value::as_str)
+                    == Some("complete")
+                && row.get("normalized_metrics_output_id").and_then(serde_json::Value::as_str)
+                    == Some("summary")
+        }),
+        "report must retain the governed bamutil overlap-correction contract row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
                 && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
                 && row.get("output_contract_status").and_then(serde_json::Value::as_str)

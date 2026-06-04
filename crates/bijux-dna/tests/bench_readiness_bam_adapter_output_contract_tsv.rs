@@ -70,6 +70,10 @@ fn bench_readiness_bam_adapter_output_contract_writes_governed_tsv_columns() {
         "TSV must retain the governed bowtie2 alignment contract row"
     );
     assert!(
+        has_row("bamutil", "bam.overlap_correction", "runnable", "complete", "summary", ""),
+        "TSV must retain the governed bamutil overlap-correction contract row"
+    );
+    assert!(
         has_row("bcftools", "bam.genotyping", "declared_only", "missing_adapter", "", "adapter",),
         "TSV must keep the planned bcftools genotyping row explicit as missing an adapter"
     );
