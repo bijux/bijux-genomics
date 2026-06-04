@@ -507,7 +507,7 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
                     && row.get("parser_status").and_then(serde_json::Value::as_str)
                         == Some("benchmark_normalized")
                     && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                        == Some("planner_only")
+                        == Some("fixture:corpus-01-mini")
             }),
             "FASTQ readiness map must retain the governed remove-duplicates row for {tool_id}"
         );
