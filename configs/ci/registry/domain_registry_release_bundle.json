@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "fbe7b8aa255c170dab3e67fef3a6c53c46ff4c09",
-  "bundle_checksum_sha256": "8a5ccee48532f2075f5b0902b6afbd07b3b1e604d521d6704dfce4b6474c2f01",
+  "source_commit": "509ee362206cdbccddc15e4163587ddfcf405cf6",
+  "bundle_checksum_sha256": "82becc5f5a59ba33924dcb6f7a3a8589de28f2ca732fe4ba1b22c3227e1ce627",
   "domains": [
     {
       "domain_id": "bam",
@@ -3566,7 +3566,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "fef1ca13356bf8b6a7d22ef343153690f1eb77cb92d0c4d150fb050b4aa009bc"
+      "checksum_sha256": "5acbfe2e63f2805a135e19be6981d31c77998cfccca24c1be8ff4533de5ffd55"
     },
     {
       "domain_id": "fastq",
@@ -8008,9 +8008,7 @@
           "bank_hooks": [
             "taxonomy_database_lock"
           ],
-          "planned_out_of_scope": [
-            "diamond"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "fastq.subsample_reads",
@@ -9466,9 +9464,7 @@
           "version_cmd": "diamond --version",
           "help_cmd": "diamond help",
           "stage_ids": [],
-          "planned_stage_ids": [
-            "fastq.screen_taxonomy"
-          ],
+          "planned_stage_ids": [],
           "expected_artifacts": [
             "classification_report_json",
             "screen_report_tsv"
@@ -12423,7 +12419,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "4761ec0cb0ea7d42992a28b1524370d1d53928fc869d27a313e2d93b2e55a3de"
+      "checksum_sha256": "3b4fe8999ddcda9d5d9b8bd59a30b5bead84ca92512bf6458d9afdba52b1110c"
     },
     {
       "domain_id": "vcf",
@@ -14681,7 +14677,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "576388148277821a739cd755011167a517c7109b56f877e25b78fb183bf15ba7"
+      "checksum_sha256": "88d4f128ea8dd20511577eb4d730d4be519ffd3254d0f2c27463a3c541aef7a9"
     }
   ]
 }
