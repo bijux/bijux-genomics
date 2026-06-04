@@ -46,7 +46,7 @@ fn write_local_merge_pairs_smoke_report_materializes_governed_outputs() -> Resul
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
     let row = value_map(&payload)?;
     assert_eq!(row["stage_id"], "fastq.merge_pairs");
-    assert_eq!(row["sample_id"], "merge-signal-pe");
+    assert_eq!(row["sample_id"], "human_like_pe_merge_overlap");
     assert_eq!(row["planned_tool_id"], "pear");
     assert_eq!(row["report_tool_id"], "bijux");
     assert_eq!(row["merge_overlap"], "8");
