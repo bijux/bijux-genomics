@@ -56,13 +56,21 @@ fn write_local_gc_bias_smoke_summary_materializes_governed_outputs() -> Result<(
         .iter()
         .find(|row| row["gc_bin"] == "0")
         .unwrap_or_else(|| panic!("0% GC row missing from BAM gc-bias summary"));
-    assert_eq!(zero_gc_row["sample_id"], "core-v1-gc-window-ladder");
+    assert_eq!(zero_gc_row["sample_id"], "human_like_gc_window_ladder");
     assert_eq!(zero_gc_row["normalized_coverage"], "0.750000");
     assert_eq!(zero_gc_row["windows"], "1");
     assert_eq!(zero_gc_row["read_starts"], "1");
     assert_eq!(zero_gc_row["insufficient_reference_reason"], "");
     assert_eq!(zero_gc_row["row_expectation_matched"], "true");
     assert_eq!(zero_gc_row["case_expectation_matched"], "true");
+    assert_eq!(
+        zero_gc_row["input_bam"],
+        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+    );
+    assert_eq!(
+        zero_gc_row["reference_fasta"],
+        "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+    );
 
     let mid_gc_row = rows
         .iter()
