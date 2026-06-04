@@ -1246,7 +1246,7 @@ fn bench_local_materialize_stage_bam_overlap_correction_json_writes_governed_smo
     );
     assert_eq!(
         report.get("sample_id").and_then(serde_json::Value::as_str),
-        Some("core-v1-paired-overlap")
+        Some("human_like_paired_overlap_control")
     );
     assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(report.get("method").and_then(serde_json::Value::as_str), Some("bamutil"));
