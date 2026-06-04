@@ -107,6 +107,17 @@ source_paths = [
 ]
 
 [[samples]]
+sample_id = "human_like_insert_size_triplet"
+cohort = "human_like"
+alignment_path = "aligned/human_like_insert_size_triplet.sam"
+index_path = "aligned/human_like_insert_size_triplet.sam.bai"
+expected_contigs = ["chr1"]
+expected_header_sample_ids = ["human_like_insert_size_triplet"]
+expected_read_group_ids = ["rg-insert-size-human-like"]
+expected_record_count = 6
+source_paths = ["tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"]
+
+[[samples]]
 sample_id = "adna_like_damage"
 cohort = "adna_like"
 alignment_path = "aligned/adna_like_damage.sam"
