@@ -50,6 +50,8 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         "bamtools\tbam.validate\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "multiqc\tbam.qc_pre\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.qc_pre\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "samtools\tbam.mapping_summary\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "picard\tbam.mapping_summary\tsupported\tplannable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.bias_mitigation\tmismatched_contract\tdeclared_only\tartifact_contract_only\tplanner_only",
         "samtools\tbam.haplogroups\tmismatched_contract\tdeclared_only\tscientific_report_contract\tplanner_only",
         "yleaf\tbam.haplogroups\tsupported\trunnable\tscientific_report_contract\tplanner_only",
