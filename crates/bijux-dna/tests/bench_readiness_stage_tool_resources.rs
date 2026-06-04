@@ -51,21 +51,21 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(61));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(64));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(61)
+        Some(64)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(61)
+        Some(64)
     );
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(53)
+        Some(56)
     );
     assert_eq!(
         payload
@@ -112,4 +112,28 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         Some(15)
     );
     assert_eq!(trim_polyg_fastp.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(4));
+    let trim_terminal_damage_cutadapt = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.trim_terminal_damage")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("cutadapt")
+        })
+        .expect("trim-terminal-damage cutadapt row");
+    assert_eq!(
+        trim_terminal_damage_cutadapt.get("threads").and_then(serde_json::Value::as_u64),
+        Some(4)
+    );
+    assert_eq!(
+        trim_terminal_damage_cutadapt.get("memory_gb").and_then(serde_json::Value::as_u64),
+        Some(8)
+    );
+    assert_eq!(
+        trim_terminal_damage_cutadapt.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(15)
+    );
+    assert_eq!(
+        trim_terminal_damage_cutadapt.get("scratch_gb").and_then(serde_json::Value::as_u64),
+        Some(4)
+    );
 }

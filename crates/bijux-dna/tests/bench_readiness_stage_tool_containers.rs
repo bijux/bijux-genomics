@@ -51,18 +51,18 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(61));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(64));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(61)
+        Some(64)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(61));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(64));
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(53)
+        Some(56)
     );
     assert_eq!(
         payload
@@ -151,5 +151,27 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("container_id")
             .and_then(serde_json::Value::as_str),
         Some("bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10")
+    );
+    let trim_terminal_damage_cutadapt = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.trim_terminal_damage")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("cutadapt")
+        })
+        .expect("trim-terminal-damage cutadapt row");
+    assert_eq!(
+        trim_terminal_damage_cutadapt.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("python")
+    );
+    assert_eq!(
+        trim_terminal_damage_cutadapt.get("command_entrypoint").and_then(serde_json::Value::as_str),
+        Some("cutadapt")
+    );
+    assert_eq!(
+        trim_terminal_damage_cutadapt
+            .get("container_id")
+            .and_then(serde_json::Value::as_str),
+        Some("bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba")
     );
 }
