@@ -68,6 +68,12 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"bam.filter\tbenchmark_ready\tsamtools\tsamtools\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.filter` is benchmark_ready via `samtools` with a fixture-backed parser-validated BAM benchmark row"
+        }),
+        "TSV must retain the governed benchmark-ready bam.filter row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"bam.coverage\tneeds_corpus\tmosdepth\tmosdepth\tsupported\tplannable\tparser_fixture_validated\tplanner_only\tstage `bam.coverage` has parser-validated BAM benchmark tooling via `mosdepth` but still resolves only planner-only corpus coverage"
         }),
         "TSV must retain the governed corpus blocker for bam.coverage"
