@@ -498,7 +498,7 @@
       },
       {
         "stage_id": "fastq.detect_duplicates_premerge",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "premerge duplicate detection is not equivalent to aligned duplicate marking and must stay report-only until route evidence is present."

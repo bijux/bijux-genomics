@@ -168,6 +168,14 @@
         "override_policy": "explicit profile override required"
       },
       {
+        "stage_id": "fastq.detect_duplicates_premerge",
+        "tool_id": "bijux_dna",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Governed internal contract harness records report-only duplicate-signal expectations from the owned paired-end corpus without treating the result as scientific duplicate removal.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
         "stage_id": "fastq.extract_umis",
         "tool_id": "umi_tools",
         "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",

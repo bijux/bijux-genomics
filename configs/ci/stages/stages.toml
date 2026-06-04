@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 7b23f17ef51140da008286a0506c36a0e48251df
+# source_commit: fbe7b8aa255c170dab3e67fef3a6c53c46ff4c09
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -407,6 +407,25 @@ duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
 tools = ["fastqc"]
+
+[[stages]]
+id = "fastq.detect_duplicates_premerge"
+status = "supported"
+output_kinds = ["json"]
+ordering_after = ["fastq.filter_reads"]
+prerequisites = ["fastq.filter_reads"]
+resource_memory_gb = 2
+resource_time_minutes = 10
+resource_threads = 2
+sanity_metrics = ["duplicate_count", "duplicate_fraction"]
+output_size_estimates_mb = ["duplicate_signal_report:1"]
+qc_thresholds = ["duplicate_fraction|warn=>=0.5|fail=>=0.8"]
+contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplicate_fraction|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["bijux_dna"]
 
 [[stages]]
 id = "fastq.extract_umis"

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 7b23f17ef51140da008286a0506c36a0e48251df
+# source_commit: fbe7b8aa255c170dab3e67fef3a6c53c46ff4c09
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -52,6 +52,9 @@ enabled = false
 
 [bedtools]
 version = "2.31.1"
+
+[bijux_dna]
+version = "workspace"
 
 [bowtie2]
 version = "2.5.4"

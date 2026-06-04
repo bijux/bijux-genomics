@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "7b23f17ef51140da008286a0506c36a0e48251df",
-  "bundle_checksum_sha256": "39723dd5d637c1ffee966f6a7a9b2708f0080d91e94f8c33cbc9769716782043",
+  "source_commit": "fbe7b8aa255c170dab3e67fef3a6c53c46ff4c09",
+  "bundle_checksum_sha256": "8a5ccee48532f2075f5b0902b6afbd07b3b1e604d521d6704dfce4b6474c2f01",
   "domains": [
     {
       "domain_id": "bam",
@@ -2288,7 +2288,10 @@
           ],
           "metrics_schema_id": "bijux.bam.damage.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/addeam:1.0.0",
+            "digest": ""
+          }
         },
         {
           "tool_id": "angsd",
@@ -2374,7 +2377,10 @@
           ],
           "metrics_schema_id": "bijux.bam.validation.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/bamtools:2.5.2",
+            "digest": ""
+          }
         },
         {
           "tool_id": "bamutil",
@@ -2435,7 +2441,10 @@
           ],
           "metrics_schema_id": "bijux.bam.validation.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/bedtools:2.31.1",
+            "digest": ""
+          }
         },
         {
           "tool_id": "bowtie2",
@@ -2565,7 +2574,10 @@
           ],
           "metrics_schema_id": "bijux.bam.damage.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/damageprofiler:1.1",
+            "digest": ""
+          }
         },
         {
           "tool_id": "gatk",
@@ -2646,7 +2658,10 @@
           ],
           "metrics_schema_id": "bijux.bam.damage.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/mapdamage2:2.2.2",
+            "digest": ""
+          }
         },
         {
           "tool_id": "mosdepth",
@@ -2790,7 +2805,10 @@
           ],
           "metrics_schema_id": "bijux.bam.authenticity.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/pmdtools:0.60",
+            "digest": ""
+          }
         },
         {
           "tool_id": "preseq",
@@ -2842,7 +2860,10 @@
           ],
           "metrics_schema_id": "bijux.bam.damage.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/pydamage:1.0.0",
+            "digest": ""
+          }
         },
         {
           "tool_id": "rxy",
@@ -2907,7 +2928,10 @@
           ],
           "metrics_schema_id": "bijux.bam.validation.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/samtools:1.21",
+            "digest": ""
+          }
         },
         {
           "tool_id": "schmutzi",
@@ -3349,187 +3373,187 @@
         {
           "stage_id": "bam.align",
           "tool_id": "bowtie2",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.align/bowtie2.txt"
+          "fixture_path": "domain/bam/fixtures/bam.align/bowtie2.txt"
         },
         {
           "stage_id": "bam.align",
           "tool_id": "bwa",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.align/bwa.txt"
+          "fixture_path": "domain/bam/fixtures/bam.align/bwa.txt"
         },
         {
           "stage_id": "bam.authenticity",
           "tool_id": "authenticct",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.authenticity/authenticct.txt"
+          "fixture_path": "domain/bam/fixtures/bam.authenticity/authenticct.txt"
         },
         {
           "stage_id": "bam.authenticity",
           "tool_id": "damageprofiler",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.authenticity/damageprofiler.txt"
+          "fixture_path": "domain/bam/fixtures/bam.authenticity/damageprofiler.txt"
         },
         {
           "stage_id": "bam.authenticity",
           "tool_id": "pmdtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.authenticity/pmdtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.authenticity/pmdtools.txt"
         },
         {
           "stage_id": "bam.contamination",
           "tool_id": "contammix",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.contamination/contammix.txt"
+          "fixture_path": "domain/bam/fixtures/bam.contamination/contammix.txt"
         },
         {
           "stage_id": "bam.contamination",
           "tool_id": "schmutzi",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.contamination/schmutzi.txt"
+          "fixture_path": "domain/bam/fixtures/bam.contamination/schmutzi.txt"
         },
         {
           "stage_id": "bam.contamination",
           "tool_id": "verifybamid2",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.contamination/verifybamid2.txt"
+          "fixture_path": "domain/bam/fixtures/bam.contamination/verifybamid2.txt"
         },
         {
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.coverage/mosdepth.txt"
+          "fixture_path": "domain/bam/fixtures/bam.coverage/mosdepth.txt"
         },
         {
           "stage_id": "bam.coverage",
           "tool_id": "samtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.coverage/samtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.coverage/samtools.txt"
         },
         {
           "stage_id": "bam.damage",
           "tool_id": "addeam",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.damage/addeam.txt"
+          "fixture_path": "domain/bam/fixtures/bam.damage/addeam.txt"
         },
         {
           "stage_id": "bam.damage",
           "tool_id": "damageprofiler",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.damage/damageprofiler.txt"
+          "fixture_path": "domain/bam/fixtures/bam.damage/damageprofiler.txt"
         },
         {
           "stage_id": "bam.damage",
           "tool_id": "mapdamage2",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.damage/mapdamage2.txt"
+          "fixture_path": "domain/bam/fixtures/bam.damage/mapdamage2.txt"
         },
         {
           "stage_id": "bam.damage",
           "tool_id": "ngsbriggs",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.damage/ngsbriggs.txt"
+          "fixture_path": "domain/bam/fixtures/bam.damage/ngsbriggs.txt"
         },
         {
           "stage_id": "bam.damage",
           "tool_id": "pmdtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.damage/pmdtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.damage/pmdtools.txt"
         },
         {
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.damage/pydamage.txt"
+          "fixture_path": "domain/bam/fixtures/bam.damage/pydamage.txt"
         },
         {
           "stage_id": "bam.duplication_metrics",
           "tool_id": "picard",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.duplication_metrics/picard.txt"
+          "fixture_path": "domain/bam/fixtures/bam.duplication_metrics/picard.txt"
         },
         {
           "stage_id": "bam.duplication_metrics",
           "tool_id": "samtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.duplication_metrics/samtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.duplication_metrics/samtools.txt"
         },
         {
           "stage_id": "bam.endogenous_content",
           "tool_id": "samtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.endogenous_content/samtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.endogenous_content/samtools.txt"
         },
         {
           "stage_id": "bam.filter",
           "tool_id": "bamtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.filter/bamtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.filter/bamtools.txt"
         },
         {
           "stage_id": "bam.filter",
           "tool_id": "bedtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.filter/bedtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.filter/bedtools.txt"
         },
         {
           "stage_id": "bam.filter",
           "tool_id": "samtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.filter/samtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.filter/samtools.txt"
         },
         {
           "stage_id": "bam.kinship",
           "tool_id": "angsd",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.kinship/angsd.txt"
+          "fixture_path": "domain/bam/fixtures/bam.kinship/angsd.txt"
         },
         {
           "stage_id": "bam.kinship",
           "tool_id": "king",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.kinship/king.txt"
+          "fixture_path": "domain/bam/fixtures/bam.kinship/king.txt"
         },
         {
           "stage_id": "bam.length_filter",
           "tool_id": "picard",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.length_filter/picard.txt"
+          "fixture_path": "domain/bam/fixtures/bam.length_filter/picard.txt"
         },
         {
           "stage_id": "bam.length_filter",
           "tool_id": "samtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.length_filter/samtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.length_filter/samtools.txt"
         },
         {
           "stage_id": "bam.mapping_summary",
           "tool_id": "picard",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.mapping_summary/picard.txt"
+          "fixture_path": "domain/bam/fixtures/bam.mapping_summary/picard.txt"
         },
         {
           "stage_id": "bam.mapping_summary",
           "tool_id": "samtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.mapping_summary/samtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.mapping_summary/samtools.txt"
         },
         {
           "stage_id": "bam.mapq_filter",
           "tool_id": "bamtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.mapq_filter/bamtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.mapq_filter/bamtools.txt"
         },
         {
           "stage_id": "bam.mapq_filter",
           "tool_id": "samtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.mapq_filter/samtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.mapq_filter/samtools.txt"
         },
         {
           "stage_id": "bam.overlap_correction",
           "tool_id": "bamutil",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.overlap_correction/bamutil.txt"
+          "fixture_path": "domain/bam/fixtures/bam.overlap_correction/bamutil.txt"
         },
         {
           "stage_id": "bam.sex",
           "tool_id": "angsd",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.sex/angsd.txt"
+          "fixture_path": "domain/bam/fixtures/bam.sex/angsd.txt"
         },
         {
           "stage_id": "bam.sex",
           "tool_id": "rxy",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.sex/rxy.txt"
+          "fixture_path": "domain/bam/fixtures/bam.sex/rxy.txt"
         },
         {
           "stage_id": "bam.sex",
           "tool_id": "yleaf",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.sex/yleaf.txt"
+          "fixture_path": "domain/bam/fixtures/bam.sex/yleaf.txt"
         },
         {
           "stage_id": "bam.validate",
           "tool_id": "bamtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.validate/bamtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.validate/bamtools.txt"
         },
         {
           "stage_id": "bam.validate",
           "tool_id": "bedtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.validate/bedtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.validate/bedtools.txt"
         },
         {
           "stage_id": "bam.validate",
           "tool_id": "samtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/bam/fixtures/bam.validate/samtools.txt"
+          "fixture_path": "domain/bam/fixtures/bam.validate/samtools.txt"
         }
       ],
       "deprecations": [
@@ -3542,7 +3566,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "6dbf366f9f40b447f2c57b06750134d0a5994b0c55c680c1ab1b8a37e0c79b94"
+      "checksum_sha256": "fef1ca13356bf8b6a7d22ef343153690f1eb77cb92d0c4d150fb050b4aa009bc"
     },
     {
       "domain_id": "fastq",
@@ -3654,6 +3678,7 @@
         "fastq.deplete_reference_contaminants",
         "fastq.deplete_rrna",
         "fastq.detect_adapters",
+        "fastq.detect_duplicates_premerge",
         "fastq.extract_umis",
         "fastq.filter_low_complexity",
         "fastq.filter_reads",
@@ -3676,6 +3701,7 @@
       ],
       "governed_tool_ids": [
         "bbduk",
+        "bijux_dna",
         "bowtie2",
         "bowtie2_build",
         "clumpify",
@@ -5143,8 +5169,8 @@
         },
         {
           "stage_id": "fastq.detect_duplicates_premerge",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "description": "Report duplicate-like signals before merge only when route-family evidence justifies the interpretation.",
           "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
@@ -5211,7 +5237,9 @@
           "tool_capability_requirements": [
             "premerge_duplicate_detection"
           ],
-          "compatible_tools": [],
+          "compatible_tools": [
+            "bijux_dna"
+          ],
           "assumptions": [
             "premerge duplicate detection is not equivalent to aligned duplicate marking and must stay report-only until route evidence is present."
           ],
@@ -5225,9 +5253,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "bijux_dna"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "fastq.detect_instrument_artifacts",
@@ -9142,7 +9168,7 @@
         },
         {
           "tool_id": "bijux_dna",
-          "status": "planned",
+          "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
           "default_version": "workspace",
@@ -9152,7 +9178,9 @@
           "citation": "software:https://github.com/bijux/bijux-genomics",
           "version_cmd": "bijux-dna --version",
           "help_cmd": "bijux-dna --help",
-          "stage_ids": [],
+          "stage_ids": [
+            "fastq.detect_duplicates_premerge"
+          ],
           "planned_stage_ids": [
             "fastq.build_contaminant_db",
             "fastq.build_rrna_db",
@@ -9162,7 +9190,6 @@
             "fastq.concatenate_lanes",
             "fastq.deinterleave_reads",
             "fastq.demultiplex_reads",
-            "fastq.detect_duplicates_premerge",
             "fastq.detect_instrument_artifacts",
             "fastq.estimate_library_complexity_prealign",
             "fastq.interleave_reads",
@@ -10141,7 +10168,10 @@
           ],
           "metrics_schema_id": "bijux.fastq.stats.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/seqfu:planned",
+            "digest": ""
+          }
         },
         {
           "tool_id": "seqkit",
@@ -11895,6 +11925,14 @@
           "override_policy": "explicit profile override required"
         },
         {
+          "stage_id": "fastq.detect_duplicates_premerge",
+          "tool_id": "bijux_dna",
+          "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+          "rationale": "Governed internal contract harness records report-only duplicate-signal expectations from the owned paired-end corpus without treating the result as scientific duplicate removal.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
           "stage_id": "fastq.extract_umis",
           "tool_id": "umi_tools",
           "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
@@ -12051,336 +12089,341 @@
         {
           "stage_id": "fastq.cluster_otus",
           "tool_id": "vsearch",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.cluster_otus/vsearch.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.cluster_otus/vsearch.txt"
         },
         {
           "stage_id": "fastq.correct_errors",
           "tool_id": "bayeshammer",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.correct_errors/bayeshammer.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.correct_errors/bayeshammer.txt"
         },
         {
           "stage_id": "fastq.correct_errors",
           "tool_id": "lighter",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.correct_errors/lighter.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.correct_errors/lighter.txt"
         },
         {
           "stage_id": "fastq.correct_errors",
           "tool_id": "musket",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.correct_errors/musket.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.correct_errors/musket.txt"
         },
         {
           "stage_id": "fastq.correct_errors",
           "tool_id": "rcorrector",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.correct_errors/rcorrector.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.correct_errors/rcorrector.txt"
         },
         {
           "stage_id": "fastq.deplete_host",
           "tool_id": "bowtie2",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.deplete_host/bowtie2.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.deplete_host/bowtie2.txt"
         },
         {
           "stage_id": "fastq.deplete_reference_contaminants",
           "tool_id": "bowtie2",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.deplete_reference_contaminants/bowtie2.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.deplete_reference_contaminants/bowtie2.txt"
         },
         {
           "stage_id": "fastq.deplete_rrna",
           "tool_id": "sortmerna",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.deplete_rrna/sortmerna.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.deplete_rrna/sortmerna.txt"
         },
         {
           "stage_id": "fastq.detect_adapters",
           "tool_id": "fastqc",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.detect_adapters/fastqc.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.detect_adapters/fastqc.txt"
+        },
+        {
+          "stage_id": "fastq.detect_duplicates_premerge",
+          "tool_id": "bijux_dna",
+          "fixture_path": "domain/fastq/fixtures/fastq.detect_duplicates_premerge/bijux_dna.txt"
         },
         {
           "stage_id": "fastq.extract_umis",
           "tool_id": "umi_tools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.extract_umis/umi_tools.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.extract_umis/umi_tools.txt"
         },
         {
           "stage_id": "fastq.filter_low_complexity",
           "tool_id": "bbduk",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.filter_low_complexity/bbduk.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.filter_low_complexity/bbduk.txt"
         },
         {
           "stage_id": "fastq.filter_low_complexity",
           "tool_id": "prinseq",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.filter_low_complexity/prinseq.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.filter_low_complexity/prinseq.txt"
         },
         {
           "stage_id": "fastq.filter_reads",
           "tool_id": "bbduk",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.filter_reads/bbduk.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.filter_reads/bbduk.txt"
         },
         {
           "stage_id": "fastq.filter_reads",
           "tool_id": "fastp",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.filter_reads/fastp.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.filter_reads/fastp.txt"
         },
         {
           "stage_id": "fastq.filter_reads",
           "tool_id": "prinseq",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.filter_reads/prinseq.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.filter_reads/prinseq.txt"
         },
         {
           "stage_id": "fastq.filter_reads",
           "tool_id": "seqkit",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.filter_reads/seqkit.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.filter_reads/seqkit.txt"
         },
         {
           "stage_id": "fastq.index_reference",
           "tool_id": "bowtie2_build",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.index_reference/bowtie2_build.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.index_reference/bowtie2_build.txt"
         },
         {
           "stage_id": "fastq.index_reference",
           "tool_id": "star",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.index_reference/star.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.index_reference/star.txt"
         },
         {
           "stage_id": "fastq.infer_asvs",
           "tool_id": "dada2",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.infer_asvs/dada2.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.infer_asvs/dada2.txt"
         },
         {
           "stage_id": "fastq.merge_pairs",
           "tool_id": "adapterremoval",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.merge_pairs/adapterremoval.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.merge_pairs/adapterremoval.txt"
         },
         {
           "stage_id": "fastq.merge_pairs",
           "tool_id": "bbmerge",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.merge_pairs/bbmerge.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.merge_pairs/bbmerge.txt"
         },
         {
           "stage_id": "fastq.merge_pairs",
           "tool_id": "flash2",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.merge_pairs/flash2.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.merge_pairs/flash2.txt"
         },
         {
           "stage_id": "fastq.merge_pairs",
           "tool_id": "leehom",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.merge_pairs/leehom.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.merge_pairs/leehom.txt"
         },
         {
           "stage_id": "fastq.merge_pairs",
           "tool_id": "pear",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.merge_pairs/pear.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.merge_pairs/pear.txt"
         },
         {
           "stage_id": "fastq.merge_pairs",
           "tool_id": "vsearch",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.merge_pairs/vsearch.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.merge_pairs/vsearch.txt"
         },
         {
           "stage_id": "fastq.normalize_abundance",
           "tool_id": "seqkit",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.normalize_abundance/seqkit.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.normalize_abundance/seqkit.txt"
         },
         {
           "stage_id": "fastq.normalize_primers",
           "tool_id": "cutadapt",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.normalize_primers/cutadapt.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.normalize_primers/cutadapt.txt"
         },
         {
           "stage_id": "fastq.profile_overrepresented_sequences",
           "tool_id": "fastq_scan",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.profile_overrepresented_sequences/fastq_scan.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.profile_overrepresented_sequences/fastq_scan.txt"
         },
         {
           "stage_id": "fastq.profile_overrepresented_sequences",
           "tool_id": "fastqc",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.profile_overrepresented_sequences/fastqc.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.profile_overrepresented_sequences/fastqc.txt"
         },
         {
           "stage_id": "fastq.profile_overrepresented_sequences",
           "tool_id": "seqkit",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.profile_overrepresented_sequences/seqkit.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.profile_overrepresented_sequences/seqkit.txt"
         },
         {
           "stage_id": "fastq.profile_read_lengths",
           "tool_id": "fastp",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.profile_read_lengths/fastp.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.profile_read_lengths/fastp.txt"
         },
         {
           "stage_id": "fastq.profile_read_lengths",
           "tool_id": "prinseq",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.profile_read_lengths/prinseq.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.profile_read_lengths/prinseq.txt"
         },
         {
           "stage_id": "fastq.profile_read_lengths",
           "tool_id": "seqfu",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.profile_read_lengths/seqfu.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.profile_read_lengths/seqfu.txt"
         },
         {
           "stage_id": "fastq.profile_read_lengths",
           "tool_id": "seqkit_stats",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.profile_read_lengths/seqkit_stats.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.profile_read_lengths/seqkit_stats.txt"
         },
         {
           "stage_id": "fastq.profile_reads",
           "tool_id": "seqkit_stats",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.profile_reads/seqkit_stats.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.profile_reads/seqkit_stats.txt"
         },
         {
           "stage_id": "fastq.remove_chimeras",
           "tool_id": "vsearch",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.remove_chimeras/vsearch.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.remove_chimeras/vsearch.txt"
         },
         {
           "stage_id": "fastq.remove_duplicates",
           "tool_id": "clumpify",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.remove_duplicates/clumpify.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.remove_duplicates/clumpify.txt"
         },
         {
           "stage_id": "fastq.remove_duplicates",
           "tool_id": "fastuniq",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.remove_duplicates/fastuniq.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.remove_duplicates/fastuniq.txt"
         },
         {
           "stage_id": "fastq.report_qc",
           "tool_id": "multiqc",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.report_qc/multiqc.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.report_qc/multiqc.txt"
         },
         {
           "stage_id": "fastq.screen_taxonomy",
           "tool_id": "centrifuge",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.screen_taxonomy/centrifuge.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.screen_taxonomy/centrifuge.txt"
         },
         {
           "stage_id": "fastq.screen_taxonomy",
           "tool_id": "kaiju",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.screen_taxonomy/kaiju.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.screen_taxonomy/kaiju.txt"
         },
         {
           "stage_id": "fastq.screen_taxonomy",
           "tool_id": "kraken2",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.screen_taxonomy/kraken2.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.screen_taxonomy/kraken2.txt"
         },
         {
           "stage_id": "fastq.screen_taxonomy",
           "tool_id": "krakenuniq",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.screen_taxonomy/krakenuniq.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.screen_taxonomy/krakenuniq.txt"
         },
         {
           "stage_id": "fastq.trim_polyg_tails",
           "tool_id": "bbduk",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_polyg_tails/bbduk.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_polyg_tails/bbduk.txt"
         },
         {
           "stage_id": "fastq.trim_polyg_tails",
           "tool_id": "fastp",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_polyg_tails/fastp.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_polyg_tails/fastp.txt"
         },
         {
           "stage_id": "fastq.trim_reads",
           "tool_id": "adapterremoval",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_reads/adapterremoval.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_reads/adapterremoval.txt"
         },
         {
           "stage_id": "fastq.trim_reads",
           "tool_id": "alientrimmer",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_reads/alientrimmer.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_reads/alientrimmer.txt"
         },
         {
           "stage_id": "fastq.trim_reads",
           "tool_id": "atropos",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_reads/atropos.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_reads/atropos.txt"
         },
         {
           "stage_id": "fastq.trim_reads",
           "tool_id": "bbduk",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_reads/bbduk.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_reads/bbduk.txt"
         },
         {
           "stage_id": "fastq.trim_reads",
           "tool_id": "cutadapt",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_reads/cutadapt.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_reads/cutadapt.txt"
         },
         {
           "stage_id": "fastq.trim_reads",
           "tool_id": "fastp",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_reads/fastp.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_reads/fastp.txt"
         },
         {
           "stage_id": "fastq.trim_reads",
           "tool_id": "fastx_clipper",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_reads/fastx_clipper.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_reads/fastx_clipper.txt"
         },
         {
           "stage_id": "fastq.trim_reads",
           "tool_id": "leehom",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_reads/leehom.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_reads/leehom.txt"
         },
         {
           "stage_id": "fastq.trim_reads",
           "tool_id": "prinseq",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_reads/prinseq.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_reads/prinseq.txt"
         },
         {
           "stage_id": "fastq.trim_reads",
           "tool_id": "seqkit",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_reads/seqkit.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_reads/seqkit.txt"
         },
         {
           "stage_id": "fastq.trim_reads",
           "tool_id": "skewer",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_reads/skewer.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_reads/skewer.txt"
         },
         {
           "stage_id": "fastq.trim_reads",
           "tool_id": "trim_galore",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_reads/trim_galore.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_reads/trim_galore.txt"
         },
         {
           "stage_id": "fastq.trim_reads",
           "tool_id": "trimmomatic",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_reads/trimmomatic.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_reads/trimmomatic.txt"
         },
         {
           "stage_id": "fastq.trim_terminal_damage",
           "tool_id": "adapterremoval",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_terminal_damage/adapterremoval.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_terminal_damage/adapterremoval.txt"
         },
         {
           "stage_id": "fastq.trim_terminal_damage",
           "tool_id": "cutadapt",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_terminal_damage/cutadapt.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_terminal_damage/cutadapt.txt"
         },
         {
           "stage_id": "fastq.trim_terminal_damage",
           "tool_id": "seqkit",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.trim_terminal_damage/seqkit.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.trim_terminal_damage/seqkit.txt"
         },
         {
           "stage_id": "fastq.validate_reads",
           "tool_id": "fastq_scan",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.validate_reads/fastq_scan.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.validate_reads/fastq_scan.txt"
         },
         {
           "stage_id": "fastq.validate_reads",
           "tool_id": "fastqc",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.validate_reads/fastqc.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.validate_reads/fastqc.txt"
         },
         {
           "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.validate_reads/fastqvalidator.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.validate_reads/fastqvalidator.txt"
         },
         {
           "stage_id": "fastq.validate_reads",
           "tool_id": "fqtools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.validate_reads/fqtools.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.validate_reads/fqtools.txt"
         },
         {
           "stage_id": "fastq.validate_reads",
           "tool_id": "seqtk",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/fastq/fixtures/fastq.validate_reads/seqtk.txt"
+          "fixture_path": "domain/fastq/fixtures/fastq.validate_reads/seqtk.txt"
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "f1307e65757a75f855770d2af8ec1385bc843375f65a3456c4d2912f08af4ee7"
+      "checksum_sha256": "4761ec0cb0ea7d42992a28b1524370d1d53928fc869d27a313e2d93b2e55a3de"
     },
     {
       "domain_id": "vcf",
@@ -14584,61 +14627,61 @@
         {
           "stage_id": "vcf.call",
           "tool_id": "bcftools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/vcf/fixtures/vcf.call/bcftools.txt"
+          "fixture_path": "domain/vcf/fixtures/vcf.call/bcftools.txt"
         },
         {
           "stage_id": "vcf.call_diploid",
           "tool_id": "bcftools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/vcf/fixtures/vcf.call_diploid/bcftools.txt"
+          "fixture_path": "domain/vcf/fixtures/vcf.call_diploid/bcftools.txt"
         },
         {
           "stage_id": "vcf.call_gl",
           "tool_id": "angsd",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/vcf/fixtures/vcf.call_gl/angsd.txt"
+          "fixture_path": "domain/vcf/fixtures/vcf.call_gl/angsd.txt"
         },
         {
           "stage_id": "vcf.call_gl",
           "tool_id": "bcftools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/vcf/fixtures/vcf.call_gl/bcftools.txt"
+          "fixture_path": "domain/vcf/fixtures/vcf.call_gl/bcftools.txt"
         },
         {
           "stage_id": "vcf.call_pseudohaploid",
           "tool_id": "angsd",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/vcf/fixtures/vcf.call_pseudohaploid/angsd.txt"
+          "fixture_path": "domain/vcf/fixtures/vcf.call_pseudohaploid/angsd.txt"
         },
         {
           "stage_id": "vcf.call_pseudohaploid",
           "tool_id": "bcftools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/vcf/fixtures/vcf.call_pseudohaploid/bcftools.txt"
+          "fixture_path": "domain/vcf/fixtures/vcf.call_pseudohaploid/bcftools.txt"
         },
         {
           "stage_id": "vcf.damage_filter",
           "tool_id": "angsd",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/vcf/fixtures/vcf.damage_filter/angsd.txt"
+          "fixture_path": "domain/vcf/fixtures/vcf.damage_filter/angsd.txt"
         },
         {
           "stage_id": "vcf.damage_filter",
           "tool_id": "bcftools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/vcf/fixtures/vcf.damage_filter/bcftools.txt"
+          "fixture_path": "domain/vcf/fixtures/vcf.damage_filter/bcftools.txt"
         },
         {
           "stage_id": "vcf.filter",
           "tool_id": "bcftools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/vcf/fixtures/vcf.filter/bcftools.txt"
+          "fixture_path": "domain/vcf/fixtures/vcf.filter/bcftools.txt"
         },
         {
           "stage_id": "vcf.gl_propagation",
           "tool_id": "bcftools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/vcf/fixtures/vcf.gl_propagation/bcftools.txt"
+          "fixture_path": "domain/vcf/fixtures/vcf.gl_propagation/bcftools.txt"
         },
         {
           "stage_id": "vcf.stats",
           "tool_id": "bcftools",
-          "fixture_path": "/Users/bijan/bijux/bijux-genomics/domain/vcf/fixtures/vcf.stats/bcftools.txt"
+          "fixture_path": "domain/vcf/fixtures/vcf.stats/bcftools.txt"
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "3d6c2f80c0793b0ab4a8d954d41b1314a725625282c07eb1ba8257c228cde033"
+      "checksum_sha256": "576388148277821a739cd755011167a517c7109b56f877e25b78fb183bf15ba7"
     }
   ]
 }
