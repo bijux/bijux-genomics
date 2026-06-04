@@ -22,15 +22,20 @@ fn local_gc_bias_smoke_plans_use_governed_reference_and_bam() -> Result<()> {
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-gc-window-ladder")
+        .find(|case| case.sample_id == "human_like_gc_window_ladder")
         .unwrap_or_else(|| panic!("governed BAM gc-bias case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.gc_bias");
     assert_eq!(case.plan.tool_id.as_str(), "picard");
     assert_eq!(case.plan.resources.threads, 2);
-    assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/gc_bias_window_reads.sam"));
+    assert_eq!(
+        case.bam,
+        PathBuf::from("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
+    );
     assert_eq!(
         case.reference,
-        PathBuf::from("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+        )
     );
     assert_eq!(case.window_size, 10);
     assert_eq!(
@@ -58,15 +63,19 @@ fn local_gc_bias_smoke_plans_use_governed_reference_and_bam() -> Result<()> {
     );
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.gc_bias/core-v1-gc-window-ladder/picard")
+        PathBuf::from("target/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard")
     );
     assert_eq!(
         case.plan.params["bam"],
-        serde_json::json!("assets/toy/core-v1/bam/gc_bias_window_reads.sam")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+        )
     );
     assert_eq!(
         case.plan.params["reference"],
-        serde_json::json!("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+        )
     );
     assert_eq!(case.plan.params["window_size"], serde_json::json!(10));
 
@@ -89,7 +98,7 @@ fn local_gc_bias_smoke_plans_use_governed_reference_and_bam() -> Result<()> {
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.gc_bias/core-v1-gc-window-ladder/picard/gc_bias.summary.json"
+            "target/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.summary.json"
         )
     );
 
@@ -132,8 +141,8 @@ tool_id = "picard"
 
 [[cases]]
 sample_id = " "
-bam = "assets/toy/core-v1/bam/gc_bias_window_reads.sam"
-reference = "assets/toy/core-v1/bam/gc_bias_reference_windows.fasta"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
 window_size = 10
 
 [[cases.expected_rows]]
@@ -161,8 +170,8 @@ tool_id = "picard"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/gc_bias_window_reads.sam"
-reference = "assets/toy/core-v1/bam/gc_bias_reference_windows.fasta"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
 window_size = 10
 
 [[cases.expected_rows]]
@@ -173,8 +182,8 @@ read_starts = 1
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/gc_bias_window_reads.sam"
-reference = "assets/toy/core-v1/bam/gc_bias_reference_windows.fasta"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
 window_size = 10
 
 [[cases.expected_rows]]
@@ -214,9 +223,12 @@ normalized_coverage = 0.75
 windows = 1
 read_starts = 1
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
-            reference =
-                repo_root.join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
+                .display(),
+            reference = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
+                .display(),
         ),
     )?;
 
@@ -247,9 +259,12 @@ reference = "{reference}"
 window_size = 10
 expected_rows = []
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
-            reference =
-                repo_root.join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
+                .display(),
+            reference = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
+                .display(),
         ),
     )?;
 
@@ -291,9 +306,12 @@ normalized_coverage = 1.2
 windows = 1
 read_starts = 2
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
-            reference =
-                repo_root.join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
+                .display(),
+            reference = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
+                .display(),
         ),
     )?;
 
@@ -329,9 +347,12 @@ normalized_coverage = 0.75
 windows = 0
 read_starts = 1
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
-            reference =
-                repo_root.join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
+                .display(),
+            reference = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
+                .display(),
         ),
     )?;
 
@@ -367,9 +388,12 @@ normalized_coverage = -0.1
 windows = 1
 read_starts = 1
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/gc_bias_window_reads.sam").display(),
-            reference =
-                repo_root.join("assets/toy/core-v1/bam/gc_bias_reference_windows.fasta").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
+                .display(),
+            reference = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
+                .display(),
         ),
     )?;
 

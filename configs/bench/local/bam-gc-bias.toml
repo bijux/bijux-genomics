@@ -11,9 +11,9 @@ threads = 2
 output_dir = "target/local-smoke/bam.gc_bias"
 
 [[cases]]
-sample_id = "core-v1-gc-window-ladder"
-bam = "assets/toy/core-v1/bam/gc_bias_window_reads.sam"
-reference = "assets/toy/core-v1/bam/gc_bias_reference_windows.fasta"
+sample_id = "human_like_gc_window_ladder"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
 window_size = 10
 
 [[cases.expected_rows]]
