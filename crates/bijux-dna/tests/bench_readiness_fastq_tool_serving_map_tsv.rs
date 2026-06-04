@@ -70,6 +70,12 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain the governed validation row for {tool_id}"
         );
     }
+    assert!(
+        rows.iter().any(|row| {
+            row == &"fastqc\tfastq.detect_adapters\tobserver_specialized_benchmark\trunnable\tcomparable\tfixture:corpus-01-mini"
+        }),
+        "TSV must retain the fixture-backed detect-adapters row for fastqc"
+    );
     for tool_id in ["seqfu", "seqkit", "seqkit_stats"] {
         assert!(
             rows.iter().any(|row| {

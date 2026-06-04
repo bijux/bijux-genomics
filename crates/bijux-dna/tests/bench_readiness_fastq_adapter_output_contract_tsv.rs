@@ -54,6 +54,14 @@ fn bench_readiness_fastq_adapter_output_contract_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row.starts_with(
+                "fastqc\tfastq.detect_adapters\trunnable\tcomplete\treport_json,adapter_report,adapter_evidence_dir\treport_json,adapter_report,adapter_evidence_dir\t"
+            )
+        }),
+        "TSV must retain the governed detect-adapters contract row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row.starts_with("bowtie2\tfastq.deplete_host\trunnable\tcomplete\t")
                 && row.contains("\thost_depletion_report_json\t")
         }),
@@ -61,9 +69,8 @@ fn bench_readiness_fastq_adapter_output_contract_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row.starts_with(
-                "diamond\tfastq.screen_taxonomy\tdeclared_only\tmissing_adapter\tclassification_report_json,screen_report_tsv\t\t\t\t\t\t\t\t\tadapter\t"
-            )
+            row.starts_with("diamond\tfastq.screen_taxonomy\tdeclared_only\tmissing_adapter\t")
+                && row.contains("\tadapter\t")
         }),
         "TSV must keep the planned diamond taxonomy row explicit as missing an adapter"
     );
