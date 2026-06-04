@@ -71,6 +71,17 @@ expected_record_count = 5
 source_paths = ["tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"]
 
 [[samples]]
+sample_id = "human_like_duplicate_cluster"
+cohort = "human_like"
+alignment_path = "aligned/human_like_duplicate_cluster.sam"
+index_path = "aligned/human_like_duplicate_cluster.sam.bai"
+expected_contigs = ["chr1"]
+expected_header_sample_ids = ["human_like_duplicate_cluster"]
+expected_read_group_ids = ["rg-duplicate-cluster-human-like"]
+expected_record_count = 4
+source_paths = ["tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"]
+
+[[samples]]
 sample_id = "adna_like_damage"
 cohort = "adna_like"
 alignment_path = "aligned/adna_like_damage.sam"
