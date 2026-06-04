@@ -85,6 +85,7 @@ screen_taxonomy_benchmark_policy: fastq.screen_taxonomy
 merge_pairs_benchmark_policy: fastq.merge_pairs
 - default benchmark backend is `pear`
 - governed comparison backends are `adapterremoval`, `bbmerge`, `flash2`, `leehom`, and `vsearch`
+- the current governed benchmark surface is assigned to `fixture:corpus-01-mini`
 - every governed `fastq.merge_pairs` row must emit `merged_pair_count`, `unmerged_pair_count`, `discarded_pair_count`, and `merge_rate`
 - benchmark rows must keep `input_pair_count`, `merged_pair_count`, and `unmerged_pair_count` aligned with the governed `reads_r1`, `reads_r2`, `reads_merged`, and `reads_unmerged` report fields so downstream comparison code does not need backend-specific merge math
 - `discarded_pair_count` must stay derived from the governed pair counts instead of inventing a backend-specific discard metric that some merge tools do not publish directly
