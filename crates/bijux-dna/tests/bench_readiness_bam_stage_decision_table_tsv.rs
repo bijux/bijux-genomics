@@ -116,6 +116,12 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"bam.endogenous_content\tbenchmark_ready\tsamtools\tsamtools\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.endogenous_content` is benchmark_ready via `samtools` with a fixture-backed parser-validated BAM benchmark row"
+        }),
+        "TSV must retain the governed benchmark-ready bam.endogenous_content row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"bam.align\tneeds_parser\tbwa\tbwa\tsupported\trunnable\tartifact_contract_only\tfixture:corpus-01-mini\tstage `bam.align` has a supported adapter-backed BAM benchmark row via `bwa` but no parser-fixture-validated result normalizer"
         }),
         "TSV must retain the governed parser blocker for bam.align"

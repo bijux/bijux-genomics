@@ -500,6 +500,14 @@ mod tests {
                 && row.corpus_status == "fixture:corpus-01-bam-mini"
         }));
         assert!(report.rows.iter().any(|row| {
+            row.tool_id == "samtools"
+                && row.stage_id == "bam.endogenous_content"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
             row.tool_id == "pydamage"
                 && row.stage_id == "bam.damage"
                 && row.support_status == "supported"
