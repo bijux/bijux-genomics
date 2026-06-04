@@ -50,11 +50,11 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(
         payload.get("fixture_backed_stage_count").and_then(serde_json::Value::as_u64),
-        Some(23)
+        Some(24)
     );
     assert_eq!(
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
-        Some(28)
+        Some(27)
     );
 
     let stages = payload.get("stages").and_then(serde_json::Value::as_array).expect("stages array");
@@ -124,6 +124,17 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
                     == Some("fixture")
         }),
         "trim_terminal_damage must map to the governed general FASTQ corpus once aDNA-like fixture coverage is owned there"
+    );
+    assert!(
+        stages.iter().any(|stage| {
+            stage.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.remove_duplicates")
+                && stage.get("fixture_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-01-mini")
+                && stage.get("compatibility_kind").and_then(serde_json::Value::as_str)
+                    == Some("fixture")
+        }),
+        "remove_duplicates must map to the governed general FASTQ corpus once duplicate-signal removal coverage is owned there"
     );
     assert!(
         stages.iter().any(|stage| {
