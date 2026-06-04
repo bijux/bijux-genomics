@@ -94,6 +94,7 @@ single_tool_justification: bam.haplogroups
 - `bam.filter`: governed local-smoke coverage now uses the `corpus-01-bam-mini` mixed-filter alignment fixture so the retained, low-MAPQ, short-fragment, duplicate, and unmapped branches are proven through owned corpus inputs rather than a transitional toy asset path.
 - `bam.mapq_filter`: the admitted `samtools` and `bamtools` benchmark rows must preserve `mapq_threshold`, `kept_reads`, `removed_reads`, and `filtered_bam`.
 - `bam.mapq_filter`: `samtools` remains the fixture-backed MAPQ-gating baseline, while `bamtools` currently contributes supported comparison coverage through the same governed audit-artifact contract and local planning path.
+- `bam.mapq_filter`: governed local-smoke coverage now uses the `corpus-01-bam-mini` MAPQ-threshold ladder fixture so the retained, threshold-edge, and removed branches are proven through owned corpus inputs rather than a transitional toy asset path.
 - `bam.length_filter`: the admitted `samtools` and `picard` benchmark rows must preserve `min_length_threshold`, `kept_reads`, `removed_reads`, and `filtered_bam`.
 - `bam.length_filter`: `samtools` remains the fixture-backed length-gating baseline, while `picard` currently contributes supported comparison coverage through the same governed audit-artifact contract and local planning path.
 - `bam.markdup`: the admitted `samtools` and `picard` benchmark rows must preserve `marked_bam`, `duplicate_metrics`, `duplicate_count`, and `duplicate_fraction`.
