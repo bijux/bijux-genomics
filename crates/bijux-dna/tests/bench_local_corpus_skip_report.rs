@@ -47,10 +47,10 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
     );
     assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
-    assert_eq!(payload.get("skip_count").and_then(serde_json::Value::as_u64), Some(96));
+    assert_eq!(payload.get("skip_count").and_then(serde_json::Value::as_u64), Some(100));
     assert_eq!(
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
-        Some(27)
+        Some(26)
     );
 
     let skips = payload.get("skips").and_then(serde_json::Value::as_array).expect("skips array");
@@ -129,6 +129,17 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
                     == Some("corpus-01-mini")
         }),
         "fixture-backed remove-duplicates skips must name the governed FASTQ corpus replacement"
+    );
+    assert!(
+        skips.iter().any(|skip| {
+            skip.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.filter_low_complexity")
+                && skip.get("corpus_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-02-edna-mini")
+                && skip.get("replacement_corpus_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-01-mini")
+        }),
+        "fixture-backed filter-low-complexity skips must name the governed FASTQ corpus replacement"
     );
 
     let planner_only = payload
