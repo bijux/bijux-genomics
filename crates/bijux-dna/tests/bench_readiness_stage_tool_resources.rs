@@ -51,14 +51,14 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(82));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(84));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(82)
+        Some(84)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(82)
+        Some(84)
     );
     assert_eq!(
         payload
@@ -72,7 +72,7 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(19)
+        Some(21)
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let fastqc = rows
@@ -204,6 +204,19 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         assert_eq!(qc_pre.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
         assert_eq!(qc_pre.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(7));
         assert_eq!(qc_pre.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    }
+    for tool_id in ["picard", "samtools"] {
+        let markdup = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.markdup")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam markdup {tool_id} row"));
+        assert_eq!(markdup.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(markdup.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+        assert_eq!(markdup.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(9));
+        assert_eq!(markdup.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(3));
     }
     for tool_id in ["picard", "samtools"] {
         let length_filter = rows
