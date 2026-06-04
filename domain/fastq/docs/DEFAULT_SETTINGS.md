@@ -31,7 +31,7 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - `fastq.concatenate_lanes`: default `bijux_dna`. rationale: planned internal contract harness records lane-manifest consolidation semantics and output lineage expectations.
 - `fastq.deinterleave_reads`: default `bijux_dna`. rationale: planned internal contract harness records interleaved input splitting semantics and paired-output expectations.
 - `fastq.demultiplex_reads`: default `bijux_dna`. rationale: planned internal contract harness records barcode-manifest inputs and per-sample output/report expectations.
-- `fastq.detect_duplicates_premerge`: default `bijux_dna`. rationale: planned internal contract harness records report-only duplicate-signal expectations without treating the result as scientific duplicate removal.
+- `fastq.detect_duplicates_premerge`: default `bijux_dna`. rationale: governed internal contract harness records report-only duplicate-signal expectations from the owned paired-end corpus without treating the result as scientific duplicate removal.
 - `fastq.detect_instrument_artifacts`: default `bijux_dna`. rationale: planned internal contract harness records report-only instrument-artifact expectations before backend-specific detector admission.
 - `fastq.estimate_library_complexity_prealign`: default `bijux_dna`. rationale: planned internal contract harness records prealignment library-complexity report expectations without substituting for alignment-derived metrics.
 - `fastq.index_reference`: default `bowtie2_build`. rationale: default FASTQ reference preparation must emit the mapper index consumed by governed host and reference-contaminant depletion.
@@ -111,6 +111,7 @@ detect_adapters_benchmark_policy: fastq.detect_adapters
 
 detect_duplicates_premerge_benchmark_policy: fastq.detect_duplicates_premerge
 - default benchmark backend is the planned internal `bijux_dna` contract harness
+- the current governed benchmark surface is assigned to `fixture:corpus-01-mini`
 - every governed `fastq.detect_duplicates_premerge` row must emit `duplicate_count`, `duplicate_fraction`, and `inspected_pair_count`
 - benchmark rows must preserve the report-only `duplicate_detection_policy` and `measurement_scope` so premerge duplicate signaling is not misrepresented as scientific duplicate removal
 - paired-end rows must report inspected pair count from the governed sequence-signature comparison, while single-end rows must leave inspected pair count empty instead of inventing a synthetic pair total

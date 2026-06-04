@@ -65,8 +65,10 @@ compatibility_note = "The general FASTQ corpus now owns adapter-hit and adapter-
 
 [[mappings]]
 stage_id = "fastq.detect_duplicates_premerge"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed corpus fixture yet owns a duplicate-pair read contract for premerge duplicate detection smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus now owns duplicate-signal and distinct-pair paired-end reads for governed premerge duplicate detection smoke checks."
 
 [[mappings]]
 stage_id = "fastq.estimate_library_complexity_prealign"
