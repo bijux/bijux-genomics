@@ -1,0 +1,8 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chr1	LN:64
+@RG	ID:rg-endogenous-content-human-like	SM:human_like_endogenous_partial_mapping
+r001	0	chr1	1	42	6M	*	0	0	ACGTAC	FFFFFF	RG:Z:rg-endogenous-content-human-like
+r002	0	chr1	12	35	6M	*	0	0	TGCATG	FFFFFF	RG:Z:rg-endogenous-content-human-like
+r003	0	chr1	24	28	6M	*	0	0	GATTAC	FFFFFF	RG:Z:rg-endogenous-content-human-like
+r004	4	*	0	0	*	*	0	0	NNNNNN	FFFFFF	RG:Z:rg-endogenous-content-human-like
+r005	4	*	0	0	*	*	0	0	NNNNNN	FFFFFF	RG:Z:rg-endogenous-content-human-like

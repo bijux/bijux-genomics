@@ -38,6 +38,19 @@ expected_record_count = 3
 source_paths = ["tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"]
 
 [[samples]]
+sample_id = "human_like_endogenous_partial_mapping"
+cohort = "human_like"
+alignment_path = "aligned/human_like_endogenous_partial_mapping.sam"
+index_path = "aligned/human_like_endogenous_partial_mapping.sam.bai"
+expected_contigs = ["chr1"]
+expected_header_sample_ids = ["human_like_endogenous_partial_mapping"]
+expected_read_group_ids = ["rg-endogenous-content-human-like"]
+expected_record_count = 5
+source_paths = [
+  "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam",
+]
+
+[[samples]]
 sample_id = "human_like_mapq_threshold_ladder"
 cohort = "human_like"
 alignment_path = "aligned/human_like_mapq_threshold_ladder.sam"
