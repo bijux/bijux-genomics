@@ -551,7 +551,7 @@ fn bench_local_materialize_stage_bam_markdup_json_writes_governed_smoke_bundle()
     );
     assert_eq!(
         report.get("sample_id").and_then(serde_json::Value::as_str),
-        Some("core-v1-markdup-cluster")
+        Some("human_like_duplicate_cluster")
     );
     assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(report.get("duplicate_action").and_then(serde_json::Value::as_str), Some("mark"));
