@@ -92,6 +92,7 @@ merge_pairs_benchmark_policy: fastq.merge_pairs
 
 extract_umis_benchmark_policy: fastq.extract_umis
 - default benchmark backend is `umi_tools`
+- the current governed benchmark surface is assigned to `fixture:corpus-01-mini`
 - every governed `fastq.extract_umis` row must emit `umi_pattern`, `extracted_umi_count`, `invalid_umi_count`, and `tag_header_format`
 - benchmark rows must preserve the governed downstream propagation policy and the UMI-tagged FASTQ output paths so header tagging remains distinguishable from downstream BAM-tag materialization expectations
 - the current governed benchmark surface is intentionally single-tool; completing the row contract must not be misrepresented as admitted alternative-backend coverage

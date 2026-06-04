@@ -170,8 +170,10 @@ compatibility_note = "The general FASTQ corpus already owns paired reads suitabl
 
 [[mappings]]
 stage_id = "fastq.extract_umis"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed corpus fixture yet owns a known-UMI read contract for local UMI extraction smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus owns paired reads with known UMI-prefix behavior for governed local UMI extraction smoke checks."
 
 [[mappings]]
 stage_id = "fastq.profile_overrepresented_sequences"
