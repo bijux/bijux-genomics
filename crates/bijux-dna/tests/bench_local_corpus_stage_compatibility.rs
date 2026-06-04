@@ -50,11 +50,11 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(
         payload.get("fixture_backed_stage_count").and_then(serde_json::Value::as_u64),
-        Some(41)
+        Some(42)
     );
     assert_eq!(
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
-        Some(10)
+        Some(9)
     );
 
     let stages = payload.get("stages").and_then(serde_json::Value::as_array).expect("stages array");
@@ -222,6 +222,17 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
                     == Some("fixture")
         }),
         "bam.authenticity must map to the governed BAM corpus once ancient-like damage coverage is owned there"
+    );
+    assert!(
+        stages.iter().any(|stage| {
+            stage.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.contamination")
+                && stage.get("fixture_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-01-bam-mini")
+                && stage.get("compatibility_kind").and_then(serde_json::Value::as_str)
+                    == Some("fixture")
+        }),
+        "bam.contamination must map to the governed BAM corpus once the contamination-panel fixture and AF resources are owned there"
     );
     assert!(
         stages.iter().any(|stage| {

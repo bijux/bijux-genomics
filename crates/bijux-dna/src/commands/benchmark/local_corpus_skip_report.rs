@@ -188,8 +188,8 @@ mod tests {
 
         assert_eq!(report.fixture_count, 5);
         assert_eq!(report.stage_count, 51);
-        assert_eq!(report.skip_count, 96);
-        assert_eq!(report.planner_only_stage_count, 27);
+        assert_eq!(report.skip_count, 168);
+        assert_eq!(report.planner_only_stage_count, 9);
         assert!(
             report.skips.iter().any(|skip| {
                 skip.stage_id == "fastq.screen_taxonomy"
@@ -229,6 +229,14 @@ mod tests {
                     && skip.replacement_corpus_id == "corpus-01-mini"
             }),
             "fixture-backed trim-terminal-damage stage should emit an explicit replacement for incompatible corpora"
+        );
+        assert!(
+            report.skips.iter().any(|skip| {
+                skip.stage_id == "bam.contamination"
+                    && skip.corpus_id == "corpus-01-mini"
+                    && skip.replacement_corpus_id == "corpus-01-bam-mini"
+            }),
+            "fixture-backed contamination stage should emit an explicit replacement for incompatible corpora"
         );
         assert!(
             report.skips.iter().any(|skip| {

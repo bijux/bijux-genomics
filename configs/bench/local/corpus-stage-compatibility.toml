@@ -248,8 +248,10 @@ compatibility_note = "The governed BAM corpus now owns an observed-unique-read c
 
 [[mappings]]
 stage_id = "bam.contamination"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed corpus fixture yet owns a contamination-panel contract with the population AF resources required for local contamination planning."
+fixture_id = "corpus-01-bam-mini"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+compatibility_note = "The general BAM corpus now owns a contamination-panel alignment fixture and governed population-AF panel suitable for local contamination planning."
 
 [[mappings]]
 stage_id = "bam.coverage"
