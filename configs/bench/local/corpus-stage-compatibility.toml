@@ -87,8 +87,10 @@ compatibility_note = "The amplicon corpus already owns governed primer metadata 
 
 [[mappings]]
 stage_id = "fastq.trim_polyg_tails"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed corpus fixture yet owns a poly-G tail contract for local poly-G trimming smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus already owns poly-G tail reads suitable for governed trim-polyg benchmarking."
 
 [[mappings]]
 stage_id = "fastq.trim_reads"

@@ -10,27 +10,32 @@ fn repo_root() -> PathBuf {
 }
 
 #[test]
-fn local_trim_polyg_tails_smoke_plans_use_governed_toy_fixture() -> Result<()> {
+fn local_trim_polyg_tails_smoke_plans_use_governed_corpus_fixture() -> Result<()> {
     let repo_root = repo_root();
     let plans = bijux_dna_planner_fastq::stage_api::local_trim_polyg_tails_smoke_plans(&repo_root)?;
     assert_eq!(plans.len(), 1, "governed polyG smoke should keep one curated case");
 
     let case = &plans[0];
-    assert_eq!(case.sample_id, "novaseq-se");
+    assert_eq!(case.sample_id, "polyg-hit-se");
     assert_eq!(case.plan.stage_id.as_str(), "fastq.trim_polyg_tails");
     assert_eq!(case.plan.tool_id.as_str(), "fastp");
-    assert_eq!(case.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_with_polyg.fastq"));
+    assert_eq!(
+        case.r1,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_polyg_trim_signals_R1.fastq.gz"
+        )
+    );
     assert_eq!(case.r2, None);
     assert_eq!(case.min_polyg_run, 6);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.trim_polyg_tails/novaseq-se/fastp")
+        PathBuf::from("target/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp")
     );
     assert_eq!(case.plan.resources.threads, 1);
     assert_eq!(
         case.plan.params["report_json"],
         serde_json::json!(
-            "target/local-smoke/fastq.trim_polyg_tails/novaseq-se/fastp/trim_polyg_tails_report.json"
+            "target/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.json"
         )
     );
     assert_eq!(case.plan.effective_params["trim_polyg"], serde_json::json!(true));
