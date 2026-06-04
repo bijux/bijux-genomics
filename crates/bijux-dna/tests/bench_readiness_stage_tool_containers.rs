@@ -51,19 +51,19 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(84));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(86));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(84)
+        Some(86)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(83));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(85));
     assert_eq!(
         payload.get("container_declared_row_count").and_then(serde_json::Value::as_u64),
-        Some(83)
+        Some(85)
     );
     assert_eq!(
         payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
-        Some(84)
+        Some(86)
     );
     assert_eq!(payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
@@ -78,7 +78,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(21)
+        Some(23)
     );
 
     assert_eq!(
@@ -86,7 +86,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("execution_mode_counts")
             .and_then(|value| value.get("containerized"))
             .and_then(serde_json::Value::as_u64),
-        Some(68)
+        Some(69)
     );
     assert_eq!(
         payload
@@ -100,7 +100,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("execution_mode_counts")
             .and_then(|value| value.get("java"))
             .and_then(serde_json::Value::as_u64),
-        Some(6)
+        Some(7)
     );
     assert_eq!(
         payload
@@ -419,6 +419,48 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     );
     assert_eq!(
         mapping_summary_samtools.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/samtools:1.21")
+    );
+    let duplication_metrics_picard = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.duplication_metrics")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
+        })
+        .expect("bam duplication-metrics picard row");
+    assert_eq!(
+        duplication_metrics_picard.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("java")
+    );
+    assert_eq!(
+        duplication_metrics_picard.get("command_entrypoint").and_then(serde_json::Value::as_str),
+        Some("picard")
+    );
+    assert_eq!(
+        duplication_metrics_picard.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/picard:3.3.0")
+    );
+    let duplication_metrics_samtools = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.duplication_metrics")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
+        })
+        .expect("bam duplication-metrics samtools row");
+    assert_eq!(
+        duplication_metrics_samtools.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("containerized")
+    );
+    assert_eq!(
+        duplication_metrics_samtools
+            .get("command_entrypoint")
+            .and_then(serde_json::Value::as_str),
+        Some("samtools")
+    );
+    assert_eq!(
+        duplication_metrics_samtools.get("container_id").and_then(serde_json::Value::as_str),
         Some("bijuxdna/samtools:1.21")
     );
     for (tool_id, command_entrypoint, container_id) in [

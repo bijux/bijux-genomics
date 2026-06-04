@@ -51,14 +51,14 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(84));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(86));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(84)
+        Some(86)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(84)
+        Some(86)
     );
     assert_eq!(
         payload
@@ -72,7 +72,7 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(21)
+        Some(23)
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let fastqc = rows
@@ -250,6 +250,29 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
             Some(7)
         );
         assert_eq!(mapping_summary.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    }
+    for tool_id in ["picard", "samtools"] {
+        let duplication_metrics = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.duplication_metrics")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam duplication-metrics {tool_id} row"));
+        assert_eq!(duplication_metrics.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(
+            duplication_metrics.get("memory_gb").and_then(serde_json::Value::as_u64),
+            Some(2)
+        );
+        assert_eq!(
+            duplication_metrics.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+            Some(7)
+        );
+        assert_eq!(
+            duplication_metrics.get("scratch_gb").and_then(serde_json::Value::as_u64),
+            Some(2)
+        );
     }
     for tool_id in ["bamtools", "samtools"] {
         let mapq_filter = rows
