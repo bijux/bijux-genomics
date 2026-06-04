@@ -124,7 +124,7 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
         assert!(
             rows.iter().any(|row| {
                 row == &format!(
-                    "{tool_id}\tfastq.filter_reads\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tplanner_only"
+                    "{tool_id}\tfastq.filter_reads\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-01-mini"
                 )
             }),
             "TSV must retain the governed filter-reads row for {tool_id}"
