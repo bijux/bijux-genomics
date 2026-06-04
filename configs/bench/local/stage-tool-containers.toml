@@ -569,6 +569,36 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.trim_terminal_damage"
+tool_id = "adapterremoval"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/adapterremoval@sha256:5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d"
+command_entrypoint = "AdapterRemoval"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_terminal_damage"
+tool_id = "cutadapt"
+execution_mode = "python"
+install_kind = "container"
+container_id = "bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
+command_entrypoint = "cutadapt"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_terminal_damage"
+tool_id = "seqkit"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+command_entrypoint = "seqkit"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.validate_reads"
 tool_id = "fastq_scan"
 execution_mode = "containerized"
