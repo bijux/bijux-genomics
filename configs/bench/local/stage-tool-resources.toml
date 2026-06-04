@@ -179,6 +179,46 @@ resource_origin = "tool_constraints_with_stage_walltime_profile"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.filter_reads"
+tool_id = "bbduk"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_reads"
+tool_id = "fastp"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_reads"
+tool_id = "prinseq"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_reads"
+tool_id = "seqkit"
+threads = 2
+memory_gb = 4
+walltime_minutes = 15
+scratch_gb = 2
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.infer_asvs"
 tool_id = "dada2"
 threads = 4

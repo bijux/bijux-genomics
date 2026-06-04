@@ -179,6 +179,46 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.filter_reads"
+tool_id = "bbduk"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bbduk@sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4"
+command_entrypoint = "bbduk"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_reads"
+tool_id = "fastp"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10"
+command_entrypoint = "fastp"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_reads"
+tool_id = "prinseq"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
+command_entrypoint = "prinseq++"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_reads"
+tool_id = "seqkit"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+command_entrypoint = "seqkit"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.infer_asvs"
 tool_id = "dada2"
 execution_mode = "r"
