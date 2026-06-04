@@ -315,8 +315,10 @@ compatibility_note = "The general BAM corpus now owns a partial-mapping alignmen
 
 [[mappings]]
 stage_id = "bam.mapq_filter"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed BAM corpus fixture yet owns a MAPQ-threshold ladder contract for local MAPQ-filter smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a MAPQ-threshold ladder alignment fixture suitable for governed local MAPQ-filter smoke checks."
 
 [[mappings]]
 stage_id = "bam.markdup"
