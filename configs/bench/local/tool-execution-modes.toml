@@ -40,7 +40,6 @@ tool_ids = [
   "clumpify",
   "contammix",
   "damageprofiler",
-  "diamond",
   "dustmasker",
   "fastp",
   "fastq_scan",

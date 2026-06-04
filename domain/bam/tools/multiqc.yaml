@@ -5,6 +5,9 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "1.24"
 install_kind: "container"
+container:
+  image: "bijuxdna/multiqc"
+  digest: "sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec"
 license: "GPL-3.0"
 citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5039924/"
 outputs:

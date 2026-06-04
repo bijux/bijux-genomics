@@ -535,6 +535,24 @@ mod tests {
     }
 
     #[test]
+    fn load_bam_domain_tool_execution_spec_accepts_supported_multiqc_qc_pre_stage() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("bam.qc_pre".to_string());
+        let tool_id = ToolId::new("multiqc");
+
+        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(spec.tool_id.as_str(), "multiqc");
+        assert_eq!(spec.command.template, vec!["multiqc".to_string()]);
+        assert_eq!(spec.image.image, "bijuxdna/multiqc");
+        assert_eq!(
+            spec.image.digest.as_deref(),
+            Some("sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec")
+        );
+        Ok(())
+    }
+
+    #[test]
     fn load_bam_domain_tool_planning_spec_accepts_validate_stage_with_container_metadata(
     ) -> Result<()> {
         let repo_root = repo_root();

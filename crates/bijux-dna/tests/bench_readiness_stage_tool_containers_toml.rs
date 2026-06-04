@@ -48,7 +48,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         Some("benchmark_ready_runtime_declarations")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 70);
+    assert_eq!(rows.len(), 73);
     assert!(rows.iter().all(|row| {
         row.get("container_id").is_some()
             || row.get("command_entrypoint").is_some()
@@ -112,6 +112,34 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
                 == Some(
                     "bijuxdna/umi_tools@sha256:b2913af8c02c1eeea5de7a4b5c120f65e2003b90479c8873f0ec37689d36296c"
                 )
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.normalize_abundance")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("seqkit")
+            && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
+            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("seqkit")
+            && row.get("container_id").and_then(toml::Value::as_str)
+                == Some(
+                    "bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+                )
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.qc_pre")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("multiqc")
+            && row.get("execution_mode").and_then(toml::Value::as_str) == Some("python")
+            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("multiqc")
+            && row.get("container_id").and_then(toml::Value::as_str)
+                == Some(
+                    "bijuxdna/multiqc@sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec"
+                )
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.qc_pre")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("samtools")
+            && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
+            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("samtools")
+            && row.get("container_id").and_then(toml::Value::as_str)
+                == Some("bijuxdna/samtools:1.21")
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str)

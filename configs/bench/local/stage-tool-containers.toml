@@ -59,6 +59,26 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.qc_pre"
+tool_id = "multiqc"
+execution_mode = "python"
+install_kind = "container"
+container_id = "bijuxdna/multiqc@sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec"
+command_entrypoint = "multiqc"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.qc_pre"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.validate"
 tool_id = "bamtools"
 execution_mode = "containerized"
@@ -325,6 +345,16 @@ execution_mode = "containerized"
 install_kind = "container"
 container_id = "bijuxdna/vsearch@sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3"
 command_entrypoint = "vsearch"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.normalize_abundance"
+tool_id = "seqkit"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+command_entrypoint = "seqkit"
 declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
