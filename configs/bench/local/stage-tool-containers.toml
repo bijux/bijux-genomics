@@ -109,6 +109,26 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.mapq_filter"
+tool_id = "bamtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bamtools:2.5.2"
+command_entrypoint = "bamtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapq_filter"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.qc_pre"
 tool_id = "multiqc"
 execution_mode = "python"
