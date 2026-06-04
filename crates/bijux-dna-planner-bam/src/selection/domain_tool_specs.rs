@@ -283,23 +283,22 @@ mod tests {
     fn load_bam_domain_tool_contract_metadata_reads_supported_stage_status() -> Result<()> {
         let repo_root = repo_root();
         let tool_id = ToolId::new("samtools");
+        let validate_stage = StageId::new("bam.validate".to_string());
+        let align_stage = StageId::new("bam.align".to_string());
 
         let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
 
         assert_eq!(metadata.tool_id.as_str(), "samtools");
         assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Supported);
         assert!(
-            metadata.stage_ids.iter().any(|stage_id| stage_id.as_str() == "bam.validate"),
+            metadata.stage_ids.iter().any(|stage_id| stage_id == &validate_stage),
             "samtools metadata must retain direct BAM stage admissions"
         );
         assert!(
-            metadata.planned_stage_ids.iter().any(|stage_id| stage_id.as_str() == "bam.align"),
-            "samtools metadata must retain planned-only BAM stage admissions"
+            !metadata.planned_stage_ids.iter().any(|stage_id| stage_id == &align_stage),
+            "samtools metadata must not retain a stale planned-only BAM alignment admission"
         );
-        assert_eq!(
-            metadata.pair_support_level(&StageId::new("bam.align".to_string())).as_str(),
-            "planned"
-        );
+        assert_eq!(metadata.pair_support_level(&validate_stage).as_str(), "supported");
         Ok(())
     }
 
