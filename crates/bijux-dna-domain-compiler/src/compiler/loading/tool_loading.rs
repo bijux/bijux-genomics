@@ -84,62 +84,140 @@ pub(super) fn load_domain_tools(
             }
         }
         let tool_id = tool.tool_id.clone();
-        if tools.contains_key(&tool_id) {
+        let candidate = build_tool_row(tool, &resolved_domain);
+        if let Some(existing) = tools.get_mut(&tool_id) {
+            merge_tool_rows(existing, candidate)?;
             continue;
         }
-        let version_rule = tool.versioning_strategy.clone();
-        let help_cmd_value = tool.help_cmd.clone();
-        let mut domains = tool
-            .declared_stage_ids()
-            .filter_map(|stage_id| stage_id.split('.').next().map(str::to_string))
-            .collect::<Vec<_>>();
-        domains.sort();
-        domains.dedup();
-        let mut bindings = tool.stage_ids.clone();
-        bindings.sort();
-        bindings.dedup();
-        let tool_role = infer_tool_role(&bindings);
-        tools.insert(
-            tool_id.clone(),
-            ToolRow {
-                id: tool_id.clone(),
-                domain: resolved_domain,
-                domains,
-                stage_ids: tool.stage_ids,
-                bindings,
-                tool_role,
-                default_version: tool.default_version,
-                upstream: tool.upstream,
-                pin_strategy: if tool.pin_strategy.is_empty() {
-                    version_rule.clone()
-                } else {
-                    tool.pin_strategy
-                },
-                version_cmd: tool.version_cmd,
-                help_cmd: help_cmd_value.clone(),
-                expected_artifacts: tool.expected_artifacts,
-                metrics_schema: if tool.metrics_schema_id.is_empty() {
-                    tool.metrics_schema
-                } else {
-                    tool.metrics_schema_id
-                },
-                status: tool.status,
-                comparability_notes: tool.comparability_notes,
-                version_rule,
-                license: tool.license,
-                citation: tool.citation,
-                container_image: tool
-                    .container
-                    .as_ref()
-                    .map_or_else(String::new, |container| container.image.clone()),
-                container_digest: tool
-                    .container
-                    .as_ref()
-                    .map_or_else(String::new, |container| container.digest.clone()),
-                expected_version_regex: default_version_regex(&tool_id).to_string(),
-                healthcheck_cmd: default_healthcheck_cmd(&tool_id, &help_cmd_value),
-            },
-        );
+        tools.insert(tool_id.clone(), candidate);
     }
     Ok(())
+}
+
+fn build_tool_row(tool: DomainTool, resolved_domain: &str) -> ToolRow {
+    let tool_id = tool.tool_id.clone();
+    let version_rule = tool.versioning_strategy.clone();
+    let help_cmd_value = tool.help_cmd.clone();
+    let mut domains = tool
+        .declared_stage_ids()
+        .filter_map(|stage_id| stage_id.split('.').next().map(str::to_string))
+        .collect::<Vec<_>>();
+    domains.sort();
+    domains.dedup();
+    let mut stage_ids = tool.stage_ids;
+    stage_ids.sort();
+    stage_ids.dedup();
+    let bindings = stage_ids.clone();
+    let tool_role = infer_tool_role(&bindings);
+    ToolRow {
+        id: tool_id.clone(),
+        domain: resolved_domain.to_string(),
+        domains,
+        stage_ids,
+        bindings,
+        tool_role,
+        default_version: tool.default_version,
+        upstream: tool.upstream,
+        pin_strategy: if tool.pin_strategy.is_empty() {
+            version_rule.clone()
+        } else {
+            tool.pin_strategy
+        },
+        version_cmd: tool.version_cmd,
+        help_cmd: help_cmd_value.clone(),
+        expected_artifacts: tool.expected_artifacts,
+        metrics_schema: if tool.metrics_schema_id.is_empty() {
+            tool.metrics_schema
+        } else {
+            tool.metrics_schema_id
+        },
+        status: tool.status,
+        comparability_notes: tool.comparability_notes,
+        version_rule,
+        license: tool.license,
+        citation: tool.citation,
+        container_image: tool
+            .container
+            .as_ref()
+            .map_or_else(String::new, |container| container.image.clone()),
+        container_digest: tool
+            .container
+            .as_ref()
+            .map_or_else(String::new, |container| container.digest.clone()),
+        expected_version_regex: default_version_regex(&tool_id).to_string(),
+        healthcheck_cmd: default_healthcheck_cmd(&tool_id, &help_cmd_value),
+    }
+}
+
+fn merge_tool_rows(existing: &mut ToolRow, candidate: ToolRow) -> Result<()> {
+    ensure_same_field(&existing.id, &candidate.id, "id")?;
+    ensure_same_field(&existing.default_version, &candidate.default_version, "default_version")?;
+    ensure_same_field(&existing.upstream, &candidate.upstream, "upstream")?;
+    ensure_same_field(&existing.pin_strategy, &candidate.pin_strategy, "pin_strategy")?;
+    ensure_same_field(&existing.version_cmd, &candidate.version_cmd, "version_cmd")?;
+    ensure_same_field(&existing.help_cmd, &candidate.help_cmd, "help_cmd")?;
+    ensure_same_field(&existing.status, &candidate.status, "status")?;
+    ensure_same_field(&existing.version_rule, &candidate.version_rule, "version_rule")?;
+    ensure_same_field(&existing.license, &candidate.license, "license")?;
+    ensure_same_field(&existing.citation, &candidate.citation, "citation")?;
+    ensure_same_field(
+        &existing.expected_version_regex,
+        &candidate.expected_version_regex,
+        "expected_version_regex",
+    )?;
+    ensure_same_field(&existing.healthcheck_cmd, &candidate.healthcheck_cmd, "healthcheck_cmd")?;
+
+    existing.domains.extend(candidate.domains);
+    existing.domains.sort();
+    existing.domains.dedup();
+
+    existing.stage_ids.extend(candidate.stage_ids);
+    existing.stage_ids.sort();
+    existing.stage_ids.dedup();
+
+    existing.bindings.extend(candidate.bindings);
+    existing.bindings.sort();
+    existing.bindings.dedup();
+
+    existing.expected_artifacts.extend(candidate.expected_artifacts);
+    existing.expected_artifacts.sort();
+    existing.expected_artifacts.dedup();
+
+    if (existing.metrics_schema.is_empty() || existing.metrics_schema == "bijux.unknown.v1")
+        && !candidate.metrics_schema.is_empty()
+    {
+        existing.metrics_schema = candidate.metrics_schema;
+    }
+    merge_optional_field(&mut existing.container_image, &candidate.container_image);
+    merge_optional_field(&mut existing.container_digest, &candidate.container_digest);
+    merge_comparability_notes(existing, &candidate.comparability_notes);
+
+    existing.tool_role = infer_tool_role(&existing.bindings);
+    Ok(())
+}
+
+fn ensure_same_field(existing: &str, candidate: &str, field: &str) -> Result<()> {
+    if existing == candidate {
+        return Ok(());
+    }
+    Err(anyhow!("shared tool metadata conflict for {field}: `{existing}` vs `{candidate}`"))
+}
+
+fn merge_comparability_notes(existing: &mut ToolRow, candidate_notes: &str) {
+    if candidate_notes.is_empty() || existing.comparability_notes == candidate_notes {
+        return;
+    }
+    if existing.comparability_notes.is_empty() {
+        existing.comparability_notes = candidate_notes.to_string();
+        return;
+    }
+    existing.comparability_notes =
+        "Comparable only within the same governed stage contract and emitted artifact set."
+            .to_string();
+}
+
+fn merge_optional_field(existing: &mut String, candidate: &str) {
+    if existing.is_empty() && !candidate.is_empty() {
+        *existing = candidate.to_string();
+    }
 }

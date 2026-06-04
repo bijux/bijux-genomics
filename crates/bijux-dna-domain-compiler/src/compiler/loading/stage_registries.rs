@@ -1,5 +1,11 @@
 use super::super::*;
 
+fn tool_supports_stage_domain(tools: &ToolMap, tool_id: &str, stage_domain: &str) -> bool {
+    tools.get(tool_id).is_some_and(|tool| {
+        tool.domain == stage_domain || tool.domains.iter().any(|domain| domain == stage_domain)
+    })
+}
+
 pub(super) fn build_stages_toml(
     tools: &ToolMap,
     stage_to_tools: &StageToolMap,
@@ -85,7 +91,7 @@ pub(super) fn build_stages_toml(
         let mut v = tools_set.iter().cloned().collect::<Vec<_>>();
         v.retain(|tool_id| {
             production_tool_ids.contains(tool_id)
-                && tools.get(tool_id).is_some_and(|tool| tool.domain == stage_domain)
+                && tool_supports_stage_domain(tools, tool_id, stage_domain)
         });
         v.sort();
         let output_kinds = stage_output_kinds.get(stage_id).cloned().unwrap_or_default();
