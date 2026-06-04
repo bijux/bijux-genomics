@@ -189,6 +189,26 @@ resource_origin = "tool_constraints_with_stage_walltime_profile"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.filter_low_complexity"
+tool_id = "bbduk"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_low_complexity"
+tool_id = "prinseq"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.filter_reads"
 tool_id = "bbduk"
 threads = 4
