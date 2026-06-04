@@ -10,7 +10,7 @@ fn repo_root() -> PathBuf {
 }
 
 #[test]
-fn local_filter_reads_smoke_plans_use_governed_toy_fixture() -> Result<()> {
+fn local_filter_reads_smoke_plans_use_governed_corpus_fixture() -> Result<()> {
     let repo_root = repo_root();
     let plans = bijux_dna_planner_fastq::stage_api::local_filter_reads_smoke_plans(&repo_root)?;
     assert_eq!(plans.len(), 1, "governed filter smoke should keep exactly one curated case");
@@ -19,7 +19,12 @@ fn local_filter_reads_smoke_plans_use_governed_toy_fixture() -> Result<()> {
     assert_eq!(case.sample_id, "n-and-complexity-se");
     assert_eq!(case.plan.stage_id.as_str(), "fastq.filter_reads");
     assert_eq!(case.plan.tool_id.as_str(), "fastp");
-    assert_eq!(case.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_with_filter_signals.fastq"));
+    assert_eq!(
+        case.r1,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz"
+        )
+    );
     assert_eq!(case.r2, None);
     assert_eq!(case.max_n_count, Some(1));
     assert_eq!(case.low_complexity_threshold, Some(20.0));

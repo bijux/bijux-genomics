@@ -1,7 +1,7 @@
 schema_version = "bijux.bench.fastq_corpus_fixture.v1"
 corpus_id = "corpus-01-mini"
 species = "Homo sapiens"
-description = "Tiny human and aDNA-like FASTQ fixture with two single-end and two paired-end samples for local benchmark contract checks."
+description = "Tiny human and aDNA-like FASTQ fixture with four single-end and two paired-end samples for local benchmark contract checks."
 compression = "gzip"
 
 [[samples]]
@@ -30,6 +30,15 @@ r1_path = "normalized/human_like_se_adapter_hit_R1.fastq.gz"
 expected_read_count_r1 = 2
 expected_read_count_total = 2
 source_paths = ["assets/toy/core-v1/fastq/reads_with_adapter.fastq"]
+
+[[samples]]
+sample_id = "human_like_se_filter_signals"
+cohort = "human_like"
+layout = "se"
+r1_path = "normalized/human_like_se_filter_signals_R1.fastq.gz"
+expected_read_count_r1 = 3
+expected_read_count_total = 3
+source_paths = ["assets/toy/core-v1/fastq/reads_with_filter_signals.fastq"]
 
 [[samples]]
 sample_id = "adna_like_pe_trim_signals"
