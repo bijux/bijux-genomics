@@ -49,18 +49,17 @@ fn bench_readiness_undercovered_stages_reports_single_backend_gaps() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(
         payload.get("undercovered_stage_count").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(0)
     );
-    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let domain_counts = payload
         .get("domain_counts")
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
-    assert_eq!(
-        domain_counts.get("bam").and_then(serde_json::Value::as_u64),
-        Some(1),
-        "the current undercovered-stage slice must be entirely BAM-owned"
+    assert!(
+        domain_counts.get("bam").is_none(),
+        "the current undercovered-stage slice must no longer retain BAM rows"
     );
     assert!(
         domain_counts.get("fastq").is_none(),
@@ -68,22 +67,7 @@ fn bench_readiness_undercovered_stages_reports_single_backend_gaps() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 1, "the governed undercovered-stage slice must retain one BAM row");
-    assert!(
-        rows.iter().any(|row| {
-            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.align")
-                && row.get("registered_tool_ids").and_then(serde_json::Value::as_array)
-                    == Some(&vec![serde_json::Value::String("bwa".to_string())])
-                && row.get("missing_tool_ids").and_then(serde_json::Value::as_array)
-                    == Some(&vec![
-                        serde_json::Value::String("bowtie2".to_string()),
-                        serde_json::Value::String("samtools".to_string()),
-                    ])
-        }),
-        "bam.align must remain visible as a multi-backend benchmark gap while only bwa is registered"
-    );
+    assert_eq!(rows.len(), 0, "the governed undercovered-stage slice must now be empty");
     assert!(
         !rows.iter().any(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str)
