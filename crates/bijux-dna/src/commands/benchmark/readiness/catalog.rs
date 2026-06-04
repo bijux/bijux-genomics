@@ -377,9 +377,12 @@ mod tests {
             !matrix.stage_policies.contains_key("bam.recalibration"),
             "bam.recalibration must remain outside the governed benchmark registry until its stage policy is explicitly added"
         );
+        let bam_complexity =
+            matrix.stage_policies.get("bam.complexity").expect("bam.complexity policy");
+        assert_eq!(bam_complexity.primary_tool_ids, vec!["preseq".to_string()]);
         assert!(
-            !matrix.stage_policies.contains_key("bam.complexity"),
-            "bam.complexity must remain outside the governed benchmark registry until its stage policy is explicitly added"
+            bam_complexity.optional_alternative_tool_ids.is_empty(),
+            "bam.complexity currently carries a single governed preseq benchmark row"
         );
     }
 }

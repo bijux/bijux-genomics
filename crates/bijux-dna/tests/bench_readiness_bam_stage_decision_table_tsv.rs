@@ -116,9 +116,9 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bam.complexity\tfuture_not_in_hpc_round\t\tpreseq\tplanned\tplannable\tartifact_contract_only\tplanner_only\tstage `bam.complexity` is not yet in the governed BAM benchmark registry; strongest admitted row `preseq` remains `planned`"
+            row == &"bam.complexity\tbenchmark_ready\tpreseq\tpreseq\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.complexity` is benchmark_ready via `preseq` with a fixture-backed parser-validated BAM benchmark row"
         }),
-        "TSV must retain the governed future classification for bam.complexity"
+        "TSV must publish the governed benchmark-ready classification for bam.complexity"
     );
     assert!(
         rows.iter().any(|row| {

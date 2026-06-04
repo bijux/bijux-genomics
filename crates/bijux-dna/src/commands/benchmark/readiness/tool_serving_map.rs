@@ -464,14 +464,14 @@ mod tests {
         assert_eq!(report.schema_version, BAM_TOOL_SERVING_MAP_SCHEMA_VERSION);
         assert_eq!(report.domain, "bam");
         assert_eq!(report.stage_count, 24);
-        assert_eq!(report.tool_count, 21);
-        assert_eq!(report.row_count, 45);
+        assert_eq!(report.tool_count, 26);
+        assert_eq!(report.row_count, 51);
         assert!(!report.rows.is_empty(), "BAM tool serving map must contain rows");
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "samtools"
                 && row.stage_id == "bam.validate"
                 && row.support_status == "supported"
-                && row.adapter_status == "plannable"
+                && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"
                 && row.corpus_status == "fixture:corpus-01-bam-mini"
         }));
@@ -479,15 +479,15 @@ mod tests {
             row.tool_id == "picard"
                 && row.stage_id == "bam.mapping_summary"
                 && row.support_status == "supported"
-                && row.adapter_status == "plannable"
+                && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "planner_only"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "pydamage"
                 && row.stage_id == "bam.damage"
                 && row.support_status == "supported"
-                && row.adapter_status == "plannable"
+                && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"
                 && row.corpus_status == "fixture:corpus-01-adna-damage-mini"
         }));
@@ -495,9 +495,17 @@ mod tests {
             row.tool_id == "multiqc"
                 && row.stage_id == "bam.qc_pre"
                 && row.support_status == "supported"
-                && row.adapter_status == "plannable"
+                && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "planner_only"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "preseq"
+                && row.stage_id == "bam.complexity"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bcftools"

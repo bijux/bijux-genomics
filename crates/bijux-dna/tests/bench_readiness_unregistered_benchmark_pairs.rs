@@ -49,7 +49,7 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
     );
     assert_eq!(
         payload.get("unregistered_pair_count").and_then(serde_json::Value::as_u64),
-        Some(11)
+        Some(10)
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
@@ -58,10 +58,10 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(5));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(6));
+    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(5));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 11, "governed registry-drift slice must retain the current eleven rows");
+    assert_eq!(rows.len(), 10, "governed registry-drift slice must retain the current ten rows");
     assert!(
         rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -81,16 +81,6 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
                     == Some("tool_registered_pair_missing")
         }),
         "bam.genotyping / angsd must remain visible as a pair-missing registry row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.complexity")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("preseq")
-                && row.get("registry_status").and_then(serde_json::Value::as_str)
-                    == Some("tool_missing")
-        }),
-        "bam.complexity / preseq must remain visible as a missing tool row"
     );
     assert!(
         rows.iter().any(|row| {
@@ -197,6 +187,14 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
                     })
         }),
         "fastq.normalize_abundance / seqfu must remain visible as a pair-missing registry row"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.complexity")
+        }),
+        "bam.complexity must no longer remain visible as a registry-drift row once preseq is registered in production"
     );
     assert!(
         !rows.iter().any(|row| {

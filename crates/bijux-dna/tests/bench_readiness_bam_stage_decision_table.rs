@@ -54,12 +54,15 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
         .get("decision_counts")
         .and_then(serde_json::Value::as_object)
         .expect("decision_counts object");
-    assert_eq!(decision_counts.get("benchmark_ready").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(
+        decision_counts.get("benchmark_ready").and_then(serde_json::Value::as_u64),
+        Some(10)
+    );
     assert_eq!(decision_counts.get("needs_corpus").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(decision_counts.get("needs_parser").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(
         decision_counts.get("future_not_in_hpc_round").and_then(serde_json::Value::as_u64),
-        Some(3)
+        Some(2)
     );
     assert!(
         decision_counts.get("needs_adapter").is_none(),
@@ -97,6 +100,26 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
                     == Some("fixture:corpus-01-adna-damage-mini")
         }),
         "bam.damage must remain benchmark_ready through the governed mapdamage2 damage row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.complexity")
+                && row.get("decision").and_then(serde_json::Value::as_str)
+                    == Some("benchmark_ready")
+                && row.get("primary_tool_id").and_then(serde_json::Value::as_str)
+                    == Some("preseq")
+                && row.get("selected_tool_id").and_then(serde_json::Value::as_str)
+                    == Some("preseq")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("supported")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                    == Some("runnable")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("parser_fixture_validated")
+                && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                    == Some("fixture:corpus-01-bam-mini")
+        }),
+        "bam.complexity must now be benchmark_ready through the governed preseq complexity-projection row"
     );
     assert!(
         rows.iter().any(|row| {
@@ -167,10 +190,8 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.markdup")
                 && row.get("decision").and_then(serde_json::Value::as_str)
                     == Some("benchmark_ready")
-                && row.get("primary_tool_id").and_then(serde_json::Value::as_str)
-                    == Some("picard")
-                && row.get("selected_tool_id").and_then(serde_json::Value::as_str)
-                    == Some("picard")
+                && row.get("primary_tool_id").and_then(serde_json::Value::as_str) == Some("picard")
+                && row.get("selected_tool_id").and_then(serde_json::Value::as_str) == Some("picard")
                 && row.get("parser_status").and_then(serde_json::Value::as_str)
                     == Some("parser_fixture_validated")
                 && row.get("corpus_status").and_then(serde_json::Value::as_str)
@@ -253,7 +274,7 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
         }),
         "bam.bias_mitigation must expose the fallback mapdamage2 row while the primary samtools row is not eligible"
     );
-    for stage_id in ["bam.complexity", "bam.genotyping", "bam.recalibration"] {
+    for stage_id in ["bam.genotyping", "bam.recalibration"] {
         assert!(
             rows.iter().any(|row| {
                 row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)

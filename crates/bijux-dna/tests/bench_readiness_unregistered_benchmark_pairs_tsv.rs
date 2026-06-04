@@ -43,7 +43,7 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 11, "TSV must retain the governed unregistered-pair row count");
+    assert_eq!(rows.len(), 10, "TSV must retain the governed unregistered-pair row count");
     assert!(
         rows.iter().any(|row| {
             row == &"bam\tbam.genotyping\tbcftools\tmissing_contract\ttool_missing\t\tbenchmark matrix references `bam.genotyping` / `bcftools` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `bcftools`: <none>"
@@ -55,12 +55,6 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             row == &"bam\tbam.genotyping\tangsd\tplanned\ttool_registered_pair_missing\tbam.kinship,bam.sex\tbenchmark matrix references `bam.genotyping` / `angsd` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `angsd`: bam.kinship, bam.sex"
         }),
         "TSV must retain the governed bam.genotyping / angsd registry drift row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row == &"bam\tbam.complexity\tpreseq\tplanned\ttool_missing\t\tbenchmark matrix references `bam.complexity` / `preseq` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `preseq`: <none>"
-        }),
-        "TSV must retain the planned bam.complexity / preseq registry-drift row"
     );
     assert!(
         rows.iter().any(|row| {
@@ -109,6 +103,10 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             row == &"fastq\tfastq.normalize_abundance\tseqfu\tplanned_contract\ttool_registered_pair_missing\tfastq.profile_read_lengths,fastq.profile_reads\tbenchmark matrix references `fastq.normalize_abundance` / `seqfu` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `seqfu`: fastq.profile_read_lengths, fastq.profile_reads"
         }),
         "TSV must retain the governed fastq.normalize_abundance / seqfu registry drift row"
+    );
+    assert!(
+        !rows.iter().any(|row| row.starts_with("bam\tbam.complexity\t")),
+        "TSV must not retain a registry-drift row for bam.complexity once preseq is registered in production"
     );
     assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.align\t")),
@@ -236,12 +234,6 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
     assert!(
         !rows.iter().any(|row| { row.starts_with("bam\tbam.gc_bias\tpicard\t") }),
         "TSV must not retain a registry-drift row for bam.gc_bias / picard"
-    );
-    assert!(
-        !rows.iter().any(|row| {
-            row.starts_with("bam\tbam.complexity\t") && !row.starts_with("bam\tbam.complexity\tpreseq\t")
-        }),
-        "TSV must not retain extra registry-drift rows for bam.complexity beyond the planned preseq gap"
     );
     for tool_id in ["picard", "samtools"] {
         assert!(

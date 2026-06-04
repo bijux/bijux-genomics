@@ -453,10 +453,10 @@ mod tests {
         assert_eq!(report.schema_version, BAM_STAGE_DECISION_TABLE_SCHEMA_VERSION);
         assert_eq!(report.stage_count, 24);
         assert_eq!(report.row_count, 24);
-        assert_eq!(report.decision_counts.get("benchmark_ready"), Some(&2));
+        assert_eq!(report.decision_counts.get("benchmark_ready"), Some(&3));
         assert_eq!(report.decision_counts.get("needs_corpus"), Some(&6));
         assert_eq!(report.decision_counts.get("needs_parser"), Some(&13));
-        assert_eq!(report.decision_counts.get("future_not_in_hpc_round"), Some(&3));
+        assert_eq!(report.decision_counts.get("future_not_in_hpc_round"), Some(&2));
         assert_eq!(report.decision_counts.get("needs_adapter"), None);
 
         assert!(report.rows.iter().any(|row| {
@@ -492,6 +492,16 @@ mod tests {
                 && row.corpus_status == "planner_only"
         }));
         assert!(report.rows.iter().any(|row| {
+            row.stage_id == "bam.complexity"
+                && row.decision == BamStageDecisionKind::BenchmarkReady
+                && row.primary_tool_id.as_deref() == Some("preseq")
+                && row.selected_tool_id.as_deref() == Some("preseq")
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.bias_mitigation"
                 && row.decision == BamStageDecisionKind::NeedsParser
                 && row.primary_tool_id.as_deref() == Some("samtools")
@@ -504,7 +514,7 @@ mod tests {
                 && row.primary_tool_id.as_deref() == Some("samtools")
                 && row.selected_tool_id.as_deref() == Some("yleaf")
         }));
-        for stage_id in ["bam.complexity", "bam.genotyping", "bam.recalibration"] {
+        for stage_id in ["bam.genotyping", "bam.recalibration"] {
             assert!(report.rows.iter().any(|row| {
                 row.stage_id == stage_id
                     && row.decision == BamStageDecisionKind::FutureNotInHpcRound
