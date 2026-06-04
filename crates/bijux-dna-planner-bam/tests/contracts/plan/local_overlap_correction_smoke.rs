@@ -22,25 +22,31 @@ fn local_overlap_correction_smoke_plans_use_governed_bam_fixture() -> Result<()>
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-paired-overlap")
+        .find(|case| case.sample_id == "human_like_paired_overlap_control")
         .unwrap_or_else(|| panic!("governed BAM overlap-correction case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.overlap_correction");
     assert_eq!(case.plan.tool_id.as_str(), "bamutil");
     assert_eq!(case.plan.resources.threads, 2);
     assert_eq!(
         case.bam,
-        PathBuf::from("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
+        )
     );
     assert_eq!(case.expected_pair_count, 2);
     assert_eq!(case.expected_corrected_pairs, 1);
     assert_eq!(case.expected_corrected_overlap_bases, 7);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.overlap_correction/core-v1-paired-overlap/bamutil")
+        PathBuf::from(
+            "target/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil",
+        )
     );
     assert_eq!(
         case.plan.params["bam"],
-        serde_json::json!("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam"
+        )
     );
     assert_eq!(case.plan.params["overlap_method"], serde_json::json!("paired_overlap_correction"));
 
@@ -75,7 +81,7 @@ fn local_overlap_correction_smoke_plans_use_governed_bam_fixture() -> Result<()>
     assert_eq!(
         corrected_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.overlap_correction/core-v1-paired-overlap/bamutil/overlap.corrected.bam"
+            "target/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/overlap.corrected.bam"
         )
     );
 
@@ -186,7 +192,9 @@ expected_corrected_pairs = 0
 expected_corrected_overlap_bases = 0
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
+                )
                 .display(),
         ),
     )?;
@@ -219,7 +227,9 @@ expected_corrected_pairs = 3
 expected_corrected_overlap_bases = 7
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
+                )
                 .display(),
         ),
     )?;
@@ -252,7 +262,9 @@ expected_corrected_pairs = 1
 expected_corrected_overlap_bases = 0
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
+                )
                 .display(),
         ),
     )?;
@@ -286,7 +298,9 @@ expected_corrected_pairs = 0
 expected_corrected_overlap_bases = 5
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/overlap_correction_paired_overlap.sam")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
+                )
                 .display(),
         ),
     )?;
