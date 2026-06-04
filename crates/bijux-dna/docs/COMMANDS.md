@@ -246,6 +246,12 @@ Visible aliases are part of the operator surface:
   file-path integrity, source-path provenance, expected taxonomy-output contracts, primer and
   control declarations, amplicon primer-table, expected-ASV, and chimera-control contracts, and
   modality-specific contract checks.
+- `bijux-dna bench local judge-taxonomy-output`
+  `judge-taxonomy-output` compares governed eDNA taxonomy reports against
+  `tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv`, writes
+  `target/local-ready/corpus-02-edna-taxonomy-judgment.json` by default, and fails when any
+  declared sample is missing an observed report or any expected present or absent taxon does not
+  match the observed classifier summary.
 - `bijux-dna bench local validate-corpus-stage-compatibility`
   `validate-corpus-stage-compatibility` checks
   `configs/bench/local/corpus-stage-compatibility.toml` against the governed 51-stage local FASTQ
