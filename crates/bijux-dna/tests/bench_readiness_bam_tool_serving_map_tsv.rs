@@ -54,6 +54,7 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         "bedtools\tbam.coverage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "mosdepth\tbam.coverage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.coverage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "picard\tbam.insert_size\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.mapping_summary\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "picard\tbam.mapping_summary\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.mapq_filter\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",

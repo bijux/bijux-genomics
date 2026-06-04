@@ -477,6 +477,14 @@ mod tests {
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "picard"
+                && row.stage_id == "bam.insert_size"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "picard"
                 && row.stage_id == "bam.mapping_summary"
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
