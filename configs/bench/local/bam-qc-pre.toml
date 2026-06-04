@@ -11,8 +11,8 @@ threads = 4
 output_dir = "target/local-smoke/bam.qc_pre"
 
 [[cases]]
-sample_id = "core-v1-duplicate-contigs"
-bam = "assets/toy/core-v1/bam/qc_pre_core_metrics.sam"
+sample_id = "human_like_duplicate_flagged_multicontig"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_flagged_multicontig.sam"
 expected_total_reads = 3
 expected_mapped_reads = 3
 expected_unmapped_reads = 0

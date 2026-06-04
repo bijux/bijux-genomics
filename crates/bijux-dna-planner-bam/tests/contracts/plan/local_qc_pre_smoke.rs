@@ -18,12 +18,17 @@ fn local_qc_pre_smoke_plans_use_governed_bam_metrics_fixture() -> Result<()> {
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-duplicate-contigs")
+        .find(|case| case.sample_id == "human_like_duplicate_flagged_multicontig")
         .unwrap_or_else(|| panic!("governed BAM qc_pre case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.qc_pre");
     assert_eq!(case.plan.tool_id.as_str(), "samtools");
     assert_eq!(case.plan.resources.threads, 4);
-    assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/qc_pre_core_metrics.sam"));
+    assert_eq!(
+        case.bam,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_flagged_multicontig.sam"
+        )
+    );
     assert_eq!(case.expected_total_reads, 3);
     assert_eq!(case.expected_mapped_reads, 3);
     assert_eq!(case.expected_unmapped_reads, 0);
@@ -31,7 +36,9 @@ fn local_qc_pre_smoke_plans_use_governed_bam_metrics_fixture() -> Result<()> {
     assert_eq!(case.expected_contigs, vec!["chr1".to_string(), "chr2".to_string()]);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.qc_pre/core-v1-duplicate-contigs/samtools")
+        PathBuf::from(
+            "target/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools"
+        )
     );
 
     let output_names = case
@@ -53,7 +60,7 @@ fn local_qc_pre_smoke_plans_use_governed_bam_metrics_fixture() -> Result<()> {
     assert_eq!(
         idxstats_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.qc_pre/core-v1-duplicate-contigs/samtools/idxstats.txt"
+            "target/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/idxstats.txt"
         )
     );
 

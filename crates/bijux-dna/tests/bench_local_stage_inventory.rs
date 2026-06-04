@@ -269,7 +269,7 @@ fn bench_local_materialize_stage_bam_qc_pre_json_writes_governed_smoke_bundle() 
             cases.len() == 1
                 && cases.iter().any(|case| {
                     case.get("sample_id").and_then(serde_json::Value::as_str)
-                        == Some("core-v1-duplicate-contigs")
+                        == Some("human_like_duplicate_flagged_multicontig")
                         && case.get("total_reads").and_then(serde_json::Value::as_u64) == Some(3)
                         && case.get("mapped_reads").and_then(serde_json::Value::as_u64) == Some(3)
                         && case.get("unmapped_reads").and_then(serde_json::Value::as_u64) == Some(0)

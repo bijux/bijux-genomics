@@ -48,7 +48,7 @@ fn write_local_qc_pre_smoke_report_materializes_governed_outputs() -> Result<()>
     let cases = payload["cases"].as_array().unwrap_or_else(|| panic!("cases array missing"));
     assert_eq!(cases.len(), 1);
     let case = &cases[0];
-    assert_eq!(case["sample_id"], serde_json::json!("core-v1-duplicate-contigs"));
+    assert_eq!(case["sample_id"], serde_json::json!("human_like_duplicate_flagged_multicontig"));
     assert_eq!(case["expectation_matched"], serde_json::json!(true));
     assert_eq!(case["total_reads"], serde_json::json!(3));
     assert_eq!(case["mapped_reads"], serde_json::json!(3));
