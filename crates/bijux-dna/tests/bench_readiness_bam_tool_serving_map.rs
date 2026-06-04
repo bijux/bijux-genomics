@@ -200,6 +200,28 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
     );
     assert!(
         has_row(
+            "samtools",
+            "bam.length_filter",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
+        ),
+        "BAM readiness map must retain the governed samtools length-threshold row"
+    );
+    assert!(
+        has_row(
+            "picard",
+            "bam.length_filter",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
+        ),
+        "BAM readiness map must retain the governed picard length-threshold comparison row"
+    );
+    assert!(
+        has_row(
             "bamtools",
             "bam.filter",
             "supported",

@@ -167,6 +167,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
             | BamStage::Validate
             | BamStage::MappingSummary
             | BamStage::MapqFilter
+            | BamStage::LengthFilter
             | BamStage::QcPre
             | BamStage::Filter
             | BamStage::Markdup
@@ -186,6 +187,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
         BamStage::Validate
             | BamStage::MappingSummary
             | BamStage::MapqFilter
+            | BamStage::LengthFilter
             | BamStage::QcPre
             | BamStage::Filter
             | BamStage::Coverage
