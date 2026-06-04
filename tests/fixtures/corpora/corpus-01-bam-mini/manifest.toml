@@ -118,6 +118,20 @@ expected_record_count = 6
 source_paths = ["tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"]
 
 [[samples]]
+sample_id = "human_like_gc_window_ladder"
+cohort = "human_like"
+alignment_path = "aligned/human_like_gc_window_ladder.sam"
+index_path = "aligned/human_like_gc_window_ladder.sam.bai"
+expected_contigs = ["chrgc"]
+expected_header_sample_ids = ["human_like_gc_window_ladder"]
+expected_read_group_ids = ["rg-gc-bias-human-like"]
+expected_record_count = 4
+source_paths = [
+  "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam",
+  "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
+]
+
+[[samples]]
 sample_id = "adna_like_damage"
 cohort = "adna_like"
 alignment_path = "aligned/adna_like_damage.sam"
