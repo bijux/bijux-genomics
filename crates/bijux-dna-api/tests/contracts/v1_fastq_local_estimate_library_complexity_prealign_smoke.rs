@@ -66,8 +66,10 @@ fn write_local_estimate_library_complexity_prealign_smoke_report_materializes_go
 
     let complexity_hit = cases
         .iter()
-        .find(|case| case["sample_id"] == serde_json::json!("complexity-hit-pe"))
-        .unwrap_or_else(|| panic!("complexity-hit-pe case missing from complexity summary"));
+        .find(|case| case["sample_id"] == serde_json::json!("human_like_pe_duplicate_signals"))
+        .unwrap_or_else(|| {
+            panic!("human_like_pe_duplicate_signals case missing from complexity summary")
+        });
     assert_eq!(complexity_hit["layout"], serde_json::json!("paired_end"));
     assert_eq!(complexity_hit["reads_in"], serde_json::json!(6));
     assert_eq!(complexity_hit["estimated_complexity"], serde_json::json!(2.0_f64 / 3.0_f64));
@@ -79,8 +81,10 @@ fn write_local_estimate_library_complexity_prealign_smoke_report_materializes_go
 
     let complexity_clear = cases
         .iter()
-        .find(|case| case["sample_id"] == serde_json::json!("complexity-clear-pe"))
-        .unwrap_or_else(|| panic!("complexity-clear-pe case missing from complexity summary"));
+        .find(|case| case["sample_id"] == serde_json::json!("human_like_pe_distinct_pairs"))
+        .unwrap_or_else(|| {
+            panic!("human_like_pe_distinct_pairs case missing from complexity summary")
+        });
     assert_eq!(complexity_clear["layout"], serde_json::json!("paired_end"));
     assert_eq!(complexity_clear["reads_in"], serde_json::json!(4));
     assert_eq!(complexity_clear["estimated_complexity"], serde_json::json!(1.0));

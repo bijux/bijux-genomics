@@ -10,8 +10,8 @@ fn repo_root() -> PathBuf {
 }
 
 #[test]
-fn local_estimate_library_complexity_prealign_smoke_plans_use_governed_toy_fixtures() -> Result<()>
-{
+fn local_estimate_library_complexity_prealign_smoke_plans_use_governed_corpus_fixtures(
+) -> Result<()> {
     let repo_root = repo_root();
     let plans =
         bijux_dna_planner_fastq::stage_api::local_estimate_library_complexity_prealign_smoke_plans(
@@ -20,48 +20,66 @@ fn local_estimate_library_complexity_prealign_smoke_plans_use_governed_toy_fixtu
     assert_eq!(
         plans.len(),
         2,
-        "governed local-smoke config must keep complexity-hit and clear coverage"
+        "governed local-smoke config must keep duplicate-signal and distinct-pair coverage"
     );
 
-    let complexity_hit =
-        plans.iter().find(|case| case.sample_id == "complexity-hit-pe").unwrap_or_else(|| {
-            panic!("complexity-hit-pe case missing from local complexity smoke plans")
+    let complexity_hit = plans
+        .iter()
+        .find(|case| case.sample_id == "human_like_pe_duplicate_signals")
+        .unwrap_or_else(|| {
+            panic!("human_like_pe_duplicate_signals case missing from local complexity smoke plans")
         });
     assert_eq!(complexity_hit.plan.stage_id.as_str(), "fastq.estimate_library_complexity_prealign");
     assert_eq!(complexity_hit.plan.tool_id.as_str(), "bijux_dna");
     assert_eq!(
         complexity_hit.r1,
-        PathBuf::from("assets/toy/core-v1/fastq/duplicate_pairs_R1.fastq")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz"
+        )
     );
     assert_eq!(
         complexity_hit.r2,
-        Some(PathBuf::from("assets/toy/core-v1/fastq/duplicate_pairs_R2.fastq"))
+        Some(PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz"
+        ))
     );
     assert_eq!(complexity_hit.kmer_size, 4);
     assert_eq!(
         complexity_hit.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/fastq.estimate_library_complexity_prealign/complexity-hit-pe/bijux_dna"
+            "target/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_duplicate_signals/bijux_dna"
         )
     );
     assert_eq!(complexity_hit.plan.resources.threads, 1);
     assert_eq!(
         complexity_hit.plan.params["library_complexity_report"],
         serde_json::json!(
-            "target/local-smoke/fastq.estimate_library_complexity_prealign/complexity-hit-pe/bijux_dna/library_complexity_report.json"
+            "target/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_duplicate_signals/bijux_dna/library_complexity_report.json"
         )
     );
 
-    let complexity_clear =
-        plans.iter().find(|case| case.sample_id == "complexity-clear-pe").unwrap_or_else(|| {
-            panic!("complexity-clear-pe case missing from local complexity smoke plans")
+    let complexity_clear = plans
+        .iter()
+        .find(|case| case.sample_id == "human_like_pe_distinct_pairs")
+        .unwrap_or_else(|| {
+            panic!("human_like_pe_distinct_pairs case missing from local complexity smoke plans")
         });
-    assert_eq!(complexity_clear.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_1.fastq"));
-    assert_eq!(complexity_clear.r2, Some(PathBuf::from("assets/toy/core-v1/fastq/reads_2.fastq")));
+    assert_eq!(
+        complexity_clear.r1,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R1.fastq.gz"
+        )
+    );
+    assert_eq!(
+        complexity_clear.r2,
+        Some(PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R2.fastq.gz"
+        ))
+    );
     assert_eq!(
         complexity_clear.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/fastq.estimate_library_complexity_prealign/complexity-clear-pe/bijux_dna"
+            "target/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_distinct_pairs/bijux_dna"
         )
     );
     assert_eq!(
