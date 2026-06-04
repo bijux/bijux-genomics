@@ -6,10 +6,10 @@ threads = 2
 output_dir = "target/local-smoke/bam.complexity"
 
 [[cases]]
-sample_id = "core-v1-complexity-insufficient"
-bam = "assets/toy/core-v1/bam/complexity_sparse_reads.sam"
+sample_id = "human_like_complexity_projection"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_complexity_projection.sam"
 min_reads = 3
-projection_points = [6, 12]
-expected_observed_total_reads = 3
-expected_observed_unique_reads = 2
-expected_insufficient_data_reason = "insufficient_observed_unique_reads_for_complexity_extrapolation"
+projection_points = [12, 18]
+expected_observed_total_reads = 6
+expected_observed_unique_reads = 4
+expected_estimated_unique_reads = 12

@@ -11,7 +11,7 @@ fn repo_root() -> PathBuf {
 }
 
 #[test]
-fn local_complexity_smoke_plans_use_governed_sparse_fixture() -> Result<()> {
+fn local_complexity_smoke_plans_use_governed_projection_fixture() -> Result<()> {
     let repo_root = repo_root();
     let plans = bijux_dna_planner_bam::stage_api::local_complexity_smoke_plans(&repo_root)?;
     assert_eq!(
@@ -22,27 +22,29 @@ fn local_complexity_smoke_plans_use_governed_sparse_fixture() -> Result<()> {
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-complexity-insufficient")
+        .find(|case| case.sample_id == "human_like_complexity_projection")
         .unwrap_or_else(|| panic!("governed BAM complexity case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.complexity");
     assert_eq!(case.plan.tool_id.as_str(), "preseq");
     assert_eq!(case.plan.resources.threads, 2);
-    assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/complexity_sparse_reads.sam"));
-    assert_eq!(case.min_reads, 3);
-    assert_eq!(case.projection_points, vec![6, 12]);
-    assert_eq!(case.expected_observed_total_reads, 3);
-    assert_eq!(case.expected_observed_unique_reads, 2);
-    assert_eq!(case.expected_estimated_unique_reads, None);
     assert_eq!(
-        case.expected_insufficient_data_reason.as_deref(),
-        Some("insufficient_observed_unique_reads_for_complexity_extrapolation")
+        case.bam,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_complexity_projection.sam"
+        )
     );
+    assert_eq!(case.min_reads, 3);
+    assert_eq!(case.projection_points, vec![12, 18]);
+    assert_eq!(case.expected_observed_total_reads, 6);
+    assert_eq!(case.expected_observed_unique_reads, 4);
+    assert_eq!(case.expected_estimated_unique_reads, Some(12));
+    assert_eq!(case.expected_insufficient_data_reason, None);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.complexity/core-v1-complexity-insufficient/preseq")
+        PathBuf::from("target/local-smoke/bam.complexity/human_like_complexity_projection/preseq")
     );
     assert_eq!(case.plan.params["min_reads"], serde_json::json!(3));
-    assert_eq!(case.plan.params["projection_points"], serde_json::json!([6, 12]));
+    assert_eq!(case.plan.params["projection_points"], serde_json::json!([12, 18]));
 
     let output_names = case
         .plan
@@ -66,7 +68,7 @@ fn local_complexity_smoke_plans_use_governed_sparse_fixture() -> Result<()> {
     assert_eq!(
         complexity_curve_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.complexity/core-v1-complexity-insufficient/preseq/complexity_curve.tsv"
+            "target/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity_curve.tsv"
         )
     );
 
@@ -80,7 +82,7 @@ fn local_complexity_smoke_plans_use_governed_sparse_fixture() -> Result<()> {
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.complexity/core-v1-complexity-insufficient/preseq/complexity.summary.json"
+            "target/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity.summary.json"
         )
     );
 
