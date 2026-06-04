@@ -51,14 +51,14 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(75));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(78));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(75)
+        Some(78)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(75)
+        Some(78)
     );
     assert_eq!(
         payload
@@ -72,7 +72,7 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(12)
+        Some(15)
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let fastqc = rows
@@ -221,6 +221,19 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
             Some(7)
         );
         assert_eq!(mapping_summary.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    }
+    for tool_id in ["bamtools", "bedtools", "samtools"] {
+        let bam_filter = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.filter")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam filter {tool_id} row"));
+        assert_eq!(bam_filter.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(bam_filter.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+        assert_eq!(bam_filter.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(7));
+        assert_eq!(bam_filter.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
     }
     for tool_id in ["bbduk", "prinseq"] {
         let filter_low_complexity = rows

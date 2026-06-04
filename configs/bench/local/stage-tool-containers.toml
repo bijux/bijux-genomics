@@ -59,6 +59,36 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.filter"
+tool_id = "bamtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bamtools:2.5.2"
+command_entrypoint = "bamtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.filter"
+tool_id = "bedtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bedtools:2.31.1"
+command_entrypoint = "bedtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.filter"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.mapping_summary"
 tool_id = "picard"
 execution_mode = "java"

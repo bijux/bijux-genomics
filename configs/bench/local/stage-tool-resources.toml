@@ -59,6 +59,36 @@ resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.filter"
+tool_id = "bamtools"
+threads = 3
+memory_gb = 2
+walltime_minutes = 7
+scratch_gb = 2
+resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.filter"
+tool_id = "bedtools"
+threads = 3
+memory_gb = 2
+walltime_minutes = 7
+scratch_gb = 2
+resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.filter"
+tool_id = "samtools"
+threads = 3
+memory_gb = 2
+walltime_minutes = 7
+scratch_gb = 2
+resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.mapping_summary"
 tool_id = "picard"
 threads = 3
