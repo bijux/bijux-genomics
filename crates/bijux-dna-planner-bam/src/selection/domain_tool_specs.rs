@@ -742,16 +742,16 @@ mod tests {
     }
 
     #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_planned_complexity_stage_tool() -> Result<()> {
+    fn load_bam_domain_tool_execution_spec_accepts_supported_complexity_stage_tool() -> Result<()> {
         let repo_root = repo_root();
         let stage_id = StageId::new("bam.complexity".to_string());
         let tool_id = ToolId::new("preseq");
 
-        let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
+        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
         assert_eq!(spec.tool_id.as_str(), "preseq");
         assert_eq!(spec.command.template, vec!["preseq".to_string()]);
-        assert_eq!(spec.image.image, "preseq");
+        assert_eq!(spec.image.image, "bijuxdna/preseq");
         assert!(spec.image.digest.is_none());
         Ok(())
     }

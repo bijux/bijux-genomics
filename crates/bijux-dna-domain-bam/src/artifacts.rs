@@ -6310,6 +6310,37 @@ r04\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
     }
 
     #[test]
+    fn summarize_tiny_bam_complexity_reports_projection_estimates() {
+        let temp = unique_temp_dir("bam-complexity-projection");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:100\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t5\t60\t8M\t*\t0\t0\tACGTACGT\tFFFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchr1\t5\t60\t8M\t*\t0\t0\tACGTACGT\tFFFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchr1\t18\t60\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\n\
+r04\t0\tchr1\t18\t60\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\n\
+r05\t0\tchr1\t34\t60\t8M\t*\t0\t0\tGATTACAG\tFFFFFFFF\tRG:Z:rg1\n\
+r06\t0\tchr1\t48\t60\t8M\t*\t0\t0\tCCGTAAGT\tFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write complexity projection fixture");
+
+        let summary = summarize_tiny_bam_complexity(&input, "preseq", 3, &[12, 18])
+            .expect("summarize complexity");
+        assert_eq!(summary.method, "preseq");
+        assert_eq!(summary.observed_total_reads, 6);
+        assert_eq!(summary.observed_unique_reads, 4);
+        assert_eq!(summary.projected_unique_reads, vec![(6, 4), (12, 8), (18, 12)]);
+        assert_eq!(summary.estimated_unique_reads, Some(12));
+        assert_eq!(summary.estimated_library_size, Some(12));
+        assert_eq!(summary.saturation_estimate, Some(0.33333333333333337));
+        assert_eq!(summary.min_reads, 3);
+        assert_eq!(summary.insufficient_data_reason, None);
+    }
+
+    #[test]
     fn summarize_tiny_bam_insert_size_reports_paired_fragment_distribution() {
         let temp = unique_temp_dir("bam-insert-size");
         let input = temp.join("input.sam");
