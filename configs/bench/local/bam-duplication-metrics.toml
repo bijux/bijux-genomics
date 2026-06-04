@@ -11,8 +11,8 @@ threads = 4
 output_dir = "target/local-smoke/bam.duplication_metrics"
 
 [[cases]]
-sample_id = "core-v1-duplicate-observation"
-bam = "assets/toy/core-v1/bam/duplication_metrics_duplicate_cluster.sam"
+sample_id = "human_like_duplicate_cluster"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
 optical_duplicates = "mark_only"
 umi_policy = "ignore"
 duplicate_action = "mark"
