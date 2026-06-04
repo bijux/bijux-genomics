@@ -49,6 +49,36 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.contamination"
+tool_id = "contammix"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/contammix"
+command_entrypoint = "contammix"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.contamination"
+tool_id = "schmutzi"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/schmutzi"
+command_entrypoint = "schmutzi"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.contamination"
+tool_id = "verifybamid2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/verifybamid2"
+command_entrypoint = "verifybamid2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.coverage"
 tool_id = "bedtools"
 execution_mode = "containerized"

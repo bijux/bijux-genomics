@@ -51,14 +51,14 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(97));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(100));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(97)
+        Some(100)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(97)
+        Some(100)
     );
     assert_eq!(
         payload
@@ -72,7 +72,7 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(34)
+        Some(37)
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let fastqc = rows
@@ -259,6 +259,22 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         bam_endogenous_content.get("scratch_gb").and_then(serde_json::Value::as_u64),
         Some(1)
     );
+    for tool_id in ["contammix", "schmutzi", "verifybamid2"] {
+        let contamination = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.contamination")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam contamination {tool_id} row"));
+        assert_eq!(contamination.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(contamination.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+        assert_eq!(
+            contamination.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+            Some(7)
+        );
+        assert_eq!(contamination.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    }
     for tool_id in ["bedtools", "mosdepth", "samtools"] {
         let bam_coverage = rows
             .iter()

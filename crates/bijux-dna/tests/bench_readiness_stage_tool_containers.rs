@@ -51,19 +51,19 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(97));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(100));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(97)
+        Some(100)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(96));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(99));
     assert_eq!(
         payload.get("container_declared_row_count").and_then(serde_json::Value::as_u64),
-        Some(96)
+        Some(99)
     );
     assert_eq!(
         payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
-        Some(97)
+        Some(100)
     );
     assert_eq!(payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
@@ -78,7 +78,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(34)
+        Some(37)
     );
 
     assert_eq!(
@@ -86,7 +86,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("execution_mode_counts")
             .and_then(|value| value.get("containerized"))
             .and_then(serde_json::Value::as_u64),
-        Some(77)
+        Some(80)
     );
     assert_eq!(
         payload
@@ -367,6 +367,31 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         bam_endogenous_content.get("container_id").and_then(serde_json::Value::as_str),
         Some("bijuxdna/samtools:1.21")
     );
+    for (tool_id, command_entrypoint, container_id) in [
+        ("contammix", "contammix", "bijuxdna/contammix"),
+        ("schmutzi", "schmutzi", "bijuxdna/schmutzi"),
+        ("verifybamid2", "verifybamid2", "bijuxdna/verifybamid2"),
+    ] {
+        let contamination = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.contamination")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam contamination {tool_id} row"));
+        assert_eq!(
+            contamination.get("execution_mode").and_then(serde_json::Value::as_str),
+            Some("containerized")
+        );
+        assert_eq!(
+            contamination.get("command_entrypoint").and_then(serde_json::Value::as_str),
+            Some(command_entrypoint)
+        );
+        assert_eq!(
+            contamination.get("container_id").and_then(serde_json::Value::as_str),
+            Some(container_id)
+        );
+    }
     let normalize_abundance_seqkit = rows
         .iter()
         .find(|row| {

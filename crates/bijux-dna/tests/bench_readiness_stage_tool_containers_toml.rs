@@ -48,7 +48,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         Some("benchmark_ready_runtime_declarations")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 97);
+    assert_eq!(rows.len(), 100);
     assert!(rows.iter().all(|row| {
         row.get("container_id").is_some()
             || row.get("command_entrypoint").is_some()
@@ -146,6 +146,20 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
             && row.get("container_id").and_then(toml::Value::as_str)
                 == Some("bijuxdna/samtools:1.21")
     }));
+    for (tool_id, command_entrypoint, container_id) in [
+        ("contammix", "contammix", "bijuxdna/contammix"),
+        ("schmutzi", "schmutzi", "bijuxdna/schmutzi"),
+        ("verifybamid2", "verifybamid2", "bijuxdna/verifybamid2"),
+    ] {
+        assert!(rows.iter().any(|row| {
+            row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.contamination")
+                && row.get("tool_id").and_then(toml::Value::as_str) == Some(tool_id)
+                && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
+                && row.get("command_entrypoint").and_then(toml::Value::as_str)
+                    == Some(command_entrypoint)
+                && row.get("container_id").and_then(toml::Value::as_str) == Some(container_id)
+        }));
+    }
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.overlap_correction")
             && row.get("tool_id").and_then(toml::Value::as_str) == Some("bamutil")
