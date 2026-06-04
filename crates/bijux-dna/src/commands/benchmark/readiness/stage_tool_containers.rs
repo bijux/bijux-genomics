@@ -321,11 +321,11 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_containers.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-containers.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_runtime_declarations");
-        assert_eq!(report.row_count, 90);
-        assert_eq!(report.benchmark_ready_row_count, 90);
-        assert_eq!(report.external_row_count, 89);
+        assert_eq!(report.row_count, 91);
+        assert_eq!(report.benchmark_ready_row_count, 91);
+        assert_eq!(report.external_row_count, 90);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
-        assert_eq!(report.domain_counts.get("bam"), Some(&27));
+        assert_eq!(report.domain_counts.get("bam"), Some(&28));
         assert!(report.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()
@@ -408,6 +408,13 @@ mod tests {
                 && row.command_entrypoint.as_deref() == Some("picard")
                 && row.container_id.as_deref() == Some("bijuxdna/picard:3.3.0")
         }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "bam.insert_size"
+                && row.tool_id == "picard"
+                && row.execution_mode == "java"
+                && row.command_entrypoint.as_deref() == Some("picard")
+                && row.container_id.as_deref() == Some("bijuxdna/picard:3.3.0")
+        }));
     }
 
     #[cfg(feature = "bam_downstream")]
@@ -431,7 +438,7 @@ mod tests {
 
         assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_VERSION);
         assert_eq!(config.classification_scope, STAGE_TOOL_CONTAINERS_SCOPE);
-        assert_eq!(config.rows.len(), 90);
+        assert_eq!(config.rows.len(), 91);
         assert!(config.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()
