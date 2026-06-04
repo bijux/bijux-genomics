@@ -48,7 +48,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         Some("benchmark_ready_runtime_declarations")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 64);
+    assert_eq!(rows.len(), 65);
     assert!(rows.iter().all(|row| {
         row.get("container_id").is_some()
             || row.get("command_entrypoint").is_some()
@@ -102,5 +102,14 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
                 == Some(
                     "bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
                 )
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str)
+            == Some("fastq.detect_duplicates_premerge")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("bijux_dna")
+            && row.get("execution_mode").and_then(toml::Value::as_str) == Some("internal")
+            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("bijux-dna")
+            && row.get("host_binary_mode").and_then(toml::Value::as_str) == Some("workspace_binary")
+            && row.get("container_id").is_none()
     }));
 }

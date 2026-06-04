@@ -75,15 +75,14 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.detect_duplicates_premerge")
                 && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("planned_contract")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("declared_only")
+                    == Some("governed_execution")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
                 && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("not_normalized")
+                    == Some("parse_normalized")
                 && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
+                    == Some("fixture:corpus-01-mini")
         }),
-        "FASTQ readiness map must retain the planned detect-duplicates-premerge row"
+        "FASTQ readiness map must retain the governed detect-duplicates-premerge row"
     );
     assert!(
         rows.iter().any(|row| {

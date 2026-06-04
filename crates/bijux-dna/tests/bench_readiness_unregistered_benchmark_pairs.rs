@@ -49,7 +49,7 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
     );
     assert_eq!(
         payload.get("unregistered_pair_count").and_then(serde_json::Value::as_u64),
-        Some(14)
+        Some(13)
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
@@ -57,14 +57,14 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         .get("domain_counts")
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(7));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(
         rows.len(),
-        14,
-        "governed registry-drift slice must retain the current fourteen rows"
+        13,
+        "governed registry-drift slice must retain the current thirteen rows"
     );
     assert!(
         rows.iter().any(|row| {
@@ -142,23 +142,21 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("fastq.detect_duplicates_premerge")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")
-                && row.get("registry_status").and_then(serde_json::Value::as_str)
-                    == Some("tool_missing")
-        }),
-        "fastq.detect_duplicates_premerge / bijux_dna must remain visible as a missing tool row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.estimate_library_complexity_prealign")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")
                 && row.get("registry_status").and_then(serde_json::Value::as_str)
-                    == Some("tool_missing")
+                    == Some("tool_registered_pair_missing")
+                && row
+                    .get("registered_stage_ids")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|value| {
+                        value
+                            == &vec![serde_json::Value::String(
+                                "fastq.detect_duplicates_premerge".to_string(),
+                            )]
+                    })
         }),
-        "fastq.estimate_library_complexity_prealign / bijux_dna must remain visible as a missing tool row"
+        "fastq.estimate-library-complexity-prealign / bijux_dna must remain visible as a pair-missing row once bijux_dna is registered for detect-duplicates-premerge"
     );
     assert!(
         !rows.iter().any(|row| {

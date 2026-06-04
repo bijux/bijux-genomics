@@ -201,15 +201,16 @@ mod tests {
         .expect("render unregistered benchmark pairs");
 
         assert_eq!(report.schema_version, UNREGISTERED_BENCHMARK_PAIRS_SCHEMA_VERSION);
-        assert_eq!(report.unregistered_pair_count, 20);
+        assert_eq!(report.unregistered_pair_count, 13);
         assert!(!report.ok, "report must fail while registry drift remains");
-        assert_eq!(report.domain_counts.get("fastq"), Some(&12));
-        assert_eq!(report.domain_counts.get("bam"), Some(&8));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&6));
+        assert_eq!(report.domain_counts.get("bam"), Some(&7));
         assert!(report.rows.iter().any(|row| {
             row.domain == "fastq"
-                && row.stage_id == "fastq.detect_duplicates_premerge"
+                && row.stage_id == "fastq.estimate_library_complexity_prealign"
                 && row.tool_id == "bijux_dna"
-                && row.registry_status == "tool_missing"
+                && row.registry_status == "tool_registered_pair_missing"
+                && row.registered_stage_ids == vec!["fastq.detect_duplicates_premerge".to_string()]
         }));
         assert!(report.rows.iter().any(|row| {
             row.domain == "bam"

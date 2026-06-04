@@ -409,10 +409,10 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bijux_dna"
                 && row.stage_id == "fastq.detect_duplicates_premerge"
-                && row.support_status == "planned_contract"
-                && row.adapter_status == "declared_only"
-                && row.parser_status == "not_normalized"
-                && row.corpus_status == "planner_only"
+                && row.support_status == "governed_execution"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parse_normalized"
+                && row.corpus_status == "fixture:corpus-01-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "fastqc"

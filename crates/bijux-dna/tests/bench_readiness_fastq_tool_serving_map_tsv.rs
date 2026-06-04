@@ -50,9 +50,9 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bijux_dna\tfastq.detect_duplicates_premerge\tplanned_contract\tdeclared_only\tnot_normalized\tplanner_only"
+            row == &"bijux_dna\tfastq.detect_duplicates_premerge\tgoverned_execution\trunnable\tparse_normalized\tfixture:corpus-01-mini"
         }),
-        "TSV must retain the planned detect-duplicates-premerge row"
+        "TSV must retain the governed detect-duplicates-premerge row"
     );
     assert!(
         rows.iter().any(|row| {

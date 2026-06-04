@@ -43,7 +43,7 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 14, "TSV must retain the governed unregistered-pair row count");
+    assert_eq!(rows.len(), 13, "TSV must retain the governed unregistered-pair row count");
     assert!(
         rows.iter().any(|row| {
             row == &"bam\tbam.align\tbowtie2\tsupported\ttool_registered_pair_missing\tfastq.deplete_host,fastq.deplete_reference_contaminants\tbenchmark matrix references `bam.align` / `bowtie2` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `bowtie2`: fastq.deplete_host, fastq.deplete_reference_contaminants"
@@ -88,13 +88,7 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"fastq\tfastq.detect_duplicates_premerge\tbijux_dna\tplanned_contract\ttool_missing\t\tbenchmark matrix references `fastq.detect_duplicates_premerge` / `bijux_dna` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `bijux_dna`: <none>"
-        }),
-        "TSV must retain the governed fastq.detect_duplicates_premerge / bijux_dna registry drift row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row == &"fastq\tfastq.estimate_library_complexity_prealign\tbijux_dna\tplanned_contract\ttool_missing\t\tbenchmark matrix references `fastq.estimate_library_complexity_prealign` / `bijux_dna` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `bijux_dna`: <none>"
+            row == &"fastq\tfastq.estimate_library_complexity_prealign\tbijux_dna\tplanned_contract\ttool_registered_pair_missing\tfastq.detect_duplicates_premerge\tbenchmark matrix references `fastq.estimate_library_complexity_prealign` / `bijux_dna` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `bijux_dna`: fastq.detect_duplicates_premerge"
         }),
         "TSV must retain the governed fastq.estimate_library_complexity_prealign / bijux_dna registry drift row"
     );

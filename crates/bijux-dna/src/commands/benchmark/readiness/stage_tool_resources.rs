@@ -317,10 +317,10 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_resources.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-resources.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_command_resources");
-        assert_eq!(report.row_count, 64);
-        assert_eq!(report.benchmark_ready_row_count, 64);
-        assert_eq!(report.nonzero_resource_row_count, 64);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&56));
+        assert_eq!(report.row_count, 65);
+        assert_eq!(report.benchmark_ready_row_count, 65);
+        assert_eq!(report.nonzero_resource_row_count, 65);
+        assert_eq!(report.domain_counts.get("fastq"), Some(&57));
         assert_eq!(report.domain_counts.get("bam"), Some(&8));
         assert!(report.rows.iter().all(|row| {
             row.threads > 0 && row.memory_gb > 0 && row.walltime_minutes > 0 && row.scratch_gb > 0
@@ -366,6 +366,15 @@ mod tests {
                 && row.scratch_gb == 4
                 && row.resource_origin == FASTQ_RESOURCE_ORIGIN
         }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "fastq.detect_duplicates_premerge"
+                && row.tool_id == "bijux_dna"
+                && row.threads == 1
+                && row.memory_gb == 1
+                && row.walltime_minutes == 15
+                && row.scratch_gb == 1
+                && row.resource_origin == FASTQ_RESOURCE_ORIGIN
+        }));
     }
 
     #[cfg(feature = "bam_downstream")]
@@ -389,7 +398,7 @@ mod tests {
 
         assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION);
         assert_eq!(config.classification_scope, STAGE_TOOL_RESOURCES_SCOPE);
-        assert_eq!(config.rows.len(), 64);
+        assert_eq!(config.rows.len(), 65);
         assert!(config.rows.iter().all(|row| {
             row.threads > 0 && row.memory_gb > 0 && row.walltime_minutes > 0 && row.scratch_gb > 0
         }));
@@ -416,6 +425,14 @@ mod tests {
                 && row.memory_gb == 8
                 && row.walltime_minutes == 15
                 && row.scratch_gb == 4
+        }));
+        assert!(config.rows.iter().any(|row| {
+            row.stage_id == "fastq.detect_duplicates_premerge"
+                && row.tool_id == "bijux_dna"
+                && row.threads == 1
+                && row.memory_gb == 1
+                && row.walltime_minutes == 15
+                && row.scratch_gb == 1
         }));
     }
 }

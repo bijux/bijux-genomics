@@ -51,21 +51,21 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(64));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(65));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(64)
+        Some(65)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(64)
+        Some(65)
     );
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(56)
+        Some(57)
     );
     assert_eq!(
         payload
@@ -135,5 +135,26 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
     assert_eq!(
         trim_terminal_damage_cutadapt.get("scratch_gb").and_then(serde_json::Value::as_u64),
         Some(4)
+    );
+    let detect_duplicates_bijux = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.detect_duplicates_premerge")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")
+        })
+        .expect("detect-duplicates bijux_dna row");
+    assert_eq!(detect_duplicates_bijux.get("threads").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(
+        detect_duplicates_bijux.get("memory_gb").and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
+    assert_eq!(
+        detect_duplicates_bijux.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(15)
+    );
+    assert_eq!(
+        detect_duplicates_bijux.get("scratch_gb").and_then(serde_json::Value::as_u64),
+        Some(1)
     );
 }
