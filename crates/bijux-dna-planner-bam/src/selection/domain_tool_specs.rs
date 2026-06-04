@@ -584,6 +584,21 @@ mod tests {
     }
 
     #[test]
+    fn load_bam_domain_tool_execution_spec_accepts_supported_authenticct_stage() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("bam.authenticity".to_string());
+        let tool_id = ToolId::new("authenticct");
+
+        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(spec.tool_id.as_str(), "authenticct");
+        assert_eq!(spec.command.template, vec!["authenticct".to_string()]);
+        assert_eq!(spec.image.image, "bijuxdna/authenticct:1.0.0");
+        assert!(spec.image.digest.is_none());
+        Ok(())
+    }
+
+    #[test]
     fn load_bam_domain_tool_execution_spec_accepts_supported_coverage_stage_tools() -> Result<()> {
         let repo_root = repo_root();
 
