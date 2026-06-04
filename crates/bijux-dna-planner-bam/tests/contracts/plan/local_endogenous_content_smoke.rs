@@ -10,6 +10,12 @@ fn repo_root() -> PathBuf {
         .to_path_buf()
 }
 
+fn governed_endogenous_bam(repo_root: &Path) -> PathBuf {
+    repo_root.join(
+        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam",
+    )
+}
+
 #[test]
 fn local_endogenous_content_smoke_plans_use_governed_bam_and_host_scope() -> Result<()> {
     let repo_root = repo_root();
@@ -22,14 +28,16 @@ fn local_endogenous_content_smoke_plans_use_governed_bam_and_host_scope() -> Res
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-endogenous-partial-mapping")
+        .find(|case| case.sample_id == "human_like_endogenous_partial_mapping")
         .unwrap_or_else(|| panic!("governed BAM endogenous-content case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.endogenous_content");
     assert_eq!(case.plan.tool_id.as_str(), "samtools");
     assert_eq!(case.plan.resources.threads, 2);
     assert_eq!(
         case.bam,
-        PathBuf::from("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
+        )
     );
     assert_eq!(case.host_reference_scope, "human_host");
     assert_eq!(case.expected_total_reads, 5);
@@ -39,12 +47,14 @@ fn local_endogenous_content_smoke_plans_use_governed_bam_and_host_scope() -> Res
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/bam.endogenous_content/core-v1-endogenous-partial-mapping/samtools"
+            "target/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools"
         )
     );
     assert_eq!(
         case.plan.params["bam"],
-        serde_json::json!("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
+        )
     );
     assert_eq!(case.plan.params["host_reference_scope"], serde_json::json!("human_host"));
 
@@ -67,7 +77,7 @@ fn local_endogenous_content_smoke_plans_use_governed_bam_and_host_scope() -> Res
     assert_eq!(
         report_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.endogenous_content/core-v1-endogenous-partial-mapping/samtools/endogenous.content.json"
+            "target/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/endogenous.content.json"
         )
     );
 
@@ -110,7 +120,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = " "
-bam = "assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
 host_reference_scope = "human_host"
 expected_total_reads = 5
 expected_mapped_reads = 3
@@ -136,7 +146,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
 host_reference_scope = "human_host"
 expected_total_reads = 5
 expected_mapped_reads = 3
@@ -145,7 +155,7 @@ expected_method = "mapped_fraction_from_flagstat"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
 host_reference_scope = "human_host"
 expected_total_reads = 5
 expected_mapped_reads = 3
@@ -185,9 +195,7 @@ expected_mapped_reads = 3
 expected_endogenous_fraction = 0.6
 expected_method = "mapped_fraction_from_flagstat"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam")
-                .display(),
+            bam = governed_endogenous_bam(&repo_root).display(),
         ),
     )?;
 
@@ -220,9 +228,7 @@ expected_mapped_reads = 0
 expected_endogenous_fraction = 0.0
 expected_method = "mapped_fraction_from_flagstat"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam")
-                .display(),
+            bam = governed_endogenous_bam(&repo_root).display(),
         ),
     )?;
 
@@ -255,9 +261,7 @@ expected_mapped_reads = 6
 expected_endogenous_fraction = 1.0
 expected_method = "mapped_fraction_from_flagstat"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam")
-                .display(),
+            bam = governed_endogenous_bam(&repo_root).display(),
         ),
     )?;
 
@@ -290,9 +294,7 @@ expected_mapped_reads = 3
 expected_endogenous_fraction = 1.1
 expected_method = "mapped_fraction_from_flagstat"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam")
-                .display(),
+            bam = governed_endogenous_bam(&repo_root).display(),
         ),
     )?;
 
@@ -325,9 +327,7 @@ expected_mapped_reads = 3
 expected_endogenous_fraction = 0.61
 expected_method = "mapped_fraction_from_flagstat"
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam")
-                .display(),
+            bam = governed_endogenous_bam(&repo_root).display(),
         ),
     )?;
 
@@ -360,9 +360,7 @@ expected_mapped_reads = 3
 expected_endogenous_fraction = 0.6
 expected_method = " "
 "#,
-            bam = repo_root
-                .join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam")
-                .display(),
+            bam = governed_endogenous_bam(&repo_root).display(),
         ),
     )?;
 

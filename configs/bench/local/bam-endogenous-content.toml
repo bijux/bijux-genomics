@@ -11,8 +11,8 @@ threads = 2
 output_dir = "target/local-smoke/bam.endogenous_content"
 
 [[cases]]
-sample_id = "core-v1-endogenous-partial-mapping"
-bam = "assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam"
+sample_id = "human_like_endogenous_partial_mapping"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
 host_reference_scope = "human_host"
 expected_total_reads = 5
 expected_mapped_reads = 3
