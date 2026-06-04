@@ -135,8 +135,10 @@ compatibility_note = "The general FASTQ corpus already owns paired reads with me
 
 [[mappings]]
 stage_id = "fastq.remove_duplicates"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed corpus fixture yet owns a duplicate-positive normalized FASTQ contract for local duplicate-removal smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus owns paired duplicate-signal normalized reads for governed duplicate-removal smoke checks."
 
 [[mappings]]
 stage_id = "fastq.filter_low_complexity"

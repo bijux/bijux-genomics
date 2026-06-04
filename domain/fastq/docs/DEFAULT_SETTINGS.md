@@ -182,6 +182,7 @@ trim_terminal_damage_benchmark_policy: fastq.trim_terminal_damage
 remove_duplicates_benchmark_policy: fastq.remove_duplicates
 - default benchmark backend is `clumpify`
 - governed comparison backend is `fastuniq`
+- the current governed benchmark surface is assigned to `fixture:corpus-01-mini`
 - every governed `fastq.remove_duplicates` row must emit `input_reads`, `duplicate_reads`, `unique_reads`, and `output_reads`
 - benchmark rows must keep the stage-native `reads_in`, `reads_out`, and `duplicates_removed` fields aligned with those canonical aliases so deduplication comparisons do not need stage-specific name translation
 - paired-end rows must preserve the pair-count coherence contract alongside the read-count aliases, and single-end rows must leave pair fields empty instead of inventing synthetic mate counts
