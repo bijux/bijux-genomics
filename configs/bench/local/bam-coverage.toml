@@ -11,9 +11,9 @@ threads = 4
 output_dir = "target/local-smoke/bam.coverage"
 
 [[cases]]
-sample_id = "core-v1-target-windows"
-bam = "assets/toy/core-v1/bam/coverage_target_windows.sam"
-regions = "assets/toy/core-v1/bam/coverage_target_windows.bed"
+sample_id = "human_like_target_window_coverage"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_target_window_coverage.sam"
+regions = "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_target_window_coverage.bed"
 depth_thresholds = [1, 5]
 expected_coverage_regime = "low_pass"
 

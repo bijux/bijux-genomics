@@ -2,6 +2,12 @@ use anyhow::Result;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+const GOVERNED_COVERAGE_SAMPLE_ID: &str = "human_like_target_window_coverage";
+const GOVERNED_COVERAGE_BAM_PATH: &str =
+    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_target_window_coverage.sam";
+const GOVERNED_COVERAGE_REGIONS_PATH: &str =
+    "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_target_window_coverage.bed";
+
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -22,13 +28,13 @@ fn local_coverage_smoke_plans_use_governed_target_windows_fixture() -> Result<()
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-target-windows")
+        .find(|case| case.sample_id == GOVERNED_COVERAGE_SAMPLE_ID)
         .unwrap_or_else(|| panic!("governed BAM coverage case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.coverage");
     assert_eq!(case.plan.tool_id.as_str(), "samtools");
     assert_eq!(case.plan.resources.threads, 4);
-    assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/coverage_target_windows.sam"));
-    assert_eq!(case.regions, PathBuf::from("assets/toy/core-v1/bam/coverage_target_windows.bed"));
+    assert_eq!(case.bam, PathBuf::from(GOVERNED_COVERAGE_BAM_PATH));
+    assert_eq!(case.regions, PathBuf::from(GOVERNED_COVERAGE_REGIONS_PATH));
     assert_eq!(case.depth_thresholds, vec![1, 5]);
     assert_eq!(case.expected_coverage_regime, "low_pass");
     assert_eq!(case.expected_rows.len(), 2);
@@ -42,13 +48,10 @@ fn local_coverage_smoke_plans_use_governed_target_windows_fixture() -> Result<()
     assert_eq!(case.expected_rows[0].covered_bases, 6);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.coverage/core-v1-target-windows/samtools")
+        PathBuf::from("target/local-smoke/bam.coverage/human_like_target_window_coverage/samtools")
     );
     assert_eq!(case.plan.params["depth_thresholds"], serde_json::json!([1, 5]));
-    assert_eq!(
-        case.plan.params["regions"],
-        serde_json::json!("assets/toy/core-v1/bam/coverage_target_windows.bed")
-    );
+    assert_eq!(case.plan.params["regions"], serde_json::json!(GOVERNED_COVERAGE_REGIONS_PATH));
 
     let output_names = case
         .plan
@@ -69,7 +72,7 @@ fn local_coverage_smoke_plans_use_governed_target_windows_fixture() -> Result<()
     assert_eq!(
         depth_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.coverage/core-v1-target-windows/samtools/coverage.depth.txt"
+            "target/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.depth.txt"
         )
     );
 
@@ -106,14 +109,15 @@ fn local_coverage_smoke_plans_reject_empty_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
     write_local_coverage_config(
         temp.path(),
-        r#"
+        &format!(
+            r#"
 schema_version = "bijux.bench.bam.local_coverage.v1"
 tool_id = "samtools"
 
 [[cases]]
 sample_id = " "
-bam = "assets/toy/core-v1/bam/coverage_target_windows.sam"
-regions = "assets/toy/core-v1/bam/coverage_target_windows.bed"
+bam = "{bam}"
+regions = "{regions}"
 depth_thresholds = [1, 5]
 expected_coverage_regime = "low_pass"
 
@@ -127,6 +131,9 @@ mean_depth = 1.3333333333333333
 breadth_1x = 1.0
 covered_bases = 6
 "#,
+            bam = GOVERNED_COVERAGE_BAM_PATH,
+            regions = GOVERNED_COVERAGE_REGIONS_PATH,
+        ),
     )?;
 
     let error = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans(temp.path())
@@ -140,14 +147,15 @@ fn local_coverage_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
     write_local_coverage_config(
         temp.path(),
-        r#"
+        &format!(
+            r#"
 schema_version = "bijux.bench.bam.local_coverage.v1"
 tool_id = "samtools"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/coverage_target_windows.sam"
-regions = "assets/toy/core-v1/bam/coverage_target_windows.bed"
+bam = "{bam}"
+regions = "{regions}"
 depth_thresholds = [1, 5]
 expected_coverage_regime = "low_pass"
 
@@ -163,8 +171,8 @@ covered_bases = 6
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/coverage_target_windows.sam"
-regions = "assets/toy/core-v1/bam/coverage_target_windows.bed"
+bam = "{bam}"
+regions = "{regions}"
 depth_thresholds = [1, 5]
 expected_coverage_regime = "low_pass"
 
@@ -178,6 +186,9 @@ mean_depth = 0.75
 breadth_1x = 0.75
 covered_bases = 3
 "#,
+            bam = GOVERNED_COVERAGE_BAM_PATH,
+            regions = GOVERNED_COVERAGE_REGIONS_PATH,
+        ),
     )?;
 
     let error = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans(temp.path())
@@ -214,9 +225,8 @@ mean_depth = 1.3333333333333333
 breadth_1x = 1.0
 covered_bases = 6
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions =
-                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
+            bam = repo_root.join(GOVERNED_COVERAGE_BAM_PATH).display(),
+            regions = repo_root.join(GOVERNED_COVERAGE_REGIONS_PATH).display(),
         ),
     )?;
 
@@ -257,9 +267,8 @@ mean_depth = 1.3333333333333333
 breadth_1x = 1.0
 covered_bases = 6
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions =
-                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
+            bam = repo_root.join(GOVERNED_COVERAGE_BAM_PATH).display(),
+            regions = repo_root.join(GOVERNED_COVERAGE_REGIONS_PATH).display(),
         ),
     )?;
 
@@ -300,9 +309,8 @@ mean_depth = 1.3333333333333333
 breadth_1x = 1.0
 covered_bases = 6
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions =
-                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
+            bam = repo_root.join(GOVERNED_COVERAGE_BAM_PATH).display(),
+            regions = repo_root.join(GOVERNED_COVERAGE_REGIONS_PATH).display(),
         ),
     )?;
 
@@ -343,9 +351,8 @@ mean_depth = 1.3333333333333333
 breadth_1x = 1.0
 covered_bases = 6
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions =
-                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
+            bam = repo_root.join(GOVERNED_COVERAGE_BAM_PATH).display(),
+            regions = repo_root.join(GOVERNED_COVERAGE_REGIONS_PATH).display(),
         ),
     )?;
 
@@ -386,9 +393,8 @@ mean_depth = 1.3333333333333333
 breadth_1x = 1.0
 covered_bases = 6
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions =
-                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
+            bam = repo_root.join(GOVERNED_COVERAGE_BAM_PATH).display(),
+            regions = repo_root.join(GOVERNED_COVERAGE_REGIONS_PATH).display(),
         ),
     )?;
 
@@ -439,9 +445,8 @@ mean_depth = 0.75
 breadth_1x = 0.75
 covered_bases = 3
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions =
-                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
+            bam = repo_root.join(GOVERNED_COVERAGE_BAM_PATH).display(),
+            regions = repo_root.join(GOVERNED_COVERAGE_REGIONS_PATH).display(),
         ),
     )?;
 
@@ -482,9 +487,8 @@ mean_depth = 1.3333333333333333
 breadth_1x = 1.0
 covered_bases = 6
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions =
-                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
+            bam = repo_root.join(GOVERNED_COVERAGE_BAM_PATH).display(),
+            regions = repo_root.join(GOVERNED_COVERAGE_REGIONS_PATH).display(),
         ),
     )?;
 
@@ -525,9 +529,8 @@ mean_depth = 1.3333333333333333
 breadth_1x = 1.0
 covered_bases = 7
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.sam").display(),
-            regions =
-                repo_root.join("assets/toy/core-v1/bam/coverage_target_windows.bed").display(),
+            bam = repo_root.join(GOVERNED_COVERAGE_BAM_PATH).display(),
+            regions = repo_root.join(GOVERNED_COVERAGE_REGIONS_PATH).display(),
         ),
     )?;
 
