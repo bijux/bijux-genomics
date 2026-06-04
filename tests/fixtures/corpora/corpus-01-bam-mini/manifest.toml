@@ -51,6 +51,20 @@ source_paths = [
 ]
 
 [[samples]]
+sample_id = "human_like_contamination_panel_screen"
+cohort = "human_like"
+alignment_path = "aligned/human_like_contamination_panel_screen.sam"
+index_path = "aligned/human_like_contamination_panel_screen.sam.bai"
+expected_contigs = ["chr1"]
+expected_header_sample_ids = ["human_like_contamination_panel_screen"]
+expected_read_group_ids = ["rg-contamination-human-like"]
+expected_record_count = 3
+source_paths = [
+  "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam",
+  "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat",
+]
+
+[[samples]]
 sample_id = "human_like_paired_overlap_control"
 cohort = "human_like"
 alignment_path = "aligned/human_like_paired_overlap_control.sam"
