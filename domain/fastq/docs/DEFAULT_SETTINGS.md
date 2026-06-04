@@ -78,7 +78,7 @@ validation_benchmark_policy: fastq.validate_reads
 screen_taxonomy_benchmark_policy: fastq.screen_taxonomy
 - default benchmark backend is `kraken2`
 - governed comparison backends are `centrifuge`, `kaiju`, and `krakenuniq`
-- retained planned taxonomy row `diamond` must remain visible as non-admitted registry drift until it is either fully registered and normalized or explicitly removed from the benchmark matrix
+- the current governed benchmark surface is assigned to `fixture:corpus-02-edna-mini`
 - every governed `fastq.screen_taxonomy` row must emit `classified_reads`, `unclassified_reads`, `top_taxa`, and `taxonomy_database_id`
 - `taxonomy_database_id` must stay aligned with the governed `database_artifact_id`, and the classified versus unclassified read counts must stay derived from the governed read totals plus taxonomy fractions so backend comparisons do not require classifier-specific summary parsing
 
