@@ -56,8 +56,10 @@ fn write_local_detect_duplicates_premerge_smoke_report_materializes_governed_out
 
     let duplicate_hit = cases
         .iter()
-        .find(|case| case["sample_id"] == serde_json::json!("duplicate-hit-pe"))
-        .unwrap_or_else(|| panic!("duplicate-hit-pe case missing from duplicate summary"));
+        .find(|case| case["sample_id"] == serde_json::json!("human_like_pe_duplicate_signals"))
+        .unwrap_or_else(|| {
+            panic!("human_like_pe_duplicate_signals case missing from duplicate summary")
+        });
     assert_eq!(duplicate_hit["layout"], serde_json::json!("paired_end"));
     assert_eq!(duplicate_hit["reads_in"], serde_json::json!(6));
     assert_eq!(duplicate_hit["duplicate_signal_reads"], serde_json::json!(2));
@@ -67,8 +69,10 @@ fn write_local_detect_duplicates_premerge_smoke_report_materializes_governed_out
 
     let duplicate_clear = cases
         .iter()
-        .find(|case| case["sample_id"] == serde_json::json!("duplicate-clear-pe"))
-        .unwrap_or_else(|| panic!("duplicate-clear-pe case missing from duplicate summary"));
+        .find(|case| case["sample_id"] == serde_json::json!("human_like_pe_distinct_pairs"))
+        .unwrap_or_else(|| {
+            panic!("human_like_pe_distinct_pairs case missing from duplicate summary")
+        });
     assert_eq!(duplicate_clear["layout"], serde_json::json!("paired_end"));
     assert_eq!(duplicate_clear["reads_in"], serde_json::json!(4));
     assert_eq!(duplicate_clear["duplicate_signal_reads"], serde_json::json!(0));

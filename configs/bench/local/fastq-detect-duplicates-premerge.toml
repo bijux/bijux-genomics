@@ -4,11 +4,11 @@ threads = 1
 output_dir = "target/local-smoke/fastq.detect_duplicates_premerge"
 
 [[cases]]
-sample_id = "duplicate-hit-pe"
-r1 = "assets/toy/core-v1/fastq/duplicate_pairs_R1.fastq"
-r2 = "assets/toy/core-v1/fastq/duplicate_pairs_R2.fastq"
+sample_id = "human_like_pe_duplicate_signals"
+r1 = "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz"
+r2 = "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz"
 
 [[cases]]
-sample_id = "duplicate-clear-pe"
-r1 = "assets/toy/core-v1/fastq/reads_1.fastq"
-r2 = "assets/toy/core-v1/fastq/reads_2.fastq"
+sample_id = "human_like_pe_distinct_pairs"
+r1 = "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R1.fastq.gz"
+r2 = "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R2.fastq.gz"
