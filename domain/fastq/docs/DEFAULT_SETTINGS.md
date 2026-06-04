@@ -104,6 +104,7 @@ profile_read_lengths_benchmark_policy: fastq.profile_read_lengths
 
 detect_adapters_benchmark_policy: fastq.detect_adapters
 - default benchmark backend is `fastqc`
+- the current governed benchmark surface is intentionally single-tool and assigned to `fixture:corpus-01-mini`
 - every governed `fastq.detect_adapters` row must emit `adapter_report`, `detected_adapter_ids`, `detection_confidence`, and `detection_threshold`
 - governed adapter identities must resolve to adapter-bank IDs instead of raw sequence fragments, and nested partial rescue motifs must not be double-counted when a stronger parent adapter matches the same read
 - `fastq.report_qc` may reuse the governed adapter report and evidence directory, but it must not invent new adapter identities beyond the canonical detect-adapters report
