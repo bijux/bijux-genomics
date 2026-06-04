@@ -73,24 +73,28 @@ fn benchmark_profiles_keep_observer_coverage_visible() {
 
     let screen_stage = StageId::from_static("fastq.screen_taxonomy");
     let profiles = bijux_dna_planner_fastq::stage_api::benchmark_profiles_for_stage(&screen_stage);
+    let mut screen_tool_ids =
+        profiles.iter().map(|profile| profile.tool_id.as_str().to_string()).collect::<Vec<_>>();
+    screen_tool_ids.sort();
+    assert_eq!(screen_tool_ids, vec!["centrifuge", "kaiju", "kraken2", "krakenuniq"]);
     assert!(
-        profiles.iter().any(|profile| {
-            profile.tool_id.as_str() == "diamond"
+        profiles.iter().all(|profile| {
+            profile.integration_level
+                == bijux_dna_planner_fastq::stage_api::ToolIntegrationLevel::GovernedContract
                 && profile.readiness
-                    == bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::PlannedContract
-        }),
-        "planned taxonomy bindings must remain visible as planned-only profiles",
-    );
-    assert!(
-        profiles.iter().filter(|profile| profile.integration_level
-            == bijux_dna_planner_fastq::stage_api::ToolIntegrationLevel::GovernedContract)
-            .all(|profile| {
-            profile.readiness
-                == bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedBenchmarkCohort
+                    == bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedBenchmarkCohort
                 && profile.runtime_interpretation
                     == bijux_dna_planner_fastq::stage_api::RuntimeInterpretationLevel::ObserverSpecialized
         }),
         "governed taxonomy screening backends must stay observer-specialized and cohort-benchmarkable",
+    );
+    assert!(
+        profiles.iter().all(|profile| {
+            profile.readiness
+                == bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedBenchmarkCohort
+                && profile.benchmark_scenarios == vec!["screen_fairness"]
+        }),
+        "taxonomy screening benchmark profiles must stay attached to the governed fairness cohort",
     );
 }
 
