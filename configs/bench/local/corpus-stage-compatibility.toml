@@ -324,8 +324,10 @@ compatibility_note = "The general BAM corpus now owns a MAPQ-threshold ladder al
 
 [[mappings]]
 stage_id = "bam.markdup"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed BAM corpus fixture yet owns a duplicate-marking cluster contract for local markdup smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a duplicate-cluster alignment fixture suitable for governed local duplicate-marking smoke checks."
 
 [[mappings]]
 stage_id = "bam.overlap_correction"
