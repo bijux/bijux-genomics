@@ -188,8 +188,8 @@ mod tests {
 
         assert_eq!(report.fixture_count, 5);
         assert_eq!(report.stage_count, 51);
-        assert_eq!(report.skip_count, 76);
-        assert_eq!(report.planner_only_stage_count, 32);
+        assert_eq!(report.skip_count, 80);
+        assert_eq!(report.planner_only_stage_count, 31);
         assert!(
             report.skips.iter().any(|skip| {
                 skip.stage_id == "fastq.screen_taxonomy"
@@ -205,6 +205,14 @@ mod tests {
                     && skip.replacement_corpus_id == "corpus-01-mini"
             }),
             "fixture-backed filter-reads stage should emit an explicit replacement for incompatible corpora"
+        );
+        assert!(
+            report.skips.iter().any(|skip| {
+                skip.stage_id == "fastq.trim_polyg_tails"
+                    && skip.corpus_id == "corpus-02-edna-mini"
+                    && skip.replacement_corpus_id == "corpus-01-mini"
+            }),
+            "fixture-backed trim-polyg stage should emit an explicit replacement for incompatible corpora"
         );
         assert!(
             report.planner_only_stages.iter().any(|stage| {

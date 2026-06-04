@@ -326,10 +326,10 @@ mod tests {
         assert_eq!(report.stage_count, 27);
         assert_eq!(report.tool_count, 45);
         assert_eq!(report.row_count, 75);
-        assert_eq!(report.benchmark_ready_row_count, 51);
-        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 51);
+        assert_eq!(report.benchmark_ready_row_count, 53);
+        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 53);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
-        assert_eq!(report.readiness_gap_counts.get("corpus"), Some(&17));
+        assert_eq!(report.readiness_gap_counts.get("corpus"), Some(&15));
         assert_eq!(report.readiness_gap_counts.get("support"), Some(&7));
         assert!(
             report.readiness_gap_counts.get("adapter").is_none(),
@@ -370,6 +370,14 @@ mod tests {
                 && row.corpus_status == "fixture:corpus-01-mini"
         }));
         assert!(report.rows.iter().any(|row| {
+            row.tool_id == "fastp"
+                && row.stage_id == "fastq.trim_polyg_tails"
+                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
+                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
+                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.corpus_status == "fixture:corpus-01-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
             row.tool_id == "diamond"
                 && row.stage_id == "fastq.screen_taxonomy"
                 && super::benchmark_status_label(row.benchmark_status) == "not_benchmark_ready"
@@ -402,6 +410,14 @@ mod tests {
                 )
             }),
             "the governed FASTQ validation row must remain benchmark-ready and adapter-covered"
+        );
+        assert!(
+            rows.iter().any(|row| {
+                row.starts_with(
+                    "fastp\tfastq.trim_polyg_tails\tbenchmark_ready\tcovered\tnone\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-01-mini\t"
+                )
+            }),
+            "the governed trim-polyg row must remain benchmark-ready and adapter-covered"
         );
         assert!(
             rows.iter().any(|row| {

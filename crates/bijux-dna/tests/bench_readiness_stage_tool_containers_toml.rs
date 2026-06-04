@@ -48,7 +48,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         Some("benchmark_ready_runtime_declarations")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 59);
+    assert_eq!(rows.len(), 61);
     assert!(rows.iter().all(|row| {
         row.get("container_id").is_some()
             || row.get("command_entrypoint").is_some()
@@ -75,6 +75,16 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.filter_reads")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("fastp")
+            && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
+            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("fastp")
+            && row.get("container_id").and_then(toml::Value::as_str)
+                == Some(
+                    "bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10"
+                )
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.trim_polyg_tails")
             && row.get("tool_id").and_then(toml::Value::as_str) == Some("fastp")
             && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
             && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("fastp")
