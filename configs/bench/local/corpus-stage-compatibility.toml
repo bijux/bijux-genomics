@@ -17,7 +17,7 @@ summary = "General FASTQ corpus with governed single-end and paired-end human-li
 corpus_family_id = "corpus-01"
 fixture_id = "corpus-01-bam-mini"
 fixture_manifest = "tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml"
-summary = "General BAM-stage proxy corpus with governed aligned human and aDNA-like tiny SAM fixtures."
+summary = "General BAM-stage proxy corpus with governed validation, duplicate-flagged qc-pre, and aDNA-like tiny alignment fixtures."
 
 [[fixtures]]
 corpus_family_id = "corpus-01"
@@ -326,8 +326,10 @@ compatibility_note = "No governed BAM corpus fixture yet owns a paired-overlap c
 
 [[mappings]]
 stage_id = "bam.qc_pre"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed BAM corpus fixture yet owns the multi-contig and duplicate-flagged metrics contract required for local qc_pre smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a multi-contig duplicate-flagged alignment fixture suitable for governed local qc_pre smoke checks."
 
 [[mappings]]
 stage_id = "bam.recalibration"

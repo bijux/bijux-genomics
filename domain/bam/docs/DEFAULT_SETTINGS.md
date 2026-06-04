@@ -85,6 +85,7 @@ single_tool_justification: bam.haplogroups
 - `bam.validate`: warning-grade findings are currently empty for governed fixtures; validation failures surface through deterministic refusal-code errors instead of a mixed warning/error model.
 - `bam.qc_pre`: the admitted `samtools` benchmark row and the governed `multiqc` reporting companion must preserve `total_reads`, `mapped_reads`, `unmapped_reads`, `duplicate_flagged_reads`, and `contig_summary`.
 - `bam.qc_pre`: `samtools` remains the primary executor for raw flagstat/idxstats/stats artifacts, while `multiqc` is currently plannable reporting coverage rather than a local-smoke execution backend.
+- `bam.qc_pre`: governed local-smoke coverage now uses the `corpus-01-bam-mini` duplicate-flagged multi-contig alignment fixture so the canonical count and contig metrics are proven through owned corpus inputs rather than toy asset paths.
 - `bam.mapping_summary`: the admitted `samtools` row and the governed `picard` comparison row must preserve `mapping_fraction`, `mapped_reads`, `unmapped_reads`, `secondary_reads`, and `supplementary_reads`.
 - `bam.mapping_summary`: `samtools` remains the fixture-backed execution baseline, while `picard` currently contributes supported comparison coverage through alignment-summary metrics plus governed companion artifacts.
 - `bam.filter`: the admitted `samtools`, `bamtools`, and `bedtools` benchmark rows must preserve `input_reads`, `kept_reads`, `removed_reads`, and `active_filters`.
