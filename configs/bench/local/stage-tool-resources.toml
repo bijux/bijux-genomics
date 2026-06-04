@@ -179,6 +179,16 @@ resource_origin = "tool_constraints_with_stage_walltime_profile"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.detect_duplicates_premerge"
+tool_id = "bijux_dna"
+threads = 1
+memory_gb = 1
+walltime_minutes = 15
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.filter_reads"
 tool_id = "bbduk"
 threads = 4

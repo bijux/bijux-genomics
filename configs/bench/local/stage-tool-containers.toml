@@ -179,6 +179,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.detect_duplicates_premerge"
+tool_id = "bijux_dna"
+execution_mode = "internal"
+install_kind = "workspace_binary"
+command_entrypoint = "bijux-dna"
+host_binary_mode = "workspace_binary"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.filter_reads"
 tool_id = "bbduk"
 execution_mode = "containerized"
