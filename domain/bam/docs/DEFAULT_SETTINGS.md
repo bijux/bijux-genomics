@@ -88,6 +88,7 @@ single_tool_justification: bam.haplogroups
 - `bam.qc_pre`: governed local-smoke coverage now uses the `corpus-01-bam-mini` duplicate-flagged multi-contig alignment fixture so the canonical count and contig metrics are proven through owned corpus inputs rather than toy asset paths.
 - `bam.mapping_summary`: the admitted `samtools` row and the governed `picard` comparison row must preserve `mapping_fraction`, `mapped_reads`, `unmapped_reads`, `secondary_reads`, and `supplementary_reads`.
 - `bam.mapping_summary`: `samtools` remains the fixture-backed execution baseline, while `picard` currently contributes supported comparison coverage through alignment-summary metrics plus governed companion artifacts.
+- `bam.mapping_summary`: governed local-smoke coverage now uses the `corpus-01-bam-mini` partial-mapping alignment fixture so the canonical mapped/unmapped split is proven through owned corpus inputs rather than toy asset paths.
 - `bam.filter`: the admitted `samtools`, `bamtools`, and `bedtools` benchmark rows must preserve `input_reads`, `kept_reads`, `removed_reads`, and `active_filters`.
 - `bam.filter`: `samtools` remains the local-smoke execution baseline, while `bamtools` and `bedtools` currently contribute supported comparison coverage through the same retained/removed audit-artifact contract.
 - `bam.mapq_filter`: the admitted `samtools` and `bamtools` benchmark rows must preserve `mapq_threshold`, `kept_reads`, `removed_reads`, and `filtered_bam`.

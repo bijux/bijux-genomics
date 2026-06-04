@@ -306,8 +306,10 @@ compatibility_note = "No governed BAM corpus fixture yet owns the read-length th
 
 [[mappings]]
 stage_id = "bam.mapping_summary"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed BAM corpus fixture yet owns a partial-mapping summary contract for local mapping-summary smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a partial-mapping alignment fixture suitable for governed local mapping-summary smoke checks."
 
 [[mappings]]
 stage_id = "bam.mapq_filter"
