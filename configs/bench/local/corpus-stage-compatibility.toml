@@ -261,8 +261,10 @@ compatibility_note = "The ancient-like damage fixture already owns governed term
 
 [[mappings]]
 stage_id = "bam.duplication_metrics"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed BAM corpus fixture yet owns a duplicate-family burden contract for duplication-metrics smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a duplicate-cluster alignment fixture suitable for governed duplication-metrics smoke checks."
 
 [[mappings]]
 stage_id = "bam.endogenous_content"
