@@ -104,6 +104,12 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"bam.gc_bias\tbenchmark_ready\tpicard\tpicard\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.gc_bias` is benchmark_ready via `picard` with a fixture-backed parser-validated BAM benchmark row"
+        }),
+        "TSV must retain the governed benchmark-ready bam.gc_bias row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"bam.insert_size\tbenchmark_ready\tpicard\tpicard\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.insert_size` is benchmark_ready via `picard` with a fixture-backed parser-validated BAM benchmark row"
         }),
         "TSV must retain the governed benchmark-ready bam.insert_size row"

@@ -453,8 +453,8 @@ mod tests {
         assert_eq!(report.schema_version, BAM_STAGE_DECISION_TABLE_SCHEMA_VERSION);
         assert_eq!(report.stage_count, 24);
         assert_eq!(report.row_count, 24);
-        assert_eq!(report.decision_counts.get("benchmark_ready"), Some(&12));
-        assert_eq!(report.decision_counts.get("needs_corpus"), Some(&1));
+        assert_eq!(report.decision_counts.get("benchmark_ready"), Some(&13));
+        assert_eq!(report.decision_counts.get("needs_corpus"), None);
         assert_eq!(report.decision_counts.get("needs_parser"), Some(&9));
         assert_eq!(report.decision_counts.get("future_not_in_hpc_round"), Some(&2));
         assert_eq!(report.decision_counts.get("needs_adapter"), None);
@@ -488,6 +488,14 @@ mod tests {
                 && row.decision == BamStageDecisionKind::BenchmarkReady
                 && row.primary_tool_id.as_deref() == Some("mosdepth")
                 && row.selected_tool_id.as_deref() == Some("mosdepth")
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "bam.gc_bias"
+                && row.decision == BamStageDecisionKind::BenchmarkReady
+                && row.primary_tool_id.as_deref() == Some("picard")
+                && row.selected_tool_id.as_deref() == Some("picard")
                 && row.parser_status == "parser_fixture_validated"
                 && row.corpus_status == "fixture:corpus-01-bam-mini"
         }));
