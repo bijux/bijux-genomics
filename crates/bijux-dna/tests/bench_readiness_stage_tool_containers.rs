@@ -51,18 +51,30 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(67));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(67)
+        Some(69)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(66));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(68));
+    assert_eq!(
+        payload.get("container_declared_row_count").and_then(serde_json::Value::as_u64),
+        Some(68)
+    );
+    assert_eq!(
+        payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
+        Some(69)
+    );
+    assert_eq!(
+        payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(59)
+        Some(61)
     );
     assert_eq!(
         payload
@@ -197,6 +209,56 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     assert!(
         detect_duplicates_bijux.get("container_id").is_none(),
         "workspace-binary detect-duplicates row must not declare a container id"
+    );
+    let filter_low_complexity_bbduk = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.filter_low_complexity")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bbduk")
+        })
+        .expect("filter-low-complexity bbduk row");
+    assert_eq!(
+        filter_low_complexity_bbduk
+            .get("execution_mode")
+            .and_then(serde_json::Value::as_str),
+        Some("containerized")
+    );
+    assert_eq!(
+        filter_low_complexity_bbduk
+            .get("command_entrypoint")
+            .and_then(serde_json::Value::as_str),
+        Some("bbduk")
+    );
+    assert_eq!(
+        filter_low_complexity_bbduk.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/bbduk@sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4")
+    );
+    let filter_low_complexity_prinseq = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.filter_low_complexity")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("prinseq")
+        })
+        .expect("filter-low-complexity prinseq row");
+    assert_eq!(
+        filter_low_complexity_prinseq
+            .get("execution_mode")
+            .and_then(serde_json::Value::as_str),
+        Some("containerized")
+    );
+    assert_eq!(
+        filter_low_complexity_prinseq
+            .get("command_entrypoint")
+            .and_then(serde_json::Value::as_str),
+        Some("prinseq++")
+    );
+    assert_eq!(
+        filter_low_complexity_prinseq
+            .get("container_id")
+            .and_then(serde_json::Value::as_str),
+        Some("bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971")
     );
     for tool_id in ["clumpify", "fastuniq"] {
         let remove_duplicates = rows

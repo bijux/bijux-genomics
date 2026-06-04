@@ -48,7 +48,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         Some("benchmark_ready_runtime_declarations")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 67);
+    assert_eq!(rows.len(), 69);
     assert!(rows.iter().all(|row| {
         row.get("container_id").is_some()
             || row.get("command_entrypoint").is_some()
@@ -111,6 +111,28 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
             && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("bijux-dna")
             && row.get("host_binary_mode").and_then(toml::Value::as_str) == Some("workspace_binary")
             && row.get("container_id").is_none()
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str)
+            == Some("fastq.filter_low_complexity")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("bbduk")
+            && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
+            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("bbduk")
+            && row.get("container_id").and_then(toml::Value::as_str)
+                == Some(
+                    "bijuxdna/bbduk@sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4"
+                )
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str)
+            == Some("fastq.filter_low_complexity")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("prinseq")
+            && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
+            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("prinseq++")
+            && row.get("container_id").and_then(toml::Value::as_str)
+                == Some(
+                    "bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
+                )
     }));
     for tool_id in ["clumpify", "fastuniq"] {
         assert!(rows.iter().any(|row| {
