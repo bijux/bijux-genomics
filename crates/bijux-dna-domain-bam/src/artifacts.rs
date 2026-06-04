@@ -5668,7 +5668,9 @@ mod tests {
             .parent()
             .and_then(Path::parent)
             .unwrap_or_else(|| panic!("workspace root"))
-            .join("assets/toy/core-v1/bam/endogenous_content_partial_mapping.sam");
+            .join(
+                "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam",
+            );
         let summary = summarize_tiny_bam_endogenous_content(
             &input,
             "mapped_fraction_from_flagstat",
