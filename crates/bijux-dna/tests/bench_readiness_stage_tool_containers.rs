@@ -51,19 +51,19 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(92));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(93));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(92)
+        Some(93)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(91));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(92));
     assert_eq!(
         payload.get("container_declared_row_count").and_then(serde_json::Value::as_u64),
-        Some(91)
+        Some(92)
     );
     assert_eq!(
         payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
-        Some(92)
+        Some(93)
     );
     assert_eq!(payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
@@ -78,7 +78,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(29)
+        Some(30)
     );
 
     assert_eq!(
@@ -86,7 +86,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("execution_mode_counts")
             .and_then(|value| value.get("containerized"))
             .and_then(serde_json::Value::as_u64),
-        Some(73)
+        Some(74)
     );
     assert_eq!(
         payload
@@ -307,6 +307,28 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     assert_eq!(
         bam_complexity_preseq.get("container_id").and_then(serde_json::Value::as_str),
         Some("bijuxdna/preseq")
+    );
+    let bam_endogenous_content = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.endogenous_content")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
+        })
+        .expect("bam endogenous-content samtools row");
+    assert_eq!(
+        bam_endogenous_content.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("containerized")
+    );
+    assert_eq!(
+        bam_endogenous_content
+            .get("command_entrypoint")
+            .and_then(serde_json::Value::as_str),
+        Some("samtools")
+    );
+    assert_eq!(
+        bam_endogenous_content.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/samtools:1.21")
     );
     let normalize_abundance_seqkit = rows
         .iter()

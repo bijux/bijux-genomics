@@ -317,11 +317,11 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_resources.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-resources.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_command_resources");
-        assert_eq!(report.row_count, 92);
-        assert_eq!(report.benchmark_ready_row_count, 92);
-        assert_eq!(report.nonzero_resource_row_count, 92);
+        assert_eq!(report.row_count, 93);
+        assert_eq!(report.benchmark_ready_row_count, 93);
+        assert_eq!(report.nonzero_resource_row_count, 93);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
-        assert_eq!(report.domain_counts.get("bam"), Some(&29));
+        assert_eq!(report.domain_counts.get("bam"), Some(&30));
         assert!(report.rows.iter().all(|row| {
             row.threads > 0 && row.memory_gb > 0 && row.walltime_minutes > 0 && row.scratch_gb > 0
         }));
@@ -393,6 +393,14 @@ mod tests {
                 && row.walltime_minutes == 7
                 && row.scratch_gb == 2
         }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "bam.endogenous_content"
+                && row.tool_id == "samtools"
+                && row.threads == 1
+                && row.memory_gb == 1
+                && row.walltime_minutes == 5
+                && row.scratch_gb == 1
+        }));
         for tool_id in ["picard", "samtools"] {
             assert!(report.rows.iter().any(|row| {
                 row.stage_id == "bam.mapping_summary"
@@ -434,7 +442,7 @@ mod tests {
 
         assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION);
         assert_eq!(config.classification_scope, STAGE_TOOL_RESOURCES_SCOPE);
-        assert_eq!(config.rows.len(), 92);
+        assert_eq!(config.rows.len(), 93);
         assert!(config.rows.iter().all(|row| {
             row.threads > 0 && row.memory_gb > 0 && row.walltime_minutes > 0 && row.scratch_gb > 0
         }));
@@ -487,6 +495,14 @@ mod tests {
                 && row.memory_gb == 2
                 && row.walltime_minutes == 7
                 && row.scratch_gb == 2
+        }));
+        assert!(config.rows.iter().any(|row| {
+            row.stage_id == "bam.endogenous_content"
+                && row.tool_id == "samtools"
+                && row.threads == 1
+                && row.memory_gb == 1
+                && row.walltime_minutes == 5
+                && row.scratch_gb == 1
         }));
         for tool_id in ["picard", "samtools"] {
             assert!(config.rows.iter().any(|row| {

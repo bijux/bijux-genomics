@@ -119,6 +119,16 @@ resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.endogenous_content"
+tool_id = "samtools"
+threads = 1
+memory_gb = 1
+walltime_minutes = 5
+scratch_gb = 1
+resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.filter"
 tool_id = "bamtools"
 threads = 3

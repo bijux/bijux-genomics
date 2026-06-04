@@ -119,6 +119,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.endogenous_content"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.filter"
 tool_id = "bamtools"
 execution_mode = "containerized"
