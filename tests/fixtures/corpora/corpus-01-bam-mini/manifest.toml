@@ -38,6 +38,17 @@ expected_record_count = 3
 source_paths = ["tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"]
 
 [[samples]]
+sample_id = "human_like_mixed_filter_constraints"
+cohort = "human_like"
+alignment_path = "aligned/human_like_mixed_filter_constraints.sam"
+index_path = "aligned/human_like_mixed_filter_constraints.sam.bai"
+expected_contigs = ["chr1"]
+expected_header_sample_ids = ["human_like_mixed_filter_constraints"]
+expected_read_group_ids = ["rg-filter-human-like"]
+expected_record_count = 5
+source_paths = ["tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"]
+
+[[samples]]
 sample_id = "adna_like_damage"
 cohort = "adna_like"
 alignment_path = "aligned/adna_like_damage.sam"
