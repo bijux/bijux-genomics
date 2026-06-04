@@ -143,6 +143,19 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
         ),
         "BAM readiness map must retain the governed authenticct authenticity row"
     );
+    for tool_id in ["contammix", "schmutzi", "verifybamid2"] {
+        assert!(
+            has_row(
+                tool_id,
+                "bam.contamination",
+                "supported",
+                "runnable",
+                "parser_fixture_validated",
+                "fixture:corpus-01-bam-mini",
+            ),
+            "BAM readiness map must retain the governed contamination row for {tool_id}"
+        );
+    }
     assert!(
         has_row(
             "preseq",

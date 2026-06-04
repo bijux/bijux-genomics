@@ -539,6 +539,16 @@ mod tests {
                 && row.parser_status == "parser_fixture_validated"
                 && row.corpus_status == "fixture:corpus-01-bam-mini"
         }));
+        for tool_id in ["contammix", "schmutzi", "verifybamid2"] {
+            assert!(report.rows.iter().any(|row| {
+                row.tool_id == tool_id
+                    && row.stage_id == "bam.contamination"
+                    && row.support_status == "supported"
+                    && row.adapter_status == "runnable"
+                    && row.parser_status == "parser_fixture_validated"
+                    && row.corpus_status == "fixture:corpus-01-bam-mini"
+            }));
+        }
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bcftools"
                 && row.stage_id == "bam.genotyping"
