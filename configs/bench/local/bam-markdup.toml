@@ -11,8 +11,8 @@ threads = 4
 output_dir = "target/local-smoke/bam.markdup"
 
 [[cases]]
-sample_id = "core-v1-markdup-cluster"
-bam = "assets/toy/core-v1/bam/markdup_duplicate_cluster.sam"
+sample_id = "human_like_duplicate_cluster"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
 duplicate_action = "mark"
 optical_duplicates = "mark_only"
 umi_policy = "ignore"

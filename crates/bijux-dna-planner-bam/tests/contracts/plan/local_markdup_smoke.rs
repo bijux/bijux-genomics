@@ -23,12 +23,17 @@ fn local_markdup_smoke_plans_use_governed_duplicate_fixture() -> Result<()> {
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-markdup-cluster")
+        .find(|case| case.sample_id == "human_like_duplicate_cluster")
         .unwrap_or_else(|| panic!("governed BAM markdup case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.markdup");
     assert_eq!(case.plan.tool_id.as_str(), "samtools");
     assert_eq!(case.plan.resources.threads, 4);
-    assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam"));
+    assert_eq!(
+        case.bam,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
+        )
+    );
     assert_eq!(case.expected_input_reads, 4);
     assert_eq!(case.expected_output_reads, 4);
     assert_eq!(case.expected_removed_reads, 0);
@@ -38,7 +43,7 @@ fn local_markdup_smoke_plans_use_governed_duplicate_fixture() -> Result<()> {
     assert_eq!(case.expected_newly_marked_reads, 1);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.markdup/core-v1-markdup-cluster/samtools")
+        PathBuf::from("target/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools")
     );
     assert_eq!(case.plan.params["duplicate_action"], serde_json::json!("mark"));
     assert_eq!(case.plan.params["optical_duplicates"], serde_json::json!("mark_only"));
@@ -75,7 +80,7 @@ fn local_markdup_smoke_plans_use_governed_duplicate_fixture() -> Result<()> {
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.markdup/core-v1-markdup-cluster/samtools/markdup.summary.json"
+            "target/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/markdup.summary.json"
         )
     );
 
@@ -118,7 +123,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = " "
-bam = "assets/toy/core-v1/bam/markdup_duplicate_cluster.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
 duplicate_action = "mark"
 optical_duplicates = "mark_only"
 umi_policy = "ignore"
@@ -149,7 +154,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/markdup_duplicate_cluster.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
 duplicate_action = "mark"
 optical_duplicates = "mark_only"
 umi_policy = "ignore"
@@ -163,7 +168,7 @@ expected_newly_marked_reads = 1
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/markdup_duplicate_cluster.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
 duplicate_action = "mark"
 optical_duplicates = "mark_only"
 umi_policy = "ignore"
@@ -208,7 +213,9 @@ expected_duplicate_reads_after = 1
 expected_duplicate_fraction = 0.2
 expected_newly_marked_reads = 1
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
+                .display(),
         ),
     )?;
 
@@ -246,7 +253,9 @@ expected_duplicate_reads_after = 1
 expected_duplicate_fraction = 0.25
 expected_newly_marked_reads = 1
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
+                .display(),
         ),
     )?;
 
@@ -284,7 +293,9 @@ expected_duplicate_reads_after = 1
 expected_duplicate_fraction = 0.5
 expected_newly_marked_reads = 1
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
+                .display(),
         ),
     )?;
 
@@ -323,7 +334,9 @@ expected_duplicate_reads_after = 1
 expected_duplicate_fraction = 0.25
 expected_newly_marked_reads = 2
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
+                .display(),
         ),
     )?;
 
@@ -361,7 +374,9 @@ expected_duplicate_reads_after = 1
 expected_duplicate_fraction = 0.3333333333333333
 expected_newly_marked_reads = 1
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
+                .display(),
         ),
     )?;
 
@@ -399,7 +414,9 @@ expected_duplicate_reads_after = 1
 expected_duplicate_fraction = 0.3333333333333333
 expected_newly_marked_reads = 1
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
+                .display(),
         ),
     )?;
 
@@ -420,13 +437,15 @@ fn markdup_plan_accepts_picard_governed_planning_contract() -> Result<()> {
     let tool_spec = bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
         &repo_root, &stage_id, &tool_id,
     )?;
-    let bam = PathBuf::from("assets/toy/core-v1/bam/markdup_duplicate_cluster.sam");
+    let bam = PathBuf::from(
+        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
+    );
     let params = bijux_dna_domain_bam::params::MarkDupEffectiveParams {
         optical_duplicates: bijux_dna_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
         umi_policy: bijux_dna_domain_bam::params::UmiPolicy::Ignore,
         duplicate_action: bijux_dna_domain_bam::params::DuplicateAction::Mark,
     };
-    let out_dir = PathBuf::from("target/local-smoke/bam.markdup/core-v1-markdup-cluster/picard");
+    let out_dir = PathBuf::from("target/local-smoke/bam.markdup/human_like_duplicate_cluster/picard");
     let plan = bijux_dna_planner_bam::tool_adapters::bam::markdup::plan(
         &tool_spec, &bam, &out_dir, &params,
     )?;
@@ -467,7 +486,7 @@ fn markdup_plan_accepts_picard_governed_planning_contract() -> Result<()> {
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.markdup/core-v1-markdup-cluster/picard/markdup.summary.json"
+            "target/local-smoke/bam.markdup/human_like_duplicate_cluster/picard/markdup.summary.json"
         )
     );
 
