@@ -792,7 +792,7 @@ fn bench_local_materialize_stage_bam_insert_size_json_writes_governed_smoke_bund
     );
     assert_eq!(
         report.get("sample_id").and_then(serde_json::Value::as_str),
-        Some("core-v1-paired-triplet")
+        Some("human_like_insert_size_triplet")
     );
     assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(report.get("read_pairs").and_then(serde_json::Value::as_u64), Some(3));
