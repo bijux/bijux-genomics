@@ -389,6 +389,26 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.remove_duplicates"
+tool_id = "clumpify"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/clumpify@sha256:fa8159777183edae8355363ba8cc5e8f8f069bee09cb6f2fb70a7ca4220a5c81"
+command_entrypoint = "bash"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.remove_duplicates"
+tool_id = "fastuniq"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/fastuniq@sha256:4e0aba0be50a2894b7d36e34599cb4ff727be3e57fe47895f1a35b04985fcacf"
+command_entrypoint = "bash"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.screen_taxonomy"
 tool_id = "centrifuge"
 execution_mode = "containerized"
