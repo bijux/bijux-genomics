@@ -44,15 +44,21 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     assert_eq!(rows.len(), 24, "TSV must retain one governed BAM stage decision row per stage");
     assert!(
         rows.iter().any(|row| {
-            row == &"bam.validate\tbenchmark_ready\tsamtools\tsamtools\tsupported\tplannable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.validate` is benchmark_ready via `samtools` with a fixture-backed parser-validated BAM benchmark row"
+            row == &"bam.validate\tbenchmark_ready\tsamtools\tsamtools\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.validate` is benchmark_ready via `samtools` with a fixture-backed parser-validated BAM benchmark row"
         }),
         "TSV must retain the governed benchmark-ready bam.validate row"
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bam.damage\tbenchmark_ready\tmapdamage2\tmapdamage2\tsupported\tplannable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini\tstage `bam.damage` is benchmark_ready via `mapdamage2` with a fixture-backed parser-validated BAM benchmark row"
+            row == &"bam.damage\tbenchmark_ready\tmapdamage2\tmapdamage2\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini\tstage `bam.damage` is benchmark_ready via `mapdamage2` with a fixture-backed parser-validated BAM benchmark row"
         }),
         "TSV must retain the governed benchmark-ready bam.damage row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bam.qc_pre\tbenchmark_ready\tmultiqc\tmultiqc\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.qc_pre` is benchmark_ready via `multiqc` with a fixture-backed parser-validated BAM benchmark row"
+        }),
+        "TSV must retain the governed benchmark-ready bam.qc_pre row"
     );
     assert!(
         rows.iter().any(|row| {
@@ -68,7 +74,7 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bam.bias_mitigation\tneeds_parser\tsamtools\tmapdamage2\tsupported\tplannable\tartifact_contract_only\tplanner_only\tstage `bam.bias_mitigation` has a supported adapter-backed BAM benchmark row via `mapdamage2` but no parser-fixture-validated result normalizer; primary `samtools` is not currently the strongest eligible row"
+            row == &"bam.bias_mitigation\tneeds_parser\tsamtools\tmapdamage2\tsupported\trunnable\tartifact_contract_only\tplanner_only\tstage `bam.bias_mitigation` has a supported adapter-backed BAM benchmark row via `mapdamage2` but no parser-fixture-validated result normalizer; primary `samtools` is not currently the strongest eligible row"
         }),
         "TSV must retain the governed fallback parser blocker for bam.bias_mitigation"
     );
