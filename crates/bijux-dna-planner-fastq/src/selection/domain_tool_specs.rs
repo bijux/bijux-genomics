@@ -237,7 +237,7 @@ mod tests {
     }
 
     #[test]
-    fn load_fastq_domain_tool_execution_spec_accepts_planned_workspace_binary_stage() -> Result<()>
+    fn load_fastq_domain_tool_execution_spec_accepts_supported_workspace_binary_stage() -> Result<()>
     {
         let repo_root = repo_root();
         let stage_id = StageId::new("fastq.detect_duplicates_premerge".to_string());

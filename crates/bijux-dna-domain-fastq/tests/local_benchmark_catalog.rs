@@ -56,21 +56,31 @@ fn local_fastq_benchmark_catalog_matches_benchmark_surface_plus_local_dry_runs()
 
     assert_eq!(
         local, expected,
-        "FASTQ local benchmark stage catalog must equal benchmark-relevant stages plus local dry-run readiness stages",
+        "FASTQ local benchmark stage catalog must equal benchmark-relevant stages plus local advisory-readiness stages",
     );
 }
 
 #[test]
-fn local_only_dry_run_stages_remain_declared_only_in_execution_support() {
-    for stage_id in
-        ["fastq.detect_duplicates_premerge", "fastq.estimate_library_complexity_prealign"]
-    {
-        let support = execution_support_for_stage(&StageId::from_static(stage_id))
-            .unwrap_or_else(|| panic!("{stage_id} must stay in FASTQ execution support"));
-        assert_eq!(
-            support.execution_status,
-            ExecutionStatus::DeclaredOnly,
-            "{stage_id} must remain a local dry-run readiness stage until runtime support closes",
-        );
-    }
+fn local_advisory_stage_statuses_remain_honest_in_execution_support() {
+    let detect_duplicates = execution_support_for_stage(&StageId::from_static(
+        "fastq.detect_duplicates_premerge",
+    ))
+    .unwrap_or_else(|| panic!("fastq.detect_duplicates_premerge must stay in FASTQ execution support"));
+    assert_eq!(
+        detect_duplicates.execution_status,
+        ExecutionStatus::Closed,
+        "fastq.detect_duplicates_premerge must leave declared-only execution support once its governed runtime closes",
+    );
+
+    let estimate_complexity = execution_support_for_stage(&StageId::from_static(
+        "fastq.estimate_library_complexity_prealign",
+    ))
+    .unwrap_or_else(|| {
+        panic!("fastq.estimate_library_complexity_prealign must stay in FASTQ execution support")
+    });
+    assert_eq!(
+        estimate_complexity.execution_status,
+        ExecutionStatus::DeclaredOnly,
+        "fastq.estimate_library_complexity_prealign must remain declared-only until runtime support closes",
+    );
 }
