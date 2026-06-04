@@ -49,7 +49,7 @@ fn write_local_endogenous_content_smoke_report_materializes_governed_outputs() -
         payload["schema_version"],
         serde_json::json!("bijux.bam.endogenous_content.local_smoke.report.v1")
     );
-    assert_eq!(payload["sample_id"], serde_json::json!("core-v1-endogenous-partial-mapping"));
+    assert_eq!(payload["sample_id"], serde_json::json!("human_like_endogenous_partial_mapping"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(payload["method"], serde_json::json!("mapped_fraction_from_flagstat"));
     assert_eq!(payload["host_reference_scope"], serde_json::json!("human_host"));
