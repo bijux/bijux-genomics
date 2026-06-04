@@ -16,6 +16,17 @@ expected_record_count = 2
 source_paths = ["assets/toy/core-v1/bam/validation_pass.bam"]
 
 [[samples]]
+sample_id = "human_like_duplicate_flagged_multicontig"
+cohort = "human_like"
+alignment_path = "aligned/human_like_duplicate_flagged_multicontig.sam"
+index_path = "aligned/human_like_duplicate_flagged_multicontig.sam.bai"
+expected_contigs = ["chr1", "chr2"]
+expected_header_sample_ids = ["human_like_duplicate_flagged_multicontig"]
+expected_read_group_ids = ["rg-qc-pre-human-like"]
+expected_record_count = 3
+source_paths = ["tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_flagged_multicontig.sam"]
+
+[[samples]]
 sample_id = "adna_like_damage"
 cohort = "adna_like"
 alignment_path = "aligned/adna_like_damage.sam"

@@ -407,9 +407,18 @@ mod tests {
 
         assert_eq!(report.schema_version, BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.corpus_id, "corpus-01-bam-mini");
-        assert_eq!(report.sample_count, 2);
-        assert_eq!(report.reference_contigs, vec!["chr1".to_string(), "chranc".to_string()]);
+        assert_eq!(report.sample_count, 3);
+        assert_eq!(
+            report.reference_contigs,
+            vec!["chr1".to_string(), "chr2".to_string(), "chranc".to_string()]
+        );
         assert!(report.valid);
+        assert!(report.samples.iter().any(|sample| {
+            sample.sample_id == "human_like_duplicate_flagged_multicontig"
+                && sample.observed_contigs == vec!["chr1".to_string(), "chr2".to_string()]
+                && sample.observed_header_sample_ids
+                    == vec!["human_like_duplicate_flagged_multicontig".to_string()]
+        }));
         assert!(report.samples.iter().any(|sample| {
             sample.sample_id == "adna_like_damage"
                 && sample.observed_contigs == vec!["chranc".to_string()]
