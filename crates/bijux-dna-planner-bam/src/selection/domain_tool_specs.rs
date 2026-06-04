@@ -428,7 +428,22 @@ mod tests {
         let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
         assert_eq!(spec.tool_id.as_str(), "bamutil");
         assert_eq!(spec.command.template, vec!["bam".to_string()]);
-        assert_eq!(spec.image.image, "bamutil");
+        assert_eq!(spec.image.image, "bijuxdna/bamutil:1.0.15");
+        assert!(spec.image.digest.is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn load_bam_domain_tool_execution_spec_accepts_overlap_correction_stage() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("bam.overlap_correction".to_string());
+        let tool_id = ToolId::new("bamutil");
+
+        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(spec.tool_id.as_str(), "bamutil");
+        assert_eq!(spec.command.template, vec!["bam".to_string()]);
+        assert_eq!(spec.image.image, "bijuxdna/bamutil:1.0.15");
         assert!(spec.image.digest.is_none());
         Ok(())
     }

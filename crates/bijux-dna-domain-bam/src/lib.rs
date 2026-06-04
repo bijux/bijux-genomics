@@ -143,6 +143,7 @@ pub fn bam_stage_has_invariants(stage: BamStage) -> bool {
             | BamStage::MappingSummary
             | BamStage::QcPre
             | BamStage::Filter
+            | BamStage::OverlapCorrection
             | BamStage::Markdup
             | BamStage::Complexity
             | BamStage::Coverage
@@ -171,6 +172,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
             | BamStage::LengthFilter
             | BamStage::QcPre
             | BamStage::Filter
+            | BamStage::OverlapCorrection
             | BamStage::Markdup
             | BamStage::DuplicationMetrics
             | BamStage::Complexity
@@ -193,6 +195,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
             | BamStage::LengthFilter
             | BamStage::QcPre
             | BamStage::Filter
+            | BamStage::OverlapCorrection
             | BamStage::Markdup
             | BamStage::DuplicationMetrics
             | BamStage::Complexity
@@ -219,6 +222,7 @@ pub fn bam_stage_is_stable(stage: BamStage) -> bool {
             | BamStage::MappingSummary
             | BamStage::QcPre
             | BamStage::Filter
+            | BamStage::OverlapCorrection
             | BamStage::Markdup
             | BamStage::DuplicationMetrics
             | BamStage::Complexity
@@ -244,5 +248,17 @@ mod tests {
         assert!(completeness.is_complete());
         assert!(bam_stage_has_invariants(BamStage::EndogenousContent));
         assert!(bam_stage_is_stable(BamStage::EndogenousContent));
+    }
+
+    #[test]
+    fn overlap_correction_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::OverlapCorrection);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::OverlapCorrection));
+        assert!(bam_stage_is_stable(BamStage::OverlapCorrection));
     }
 }
