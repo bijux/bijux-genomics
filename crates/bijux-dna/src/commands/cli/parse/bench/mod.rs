@@ -54,8 +54,9 @@ pub use self::readiness::{
     BenchReadinessRenderFastqCommandAdapterCoverageArgs,
     BenchReadinessRenderFastqToolServingMapArgs, BenchReadinessRenderMissingBenchmarkPairsArgs,
     BenchReadinessRenderOrphanToolsArgs, BenchReadinessRenderStageRegistryExtraPairsArgs,
-    BenchReadinessRenderStageToolResourcesArgs, BenchReadinessRenderToolIdNormalizationArgs,
-    BenchReadinessRenderUndercoveredStagesArgs, BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
+    BenchReadinessRenderStageToolContainersArgs, BenchReadinessRenderStageToolResourcesArgs,
+    BenchReadinessRenderToolIdNormalizationArgs, BenchReadinessRenderUndercoveredStagesArgs,
+    BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
     BenchReadinessValidateToolExecutionModesArgs, BenchReadinessValidateToolFamiliesArgs,
 };
 pub use self::suite::BenchRunArgs;

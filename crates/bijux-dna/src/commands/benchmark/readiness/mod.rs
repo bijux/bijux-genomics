@@ -8,6 +8,7 @@ pub(crate) mod missing_benchmark_pairs;
 pub(crate) mod orphan_tools;
 pub(crate) mod rendered_command_argv;
 pub(crate) mod stage_registry_extra_pairs;
+pub(crate) mod stage_tool_containers;
 pub(crate) mod stage_tool_resources;
 pub(crate) mod tool_execution_modes;
 pub(crate) mod tool_families;

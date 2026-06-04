@@ -4,6 +4,8 @@ use clap::{Args, Subcommand};
 pub enum BenchReadinessCommand {
     #[command(name = "render-command-argv")]
     RenderCommandArgv(BenchReadinessRenderCommandArgvArgs),
+    #[command(name = "render-stage-tool-containers")]
+    RenderStageToolContainers(BenchReadinessRenderStageToolContainersArgs),
     #[command(name = "render-stage-tool-resources")]
     RenderStageToolResources(BenchReadinessRenderStageToolResourcesArgs),
     #[command(name = "render-bam-adapter-output-contract")]
@@ -40,6 +42,14 @@ pub enum BenchReadinessCommand {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderCommandArgvArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderStageToolContainersArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
