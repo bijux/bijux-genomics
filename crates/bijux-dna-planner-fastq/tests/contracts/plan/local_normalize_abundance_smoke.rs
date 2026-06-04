@@ -17,16 +17,20 @@ fn local_normalize_abundance_smoke_plans_use_governed_abundance_fixture() -> Res
     assert_eq!(plans.len(), 1, "governed normalize-abundance smoke should keep one focused case");
 
     let case = &plans[0];
-    assert_eq!(case.sample_id, "core-v1-otu-table");
+    assert_eq!(case.sample_id, "corpus-03-otu-abundance-table");
     assert_eq!(case.plan.stage_id.as_str(), "fastq.normalize_abundance");
     assert_eq!(case.plan.tool_id.as_str(), "seqkit");
     assert_eq!(
         case.abundance_table,
-        PathBuf::from("assets/toy/core-v1/tables/otu_abundance_small.tsv")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv"
+        )
     );
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.normalize_abundance/core-v1-otu-table/seqkit")
+        PathBuf::from(
+            "target/local-smoke/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit"
+        )
     );
     assert_eq!(case.plan.resources.threads, 1);
     assert_eq!(case.method, "relative_abundance");
