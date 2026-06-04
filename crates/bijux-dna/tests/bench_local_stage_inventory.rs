@@ -1440,7 +1440,7 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
     );
     assert_eq!(
         plan.get("params").and_then(|params| params.get("sample_id")),
-        Some(&serde_json::json!("core-v1-contamination-panel-screen"))
+        Some(&serde_json::json!("human_like_contamination_panel_screen"))
     );
     assert_eq!(
         plan.get("params").and_then(|params| params.get("scope")),
@@ -1449,7 +1449,7 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
     assert_eq!(
         plan.get("params").and_then(|params| params.get("reference_panels")),
         Some(&serde_json::json!([
-            "assets/reference/host/references/toy_human_contamination_panel.dat"
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
         ]))
     );
 
@@ -1470,9 +1470,13 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
     assert!(
         plan["command"]["template"].as_array().is_some_and(|command| command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("assets/toy/core-v1/bam/contamination_panel_screen.sam.bai")
-                    && shell.contains("assets/reference/host/references/toy_host_reference.fasta")
-                    && shell.contains("assets/reference/host/references/toy_human_contamination_panel.dat")
+                shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai"
+                ) && shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+                ) && shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+                )
                     && shell.contains("target/local-ready/bam.contamination/contamination.summary.json")
             })
         )),

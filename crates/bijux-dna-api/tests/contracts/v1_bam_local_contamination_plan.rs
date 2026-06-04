@@ -47,7 +47,7 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
     assert_eq!(payload["resources"]["mem_gb"], serde_json::json!(8));
     assert_eq!(
         payload["params"]["sample_id"],
-        serde_json::json!("core-v1-contamination-panel-screen")
+        serde_json::json!("human_like_contamination_panel_screen")
     );
     assert_eq!(payload["params"]["tool"], serde_json::json!("verifybamid2"));
     let inputs = payload["io"]["inputs"]
@@ -59,7 +59,9 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
         .unwrap_or_else(|| panic!("bam input missing from local-ready contamination plan payload"));
     assert_eq!(
         bam["path"],
-        serde_json::json!("assets/toy/core-v1/bam/contamination_panel_screen.sam")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam"
+        )
     );
     let bai = inputs
         .iter()
@@ -69,7 +71,9 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
         });
     assert_eq!(
         bai["path"],
-        serde_json::json!("assets/toy/core-v1/bam/contamination_panel_screen.sam.bai")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai"
+        )
     );
     let reference = inputs
         .iter()
@@ -79,7 +83,9 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
         });
     assert_eq!(
         reference["path"],
-        serde_json::json!("assets/reference/host/references/toy_host_reference.fasta")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
     );
     let reference_panel = inputs
         .iter()
@@ -89,7 +95,9 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
         });
     assert_eq!(
         reference_panel["path"],
-        serde_json::json!("assets/reference/host/references/toy_human_contamination_panel.dat")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+        )
     );
     assert_eq!(payload["params"]["scope"], serde_json::json!("nuclear"));
     assert_eq!(payload["params"]["prior"], serde_json::json!(0.02));
@@ -99,17 +107,19 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
     assert_eq!(payload["params"]["emit_confidence_caveats"], serde_json::json!(true));
     assert_eq!(
         payload["params"]["reference_panels"],
-        serde_json::json!(["assets/reference/host/references/toy_human_contamination_panel.dat"])
+        serde_json::json!([
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+        ])
     );
     assert_eq!(
         payload["params"]["assumptions"],
         serde_json::json!(
-            "toy host reference with governed population-af panel for local contamination planning"
+            "governed BAM corpus contamination panel with shared corpus reference for local contamination planning"
         )
     );
     assert_eq!(
         payload["params"]["required_reference_digest"],
-        serde_json::json!("0a04f81952deb68c204e8ae67e0573cb97d348f18ab1b527630d57c294028cf5")
+        serde_json::json!("c2dc7ed50c21f1cf9663d03e215f6e0f25e8296ab5cded9efd941703cadbd07c")
     );
     assert_eq!(payload["params"]["tool_scope"], serde_json::json!("nuclear"));
     assert_eq!(payload["effective_params"]["chromosome_system"], serde_json::json!("xy"));
@@ -118,12 +128,12 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
     assert_eq!(
         payload["effective_params"]["assumptions"],
         serde_json::json!(
-            "toy host reference with governed population-af panel for local contamination planning"
+            "governed BAM corpus contamination panel with shared corpus reference for local contamination planning"
         )
     );
     assert_eq!(
         payload["effective_params"]["required_reference_digest"],
-        serde_json::json!("0a04f81952deb68c204e8ae67e0573cb97d348f18ab1b527630d57c294028cf5")
+        serde_json::json!("c2dc7ed50c21f1cf9663d03e215f6e0f25e8296ab5cded9efd941703cadbd07c")
     );
     let outputs = payload["io"]["outputs"]
         .as_array()
@@ -163,15 +173,21 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
     assert!(
         payload["command"]["template"].as_array().is_some_and(|command| command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("assets/toy/core-v1/bam/contamination_panel_screen.sam.bai")
+                shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai"
+                )
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("assets/reference/host/references/toy_host_reference.fasta")
+                shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+                )
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("assets/reference/host/references/toy_human_contamination_panel.dat")
+                shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+                )
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {

@@ -53,7 +53,12 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         .iter()
         .find(|artifact| artifact.name.as_str() == "bam")
         .unwrap_or_else(|| panic!("bam input missing from local-ready plan"));
-    assert_eq!(bam.path, PathBuf::from("assets/toy/core-v1/bam/contamination_panel_screen.sam"));
+    assert_eq!(
+        bam.path,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam"
+        )
+    );
 
     let bai = plan
         .io
@@ -63,7 +68,9 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         .unwrap_or_else(|| panic!("bam_bai input missing from local-ready plan"));
     assert_eq!(
         bai.path,
-        PathBuf::from("assets/toy/core-v1/bam/contamination_panel_screen.sam.bai")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai"
+        )
     );
 
     let reference = plan
@@ -74,7 +81,9 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         .unwrap_or_else(|| panic!("reference input missing from local-ready plan"));
     assert_eq!(
         reference.path,
-        PathBuf::from("assets/reference/host/references/toy_host_reference.fasta")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
     );
 
     let reference_panel = plan
@@ -85,7 +94,9 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         .unwrap_or_else(|| panic!("reference_panel input missing from local-ready plan"));
     assert_eq!(
         reference_panel.path,
-        PathBuf::from("assets/reference/host/references/toy_human_contamination_panel.dat")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+        )
     );
 
     let contamination_report = plan
@@ -127,18 +138,23 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(
         plan.params["assumptions"],
         serde_json::json!(
-            "toy host reference with governed population-af panel for local contamination planning"
+            "governed BAM corpus contamination panel with shared corpus reference for local contamination planning"
         )
     );
     assert_eq!(
         plan.params["reference_panels"],
-        serde_json::json!(["assets/reference/host/references/toy_human_contamination_panel.dat"])
+        serde_json::json!([
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+        ])
     );
-    assert_eq!(plan.params["sample_id"], serde_json::json!("core-v1-contamination-panel-screen"));
+    assert_eq!(
+        plan.params["sample_id"],
+        serde_json::json!("human_like_contamination_panel_screen")
+    );
     assert_eq!(plan.params["tool"], serde_json::json!("verifybamid2"));
     assert_eq!(
         plan.params["required_reference_digest"],
-        serde_json::json!("0a04f81952deb68c204e8ae67e0573cb97d348f18ab1b527630d57c294028cf5")
+        serde_json::json!("c2dc7ed50c21f1cf9663d03e215f6e0f25e8296ab5cded9efd941703cadbd07c")
     );
     assert_eq!(plan.params["tool_scope"], serde_json::json!("nuclear"));
     assert_eq!(plan.effective_params["chromosome_system"], serde_json::json!("xy"));
@@ -146,12 +162,12 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(
         plan.effective_params["assumptions"],
         serde_json::json!(
-            "toy host reference with governed population-af panel for local contamination planning"
+            "governed BAM corpus contamination panel with shared corpus reference for local contamination planning"
         )
     );
     assert_eq!(
         plan.effective_params["required_reference_digest"],
-        serde_json::json!("0a04f81952deb68c204e8ae67e0573cb97d348f18ab1b527630d57c294028cf5")
+        serde_json::json!("c2dc7ed50c21f1cf9663d03e215f6e0f25e8296ab5cded9efd941703cadbd07c")
     );
     assert_eq!(plan.effective_params["emit_confidence_caveats"], serde_json::json!(true));
 
@@ -160,9 +176,13 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
             panic!("bam.contamination command template must contain a shell body")
         });
     assert!(
-        command.contains("assets/toy/core-v1/bam/contamination_panel_screen.sam.bai")
-            && command.contains("assets/reference/host/references/toy_host_reference.fasta")
-            && command.contains("assets/reference/host/references/toy_human_contamination_panel.dat")
+        command.contains(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai"
+        ) && command.contains(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        ) && command.contains(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+        )
             && command.contains("target/local-ready/bam.contamination/contamination")
             && command.contains("target/local-ready/bam.contamination/contamination.summary.json"),
         "local-ready contamination command must carry the governed BAI, reference, panel, report prefix, and summary output"
@@ -195,22 +215,24 @@ sample_id = " "
 scope = "nuclear"
 prior = 0.02
 sex_specific = false
-assumptions = "toy host reference with governed population-af panel for local contamination planning"
+assumptions = "governed BAM corpus contamination panel with shared corpus reference for local contamination planning"
 chromosome_system = "xy"
 minimum_mean_coverage = 0.5
 emit_confidence_caveats = true
 threads = 2
 output_dir = "target/local-ready/bam.contamination"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/contamination_panel_screen.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam")
+                .display(),
             bai = repo_root
-                .join("assets/toy/core-v1/bam/contamination_panel_screen.sam.bai")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai")
                 .display(),
             reference = repo_root
-                .join("assets/reference/host/references/toy_host_reference.fasta")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("assets/reference/host/references/toy_human_contamination_panel.dat")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat")
                 .display(),
         ),
     )?;
@@ -246,15 +268,17 @@ emit_confidence_caveats = true
 threads = 2
 output_dir = "target/local-ready/bam.contamination"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/contamination_panel_screen.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam")
+                .display(),
             bai = repo_root
-                .join("assets/toy/core-v1/bam/contamination_panel_screen.sam.bai")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai")
                 .display(),
             reference = repo_root
-                .join("assets/reference/host/references/toy_host_reference.fasta")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("assets/reference/host/references/toy_human_contamination_panel.dat")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat")
                 .display(),
         ),
     )?;
@@ -286,22 +310,24 @@ sample_id = "bad-coverage-threshold"
 scope = "nuclear"
 prior = 0.02
 sex_specific = false
-assumptions = "toy host reference with governed population-af panel for local contamination planning"
+assumptions = "governed BAM corpus contamination panel with shared corpus reference for local contamination planning"
 chromosome_system = "xy"
 minimum_mean_coverage = 0.0
 emit_confidence_caveats = true
 threads = 2
 output_dir = "target/local-ready/bam.contamination"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/contamination_panel_screen.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam")
+                .display(),
             bai = repo_root
-                .join("assets/toy/core-v1/bam/contamination_panel_screen.sam.bai")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai")
                 .display(),
             reference = repo_root
-                .join("assets/reference/host/references/toy_host_reference.fasta")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("assets/reference/host/references/toy_human_contamination_panel.dat")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat")
                 .display(),
         ),
     )?;
