@@ -49,11 +49,11 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
         payload["schema_version"],
         serde_json::json!("bijux.bam.authenticity.local_smoke.report.v1")
     );
-    assert_eq!(payload["sample_id"], serde_json::json!("core-v1-authenticity-composition"));
+    assert_eq!(payload["sample_id"], serde_json::json!("adna_like_damage"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(payload["method"], serde_json::json!("authenticct"));
-    assert_eq!(payload["score"], serde_json::json!(0.8666666666666667));
-    assert_eq!(payload["confidence"], serde_json::json!(0.9466666666666668));
+    assert_eq!(payload["score"], serde_json::json!(0.5333333333333333));
+    assert_eq!(payload["confidence"], serde_json::json!(0.8133333333333334));
     assert_eq!(payload["pmd_like_signal_present"], serde_json::json!(true));
     assert_eq!(
         payload["consumed_metrics"],
@@ -135,8 +135,8 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
         serde_json::json!("bijux.bam.authenticity_advisory.v1")
     );
     assert_eq!(summary_json["stage_id"], serde_json::json!("bam.authenticity"));
-    assert_eq!(summary_json["score"], serde_json::json!(0.8666666666666667));
-    assert_eq!(summary_json["confidence"], serde_json::json!(0.9466666666666668));
+    assert_eq!(summary_json["score"], serde_json::json!(0.5333333333333333));
+    assert_eq!(summary_json["confidence"], serde_json::json!(0.8133333333333334));
     assert_eq!(summary_json["pmd_like_signal_present"], serde_json::json!(true));
 
     let composite_json: serde_json::Value =
@@ -145,8 +145,8 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
         composite_json["schema_version"],
         serde_json::json!("bijux.bam.authenticity.composition.v1")
     );
-    assert_eq!(composite_json["score"], serde_json::json!(0.8666666666666667));
-    assert_eq!(composite_json["confidence"], serde_json::json!(0.9466666666666668));
+    assert_eq!(composite_json["score"], serde_json::json!(0.5333333333333333));
+    assert_eq!(composite_json["confidence"], serde_json::json!(0.8133333333333334));
     assert_eq!(composite_json["consumed_metrics"]["damage"]["available"], serde_json::json!(true));
     assert_eq!(
         composite_json["consumed_metrics"]["damage"]["source"],
@@ -215,11 +215,11 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
             path.display()
         );
     }
-    assert!(damage_path.ends_with("target/local-smoke/bam.authenticity/core-v1-authenticity-composition/damage/damage.unified_metrics.json"));
-    assert!(contamination_path.ends_with("target/local-smoke/bam.authenticity/core-v1-authenticity-composition/contamination/contamination.summary.json"));
-    assert!(complexity_path.ends_with("target/local-smoke/bam.authenticity/core-v1-authenticity-composition/complexity/complexity.summary.json"));
-    assert!(coverage_path.ends_with("target/local-smoke/bam.authenticity/core-v1-authenticity-composition/coverage/coverage.regime.json"));
-    assert!(mapping_path.ends_with("target/local-smoke/bam.authenticity/core-v1-authenticity-composition/mapping_summary/mapping_summary.json"));
+    assert!(damage_path.ends_with("target/local-smoke/bam.authenticity/adna_like_damage/damage/damage.unified_metrics.json"));
+    assert!(contamination_path.ends_with("target/local-smoke/bam.authenticity/adna_like_damage/contamination/contamination.summary.json"));
+    assert!(complexity_path.ends_with("target/local-smoke/bam.authenticity/adna_like_damage/complexity/complexity.summary.json"));
+    assert!(coverage_path.ends_with("target/local-smoke/bam.authenticity/adna_like_damage/coverage/coverage.regime.json"));
+    assert!(mapping_path.ends_with("target/local-smoke/bam.authenticity/adna_like_damage/mapping_summary/mapping_summary.json"));
 
     let report_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&authenticity_report)?)?;
@@ -235,14 +235,14 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
     );
     assert_eq!(
         stage_metrics_json["sample_id"],
-        serde_json::json!("core-v1-authenticity-composition")
+        serde_json::json!("adna_like_damage")
     );
     assert_eq!(stage_metrics_json["method"], serde_json::json!("authenticct"));
-    assert_eq!(stage_metrics_json["expected_score"], serde_json::json!(0.8666666666666667));
-    assert_eq!(stage_metrics_json["score"], serde_json::json!(0.8666666666666667));
+    assert_eq!(stage_metrics_json["expected_score"], serde_json::json!(0.5333333333333333));
+    assert_eq!(stage_metrics_json["score"], serde_json::json!(0.5333333333333333));
     assert_eq!(stage_metrics_json["score_delta"], serde_json::json!(0.0));
-    assert_eq!(stage_metrics_json["expected_confidence"], serde_json::json!(0.9466666666666668));
-    assert_eq!(stage_metrics_json["confidence"], serde_json::json!(0.9466666666666668));
+    assert_eq!(stage_metrics_json["expected_confidence"], serde_json::json!(0.8133333333333334));
+    assert_eq!(stage_metrics_json["confidence"], serde_json::json!(0.8133333333333334));
     assert_eq!(stage_metrics_json["confidence_delta"], serde_json::json!(0.0));
     assert_eq!(stage_metrics_json["expected_pmd_like_signal_present"], serde_json::json!(true));
     assert_eq!(stage_metrics_json["pmd_like_signal_present"], serde_json::json!(true));
