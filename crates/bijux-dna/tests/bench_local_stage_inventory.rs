@@ -495,7 +495,7 @@ fn bench_local_materialize_stage_bam_length_filter_json_writes_governed_smoke_bu
     );
     assert_eq!(
         report.get("sample_id").and_then(serde_json::Value::as_str),
-        Some("core-v1-length-threshold")
+        Some("human_like_length_threshold_ladder")
     );
     assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(report.get("min_length_threshold").and_then(serde_json::Value::as_u64), Some(8));

@@ -23,12 +23,17 @@ fn local_length_filter_smoke_plans_use_governed_threshold_fixture() -> Result<()
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-length-threshold")
+        .find(|case| case.sample_id == "human_like_length_threshold_ladder")
         .unwrap_or_else(|| panic!("governed BAM length filter case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.length_filter");
     assert_eq!(case.plan.tool_id.as_str(), "samtools");
     assert_eq!(case.plan.resources.threads, 4);
-    assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/length_threshold_ladder.sam"));
+    assert_eq!(
+        case.bam,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+        )
+    );
     assert_eq!(case.min_length, 8);
     assert_eq!(case.expected_input_reads, 4);
     assert_eq!(case.expected_kept_reads, 3);
@@ -37,7 +42,9 @@ fn local_length_filter_smoke_plans_use_governed_threshold_fixture() -> Result<()
     assert_eq!(case.expected_observed_max_length, 12);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.length_filter/core-v1-length-threshold/samtools")
+        PathBuf::from(
+            "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools"
+        )
     );
     assert_eq!(case.plan.params["action"], serde_json::json!("length_filter"));
     assert_eq!(case.plan.params["min_length"], serde_json::json!(8));
@@ -74,7 +81,7 @@ fn local_length_filter_smoke_plans_use_governed_threshold_fixture() -> Result<()
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.length_filter/core-v1-length-threshold/samtools/length_filter.summary.json"
+            "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/length_filter.summary.json"
         )
     );
 
@@ -117,7 +124,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = " "
-bam = "assets/toy/core-v1/bam/length_threshold_ladder.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
 min_length = 8
 expected_input_reads = 4
 expected_kept_reads = 3
@@ -144,7 +151,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/length_threshold_ladder.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
 min_length = 8
 expected_input_reads = 4
 expected_kept_reads = 3
@@ -154,7 +161,7 @@ expected_observed_max_length = 12
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/length_threshold_ladder.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
 min_length = 8
 expected_input_reads = 4
 expected_kept_reads = 3
@@ -194,7 +201,11 @@ expected_removed_reads = 1
 expected_observed_min_length = 8
 expected_observed_max_length = 12
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/length_threshold_ladder.sam").display(),
+            bam = repo_root
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+                )
+                .display(),
         ),
     )?;
 
@@ -228,7 +239,11 @@ expected_removed_reads = 0
 expected_observed_min_length = 8
 expected_observed_max_length = 12
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/length_threshold_ladder.sam").display(),
+            bam = repo_root
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+                )
+                .display(),
         ),
     )?;
 
@@ -262,7 +277,11 @@ expected_removed_reads = 0
 expected_observed_min_length = 8
 expected_observed_max_length = 12
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/length_threshold_ladder.sam").display(),
+            bam = repo_root
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+                )
+                .display(),
         ),
     )?;
 
@@ -296,7 +315,11 @@ expected_removed_reads = 1
 expected_observed_min_length = 12
 expected_observed_max_length = 8
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/length_threshold_ladder.sam").display(),
+            bam = repo_root
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+                )
+                .display(),
         ),
     )?;
 
@@ -330,7 +353,11 @@ expected_removed_reads = 1
 expected_observed_min_length = 7
 expected_observed_max_length = 12
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/length_threshold_ladder.sam").display(),
+            bam = repo_root
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+                )
+                .display(),
         ),
     )?;
 
@@ -351,7 +378,9 @@ fn length_filter_plan_accepts_picard_governed_planning_contract() -> Result<()> 
     let tool_spec = bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
         &repo_root, &stage_id, &tool_id,
     )?;
-    let bam = PathBuf::from("assets/toy/core-v1/bam/length_threshold_ladder.sam");
+    let bam = PathBuf::from(
+        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+    );
     let params = bijux_dna_domain_bam::params::FilterEffectiveParams {
         mapq_threshold: 0,
         include_flags: vec![],
@@ -361,7 +390,9 @@ fn length_filter_plan_accepts_picard_governed_planning_contract() -> Result<()> 
         base_quality_threshold: 20,
     };
     let out_dir =
-        PathBuf::from("target/local-smoke/bam.length_filter/core-v1-length-threshold/picard");
+        PathBuf::from(
+            "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/picard"
+        );
     let plan = bijux_dna_planner_bam::tool_adapters::stages_pre::length_filter::plan(
         &tool_spec, &bam, &out_dir, &params,
     )?;
@@ -402,7 +433,7 @@ fn length_filter_plan_accepts_picard_governed_planning_contract() -> Result<()> 
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.length_filter/core-v1-length-threshold/picard/length_filter.summary.json"
+            "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/picard/length_filter.summary.json"
         )
     );
 
