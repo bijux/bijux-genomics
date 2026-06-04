@@ -67,7 +67,7 @@ fn write_local_extract_umis_smoke_report_materializes_governed_outputs() -> Resu
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
     assert_eq!(payload["stage_id"], serde_json::json!("fastq.extract_umis"));
-    assert_eq!(payload["sample_id"], serde_json::json!("known-prefix-pe"));
+    assert_eq!(payload["sample_id"], serde_json::json!("human_like_pe_umi_prefix_signals"));
     assert_eq!(payload["planned_tool_id"], serde_json::json!("umi_tools"));
     assert_eq!(payload["report_tool_id"], serde_json::json!("bijux"));
     assert_eq!(payload["umi_pattern"], serde_json::json!("NNNN"));
