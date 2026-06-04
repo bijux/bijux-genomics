@@ -58,8 +58,10 @@ compatibility_note = "The general FASTQ corpus already owns normalized single-en
 
 [[mappings]]
 stage_id = "fastq.detect_adapters"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed corpus fixture yet owns an adapter-positive read contract for local adapter-detection smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus now owns adapter-hit and adapter-clear single-end reads for governed local adapter-detection smoke checks."
 
 [[mappings]]
 stage_id = "fastq.detect_duplicates_premerge"

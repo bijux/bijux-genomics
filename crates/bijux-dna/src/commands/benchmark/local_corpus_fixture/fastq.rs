@@ -416,14 +416,19 @@ mod tests {
         assert_eq!(report.schema_version, FASTQ_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.corpus_id, "corpus-01-mini");
         assert_eq!(report.compression, "gzip");
-        assert_eq!(report.sample_count, 4);
-        assert_eq!(report.single_end_sample_count, 2);
+        assert_eq!(report.sample_count, 5);
+        assert_eq!(report.single_end_sample_count, 3);
         assert_eq!(report.paired_end_sample_count, 2);
         assert!(report.valid);
         assert!(report.samples.iter().any(|sample| {
             sample.sample_id == "adna_like_pe_trim_signals"
                 && sample.layout == "pe"
                 && sample.observed_read_count_total == 4
+        }));
+        assert!(report.samples.iter().any(|sample| {
+            sample.sample_id == "human_like_se_adapter_hit"
+                && sample.layout == "se"
+                && sample.observed_read_count_total == 2
         }));
     }
 

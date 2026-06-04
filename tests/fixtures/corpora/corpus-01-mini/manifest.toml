@@ -23,6 +23,15 @@ expected_read_count_total = 2
 source_paths = ["assets/toy/core-v1/fastq/reads_2.fastq"]
 
 [[samples]]
+sample_id = "human_like_se_adapter_hit"
+cohort = "human_like"
+layout = "se"
+r1_path = "normalized/human_like_se_adapter_hit_R1.fastq.gz"
+expected_read_count_r1 = 2
+expected_read_count_total = 2
+source_paths = ["assets/toy/core-v1/fastq/reads_with_adapter.fastq"]
+
+[[samples]]
 sample_id = "adna_like_pe_trim_signals"
 cohort = "adna_like"
 layout = "pe"

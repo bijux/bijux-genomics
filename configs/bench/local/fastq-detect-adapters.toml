@@ -12,8 +12,8 @@ output_dir = "target/local-smoke/fastq.detect_adapters"
 
 [[cases]]
 sample_id = "adapter-hit-se"
-r1 = "assets/toy/core-v1/fastq/reads_with_adapter.fastq"
+r1 = "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_adapter_hit_R1.fastq.gz"
 
 [[cases]]
 sample_id = "adapter-clear-se"
-r1 = "assets/toy/core-v1/fastq/reads_1.fastq"
+r1 = "tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz"

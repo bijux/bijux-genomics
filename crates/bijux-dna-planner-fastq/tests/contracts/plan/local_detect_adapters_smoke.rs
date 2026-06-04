@@ -10,10 +10,10 @@ fn repo_root() -> PathBuf {
 }
 
 #[test]
-fn local_detect_adapters_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
+fn local_detect_adapters_smoke_plans_use_governed_corpus_fixtures() -> Result<()> {
     let repo_root = repo_root();
     let plans = bijux_dna_planner_fastq::stage_api::local_detect_adapters_smoke_plans(&repo_root)?;
-    assert_eq!(plans.len(), 2, "governed local-smoke config must keep hit and clear coverage");
+    assert_eq!(plans.len(), 2, "governed local-smoke config must keep corpus-owned hit and clear coverage");
 
     let adapter_hit = plans
         .iter()
@@ -21,7 +21,12 @@ fn local_detect_adapters_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
         .unwrap_or_else(|| panic!("adapter-hit-se case missing from local adapter smoke plans"));
     assert_eq!(adapter_hit.plan.stage_id.as_str(), "fastq.detect_adapters");
     assert_eq!(adapter_hit.plan.tool_id.as_str(), "fastqc");
-    assert_eq!(adapter_hit.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_with_adapter.fastq"));
+    assert_eq!(
+        adapter_hit.r1,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_adapter_hit_R1.fastq.gz"
+        )
+    );
     assert_eq!(adapter_hit.r2, None);
     assert_eq!(
         adapter_hit.plan.out_dir,
@@ -33,7 +38,10 @@ fn local_detect_adapters_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
         .iter()
         .find(|case| case.sample_id == "adapter-clear-se")
         .unwrap_or_else(|| panic!("adapter-clear-se case missing from local adapter smoke plans"));
-    assert_eq!(adapter_clear.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_1.fastq"));
+    assert_eq!(
+        adapter_clear.r1,
+        PathBuf::from("tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz")
+    );
     assert_eq!(adapter_clear.r2, None);
     assert_eq!(
         adapter_clear.plan.out_dir,
