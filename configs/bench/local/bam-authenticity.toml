@@ -11,8 +11,8 @@ threads = 2
 output_dir = "target/local-smoke/bam.authenticity"
 
 [[cases]]
-sample_id = "core-v1-authenticity-composition"
-bam = "assets/toy/core-v1/bam/authenticity_composition_short_fragments.sam"
+sample_id = "adna_like_damage"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam"
 damage_terminal_c_to_t_5p = 0.18
 damage_terminal_g_to_a_3p = 0.11
 contamination_method = "mitochondrial_panel_screen"
@@ -22,7 +22,7 @@ contamination_ci_high = 0.05
 complexity_min_reads = 3
 complexity_projection_points = [6, 12]
 coverage_depth_thresholds = [1, 5, 10]
-expected_score = 0.8666666666666667
-expected_confidence = 0.9466666666666668
+expected_score = 0.5333333333333333
+expected_confidence = 0.8133333333333334
 expected_pmd_like_signal_present = true
 expected_consumed_metrics = ["damage", "contamination", "complexity", "coverage", "mapping"]

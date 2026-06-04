@@ -22,14 +22,14 @@ fn local_authenticity_smoke_plans_use_governed_bam_fixture() -> Result<()> {
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-authenticity-composition")
+        .find(|case| case.sample_id == "adna_like_damage")
         .unwrap_or_else(|| panic!("governed BAM authenticity case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.authenticity");
     assert_eq!(case.plan.tool_id.as_str(), "authenticct");
     assert_eq!(case.plan.resources.threads, 2);
     assert_eq!(
         case.bam,
-        PathBuf::from("assets/toy/core-v1/bam/authenticity_composition_short_fragments.sam")
+        PathBuf::from("tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam")
     );
     assert_eq!(case.damage_terminal_c_to_t_5p, 0.18);
     assert_eq!(case.damage_terminal_g_to_a_3p, 0.11);
@@ -40,8 +40,8 @@ fn local_authenticity_smoke_plans_use_governed_bam_fixture() -> Result<()> {
     assert_eq!(case.complexity_min_reads, 3);
     assert_eq!(case.complexity_projection_points, vec![6, 12]);
     assert_eq!(case.coverage_depth_thresholds, vec![1, 5, 10]);
-    assert_eq!(case.expected_score, 0.8666666666666667);
-    assert_eq!(case.expected_confidence, 0.9466666666666668);
+    assert_eq!(case.expected_score, 0.5333333333333333);
+    assert_eq!(case.expected_confidence, 0.8133333333333334);
     assert!(case.expected_pmd_like_signal_present);
     assert_eq!(
         case.expected_consumed_metrics,
@@ -55,13 +55,11 @@ fn local_authenticity_smoke_plans_use_governed_bam_fixture() -> Result<()> {
     );
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from(
-            "target/local-smoke/bam.authenticity/core-v1-authenticity-composition/authenticct"
-        )
+        PathBuf::from("target/local-smoke/bam.authenticity/adna_like_damage/authenticct")
     );
     assert_eq!(
         case.plan.params["bam"],
-        serde_json::json!("assets/toy/core-v1/bam/authenticity_composition_short_fragments.sam")
+        serde_json::json!("tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam")
     );
     assert_eq!(case.plan.params["mode"], serde_json::json!("aggregate"));
     assert_eq!(case.plan.params["pmd_filter_enabled"], serde_json::json!(false));
@@ -86,9 +84,7 @@ fn local_authenticity_smoke_plans_use_governed_bam_fixture() -> Result<()> {
         .unwrap_or_else(|| panic!("authenticity report output missing from BAM plan"));
     assert_eq!(
         authenticity_output.path,
-        PathBuf::from(
-            "target/local-smoke/bam.authenticity/core-v1-authenticity-composition/authenticct/authenticity.json"
-        )
+        PathBuf::from("target/local-smoke/bam.authenticity/adna_like_damage/authenticct/authenticity.json")
     );
 
     Ok(())
@@ -133,7 +129,7 @@ tool_id = "authenticct"
 
 [[cases]]
 sample_id = " "
-bam = "assets/toy/core-v1/bam/authenticity_composition_short_fragments.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam"
 damage_terminal_c_to_t_5p = 0.18
 damage_terminal_g_to_a_3p = 0.11
 contamination_method = "mitochondrial_panel_screen"
@@ -167,7 +163,7 @@ tool_id = "authenticct"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/authenticity_composition_short_fragments.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam"
 damage_terminal_c_to_t_5p = 0.18
 damage_terminal_g_to_a_3p = 0.11
 contamination_method = "mitochondrial_panel_screen"
@@ -184,7 +180,7 @@ expected_consumed_metrics = ["damage", "contamination", "complexity", "coverage"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/authenticity_composition_short_fragments.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam"
 damage_terminal_c_to_t_5p = 0.18
 damage_terminal_g_to_a_3p = 0.11
 contamination_method = "mitochondrial_panel_screen"
@@ -240,7 +236,7 @@ expected_pmd_like_signal_present = true
 expected_consumed_metrics = ["damage", "contamination", "complexity", "coverage", "mapping"]
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/authenticity_composition_short_fragments.sam")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam")
                 .display(),
         ),
     )?;
@@ -283,7 +279,7 @@ expected_pmd_like_signal_present = true
 expected_consumed_metrics = ["damage", "coverage", "mapping"]
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/authenticity_composition_short_fragments.sam")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam")
                 .display(),
         ),
     )?;
@@ -327,7 +323,7 @@ expected_pmd_like_signal_present = true
 expected_consumed_metrics = ["damage", "contamination", "complexity", "coverage", "mapping"]
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/authenticity_composition_short_fragments.sam")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam")
                 .display(),
         ),
     )?;
