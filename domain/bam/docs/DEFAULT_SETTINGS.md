@@ -61,7 +61,7 @@ single_tool_justification: bam.haplogroups
 - `bam.length_filter` rationale: preserve explicit read-length contract boundaries.
 - `bam.markdup` rationale: deterministic duplicate marking semantics for repeatable metrics.
 - `bam.duplication_metrics` rationale: stable duplicate summaries for comparability.
-- `bam.complexity` rationale: planned complexity extrapolation with stable baseline tooling.
+- `bam.complexity` rationale: stable complexity extrapolation baseline with a governed `preseq` execution surface.
 - `bam.coverage` rationale: preserve a governed depth-and-breadth comparison surface while keeping `mosdepth` as the low-overhead default.
 - `bam.insert_size` rationale: deterministic insert-size summaries for QC comparability.
 - `bam.gc_bias` rationale: deterministic GC-bias baseline until expanded tool admission.
@@ -104,8 +104,8 @@ single_tool_justification: bam.haplogroups
 - `bam.duplication_metrics`: the admitted `samtools` and `picard` benchmark rows must preserve `duplicate_count`, `duplicate_fraction`, `estimated_library_size`, and the governed duplication histogram/report artifacts.
 - `bam.duplication_metrics`: `samtools` remains the fixture-backed duplicate-observation baseline, while `picard` currently contributes supported comparison coverage through the same governed duplicate-burden contract and local planning path.
 - `bam.duplication_metrics`: governed local-smoke coverage now uses the `corpus-01-bam-mini` duplicate-cluster fixture so duplicate-family, singleton-family, and insufficient-library-size branches are proven through owned corpus inputs rather than a transitional toy asset path.
-- `bam.complexity`: the planned `preseq` benchmark row must preserve `complexity_curve`, `estimated_library_size`, and `saturation_estimate` across `complexity.json`, `complexity.summary.json`, and `stage.metrics.json`.
-- `bam.complexity`: the current governed benchmark slice is still a single planned `preseq` row with visible registry drift, so the durable contract stays honest about planned-only readiness instead of implying a broader admitted comparison cohort.
+- `bam.complexity`: the admitted `preseq` benchmark row must preserve `complexity_curve`, `estimated_library_size`, and `saturation_estimate` across `complexity.json`, `complexity.summary.json`, and `stage.metrics.json`.
+- `bam.complexity`: governed local-smoke coverage now uses the `corpus-01-bam-mini` complexity-projection fixture so observed-unique-read extrapolation, estimated library size, and saturation are proven through owned corpus inputs rather than a planner-only toy path.
 - `bam.coverage`: the admitted `mosdepth`, `samtools`, and `bedtools` benchmark rows must preserve `mean_depth`, `breadth_1x`, `covered_bases`, and governed region-level coverage output.
 - `bam.coverage`: `samtools` remains the fixture-backed local-smoke baseline, while `mosdepth` and `bedtools` contribute supported comparison coverage through the same depth sidecar, coverage summary, and benchmark-facing stage metrics contract.
 - `bam.insert_size`: the admitted `picard` benchmark row must preserve `mean_insert_size`, `median_insert_size`, `standard_deviation`, `read_pairs`, and the governed insert-size histogram artifact.

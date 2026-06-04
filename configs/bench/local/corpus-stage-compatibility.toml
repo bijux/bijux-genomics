@@ -239,8 +239,10 @@ compatibility_note = "No governed corpus fixture yet owns a GC-bias mitigation c
 
 [[mappings]]
 stage_id = "bam.complexity"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed BAM corpus fixture yet owns the observed-unique-read complexity contract required for local complexity smoke checks."
+fixture_id = "corpus-01-bam-mini"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+compatibility_note = "The governed BAM corpus now owns an observed-unique-read complexity fixture that emits deterministic extrapolation, estimated library size, and saturation metrics."
 
 [[mappings]]
 stage_id = "bam.contamination"
