@@ -118,10 +118,11 @@ detect_duplicates_premerge_benchmark_policy: fastq.detect_duplicates_premerge
 
 estimate_library_complexity_prealign_benchmark_policy: fastq.estimate_library_complexity_prealign
 - default benchmark backend is the planned internal `bijux_dna` contract harness
+- the current governed benchmark smoke surface is assigned to `fixture:corpus-01-mini`
 - every governed `fastq.estimate_library_complexity_prealign` row must emit `estimated_complexity` or a deterministic `insufficient_data_reason`
 - benchmark rows must preserve the governed `complexity_policy` and `estimate_method` so prealignment k-mer heuristics are not confused with alignment-derived library-complexity surfaces
 - `estimated_complexity` must stay aligned with `estimated_unique_fraction` when the estimator has enough reads, while insufficient rows must leave `estimated_complexity` empty instead of overloading zero as a successful estimate
-- the stage remains advisory-only and planner-only until a normalized runtime benchmark cohort is admitted; completing the row contract must not be misrepresented as broader execution maturity
+- the stage remains advisory-only and declared-only until a normalized runtime benchmark cohort is admitted; completing the row contract or fixture ownership must not be misrepresented as broader execution maturity
 
 trim_polyg_tails_benchmark_policy: fastq.trim_polyg_tails
 - default benchmark backend is `fastp`
