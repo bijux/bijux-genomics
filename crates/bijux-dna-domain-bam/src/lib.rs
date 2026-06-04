@@ -171,6 +171,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
             | BamStage::QcPre
             | BamStage::Filter
             | BamStage::Markdup
+            | BamStage::DuplicationMetrics
             | BamStage::Complexity
             | BamStage::Coverage
             | BamStage::InsertSize
@@ -191,6 +192,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
             | BamStage::QcPre
             | BamStage::Filter
             | BamStage::Markdup
+            | BamStage::DuplicationMetrics
             | BamStage::Coverage
             | BamStage::InsertSize
             | BamStage::GcBias
@@ -214,6 +216,7 @@ pub fn bam_stage_is_stable(stage: BamStage) -> bool {
             | BamStage::QcPre
             | BamStage::Filter
             | BamStage::Markdup
+            | BamStage::DuplicationMetrics
             | BamStage::Coverage
             | BamStage::InsertSize
             | BamStage::GcBias

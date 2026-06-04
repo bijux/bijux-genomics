@@ -61,6 +61,8 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         "picard\tbam.markdup\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.length_filter\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "picard\tbam.length_filter\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "samtools\tbam.duplication_metrics\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "picard\tbam.duplication_metrics\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.bias_mitigation\tmismatched_contract\tdeclared_only\tartifact_contract_only\tplanner_only",
         "samtools\tbam.haplogroups\tmismatched_contract\tdeclared_only\tscientific_report_contract\tplanner_only",
         "yleaf\tbam.haplogroups\tsupported\trunnable\tscientific_report_contract\tplanner_only",
