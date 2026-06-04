@@ -7,17 +7,7 @@ default_version: 2.1.8
 install_kind: container
 license: GPL-3.0
 citation: paper:https://www.nature.com/articles/nmeth.3176
-planned_stage_ids:
-- fastq.screen_taxonomy
 stage_ids: []
-stage_contracts:
-  fastq.screen_taxonomy:
-    required_inputs:
-    - reads_r1
-    expected_artifacts:
-    - screen_report_tsv
-    - classification_report_json
-    notes: Planned classifier output would be normalized into governed screen reports and classification summaries.
 status: planned
 scope: pre_hpc_pre_vcf
 expected_artifacts:
@@ -33,7 +23,7 @@ comparability:
   - krakenuniq
   non_comparable_with: []
 comparability_notes: Comparable only within same stage contract and input constraints.
-notes: Domain SSOT tool contract entry.
+notes: Experimental tool contract entry retained for upstream evidence and container ownership without a governed FASTQ stage admission.
 capabilities:
 - SE
 - PE
