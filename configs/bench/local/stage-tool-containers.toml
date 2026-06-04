@@ -259,6 +259,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.overlap_correction"
+tool_id = "bamutil"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bamutil:1.0.15"
+command_entrypoint = "bam"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.qc_pre"
 tool_id = "multiqc"
 execution_mode = "python"

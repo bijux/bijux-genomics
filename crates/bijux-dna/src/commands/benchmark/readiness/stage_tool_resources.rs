@@ -305,9 +305,10 @@ mod tests {
     #[cfg(feature = "bam_downstream")]
     #[test]
     fn render_stage_tool_resources_reports_governed_benchmark_ready_row_slice() {
-        use super::{
-            render_stage_tool_resources, DEFAULT_STAGE_TOOL_RESOURCES_PATH, FASTQ_RESOURCE_ORIGIN,
-        };
+    use super::{
+        render_stage_tool_resources, BAM_RESOURCE_ORIGIN, DEFAULT_STAGE_TOOL_RESOURCES_PATH,
+        FASTQ_RESOURCE_ORIGIN,
+    };
 
         let root = repo_root();
         let report =
@@ -317,11 +318,11 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_resources.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-resources.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_command_resources");
-        assert_eq!(report.row_count, 93);
-        assert_eq!(report.benchmark_ready_row_count, 93);
-        assert_eq!(report.nonzero_resource_row_count, 93);
+        assert_eq!(report.row_count, 94);
+        assert_eq!(report.benchmark_ready_row_count, 94);
+        assert_eq!(report.nonzero_resource_row_count, 94);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
-        assert_eq!(report.domain_counts.get("bam"), Some(&30));
+        assert_eq!(report.domain_counts.get("bam"), Some(&31));
         assert!(report.rows.iter().all(|row| {
             row.threads > 0 && row.memory_gb > 0 && row.walltime_minutes > 0 && row.scratch_gb > 0
         }));
@@ -347,6 +348,15 @@ mod tests {
                 && row.walltime_minutes == 15
                 && row.scratch_gb == 4
                 && row.resource_origin == FASTQ_RESOURCE_ORIGIN
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "bam.overlap_correction"
+                && row.tool_id == "bamutil"
+                && row.threads == 3
+                && row.memory_gb == 2
+                && row.walltime_minutes == 7
+                && row.scratch_gb == 2
+                && row.resource_origin == BAM_RESOURCE_ORIGIN
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "fastq.trim_polyg_tails"
@@ -442,7 +452,7 @@ mod tests {
 
         assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION);
         assert_eq!(config.classification_scope, STAGE_TOOL_RESOURCES_SCOPE);
-        assert_eq!(config.rows.len(), 93);
+        assert_eq!(config.rows.len(), 94);
         assert!(config.rows.iter().all(|row| {
             row.threads > 0 && row.memory_gb > 0 && row.walltime_minutes > 0 && row.scratch_gb > 0
         }));
@@ -477,6 +487,14 @@ mod tests {
                 && row.memory_gb == 1
                 && row.walltime_minutes == 15
                 && row.scratch_gb == 1
+        }));
+        assert!(config.rows.iter().any(|row| {
+            row.stage_id == "bam.overlap_correction"
+                && row.tool_id == "bamutil"
+                && row.threads == 3
+                && row.memory_gb == 2
+                && row.walltime_minutes == 7
+                && row.scratch_gb == 2
         }));
         for tool_id in ["bedtools", "mosdepth", "samtools"] {
             assert!(config.rows.iter().any(|row| {
