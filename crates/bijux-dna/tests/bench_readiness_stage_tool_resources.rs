@@ -51,21 +51,21 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(65));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(67));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(65)
+        Some(67)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(65)
+        Some(67)
     );
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(57)
+        Some(59)
     );
     assert_eq!(
         payload
@@ -157,4 +157,21 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         detect_duplicates_bijux.get("scratch_gb").and_then(serde_json::Value::as_u64),
         Some(1)
     );
+    for tool_id in ["clumpify", "fastuniq"] {
+        let remove_duplicates = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.remove_duplicates")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("remove-duplicates {tool_id} row"));
+        assert_eq!(remove_duplicates.get("threads").and_then(serde_json::Value::as_u64), Some(4));
+        assert_eq!(remove_duplicates.get("memory_gb").and_then(serde_json::Value::as_u64), Some(8));
+        assert_eq!(
+            remove_duplicates.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+            Some(15)
+        );
+        assert_eq!(remove_duplicates.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(4));
+    }
 }

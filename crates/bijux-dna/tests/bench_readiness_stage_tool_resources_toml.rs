@@ -48,7 +48,7 @@ fn bench_readiness_stage_tool_resources_writes_governed_toml_file() {
         Some("benchmark_ready_command_resources")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 65);
+    assert_eq!(rows.len(), 67);
     assert!(rows.iter().all(|row| {
         row.get("threads").and_then(toml::Value::as_integer).unwrap_or_default() > 0
             && row.get("memory_gb").and_then(toml::Value::as_integer).unwrap_or_default() > 0
@@ -100,4 +100,14 @@ fn bench_readiness_stage_tool_resources_writes_governed_toml_file() {
             && row.get("walltime_minutes").and_then(toml::Value::as_integer) == Some(15)
             && row.get("scratch_gb").and_then(toml::Value::as_integer) == Some(1)
     }));
+    for tool_id in ["clumpify", "fastuniq"] {
+        assert!(rows.iter().any(|row| {
+            row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.remove_duplicates")
+                && row.get("tool_id").and_then(toml::Value::as_str) == Some(tool_id)
+                && row.get("threads").and_then(toml::Value::as_integer) == Some(4)
+                && row.get("memory_gb").and_then(toml::Value::as_integer) == Some(8)
+                && row.get("walltime_minutes").and_then(toml::Value::as_integer) == Some(15)
+                && row.get("scratch_gb").and_then(toml::Value::as_integer) == Some(4)
+        }));
+    }
 }

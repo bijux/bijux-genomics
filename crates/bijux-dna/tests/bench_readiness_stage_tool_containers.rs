@@ -51,18 +51,18 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(65));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(67));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(65)
+        Some(67)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(64));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(66));
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(57)
+        Some(59)
     );
     assert_eq!(
         payload
@@ -198,4 +198,29 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         detect_duplicates_bijux.get("container_id").is_none(),
         "workspace-binary detect-duplicates row must not declare a container id"
     );
+    for tool_id in ["clumpify", "fastuniq"] {
+        let remove_duplicates = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.remove_duplicates")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("remove-duplicates {tool_id} row"));
+        assert_eq!(
+            remove_duplicates.get("execution_mode").and_then(serde_json::Value::as_str),
+            Some("containerized")
+        );
+        assert_eq!(
+            remove_duplicates.get("command_entrypoint").and_then(serde_json::Value::as_str),
+            Some("bash")
+        );
+        assert!(
+            remove_duplicates
+                .get("container_id")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|value| value.starts_with(&format!("bijuxdna/{tool_id}@sha256:"))),
+            "remove-duplicates {tool_id} row must preserve the governed container declaration"
+        );
+    }
 }
