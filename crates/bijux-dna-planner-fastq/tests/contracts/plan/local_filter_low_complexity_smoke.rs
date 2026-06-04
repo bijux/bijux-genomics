@@ -19,8 +19,13 @@ fn local_filter_low_complexity_smoke_plans_use_governed_low_complexity_fixture()
     let [case] = plans.as_slice() else {
         panic!("expected exactly one low-complexity smoke case");
     };
-    assert_eq!(case.sample_id, "low-complexity-se");
-    assert_eq!(case.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_with_low_complexity.fastq"));
+    assert_eq!(case.sample_id, "human_like_se_filter_signals");
+    assert_eq!(
+        case.r1,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz"
+        )
+    );
     assert_eq!(case.r2, None);
     assert!((case.entropy_threshold - 0.6).abs() < f64::EPSILON);
     assert_eq!(case.polyx_threshold, Some(8));
@@ -29,7 +34,9 @@ fn local_filter_low_complexity_smoke_plans_use_governed_low_complexity_fixture()
     assert_eq!(case.plan.tool_id.as_str(), "bbduk");
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.filter_low_complexity/low-complexity-se/bbduk")
+        PathBuf::from(
+            "target/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk"
+        )
     );
     assert_eq!(case.plan.resources.threads, 1);
     assert_eq!(case.plan.effective_params["paired_mode"], serde_json::json!("single_end"));
@@ -37,24 +44,26 @@ fn local_filter_low_complexity_smoke_plans_use_governed_low_complexity_fixture()
     assert_eq!(case.plan.effective_params["polyx_threshold"], serde_json::json!(8));
     assert_eq!(
         case.plan.params["input_r1"],
-        serde_json::json!("assets/toy/core-v1/fastq/reads_with_low_complexity.fastq")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz"
+        )
     );
     assert_eq!(
         case.plan.params["output_r1"],
         serde_json::json!(
-            "target/local-smoke/fastq.filter_low_complexity/low-complexity-se/bbduk/bbduk.fastq.gz"
+            "target/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz"
         )
     );
     assert_eq!(
         case.plan.params["report_json"],
         serde_json::json!(
-            "target/local-smoke/fastq.filter_low_complexity/low-complexity-se/bbduk/low_complexity_report.json"
+            "target/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/low_complexity_report.json"
         )
     );
     assert_eq!(
         case.plan.params["raw_backend_report"],
         serde_json::json!(
-            "target/local-smoke/fastq.filter_low_complexity/low-complexity-se/bbduk/bbduk.low_complexity.stats"
+            "target/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.low_complexity.stats"
         )
     );
 

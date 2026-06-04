@@ -71,14 +71,14 @@ fn write_local_filter_low_complexity_smoke_report_materializes_governed_outputs(
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
     assert_eq!(payload["stage_id"], serde_json::json!("fastq.filter_low_complexity"));
-    assert_eq!(payload["sample_id"], serde_json::json!("low-complexity-se"));
+    assert_eq!(payload["sample_id"], serde_json::json!("human_like_se_filter_signals"));
     assert_eq!(payload["planned_tool_id"], serde_json::json!("bbduk"));
     assert_eq!(payload["report_tool_id"], serde_json::json!("bijux"));
     assert_eq!(payload["entropy_threshold"], serde_json::json!(0.6));
     assert_eq!(payload["polyx_threshold"], serde_json::json!(8));
     assert_eq!(payload["input_reads"], serde_json::json!(3));
-    assert_eq!(payload["reads_removed_low_complexity"], serde_json::json!(2));
-    assert_eq!(payload["output_reads"], serde_json::json!(1));
+    assert_eq!(payload["reads_removed_low_complexity"], serde_json::json!(1));
+    assert_eq!(payload["output_reads"], serde_json::json!(2));
 
     let filtered_fastq = repo_root.join(
         payload["filtered_fastq_gz"]
@@ -86,7 +86,10 @@ fn write_local_filter_low_complexity_smoke_report_materializes_governed_outputs(
             .unwrap_or_else(|| panic!("filtered_fastq_gz missing")),
     );
     assert!(filtered_fastq.is_file(), "top-level filtered FASTQ must exist");
-    assert_eq!(read_gz_fastq_sequences(&filtered_fastq)?, vec!["ACGTTGCAAGTC".to_string()]);
+    assert_eq!(
+        read_gz_fastq_sequences(&filtered_fastq)?,
+        vec!["ACGTACGT".to_string(), "ACGTNNGT".to_string()]
+    );
 
     let case_report_path = repo_root.join(
         payload["case_report_json"].as_str().unwrap_or_else(|| panic!("case_report_json missing")),
@@ -97,8 +100,8 @@ fn write_local_filter_low_complexity_smoke_report_materializes_governed_outputs(
     assert_eq!(case_report["stage_id"], serde_json::json!("fastq.filter_low_complexity"));
     assert_eq!(case_report["tool_id"], serde_json::json!("bijux"));
     assert_eq!(case_report["reads_in"], serde_json::json!(3));
-    assert_eq!(case_report["reads_out"], serde_json::json!(1));
-    assert_eq!(case_report["reads_removed_low_complexity"], serde_json::json!(2));
+    assert_eq!(case_report["reads_out"], serde_json::json!(2));
+    assert_eq!(case_report["reads_removed_low_complexity"], serde_json::json!(1));
     assert_eq!(payload["input_reads"], case_report["reads_in"]);
     assert_eq!(
         payload["reads_removed_low_complexity"],
