@@ -5,6 +5,8 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
+container:
+  image: "bijuxdna/picard:3.3.0"
 license: "GPL-3.0"
 citation: "software:https://broadinstitute.github.io/picard/"
 outputs:

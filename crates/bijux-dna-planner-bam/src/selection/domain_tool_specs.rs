@@ -319,21 +319,21 @@ mod tests {
     }
 
     #[test]
-    fn load_bam_domain_tool_contract_metadata_reads_planned_tool_status() -> Result<()> {
+    fn load_bam_domain_tool_contract_metadata_reads_supported_picard_status() -> Result<()> {
         let repo_root = repo_root();
         let tool_id = ToolId::new("picard");
 
         let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
 
         assert_eq!(metadata.tool_id.as_str(), "picard");
-        assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Planned);
+        assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Supported);
         assert!(
             metadata.stage_ids.iter().any(|stage_id| stage_id.as_str() == "bam.gc_bias"),
             "picard metadata must retain admitted BAM stages"
         );
         assert_eq!(
             metadata.pair_support_level(&StageId::new("bam.gc_bias".to_string())).as_str(),
-            "planned"
+            "supported"
         );
         Ok(())
     }
@@ -353,7 +353,7 @@ mod tests {
         let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
         assert_eq!(spec.tool_id.as_str(), "picard");
         assert_eq!(spec.command.template, vec!["picard".to_string()]);
-        assert_eq!(spec.image.image, "picard");
+        assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
         Ok(())
     }
 
@@ -372,7 +372,23 @@ mod tests {
         let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
         assert_eq!(spec.tool_id.as_str(), "picard");
         assert_eq!(spec.command.template, vec!["picard".to_string()]);
-        assert_eq!(spec.image.image, "picard");
+        assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
+        Ok(())
+    }
+
+    #[test]
+    fn load_bam_domain_tool_execution_spec_accepts_supported_picard_mapping_summary_stage(
+    ) -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("bam.mapping_summary".to_string());
+        let tool_id = ToolId::new("picard");
+
+        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(spec.tool_id.as_str(), "picard");
+        assert_eq!(spec.command.template, vec!["picard".to_string()]);
+        assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
+        assert!(spec.image.digest.is_none());
         Ok(())
     }
 
@@ -594,7 +610,7 @@ mod tests {
 
         assert_eq!(spec.tool_id.as_str(), "picard");
         assert_eq!(spec.command.template, vec!["picard".to_string()]);
-        assert_eq!(spec.image.image, "picard");
+        assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
         assert!(spec.image.digest.is_none());
         Ok(())
     }
@@ -666,8 +682,13 @@ mod tests {
 
             assert_eq!(spec.tool_id.as_str(), tool);
             assert_eq!(spec.command.template, vec![tool.to_string()]);
-            assert_eq!(spec.image.image, tool);
-            assert!(spec.image.digest.is_none());
+            if tool == "picard" {
+                assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
+                assert!(spec.image.digest.is_none());
+            } else {
+                assert_eq!(spec.image.image, tool);
+                assert!(spec.image.digest.is_none());
+            }
         }
 
         Ok(())
@@ -684,8 +705,13 @@ mod tests {
 
             assert_eq!(spec.tool_id.as_str(), tool);
             assert_eq!(spec.command.template, vec![tool.to_string()]);
-            assert_eq!(spec.image.image, tool);
-            assert!(spec.image.digest.is_none());
+            if tool == "picard" {
+                assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
+                assert!(spec.image.digest.is_none());
+            } else {
+                assert_eq!(spec.image.image, tool);
+                assert!(spec.image.digest.is_none());
+            }
         }
 
         Ok(())
@@ -703,8 +729,13 @@ mod tests {
 
             assert_eq!(spec.tool_id.as_str(), tool);
             assert_eq!(spec.command.template, vec![tool.to_string()]);
-            assert_eq!(spec.image.image, tool);
-            assert!(spec.image.digest.is_none());
+            if tool == "picard" {
+                assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
+                assert!(spec.image.digest.is_none());
+            } else {
+                assert_eq!(spec.image.image, tool);
+                assert!(spec.image.digest.is_none());
+            }
         }
 
         Ok(())
