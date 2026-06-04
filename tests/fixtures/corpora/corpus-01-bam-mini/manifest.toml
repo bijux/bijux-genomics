@@ -93,6 +93,20 @@ expected_record_count = 6
 source_paths = ["tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_complexity_projection.sam"]
 
 [[samples]]
+sample_id = "human_like_target_window_coverage"
+cohort = "human_like"
+alignment_path = "aligned/human_like_target_window_coverage.sam"
+index_path = "aligned/human_like_target_window_coverage.sam.bai"
+expected_contigs = ["chr1", "chr2"]
+expected_header_sample_ids = ["human_like_target_window_coverage"]
+expected_read_group_ids = ["rg-coverage-human-like"]
+expected_record_count = 3
+source_paths = [
+  "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_target_window_coverage.sam",
+  "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_target_window_coverage.bed",
+]
+
+[[samples]]
 sample_id = "adna_like_damage"
 cohort = "adna_like"
 alignment_path = "aligned/adna_like_damage.sam"
