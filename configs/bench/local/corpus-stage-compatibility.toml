@@ -272,8 +272,10 @@ compatibility_note = "The general BAM corpus now owns a duplicate-cluster alignm
 
 [[mappings]]
 stage_id = "bam.endogenous_content"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed BAM corpus fixture yet owns a partial-host-mapping contract for endogenous-content smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns an endogenous partial-mapping alignment fixture suitable for governed endogenous-content smoke checks."
 
 [[mappings]]
 stage_id = "bam.filter"
