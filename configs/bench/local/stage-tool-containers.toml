@@ -9,6 +9,36 @@ classification_scope = "benchmark_ready_runtime_declarations"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.authenticity"
+tool_id = "authenticct"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/authenticct:1.0.0"
+command_entrypoint = "authenticct"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.authenticity"
+tool_id = "damageprofiler"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/damageprofiler:1.1"
+command_entrypoint = "damageprofiler"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.authenticity"
+tool_id = "pmdtools"
+execution_mode = "python"
+install_kind = "container"
+container_id = "bijuxdna/pmdtools:0.60"
+command_entrypoint = "pmdtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.complexity"
 tool_id = "preseq"
 execution_mode = "containerized"
