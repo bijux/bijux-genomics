@@ -6,6 +6,8 @@ use std::process::Command;
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
+const GOVERNED_COVERAGE_SAMPLE_ID: &str = "human_like_target_window_coverage";
+
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
@@ -737,15 +739,15 @@ fn bench_local_materialize_stage_bam_coverage_json_writes_governed_smoke_bundle(
     );
     let coverage_tsv = std::fs::read_to_string(&artifact_path).expect("read bam.coverage summary");
     assert!(coverage_tsv.contains("sample_id\tregion_id\tcontig"));
-    assert!(coverage_tsv.contains("core-v1-target-windows\tchr1_window\tchr1"));
-    assert!(coverage_tsv.contains("core-v1-target-windows\tchr2_window\tchr2"));
+    assert!(coverage_tsv.contains(&format!("{GOVERNED_COVERAGE_SAMPLE_ID}\tchr1_window\tchr1")));
+    assert!(coverage_tsv.contains(&format!("{GOVERNED_COVERAGE_SAMPLE_ID}\tchr2_window\tchr2")));
     assert!(coverage_tsv.contains("low_pass\ttrue\ttrue"));
 
     let case_summary = repo_root.join(
-        "target/local-smoke/bam.coverage/core-v1-target-windows/samtools/coverage.summary.json",
+        "target/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.summary.json",
     );
     let stage_metrics = repo_root
-        .join("target/local-smoke/bam.coverage/core-v1-target-windows/samtools/stage.metrics.json");
+        .join("target/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/stage.metrics.json");
     assert!(
         case_summary.is_file(),
         "bam.coverage smoke bundle must expose the governed coverage summary json"
