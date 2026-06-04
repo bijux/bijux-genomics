@@ -208,8 +208,10 @@ compatibility_note = "The amplicon corpus already owns governed 16S reads suitab
 
 [[mappings]]
 stage_id = "fastq.normalize_abundance"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed corpus fixture yet owns an abundance-table contract for local abundance normalization smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-03"
+fixture_id = "corpus-03-amplicon-mini"
+compatibility_note = "The amplicon corpus already owns a governed OTU abundance table suitable for local abundance-normalization smoke checks."
 
 [[mappings]]
 stage_id = "fastq.screen_taxonomy"

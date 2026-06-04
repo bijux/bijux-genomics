@@ -47,10 +47,10 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
     );
     assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
-    assert_eq!(payload.get("skip_count").and_then(serde_json::Value::as_u64), Some(104));
+    assert_eq!(payload.get("skip_count").and_then(serde_json::Value::as_u64), Some(108));
     assert_eq!(
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
-        Some(25)
+        Some(24)
     );
 
     let skips = payload.get("skips").and_then(serde_json::Value::as_array).expect("skips array");
@@ -75,6 +75,17 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
                     == Some("corpus-02-edna-mini")
         }),
         "incompatible corpora must name their governed replacement corpus"
+    );
+    assert!(
+        skips.iter().any(|skip| {
+            skip.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.normalize_abundance")
+                && skip.get("corpus_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-01-mini")
+                && skip.get("replacement_corpus_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-03-amplicon-mini")
+        }),
+        "fixture-backed normalize-abundance skips must name the governed amplicon corpus replacement"
     );
     assert!(
         skips.iter().any(|skip| {
@@ -142,8 +153,7 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
     );
     assert!(
         skips.iter().any(|skip| {
-            skip.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("fastq.extract_umis")
+            skip.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.extract_umis")
                 && skip.get("corpus_id").and_then(serde_json::Value::as_str)
                     == Some("corpus-02-edna-mini")
                 && skip.get("replacement_corpus_id").and_then(serde_json::Value::as_str)
