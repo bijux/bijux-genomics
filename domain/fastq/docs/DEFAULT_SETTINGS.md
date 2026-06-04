@@ -240,6 +240,7 @@ cluster_otus_benchmark_policy: fastq.cluster_otus
 
 normalize_abundance_benchmark_policy: fastq.normalize_abundance
 - default benchmark backend is `seqkit`
+- the current governed benchmark surface is assigned to `fixture:corpus-03-amplicon-mini`
 - the current governed benchmark surface admits `seqkit` as the runnable benchmark row and retains `seqfu` as planned registry drift until it is either fully admitted or explicitly removed
 - every governed `fastq.normalize_abundance` row must emit `normalized_abundance_tsv`, `sample_totals`, `normalization_method`, and `numeric_output_valid`
 - `normalized_abundance_tsv` must stay aligned with the canonical governed normalized feature table, and `normalization_method` must stay aligned with the governed `method` parameter selected for the run
