@@ -62,6 +62,14 @@ fn bench_readiness_fastq_adapter_output_contract_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row.starts_with(
+                "cutadapt\tfastq.trim_terminal_damage\trunnable\tcomplete\ttrimmed_reads_r1,trimmed_reads_r2,report_json,raw_backend_report_json\ttrimmed_reads_r1,trimmed_reads_r2,report_json,raw_backend_report_json\t"
+            ) && row.contains("\treport_json\t")
+        }),
+        "TSV must retain the governed trim-terminal-damage contract row for cutadapt"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row.starts_with("bowtie2\tfastq.deplete_host\trunnable\tcomplete\t")
                 && row.contains("\thost_depletion_report_json\t")
         }),
