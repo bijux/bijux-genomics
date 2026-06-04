@@ -142,8 +142,10 @@ compatibility_note = "The general FASTQ corpus owns paired duplicate-signal norm
 
 [[mappings]]
 stage_id = "fastq.filter_low_complexity"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed corpus fixture yet owns a low-complexity read contract for local low-complexity filtering smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus owns low-complexity and complexity-clear single-end reads for governed low-complexity filtering smoke checks."
 
 [[mappings]]
 stage_id = "fastq.deplete_host"
