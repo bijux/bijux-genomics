@@ -48,18 +48,18 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
         Some("target/bench-readiness/fastq-adapter-output-contract.tsv")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(75));
-    assert_eq!(payload.get("adapter_row_count").and_then(serde_json::Value::as_u64), Some(68));
+    assert_eq!(payload.get("adapter_row_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(
         payload.get("complete_adapter_row_count").and_then(serde_json::Value::as_u64),
         Some(68)
     );
     assert_eq!(
         payload.get("incomplete_adapter_row_count").and_then(serde_json::Value::as_u64),
-        Some(0)
+        Some(1)
     );
     assert_eq!(
         payload.get("missing_adapter_row_count").and_then(serde_json::Value::as_u64),
-        Some(7)
+        Some(6)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -93,6 +93,30 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
                     })
         }),
         "report must retain the governed detect-adapters contract row for fastqc"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.estimate_library_complexity_prealign")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                    == Some("declared_only")
+                && row.get("output_contract_status").and_then(serde_json::Value::as_str)
+                    == Some("missing_adapter")
+                && row
+                    .get("stage_output_ids")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|artifacts| {
+                        artifacts.iter().any(|value| value == "library_complexity_report")
+                    })
+                && row
+                    .get("missing_declarations")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|artifacts| {
+                        artifacts == &vec![serde_json::Value::String("adapter".to_string())]
+                    })
+        }),
+        "report must keep the declared-only estimate-library-complexity row explicit while retaining its governed stage output contract"
     );
     assert!(
         rows.iter().any(|row| {

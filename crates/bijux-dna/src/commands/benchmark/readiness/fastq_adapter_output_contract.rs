@@ -415,10 +415,10 @@ mod tests {
 
         assert_eq!(report.schema_version, FASTQ_ADAPTER_OUTPUT_CONTRACT_SCHEMA_VERSION);
         assert_eq!(report.row_count, 75);
-        assert_eq!(report.missing_adapter_row_count, 7);
-        assert_eq!(report.adapter_row_count, 68);
+        assert_eq!(report.missing_adapter_row_count, 6);
+        assert_eq!(report.adapter_row_count, 69);
         assert_eq!(report.complete_adapter_row_count, 68);
-        assert_eq!(report.incomplete_adapter_row_count, 0);
+        assert_eq!(report.incomplete_adapter_row_count, 1);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "seqkit_stats"
                 && row.stage_id == "fastq.profile_reads"
@@ -430,6 +430,14 @@ mod tests {
                     == Some(
                         "target/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/fastq.profile_reads/{sample_scope}/seqkit_stats/stdout.log"
                     )
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "bijux_dna"
+                && row.stage_id == "fastq.estimate_library_complexity_prealign"
+                && super::output_contract_status_label(row.output_contract_status)
+                    == "missing_adapter"
+                && row.stage_output_ids == vec!["library_complexity_report".to_string()]
+                && row.missing_declarations == vec!["adapter".to_string()]
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "diamond"

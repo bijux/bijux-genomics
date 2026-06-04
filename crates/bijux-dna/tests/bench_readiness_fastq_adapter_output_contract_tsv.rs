@@ -63,6 +63,14 @@ fn bench_readiness_fastq_adapter_output_contract_writes_governed_tsv_columns() {
     assert!(
         rows.iter().any(|row| {
             row.starts_with(
+                "bijux_dna\tfastq.estimate_library_complexity_prealign\tdeclared_only\tmissing_adapter\tlibrary_complexity_report\t"
+            ) && row.ends_with("\tadapter\trow `fastq.estimate_library_complexity_prealign` / `bijux_dna` has no runnable or plannable FASTQ adapter (`declared_only`)")
+        }),
+        "TSV must keep the declared-only estimate-library-complexity row explicit"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row.starts_with(
                 "cutadapt\tfastq.trim_terminal_damage\trunnable\tcomplete\ttrimmed_reads_r1,trimmed_reads_r2,report_json,raw_backend_report_json\ttrimmed_reads_r1,trimmed_reads_r2,report_json,raw_backend_report_json\t"
             ) && row.contains("\treport_json\t")
         }),
