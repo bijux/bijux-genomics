@@ -125,6 +125,7 @@ estimate_library_complexity_prealign_benchmark_policy: fastq.estimate_library_co
 trim_polyg_tails_benchmark_policy: fastq.trim_polyg_tails
 - default benchmark backend is `fastp`
 - governed comparison backend is `bbduk`
+- the current governed benchmark surface is assigned to `fixture:corpus-01-mini`
 - every governed `fastq.trim_polyg_tails` row must emit `trimmed_tail_count` plus removed-base count through `bases_trimmed_polyg`
 - the governed trim-polyg report must preserve backend-native report provenance while publishing canonical tail-count and removed-base metrics for downstream comparison
 
