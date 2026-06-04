@@ -54,7 +54,7 @@ fn write_local_insert_size_smoke_report_materializes_governed_outputs() -> Resul
         payload["schema_version"],
         serde_json::json!("bijux.bam.insert_size.local_smoke.report.v1")
     );
-    assert_eq!(payload["sample_id"], serde_json::json!("core-v1-paired-triplet"));
+    assert_eq!(payload["sample_id"], serde_json::json!("human_like_insert_size_triplet"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(payload["method"], serde_json::json!("picard"));
     assert_eq!(payload["read_pairs"], serde_json::json!(3));
