@@ -46,7 +46,7 @@ fn write_local_filter_smoke_report_materializes_governed_outputs() -> Result<()>
         payload["schema_version"],
         serde_json::json!("bijux.bam.filter.local_smoke.metrics.v1")
     );
-    assert_eq!(payload["sample_id"], serde_json::json!("core-v1-general-filter"));
+    assert_eq!(payload["sample_id"], serde_json::json!("human_like_mixed_filter_constraints"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(payload["input_reads"], serde_json::json!(5));
     assert_eq!(payload["kept_reads"], serde_json::json!(1));

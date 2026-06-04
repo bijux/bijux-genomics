@@ -11,8 +11,8 @@ threads = 4
 output_dir = "target/local-smoke/bam.filter"
 
 [[cases]]
-sample_id = "core-v1-general-filter"
-bam = "assets/toy/core-v1/bam/filter_mixed_constraints.sam"
+sample_id = "human_like_mixed_filter_constraints"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"
 expected_input_reads = 5
 expected_kept_reads = 1
 expected_removed_reads = 4

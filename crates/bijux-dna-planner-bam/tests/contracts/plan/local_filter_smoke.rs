@@ -19,12 +19,17 @@ fn local_filter_smoke_plans_use_governed_mixed_constraint_fixture() -> Result<()
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-general-filter")
+        .find(|case| case.sample_id == "human_like_mixed_filter_constraints")
         .unwrap_or_else(|| panic!("governed BAM filter case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.filter");
     assert_eq!(case.plan.tool_id.as_str(), "samtools");
     assert_eq!(case.plan.resources.threads, 4);
-    assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/filter_mixed_constraints.sam"));
+    assert_eq!(
+        case.bam,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"
+        )
+    );
     assert_eq!(case.expected_input_reads, 5);
     assert_eq!(case.expected_kept_reads, 1);
     assert_eq!(case.expected_removed_reads, 4);
@@ -39,7 +44,7 @@ fn local_filter_smoke_plans_use_governed_mixed_constraint_fixture() -> Result<()
     );
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.filter/core-v1-general-filter/samtools")
+        PathBuf::from("target/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools")
     );
     assert_eq!(case.plan.params["mapq_threshold"], serde_json::json!(20));
     assert_eq!(case.plan.params["exclude_flags"], serde_json::json!([4]));
@@ -77,7 +82,7 @@ fn local_filter_smoke_plans_use_governed_mixed_constraint_fixture() -> Result<()
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.filter/core-v1-general-filter/samtools/filter.summary.json"
+            "target/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filter.summary.json"
         )
     );
 
@@ -120,7 +125,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = " "
-bam = "assets/toy/core-v1/bam/filter_mixed_constraints.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"
 expected_input_reads = 5
 expected_kept_reads = 1
 expected_removed_reads = 4
@@ -151,7 +156,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/filter_mixed_constraints.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"
 expected_input_reads = 5
 expected_kept_reads = 1
 expected_removed_reads = 4
@@ -165,7 +170,7 @@ base_quality_threshold = 20
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/filter_mixed_constraints.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"
 expected_input_reads = 5
 expected_kept_reads = 1
 expected_removed_reads = 4
@@ -210,7 +215,9 @@ min_length = 8
 remove_duplicates = true
 base_quality_threshold = 20
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/filter_mixed_constraints.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam")
+                .display(),
         ),
     )?;
 
@@ -248,7 +255,9 @@ min_length = 8
 remove_duplicates = true
 base_quality_threshold = 20
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/filter_mixed_constraints.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam")
+                .display(),
         ),
     )?;
 
@@ -286,7 +295,9 @@ min_length = 8
 remove_duplicates = true
 base_quality_threshold = 20
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/filter_mixed_constraints.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam")
+                .display(),
         ),
     )?;
 
@@ -324,7 +335,9 @@ min_length = 8
 remove_duplicates = true
 base_quality_threshold = 20
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/filter_mixed_constraints.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam")
+                .display(),
         ),
     )?;
 
@@ -341,7 +354,9 @@ base_quality_threshold = 20
 fn filter_plan_accepts_bamtools_and_bedtools_governed_planning_contracts() -> Result<()> {
     let repo_root = repo_root();
     let stage_id = StageId::new("bam.filter".to_string());
-    let bam = PathBuf::from("assets/toy/core-v1/bam/filter_mixed_constraints.sam");
+    let bam = PathBuf::from(
+        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam",
+    );
 
     for (tool, expected_command_fragment) in
         [("bamtools", "bamtools stats -in"), ("bedtools", "bedtools bamtobed -i")]
@@ -358,8 +373,9 @@ fn filter_plan_accepts_bamtools_and_bedtools_governed_planning_contracts() -> Re
             remove_duplicates: true,
             base_quality_threshold: 20,
         };
-        let out_dir =
-            PathBuf::from(format!("target/local-smoke/bam.filter/core-v1-general-filter/{tool}"));
+        let out_dir = PathBuf::from(format!(
+            "target/local-smoke/bam.filter/human_like_mixed_filter_constraints/{tool}"
+        ));
         let plan = bijux_dna_planner_bam::tool_adapters::stages_pre::filter::plan(
             &tool_spec, &bam, &out_dir, &params,
         )?;
@@ -376,7 +392,7 @@ fn filter_plan_accepts_bamtools_and_bedtools_governed_planning_contracts() -> Re
         assert_eq!(
             summary_output.path,
             PathBuf::from(format!(
-                "target/local-smoke/bam.filter/core-v1-general-filter/{tool}/filter.summary.json"
+                "target/local-smoke/bam.filter/human_like_mixed_filter_constraints/{tool}/filter.summary.json"
             ))
         );
 
