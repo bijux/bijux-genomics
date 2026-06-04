@@ -32,6 +32,8 @@ pub enum BenchLocalCommand {
     RenderCorpusSkipReport(BenchLocalRenderCorpusSkipReportArgs),
     #[command(name = "validate-taxonomy-database-fixture")]
     ValidateTaxonomyDatabaseFixture(BenchLocalValidateTaxonomyDatabaseFixtureArgs),
+    #[command(name = "judge-taxonomy-output")]
+    JudgeTaxonomyOutput(BenchLocalJudgeTaxonomyOutputArgs),
     #[command(name = "validate-slurm-shell-syntax")]
     ValidateSlurmShellSyntax(BenchLocalValidateSlurmShellSyntaxArgs),
     #[command(name = "validate-slurm-dependencies")]
@@ -130,6 +132,18 @@ pub struct BenchLocalRenderCorpusSkipReportArgs {
 pub struct BenchLocalValidateTaxonomyDatabaseFixtureArgs {
     #[arg(long)]
     pub manifest: std::path::PathBuf,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalJudgeTaxonomyOutputArgs {
+    #[arg(long)]
+    pub manifest: std::path::PathBuf,
+    #[arg(long = "report")]
+    pub reports: Vec<String>,
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

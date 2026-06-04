@@ -285,6 +285,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::JudgeTaxonomyOutput(args) => {
+                        crate::commands::benchmark::local_taxonomy_output_judgment::run_judge_taxonomy_output(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateSlurmShellSyntax(args) => {
                         crate::commands::benchmark::local_slurm_shell_syntax::run_validate_slurm_shell_syntax(
                             &args,
