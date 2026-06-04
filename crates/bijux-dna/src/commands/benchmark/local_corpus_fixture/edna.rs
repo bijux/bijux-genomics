@@ -75,8 +75,9 @@ pub(crate) struct EdnaCorpusFixtureValidationReport {
     pub(crate) samples: Vec<EdnaCorpusFixtureSampleValidationReport>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum EdnaExpectedPresence {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub(crate) enum EdnaExpectedPresence {
     Present,
     Absent,
 }
@@ -93,13 +94,13 @@ impl EdnaExpectedPresence {
     }
 }
 
-#[derive(Debug, Clone)]
-struct EdnaExpectedTaxonRow {
-    sample_id: String,
-    taxon_id: u64,
-    name: String,
-    rank: String,
-    expected_presence: EdnaExpectedPresence,
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct EdnaExpectedTaxonRow {
+    pub(crate) sample_id: String,
+    pub(crate) taxon_id: u64,
+    pub(crate) name: String,
+    pub(crate) rank: String,
+    pub(crate) expected_presence: EdnaExpectedPresence,
 }
 
 pub(crate) fn validate_edna_corpus_fixture_manifest_path(
@@ -119,10 +120,9 @@ pub(crate) fn validate_edna_corpus_fixture_manifest_path(
             validate_edna_corpus_fixture_sample(repo_root, manifest_dir, &manifest, sample)
         })
         .collect::<Result<Vec<_>>>()?;
-    let expected_taxa_path =
-        resolve_manifest_relative_path(manifest_dir, &manifest.expected_taxa_path);
+    let expected_taxa_path = resolve_edna_expected_taxa_path(manifest_path, &manifest)?;
     let expected_taxa_rows =
-        validate_expected_taxa_output(repo_root, manifest_dir, &manifest, &expected_taxa_path)?;
+        load_validated_edna_expected_taxa_rows(&manifest, &expected_taxa_path)?;
     let expected_present_row_count = expected_taxa_rows
         .iter()
         .filter(|row| row.expected_presence == EdnaExpectedPresence::Present)
@@ -148,7 +148,7 @@ pub(crate) fn validate_edna_corpus_fixture_manifest_path(
     })
 }
 
-fn load_edna_corpus_fixture_manifest_path(
+pub(crate) fn load_edna_corpus_fixture_manifest_path(
     manifest_path: &Path,
 ) -> Result<EdnaCorpusFixtureManifest> {
     let raw = fs::read_to_string(manifest_path)
@@ -156,7 +156,7 @@ fn load_edna_corpus_fixture_manifest_path(
     toml::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))
 }
 
-fn validate_edna_corpus_fixture_manifest_contract(
+pub(crate) fn validate_edna_corpus_fixture_manifest_contract(
     manifest: &EdnaCorpusFixtureManifest,
 ) -> Result<()> {
     if manifest.schema_version != EDNA_CORPUS_FIXTURE_SCHEMA_VERSION {
@@ -242,9 +242,17 @@ fn validate_edna_corpus_fixture_manifest_contract(
     Ok(())
 }
 
-fn validate_expected_taxa_output(
-    repo_root: &Path,
-    manifest_dir: &Path,
+pub(crate) fn resolve_edna_expected_taxa_path(
+    manifest_path: &Path,
+    manifest: &EdnaCorpusFixtureManifest,
+) -> Result<PathBuf> {
+    let manifest_dir = manifest_path.parent().ok_or_else(|| {
+        anyhow!("fixture manifest has no parent directory: {}", manifest_path.display())
+    })?;
+    Ok(resolve_manifest_relative_path(manifest_dir, &manifest.expected_taxa_path))
+}
+
+pub(crate) fn load_validated_edna_expected_taxa_rows(
     manifest: &EdnaCorpusFixtureManifest,
     expected_taxa_path: &Path,
 ) -> Result<Vec<EdnaExpectedTaxonRow>> {
@@ -362,9 +370,6 @@ fn validate_expected_taxa_output(
             }
         }
     }
-
-    let _ = repo_root;
-    let _ = manifest_dir;
     Ok(rows)
 }
 
@@ -423,8 +428,9 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        validate_edna_corpus_fixture_manifest_path, DEFAULT_CORPUS_02_EDNA_MANIFEST_PATH,
-        EDNA_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION,
+        load_edna_corpus_fixture_manifest_path, load_validated_edna_expected_taxa_rows,
+        resolve_edna_expected_taxa_path, validate_edna_corpus_fixture_manifest_path,
+        DEFAULT_CORPUS_02_EDNA_MANIFEST_PATH, EDNA_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION,
     };
 
     fn repo_root() -> PathBuf {
@@ -535,5 +541,32 @@ mod tests {
                 .contains("eDNA expected taxonomy output presence must be `present` or `absent`"),
             "validation error should explain invalid expected presence value: {error:#}"
         );
+    }
+
+    #[test]
+    fn corpus_02_edna_expected_taxa_rows_cover_each_manifest_sample_taxon_pair() {
+        let root = repo_root();
+        let manifest_path = root.join(DEFAULT_CORPUS_02_EDNA_MANIFEST_PATH);
+        let manifest = load_edna_corpus_fixture_manifest_path(&manifest_path)
+            .expect("read governed corpus-02 edna manifest");
+        let expected_taxa_path = resolve_edna_expected_taxa_path(&manifest_path, &manifest)
+            .expect("resolve expected taxa path");
+
+        let rows = load_validated_edna_expected_taxa_rows(&manifest, &expected_taxa_path)
+            .expect("load governed expected taxa rows");
+
+        assert_eq!(rows.len(), 6);
+        assert!(rows.iter().any(|row| {
+            row.sample_id == "mock_community_sample_a"
+                && row.taxon_id == 561
+                && row.name == "Escherichia coli"
+                && row.rank == "species"
+        }));
+        assert!(rows.iter().any(|row| {
+            row.sample_id == "mock_community_sample_b"
+                && row.taxon_id == 28890
+                && row.name == "Halobacterium salinarum"
+                && row.rank == "species"
+        }));
     }
 }
