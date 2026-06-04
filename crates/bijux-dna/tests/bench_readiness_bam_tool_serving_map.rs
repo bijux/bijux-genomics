@@ -201,6 +201,28 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
     assert!(
         has_row(
             "samtools",
+            "bam.markdup",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
+        ),
+        "BAM readiness map must retain the governed samtools markdup row"
+    );
+    assert!(
+        has_row(
+            "picard",
+            "bam.markdup",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
+        ),
+        "BAM readiness map must retain the governed picard markdup comparison row"
+    );
+    assert!(
+        has_row(
+            "samtools",
             "bam.length_filter",
             "supported",
             "runnable",
