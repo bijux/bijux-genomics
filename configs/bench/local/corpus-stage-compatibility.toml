@@ -303,8 +303,10 @@ compatibility_note = "No governed corpus fixture yet owns the pairwise overlap a
 
 [[mappings]]
 stage_id = "bam.length_filter"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed BAM corpus fixture yet owns the read-length threshold contract required for local length-filter smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a governed length-threshold ladder alignment fixture for local read-length filtering smoke checks."
 
 [[mappings]]
 stage_id = "bam.mapping_summary"
