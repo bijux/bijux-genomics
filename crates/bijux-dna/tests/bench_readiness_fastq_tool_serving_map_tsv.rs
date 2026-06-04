@@ -142,7 +142,7 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
     }
     assert!(
         rows.iter().any(|row| {
-            row == &"umi_tools\tfastq.extract_umis\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tplanner_only"
+            row == &"umi_tools\tfastq.extract_umis\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-01-mini"
         }),
         "TSV must retain the governed extract-umis row for umi_tools"
     );
