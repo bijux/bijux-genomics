@@ -569,6 +569,29 @@ mod tests {
     }
 
     #[test]
+    fn load_bam_domain_tool_execution_spec_accepts_supported_coverage_stage_tools() -> Result<()> {
+        let repo_root = repo_root();
+
+        for (tool_name, expected_image) in [
+            ("bedtools", "bijuxdna/bedtools:2.31.1"),
+            ("mosdepth", "bijuxdna/mosdepth:0.3.10"),
+            ("samtools", "bijuxdna/samtools:1.21"),
+        ] {
+            let stage_id = StageId::new("bam.coverage".to_string());
+            let tool_id = ToolId::new(tool_name);
+
+            let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
+
+            assert_eq!(spec.tool_id.as_str(), tool_name);
+            assert_eq!(spec.command.template, vec![tool_name.to_string()]);
+            assert_eq!(spec.image.image, expected_image);
+            assert!(spec.image.digest.is_none());
+        }
+
+        Ok(())
+    }
+
+    #[test]
     fn load_bam_domain_tool_planning_spec_accepts_validate_stage_with_container_metadata(
     ) -> Result<()> {
         let repo_root = repo_root();
