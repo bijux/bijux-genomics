@@ -67,6 +67,7 @@ governed_stage_ids:
   - bam.length_filter
   - bam.mapping_summary
   - bam.mapq_filter
+  - bam.overlap_correction
   - bam.sex
   - bam.validate
 governed_tool_ids:
@@ -74,6 +75,7 @@ governed_tool_ids:
   - angsd
   - authenticct
   - bamtools
+  - bamutil
   - bedtools
   - bowtie2
   - bwa
@@ -85,6 +87,7 @@ governed_tool_ids:
   - multiqc
   - picard
   - pmdtools
+  - preseq
   - pydamage
   - rxy
   - samtools
@@ -182,9 +185,9 @@ stage_tool_integration:
     schmutzi: governed_contract
     verifybamid2: governed_contract
   bam.coverage:
+    bedtools: governed_contract
     mosdepth: governed_contract
     samtools: governed_contract
-    bedtools: governed_contract
   bam.damage:
     addeam: governed_contract
     damageprofiler: governed_contract

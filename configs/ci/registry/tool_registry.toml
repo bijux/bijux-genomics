@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: ba3c02c9dc724858e8a6b18abe1f17e4c1af47c0
+# source_commit: b0b6c35fc6e224a2343137eafa7e08d5f86d4c86
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1420,7 +1420,7 @@ license = "GPL-3.0"
 citation = "software:https://broadinstitute.github.io/picard/"
 pinned_commit = "release:3.3.0"
 pin_strategy = "pinned"
-container_ref = "bijuxdna/picard:3.3.0"
+container_ref = "bijuxdna/picard:3.3.0:3.3.0"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "picard --version"
@@ -1469,6 +1469,40 @@ metrics_schema = "bijux.bam.authenticity.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.pmdtools"
 apptainer_def = "containers/apptainer/shared/pmdtools.def"
+require_labels = true
+
+[[tools]]
+id = "preseq"
+tool_id = "preseq"
+domain = "bam"
+domains = ["bam"]
+status = "production"
+stage_ids = ["bam.complexity"]
+bindings = ["bam.complexity"]
+tool_role = "transform"
+version = "3.2.0"
+default_version = "3.2.0"
+upstream = "https://github.com/smithlabcode/preseq"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "paper:https://www.nature.com/articles/nmeth.2375"
+pinned_commit = "release:3.2.0"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/preseq:3.2.0"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "preseq --version"
+help_cmd = "preseq --help"
+smoke_version_cmd = "preseq --version"
+smoke_help_cmd = "preseq --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "preseq --help"
+expected_bin = "preseq"
+expected_artifacts = ["complexity_curve"]
+metrics_schema = "bijux.bam.complexity.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.preseq"
+apptainer_def = "containers/apptainer/shared/preseq.def"
 require_labels = true
 
 [[tools]]
@@ -2111,6 +2145,18 @@ requires_reporting = false
 id = "bam.bias_mitigation"
 required_tool_roles = ["transform"]
 primary_tools = ["samtools"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = ""
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.complexity"
+required_tool_roles = ["transform"]
+primary_tools = ["preseq"]
 optional_alternatives = []
 validation_tools = []
 reporting_tools = []

@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "ba3c02c9dc724858e8a6b18abe1f17e4c1af47c0",
-  "bundle_checksum_sha256": "697121e3082dafd00e454cc3ad19bbd06026451f565dd8b9a17e98bc34007214",
+  "source_commit": "b0b6c35fc6e224a2343137eafa7e08d5f86d4c86",
+  "bundle_checksum_sha256": "0b9ff2a48231f1118886eceb7084f91fac1adf4a7b84b2d064323f3580c6f130",
   "domains": [
     {
       "domain_id": "bam",
@@ -2718,7 +2718,10 @@
           ],
           "metrics_schema_id": "bijux.stage.metrics.v1",
           "comparability_notes": "Comparable only when the BAM qc_pre reporting run consumes the same governed qc_pre summary artifacts and preserves the canonical stage-level counts.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/multiqc",
+            "digest": "sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec"
+          }
         },
         {
           "tool_id": "ngsbriggs",
@@ -2777,7 +2780,10 @@
           ],
           "metrics_schema_id": "bijux.bam.markdup.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/picard:3.3.0",
+            "digest": ""
+          }
         },
         {
           "tool_id": "pmdtools",
@@ -2812,7 +2818,7 @@
         },
         {
           "tool_id": "preseq",
-          "status": "planned",
+          "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
           "default_version": "3.2.0",
@@ -2834,7 +2840,10 @@
           ],
           "metrics_schema_id": "bijux.bam.complexity.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/preseq",
+            "digest": ""
+          }
         },
         {
           "tool_id": "pydamage",
@@ -3564,7 +3573,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "39266a886a9d7678d7ea946ef454f1acfe71b9186b1f976e59c4f8dd9778d105"
+      "checksum_sha256": "7ad543e672e9aafed3037aab613ec1fc9712a6305fbb7aa3bc13fdb67e557671"
     },
     {
       "domain_id": "fastq",
@@ -12417,7 +12426,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "5c6a9a8d337cf73ba1d538d622662d288ae61ec3f72f81184343b86c32ad4a0e"
+      "checksum_sha256": "ee15354a39572781228a4a5ea764e5fdd5c5a6d225e0d3089a166aa38df04e16"
     },
     {
       "domain_id": "vcf",
@@ -14675,7 +14684,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "1c5e36ec82addf32442f38b57e5c193409a2b13743240ef53f5cda8fc622fbf3"
+      "checksum_sha256": "8926516fde538c1fd44bd713a193b14a3a8cef364cda06332775c0a01e30b16f"
     }
   ]
 }

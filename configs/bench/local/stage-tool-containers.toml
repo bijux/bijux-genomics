@@ -9,6 +9,16 @@ classification_scope = "benchmark_ready_runtime_declarations"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.complexity"
+tool_id = "preseq"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/preseq"
+command_entrypoint = "preseq"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.damage"
 tool_id = "addeam"
 execution_mode = "containerized"
