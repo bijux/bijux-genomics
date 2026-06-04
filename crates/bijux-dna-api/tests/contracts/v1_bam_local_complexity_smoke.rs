@@ -46,18 +46,15 @@ fn write_local_complexity_smoke_report_materializes_governed_outputs() -> Result
         payload["schema_version"],
         serde_json::json!("bijux.bam.complexity.local_smoke.report.v1")
     );
-    assert_eq!(payload["sample_id"], serde_json::json!("core-v1-complexity-insufficient"));
+    assert_eq!(payload["sample_id"], serde_json::json!("human_like_complexity_projection"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(payload["method"], serde_json::json!("preseq"));
-    assert_eq!(payload["observed_total_reads"], serde_json::json!(3));
-    assert_eq!(payload["observed_unique_reads"], serde_json::json!(2));
-    assert_eq!(payload["estimated_unique_reads"], serde_json::Value::Null);
-    assert_eq!(payload["estimated_library_size"], serde_json::Value::Null);
-    assert_eq!(payload["saturation_estimate"], serde_json::Value::Null);
-    assert_eq!(
-        payload["insufficient_data_reason"],
-        serde_json::json!("insufficient_observed_unique_reads_for_complexity_extrapolation")
-    );
+    assert_eq!(payload["observed_total_reads"], serde_json::json!(6));
+    assert_eq!(payload["observed_unique_reads"], serde_json::json!(4));
+    assert_eq!(payload["estimated_unique_reads"], serde_json::json!(12));
+    assert_eq!(payload["estimated_library_size"], serde_json::json!(12));
+    assert_eq!(payload["saturation_estimate"], serde_json::json!(0.33333333333333337_f64));
+    assert_eq!(payload["insufficient_data_reason"], serde_json::Value::Null);
 
     let complexity_report = repo_root.join(
         payload["complexity_report"]
@@ -88,34 +85,34 @@ fn write_local_complexity_smoke_report_materializes_governed_outputs() -> Result
         serde_json::json!("bijux.bam.complexity.local_smoke.observation.v1")
     );
     assert_eq!(observation_json["method"], serde_json::json!("preseq"));
-    assert_eq!(observation_json["observed_total_reads"], serde_json::json!(3));
-    assert_eq!(observation_json["observed_unique_reads"], serde_json::json!(2));
-    assert_eq!(observation_json["projected_unique_reads"], serde_json::json!([[3, 2]]));
-    assert_eq!(observation_json["estimated_library_size"], serde_json::Value::Null);
-    assert_eq!(observation_json["saturation_estimate"], serde_json::Value::Null);
+    assert_eq!(observation_json["observed_total_reads"], serde_json::json!(6));
+    assert_eq!(observation_json["observed_unique_reads"], serde_json::json!(4));
     assert_eq!(
-        observation_json["insufficient_data_reason"],
-        serde_json::json!("insufficient_observed_unique_reads_for_complexity_extrapolation")
+        observation_json["projected_unique_reads"],
+        serde_json::json!([[6, 4], [12, 8], [18, 12]])
     );
+    assert_eq!(observation_json["estimated_library_size"], serde_json::json!(12));
+    assert_eq!(observation_json["saturation_estimate"], serde_json::json!(0.33333333333333337_f64));
+    assert_eq!(observation_json["insufficient_data_reason"], serde_json::Value::Null);
 
     let complexity_curve_body = std::fs::read_to_string(&complexity_curve)?;
-    assert_eq!(complexity_curve_body, "3\t2\n");
+    assert_eq!(complexity_curve_body, "6\t4\n12\t8\n18\t12\n");
 
     let summary_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&complexity_summary)?)?;
     assert_eq!(summary_json["schema_version"], serde_json::json!("bijux.bam.complexity.v1"));
     assert_eq!(summary_json["method"], serde_json::json!("preseq"));
-    assert_eq!(summary_json["observed_total_reads"], serde_json::json!(3));
-    assert_eq!(summary_json["observed_unique_reads"], serde_json::json!(2));
-    assert_eq!(summary_json["projected_unique_reads"], serde_json::json!([[3, 2]]));
-    assert_eq!(summary_json["estimated_unique_reads"], serde_json::Value::Null);
-    assert_eq!(summary_json["estimated_library_size"], serde_json::Value::Null);
-    assert_eq!(summary_json["saturation_estimate"], serde_json::Value::Null);
-    assert_eq!(summary_json["min_reads"], serde_json::json!(3));
+    assert_eq!(summary_json["observed_total_reads"], serde_json::json!(6));
+    assert_eq!(summary_json["observed_unique_reads"], serde_json::json!(4));
     assert_eq!(
-        summary_json["insufficient_data_reason"],
-        serde_json::json!("insufficient_observed_unique_reads_for_complexity_extrapolation")
+        summary_json["projected_unique_reads"],
+        serde_json::json!([[6, 4], [12, 8], [18, 12]])
     );
+    assert_eq!(summary_json["estimated_unique_reads"], serde_json::json!(12));
+    assert_eq!(summary_json["estimated_library_size"], serde_json::json!(12));
+    assert_eq!(summary_json["saturation_estimate"], serde_json::json!(0.33333333333333337_f64));
+    assert_eq!(summary_json["min_reads"], serde_json::json!(3));
+    assert_eq!(summary_json["insufficient_data_reason"], serde_json::Value::Null);
 
     let stage_metrics_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&stage_metrics)?)?;
@@ -124,16 +121,16 @@ fn write_local_complexity_smoke_report_materializes_governed_outputs() -> Result
         serde_json::json!("bijux.bam.complexity.local_smoke.metrics.v1")
     );
     assert_eq!(stage_metrics_json["method"], serde_json::json!("preseq"));
-    assert_eq!(stage_metrics_json["observed_total_reads"], serde_json::json!(3));
-    assert_eq!(stage_metrics_json["observed_unique_reads"], serde_json::json!(2));
-    assert_eq!(stage_metrics_json["estimated_unique_reads"], serde_json::Value::Null);
-    assert_eq!(stage_metrics_json["estimated_library_size"], serde_json::Value::Null);
-    assert_eq!(stage_metrics_json["saturation_estimate"], serde_json::Value::Null);
-    assert_eq!(stage_metrics_json["min_reads"], serde_json::json!(3));
+    assert_eq!(stage_metrics_json["observed_total_reads"], serde_json::json!(6));
+    assert_eq!(stage_metrics_json["observed_unique_reads"], serde_json::json!(4));
+    assert_eq!(stage_metrics_json["estimated_unique_reads"], serde_json::json!(12));
+    assert_eq!(stage_metrics_json["estimated_library_size"], serde_json::json!(12));
     assert_eq!(
-        stage_metrics_json["insufficient_data_reason"],
-        serde_json::json!("insufficient_observed_unique_reads_for_complexity_extrapolation")
+        stage_metrics_json["saturation_estimate"],
+        serde_json::json!(0.33333333333333337_f64)
     );
+    assert_eq!(stage_metrics_json["min_reads"], serde_json::json!(3));
+    assert_eq!(stage_metrics_json["insufficient_data_reason"], serde_json::Value::Null);
     assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 
     Ok(())

@@ -680,18 +680,18 @@ fn bench_local_materialize_stage_bam_complexity_json_writes_governed_smoke_bundl
     );
     assert_eq!(
         report.get("sample_id").and_then(serde_json::Value::as_str),
-        Some("core-v1-complexity-insufficient")
+        Some("human_like_complexity_projection")
     );
     assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
-    assert_eq!(report.get("observed_total_reads").and_then(serde_json::Value::as_u64), Some(3));
-    assert_eq!(report.get("observed_unique_reads").and_then(serde_json::Value::as_u64), Some(2));
-    assert_eq!(report.get("estimated_unique_reads"), Some(&serde_json::Value::Null));
-    assert_eq!(report.get("estimated_library_size"), Some(&serde_json::Value::Null));
-    assert_eq!(report.get("saturation_estimate"), Some(&serde_json::Value::Null));
+    assert_eq!(report.get("observed_total_reads").and_then(serde_json::Value::as_u64), Some(6));
+    assert_eq!(report.get("observed_unique_reads").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(report.get("estimated_unique_reads").and_then(serde_json::Value::as_u64), Some(12));
+    assert_eq!(report.get("estimated_library_size").and_then(serde_json::Value::as_u64), Some(12));
     assert_eq!(
-        report.get("insufficient_data_reason").and_then(serde_json::Value::as_str),
-        Some("insufficient_observed_unique_reads_for_complexity_extrapolation")
+        report.get("saturation_estimate").and_then(serde_json::Value::as_f64),
+        Some(0.33333333333333337_f64)
     );
+    assert_eq!(report.get("insufficient_data_reason"), Some(&serde_json::Value::Null));
 
     let complexity_curve = repo_root.join(
         report
