@@ -167,6 +167,39 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
     );
     assert!(
         has_row(
+            "bedtools",
+            "bam.coverage",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
+        ),
+        "BAM readiness map must retain the governed bedtools coverage row"
+    );
+    assert!(
+        has_row(
+            "mosdepth",
+            "bam.coverage",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
+        ),
+        "BAM readiness map must retain the governed mosdepth coverage row"
+    );
+    assert!(
+        has_row(
+            "samtools",
+            "bam.coverage",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
+        ),
+        "BAM readiness map must retain the governed samtools coverage row"
+    );
+    assert!(
+        has_row(
             "samtools",
             "bam.mapping_summary",
             "supported",

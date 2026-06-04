@@ -56,9 +56,9 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
         .expect("decision_counts object");
     assert_eq!(
         decision_counts.get("benchmark_ready").and_then(serde_json::Value::as_u64),
-        Some(10)
+        Some(11)
     );
-    assert_eq!(decision_counts.get("needs_corpus").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(decision_counts.get("needs_corpus").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(decision_counts.get("needs_parser").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(
         decision_counts.get("future_not_in_hpc_round").and_then(serde_json::Value::as_u64),
@@ -236,7 +236,8 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
     assert!(
         rows.iter().any(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.coverage")
-                && row.get("decision").and_then(serde_json::Value::as_str) == Some("needs_corpus")
+                && row.get("decision").and_then(serde_json::Value::as_str)
+                    == Some("benchmark_ready")
                 && row.get("primary_tool_id").and_then(serde_json::Value::as_str)
                     == Some("mosdepth")
                 && row.get("selected_tool_id").and_then(serde_json::Value::as_str)
@@ -244,9 +245,9 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
                 && row.get("parser_status").and_then(serde_json::Value::as_str)
                     == Some("parser_fixture_validated")
                 && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
+                    == Some("fixture:corpus-01-bam-mini")
         }),
-        "bam.coverage must stay corpus-blocked while only planner-only coverage corpora exist"
+        "bam.coverage must now be benchmark_ready through the governed mosdepth target-window row"
     );
     assert!(
         rows.iter().any(|row| {

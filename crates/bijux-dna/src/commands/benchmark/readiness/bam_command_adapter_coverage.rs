@@ -313,12 +313,12 @@ mod tests {
         assert_eq!(report.stage_count, 24);
         assert_eq!(report.tool_count, 26);
         assert_eq!(report.row_count, 51);
-        assert_eq!(report.benchmark_ready_row_count, 8);
-        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 8);
+        assert_eq!(report.benchmark_ready_row_count, 27);
+        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 27);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
-        assert_eq!(report.readiness_gap_counts.get("corpus"), Some(&12));
-        assert_eq!(report.readiness_gap_counts.get("parser"), Some(&24));
-        assert_eq!(report.readiness_gap_counts.get("support"), Some(&7));
+        assert_eq!(report.readiness_gap_counts.get("corpus"), Some(&2));
+        assert_eq!(report.readiness_gap_counts.get("parser"), Some(&16));
+        assert_eq!(report.readiness_gap_counts.get("support"), Some(&6));
         assert!(
             report.readiness_gap_counts.get("adapter").is_none(),
             "the governed BAM readiness slice currently carries no adapter gap rows"
@@ -340,10 +340,10 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "mosdepth"
                 && row.stage_id == "bam.coverage"
-                && super::benchmark_status_label(row.benchmark_status) == "not_benchmark_ready"
+                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
                 && super::adapter_coverage_label(row.adapter_coverage) == "covered"
-                && super::readiness_gap_label(row.readiness_gap) == "corpus"
-                && row.corpus_status == "planner_only"
+                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bwa"
