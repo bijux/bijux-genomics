@@ -251,8 +251,10 @@ compatibility_note = "No governed corpus fixture yet owns a contamination-panel 
 
 [[mappings]]
 stage_id = "bam.coverage"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed BAM corpus fixture yet owns a target-region coverage contract with explicit BED windows and expected depth rows."
+fixture_id = "corpus-01-bam-mini"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+compatibility_note = "The governed BAM corpus now owns a target-window coverage fixture with explicit BED windows and expected depth-and-breadth rows."
 
 [[mappings]]
 stage_id = "bam.damage"
