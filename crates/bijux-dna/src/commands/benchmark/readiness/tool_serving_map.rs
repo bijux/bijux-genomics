@@ -414,6 +414,14 @@ mod tests {
                 && row.parser_status == "not_normalized"
                 && row.corpus_status == "planner_only"
         }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "fastqc"
+                && row.stage_id == "fastq.detect_adapters"
+                && row.support_status == "observer_specialized_benchmark"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "comparable"
+                && row.corpus_status == "fixture:corpus-01-mini"
+        }));
         for tool_id in ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"] {
             assert!(report.rows.iter().any(|row| {
                 row.tool_id == tool_id

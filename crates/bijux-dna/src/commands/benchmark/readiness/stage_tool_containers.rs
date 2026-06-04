@@ -321,10 +321,10 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_containers.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-containers.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_runtime_declarations");
-        assert_eq!(report.row_count, 54);
-        assert_eq!(report.benchmark_ready_row_count, 54);
-        assert_eq!(report.external_row_count, 54);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&46));
+        assert_eq!(report.row_count, 55);
+        assert_eq!(report.benchmark_ready_row_count, 55);
+        assert_eq!(report.external_row_count, 55);
+        assert_eq!(report.domain_counts.get("fastq"), Some(&47));
         assert_eq!(report.domain_counts.get("bam"), Some(&8));
         assert!(report.rows.iter().all(|row| {
             row.container_id.is_some()
@@ -339,6 +339,16 @@ mod tests {
                     .as_deref()
                     .is_some_and(|value| value.starts_with("bijuxdna/cutadapt@sha256:"))
                 && row.command_entrypoint.as_deref() == Some("cutadapt")
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "fastq.detect_adapters"
+                && row.tool_id == "fastqc"
+                && row.execution_mode == "java"
+                && row.command_entrypoint.as_deref() == Some("fastqc")
+                && row.container_id.as_deref()
+                    == Some(
+                        "bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789"
+                    )
         }));
     }
 
@@ -363,11 +373,21 @@ mod tests {
 
         assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_VERSION);
         assert_eq!(config.classification_scope, STAGE_TOOL_CONTAINERS_SCOPE);
-        assert_eq!(config.rows.len(), 54);
+        assert_eq!(config.rows.len(), 55);
         assert!(config.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()
                 || row.host_binary_mode.is_some()
+        }));
+        assert!(config.rows.iter().any(|row| {
+            row.stage_id == "fastq.detect_adapters"
+                && row.tool_id == "fastqc"
+                && row.execution_mode == "java"
+                && row.command_entrypoint.as_deref() == Some("fastqc")
+                && row.container_id.as_deref()
+                    == Some(
+                        "bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789"
+                    )
         }));
     }
 }

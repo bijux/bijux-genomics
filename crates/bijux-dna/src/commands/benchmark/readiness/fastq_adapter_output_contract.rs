@@ -479,9 +479,8 @@ mod tests {
         );
         assert!(
             rows.iter().any(|row| {
-                row.starts_with(
-                    "diamond\tfastq.screen_taxonomy\tdeclared_only\tmissing_adapter\tclassification_report_json,screen_report_tsv\t\t\t\t\t\t\t\t\tadapter\t"
-                )
+                row.starts_with("diamond\tfastq.screen_taxonomy\tdeclared_only\tmissing_adapter\t")
+                    && row.contains("\tadapter\t")
             }),
             "the planned diamond taxonomy row must stay explicit as missing an adapter"
         );

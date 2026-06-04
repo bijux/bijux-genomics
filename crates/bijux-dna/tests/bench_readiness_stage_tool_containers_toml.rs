@@ -48,7 +48,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         Some("benchmark_ready_runtime_declarations")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 54);
+    assert_eq!(rows.len(), 55);
     assert!(rows.iter().all(|row| {
         row.get("container_id").is_some()
             || row.get("command_entrypoint").is_some()
@@ -62,5 +62,15 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
                 .and_then(toml::Value::as_str)
                 .is_some_and(|value| value.starts_with("bijuxdna/cutadapt@sha256:"))
             && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("cutadapt")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.detect_adapters")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("fastqc")
+            && row.get("execution_mode").and_then(toml::Value::as_str) == Some("java")
+            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("fastqc")
+            && row.get("container_id").and_then(toml::Value::as_str)
+                == Some(
+                    "bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789"
+                )
     }));
 }

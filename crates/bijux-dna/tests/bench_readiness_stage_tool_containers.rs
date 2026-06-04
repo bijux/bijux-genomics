@@ -51,18 +51,18 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(54));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(55));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(54)
+        Some(55)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(54));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(55));
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(46)
+        Some(47)
     );
     assert_eq!(
         payload
@@ -97,5 +97,21 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .and_then(serde_json::Value::as_str)
             .is_some_and(|value| value.starts_with("bijuxdna/cutadapt@sha256:")),
         "cutadapt row must preserve the governed container declaration"
+    );
+    let fastqc = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.detect_adapters")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastqc")
+        })
+        .expect("detect-adapters fastqc row");
+    assert_eq!(fastqc.get("execution_mode").and_then(serde_json::Value::as_str), Some("java"));
+    assert_eq!(
+        fastqc.get("command_entrypoint").and_then(serde_json::Value::as_str),
+        Some("fastqc")
+    );
+    assert_eq!(
+        fastqc.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789")
     );
 }

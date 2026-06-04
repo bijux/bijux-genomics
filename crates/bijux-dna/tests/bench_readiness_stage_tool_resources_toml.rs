@@ -48,7 +48,7 @@ fn bench_readiness_stage_tool_resources_writes_governed_toml_file() {
         Some("benchmark_ready_command_resources")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 54);
+    assert_eq!(rows.len(), 55);
     assert!(rows.iter().all(|row| {
         row.get("threads").and_then(toml::Value::as_integer).unwrap_or_default() > 0
             && row.get("memory_gb").and_then(toml::Value::as_integer).unwrap_or_default() > 0
@@ -58,5 +58,13 @@ fn bench_readiness_stage_tool_resources_writes_governed_toml_file() {
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.profile_read_lengths")
             && row.get("tool_id").and_then(toml::Value::as_str) == Some("seqfu")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.detect_adapters")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("fastqc")
+            && row.get("threads").and_then(toml::Value::as_integer) == Some(4)
+            && row.get("memory_gb").and_then(toml::Value::as_integer) == Some(8)
+            && row.get("walltime_minutes").and_then(toml::Value::as_integer) == Some(15)
+            && row.get("scratch_gb").and_then(toml::Value::as_integer) == Some(4)
     }));
 }

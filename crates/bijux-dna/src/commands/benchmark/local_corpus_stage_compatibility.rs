@@ -455,9 +455,16 @@ mod tests {
         assert_eq!(report.fixture_count, 5);
         assert_eq!(report.stage_count, 51);
         assert_eq!(report.fixture_backed_stage_count + report.planner_only_stage_count, 51);
-        assert_eq!(report.corpus_family_counts.get("corpus-01"), Some(&12));
+        assert_eq!(report.corpus_family_counts.get("corpus-01"), Some(&13));
         assert_eq!(report.corpus_family_counts.get("corpus-02"), Some(&1));
         assert_eq!(report.corpus_family_counts.get("corpus-03"), Some(&4));
+        assert!(
+            report.stages.iter().any(|stage| {
+                stage.stage_id == "fastq.detect_adapters"
+                    && stage.fixture_id.as_deref() == Some("corpus-01-mini")
+            }),
+            "detect-adapters must map to the governed general FASTQ corpus once adapter-hit coverage is owned there"
+        );
         assert!(
             report.stages.iter().any(|stage| {
                 stage.stage_id == "fastq.screen_taxonomy"

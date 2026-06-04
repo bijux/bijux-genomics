@@ -83,7 +83,9 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
                     == Some("fastq.detect_adapters")
                 && row.get("output_contract_status").and_then(serde_json::Value::as_str)
                     == Some("complete")
-                && row.get("stage_expected_artifact_ids").and_then(serde_json::Value::as_array)
+                && row
+                    .get("stage_expected_artifact_ids")
+                    .and_then(serde_json::Value::as_array)
                     .is_some_and(|artifacts| {
                         artifacts.iter().any(|value| value == "report_json")
                             && artifacts.iter().any(|value| value == "adapter_report")

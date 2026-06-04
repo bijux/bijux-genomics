@@ -51,21 +51,21 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(54));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(55));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(54)
+        Some(55)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(54)
+        Some(55)
     );
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(46)
+        Some(47)
     );
     assert_eq!(
         payload
@@ -74,4 +74,16 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
             .and_then(serde_json::Value::as_u64),
         Some(8)
     );
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    let fastqc = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.detect_adapters")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastqc")
+        })
+        .expect("detect-adapters fastqc row");
+    assert_eq!(fastqc.get("threads").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(fastqc.get("memory_gb").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(fastqc.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(fastqc.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(4));
 }
