@@ -188,8 +188,8 @@ mod tests {
 
         assert_eq!(report.fixture_count, 5);
         assert_eq!(report.stage_count, 51);
-        assert_eq!(report.skip_count, 72);
-        assert_eq!(report.planner_only_stage_count, 33);
+        assert_eq!(report.skip_count, 76);
+        assert_eq!(report.planner_only_stage_count, 32);
         assert!(
             report.skips.iter().any(|skip| {
                 skip.stage_id == "fastq.screen_taxonomy"
@@ -197,6 +197,14 @@ mod tests {
                     && skip.replacement_corpus_id == "corpus-02-edna-mini"
             }),
             "fixture-backed taxonomy stage should emit an explicit replacement for incompatible corpora"
+        );
+        assert!(
+            report.skips.iter().any(|skip| {
+                skip.stage_id == "fastq.filter_reads"
+                    && skip.corpus_id == "corpus-02-edna-mini"
+                    && skip.replacement_corpus_id == "corpus-01-mini"
+            }),
+            "fixture-backed filter-reads stage should emit an explicit replacement for incompatible corpora"
         );
         assert!(
             report.planner_only_stages.iter().any(|stage| {

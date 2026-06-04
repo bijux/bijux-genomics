@@ -51,18 +51,18 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(55));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(59));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(55)
+        Some(59)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(55));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(59));
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(47)
+        Some(51)
     );
     assert_eq!(
         payload
@@ -113,5 +113,21 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     assert_eq!(
         fastqc.get("container_id").and_then(serde_json::Value::as_str),
         Some("bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789")
+    );
+    let fastp = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.filter_reads")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastp")
+        })
+        .expect("filter-reads fastp row");
+    assert_eq!(
+        fastp.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("containerized")
+    );
+    assert_eq!(fastp.get("command_entrypoint").and_then(serde_json::Value::as_str), Some("fastp"));
+    assert_eq!(
+        fastp.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10")
     );
 }

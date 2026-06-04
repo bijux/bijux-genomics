@@ -51,21 +51,21 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(55));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(59));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(55)
+        Some(59)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(55)
+        Some(59)
     );
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(47)
+        Some(51)
     );
     assert_eq!(
         payload
@@ -86,4 +86,15 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
     assert_eq!(fastqc.get("memory_gb").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(fastqc.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(15));
     assert_eq!(fastqc.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(4));
+    let fastp = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.filter_reads")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastp")
+        })
+        .expect("filter-reads fastp row");
+    assert_eq!(fastp.get("threads").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(fastp.get("memory_gb").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(fastp.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(fastp.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(4));
 }
