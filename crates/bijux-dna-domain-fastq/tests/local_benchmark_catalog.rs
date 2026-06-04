@@ -62,10 +62,11 @@ fn local_fastq_benchmark_catalog_matches_benchmark_surface_plus_local_dry_runs()
 
 #[test]
 fn local_advisory_stage_statuses_remain_honest_in_execution_support() {
-    let detect_duplicates = execution_support_for_stage(&StageId::from_static(
-        "fastq.detect_duplicates_premerge",
-    ))
-    .unwrap_or_else(|| panic!("fastq.detect_duplicates_premerge must stay in FASTQ execution support"));
+    let detect_duplicates =
+        execution_support_for_stage(&StageId::from_static("fastq.detect_duplicates_premerge"))
+            .unwrap_or_else(|| {
+                panic!("fastq.detect_duplicates_premerge must stay in FASTQ execution support")
+            });
     assert_eq!(
         detect_duplicates.execution_status,
         ExecutionStatus::Closed,

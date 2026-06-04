@@ -138,8 +138,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         assert!(rows.iter().any(|row| {
             row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.remove_duplicates")
                 && row.get("tool_id").and_then(toml::Value::as_str) == Some(tool_id)
-                && row.get("execution_mode").and_then(toml::Value::as_str)
-                    == Some("containerized")
+                && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
                 && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("bash")
                 && row
                     .get("container_id")

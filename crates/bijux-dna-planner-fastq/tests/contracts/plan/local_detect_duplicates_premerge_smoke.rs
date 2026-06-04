@@ -55,12 +55,10 @@ fn local_detect_duplicates_premerge_smoke_plans_use_governed_corpus_fixtures() -
         )
     );
 
-    let duplicate_clear = plans
-        .iter()
-        .find(|case| case.sample_id == "human_like_pe_distinct_pairs")
-        .unwrap_or_else(|| {
-            panic!("human_like_pe_distinct_pairs case missing from local duplicate smoke plans")
-        });
+    let duplicate_clear =
+        plans.iter().find(|case| case.sample_id == "human_like_pe_distinct_pairs").unwrap_or_else(
+            || panic!("human_like_pe_distinct_pairs case missing from local duplicate smoke plans"),
+        );
     assert_eq!(
         duplicate_clear.r1,
         PathBuf::from(

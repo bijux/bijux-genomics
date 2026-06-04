@@ -198,6 +198,9 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
             remove_duplicates.get("walltime_minutes").and_then(serde_json::Value::as_u64),
             Some(15)
         );
-        assert_eq!(remove_duplicates.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(4));
+        assert_eq!(
+            remove_duplicates.get("scratch_gb").and_then(serde_json::Value::as_u64),
+            Some(4)
+        );
     }
 }

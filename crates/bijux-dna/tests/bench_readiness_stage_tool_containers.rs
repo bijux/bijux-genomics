@@ -65,10 +65,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
         Some(69)
     );
-    assert_eq!(
-        payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64),
-        Some(1)
-    );
+    assert_eq!(payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
         payload
             .get("domain_counts")
@@ -219,15 +216,11 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         })
         .expect("filter-low-complexity bbduk row");
     assert_eq!(
-        filter_low_complexity_bbduk
-            .get("execution_mode")
-            .and_then(serde_json::Value::as_str),
+        filter_low_complexity_bbduk.get("execution_mode").and_then(serde_json::Value::as_str),
         Some("containerized")
     );
     assert_eq!(
-        filter_low_complexity_bbduk
-            .get("command_entrypoint")
-            .and_then(serde_json::Value::as_str),
+        filter_low_complexity_bbduk.get("command_entrypoint").and_then(serde_json::Value::as_str),
         Some("bbduk")
     );
     assert_eq!(
@@ -243,15 +236,11 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         })
         .expect("filter-low-complexity prinseq row");
     assert_eq!(
-        filter_low_complexity_prinseq
-            .get("execution_mode")
-            .and_then(serde_json::Value::as_str),
+        filter_low_complexity_prinseq.get("execution_mode").and_then(serde_json::Value::as_str),
         Some("containerized")
     );
     assert_eq!(
-        filter_low_complexity_prinseq
-            .get("command_entrypoint")
-            .and_then(serde_json::Value::as_str),
+        filter_low_complexity_prinseq.get("command_entrypoint").and_then(serde_json::Value::as_str),
         Some("prinseq++")
     );
     assert_eq!(

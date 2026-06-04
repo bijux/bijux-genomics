@@ -102,8 +102,7 @@ fn bench_readiness_stage_tool_resources_writes_governed_toml_file() {
     }));
     for tool_id in ["bbduk", "prinseq"] {
         assert!(rows.iter().any(|row| {
-            row.get("stage_id").and_then(toml::Value::as_str)
-                == Some("fastq.filter_low_complexity")
+            row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.filter_low_complexity")
                 && row.get("tool_id").and_then(toml::Value::as_str) == Some(tool_id)
                 && row.get("threads").and_then(toml::Value::as_integer) == Some(4)
                 && row.get("memory_gb").and_then(toml::Value::as_integer) == Some(8)
