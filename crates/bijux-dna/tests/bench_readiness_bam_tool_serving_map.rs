@@ -56,526 +56,131 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
         Some(rows.len() as u64)
     );
     assert_eq!(rows.len(), 51, "BAM readiness map must retain the governed 51-row slice");
-    assert!(
+
+    let has_row = |tool_id: &str,
+                   stage_id: &str,
+                   support_status: &str,
+                   adapter_status: &str,
+                   parser_status: &str,
+                   corpus_status: &str| {
         rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("addeam")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
                 && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
+                    == Some(support_status)
                 && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
+                    == Some(adapter_status)
                 && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
+                    == Some(parser_status)
                 && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("fixture:corpus-01-adna-damage-mini")
-        }),
+                    == Some(corpus_status)
+        })
+    };
+
+    assert!(
+        has_row(
+            "addeam",
+            "bam.damage",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-adna-damage-mini",
+        ),
         "BAM readiness map must retain the governed addeam damage row"
     );
     assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("damageprofiler")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("fixture:corpus-01-adna-damage-mini")
-        }),
+        has_row(
+            "damageprofiler",
+            "bam.damage",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-adna-damage-mini",
+        ),
         "BAM readiness map must retain the governed damageprofiler damage row"
     );
     assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bwa")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("artifact_contract_only")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("fixture:corpus-01-mini")
-        }),
+        has_row(
+            "bwa",
+            "bam.align",
+            "supported",
+            "runnable",
+            "artifact_contract_only",
+            "fixture:corpus-01-mini",
+        ),
         "BAM readiness map must retain the governed bwa alignment row"
     );
     assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bamtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.filter")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed bamtools filter row"
+        has_row(
+            "bowtie2",
+            "bam.align",
+            "supported",
+            "runnable",
+            "artifact_contract_only",
+            "fixture:corpus-01-mini",
+        ),
+        "BAM readiness map must retain the governed bowtie2 alignment row"
     );
     assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bamtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.mapq_filter")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("artifact_contract_only")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed bamtools MAPQ-filter row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bamutil")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.overlap_correction")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("artifact_contract_only")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed bamutil overlap-correction row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ngsbriggs")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
-                && row.get("support_status").and_then(serde_json::Value::as_str) == Some("planned")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("fixture:corpus-01-adna-damage-mini")
-        }),
-        "BAM readiness map must retain the planned ngsbriggs damage row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bedtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.coverage")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed bedtools coverage row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bedtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.filter")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed bedtools filter row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.filter")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed samtools filter row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.endogenous_content")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("scientific_report_contract")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed samtools endogenous-content row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.mapq_filter")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("artifact_contract_only")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed samtools MAPQ-filter row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.length_filter")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("artifact_contract_only")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed samtools length-filter row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.insert_size")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed picard insert-size row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.gc_bias")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed picard GC-bias row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.duplication_metrics")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("artifact_contract_only")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed picard duplication-metrics row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.duplication_metrics")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("artifact_contract_only")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed samtools duplication-metrics row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("preseq")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.complexity")
-                && row.get("support_status").and_then(serde_json::Value::as_str) == Some("planned")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("artifact_contract_only")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the planned preseq complexity row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("pmdtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("fixture:corpus-01-adna-damage-mini")
-        }),
-        "BAM readiness map must retain the governed pmdtools damage row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("pydamage")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("fixture:corpus-01-adna-damage-mini")
-        }),
-        "BAM readiness map must retain the governed pydamage damage row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.markdup")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("artifact_contract_only")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed picard markdup row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.markdup")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("artifact_contract_only")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed samtools markdup row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.length_filter")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("artifact_contract_only")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed picard length-filter row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bamtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.validate")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("fixture:corpus-01-bam-mini")
-        }),
+        has_row(
+            "bamtools",
+            "bam.validate",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
+        ),
         "BAM readiness map must retain the governed bamtools validation row"
     );
     assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bedtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.validate")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("fixture:corpus-01-bam-mini")
-        }),
-        "BAM readiness map must retain the governed bedtools validation row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.validate")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("fixture:corpus-01-bam-mini")
-        }),
-        "BAM readiness map must retain the governed samtools validation row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("multiqc")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.qc_pre")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
+        has_row(
+            "multiqc",
+            "bam.qc_pre",
+            "supported",
+            "plannable",
+            "parser_fixture_validated",
+            "planner_only",
+        ),
         "BAM readiness map must retain the governed multiqc qc_pre reporting row"
     );
     assert!(
-        rows.iter().any(|row| {
+        has_row(
+            "samtools",
+            "bam.bias_mitigation",
+            "mismatched_contract",
+            "declared_only",
+            "artifact_contract_only",
+            "planner_only",
+        ),
+        "BAM readiness map must retain the declared-only samtools bias-mitigation row"
+    );
+    assert!(
+        has_row(
+            "samtools",
+            "bam.haplogroups",
+            "mismatched_contract",
+            "declared_only",
+            "scientific_report_contract",
+            "planner_only",
+        ),
+        "BAM readiness map must retain the declared-only samtools haplogroups row"
+    );
+    assert!(
+        has_row(
+            "yleaf",
+            "bam.haplogroups",
+            "supported",
+            "runnable",
+            "scientific_report_contract",
+            "planner_only",
+        ),
+        "BAM readiness map must retain the governed yleaf haplogroups row"
+    );
+    assert!(
+        !rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.mapping_summary")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
         }),
-        "BAM readiness map must retain the governed samtools mapping-summary row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.mapping_summary")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("plannable")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("parser_fixture_validated")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "BAM readiness map must retain the governed picard mapping-summary row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("missing_contract")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("declared_only")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-        }),
-        "missing BAM tool contracts must remain visible instead of dropping benchmark rows"
-    );
-    assert!(
-        !rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.coverage")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("missing_contract")
-        }),
-        "bam.coverage rows must remain governed instead of regressing to missing-contract coverage"
-    );
-    assert!(
-        !rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.filter")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("missing_contract")
-        }),
-        "bam.filter rows must remain governed instead of regressing to missing-contract coverage"
-    );
-    assert!(
-        !rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.mapq_filter")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("missing_contract")
-        }),
-        "bam.mapq_filter rows must remain governed instead of regressing to missing-contract coverage"
-    );
-    assert!(
-        !rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("bam.endogenous_content")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("missing_contract")
-        }),
-        "bam.endogenous_content rows must remain governed instead of regressing to missing-contract coverage"
-    );
-    assert!(
-        !rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.length_filter")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("missing_contract")
-        }),
-        "bam.length_filter rows must remain governed instead of regressing to missing-contract coverage"
-    );
-    assert!(
-        !rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("bam.duplication_metrics")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("missing_contract")
-        }),
-        "bam.duplication_metrics rows must remain governed instead of regressing to missing-contract coverage"
-    );
-    assert!(
-        !rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.gc_bias")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("missing_contract")
-        }),
-        "bam.gc_bias rows must remain governed instead of regressing to missing-contract coverage"
-    );
-    assert!(
-        !rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.markdup")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("missing_contract")
-        }),
-        "bam.markdup rows must remain governed instead of regressing to missing-contract coverage"
+        "BAM readiness map must not retain a samtools alignment row once bam.align is limited to the admitted aligners"
     );
 }

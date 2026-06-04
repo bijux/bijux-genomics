@@ -44,20 +44,33 @@ fn bench_readiness_bam_adapter_output_contract_writes_governed_tsv_columns() {
     );
     let rows = lines.collect::<Vec<_>>();
     assert_eq!(rows.len(), 51, "TSV must retain the governed BAM 51-row slice");
-    assert!(
+    let has_row = |tool_id: &str,
+                   stage_id: &str,
+                   adapter_status: &str,
+                   output_contract_status: &str,
+                   normalized_metrics_output_id: &str,
+                   missing_declarations: &str| {
         rows.iter().any(|row| {
-            row.starts_with(
-                "samtools\tbam.validate\tplannable\tcomplete\tvalidation_report,flagstat,stage_metrics\tvalidation_report,flagstat,stage_metrics\t"
-            )
-        }),
+            let columns = row.split('\t').collect::<Vec<_>>();
+            columns.len() == 15
+                && columns[0] == tool_id
+                && columns[1] == stage_id
+                && columns[2] == adapter_status
+                && columns[3] == output_contract_status
+                && columns[9] == normalized_metrics_output_id
+                && columns[13] == missing_declarations
+        })
+    };
+    assert!(
+        has_row("samtools", "bam.validate", "runnable", "complete", "validation_report", "",),
         "TSV must retain the governed samtools validate contract row"
     );
     assert!(
-        rows.iter().any(|row| {
-            row.starts_with(
-                "bcftools\tbam.genotyping\tdeclared_only\tmissing_adapter\tgenotyping_report,summary,stage_metrics\t\t\t\t\t\t\t\t\tadapter\t"
-            )
-        }),
+        has_row("bowtie2", "bam.align", "runnable", "complete", "align_metrics", ""),
+        "TSV must retain the governed bowtie2 alignment contract row"
+    );
+    assert!(
+        has_row("bcftools", "bam.genotyping", "declared_only", "missing_adapter", "", "adapter",),
         "TSV must keep the planned bcftools genotyping row explicit as missing an adapter"
     );
 }

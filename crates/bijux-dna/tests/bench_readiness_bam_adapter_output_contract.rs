@@ -77,6 +77,17 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
     );
     assert!(
         rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
+                && row.get("output_contract_status").and_then(serde_json::Value::as_str)
+                    == Some("complete")
+                && row.get("normalized_metrics_output_id").and_then(serde_json::Value::as_str)
+                    == Some("align_metrics")
+        }),
+        "report must retain the governed bowtie2 alignment contract row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("mapdamage2")
                 && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
                 && row.get("output_contract_status").and_then(serde_json::Value::as_str)
