@@ -414,8 +414,8 @@ mod tests {
         .expect("render FASTQ adapter output contract");
 
         assert_eq!(report.schema_version, FASTQ_ADAPTER_OUTPUT_CONTRACT_SCHEMA_VERSION);
-        assert_eq!(report.row_count, 75);
-        assert_eq!(report.missing_adapter_row_count, 6);
+        assert_eq!(report.row_count, 74);
+        assert_eq!(report.missing_adapter_row_count, 5);
         assert_eq!(report.adapter_row_count, 69);
         assert_eq!(report.complete_adapter_row_count, 68);
         assert_eq!(report.incomplete_adapter_row_count, 1);
@@ -439,13 +439,20 @@ mod tests {
                 && row.stage_output_ids == vec!["library_complexity_report".to_string()]
                 && row.missing_declarations == vec!["adapter".to_string()]
         }));
-        assert!(report.rows.iter().any(|row| {
-            row.tool_id == "diamond"
-                && row.stage_id == "fastq.screen_taxonomy"
-                && super::output_contract_status_label(row.output_contract_status)
-                    == "missing_adapter"
-                && row.missing_declarations == vec!["adapter".to_string()]
-        }));
+        for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+            assert!(report.rows.iter().any(|row| {
+                row.tool_id == tool_id
+                    && row.stage_id == "fastq.screen_taxonomy"
+                    && super::output_contract_status_label(row.output_contract_status) == "complete"
+                    && row.stage_output_ids
+                        == vec![
+                            "screen_report_tsv".to_string(),
+                            "classification_report_json".to_string(),
+                            "unclassified_reads_r1".to_string(),
+                            "unclassified_reads_r2".to_string(),
+                        ]
+            }));
+        }
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bowtie2"
                 && row.stage_id == "fastq.deplete_host"
@@ -485,12 +492,15 @@ mod tests {
             }),
             "the governed profile-reads adapter row must remain fully declared"
         );
-        assert!(
-            rows.iter().any(|row| {
-                row.starts_with("diamond\tfastq.screen_taxonomy\tdeclared_only\tmissing_adapter\t")
-                    && row.contains("\tadapter\t")
-            }),
-            "the planned diamond taxonomy row must stay explicit as missing an adapter"
-        );
+        for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+            assert!(
+                rows.iter().any(|row| {
+                    row.starts_with(&format!(
+                        "{tool_id}\tfastq.screen_taxonomy\trunnable\tcomplete\tscreen_report_tsv,classification_report_json,unclassified_reads_r1,unclassified_reads_r2\t"
+                    ))
+                }),
+                "the governed taxonomy adapter row must remain fully declared for {tool_id}"
+            );
+        }
     }
 }

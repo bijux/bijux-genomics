@@ -324,13 +324,13 @@ mod tests {
 
         assert_eq!(report.schema_version, FASTQ_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.stage_count, 27);
-        assert_eq!(report.tool_count, 45);
-        assert_eq!(report.row_count, 75);
-        assert_eq!(report.benchmark_ready_row_count, 56);
-        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 56);
+        assert_eq!(report.tool_count, 44);
+        assert_eq!(report.row_count, 74);
+        assert_eq!(report.benchmark_ready_row_count, 62);
+        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 62);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
-        assert_eq!(report.readiness_gap_counts.get("corpus"), Some(&12));
-        assert_eq!(report.readiness_gap_counts.get("support"), Some(&7));
+        assert_eq!(report.readiness_gap_counts.get("corpus"), Some(&7));
+        assert_eq!(report.readiness_gap_counts.get("support"), Some(&5));
         assert!(
             report.readiness_gap_counts.get("adapter").is_none(),
             "the governed FASTQ readiness slice currently carries no adapter gap rows"
@@ -385,14 +385,16 @@ mod tests {
                 && super::readiness_gap_label(row.readiness_gap) == "none"
                 && row.corpus_status == "fixture:corpus-01-mini"
         }));
-        assert!(report.rows.iter().any(|row| {
-            row.tool_id == "diamond"
-                && row.stage_id == "fastq.screen_taxonomy"
-                && super::benchmark_status_label(row.benchmark_status) == "not_benchmark_ready"
-                && super::adapter_coverage_label(row.adapter_coverage) == "missing"
-                && super::readiness_gap_label(row.readiness_gap) == "support"
-                && row.support_status == "planned_contract"
-        }));
+        for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+            assert!(report.rows.iter().any(|row| {
+                row.tool_id == tool_id
+                    && row.stage_id == "fastq.screen_taxonomy"
+                    && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
+                    && super::adapter_coverage_label(row.adapter_coverage) == "covered"
+                    && super::readiness_gap_label(row.readiness_gap) == "none"
+                    && row.corpus_status == "fixture:corpus-02-edna-mini"
+            }));
+        }
     }
 
     #[test]
@@ -435,13 +437,15 @@ mod tests {
             }),
             "the governed trim-terminal-damage row must remain benchmark-ready and adapter-covered"
         );
-        assert!(
-            rows.iter().any(|row| {
-                row.starts_with(
-                    "diamond\tfastq.screen_taxonomy\tnot_benchmark_ready\tmissing\tsupport\tplanned_contract\tdeclared_only\tnot_normalized\tfixture:corpus-02-edna-mini\t"
-                )
-            }),
-            "the planned diamond taxonomy row must remain visible as support-blocked"
-        );
+        for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+            assert!(
+                rows.iter().any(|row| {
+                    row.starts_with(&format!(
+                        "{tool_id}\tfastq.screen_taxonomy\tbenchmark_ready\tcovered\tnone\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-02-edna-mini\t"
+                    ))
+                }),
+                "the governed taxonomy row must remain benchmark-ready and adapter-covered for {tool_id}"
+            );
+        }
     }
 }

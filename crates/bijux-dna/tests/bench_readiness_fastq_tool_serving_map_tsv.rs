@@ -231,10 +231,8 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
         );
     }
     assert!(
-        rows.iter().any(|row| {
-            row == &"diamond\tfastq.screen_taxonomy\tplanned_contract\tdeclared_only\tnot_normalized\tfixture:corpus-02-edna-mini"
-        }),
-        "TSV must retain the planned taxonomy-screen row for diamond"
+        !rows.iter().any(|row| row.starts_with("diamond\tfastq.screen_taxonomy\t")),
+        "TSV must not retain removed diamond taxonomy-screen rows"
     );
     for tool_id in ["bbduk", "prinseq"] {
         assert!(

@@ -43,7 +43,7 @@ fn bench_readiness_fastq_adapter_output_contract_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 75, "TSV must retain the governed FASTQ 75-row slice");
+    assert_eq!(rows.len(), 74, "TSV must retain the governed FASTQ 74-row slice");
     assert!(
         rows.iter().any(|row| {
             row.starts_with(
@@ -100,10 +100,7 @@ fn bench_readiness_fastq_adapter_output_contract_writes_governed_tsv_columns() {
         "TSV must retain the governed bowtie2 host-depletion contract row"
     );
     assert!(
-        rows.iter().any(|row| {
-            row.starts_with("diamond\tfastq.screen_taxonomy\tdeclared_only\tmissing_adapter\t")
-                && row.contains("\tadapter\t")
-        }),
-        "TSV must keep the planned diamond taxonomy row explicit as missing an adapter"
+        !rows.iter().any(|row| row.starts_with("diamond\tfastq.screen_taxonomy\t")),
+        "TSV must not retain removed diamond taxonomy output-contract rows"
     );
 }

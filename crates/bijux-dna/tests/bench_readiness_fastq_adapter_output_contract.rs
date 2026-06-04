@@ -47,7 +47,7 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/fastq-adapter-output-contract.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(75));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(74));
     assert_eq!(payload.get("adapter_row_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(
         payload.get("complete_adapter_row_count").and_then(serde_json::Value::as_u64),
@@ -59,11 +59,11 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("missing_adapter_row_count").and_then(serde_json::Value::as_u64),
-        Some(6)
+        Some(5)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 75, "report must retain the governed FASTQ 75-row slice");
+    assert_eq!(rows.len(), 74, "report must retain the governed FASTQ 74-row slice");
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqkit_stats")
@@ -196,13 +196,23 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
         "report must retain the governed bowtie2 host-depletion contract row"
     );
     assert!(
-        rows.iter().any(|row| {
+        !rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("diamond")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.screen_taxonomy")
-                && row.get("output_contract_status").and_then(serde_json::Value::as_str)
-                    == Some("missing_adapter")
         }),
-        "report must keep the planned diamond taxonomy row explicit as missing an adapter"
+        "report must not retain removed diamond taxonomy output-contract rows"
     );
+    for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+        assert!(
+            rows.iter().any(|row| {
+                row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                    && row.get("stage_id").and_then(serde_json::Value::as_str)
+                        == Some("fastq.screen_taxonomy")
+                    && row.get("output_contract_status").and_then(serde_json::Value::as_str)
+                        == Some("complete")
+            }),
+            "report must retain the governed taxonomy output-contract row for {tool_id}"
+        );
+    }
 }

@@ -527,16 +527,12 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
         "FASTQ readiness map must retain the planned seqpurge trim-reads row"
     );
     assert!(
-        rows.iter().any(|row| {
+        !rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("diamond")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.screen_taxonomy")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("planned_contract")
-                && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("fixture:corpus-02-edna-mini")
         }),
-        "planned taxonomy bindings must remain visible in the FASTQ readiness map"
+        "FASTQ readiness map must not retain removed diamond taxonomy rows"
     );
     for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
         assert!(
@@ -556,4 +552,14 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
             "FASTQ readiness map must retain the governed taxonomy-screen row for {tool_id}"
         );
     }
+    assert_eq!(
+        rows.iter()
+            .filter(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.screen_taxonomy")
+            })
+            .count(),
+        4,
+        "FASTQ readiness map must publish exactly the four governed taxonomy rows"
+    );
 }

@@ -432,14 +432,21 @@ mod tests {
                     && row.corpus_status == "fixture:corpus-01-mini"
             }));
         }
-        assert!(report.rows.iter().any(|row| {
-            row.tool_id == "diamond"
-                && row.stage_id == "fastq.screen_taxonomy"
-                && row.support_status == "planned_contract"
-                && row.adapter_status == "declared_only"
-                && row.parser_status == "not_normalized"
-                && row.corpus_status == "fixture:corpus-02-edna-mini"
-        }));
+        let screen_rows = report
+            .rows
+            .iter()
+            .filter(|row| row.stage_id == "fastq.screen_taxonomy")
+            .collect::<Vec<_>>();
+        assert_eq!(screen_rows.len(), 4);
+        for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+            assert!(screen_rows.iter().any(|row| {
+                row.tool_id == tool_id
+                    && row.support_status == "governed_benchmark_cohort"
+                    && row.adapter_status == "runnable"
+                    && row.parser_status == "benchmark_normalized"
+                    && row.corpus_status == "fixture:corpus-02-edna-mini"
+            }));
+        }
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "multiqc"
                 && row.stage_id == "fastq.report_qc"
