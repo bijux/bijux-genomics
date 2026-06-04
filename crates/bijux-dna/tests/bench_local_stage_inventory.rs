@@ -856,8 +856,9 @@ fn bench_local_materialize_stage_bam_gc_bias_json_writes_governed_smoke_bundle()
     let gc_bias_summary = repo_root.join(
         "target/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.summary.json",
     );
-    let stage_metrics = repo_root
-        .join("target/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/stage.metrics.json");
+    let stage_metrics = repo_root.join(
+        "target/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/stage.metrics.json",
+    );
     assert!(
         gc_bias_summary.is_file(),
         "bam.gc_bias smoke bundle must expose the governed gc-bias summary json"

@@ -410,12 +410,7 @@ mod tests {
         assert_eq!(report.sample_count, 12);
         assert_eq!(
             report.reference_contigs,
-            vec![
-                "chr1".to_string(),
-                "chr2".to_string(),
-                "chranc".to_string(),
-                "chrgc".to_string(),
-            ]
+            vec!["chr1".to_string(), "chr2".to_string(), "chranc".to_string(), "chrgc".to_string(),]
         );
         assert!(report.valid);
         assert!(report.samples.iter().any(|sample| {

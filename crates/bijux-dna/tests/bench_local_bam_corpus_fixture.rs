@@ -207,8 +207,7 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_corpus_01_bam_m
                         .get("observed_contigs")
                         .and_then(serde_json::Value::as_array)
                         .is_some_and(|contigs| {
-                            contigs
-                                == &vec![serde_json::json!("chr1"), serde_json::json!("chr2")]
+                            contigs == &vec![serde_json::json!("chr1"), serde_json::json!("chr2")]
                         })
                     && sample
                         .get("observed_header_sample_ids")

@@ -438,14 +438,15 @@ fn markdup_plan_accepts_picard_governed_planning_contract() -> Result<()> {
         &repo_root, &stage_id, &tool_id,
     )?;
     let bam = PathBuf::from(
-        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
+        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam",
     );
     let params = bijux_dna_domain_bam::params::MarkDupEffectiveParams {
         optical_duplicates: bijux_dna_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
         umi_policy: bijux_dna_domain_bam::params::UmiPolicy::Ignore,
         duplicate_action: bijux_dna_domain_bam::params::DuplicateAction::Mark,
     };
-    let out_dir = PathBuf::from("target/local-smoke/bam.markdup/human_like_duplicate_cluster/picard");
+    let out_dir =
+        PathBuf::from("target/local-smoke/bam.markdup/human_like_duplicate_cluster/picard");
     let plan = bijux_dna_planner_bam::tool_adapters::bam::markdup::plan(
         &tool_spec, &bam, &out_dir, &params,
     )?;

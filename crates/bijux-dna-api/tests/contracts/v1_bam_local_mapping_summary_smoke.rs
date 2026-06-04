@@ -70,10 +70,10 @@ fn write_local_mapping_summary_smoke_summary_materializes_governed_outputs() -> 
     let rows = lines.map(|line| parse_row(&header_index, line)).collect::<Result<Vec<_>>>()?;
     assert_eq!(rows.len(), 1, "governed local-smoke summary must keep exactly one BAM case");
 
-    let row = rows
-        .iter()
-        .find(|row| row["sample_id"] == "human_like_partial_mapping")
-        .unwrap_or_else(|| panic!("human_like_partial_mapping row missing from BAM mapping summary"));
+    let row =
+        rows.iter().find(|row| row["sample_id"] == "human_like_partial_mapping").unwrap_or_else(
+            || panic!("human_like_partial_mapping row missing from BAM mapping summary"),
+        );
     assert_eq!(row["total_reads"], "3");
     assert_eq!(row["mapped_reads"], "2");
     assert_eq!(row["unmapped_reads"], "1");

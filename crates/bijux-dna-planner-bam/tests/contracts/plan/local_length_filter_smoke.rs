@@ -379,7 +379,7 @@ fn length_filter_plan_accepts_picard_governed_planning_contract() -> Result<()> 
         &repo_root, &stage_id, &tool_id,
     )?;
     let bam = PathBuf::from(
-        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam",
     );
     let params = bijux_dna_domain_bam::params::FilterEffectiveParams {
         mapq_threshold: 0,
@@ -389,10 +389,9 @@ fn length_filter_plan_accepts_picard_governed_planning_contract() -> Result<()> 
         remove_duplicates: false,
         base_quality_threshold: 20,
     };
-    let out_dir =
-        PathBuf::from(
-            "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/picard"
-        );
+    let out_dir = PathBuf::from(
+        "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/picard",
+    );
     let plan = bijux_dna_planner_bam::tool_adapters::stages_pre::length_filter::plan(
         &tool_spec, &bam, &out_dir, &params,
     )?;

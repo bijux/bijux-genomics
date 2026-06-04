@@ -271,8 +271,9 @@ fn mapping_summary_plan_accepts_picard_governed_planning_contract() -> Result<()
     let tool_spec = bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
         &repo_root, &stage_id, &tool_id,
     )?;
-    let bam =
-        PathBuf::from("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam");
+    let bam = PathBuf::from(
+        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam",
+    );
     let out_dir =
         PathBuf::from("target/local-smoke/bam.mapping_summary/human_like_partial_mapping/picard");
     let plan = bijux_dna_planner_bam::tool_adapters::stages_pre::mapping_summary::plan(

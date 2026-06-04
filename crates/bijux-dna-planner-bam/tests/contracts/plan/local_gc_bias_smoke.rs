@@ -29,7 +29,9 @@ fn local_gc_bias_smoke_plans_use_governed_reference_and_bam() -> Result<()> {
     assert_eq!(case.plan.resources.threads, 2);
     assert_eq!(
         case.bam,
-        PathBuf::from("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+        )
     );
     assert_eq!(
         case.reference,

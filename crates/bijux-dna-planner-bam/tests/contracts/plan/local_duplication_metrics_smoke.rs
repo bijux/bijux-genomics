@@ -31,7 +31,9 @@ fn local_duplication_metrics_smoke_plans_use_governed_duplicate_fixture() -> Res
     assert_eq!(case.plan.resources.threads, 4);
     assert_eq!(
         case.bam,
-        PathBuf::from("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
+        )
     );
     assert_eq!(case.expected_examined_reads, 3);
     assert_eq!(case.expected_duplicate_reads, 1);
@@ -382,8 +384,9 @@ fn duplication_metrics_plan_accepts_picard_governed_planning_contract() -> Resul
     let tool_spec = bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
         &repo_root, &stage_id, &tool_id,
     )?;
-    let bam =
-        PathBuf::from("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam");
+    let bam = PathBuf::from(
+        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam",
+    );
     let params = bijux_dna_domain_bam::params::MarkDupEffectiveParams {
         optical_duplicates: bijux_dna_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
         umi_policy: bijux_dna_domain_bam::params::UmiPolicy::Ignore,
