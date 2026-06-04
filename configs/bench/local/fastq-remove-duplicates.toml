@@ -6,5 +6,6 @@ keep_order = true
 output_dir = "target/local-smoke/fastq.remove_duplicates"
 
 [[cases]]
-sample_id = "duplicate-hit-se"
-r1 = "assets/toy/core-v1/fastq/reads_with_duplicates.fastq"
+sample_id = "human_like_pe_duplicate_signals"
+r1 = "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz"
+r2 = "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz"

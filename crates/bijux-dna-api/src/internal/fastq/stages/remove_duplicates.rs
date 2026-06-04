@@ -65,6 +65,7 @@ struct LocalRemoveDuplicatesSmokeReport {
     sample_id: String,
     planned_tool_id: String,
     report_tool_id: String,
+    paired_mode: String,
     dedup_mode: String,
     keep_order: bool,
     input_reads: u64,
@@ -72,6 +73,8 @@ struct LocalRemoveDuplicatesSmokeReport {
     unique_reads: u64,
     output_reads: u64,
     dedup_fastq_gz: String,
+    dedup_fastq_r2_gz: Option<String>,
+    pair_count_match: Option<bool>,
     case_report_json: String,
     duplicate_classes_tsv: String,
     duplicate_provenance_json: String,
@@ -450,6 +453,8 @@ fn materialize_local_remove_duplicates_smoke_case(
     let input_r1 = repo_root.join(&case.r1);
     let case_dedup_fastq =
         resolve_output_path(repo_root, &required_smoke_output_path(&case.plan, "dedup_reads_r1")?);
+    let case_dedup_fastq_r2 = optional_smoke_output_path(&case.plan, "dedup_reads_r2")?
+        .map(|path| resolve_output_path(repo_root, &path));
     let case_report_json =
         resolve_output_path(repo_root, &required_smoke_output_path(&case.plan, "report_json")?);
     let duplicate_classes_tsv = resolve_output_path(
@@ -474,13 +479,20 @@ fn materialize_local_remove_duplicates_smoke_case(
             bijux_dna_infra::ensure_dir(parent)?;
         }
     }
+    if let Some(path) = case_dedup_fastq_r2.as_ref() {
+        if let Some(parent) = path.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+
+    let input_r2 = case.r2.as_ref().map(|path| repo_root.join(path));
 
     let mut report = bijux_dna_domain_fastq::stages::contract::remove_duplicates(
         &input_r1,
-        None,
+        input_r2.as_deref(),
         &effective_params,
         &case_dedup_fastq,
-        None,
+        case_dedup_fastq_r2.as_deref(),
         &duplicate_classes_tsv,
         &duplicate_provenance_json,
         &case_report_json,
@@ -488,7 +500,10 @@ fn materialize_local_remove_duplicates_smoke_case(
     )?;
 
     report.input_r1 = case.r1.display().to_string();
+    report.input_r2 = case.r2.as_ref().map(|path| path.display().to_string());
     report.output_r1 = path_relative_to_repo(repo_root, &case_dedup_fastq);
+    report.output_r2 =
+        case_dedup_fastq_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path));
     report.duplicate_classes_tsv = Some(path_relative_to_repo(repo_root, &duplicate_classes_tsv));
     report.duplicate_provenance_json =
         Some(path_relative_to_repo(repo_root, &duplicate_provenance_json));
@@ -497,6 +512,13 @@ fn materialize_local_remove_duplicates_smoke_case(
 
     let top_level_dedup = output_root.join("dedup.fastq.gz");
     copy_artifact(&case_dedup_fastq, &top_level_dedup)?;
+    let top_level_dedup_r2 =
+        case_dedup_fastq_r2.as_ref().map(|_| output_root.join("dedup_R2.fastq.gz"));
+    if let (Some(source), Some(target)) =
+        (case_dedup_fastq_r2.as_ref(), top_level_dedup_r2.as_ref())
+    {
+        copy_artifact(source, target)?;
+    }
 
     Ok(LocalRemoveDuplicatesSmokeReport {
         schema_version: LOCAL_REMOVE_DUPLICATES_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
@@ -504,6 +526,10 @@ fn materialize_local_remove_duplicates_smoke_case(
         sample_id: case.sample_id.clone(),
         planned_tool_id: case.plan.tool_id.as_str().to_string(),
         report_tool_id: report.tool_id,
+        paired_mode: serde_json::to_value(&effective_params.paired_mode)?
+            .as_str()
+            .unwrap_or("single_end")
+            .to_string(),
         dedup_mode: format!("{:?}", case.dedup_mode).to_ascii_lowercase(),
         keep_order: case.keep_order,
         input_reads: report.reads_in,
@@ -511,6 +537,10 @@ fn materialize_local_remove_duplicates_smoke_case(
         unique_reads: report.reads_out,
         output_reads: report.reads_out,
         dedup_fastq_gz: path_relative_to_repo(repo_root, &top_level_dedup),
+        dedup_fastq_r2_gz: top_level_dedup_r2
+            .as_ref()
+            .map(|path| path_relative_to_repo(repo_root, path)),
+        pair_count_match: report.pair_count_match,
         case_report_json: path_relative_to_repo(repo_root, &case_report_json),
         duplicate_classes_tsv: path_relative_to_repo(repo_root, &duplicate_classes_tsv),
         duplicate_provenance_json: path_relative_to_repo(repo_root, &duplicate_provenance_json),
@@ -532,6 +562,18 @@ fn required_smoke_output_path(plan: &StagePlanV1, artifact_name: &str) -> Result
         .find(|artifact| artifact.name.as_str() == artifact_name)
         .map(|artifact| artifact.path.clone())
         .ok_or_else(|| anyhow!("planned remove-duplicates output `{artifact_name}` missing"))
+}
+
+fn optional_smoke_output_path(plan: &StagePlanV1, artifact_name: &str) -> Result<Option<PathBuf>> {
+    if let Some(artifact) =
+        plan.io.outputs.iter().find(|artifact| artifact.name.as_str() == artifact_name)
+    {
+        return Ok(Some(artifact.path.clone()));
+    }
+    if artifact_name == "dedup_reads_r2" {
+        return Ok(None);
+    }
+    Err(anyhow!("planned remove-duplicates output `{artifact_name}` missing"))
 }
 
 fn resolve_output_path(repo_root: &Path, path: &Path) -> PathBuf {

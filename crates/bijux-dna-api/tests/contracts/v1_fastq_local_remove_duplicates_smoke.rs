@@ -70,15 +70,17 @@ fn write_local_remove_duplicates_smoke_report_materializes_governed_outputs() ->
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
     assert_eq!(payload["stage_id"], serde_json::json!("fastq.remove_duplicates"));
-    assert_eq!(payload["sample_id"], serde_json::json!("duplicate-hit-se"));
+    assert_eq!(payload["sample_id"], serde_json::json!("human_like_pe_duplicate_signals"));
     assert_eq!(payload["planned_tool_id"], serde_json::json!("clumpify"));
     assert_eq!(payload["report_tool_id"], serde_json::json!("bijux"));
+    assert_eq!(payload["paired_mode"], serde_json::json!("paired_end"));
     assert_eq!(payload["dedup_mode"], serde_json::json!("exact"));
     assert_eq!(payload["keep_order"], serde_json::json!(true));
-    assert_eq!(payload["input_reads"], serde_json::json!(4));
-    assert_eq!(payload["duplicate_reads"], serde_json::json!(1));
-    assert_eq!(payload["unique_reads"], serde_json::json!(3));
-    assert_eq!(payload["output_reads"], serde_json::json!(3));
+    assert_eq!(payload["input_reads"], serde_json::json!(6));
+    assert_eq!(payload["duplicate_reads"], serde_json::json!(2));
+    assert_eq!(payload["unique_reads"], serde_json::json!(4));
+    assert_eq!(payload["output_reads"], serde_json::json!(4));
+    assert_eq!(payload["pair_count_match"], serde_json::json!(true));
 
     let dedup_fastq = repo_root.join(
         payload["dedup_fastq_gz"].as_str().unwrap_or_else(|| panic!("dedup_fastq_gz missing")),
@@ -86,7 +88,17 @@ fn write_local_remove_duplicates_smoke_report_materializes_governed_outputs() ->
     assert!(dedup_fastq.is_file(), "top-level dedup FASTQ must exist");
     assert_eq!(
         read_gz_fastq_sequences(&dedup_fastq)?,
-        vec!["ACGTACGT".to_string(), "GGGGTTTT".to_string(), "TTCCAAGG".to_string(),]
+        vec!["ACGTTGCAACGT".to_string(), "TGCATGCATGCA".to_string()]
+    );
+    let dedup_fastq_r2 = repo_root.join(
+        payload["dedup_fastq_r2_gz"]
+            .as_str()
+            .unwrap_or_else(|| panic!("dedup_fastq_r2_gz missing")),
+    );
+    assert!(dedup_fastq_r2.is_file(), "top-level R2 dedup FASTQ must exist");
+    assert_eq!(
+        read_gz_fastq_sequences(&dedup_fastq_r2)?,
+        vec!["TTGGAACCTTGG".to_string(), "CCAATTGGCCAA".to_string()]
     );
 
     let case_report_path = repo_root.join(
@@ -97,9 +109,15 @@ fn write_local_remove_duplicates_smoke_report_materializes_governed_outputs() ->
         serde_json::from_str(&std::fs::read_to_string(&case_report_path)?)?;
     assert_eq!(case_report["stage_id"], serde_json::json!("fastq.remove_duplicates"));
     assert_eq!(case_report["tool_id"], serde_json::json!("bijux"));
-    assert_eq!(case_report["reads_in"], serde_json::json!(4));
-    assert_eq!(case_report["reads_out"], serde_json::json!(3));
-    assert_eq!(case_report["duplicates_removed"], serde_json::json!(1));
+    assert_eq!(case_report["paired_mode"], serde_json::json!("paired_end"));
+    assert_eq!(case_report["reads_in"], serde_json::json!(6));
+    assert_eq!(case_report["reads_out"], serde_json::json!(4));
+    assert_eq!(case_report["reads_in_r2"], serde_json::json!(3));
+    assert_eq!(case_report["reads_out_r2"], serde_json::json!(2));
+    assert_eq!(case_report["pairs_in"], serde_json::json!(3));
+    assert_eq!(case_report["pairs_out"], serde_json::json!(2));
+    assert_eq!(case_report["pair_count_match"], serde_json::json!(true));
+    assert_eq!(case_report["duplicates_removed"], serde_json::json!(2));
     assert_eq!(payload["input_reads"], case_report["reads_in"]);
     assert_eq!(payload["duplicate_reads"], case_report["duplicates_removed"]);
     assert_eq!(payload["unique_reads"], case_report["reads_out"]);
