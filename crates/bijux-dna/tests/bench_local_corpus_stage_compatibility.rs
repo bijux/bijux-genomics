@@ -50,11 +50,11 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(
         payload.get("fixture_backed_stage_count").and_then(serde_json::Value::as_u64),
-        Some(25)
+        Some(26)
     );
     assert_eq!(
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
-        Some(26)
+        Some(25)
     );
 
     let stages = payload.get("stages").and_then(serde_json::Value::as_array).expect("stages array");
@@ -157,6 +157,17 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
                     == Some("fixture")
         }),
         "filter_low_complexity must map to the governed general FASTQ corpus once low-complexity fixture coverage is owned there"
+    );
+    assert!(
+        stages.iter().any(|stage| {
+            stage.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.extract_umis")
+                && stage.get("fixture_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-01-mini")
+                && stage.get("compatibility_kind").and_then(serde_json::Value::as_str)
+                    == Some("fixture")
+        }),
+        "extract_umis must map to the governed general FASTQ corpus once known-UMI coverage is owned there"
     );
     assert!(
         stages.iter().any(|stage| {
