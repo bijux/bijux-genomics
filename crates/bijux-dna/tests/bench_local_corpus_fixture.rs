@@ -64,6 +64,34 @@ fn bench_local_validate_corpus_fixture_json_reports_governed_corpus_01_mini_cont
                 sample.get("sample_id").and_then(serde_json::Value::as_str)
                     == Some("human_like_pe_merge_overlap")
                     && sample.get("layout").and_then(serde_json::Value::as_str) == Some("pe")
+                    && sample.get("r1_path").and_then(serde_json::Value::as_str)
+                        == Some(
+                            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R1.fastq.gz"
+                        )
+                    && sample.get("r2_path").and_then(serde_json::Value::as_str)
+                        == Some(
+                            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R2.fastq.gz"
+                        )
+                    && sample
+                        .get("source_paths")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|source_paths| {
+                            source_paths
+                                == &vec![
+                                    serde_json::Value::String(
+                                        "assets/toy/core-v1/fastq/reads_with_merge_overlap_R1.fastq"
+                                            .to_string(),
+                                    ),
+                                    serde_json::Value::String(
+                                        "assets/toy/core-v1/fastq/reads_with_merge_overlap_R2.fastq"
+                                            .to_string(),
+                                    ),
+                                ]
+                        })
+                    && sample.get("observed_read_count_r1").and_then(serde_json::Value::as_u64)
+                        == Some(2)
+                    && sample.get("observed_read_count_r2").and_then(serde_json::Value::as_u64)
+                        == Some(2)
                     && sample.get("observed_read_count_total").and_then(serde_json::Value::as_u64)
                         == Some(4)
             })
