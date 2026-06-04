@@ -119,6 +119,12 @@ Visible aliases are part of the operator surface:
   `render-command-argv` writes `target/bench-readiness/rendered-commands.argv.jsonl` with one
   governed JSON row per benchmark command, preserving the executable and arguments as a separated
   `argv` array so local benchmark rendering is reproducible without shell-parsing ambiguity.
+- `bijux-dna bench readiness render-stage-tool-containers`
+  `render-stage-tool-containers` writes `configs/bench/local/stage-tool-containers.toml` with one
+  governed row per benchmark-ready FASTQ or BAM stage-tool command, preserving the primary
+  execution mode, install kind, declared container identity when available, and the governed
+  command entrypoint or explicit host-binary mode needed to keep local and HPC runtime surfaces
+  reviewable before submission.
 - `bijux-dna bench readiness render-stage-tool-resources`
   `render-stage-tool-resources` writes `configs/bench/local/stage-tool-resources.toml` with one
   governed row per benchmark-ready FASTQ or BAM stage-tool command, carrying non-zero `threads`,
