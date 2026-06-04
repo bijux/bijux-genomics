@@ -419,6 +419,26 @@ resource_origin = "tool_constraints_with_stage_walltime_profile"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.trim_polyg_tails"
+tool_id = "bbduk"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_polyg_tails"
+tool_id = "fastp"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.trim_reads"
 tool_id = "adapterremoval"
 threads = 4
