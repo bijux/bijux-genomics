@@ -2,6 +2,8 @@ use anyhow::{anyhow, Result};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
+const GOVERNED_COVERAGE_SAMPLE_ID: &str = "human_like_target_window_coverage";
+
 struct RepoRootOverrideGuard {
     previous: Option<std::ffi::OsString>,
 }
@@ -71,7 +73,7 @@ fn write_local_coverage_smoke_summary_materializes_governed_outputs() -> Result<
         .iter()
         .find(|row| row["region_id"] == "chr1_window")
         .unwrap_or_else(|| panic!("chr1_window row missing from BAM coverage summary"));
-    assert_eq!(chr1_row["sample_id"], "core-v1-target-windows");
+    assert_eq!(chr1_row["sample_id"], GOVERNED_COVERAGE_SAMPLE_ID);
     assert_eq!(chr1_row["contig"], "chr1");
     assert_eq!(chr1_row["mean_depth"], "1.333333");
     assert_eq!(chr1_row["breadth_1x"], "1.000000");
