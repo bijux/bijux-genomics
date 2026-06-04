@@ -59,6 +59,26 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.duplication_metrics"
+tool_id = "picard"
+execution_mode = "java"
+install_kind = "container"
+container_id = "bijuxdna/picard:3.3.0"
+command_entrypoint = "picard"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.duplication_metrics"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.filter"
 tool_id = "bamtools"
 execution_mode = "containerized"
