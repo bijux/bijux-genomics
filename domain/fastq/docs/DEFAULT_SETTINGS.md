@@ -173,6 +173,7 @@ deplete_reference_contaminants_benchmark_policy: fastq.deplete_reference_contami
 trim_terminal_damage_benchmark_policy: fastq.trim_terminal_damage
 - default benchmark backend is `cutadapt`
 - governed comparison backends are `adapterremoval` and `seqkit`
+- the current governed benchmark surface is assigned to `fixture:corpus-01-mini`
 - every governed `fastq.trim_terminal_damage` row must emit `trim_5p_bases`, `trim_3p_bases`, `reads_retained`, and `bases_removed`
 - the benchmark row must preserve the governed execution policy and UDG classification so explicit trimming remains distinguishable from preserve-ended policy results
 
