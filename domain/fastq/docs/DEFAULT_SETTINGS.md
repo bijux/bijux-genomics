@@ -137,6 +137,7 @@ trim_reads_benchmark_policy: fastq.trim_reads
 filter_reads_benchmark_policy: fastq.filter_reads
 - default benchmark backend is `fastp`
 - governed comparison backends are `bbduk`, `prinseq`, and `seqkit`
+- the current governed benchmark surface is assigned to `fixture:corpus-01-mini`
 - every governed `fastq.filter_reads` row must emit filtered FASTQ outputs, retained-read count, removed-read count, and per-reason removal accounting for `n`, `entropy`, `low_complexity`, `kmer`, `contaminant_kmer`, and `length`
 - the explicit `reads_retained` and `reads_removed` aliases must stay aligned with `reads_out` and `reads_dropped` so downstream comparison code does not need to infer benchmark row semantics from stage-internal metric names
 
