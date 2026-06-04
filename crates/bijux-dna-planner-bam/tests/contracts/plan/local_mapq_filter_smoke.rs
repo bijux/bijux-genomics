@@ -23,12 +23,17 @@ fn local_mapq_filter_smoke_plans_use_governed_threshold_fixture() -> Result<()> 
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-mapq-threshold")
+        .find(|case| case.sample_id == "human_like_mapq_threshold_ladder")
         .unwrap_or_else(|| panic!("governed BAM MAPQ filter case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.mapq_filter");
     assert_eq!(case.plan.tool_id.as_str(), "samtools");
     assert_eq!(case.plan.resources.threads, 4);
-    assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/mapq_threshold_ladder.sam"));
+    assert_eq!(
+        case.bam,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
+        )
+    );
     assert_eq!(case.mapq_threshold, 30);
     assert_eq!(case.expected_input_reads, 4);
     assert_eq!(case.expected_kept_reads, 3);
@@ -37,7 +42,9 @@ fn local_mapq_filter_smoke_plans_use_governed_threshold_fixture() -> Result<()> 
     assert_eq!(case.expected_mapped_fraction_retained, 2.0 / 3.0);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.mapq_filter/core-v1-mapq-threshold/samtools")
+        PathBuf::from(
+            "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools"
+        )
     );
     assert_eq!(case.plan.params["action"], serde_json::json!("mapq_filter"));
     assert_eq!(case.plan.params["mapq_threshold"], serde_json::json!(30));
@@ -75,7 +82,7 @@ fn local_mapq_filter_smoke_plans_use_governed_threshold_fixture() -> Result<()> 
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.mapq_filter/core-v1-mapq-threshold/samtools/mapq_filter.summary.json"
+            "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/mapq_filter.summary.json"
         )
     );
 
@@ -118,7 +125,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = " "
-bam = "assets/toy/core-v1/bam/mapq_threshold_ladder.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
 mapq_threshold = 30
 expected_input_reads = 4
 expected_kept_reads = 3
@@ -145,7 +152,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/mapq_threshold_ladder.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
 mapq_threshold = 30
 expected_input_reads = 4
 expected_kept_reads = 3
@@ -155,7 +162,7 @@ expected_mapped_fraction_retained = 0.6666666666666666
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/mapq_threshold_ladder.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
 mapq_threshold = 30
 expected_input_reads = 4
 expected_kept_reads = 3
@@ -195,7 +202,11 @@ expected_removed_reads = 1
 expected_mapped_reads_removed = 1
 expected_mapped_fraction_retained = 0.6666666666666666
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/mapq_threshold_ladder.sam").display(),
+            bam = repo_root
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
+                )
+                .display(),
         ),
     )?;
 
@@ -229,7 +240,11 @@ expected_removed_reads = 0
 expected_mapped_reads_removed = 0
 expected_mapped_fraction_retained = 1.0
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/mapq_threshold_ladder.sam").display(),
+            bam = repo_root
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
+                )
+                .display(),
         ),
     )?;
 
@@ -263,7 +278,11 @@ expected_removed_reads = 0
 expected_mapped_reads_removed = 1
 expected_mapped_fraction_retained = 0.6666666666666666
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/mapq_threshold_ladder.sam").display(),
+            bam = repo_root
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
+                )
+                .display(),
         ),
     )?;
 
@@ -297,7 +316,11 @@ expected_removed_reads = 1
 expected_mapped_reads_removed = 1
 expected_mapped_fraction_retained = 1.5
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/mapq_threshold_ladder.sam").display(),
+            bam = repo_root
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
+                )
+                .display(),
         ),
     )?;
 
@@ -318,7 +341,9 @@ fn mapq_filter_plan_accepts_bamtools_governed_planning_contract() -> Result<()> 
     let tool_spec = bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
         &repo_root, &stage_id, &tool_id,
     )?;
-    let bam = PathBuf::from("assets/toy/core-v1/bam/mapq_threshold_ladder.sam");
+    let bam = PathBuf::from(
+        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam",
+    );
     let params = bijux_dna_domain_bam::params::FilterEffectiveParams {
         mapq_threshold: 30,
         include_flags: vec![],
@@ -327,8 +352,9 @@ fn mapq_filter_plan_accepts_bamtools_governed_planning_contract() -> Result<()> 
         remove_duplicates: false,
         base_quality_threshold: 20,
     };
-    let out_dir =
-        PathBuf::from("target/local-smoke/bam.mapq_filter/core-v1-mapq-threshold/bamtools");
+    let out_dir = PathBuf::from(
+        "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/bamtools",
+    );
     let plan = bijux_dna_planner_bam::tool_adapters::stages_pre::mapq_filter::plan(
         &tool_spec, &bam, &out_dir, &params,
     )?;
@@ -370,7 +396,7 @@ fn mapq_filter_plan_accepts_bamtools_governed_planning_contract() -> Result<()> 
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.mapq_filter/core-v1-mapq-threshold/bamtools/mapq_filter.summary.json"
+            "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/bamtools/mapq_filter.summary.json"
         )
     );
 

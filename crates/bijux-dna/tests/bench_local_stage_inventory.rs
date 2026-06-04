@@ -437,7 +437,7 @@ fn bench_local_materialize_stage_bam_mapq_filter_json_writes_governed_smoke_bund
     );
     assert_eq!(
         report.get("sample_id").and_then(serde_json::Value::as_str),
-        Some("core-v1-mapq-threshold")
+        Some("human_like_mapq_threshold_ladder")
     );
     assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(report.get("mapq_threshold").and_then(serde_json::Value::as_u64), Some(30));

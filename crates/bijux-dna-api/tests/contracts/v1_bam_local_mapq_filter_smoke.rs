@@ -46,7 +46,7 @@ fn write_local_mapq_filter_smoke_report_materializes_governed_outputs() -> Resul
         payload["schema_version"],
         serde_json::json!("bijux.bam.mapq_filter.local_smoke.report.v1")
     );
-    assert_eq!(payload["sample_id"], serde_json::json!("core-v1-mapq-threshold"));
+    assert_eq!(payload["sample_id"], serde_json::json!("human_like_mapq_threshold_ladder"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(payload["mapq_threshold"], serde_json::json!(30));
     assert_eq!(payload["input_reads"], serde_json::json!(4));
