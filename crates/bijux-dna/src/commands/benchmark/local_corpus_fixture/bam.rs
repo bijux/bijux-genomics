@@ -407,7 +407,7 @@ mod tests {
 
         assert_eq!(report.schema_version, BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.corpus_id, "corpus-01-bam-mini");
-        assert_eq!(report.sample_count, 6);
+        assert_eq!(report.sample_count, 7);
         assert_eq!(
             report.reference_contigs,
             vec!["chr1".to_string(), "chr2".to_string(), "chranc".to_string()]
@@ -430,6 +430,12 @@ mod tests {
                 && sample.observed_contigs == vec!["chr1".to_string()]
                 && sample.observed_header_sample_ids
                     == vec!["human_like_mapq_threshold_ladder".to_string()]
+        }));
+        assert!(report.samples.iter().any(|sample| {
+            sample.sample_id == "human_like_length_threshold_ladder"
+                && sample.observed_contigs == vec!["chr1".to_string()]
+                && sample.observed_header_sample_ids
+                    == vec!["human_like_length_threshold_ladder".to_string()]
         }));
         assert!(report.samples.iter().any(|sample| {
             sample.sample_id == "human_like_mixed_filter_constraints"
