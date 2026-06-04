@@ -7,5 +7,5 @@ trim_3p_bases = 1
 output_dir = "target/local-smoke/fastq.trim_terminal_damage"
 
 [[cases]]
-sample_id = "ancient-se"
-r1 = "assets/toy/core-v1/fastq/reads_with_adapter.fastq"
+sample_id = "adna-like-se"
+r1 = "tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz"

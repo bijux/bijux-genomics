@@ -75,8 +75,10 @@ compatibility_note = "No governed corpus fixture yet owns a duplicate-burden rea
 
 [[mappings]]
 stage_id = "fastq.trim_terminal_damage"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed FASTQ corpus fixture yet owns a terminal-damage trimming contract for ancient-like read smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus already owns aDNA-like reads suitable for governed terminal-damage trimming smoke checks."
 
 [[mappings]]
 stage_id = "fastq.normalize_primers"

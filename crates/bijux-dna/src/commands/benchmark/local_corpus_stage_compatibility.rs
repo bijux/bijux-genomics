@@ -455,7 +455,7 @@ mod tests {
         assert_eq!(report.fixture_count, 5);
         assert_eq!(report.stage_count, 51);
         assert_eq!(report.fixture_backed_stage_count + report.planner_only_stage_count, 51);
-        assert_eq!(report.corpus_family_counts.get("corpus-01"), Some(&15));
+        assert_eq!(report.corpus_family_counts.get("corpus-01"), Some(&16));
         assert_eq!(report.corpus_family_counts.get("corpus-02"), Some(&1));
         assert_eq!(report.corpus_family_counts.get("corpus-03"), Some(&4));
         assert!(
@@ -478,6 +478,13 @@ mod tests {
                     && stage.fixture_id.as_deref() == Some("corpus-01-mini")
             }),
             "trim-polyg must map to the governed general FASTQ corpus once poly-G coverage is owned there"
+        );
+        assert!(
+            report.stages.iter().any(|stage| {
+                stage.stage_id == "fastq.trim_terminal_damage"
+                    && stage.fixture_id.as_deref() == Some("corpus-01-mini")
+            }),
+            "trim-terminal-damage must map to the governed general FASTQ corpus once aDNA-like fixture coverage is owned there"
         );
         assert!(
             report.stages.iter().any(|stage| {
