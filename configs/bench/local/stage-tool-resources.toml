@@ -169,6 +169,16 @@ resource_origin = "tool_constraints_with_stage_walltime_profile"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.detect_adapters"
+tool_id = "fastqc"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.infer_asvs"
 tool_id = "dada2"
 threads = 4

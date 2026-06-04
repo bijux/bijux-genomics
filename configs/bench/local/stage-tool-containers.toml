@@ -169,6 +169,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.detect_adapters"
+tool_id = "fastqc"
+execution_mode = "java"
+install_kind = "container"
+container_id = "bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789"
+command_entrypoint = "fastqc"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.infer_asvs"
 tool_id = "dada2"
 execution_mode = "r"
