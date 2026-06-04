@@ -56,9 +56,9 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bijux_dna\tfastq.estimate_library_complexity_prealign\tplanned_contract\tdeclared_only\tnot_normalized\tplanner_only"
+            row == &"bijux_dna\tfastq.estimate_library_complexity_prealign\tplanned_contract\tdeclared_only\tnot_normalized\tfixture:corpus-01-mini"
         }),
-        "TSV must retain the planned estimate-library-complexity-prealign row"
+        "TSV must retain the fixture-backed planned estimate-library-complexity-prealign row"
     );
     for tool_id in ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"] {
         assert!(
