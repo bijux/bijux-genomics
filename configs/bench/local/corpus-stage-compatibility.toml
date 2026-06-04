@@ -229,8 +229,10 @@ compatibility_note = "The general FASTQ corpus already owns paired human-like re
 
 [[mappings]]
 stage_id = "bam.authenticity"
-compatibility_kind = "planner_only"
-compatibility_note = "The ancient-like damage fixture does not yet own the composed contamination, complexity, coverage, and mapping evidence contract needed for authenticity smoke checks."
+fixture_id = "corpus-01-bam-mini"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+compatibility_note = "The governed BAM corpus owns the ancient-like damage fixture needed to compose authenticity smoke evidence across damage, contamination, complexity, coverage, and mapping summaries."
 
 [[mappings]]
 stage_id = "bam.bias_mitigation"
