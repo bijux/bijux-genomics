@@ -134,6 +134,17 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
     );
     assert!(
         has_row(
+            "authenticct",
+            "bam.authenticity",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
+        ),
+        "BAM readiness map must retain the governed authenticct authenticity row"
+    );
+    assert!(
+        has_row(
             "preseq",
             "bam.complexity",
             "supported",
@@ -365,6 +376,17 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
     );
     assert!(
         has_row(
+            "damageprofiler",
+            "bam.authenticity",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
+        ),
+        "BAM readiness map must retain the governed damageprofiler authenticity comparison row"
+    );
+    assert!(
+        has_row(
             "samtools",
             "bam.endogenous_content",
             "supported",
@@ -373,6 +395,17 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
             "fixture:corpus-01-bam-mini",
         ),
         "BAM readiness map must retain the governed samtools endogenous-content row"
+    );
+    assert!(
+        has_row(
+            "pmdtools",
+            "bam.authenticity",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
+        ),
+        "BAM readiness map must retain the governed pmdtools authenticity comparison row"
     );
     assert!(
         has_row(

@@ -88,6 +88,18 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
     );
     assert!(
         rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("authenticct")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.authenticity")
+                && row.get("output_contract_status").and_then(serde_json::Value::as_str)
+                    == Some("complete")
+                && row.get("normalized_metrics_output_id").and_then(serde_json::Value::as_str)
+                    == Some("authenticity_report")
+        }),
+        "report must retain the governed authenticct authenticity contract row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("mapdamage2")
                 && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
                 && row.get("output_contract_status").and_then(serde_json::Value::as_str)
@@ -102,8 +114,7 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bamutil")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("bam.overlap_correction")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("runnable")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
                 && row.get("output_contract_status").and_then(serde_json::Value::as_str)
                     == Some("complete")
                 && row.get("normalized_metrics_output_id").and_then(serde_json::Value::as_str)

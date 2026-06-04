@@ -66,6 +66,17 @@ fn bench_readiness_bam_adapter_output_contract_writes_governed_tsv_columns() {
         "TSV must retain the governed samtools validate contract row"
     );
     assert!(
+        has_row(
+            "authenticct",
+            "bam.authenticity",
+            "runnable",
+            "complete",
+            "authenticity_report",
+            "",
+        ),
+        "TSV must retain the governed authenticct authenticity contract row"
+    );
+    assert!(
         has_row("bowtie2", "bam.align", "runnable", "complete", "align_metrics", ""),
         "TSV must retain the governed bowtie2 alignment contract row"
     );

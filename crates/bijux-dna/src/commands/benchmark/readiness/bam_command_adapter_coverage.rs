@@ -313,10 +313,10 @@ mod tests {
         assert_eq!(report.stage_count, 24);
         assert_eq!(report.tool_count, 26);
         assert_eq!(report.row_count, 51);
-        assert_eq!(report.benchmark_ready_row_count, 31);
-        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 31);
+        assert_eq!(report.benchmark_ready_row_count, 34);
+        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 34);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
-        assert_eq!(report.readiness_gap_counts.get("parser"), Some(&14));
+        assert_eq!(report.readiness_gap_counts.get("parser"), Some(&11));
         assert_eq!(report.readiness_gap_counts.get("support"), Some(&6));
         assert!(
             report.readiness_gap_counts.get("corpus").is_none(),
@@ -339,6 +339,15 @@ mod tests {
                 && row.stage_id == "bam.damage"
                 && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
                 && row.corpus_status == "fixture:corpus-01-adna-damage-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "authenticct"
+                && row.stage_id == "bam.authenticity"
+                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
+                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
+                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "mosdepth"
@@ -423,6 +432,14 @@ mod tests {
                 )
             }),
             "the governed BAM validation row must remain benchmark-ready and adapter-covered"
+        );
+        assert!(
+            rows.iter().any(|row| {
+                row.starts_with(
+                    "authenticct\tbam.authenticity\tbenchmark_ready\tcovered\tnone\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\t"
+                )
+            }),
+            "the governed BAM authenticity row must now be benchmark-ready and adapter-covered"
         );
         assert!(
             rows.iter().any(|row| {

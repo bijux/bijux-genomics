@@ -44,6 +44,8 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     assert_eq!(rows.len(), 51, "TSV must retain the governed BAM row count");
     for row in [
         "addeam\tbam.damage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini",
+        "authenticct\tbam.authenticity\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "damageprofiler\tbam.authenticity\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "damageprofiler\tbam.damage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini",
         "bwa\tbam.align\tsupported\trunnable\tartifact_contract_only\tfixture:corpus-01-mini",
         "bowtie2\tbam.align\tsupported\trunnable\tartifact_contract_only\tfixture:corpus-01-mini",
@@ -56,6 +58,7 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         "samtools\tbam.coverage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "picard\tbam.gc_bias\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "picard\tbam.insert_size\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "pmdtools\tbam.authenticity\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.endogenous_content\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "bamutil\tbam.overlap_correction\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.mapping_summary\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",

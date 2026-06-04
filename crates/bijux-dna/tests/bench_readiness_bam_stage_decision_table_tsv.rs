@@ -56,6 +56,12 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"bam.authenticity\tbenchmark_ready\tauthenticct\tauthenticct\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.authenticity` is benchmark_ready via `authenticct` with a fixture-backed parser-validated BAM benchmark row"
+        }),
+        "TSV must retain the governed benchmark-ready bam.authenticity row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"bam.qc_pre\tbenchmark_ready\tmultiqc\tmultiqc\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.qc_pre` is benchmark_ready via `multiqc` with a fixture-backed parser-validated BAM benchmark row"
         }),
         "TSV must retain the governed benchmark-ready bam.qc_pre row"
