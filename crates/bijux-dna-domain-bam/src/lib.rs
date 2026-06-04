@@ -204,6 +204,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
             | BamStage::GcBias
             | BamStage::EndogenousContent
             | BamStage::Damage
+            | BamStage::Authenticity
     );
     let has_invariants = bam_stage_has_invariants(stage);
     StageCompleteness {
@@ -231,6 +232,7 @@ pub fn bam_stage_is_stable(stage: BamStage) -> bool {
             | BamStage::GcBias
             | BamStage::EndogenousContent
             | BamStage::Damage
+            | BamStage::Authenticity
     )
 }
 
@@ -260,5 +262,17 @@ mod tests {
         assert!(completeness.is_complete());
         assert!(bam_stage_has_invariants(BamStage::OverlapCorrection));
         assert!(bam_stage_is_stable(BamStage::OverlapCorrection));
+    }
+
+    #[test]
+    fn authenticity_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::Authenticity);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::Authenticity));
+        assert!(bam_stage_is_stable(BamStage::Authenticity));
     }
 }
