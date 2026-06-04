@@ -43,13 +43,7 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 13, "TSV must retain the governed unregistered-pair row count");
-    assert!(
-        rows.iter().any(|row| {
-            row == &"bam\tbam.align\tbowtie2\tsupported\ttool_registered_pair_missing\tfastq.deplete_host,fastq.deplete_reference_contaminants\tbenchmark matrix references `bam.align` / `bowtie2` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `bowtie2`: fastq.deplete_host, fastq.deplete_reference_contaminants"
-        }),
-        "TSV must retain the governed bam.align / bowtie2 registry drift row"
-    );
+    assert_eq!(rows.len(), 11, "TSV must retain the governed unregistered-pair row count");
     assert!(
         rows.iter().any(|row| {
             row == &"bam\tbam.genotyping\tbcftools\tmissing_contract\ttool_missing\t\tbenchmark matrix references `bam.genotyping` / `bcftools` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `bcftools`: <none>"
@@ -93,6 +87,34 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         "TSV must retain the governed fastq.estimate_library_complexity_prealign / bijux_dna registry drift row"
     );
     assert!(
+        rows.iter().any(|row| {
+            row == &"fastq\tfastq.filter_low_complexity\tdustmasker\tplanned_contract\ttool_missing\t\tbenchmark matrix references `fastq.filter_low_complexity` / `dustmasker` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `dustmasker`: <none>"
+        }),
+        "TSV must retain the governed fastq.filter_low_complexity / dustmasker registry drift row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"fastq\tfastq.filter_low_complexity\tfastp\tplanned_contract\ttool_registered_pair_missing\tfastq.filter_reads,fastq.profile_read_lengths,fastq.trim_polyg_tails,fastq.trim_reads\tbenchmark matrix references `fastq.filter_low_complexity` / `fastp` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `fastp`: fastq.filter_reads, fastq.profile_read_lengths, fastq.trim_polyg_tails, fastq.trim_reads"
+        }),
+        "TSV must retain the governed fastq.filter_low_complexity / fastp registry drift row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"fastq\tfastq.trim_reads\tseqpurge\tplanned_contract\ttool_missing\t\tbenchmark matrix references `fastq.trim_reads` / `seqpurge` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `seqpurge`: <none>"
+        }),
+        "TSV must retain the governed fastq.trim_reads / seqpurge registry drift row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"fastq\tfastq.normalize_abundance\tseqfu\tplanned_contract\ttool_registered_pair_missing\tfastq.profile_read_lengths,fastq.profile_reads\tbenchmark matrix references `fastq.normalize_abundance` / `seqfu` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `seqfu`: fastq.profile_read_lengths, fastq.profile_reads"
+        }),
+        "TSV must retain the governed fastq.normalize_abundance / seqfu registry drift row"
+    );
+    assert!(
+        !rows.iter().any(|row| row.starts_with("bam\tbam.align\t")),
+        "TSV must not retain a registry-drift row for bam.align once both admitted aligners are registered"
+    );
+    assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.overlap_correction\t")),
         "TSV must not retain a registry-drift row for bam.overlap_correction once bamutil is registered in production"
     );
@@ -104,7 +126,7 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         !rows.iter().any(|row| row.starts_with("bam\tbam.damage\tdamageprofiler\t")),
         "TSV must not retain a registry-drift row for bam.damage / damageprofiler once it is registered"
     );
-    for tool_id in ["fastp", "prinseq", "seqfu"] {
+    for tool_id in ["prinseq", "seqfu"] {
         assert!(
             !rows.iter().any(|row| {
                 row.starts_with(&format!("fastq\tfastq.profile_read_lengths\t{tool_id}\t"))
@@ -118,7 +140,6 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         "atropos",
         "bbduk",
         "cutadapt",
-        "fastp",
         "fastx_clipper",
         "leehom",
         "prinseq",
@@ -228,7 +249,7 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             "TSV must not retain a registry-drift row for bam.markdup / {tool_id}"
         );
     }
-    for tool_id in ["bwa"] {
+    for tool_id in ["bowtie2", "bwa"] {
         assert!(
             !rows.iter().any(|row| { row.starts_with(&format!("bam\tbam.align\t{tool_id}\t")) }),
             "TSV must not retain a registry-drift row for bam.align / {tool_id}"
