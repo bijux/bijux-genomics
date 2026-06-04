@@ -54,6 +54,7 @@ pub(crate) struct AmpliconCorpusFixtureManifest {
     pub(crate) chimera_expectations_path: PathBuf,
     pub(crate) amplicon_governance_path: PathBuf,
     pub(crate) controls: Vec<AmpliconCorpusControl>,
+    pub(crate) abundance_tables: Vec<AmpliconCorpusAbundanceTable>,
     pub(crate) samples: Vec<AmpliconCorpusFixtureSample>,
 }
 
@@ -63,6 +64,18 @@ pub(crate) struct AmpliconCorpusControl {
     pub(crate) sample_id: String,
     pub(crate) control_kind: String,
     pub(crate) purpose: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct AmpliconCorpusAbundanceTable {
+    pub(crate) sample_id: String,
+    pub(crate) table_kind: String,
+    pub(crate) table_path: PathBuf,
+    pub(crate) expected_row_count: u64,
+    pub(crate) expected_sample_count: u64,
+    pub(crate) expected_feature_count: u64,
+    pub(crate) source_paths: Vec<PathBuf>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -94,6 +107,18 @@ pub(crate) struct AmpliconCorpusFixtureSampleValidationReport {
 }
 
 #[derive(Debug, Clone, Serialize)]
+pub(crate) struct AmpliconCorpusAbundanceTableValidationReport {
+    pub(crate) sample_id: String,
+    pub(crate) table_kind: String,
+    pub(crate) table_path: String,
+    pub(crate) source_paths: Vec<String>,
+    pub(crate) observed_row_count: u64,
+    pub(crate) observed_sample_count: u64,
+    pub(crate) observed_feature_count: u64,
+    pub(crate) valid: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
 pub(crate) struct AmpliconCorpusFixtureValidationReport {
     pub(crate) schema_version: &'static str,
     pub(crate) manifest_path: String,
@@ -118,10 +143,12 @@ pub(crate) struct AmpliconCorpusFixtureValidationReport {
     pub(crate) chimera_expected_present_row_count: usize,
     pub(crate) chimera_expected_absent_row_count: usize,
     pub(crate) amplicon_governance_path: String,
+    pub(crate) abundance_table_count: usize,
     pub(crate) sample_count: usize,
     pub(crate) control_count: usize,
     pub(crate) valid: bool,
     pub(crate) controls: Vec<AmpliconCorpusControlValidationReport>,
+    pub(crate) abundance_tables: Vec<AmpliconCorpusAbundanceTableValidationReport>,
     pub(crate) samples: Vec<AmpliconCorpusFixtureSampleValidationReport>,
 }
 
@@ -180,6 +207,13 @@ struct AmpliconExpectedChimeraRow {
     expected_presence: AmpliconExpectedPresence,
 }
 
+#[derive(Debug)]
+struct AmpliconAbundanceTableMetrics {
+    row_count: u64,
+    sample_count: u64,
+    feature_count: u64,
+}
+
 pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
     repo_root: &Path,
     manifest_path: &Path,
@@ -223,6 +257,11 @@ pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
         &chimera_expectations_path,
         &chimera_control_records,
     )?;
+    let abundance_tables = manifest
+        .abundance_tables
+        .iter()
+        .map(|table| validate_amplicon_abundance_table(repo_root, manifest_dir, &manifest, table))
+        .collect::<Result<Vec<_>>>()?;
     let report_primer_fasta_path = primer_fasta_path
         .canonicalize()
         .with_context(|| format!("canonicalize {}", primer_fasta_path.display()))?;
@@ -305,10 +344,12 @@ pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
             repo_root,
             &report_amplicon_governance_path,
         ),
+        abundance_table_count: abundance_tables.len(),
         sample_count: samples.len(),
         control_count: controls.len(),
         valid: true,
         controls,
+        abundance_tables,
         samples,
     })
 }
@@ -387,6 +428,9 @@ fn validate_amplicon_corpus_fixture_manifest_contract(
     if manifest.controls.is_empty() {
         return Err(anyhow!("amplicon corpus fixture must declare at least one control"));
     }
+    if manifest.abundance_tables.is_empty() {
+        return Err(anyhow!("amplicon corpus fixture must declare at least one abundance table"));
+    }
     if manifest.samples.is_empty() {
         return Err(anyhow!("amplicon corpus fixture must declare at least one sample"));
     }
@@ -433,6 +477,12 @@ fn validate_amplicon_corpus_fixture_manifest_contract(
 
     let declared_sample_ids =
         manifest.samples.iter().map(|sample| sample.sample_id.as_str()).collect::<BTreeSet<_>>();
+    let biological_sample_ids = manifest
+        .samples
+        .iter()
+        .filter(|sample| matches!(sample.sample_kind, AmpliconCorpusSampleKind::Biological))
+        .map(|sample| sample.sample_id.as_str())
+        .collect::<BTreeSet<_>>();
     let mut declared_controls = BTreeSet::new();
     for control in &manifest.controls {
         if control.sample_id.trim().is_empty() {
@@ -479,6 +529,71 @@ fn validate_amplicon_corpus_fixture_manifest_contract(
             return Err(anyhow!(
                 "amplicon corpus fixture control sample `{}` must also appear in `controls`",
                 sample.sample_id
+            ));
+        }
+    }
+
+    let mut abundance_table_ids = BTreeSet::new();
+    for table in &manifest.abundance_tables {
+        if table.sample_id.trim().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus fixture abundance tables must declare a non-empty `sample_id`"
+            ));
+        }
+        if !abundance_table_ids.insert(table.sample_id.as_str()) {
+            return Err(anyhow!(
+                "amplicon corpus fixture repeats abundance table sample_id `{}`",
+                table.sample_id
+            ));
+        }
+        if table.table_kind.trim().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus fixture abundance table `{}` must declare a non-empty `table_kind`",
+                table.sample_id
+            ));
+        }
+        if table.table_path.as_os_str().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus fixture abundance table `{}` must declare a non-empty `table_path`",
+                table.sample_id
+            ));
+        }
+        if table.expected_row_count == 0 {
+            return Err(anyhow!(
+                "amplicon corpus fixture abundance table `{}` must declare a positive `expected_row_count`",
+                table.sample_id
+            ));
+        }
+        if table.expected_sample_count == 0 {
+            return Err(anyhow!(
+                "amplicon corpus fixture abundance table `{}` must declare a positive `expected_sample_count`",
+                table.sample_id
+            ));
+        }
+        if table.expected_feature_count == 0 {
+            return Err(anyhow!(
+                "amplicon corpus fixture abundance table `{}` must declare a positive `expected_feature_count`",
+                table.sample_id
+            ));
+        }
+        if table.source_paths.is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus fixture abundance table `{}` must declare at least one `source_paths` entry",
+                table.sample_id
+            ));
+        }
+        if !table.table_kind.eq("otu_abundance") {
+            return Err(anyhow!(
+                "amplicon corpus fixture abundance table `{}` must currently use `table_kind = \"otu_abundance\"`",
+                table.sample_id
+            ));
+        }
+        if biological_sample_ids.len() < table.expected_sample_count as usize {
+            return Err(anyhow!(
+                "amplicon corpus fixture abundance table `{}` expects {} biological samples but only {} are declared",
+                table.sample_id,
+                table.expected_sample_count,
+                biological_sample_ids.len()
             ));
         }
     }
@@ -1067,6 +1182,196 @@ fn validate_amplicon_corpus_fixture_sample(
     })
 }
 
+fn validate_amplicon_abundance_table(
+    repo_root: &Path,
+    manifest_dir: &Path,
+    manifest: &AmpliconCorpusFixtureManifest,
+    table: &AmpliconCorpusAbundanceTable,
+) -> Result<AmpliconCorpusAbundanceTableValidationReport> {
+    let table_path = resolve_manifest_relative_path(manifest_dir, &table.table_path);
+    if !table_path.is_file() {
+        return Err(anyhow!(
+            "amplicon corpus abundance table `{}` is missing: {}",
+            table.sample_id,
+            table_path.display()
+        ));
+    }
+
+    let raw = fs::read_to_string(&table_path)
+        .with_context(|| format!("read {}", table_path.display()))?;
+    let mut lines = raw.lines();
+    let header = lines.next().ok_or_else(|| {
+        anyhow!(
+            "amplicon corpus abundance table `{}` is empty: {}",
+            table.sample_id,
+            table_path.display()
+        )
+    })?;
+    if header != "sample_id\tfeature_id\tabundance" {
+        return Err(anyhow!(
+            "amplicon corpus abundance table `{}` header is unexpected in {}",
+            table.sample_id,
+            table_path.display()
+        ));
+    }
+
+    let biological_sample_ids = manifest
+        .samples
+        .iter()
+        .filter(|sample| matches!(sample.sample_kind, AmpliconCorpusSampleKind::Biological))
+        .map(|sample| sample.sample_id.as_str())
+        .collect::<BTreeSet<_>>();
+    let manifest_relative_path = path_relative_to_repo(repo_root, &table_path);
+    let mut sample_ids = BTreeSet::new();
+    let mut feature_ids = BTreeSet::new();
+    let mut sample_feature_pairs = BTreeSet::new();
+    let mut row_count = 0_u64;
+
+    for line in lines {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let mut fields = line.split('\t');
+        let sample_id = fields.next().ok_or_else(|| {
+            anyhow!(
+                "amplicon corpus abundance table `{}` row is missing `sample_id` in {}",
+                table.sample_id,
+                manifest_relative_path
+            )
+        })?;
+        let feature_id = fields.next().ok_or_else(|| {
+            anyhow!(
+                "amplicon corpus abundance table `{}` row is missing `feature_id` in {}",
+                table.sample_id,
+                manifest_relative_path
+            )
+        })?;
+        let abundance = fields.next().ok_or_else(|| {
+            anyhow!(
+                "amplicon corpus abundance table `{}` row is missing `abundance` in {}",
+                table.sample_id,
+                manifest_relative_path
+            )
+        })?;
+        if fields.next().is_some() {
+            return Err(anyhow!(
+                "amplicon corpus abundance table `{}` row has too many columns in {}",
+                table.sample_id,
+                manifest_relative_path
+            ));
+        }
+        if sample_id.trim().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus abundance table `{}` must not contain empty `sample_id` values in {}",
+                table.sample_id,
+                manifest_relative_path
+            ));
+        }
+        if feature_id.trim().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus abundance table `{}` must not contain empty `feature_id` values in {}",
+                table.sample_id,
+                manifest_relative_path
+            ));
+        }
+        if !biological_sample_ids.contains(sample_id) {
+            return Err(anyhow!(
+                "amplicon corpus abundance table `{}` references undeclared biological sample `{sample_id}` in {}",
+                table.sample_id,
+                manifest_relative_path
+            ));
+        }
+        let abundance_value = abundance.parse::<f64>().with_context(|| {
+            format!(
+                "parse abundance value for sample `{sample_id}` feature `{feature_id}` in {}",
+                manifest_relative_path
+            )
+        })?;
+        if !abundance_value.is_finite() || abundance_value < 0.0 {
+            return Err(anyhow!(
+                "amplicon corpus abundance table `{}` must use finite non-negative abundance values in {}",
+                table.sample_id,
+                manifest_relative_path
+            ));
+        }
+        if !sample_feature_pairs.insert((sample_id.to_string(), feature_id.to_string())) {
+            return Err(anyhow!(
+                "amplicon corpus abundance table `{}` repeats (`{sample_id}`, `{feature_id}`) in {}",
+                table.sample_id,
+                manifest_relative_path
+            ));
+        }
+        sample_ids.insert(sample_id.to_string());
+        feature_ids.insert(feature_id.to_string());
+        row_count = row_count.saturating_add(1);
+    }
+
+    if row_count == 0 {
+        return Err(anyhow!(
+            "amplicon corpus abundance table `{}` must declare at least one row in {}",
+            table.sample_id,
+            manifest_relative_path
+        ));
+    }
+
+    let metrics = AmpliconAbundanceTableMetrics {
+        row_count,
+        sample_count: sample_ids.len() as u64,
+        feature_count: feature_ids.len() as u64,
+    };
+    if metrics.row_count != table.expected_row_count {
+        return Err(anyhow!(
+            "amplicon corpus abundance table `{}` expected {} rows but observed {}",
+            table.sample_id,
+            table.expected_row_count,
+            metrics.row_count
+        ));
+    }
+    if metrics.sample_count != table.expected_sample_count {
+        return Err(anyhow!(
+            "amplicon corpus abundance table `{}` expected {} samples but observed {}",
+            table.sample_id,
+            table.expected_sample_count,
+            metrics.sample_count
+        ));
+    }
+    if metrics.feature_count != table.expected_feature_count {
+        return Err(anyhow!(
+            "amplicon corpus abundance table `{}` expected {} features but observed {}",
+            table.sample_id,
+            table.expected_feature_count,
+            metrics.feature_count
+        ));
+    }
+
+    let source_paths = table
+        .source_paths
+        .iter()
+        .map(|path| {
+            let absolute = if path.is_absolute() { path.clone() } else { repo_root.join(path) };
+            if !absolute.is_file() {
+                return Err(anyhow!(
+                    "amplicon corpus abundance table `{}` source path is missing: {}",
+                    table.sample_id,
+                    absolute.display()
+                ));
+            }
+            Ok(path_relative_to_repo(repo_root, &absolute))
+        })
+        .collect::<Result<Vec<_>>>()?;
+
+    Ok(AmpliconCorpusAbundanceTableValidationReport {
+        sample_id: table.sample_id.clone(),
+        table_kind: table.table_kind.clone(),
+        table_path: path_relative_to_repo(repo_root, &table_path),
+        source_paths,
+        observed_row_count: metrics.row_count,
+        observed_sample_count: metrics.sample_count,
+        observed_feature_count: metrics.feature_count,
+        valid: true,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
@@ -1124,6 +1429,7 @@ mod tests {
         assert_eq!(report.chimera_expectation_row_count, 1);
         assert_eq!(report.chimera_expected_present_row_count, 1);
         assert_eq!(report.chimera_expected_absent_row_count, 0);
+        assert_eq!(report.abundance_table_count, 1);
         assert_eq!(report.sample_count, 4);
         assert_eq!(report.control_count, 1);
         assert!(report.valid);
@@ -1141,6 +1447,16 @@ mod tests {
             sample.sample_id == "chimera-control-se"
                 && sample.sample_kind == "control"
                 && sample.observed_read_count == 3
+        }));
+        assert!(report.abundance_tables.iter().any(|table| {
+            table.sample_id == "corpus-03-otu-abundance-table"
+                && table.table_kind == "otu_abundance"
+                && table.table_path
+                    == "tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv"
+                && table.observed_row_count == 4
+                && table.observed_sample_count == 2
+                && table.observed_feature_count == 3
+                && table.valid
         }));
     }
 }

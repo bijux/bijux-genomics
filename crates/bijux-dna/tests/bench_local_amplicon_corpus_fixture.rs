@@ -108,6 +108,7 @@ fn bench_local_validate_amplicon_corpus_fixture_json_reports_governed_corpus_03_
         payload.get("chimera_expected_absent_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
+    assert_eq!(payload.get("abundance_table_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(payload.get("control_count").and_then(serde_json::Value::as_u64), Some(1));
     assert!(payload.get("valid").and_then(serde_json::Value::as_bool) == Some(true));
@@ -122,6 +123,28 @@ fn bench_local_validate_amplicon_corpus_fixture_json_reports_governed_corpus_03_
                 })
         }
     ));
+    assert!(payload
+        .get("abundance_tables")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|tables| {
+            tables.len() == 1
+                && tables.iter().any(|table| {
+                    table.get("sample_id").and_then(serde_json::Value::as_str)
+                        == Some("corpus-03-otu-abundance-table")
+                        && table.get("table_kind").and_then(serde_json::Value::as_str)
+                            == Some("otu_abundance")
+                        && table.get("table_path").and_then(serde_json::Value::as_str)
+                            == Some(
+                                "tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv"
+                            )
+                        && table.get("observed_row_count").and_then(serde_json::Value::as_u64)
+                            == Some(4)
+                        && table.get("observed_sample_count").and_then(serde_json::Value::as_u64)
+                            == Some(2)
+                        && table.get("observed_feature_count").and_then(serde_json::Value::as_u64)
+                            == Some(3)
+                })
+        }));
     assert!(payload.get("samples").and_then(serde_json::Value::as_array).is_some_and(|samples| {
         samples.len() == 4
             && samples.iter().any(|sample| {
