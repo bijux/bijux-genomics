@@ -22,12 +22,17 @@ fn local_insert_size_smoke_plans_use_governed_paired_fixture() -> Result<()> {
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-paired-triplet")
+        .find(|case| case.sample_id == "human_like_insert_size_triplet")
         .unwrap_or_else(|| panic!("governed BAM insert-size case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.insert_size");
     assert_eq!(case.plan.tool_id.as_str(), "picard");
     assert_eq!(case.plan.resources.threads, 2);
-    assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/insert_size_paired_triplet.sam"));
+    assert_eq!(
+        case.bam,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
+        )
+    );
     assert_eq!(case.expected_read_pairs, 3);
     assert!((case.expected_median_insert_size - 20.0).abs() <= 1e-9);
     assert!((case.expected_mean_insert_size - 21.666666666666668).abs() <= 1e-9);
@@ -35,11 +40,13 @@ fn local_insert_size_smoke_plans_use_governed_paired_fixture() -> Result<()> {
     assert_eq!(case.expected_max_insert_size, 30);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.insert_size/core-v1-paired-triplet/picard")
+        PathBuf::from("target/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard")
     );
     assert_eq!(
         case.plan.params["bam"],
-        serde_json::json!("assets/toy/core-v1/bam/insert_size_paired_triplet.sam")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
+        )
     );
 
     let output_names = case
@@ -64,7 +71,7 @@ fn local_insert_size_smoke_plans_use_governed_paired_fixture() -> Result<()> {
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.insert_size/core-v1-paired-triplet/picard/insert_size.summary.json"
+            "target/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/insert_size.summary.json"
         )
     );
 
@@ -107,7 +114,7 @@ tool_id = "picard"
 
 [[cases]]
 sample_id = " "
-bam = "assets/toy/core-v1/bam/insert_size_paired_triplet.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
 expected_read_pairs = 3
 expected_median_insert_size = 20.0
 expected_mean_insert_size = 21.666666666666668
@@ -133,7 +140,7 @@ tool_id = "picard"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/insert_size_paired_triplet.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
 expected_read_pairs = 3
 expected_median_insert_size = 20.0
 expected_mean_insert_size = 21.666666666666668
@@ -142,7 +149,7 @@ expected_max_insert_size = 30
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/insert_size_paired_triplet.sam"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
 expected_read_pairs = 3
 expected_median_insert_size = 20.0
 expected_mean_insert_size = 21.666666666666668
@@ -180,7 +187,7 @@ expected_mean_insert_size = 21.666666666666668
 expected_min_insert_size = 15
 expected_max_insert_size = 30
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/insert_size_paired_triplet.sam").display(),
+            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
         ),
     )?;
 
@@ -213,7 +220,7 @@ expected_mean_insert_size = 21.666666666666668
 expected_min_insert_size = 0
 expected_max_insert_size = 30
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/insert_size_paired_triplet.sam").display(),
+            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
         ),
     )?;
 
@@ -246,7 +253,7 @@ expected_mean_insert_size = 21.666666666666668
 expected_min_insert_size = 31
 expected_max_insert_size = 30
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/insert_size_paired_triplet.sam").display(),
+            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
         ),
     )?;
 
@@ -279,7 +286,7 @@ expected_mean_insert_size = 40.0
 expected_min_insert_size = 15
 expected_max_insert_size = 30
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/insert_size_paired_triplet.sam").display(),
+            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
         ),
     )?;
 
@@ -312,7 +319,7 @@ expected_mean_insert_size = 21.666666666666668
 expected_min_insert_size = 15
 expected_max_insert_size = 30
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/insert_size_paired_triplet.sam").display(),
+            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
         ),
     )?;
 
