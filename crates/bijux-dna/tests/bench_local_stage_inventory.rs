@@ -336,7 +336,7 @@ fn bench_local_materialize_stage_bam_mapping_summary_json_writes_governed_smoke_
     assert_eq!(rows.len(), 1, "mapping_summary smoke bundle must contain exactly one row");
     assert_eq!(
         rows[0],
-        "core-v1-partial-mapping\t3\t2\t1\t0.666667\t0\t0\tchr1\ttrue\ttarget/local-smoke/bam.mapping_summary/core-v1-partial-mapping/samtools/mapping.summary.json\ttarget/local-smoke/bam.mapping_summary/core-v1-partial-mapping/samtools/flagstat.txt\ttarget/local-smoke/bam.mapping_summary/core-v1-partial-mapping/samtools/idxstats.txt\ttarget/local-smoke/bam.mapping_summary/core-v1-partial-mapping/samtools/samtools_stats.txt\ttarget/local-smoke/bam.mapping_summary/core-v1-partial-mapping/samtools/stage.metrics.json"
+        "human_like_partial_mapping\t3\t2\t1\t0.666667\t0\t0\tchr1\ttrue\ttarget/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/mapping.summary.json\ttarget/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/flagstat.txt\ttarget/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/idxstats.txt\ttarget/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/samtools_stats.txt\ttarget/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/stage.metrics.json"
     );
 }
 

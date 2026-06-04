@@ -11,8 +11,8 @@ threads = 4
 output_dir = "target/local-smoke/bam.mapping_summary"
 
 [[cases]]
-sample_id = "core-v1-partial-mapping"
-bam = "assets/toy/core-v1/bam/mapping_summary_partial_mapping.sam"
+sample_id = "human_like_partial_mapping"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"
 expected_total_reads = 3
 expected_mapped_reads = 2
 expected_mapping_fraction = 0.6666666666666666

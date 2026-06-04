@@ -23,14 +23,16 @@ fn local_mapping_summary_smoke_plans_use_governed_partial_mapping_fixture() -> R
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-partial-mapping")
+        .find(|case| case.sample_id == "human_like_partial_mapping")
         .unwrap_or_else(|| panic!("governed BAM mapping summary case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.mapping_summary");
     assert_eq!(case.plan.tool_id.as_str(), "samtools");
     assert_eq!(case.plan.resources.threads, 4);
     assert_eq!(
         case.bam,
-        PathBuf::from("assets/toy/core-v1/bam/mapping_summary_partial_mapping.sam")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"
+        )
     );
     assert_eq!(case.expected_total_reads, 3);
     assert_eq!(case.expected_mapped_reads, 2);
@@ -38,7 +40,7 @@ fn local_mapping_summary_smoke_plans_use_governed_partial_mapping_fixture() -> R
     assert_eq!(case.expected_reference_name, "chr1");
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.mapping_summary/core-v1-partial-mapping/samtools")
+        PathBuf::from("target/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools")
     );
 
     let output_names = case
@@ -60,7 +62,7 @@ fn local_mapping_summary_smoke_plans_use_governed_partial_mapping_fixture() -> R
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.mapping_summary/core-v1-partial-mapping/samtools/mapping.summary.json"
+            "target/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/mapping.summary.json"
         )
     );
 
@@ -173,7 +175,9 @@ expected_mapping_fraction = 0.6666666666666666
 expected_reference_name = " "
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/mapping_summary_partial_mapping.sam")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"
+                )
                 .display(),
         ),
     )?;
@@ -207,7 +211,9 @@ expected_mapping_fraction = 1.0
 expected_reference_name = "chr1"
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/mapping_summary_partial_mapping.sam")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"
+                )
                 .display(),
         ),
     )?;
@@ -241,7 +247,9 @@ expected_mapping_fraction = 0.5
 expected_reference_name = "chr1"
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/mapping_summary_partial_mapping.sam")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"
+                )
                 .display(),
         ),
     )?;
@@ -263,9 +271,11 @@ fn mapping_summary_plan_accepts_picard_governed_planning_contract() -> Result<()
     let tool_spec = bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
         &repo_root, &stage_id, &tool_id,
     )?;
-    let bam = PathBuf::from("assets/toy/core-v1/bam/mapping_summary_partial_mapping.sam");
+    let bam = PathBuf::from(
+        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"
+    );
     let out_dir =
-        PathBuf::from("target/local-smoke/bam.mapping_summary/core-v1-partial-mapping/picard");
+        PathBuf::from("target/local-smoke/bam.mapping_summary/human_like_partial_mapping/picard");
     let plan = bijux_dna_planner_bam::tool_adapters::stages_pre::mapping_summary::plan(
         &tool_spec, &bam, &out_dir,
     )?;
@@ -283,7 +293,7 @@ fn mapping_summary_plan_accepts_picard_governed_planning_contract() -> Result<()
     assert_eq!(
         stats_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.mapping_summary/core-v1-partial-mapping/picard/alignment_summary.metrics.txt"
+            "target/local-smoke/bam.mapping_summary/human_like_partial_mapping/picard/alignment_summary.metrics.txt"
         )
     );
 

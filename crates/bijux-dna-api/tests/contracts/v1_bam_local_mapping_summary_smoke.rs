@@ -72,8 +72,8 @@ fn write_local_mapping_summary_smoke_summary_materializes_governed_outputs() -> 
 
     let row = rows
         .iter()
-        .find(|row| row["sample_id"] == "core-v1-partial-mapping")
-        .unwrap_or_else(|| panic!("core-v1-partial-mapping row missing from BAM mapping summary"));
+        .find(|row| row["sample_id"] == "human_like_partial_mapping")
+        .unwrap_or_else(|| panic!("human_like_partial_mapping row missing from BAM mapping summary"));
     assert_eq!(row["total_reads"], "3");
     assert_eq!(row["mapped_reads"], "2");
     assert_eq!(row["unmapped_reads"], "1");
