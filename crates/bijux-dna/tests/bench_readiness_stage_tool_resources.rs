@@ -51,14 +51,14 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(87));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(90));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(87)
+        Some(90)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(87)
+        Some(90)
     );
     assert_eq!(
         payload
@@ -72,7 +72,7 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(24)
+        Some(27)
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let fastqc = rows
@@ -209,6 +209,22 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         bam_complexity_preseq.get("scratch_gb").and_then(serde_json::Value::as_u64),
         Some(2)
     );
+    for tool_id in ["bedtools", "mosdepth", "samtools"] {
+        let bam_coverage = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.coverage")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam coverage {tool_id} row"));
+        assert_eq!(bam_coverage.get("threads").and_then(serde_json::Value::as_u64), Some(1));
+        assert_eq!(bam_coverage.get("memory_gb").and_then(serde_json::Value::as_u64), Some(1));
+        assert_eq!(
+            bam_coverage.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+            Some(6)
+        );
+        assert_eq!(bam_coverage.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(1));
+    }
     for tool_id in ["multiqc", "samtools"] {
         let qc_pre = rows
             .iter()

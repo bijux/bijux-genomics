@@ -48,7 +48,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         Some("benchmark_ready_runtime_declarations")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 87);
+    assert_eq!(rows.len(), 90);
     assert!(rows.iter().all(|row| {
         row.get("container_id").is_some()
             || row.get("command_entrypoint").is_some()
@@ -130,6 +130,20 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
             && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("preseq")
             && row.get("container_id").and_then(toml::Value::as_str) == Some("bijuxdna/preseq")
     }));
+    for (tool_id, command_entrypoint, container_id) in [
+        ("bedtools", "bedtools", "bijuxdna/bedtools:2.31.1"),
+        ("mosdepth", "mosdepth", "bijuxdna/mosdepth:0.3.10"),
+        ("samtools", "samtools", "bijuxdna/samtools:1.21"),
+    ] {
+        assert!(rows.iter().any(|row| {
+            row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.coverage")
+                && row.get("tool_id").and_then(toml::Value::as_str) == Some(tool_id)
+                && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
+                && row.get("command_entrypoint").and_then(toml::Value::as_str)
+                    == Some(command_entrypoint)
+                && row.get("container_id").and_then(toml::Value::as_str) == Some(container_id)
+        }));
+    }
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.qc_pre")
             && row.get("tool_id").and_then(toml::Value::as_str) == Some("multiqc")
