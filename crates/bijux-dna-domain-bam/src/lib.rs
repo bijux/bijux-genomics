@@ -148,6 +148,7 @@ pub fn bam_stage_has_invariants(stage: BamStage) -> bool {
             | BamStage::Coverage
             | BamStage::InsertSize
             | BamStage::GcBias
+            | BamStage::EndogenousContent
             | BamStage::Damage
             | BamStage::Authenticity
             | BamStage::Contamination
@@ -176,6 +177,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
             | BamStage::Coverage
             | BamStage::InsertSize
             | BamStage::GcBias
+            | BamStage::EndogenousContent
             | BamStage::Damage
             | BamStage::Authenticity
             | BamStage::Contamination
@@ -197,6 +199,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
             | BamStage::Coverage
             | BamStage::InsertSize
             | BamStage::GcBias
+            | BamStage::EndogenousContent
             | BamStage::Damage
     );
     let has_invariants = bam_stage_has_invariants(stage);
@@ -222,6 +225,24 @@ pub fn bam_stage_is_stable(stage: BamStage) -> bool {
             | BamStage::Coverage
             | BamStage::InsertSize
             | BamStage::GcBias
+            | BamStage::EndogenousContent
             | BamStage::Damage
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{bam_stage_completeness, bam_stage_has_invariants, bam_stage_is_stable, BamStage};
+
+    #[test]
+    fn endogenous_content_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::EndogenousContent);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::EndogenousContent));
+        assert!(bam_stage_is_stable(BamStage::EndogenousContent));
+    }
 }
