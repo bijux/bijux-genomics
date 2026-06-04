@@ -19,14 +19,18 @@ fn local_merge_pairs_smoke_plans_use_governed_overlap_fixture() -> Result<()> {
     let [case] = plans.as_slice() else {
         panic!("expected exactly one merge smoke case");
     };
-    assert_eq!(case.sample_id, "merge-signal-pe");
+    assert_eq!(case.sample_id, "human_like_pe_merge_overlap");
     assert_eq!(
         case.r1,
-        PathBuf::from("assets/toy/core-v1/fastq/reads_with_merge_overlap_R1.fastq")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R1.fastq.gz"
+        )
     );
     assert_eq!(
         case.r2,
-        PathBuf::from("assets/toy/core-v1/fastq/reads_with_merge_overlap_R2.fastq")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R2.fastq.gz"
+        )
     );
     assert_eq!(case.merge_overlap, 8);
     assert_eq!(case.min_length, 12);
@@ -36,7 +40,7 @@ fn local_merge_pairs_smoke_plans_use_governed_overlap_fixture() -> Result<()> {
     assert_eq!(case.plan.tool_id.as_str(), "pear");
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.merge_pairs/merge-signal-pe/pear")
+        PathBuf::from("target/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear")
     );
     assert_eq!(case.plan.resources.threads, 1);
     assert_eq!(case.plan.effective_params["paired_mode"], serde_json::json!("paired_end"));
@@ -48,28 +52,32 @@ fn local_merge_pairs_smoke_plans_use_governed_overlap_fixture() -> Result<()> {
     );
     assert_eq!(
         case.plan.params["r1"],
-        serde_json::json!("assets/toy/core-v1/fastq/reads_with_merge_overlap_R1.fastq")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R1.fastq.gz"
+        )
     );
     assert_eq!(
         case.plan.params["r2"],
-        serde_json::json!("assets/toy/core-v1/fastq/reads_with_merge_overlap_R2.fastq")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R2.fastq.gz"
+        )
     );
     assert_eq!(
         case.plan.params["merged_reads"],
         serde_json::json!(
-            "target/local-smoke/fastq.merge_pairs/merge-signal-pe/pear/pear.assembled.fastq"
+            "target/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.assembled.fastq"
         )
     );
     assert_eq!(
         case.plan.params["unmerged_reads_r1"],
         serde_json::json!(
-            "target/local-smoke/fastq.merge_pairs/merge-signal-pe/pear/pear.unassembled.forward.fastq"
+            "target/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.unassembled.forward.fastq"
         )
     );
     assert_eq!(
         case.plan.params["unmerged_reads_r2"],
         serde_json::json!(
-            "target/local-smoke/fastq.merge_pairs/merge-signal-pe/pear/pear.unassembled.reverse.fastq"
+            "target/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.unassembled.reverse.fastq"
         )
     );
 
