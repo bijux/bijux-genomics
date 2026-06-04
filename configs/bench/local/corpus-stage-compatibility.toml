@@ -284,8 +284,10 @@ compatibility_note = "The BAM mini corpus fixture owns the mixed-filter alignmen
 
 [[mappings]]
 stage_id = "bam.gc_bias"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed corpus fixture yet owns a GC-window reference contract for local GC-bias smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The governed BAM corpus now owns a GC-window ladder fixture and reference contract suitable for local GC-bias smoke checks."
 
 [[mappings]]
 stage_id = "bam.genotyping"
