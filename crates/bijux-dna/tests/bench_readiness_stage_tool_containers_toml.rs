@@ -48,7 +48,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         Some("benchmark_ready_runtime_declarations")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 69);
+    assert_eq!(rows.len(), 70);
     assert!(rows.iter().all(|row| {
         row.get("container_id").is_some()
             || row.get("command_entrypoint").is_some()
@@ -101,6 +101,16 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
             && row.get("container_id").and_then(toml::Value::as_str)
                 == Some(
                     "bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
+                )
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.extract_umis")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("umi_tools")
+            && row.get("execution_mode").and_then(toml::Value::as_str) == Some("python")
+            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("umi_tools")
+            && row.get("container_id").and_then(toml::Value::as_str)
+                == Some(
+                    "bijuxdna/umi_tools@sha256:b2913af8c02c1eeea5de7a4b5c120f65e2003b90479c8873f0ec37689d36296c"
                 )
     }));
     assert!(rows.iter().any(|row| {

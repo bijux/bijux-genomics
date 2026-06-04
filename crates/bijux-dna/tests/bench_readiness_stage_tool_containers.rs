@@ -51,19 +51,19 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(70));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(70)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(68));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(
         payload.get("container_declared_row_count").and_then(serde_json::Value::as_u64),
-        Some(68)
+        Some(69)
     );
     assert_eq!(
         payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(70)
     );
     assert_eq!(payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
@@ -71,7 +71,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(61)
+        Some(62)
     );
     assert_eq!(
         payload
@@ -182,6 +182,25 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("container_id")
             .and_then(serde_json::Value::as_str),
         Some("bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba")
+    );
+    let extract_umis = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.extract_umis")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("umi_tools")
+        })
+        .expect("extract-umis umi_tools row");
+    assert_eq!(
+        extract_umis.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("python")
+    );
+    assert_eq!(
+        extract_umis.get("command_entrypoint").and_then(serde_json::Value::as_str),
+        Some("umi_tools")
+    );
+    assert_eq!(
+        extract_umis.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/umi_tools@sha256:b2913af8c02c1eeea5de7a4b5c120f65e2003b90479c8873f0ec37689d36296c")
     );
     let detect_duplicates_bijux = rows
         .iter()

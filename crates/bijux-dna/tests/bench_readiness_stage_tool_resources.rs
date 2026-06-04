@@ -51,21 +51,21 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(70));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(70)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(70)
     );
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(61)
+        Some(62)
     );
     assert_eq!(
         payload
@@ -136,6 +136,17 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         trim_terminal_damage_cutadapt.get("scratch_gb").and_then(serde_json::Value::as_u64),
         Some(4)
     );
+    let extract_umis = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.extract_umis")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("umi_tools")
+        })
+        .expect("extract-umis umi_tools row");
+    assert_eq!(extract_umis.get("threads").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(extract_umis.get("memory_gb").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(extract_umis.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(extract_umis.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(4));
     let detect_duplicates_bijux = rows
         .iter()
         .find(|row| {
