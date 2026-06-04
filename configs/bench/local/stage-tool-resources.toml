@@ -189,6 +189,16 @@ resource_origin = "tool_constraints_with_stage_walltime_profile"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.extract_umis"
+tool_id = "umi_tools"
+threads = 2
+memory_gb = 4
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.filter_low_complexity"
 tool_id = "bbduk"
 threads = 4

@@ -189,6 +189,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.extract_umis"
+tool_id = "umi_tools"
+execution_mode = "python"
+install_kind = "container"
+container_id = "bijuxdna/umi_tools@sha256:b2913af8c02c1eeea5de7a4b5c120f65e2003b90479c8873f0ec37689d36296c"
+command_entrypoint = "umi_tools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.filter_low_complexity"
 tool_id = "bbduk"
 execution_mode = "containerized"
