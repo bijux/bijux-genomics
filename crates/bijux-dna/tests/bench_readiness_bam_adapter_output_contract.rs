@@ -47,7 +47,7 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/bam-adapter-output-contract.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(50));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(49));
     assert_eq!(payload.get("adapter_row_count").and_then(serde_json::Value::as_u64), Some(49));
     assert_eq!(
         payload.get("complete_adapter_row_count").and_then(serde_json::Value::as_u64),
@@ -59,11 +59,11 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("missing_adapter_row_count").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(0)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 50, "report must retain the governed BAM 50-row slice");
+    assert_eq!(rows.len(), 49, "report must retain the governed BAM 49-row slice");
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
@@ -152,11 +152,14 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
     );
     assert!(
         rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
                 && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
                 && row.get("output_contract_status").and_then(serde_json::Value::as_str)
-                    == Some("missing_adapter")
+                    == Some("complete")
+                && row.get("normalized_metrics_output_id").and_then(serde_json::Value::as_str)
+                    == Some("genotyping_report")
         }),
-        "report must keep the planned bcftools genotyping row explicit as missing an adapter"
+        "report must retain the governed angsd genotyping contract row"
     );
 }

@@ -577,12 +577,15 @@ mod tests {
                 && row.parser_status == "parser_fixture_validated"
                 && row.corpus_status == "fixture:corpus-01-bam-mini"
         }));
-        for stage_id in ["bam.genotyping"] {
-            assert!(report.rows.iter().any(|row| {
-                row.stage_id == stage_id
-                    && row.decision == BamStageDecisionKind::FutureNotInHpcRound
-                    && row.primary_tool_id.is_none()
-            }));
-        }
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "bam.genotyping"
+                && row.decision == BamStageDecisionKind::BenchmarkReady
+                && row.primary_tool_id.as_deref() == Some("angsd")
+                && row.selected_tool_id.as_deref() == Some("angsd")
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
+        }));
     }
 }

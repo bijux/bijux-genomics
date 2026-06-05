@@ -48,14 +48,14 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
         Some("target/bench-readiness/bam-tool-serving-map.tsv")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(24));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(26));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(25));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(
         payload.get("row_count").and_then(serde_json::Value::as_u64),
         Some(rows.len() as u64)
     );
-    assert_eq!(rows.len(), 50, "BAM readiness map must retain the governed 50-row slice");
+    assert_eq!(rows.len(), 49, "BAM readiness map must retain the governed 49-row slice");
 
     let has_row = |tool_id: &str,
                    stage_id: &str,
@@ -213,6 +213,17 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
             "BAM readiness map must retain the governed sex row for {tool_id}"
         );
     }
+    assert!(
+        has_row(
+            "angsd",
+            "bam.genotyping",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
+        ),
+        "BAM readiness map must retain the governed angsd genotyping row"
+    );
     assert!(
         has_row(
             "bedtools",

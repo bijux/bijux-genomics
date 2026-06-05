@@ -369,9 +369,12 @@ mod tests {
         assert_eq!(bam_qc_pre.primary_tool_ids, vec!["samtools".to_string()]);
         assert_eq!(bam_qc_pre.reporting_tool_ids, vec!["multiqc".to_string()]);
 
+        let bam_genotyping =
+            matrix.stage_policies.get("bam.genotyping").expect("bam.genotyping policy");
+        assert_eq!(bam_genotyping.primary_tool_ids, vec!["angsd".to_string()]);
         assert!(
-            !matrix.stage_policies.contains_key("bam.genotyping"),
-            "bam.genotyping must remain outside the governed benchmark registry until its stage policy is explicitly added"
+            bam_genotyping.optional_alternative_tool_ids.is_empty(),
+            "bam.genotyping currently carries a single governed angsd benchmark row"
         );
         let bam_recalibration =
             matrix.stage_policies.get("bam.recalibration").expect("bam.recalibration policy");

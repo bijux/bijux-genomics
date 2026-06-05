@@ -418,11 +418,11 @@ mod tests {
         .expect("render BAM adapter output contract");
 
         assert_eq!(report.schema_version, BAM_ADAPTER_OUTPUT_CONTRACT_SCHEMA_VERSION);
-        assert_eq!(report.row_count, 50);
+        assert_eq!(report.row_count, 49);
         assert_eq!(report.adapter_row_count, 49);
         assert_eq!(report.complete_adapter_row_count, 49);
         assert_eq!(report.incomplete_adapter_row_count, 0);
-        assert_eq!(report.missing_adapter_row_count, 1);
+        assert_eq!(report.missing_adapter_row_count, 0);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "samtools"
                 && row.stage_id == "bam.validate"
@@ -449,11 +449,10 @@ mod tests {
                 && row.normalized_metrics_output_id.as_deref() == Some("haplogroups")
         }));
         assert!(report.rows.iter().any(|row| {
-            row.tool_id == "bcftools"
+            row.tool_id == "angsd"
                 && row.stage_id == "bam.genotyping"
-                && super::output_contract_status_label(row.output_contract_status)
-                    == "missing_adapter"
-                && row.missing_declarations == vec!["adapter".to_string()]
+                && super::output_contract_status_label(row.output_contract_status) == "complete"
+                && row.normalized_metrics_output_id.as_deref() == Some("genotyping_report")
         }));
     }
 
@@ -484,10 +483,10 @@ mod tests {
         assert!(
             rows.iter().any(|row| {
                 row.starts_with(
-                    "bcftools\tbam.genotyping\tdeclared_only\tmissing_adapter\tgenotyping_report,summary,stage_metrics\t\t\t\t\t\t\t\t\tadapter\t"
+                    "angsd\tbam.genotyping\trunnable\tcomplete\tgenotyping_report,summary,stage_metrics\tgenotyping_report,summary,stage_metrics\t"
                 )
             }),
-            "the planned bcftools genotyping row must stay explicit as missing an adapter"
+            "the governed angsd genotyping row must declare the full BAM adapter output contract"
         );
     }
 }

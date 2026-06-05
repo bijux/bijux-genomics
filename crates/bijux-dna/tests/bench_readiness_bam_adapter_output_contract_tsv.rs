@@ -43,7 +43,7 @@ fn bench_readiness_bam_adapter_output_contract_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 50, "TSV must retain the governed BAM 50-row slice");
+    assert_eq!(rows.len(), 49, "TSV must retain the governed BAM 49-row slice");
     let has_row = |tool_id: &str,
                    stage_id: &str,
                    adapter_status: &str,
@@ -97,7 +97,7 @@ fn bench_readiness_bam_adapter_output_contract_writes_governed_tsv_columns() {
         "TSV must retain the governed bamutil overlap-correction contract row"
     );
     assert!(
-        has_row("bcftools", "bam.genotyping", "declared_only", "missing_adapter", "", "adapter",),
-        "TSV must keep the planned bcftools genotyping row explicit as missing an adapter"
+        has_row("angsd", "bam.genotyping", "runnable", "complete", "genotyping_report", "",),
+        "TSV must retain the governed angsd bam.genotyping contract row"
     );
 }

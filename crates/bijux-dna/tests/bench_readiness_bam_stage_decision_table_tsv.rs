@@ -180,8 +180,8 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bam.genotyping\tfuture_not_in_hpc_round\t\tangsd\tplanned\trunnable\tartifact_contract_only\tplanner_only\tstage `bam.genotyping` is not yet in the governed BAM benchmark registry; strongest admitted row `angsd` remains `planned`"
+            row == &"bam.genotyping\tbenchmark_ready\tangsd\tangsd\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.genotyping` is benchmark_ready via `angsd` with a fixture-backed parser-validated BAM benchmark row"
         }),
-        "TSV must retain the governed future classification for bam.genotyping"
+        "TSV must publish the governed benchmark-ready classification for bam.genotyping"
     );
 }

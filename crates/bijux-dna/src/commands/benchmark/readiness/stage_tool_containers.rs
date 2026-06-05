@@ -321,13 +321,13 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_containers.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-containers.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_runtime_declarations");
-        assert_eq!(report.row_count, 107);
-        assert_eq!(report.benchmark_ready_row_count, 107);
-        assert_eq!(report.external_row_count, 106);
-        assert_eq!(report.container_declared_row_count, 106);
-        assert_eq!(report.command_entrypoint_row_count, 107);
+        assert_eq!(report.row_count, 108);
+        assert_eq!(report.benchmark_ready_row_count, 108);
+        assert_eq!(report.external_row_count, 107);
+        assert_eq!(report.container_declared_row_count, 107);
+        assert_eq!(report.command_entrypoint_row_count, 108);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
-        assert_eq!(report.domain_counts.get("bam"), Some(&44));
+        assert_eq!(report.domain_counts.get("bam"), Some(&45));
         assert!(report.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()
@@ -368,6 +368,13 @@ mod tests {
                 && row.execution_mode == "containerized"
                 && row.command_entrypoint.as_deref() == Some("ngsbriggs")
                 && row.container_id.as_deref() == Some("bijuxdna/ngsbriggs:0.1.3")
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "bam.genotyping"
+                && row.tool_id == "angsd"
+                && row.execution_mode == "containerized"
+                && row.command_entrypoint.as_deref() == Some("angsd")
+                && row.container_id.as_deref() == Some("bijuxdna/angsd")
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.overlap_correction"
@@ -496,11 +503,18 @@ mod tests {
 
         assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_VERSION);
         assert_eq!(config.classification_scope, STAGE_TOOL_CONTAINERS_SCOPE);
-        assert_eq!(config.rows.len(), 107);
+        assert_eq!(config.rows.len(), 108);
         assert!(config.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()
                 || row.host_binary_mode.is_some()
+        }));
+        assert!(config.rows.iter().any(|row| {
+            row.stage_id == "bam.genotyping"
+                && row.tool_id == "angsd"
+                && row.execution_mode == "containerized"
+                && row.command_entrypoint.as_deref() == Some("angsd")
+                && row.container_id.as_deref() == Some("bijuxdna/angsd")
         }));
         assert!(config.rows.iter().any(|row| {
             row.stage_id == "fastq.detect_adapters"

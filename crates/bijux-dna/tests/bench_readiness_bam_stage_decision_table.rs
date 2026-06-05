@@ -56,17 +56,14 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
         .expect("decision_counts object");
     assert_eq!(
         decision_counts.get("benchmark_ready").and_then(serde_json::Value::as_u64),
-        Some(21)
+        Some(22)
     );
     assert!(
         decision_counts.get("needs_corpus").is_none(),
         "the governed BAM stage decision table should no longer carry needs_corpus rows"
     );
     assert_eq!(decision_counts.get("needs_parser").and_then(serde_json::Value::as_u64), Some(2));
-    assert_eq!(
-        decision_counts.get("future_not_in_hpc_round").and_then(serde_json::Value::as_u64),
-        Some(1)
-    );
+    assert!(decision_counts.get("future_not_in_hpc_round").is_none());
     assert!(
         decision_counts.get("needs_adapter").is_none(),
         "the governed BAM stage decision table currently carries no needs_adapter rows"
@@ -434,15 +431,21 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
         }),
         "bam.recalibration must now be benchmark_ready through the governed gatk low-coverage recalibration row"
     );
-    for stage_id in ["bam.genotyping"] {
-        assert!(
-            rows.iter().any(|row| {
-                row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
-                    && row.get("decision").and_then(serde_json::Value::as_str)
-                        == Some("future_not_in_hpc_round")
-                    && row.get("primary_tool_id").is_some_and(serde_json::Value::is_null)
-            }),
-            "{stage_id} must remain explicitly future_not_in_hpc_round until it enters the governed BAM benchmark registry"
-        );
-    }
+    assert!(
+        rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
+                && row.get("decision").and_then(serde_json::Value::as_str)
+                    == Some("benchmark_ready")
+                && row.get("primary_tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
+                && row.get("selected_tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("supported")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("parser_fixture_validated")
+                && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                    == Some("fixture:corpus-01-bam-mini")
+        }),
+        "bam.genotyping must now be benchmark_ready through the governed angsd candidate-panel row"
+    );
 }

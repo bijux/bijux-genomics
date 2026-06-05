@@ -436,12 +436,14 @@ mod tests {
                 && row.parser_status == "artifact_contract_only"
         }));
         assert!(report.rows.iter().any(|row| {
-            row.tool_id == "bcftools"
+            row.tool_id == "angsd"
                 && row.stage_id == "bam.genotyping"
-                && super::benchmark_status_label(row.benchmark_status) == "not_benchmark_ready"
-                && super::adapter_coverage_label(row.adapter_coverage) == "missing"
-                && super::readiness_gap_label(row.readiness_gap) == "support"
-                && row.support_status == "missing_contract"
+                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
+                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
+                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.support_status == "supported"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
         }));
     }
 
@@ -504,10 +506,10 @@ mod tests {
         assert!(
             rows.iter().any(|row| {
                 row.starts_with(
-                    "bcftools\tbam.genotyping\tnot_benchmark_ready\tmissing\tsupport\tmissing_contract\tdeclared_only\tartifact_contract_only\tplanner_only\t"
+                    "angsd\tbam.genotyping\tbenchmark_ready\tcovered\tnone\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\t"
                 )
             }),
-            "the governed BAM genotyping support gap must remain visible through the bcftools row"
+            "the governed BAM genotyping row must be benchmark-ready and adapter-covered through the owned angsd fixture"
         );
     }
 }

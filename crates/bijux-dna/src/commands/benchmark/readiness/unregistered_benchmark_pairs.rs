@@ -201,10 +201,10 @@ mod tests {
         .expect("render unregistered benchmark pairs");
 
         assert_eq!(report.schema_version, UNREGISTERED_BENCHMARK_PAIRS_SCHEMA_VERSION);
-        assert_eq!(report.unregistered_pair_count, 8);
+        assert_eq!(report.unregistered_pair_count, 5);
         assert!(!report.ok, "report must fail while registry drift remains");
         assert_eq!(report.domain_counts.get("fastq"), Some(&5));
-        assert_eq!(report.domain_counts.get("bam"), Some(&3));
+        assert_eq!(report.domain_counts.get("bam"), None);
         assert!(report.rows.iter().any(|row| {
             row.domain == "fastq"
                 && row.stage_id == "fastq.estimate_library_complexity_prealign"
@@ -212,14 +212,13 @@ mod tests {
                 && row.registry_status == "tool_registered_pair_missing"
                 && row.registered_stage_ids == vec!["fastq.detect_duplicates_premerge".to_string()]
         }));
-        assert!(report.rows.iter().any(|row| {
-            row.domain == "bam"
-                && row.stage_id == "bam.genotyping"
-                && row.tool_id == "angsd"
-                && row.registry_status == "tool_registered_pair_missing"
-                && row.registered_stage_ids
-                    == vec!["bam.kinship".to_string(), "bam.sex".to_string()]
-        }));
+        assert!(
+            !report
+                .rows
+                .iter()
+                .any(|row| row.domain == "bam" && row.stage_id == "bam.genotyping"),
+            "bam.genotyping must leave the registry-drift slice once angsd is registered in production"
+        );
         assert!(
             !report.rows.iter().any(|row| {
                 row.domain == "bam"
