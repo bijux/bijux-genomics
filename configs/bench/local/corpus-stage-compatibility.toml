@@ -236,8 +236,10 @@ compatibility_note = "The governed BAM corpus owns the ancient-like damage fixtu
 
 [[mappings]]
 stage_id = "bam.bias_mitigation"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed corpus fixture yet owns a GC-bias mitigation contract with before-and-after metric expectations."
+fixture_id = "corpus-01-bam-mini"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+compatibility_note = "The general BAM corpus now owns the GC-window ladder fixture and governed before-and-after bias expectations needed for local bias-mitigation smoke checks."
 
 [[mappings]]
 stage_id = "bam.complexity"

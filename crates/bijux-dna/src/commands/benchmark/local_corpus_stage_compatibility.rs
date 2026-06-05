@@ -455,9 +455,9 @@ mod tests {
         assert_eq!(report.fixture_count, 5);
         assert_eq!(report.stage_count, 51);
         assert_eq!(report.fixture_backed_stage_count + report.planner_only_stage_count, 51);
-        assert_eq!(report.corpus_family_counts.get("corpus-01"), Some(&35));
+        assert_eq!(report.corpus_family_counts.get("corpus-01"), Some(&38));
         assert_eq!(report.corpus_family_counts.get("corpus-02"), Some(&1));
-        assert_eq!(report.corpus_family_counts.get("corpus-03"), Some(&4));
+        assert_eq!(report.corpus_family_counts.get("corpus-03"), Some(&5));
         assert!(
             report.stages.iter().any(|stage| {
                 stage.stage_id == "fastq.detect_adapters"
@@ -485,6 +485,13 @@ mod tests {
                     && stage.fixture_id.as_deref() == Some("corpus-01-bam-mini")
             }),
             "bam.authenticity must map to the governed BAM corpus once ancient-like damage coverage is owned there"
+        );
+        assert!(
+            report.stages.iter().any(|stage| {
+                stage.stage_id == "bam.bias_mitigation"
+                    && stage.fixture_id.as_deref() == Some("corpus-01-bam-mini")
+            }),
+            "bam.bias_mitigation must map to the governed BAM corpus once the GC-window ladder fixture owns before-and-after bias expectations"
         );
         assert!(
             report.stages.iter().any(|stage| {
