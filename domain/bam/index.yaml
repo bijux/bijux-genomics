@@ -57,6 +57,7 @@ tool_ids:
 governed_stage_ids:
   - bam.align
   - bam.authenticity
+  - bam.bias_mitigation
   - bam.contamination
   - bam.coverage
   - bam.damage
@@ -85,6 +86,7 @@ governed_tool_ids:
   - mapdamage2
   - mosdepth
   - multiqc
+  - ngsbriggs
   - picard
   - pmdtools
   - preseq
