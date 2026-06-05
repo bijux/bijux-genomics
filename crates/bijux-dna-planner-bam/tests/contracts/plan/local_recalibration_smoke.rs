@@ -38,55 +38,59 @@ fn local_recalibration_smoke_plans_use_governed_skip_case() -> Result<()> {
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-recalibration-low-coverage-skip")
+        .find(|case| case.sample_id == "human_like_recalibration_low_coverage")
         .unwrap_or_else(|| panic!("governed BAM recalibration case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.recalibration");
     assert_eq!(case.plan.tool_id.as_str(), "gatk");
     assert_eq!(case.plan.resources.threads, 2);
     assert_eq!(
         case.bam,
-        PathBuf::from("assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam"
+        )
     );
     assert_eq!(
         case.reference,
-        PathBuf::from("assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta")
+        PathBuf::from("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
     );
     assert_eq!(
         case.known_sites,
-        vec![PathBuf::from("assets/toy/core-v1/vcf/recalibration_known_sites.vcf")]
+        vec![PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"
+        )]
     );
     assert_eq!(case.requested_mode, bijux_dna_domain_bam::params::BqsrMode::Standard);
     assert_eq!(case.effective_mode, bijux_dna_domain_bam::params::BqsrMode::Skip);
-    assert_eq!(case.min_mean_coverage, 0.1);
-    assert_eq!(case.min_breadth_1x, 0.05);
-    assert!((case.observed_mean_coverage - 0.024).abs() <= 1e-9);
-    assert!((case.observed_breadth_1x - 0.024).abs() <= 1e-9);
+    assert_eq!(case.min_mean_coverage, 0.2);
+    assert_eq!(case.min_breadth_1x, 0.2);
+    assert!((case.observed_mean_coverage - 0.192).abs() <= 1e-9);
+    assert!((case.observed_breadth_1x - 0.192).abs() <= 1e-9);
     assert_eq!(case.expected_status, "skipped");
     assert_eq!(case.expected_reason, "coverage_below_gate");
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/bam.recalibration/core-v1-recalibration-low-coverage-skip/gatk"
+            "target/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk"
         )
     );
     assert_eq!(
         case.plan.params["bam"],
-        serde_json::json!("assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam")
+        serde_json::json!("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam")
     );
     assert_eq!(
         case.plan.params["reference"],
-        serde_json::json!("assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta")
+        serde_json::json!("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
     );
     assert_eq!(
         case.plan.params["known_sites"],
-        serde_json::json!(["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"])
+        serde_json::json!(["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
     );
     assert_eq!(case.plan.params["requested_mode"], serde_json::json!("standard"));
     assert_eq!(case.plan.params["mode"], serde_json::json!("skip"));
     assert_eq!(case.plan.params["status"], serde_json::json!("skipped"));
     assert_eq!(case.plan.params["decision_reason"], serde_json::json!("coverage_below_gate"));
-    assert_eq!(case.plan.params["observed_mean_coverage"], serde_json::json!(0.024));
-    assert_eq!(case.plan.params["observed_breadth_1x"], serde_json::json!(0.024));
+    assert_eq!(case.plan.params["observed_mean_coverage"], serde_json::json!(0.192));
+    assert_eq!(case.plan.params["observed_breadth_1x"], serde_json::json!(0.192));
 
     let input_names = case
         .plan
@@ -119,7 +123,7 @@ fn local_recalibration_smoke_plans_use_governed_skip_case() -> Result<()> {
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.recalibration/core-v1-recalibration-low-coverage-skip/gatk/recal.summary.json"
+            "target/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.summary.json"
         )
     );
 
@@ -157,12 +161,12 @@ output_dir = "target/local-smoke/bam.recalibration"
 
 [[cases]]
 sample_id = " "
-bam = "assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam"
-reference = "assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta"
-known_sites = ["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"]
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+known_sites = ["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"]
 mode = "standard"
-min_mean_coverage = 0.1
-min_breadth_1x = 0.05
+min_mean_coverage = 0.2
+min_breadth_1x = 0.2
 expected_status = "skipped"
 expected_reason = "coverage_below_gate"
 "#,
@@ -187,23 +191,23 @@ output_dir = "target/local-smoke/bam.recalibration"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam"
-reference = "assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta"
-known_sites = ["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"]
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+known_sites = ["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"]
 mode = "standard"
-min_mean_coverage = 0.1
-min_breadth_1x = 0.05
+min_mean_coverage = 0.2
+min_breadth_1x = 0.2
 expected_status = "skipped"
 expected_reason = "coverage_below_gate"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam"
-reference = "assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta"
-known_sites = ["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"]
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+known_sites = ["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"]
 mode = "standard"
-min_mean_coverage = 0.1
-min_breadth_1x = 0.05
+min_mean_coverage = 0.2
+min_breadth_1x = 0.2
 expected_status = "skipped"
 expected_reason = "coverage_below_gate"
 "#,
@@ -238,19 +242,19 @@ bam = "{bam}"
 reference = "{reference}"
 known_sites = ["{known_sites}"]
 mode = "standard"
-min_mean_coverage = 0.1
-min_breadth_1x = 0.05
+min_mean_coverage = 0.2
+min_breadth_1x = 0.2
 expected_status = "ready_to_run"
 expected_reason = "coverage_below_gate"
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam")
                 .display(),
             reference = repo_root
-                .join("assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             known_sites =
-                repo_root.join("assets/toy/core-v1/vcf/recalibration_known_sites.vcf").display(),
+                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf").display(),
         ),
     )?;
 
@@ -283,19 +287,19 @@ bam = "{bam}"
 reference = "{reference}"
 known_sites = ["{known_sites}"]
 mode = "standard"
-min_mean_coverage = 0.1
-min_breadth_1x = 0.05
+min_mean_coverage = 0.2
+min_breadth_1x = 0.2
 expected_status = "skipped"
 expected_reason = "requested_skip_mode"
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/recalibration_low_coverage_skip.sam")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam")
                 .display(),
             reference = repo_root
-                .join("assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             known_sites =
-                repo_root.join("assets/toy/core-v1/vcf/recalibration_known_sites.vcf").display(),
+                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf").display(),
         ),
     )?;
 
