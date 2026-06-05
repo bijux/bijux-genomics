@@ -46,7 +46,7 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
         payload["schema_version"],
         serde_json::json!("bijux.bam.damage.local_smoke.report.v1")
     );
-    assert_eq!(payload["sample_id"], serde_json::json!("core-v1-damage-short-fragments"));
+    assert_eq!(payload["sample_id"], serde_json::json!("adna_damage_non_udg"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(payload["method"], serde_json::json!("pydamage"));
     assert_eq!(payload["tools_seen"], serde_json::json!(["pydamage", "mapdamage2"]));

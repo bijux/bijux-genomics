@@ -18,12 +18,17 @@ fn local_damage_smoke_plans_use_governed_bam_fixture() -> Result<()> {
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-damage-short-fragments")
+        .find(|case| case.sample_id == "adna_damage_non_udg")
         .unwrap_or_else(|| panic!("governed BAM damage case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.damage");
     assert_eq!(case.plan.tool_id.as_str(), "pydamage");
     assert_eq!(case.plan.resources.threads, 2);
-    assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/damage_short_fragments.sam"));
+    assert_eq!(
+        case.bam,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
+        )
+    );
     assert_eq!(case.expected_terminal_c_to_t_5p, 0.18);
     assert_eq!(case.expected_terminal_g_to_a_3p, 0.11);
     assert_eq!(case.expected_short_fragment_fraction, 1.0);
@@ -31,11 +36,13 @@ fn local_damage_smoke_plans_use_governed_bam_fixture() -> Result<()> {
     assert!(!case.expected_strict_profile_upgraded);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.damage/core-v1-damage-short-fragments/pydamage")
+        PathBuf::from("target/local-smoke/bam.damage/adna_damage_non_udg/pydamage")
     );
     assert_eq!(
         case.plan.params["bam"],
-        serde_json::json!("assets/toy/core-v1/bam/damage_short_fragments.sam")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
+        )
     );
     assert_eq!(case.plan.params["udg_model"], serde_json::json!("non_udg"));
     assert_eq!(case.plan.params["damage_tool_profile"], serde_json::json!("ancient_dna_evidence"));
@@ -62,9 +69,7 @@ fn local_damage_smoke_plans_use_governed_bam_fixture() -> Result<()> {
         .unwrap_or_else(|| panic!("damage report output missing from BAM plan"));
     assert_eq!(
         damage_output.path,
-        PathBuf::from(
-            "target/local-smoke/bam.damage/core-v1-damage-short-fragments/pydamage/damage.summary.json"
-        )
+        PathBuf::from("target/local-smoke/bam.damage/adna_damage_non_udg/pydamage/damage.summary.json")
     );
 
     Ok(())

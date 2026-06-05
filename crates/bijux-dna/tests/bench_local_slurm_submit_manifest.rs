@@ -146,7 +146,7 @@ fn bench_local_render_slurm_submit_manifest_captures_governed_metadata_fields() 
     );
     assert_eq!(
         bam_damage.get("sample_id").and_then(serde_json::Value::as_str),
-        Some("core-v1-damage-short-fragments")
+        Some("adna_damage_non_udg")
     );
     assert_eq!(
         bam_damage.get("sample_ids").and_then(serde_json::Value::as_array).map(|rows| rows.len()),
