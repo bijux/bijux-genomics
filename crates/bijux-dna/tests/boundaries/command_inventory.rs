@@ -90,6 +90,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-commands",
     "bijux-dna bench readiness render-command-argv",
     "bijux-dna bench readiness render-stage-tool-containers",
+    "bijux-dna bench readiness render-stage-tool-assets",
     "bijux-dna bench readiness render-stage-tool-resources",
     "bijux-dna bench readiness render-bam-adapter-output-contract",
     "bijux-dna bench readiness render-bam-stage-decision-table",
