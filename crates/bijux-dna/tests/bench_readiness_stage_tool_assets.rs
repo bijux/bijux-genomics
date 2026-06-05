@@ -98,23 +98,26 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
                 .is_some_and(|value| !value.trim().is_empty())
     }));
 
-    let taxonomy = rows
-        .iter()
-        .find(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.screen_taxonomy")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("kraken2")
-                && row.get("asset_role").and_then(serde_json::Value::as_str)
-                    == Some("taxonomy_database_root")
-        })
-        .expect("fastq taxonomy kraken2 asset row");
-    assert_eq!(
-        taxonomy.get("asset_id").and_then(serde_json::Value::as_str),
-        Some("taxonomy_reference")
-    );
-    assert_eq!(
-        taxonomy.get("asset_path").and_then(serde_json::Value::as_str),
-        Some("assets/reference/taxonomy/references/mock_community_taxonomy")
-    );
+    for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+        let taxonomy = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.screen_taxonomy")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                    && row.get("asset_role").and_then(serde_json::Value::as_str)
+                        == Some("taxonomy_database_root")
+            })
+            .expect("fastq taxonomy asset row");
+        assert_eq!(
+            taxonomy.get("asset_id").and_then(serde_json::Value::as_str),
+            Some("taxonomy_reference")
+        );
+        assert_eq!(
+            taxonomy.get("asset_path").and_then(serde_json::Value::as_str),
+            Some("assets/reference/taxonomy/references/mock_community_taxonomy")
+        );
+    }
 
     let rrna = rows
         .iter()

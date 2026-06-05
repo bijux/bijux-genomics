@@ -150,7 +150,9 @@ Visible aliases are part of the operator surface:
   governed asset-binding row per benchmark-ready FASTQ or BAM stage-tool command that depends on
   external taxonomy databases, reference indexes, rRNA references, contamination panels,
   haplogroup panels, genotyping sites and regions, or recalibration known-sites inputs, keeping
-  the HPC-facing asset contract explicit by `asset_role`, `asset_id`, and `asset_path`.
+  the HPC-facing asset contract explicit by `asset_role`, `asset_id`, and `asset_path`. The FASTQ
+  taxonomy slice is only accepted when `centrifuge`, `kaiju`, `kraken2`, and `krakenuniq` all
+  keep their governed `taxonomy_database_root` binding.
 - `bijux-dna bench readiness render-stage-tool-resources`
   `render-stage-tool-resources` writes `configs/bench/local/stage-tool-resources.toml` with one
   governed row per benchmark-ready FASTQ or BAM stage-tool command, carrying non-zero `threads`,
@@ -228,6 +230,8 @@ Visible aliases are part of the operator surface:
   `corpus_family_id` plus `fixture_id` or a precise `excluded_reason`. The report validates that
   every benchmark-ready FASTQ row maps to the correct corpus family (`corpus-01`, `corpus-02`, or
   `corpus-03`) while keeping planner-only or intentionally excluded corpus gaps explicit in a
+  reviewer-stable table, and it refuses taxonomy coverage drift unless `centrifuge`, `kaiju`,
+  `kraken2`, and `krakenuniq` all stay on `corpus-02-edna-mini`.
   reviewer-visible contract.
 - `bijux-dna bench readiness render-fastq-normalized-metrics-schema`
   `render-fastq-normalized-metrics-schema` writes
@@ -378,8 +382,8 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local validate-taxonomy-database-fixture`
   `validate-taxonomy-database-fixture` checks governed taxonomy database fixture manifests such as
   `tests/fixtures/databases/taxonomy-mini/manifest.toml` for declared taxa, lineage-table
-  consistency, sequence-index paths, classifier-compatibility claims, source-manifest integrity,
-  and backend bundle shape.
+  consistency, per-classifier backend index paths, classifier-compatibility claims, source-manifest
+  integrity, and backend bundle shape.
 - `bijux-dna bench local validate-slurm-dependencies`
   `validate-slurm-dependencies` writes `target/slurm-dry-run/dependency-check.json` and refuses
   any dry-run job whose dependencies are split or duplicated across both the submit manifest and
