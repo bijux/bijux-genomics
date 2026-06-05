@@ -1,0 +1,3 @@
+reads_in=1000
+reads_out=845
+reads_removed_low_complexity=155
