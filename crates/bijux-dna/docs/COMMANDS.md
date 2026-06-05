@@ -137,6 +137,10 @@ Visible aliases are part of the operator surface:
   benchmark-ready FASTQ or BAM stage-tool-fixture binding, fixing the expected result root,
   `stage-result.json` path, and output artifact IDs before HPC benchmark submission or
   report-completeness checks proceed.
+- `bijux-dna bench readiness render-fastq-report-map`
+  `render-fastq-report-map` writes `target/bench-readiness/fastq-report-map.tsv` with one
+  governed row per FASTQ benchmark-ready stage, fixing the report section, summary table, and
+  benchmark anchor tool that downstream stage-centric benchmark reporting must use.
 - `bijux-dna bench readiness render-corpus-asset-coverage-gate`
   `render-corpus-asset-coverage-gate` writes
   `target/bench-readiness/gate-corpus-assets-complete.json` with one governed row per FASTQ or
