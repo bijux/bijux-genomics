@@ -115,6 +115,12 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench corpus-fastq-report`
 - `bijux-dna bench corpus-fastq-publication-status`
 - `bijux-dna bench corpus-fastq-published-dossiers`
+- `bijux-dna bench readiness render-adapter-missing-input-tests`
+  `render-adapter-missing-input-tests` writes
+  `target/bench-readiness/adapter-missing-input-tests.json` with one governed structured failure
+  row per benchmark-ready adapter probe, proving that missing FASTQ, BAM, reference, and taxonomy
+  database inputs fail early through the real planner entrypoints with the exact missing input role
+  preserved in reviewer-visible JSON.
 - `bijux-dna bench readiness render-commands`
   `render-commands` writes `target/bench-readiness/rendered-commands.sh` with one governed shell
   command per local benchmark stage command, preserving a parseable `bash` script that can be
