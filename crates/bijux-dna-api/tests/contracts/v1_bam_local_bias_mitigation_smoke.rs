@@ -51,7 +51,7 @@ fn write_local_bias_mitigation_smoke_report_materializes_governed_outputs() -> R
         payload["schema_version"],
         serde_json::json!("bijux.bam.bias_mitigation.local_smoke.report.v1")
     );
-    assert_eq!(payload["sample_id"], serde_json::json!("core-v1-bias-mitigation-gc-window-ladder"));
+    assert_eq!(payload["sample_id"], serde_json::json!("human_like_gc_window_ladder"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(payload["method"], serde_json::json!("mapdamage2"));
     assert_eq!(payload["metric_name"], serde_json::json!("gc_bias_score"));
@@ -105,7 +105,7 @@ fn write_local_bias_mitigation_smoke_report_materializes_governed_outputs() -> R
     assert_eq!(
         summary_json["reference_fasta"],
         serde_json::json!(repo_root
-            .join("assets/toy/core-v1/bam/bias_mitigation_reference_windows.fasta")
+            .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
             .display()
             .to_string())
     );

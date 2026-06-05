@@ -987,7 +987,7 @@ fn bench_local_materialize_stage_bam_bias_mitigation_json_writes_governed_smoke_
     );
     assert_eq!(
         report.get("sample_id").and_then(serde_json::Value::as_str),
-        Some("core-v1-bias-mitigation-gc-window-ladder")
+        Some("human_like_gc_window_ladder")
     );
     assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(report.get("method").and_then(serde_json::Value::as_str), Some("mapdamage2"));

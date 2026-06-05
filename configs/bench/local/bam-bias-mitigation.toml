@@ -4,9 +4,9 @@ threads = 2
 output_dir = "target/local-smoke/bam.bias_mitigation"
 
 [[cases]]
-sample_id = "core-v1-bias-mitigation-gc-window-ladder"
-bam = "assets/toy/core-v1/bam/bias_mitigation_gc_window_reads.sam"
-reference = "assets/toy/core-v1/bam/bias_mitigation_reference_windows.fasta"
+sample_id = "human_like_gc_window_ladder"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
 window_size = 10
 gc_bias_correction = true
 map_bias_correction = false

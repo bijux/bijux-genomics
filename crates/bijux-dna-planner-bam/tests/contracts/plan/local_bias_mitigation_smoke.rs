@@ -40,18 +40,22 @@ fn local_bias_mitigation_smoke_plans_use_governed_bam_reference_and_expectations
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-bias-mitigation-gc-window-ladder")
+        .find(|case| case.sample_id == "human_like_gc_window_ladder")
         .unwrap_or_else(|| panic!("governed BAM bias-mitigation case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.bias_mitigation");
     assert_eq!(case.plan.tool_id.as_str(), "mapdamage2");
     assert_eq!(case.plan.resources.threads, 2);
     assert_eq!(
         case.bam,
-        PathBuf::from("assets/toy/core-v1/bam/bias_mitigation_gc_window_reads.sam")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+        )
     );
     assert_eq!(
         case.reference,
-        PathBuf::from("assets/toy/core-v1/bam/bias_mitigation_reference_windows.fasta")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+        )
     );
     assert_eq!(case.window_size, 10);
     assert_eq!(case.expected_metric_name, "gc_bias_score");
@@ -59,17 +63,19 @@ fn local_bias_mitigation_smoke_plans_use_governed_bam_reference_and_expectations
     assert!((case.expected_post_mitigation_metric - 0.125).abs() <= 1e-9);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from(
-            "target/local-smoke/bam.bias_mitigation/core-v1-bias-mitigation-gc-window-ladder/mapdamage2"
-        )
+        PathBuf::from("target/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2")
     );
     assert_eq!(
         case.plan.params["bam"],
-        serde_json::json!("assets/toy/core-v1/bam/bias_mitigation_gc_window_reads.sam")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+        )
     );
     assert_eq!(
         case.plan.params["reference"],
-        serde_json::json!("assets/toy/core-v1/bam/bias_mitigation_reference_windows.fasta")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+        )
     );
     assert_eq!(case.plan.params["window_size"], serde_json::json!(10));
     assert_eq!(case.plan.params["gc_bias_correction"], serde_json::json!(true));
@@ -102,9 +108,7 @@ fn local_bias_mitigation_smoke_plans_use_governed_bam_reference_and_expectations
         .unwrap_or_else(|| panic!("bias-mitigation summary output missing from BAM plan"));
     assert_eq!(
         summary_output.path,
-        PathBuf::from(
-            "target/local-smoke/bam.bias_mitigation/core-v1-bias-mitigation-gc-window-ladder/mapdamage2/bias.summary.json"
-        )
+        PathBuf::from("target/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.summary.json")
     );
 
     Ok(())
@@ -145,10 +149,14 @@ expected_pre_mitigation_metric = 0.25
 expected_post_mitigation_metric = 0.125
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/bias_mitigation_gc_window_reads.sam")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam",
+                )
                 .display(),
             reference = repo_root
-                .join("assets/toy/core-v1/bam/bias_mitigation_reference_windows.fasta")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
+                )
                 .display(),
         ),
     )?;
@@ -188,10 +196,14 @@ expected_pre_mitigation_metric = 0.3
 expected_post_mitigation_metric = 0.125
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/bias_mitigation_gc_window_reads.sam")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam",
+                )
                 .display(),
             reference = repo_root
-                .join("assets/toy/core-v1/bam/bias_mitigation_reference_windows.fasta")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
+                )
                 .display(),
         ),
     )?;
@@ -231,10 +243,14 @@ expected_pre_mitigation_metric = 0.25
 expected_post_mitigation_metric = 0.2
 "#,
             bam = repo_root
-                .join("assets/toy/core-v1/bam/bias_mitigation_gc_window_reads.sam")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam",
+                )
                 .display(),
             reference = repo_root
-                .join("assets/toy/core-v1/bam/bias_mitigation_reference_windows.fasta")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
+                )
                 .display(),
         ),
     )?;
@@ -261,8 +277,8 @@ output_dir = "target/local-smoke/bam.bias_mitigation"
 
 [[cases]]
 sample_id = " "
-bam = "assets/toy/core-v1/bam/bias_mitigation_gc_window_reads.sam"
-reference = "assets/toy/core-v1/bam/bias_mitigation_reference_windows.fasta"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
 window_size = 10
 gc_bias_correction = true
 map_bias_correction = false
@@ -291,8 +307,8 @@ output_dir = "target/local-smoke/bam.bias_mitigation"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/bias_mitigation_gc_window_reads.sam"
-reference = "assets/toy/core-v1/bam/bias_mitigation_reference_windows.fasta"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
 window_size = 10
 gc_bias_correction = true
 map_bias_correction = false
@@ -302,8 +318,8 @@ expected_post_mitigation_metric = 0.125
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/bias_mitigation_gc_window_reads.sam"
-reference = "assets/toy/core-v1/bam/bias_mitigation_reference_windows.fasta"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
 window_size = 10
 gc_bias_correction = true
 map_bias_correction = false
