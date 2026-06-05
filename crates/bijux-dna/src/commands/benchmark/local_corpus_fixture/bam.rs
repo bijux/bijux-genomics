@@ -407,10 +407,17 @@ mod tests {
 
         assert_eq!(report.schema_version, BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.corpus_id, "corpus-01-bam-mini");
-        assert_eq!(report.sample_count, 15);
+        assert_eq!(report.sample_count, 16);
         assert_eq!(
             report.reference_contigs,
-            vec!["chr1".to_string(), "chr2".to_string(), "chranc".to_string(), "chrgc".to_string(),]
+            vec![
+                "chr1".to_string(),
+                "chr2".to_string(),
+                "chrX".to_string(),
+                "chrY".to_string(),
+                "chranc".to_string(),
+                "chrgc".to_string(),
+            ]
         );
         assert!(report.valid);
         assert!(report.samples.iter().any(|sample| {
@@ -513,6 +520,23 @@ mod tests {
                 && sample.observed_contigs == vec!["chr1".to_string()]
                 && sample.observed_header_sample_ids
                     == vec!["human_like_insert_size_triplet".to_string()]
+        }));
+        assert!(report.samples.iter().any(|sample| {
+            sample.sample_id == "human_like_xy_autosome_coverage"
+                && sample.observed_contigs
+                    == vec!["chr1".to_string(), "chrX".to_string(), "chrY".to_string()]
+                && sample.observed_header_sample_ids
+                    == vec!["human_like_xy_autosome_coverage".to_string()]
+                && sample.observed_read_group_ids
+                    == vec!["rg-sex-human-like".to_string()]
+                && sample.observed_record_count == 5
+                && sample.source_paths
+                    == vec![
+                        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam"
+                            .to_string(),
+                        "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+                            .to_string(),
+                    ]
         }));
         assert!(report.samples.iter().any(|sample| {
             sample.sample_id == "human_like_mixed_filter_constraints"
