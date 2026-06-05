@@ -165,24 +165,34 @@ pub fn parse_mapdamage2_misincorporation(
     let raw = std::fs::read_to_string(path).context("read mapdamage2 misincorporation")?;
     let mut c_to_t = None;
     let mut g_to_a = None;
-    for line in raw.lines() {
+    for (line_no, line) in raw.lines().enumerate() {
         let trimmed = line.trim();
         if trimmed.is_empty() || trimmed.starts_with('#') || trimmed.starts_with("pos") {
             continue;
         }
         let parts: Vec<&str> = trimmed.split_whitespace().collect();
         if parts.len() < 3 {
-            continue;
+            anyhow::bail!(
+                "mapdamage2 misincorporation line {} has {} columns",
+                line_no + 1,
+                parts.len()
+            );
         }
-        let c_to_t_val = parts[1].parse::<f64>().unwrap_or(0.0);
-        let g_to_a_val = parts[2].parse::<f64>().unwrap_or(0.0);
+        let c_to_t_val = parts[1]
+            .parse::<f64>()
+            .with_context(|| format!("parse mapdamage2 c_to_t on line {}", line_no + 1))?;
+        let g_to_a_val = parts[2]
+            .parse::<f64>()
+            .with_context(|| format!("parse mapdamage2 g_to_a on line {}", line_no + 1))?;
         c_to_t = Some(c_to_t_val);
         g_to_a = Some(g_to_a_val);
         break;
     }
+    let c_to_t = c_to_t.ok_or_else(|| anyhow::anyhow!("mapdamage2 report contains no data rows"))?;
+    let g_to_a = g_to_a.ok_or_else(|| anyhow::anyhow!("mapdamage2 report contains no data rows"))?;
     Ok(DamageMetricsV1 {
-        c_to_t_5p: c_to_t.unwrap_or(0.0),
-        g_to_a_3p: g_to_a.unwrap_or(0.0),
+        c_to_t_5p: c_to_t,
+        g_to_a_3p: g_to_a,
         pmd_score_histogram: Vec::new(),
     })
 }

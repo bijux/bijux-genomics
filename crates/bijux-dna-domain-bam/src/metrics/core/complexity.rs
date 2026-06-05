@@ -28,16 +28,21 @@ fn u64_to_f64(value: u64) -> f64 {
 pub fn parse_preseq_estimates(path: &std::path::Path) -> anyhow::Result<ComplexityMetricsV1> {
     let raw = std::fs::read_to_string(path).context("read preseq output")?;
     let mut points = Vec::new();
-    for line in raw.lines() {
+    for (line_no, line) in raw.lines().enumerate() {
         if line.starts_with('#') || line.trim().is_empty() {
             continue;
         }
         let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts.len() >= 2 {
-            if let (Ok(x), Ok(y)) = (parts[0].parse::<u64>(), parts[1].parse::<u64>()) {
-                points.push((x, y));
-            }
+        if parts.len() < 2 {
+            anyhow::bail!("preseq line {} has {} columns", line_no + 1, parts.len());
         }
+        points.push((
+            parts[0].parse::<u64>().with_context(|| format!("parse preseq x on line {}", line_no + 1))?,
+            parts[1].parse::<u64>().with_context(|| format!("parse preseq y on line {}", line_no + 1))?,
+        ));
+    }
+    if points.is_empty() {
+        anyhow::bail!("preseq output contains no projection rows");
     }
     let observed = points.first().map_or(0, |(_, y)| *y);
     let saturation = if points.len() >= 2 {

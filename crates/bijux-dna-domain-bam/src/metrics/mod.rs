@@ -3,6 +3,7 @@
 mod catalog;
 pub mod core;
 pub mod downstream;
+mod raw_parser_contract;
 pub mod pre;
 
 pub use core::{
@@ -28,6 +29,10 @@ pub use downstream::{
 pub use pre::{
     parse_samtools_flagstat, parse_samtools_idxstats, parse_samtools_stats, AlignmentCountsV1,
     FragmentLengthSummaryV1, IdxstatsContigV1, IdxstatsSummaryV1, MapqSummaryV1,
+};
+pub use raw_parser_contract::{
+    evaluate_bam_raw_parser_failure_contracts, BamRawParserFailureClass,
+    BamRawParserFailureContractRow,
 };
 
 pub use crate::invariants::{
