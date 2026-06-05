@@ -6,15 +6,15 @@
 # last_updated = 2026-06-01
 
 schema_version = "bijux.bench.bam.local_haplogroups.v1"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam"
-bai = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai"
-reference_fasta = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
-reference_panel_id = "human-like-y-hg38-mini"
-reference_panel = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv"
+bam = "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam"
+bai = "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai"
+reference_fasta = "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+reference_panel_id = "adna-y-hg38-mini"
+reference_panel = "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
 tool_id = "yleaf"
-sample_id = "human_like_y_haplogroup_panel"
+sample_id = "adna_y_haplogroup_panel"
 reference_build = "hg38"
-population_scope = "human_y_haplogroup_panel"
+population_scope = "adna_y_haplogroup_panel"
 min_coverage = 2.0
 refuse_without_population_context = true
 threads = 2

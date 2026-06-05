@@ -22,14 +22,16 @@ fn local_authenticity_smoke_plans_use_governed_bam_fixture() -> Result<()> {
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "adna_like_damage")
+        .find(|case| case.sample_id == "adna_damage_non_udg")
         .unwrap_or_else(|| panic!("governed BAM authenticity case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.authenticity");
     assert_eq!(case.plan.tool_id.as_str(), "authenticct");
     assert_eq!(case.plan.resources.threads, 2);
     assert_eq!(
         case.bam,
-        PathBuf::from("tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
+        )
     );
     assert_eq!(case.damage_terminal_c_to_t_5p, 0.18);
     assert_eq!(case.damage_terminal_g_to_a_3p, 0.11);
@@ -55,11 +57,13 @@ fn local_authenticity_smoke_plans_use_governed_bam_fixture() -> Result<()> {
     );
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.authenticity/adna_like_damage/authenticct")
+        PathBuf::from("target/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct")
     );
     assert_eq!(
         case.plan.params["bam"],
-        serde_json::json!("tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
+        )
     );
     assert_eq!(case.plan.params["mode"], serde_json::json!("aggregate"));
     assert_eq!(case.plan.params["pmd_filter_enabled"], serde_json::json!(false));
@@ -85,7 +89,7 @@ fn local_authenticity_smoke_plans_use_governed_bam_fixture() -> Result<()> {
     assert_eq!(
         authenticity_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.authenticity/adna_like_damage/authenticct/authenticity.json"
+            "target/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.json"
         )
     );
 

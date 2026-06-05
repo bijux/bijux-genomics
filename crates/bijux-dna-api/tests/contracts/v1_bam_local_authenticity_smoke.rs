@@ -49,7 +49,7 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
         payload["schema_version"],
         serde_json::json!("bijux.bam.authenticity.local_smoke.report.v1")
     );
-    assert_eq!(payload["sample_id"], serde_json::json!("adna_like_damage"));
+    assert_eq!(payload["sample_id"], serde_json::json!("adna_damage_non_udg"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(payload["method"], serde_json::json!("authenticct"));
     assert_eq!(payload["score"], serde_json::json!(0.5333333333333333));
@@ -216,17 +216,17 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
         );
     }
     assert!(damage_path.ends_with(
-        "target/local-smoke/bam.authenticity/adna_like_damage/damage/damage.unified_metrics.json"
+        "target/local-smoke/bam.authenticity/adna_damage_non_udg/damage/damage.unified_metrics.json"
     ));
-    assert!(contamination_path.ends_with("target/local-smoke/bam.authenticity/adna_like_damage/contamination/contamination.summary.json"));
+    assert!(contamination_path.ends_with("target/local-smoke/bam.authenticity/adna_damage_non_udg/contamination/contamination.summary.json"));
     assert!(complexity_path.ends_with(
-        "target/local-smoke/bam.authenticity/adna_like_damage/complexity/complexity.summary.json"
+        "target/local-smoke/bam.authenticity/adna_damage_non_udg/complexity/complexity.summary.json"
     ));
     assert!(coverage_path.ends_with(
-        "target/local-smoke/bam.authenticity/adna_like_damage/coverage/coverage.regime.json"
+        "target/local-smoke/bam.authenticity/adna_damage_non_udg/coverage/coverage.regime.json"
     ));
     assert!(mapping_path.ends_with(
-        "target/local-smoke/bam.authenticity/adna_like_damage/mapping_summary/mapping_summary.json"
+        "target/local-smoke/bam.authenticity/adna_damage_non_udg/mapping_summary/mapping_summary.json"
     ));
 
     let report_json: serde_json::Value =
@@ -241,7 +241,7 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
         stage_metrics_json["schema_version"],
         serde_json::json!("bijux.bam.authenticity.local_smoke.metrics.v1")
     );
-    assert_eq!(stage_metrics_json["sample_id"], serde_json::json!("adna_like_damage"));
+    assert_eq!(stage_metrics_json["sample_id"], serde_json::json!("adna_damage_non_udg"));
     assert_eq!(stage_metrics_json["method"], serde_json::json!("authenticct"));
     assert_eq!(stage_metrics_json["expected_score"], serde_json::json!(0.5333333333333333));
     assert_eq!(stage_metrics_json["score"], serde_json::json!(0.5333333333333333));

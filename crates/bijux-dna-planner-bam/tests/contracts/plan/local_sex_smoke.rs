@@ -34,7 +34,7 @@ fn local_sex_smoke_plans_use_governed_bam_reference_and_expectations() -> Result
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "human_like_xy_autosome_coverage")
+        .find(|case| case.sample_id == "adna_xy_autosome_coverage")
         .unwrap_or_else(|| panic!("governed BAM sex case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.sex");
     assert_eq!(case.plan.tool_id.as_str(), "rxy");
@@ -42,13 +42,13 @@ fn local_sex_smoke_plans_use_governed_bam_reference_and_expectations() -> Result
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_xy_autosome_coverage.sam"
         )
     );
     assert_eq!(
         case.reference,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
         )
     );
     assert_eq!(case.chromosome_system, "xy");
@@ -62,18 +62,18 @@ fn local_sex_smoke_plans_use_governed_bam_reference_and_expectations() -> Result
     assert_eq!(case.expected_status, "ok");
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.sex/human_like_xy_autosome_coverage/rxy")
+        PathBuf::from("target/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy")
     );
     assert_eq!(
         case.plan.params["bam"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_xy_autosome_coverage.sam"
         )
     );
     assert_eq!(
         case.plan.params["reference"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
         )
     );
     assert_eq!(case.plan.params["chromosome_system"], serde_json::json!("xy"));
@@ -107,7 +107,7 @@ fn local_sex_smoke_plans_use_governed_bam_reference_and_expectations() -> Result
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.sex/human_like_xy_autosome_coverage/rxy/sex.summary.json"
+            "target/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.summary.json"
         )
     );
 

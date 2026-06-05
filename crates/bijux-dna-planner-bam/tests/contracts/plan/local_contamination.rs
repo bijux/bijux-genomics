@@ -56,7 +56,7 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(
         bam.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam"
         )
     );
 
@@ -69,7 +69,7 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(
         bai.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai"
         )
     );
 
@@ -82,7 +82,7 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(
         reference.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
         )
     );
 
@@ -95,7 +95,7 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(
         reference_panel.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
         )
     );
 
@@ -138,23 +138,23 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(
         plan.params["assumptions"],
         serde_json::json!(
-            "governed BAM corpus contamination panel with shared corpus reference for local contamination planning"
+            "governed aDNA BAM corpus contamination panel with shared non-UDG reference for local contamination planning"
         )
     );
     assert_eq!(
         plan.params["reference_panels"],
         serde_json::json!([
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
         ])
     );
     assert_eq!(
         plan.params["sample_id"],
-        serde_json::json!("human_like_contamination_panel_screen")
+        serde_json::json!("adna_contamination_panel_screen")
     );
     assert_eq!(plan.params["tool"], serde_json::json!("verifybamid2"));
     assert_eq!(
         plan.params["required_reference_digest"],
-        serde_json::json!("c2dc7ed50c21f1cf9663d03e215f6e0f25e8296ab5cded9efd941703cadbd07c")
+        serde_json::json!("ade9a8686ba2679e772a4ce5cf74fb805460070be21bfdbed523bc6d8e566b1c")
     );
     assert_eq!(plan.params["tool_scope"], serde_json::json!("nuclear"));
     assert_eq!(plan.effective_params["chromosome_system"], serde_json::json!("xy"));
@@ -162,12 +162,12 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(
         plan.effective_params["assumptions"],
         serde_json::json!(
-            "governed BAM corpus contamination panel with shared corpus reference for local contamination planning"
+            "governed aDNA BAM corpus contamination panel with shared non-UDG reference for local contamination planning"
         )
     );
     assert_eq!(
         plan.effective_params["required_reference_digest"],
-        serde_json::json!("c2dc7ed50c21f1cf9663d03e215f6e0f25e8296ab5cded9efd941703cadbd07c")
+        serde_json::json!("ade9a8686ba2679e772a4ce5cf74fb805460070be21bfdbed523bc6d8e566b1c")
     );
     assert_eq!(plan.effective_params["emit_confidence_caveats"], serde_json::json!(true));
 
@@ -177,11 +177,11 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         });
     assert!(
         command.contains(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai"
         ) && command.contains(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
         ) && command.contains(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
         )
             && command.contains("target/local-ready/bam.contamination/contamination")
             && command.contains("target/local-ready/bam.contamination/contamination.summary.json"),

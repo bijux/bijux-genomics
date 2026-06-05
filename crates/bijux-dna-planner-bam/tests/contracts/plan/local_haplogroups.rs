@@ -54,7 +54,7 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
     assert_eq!(
         bam.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam"
         )
     );
 
@@ -67,7 +67,7 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
     assert_eq!(
         bai.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai"
         )
     );
 
@@ -80,7 +80,7 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
     assert_eq!(
         reference.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
         )
     );
 
@@ -95,7 +95,7 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
     assert_eq!(
         reference_panel.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
         )
     );
 
@@ -110,23 +110,23 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
         PathBuf::from("target/local-ready/bam.haplogroups/haplogroups.json")
     );
 
-    assert_eq!(plan.params["reference_panel_id"], serde_json::json!("human-like-y-hg38-mini"));
+    assert_eq!(plan.params["reference_panel_id"], serde_json::json!("adna-y-hg38-mini"));
     assert_eq!(
         plan.params["reference_panel"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
         )
     );
     assert_eq!(
         plan.params["reference_fasta"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
         )
     );
     assert_eq!(plan.params["reference_build"], serde_json::json!("hg38"));
-    assert_eq!(plan.params["population_scope"], serde_json::json!("human_y_haplogroup_panel"));
+    assert_eq!(plan.params["population_scope"], serde_json::json!("adna_y_haplogroup_panel"));
     assert_eq!(plan.params["coverage_gate"], serde_json::json!({ "min_coverage": 2.0 }));
-    assert_eq!(plan.params["sample_id"], serde_json::json!("human_like_y_haplogroup_panel"));
+    assert_eq!(plan.params["sample_id"], serde_json::json!("adna_y_haplogroup_panel"));
     assert_eq!(plan.params["tool"], serde_json::json!("yleaf"));
     assert_eq!(plan.effective_params["min_coverage"], serde_json::json!(2.0));
 
@@ -136,11 +136,11 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
         });
     assert!(
         command.contains(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam"
         ) && command.contains(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai"
         ) && command.contains(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv"
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
         )
             && command.contains("target/local-ready/bam.haplogroups/haplogroups")
             && command.contains("--reference_genome hg38"),
