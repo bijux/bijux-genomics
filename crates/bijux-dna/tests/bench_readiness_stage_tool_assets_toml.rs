@@ -49,7 +49,7 @@ fn bench_readiness_stage_tool_assets_writes_governed_toml_file() {
     );
 
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 32);
+    assert_eq!(rows.len(), 36);
     assert!(rows.iter().all(|row| {
         row.get("asset_id")
             .and_then(toml::Value::as_str)
@@ -165,4 +165,22 @@ fn bench_readiness_stage_tool_assets_writes_governed_toml_file() {
             && row.get("asset_id").and_then(toml::Value::as_str)
                 == Some("human_like_recalibration_known_sites")
     }));
+    for tool_id in ["angsd", "king"] {
+        assert!(rows.iter().any(|row| {
+            row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.kinship")
+                && row.get("tool_id").and_then(toml::Value::as_str) == Some(tool_id)
+                && row.get("asset_role").and_then(toml::Value::as_str)
+                    == Some("reference_fasta")
+                && row.get("asset_id").and_then(toml::Value::as_str)
+                    == Some("corpus_01_bam_reference")
+        }));
+        assert!(rows.iter().any(|row| {
+            row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.kinship")
+                && row.get("tool_id").and_then(toml::Value::as_str) == Some(tool_id)
+                && row.get("asset_role").and_then(toml::Value::as_str)
+                    == Some("reference_panel")
+                && row.get("asset_id").and_then(toml::Value::as_str)
+                    == Some("human_like_relatedness_panel")
+        }));
+    }
 }
