@@ -46,7 +46,7 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
         payload.get("matrix_path").and_then(serde_json::Value::as_str),
         Some("configs/bench/local/corpus-stage-compatibility.toml")
     );
-    assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(
         payload.get("fixture_backed_stage_count").and_then(serde_json::Value::as_u64),
@@ -56,6 +56,15 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
         Some(3)
     );
+    let corpus_family_counts =
+        payload.get("corpus_family_counts").and_then(serde_json::Value::as_object).expect("family counts");
+    assert_eq!(corpus_family_counts.get("corpus-01"), Some(&serde_json::json!(19)));
+    assert_eq!(corpus_family_counts.get("corpus-01-bam"), Some(&serde_json::json!(19)));
+    assert_eq!(corpus_family_counts.get("corpus-01-adna-bam"), Some(&serde_json::json!(2)));
+    assert_eq!(corpus_family_counts.get("corpus-01-genotyping"), Some(&serde_json::json!(1)));
+    assert_eq!(corpus_family_counts.get("corpus-01-kinship"), Some(&serde_json::json!(1)));
+    assert_eq!(corpus_family_counts.get("corpus-02"), Some(&serde_json::json!(1)));
+    assert_eq!(corpus_family_counts.get("corpus-03"), Some(&serde_json::json!(5)));
 
     let stages = payload.get("stages").and_then(serde_json::Value::as_array).expect("stages array");
     assert_eq!(stages.len(), 51);
@@ -118,11 +127,11 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
         stages.iter().any(|stage| {
             stage.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.kinship")
                 && stage.get("fixture_id").and_then(serde_json::Value::as_str)
-                    == Some("corpus-01-bam-mini")
+                    == Some("corpus-01-kinship-mini")
                 && stage.get("compatibility_kind").and_then(serde_json::Value::as_str)
                     == Some("fixture")
         }),
-        "bam.kinship must map to the governed BAM corpus once low-overlap and related-pair fixtures are owned there"
+        "bam.kinship must map to the governed kinship BAM corpus once low-overlap and related-pair fixtures are owned there"
     );
     assert!(
         stages.iter().any(|stage| {
@@ -248,11 +257,11 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
             stage.get("stage_id").and_then(serde_json::Value::as_str)
                 == Some("bam.genotyping")
                 && stage.get("fixture_id").and_then(serde_json::Value::as_str)
-                    == Some("corpus-01-bam-mini")
+                    == Some("corpus-01-genotyping-mini")
                 && stage.get("compatibility_kind").and_then(serde_json::Value::as_str)
                     == Some("fixture")
         }),
-        "bam.genotyping must map to the governed BAM corpus once candidate-sites and target-regions coverage are owned there"
+        "bam.genotyping must map to the governed genotyping BAM corpus once candidate-sites and target-regions coverage are owned there"
     );
     assert!(
         stages.iter().any(|stage| {
@@ -270,11 +279,11 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
             stage.get("stage_id").and_then(serde_json::Value::as_str)
                 == Some("bam.authenticity")
                 && stage.get("fixture_id").and_then(serde_json::Value::as_str)
-                    == Some("corpus-01-bam-mini")
+                    == Some("corpus-01-adna-damage-mini")
                 && stage.get("compatibility_kind").and_then(serde_json::Value::as_str)
                     == Some("fixture")
         }),
-        "bam.authenticity must map to the governed BAM corpus once ancient-like damage coverage is owned there"
+        "bam.authenticity must map to the governed aDNA BAM corpus once ancient-like damage coverage is owned there"
     );
     assert!(
         stages.iter().any(|stage| {

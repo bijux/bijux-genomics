@@ -14,16 +14,28 @@ fixture_manifest = "tests/fixtures/corpora/corpus-01-mini/manifest.toml"
 summary = "General FASTQ corpus with governed single-end and paired-end human-like and aDNA-like reads."
 
 [[fixtures]]
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 fixture_manifest = "tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml"
 summary = "General BAM-stage proxy corpus with governed validation, duplicate-flagged qc-pre, and aDNA-like tiny alignment fixtures."
 
 [[fixtures]]
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-adna-bam"
 fixture_id = "corpus-01-adna-damage-mini"
 fixture_manifest = "tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml"
 summary = "Ancient-like BAM-stage proxy fixture with governed terminal-damage expectations."
+
+[[fixtures]]
+corpus_family_id = "corpus-01-genotyping"
+fixture_id = "corpus-01-genotyping-mini"
+fixture_manifest = "tests/fixtures/corpora/corpus-01-genotyping-mini/manifest.toml"
+summary = "Genotyping-focused BAM corpus with governed candidate-sites, target-regions, and human-like variant-read coverage."
+
+[[fixtures]]
+corpus_family_id = "corpus-01-kinship"
+fixture_id = "corpus-01-kinship-mini"
+fixture_manifest = "tests/fixtures/corpora/corpus-01-kinship-mini/manifest.toml"
+summary = "Kinship-focused BAM corpus with governed low-overlap and related-pair samples plus the shared relatedness panel."
 
 [[fixtures]]
 corpus_family_id = "corpus-02"
@@ -229,161 +241,161 @@ compatibility_note = "The general FASTQ corpus already owns paired human-like re
 
 [[mappings]]
 stage_id = "bam.authenticity"
-fixture_id = "corpus-01-bam-mini"
+fixture_id = "corpus-01-adna-damage-mini"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-adna-bam"
 compatibility_note = "The governed BAM corpus owns the ancient-like damage fixture needed to compose authenticity smoke evidence across damage, contamination, complexity, coverage, and mapping summaries."
 
 [[mappings]]
 stage_id = "bam.bias_mitigation"
 fixture_id = "corpus-01-bam-mini"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 compatibility_note = "The general BAM corpus now owns the GC-window ladder fixture and governed before-and-after bias expectations needed for local bias-mitigation smoke checks."
 
 [[mappings]]
 stage_id = "bam.complexity"
 fixture_id = "corpus-01-bam-mini"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 compatibility_note = "The governed BAM corpus now owns an observed-unique-read complexity fixture that emits deterministic extrapolation, estimated library size, and saturation metrics."
 
 [[mappings]]
 stage_id = "bam.contamination"
 fixture_id = "corpus-01-bam-mini"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 compatibility_note = "The general BAM corpus now owns a contamination-panel alignment fixture and governed population-AF panel suitable for local contamination planning."
 
 [[mappings]]
 stage_id = "bam.coverage"
 fixture_id = "corpus-01-bam-mini"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 compatibility_note = "The governed BAM corpus now owns a target-window coverage fixture with explicit BED windows and expected depth-and-breadth rows."
 
 [[mappings]]
 stage_id = "bam.damage"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-adna-bam"
 fixture_id = "corpus-01-adna-damage-mini"
 compatibility_note = "The ancient-like damage fixture already owns governed terminal-damage expectations for local damage smoke checks."
 
 [[mappings]]
 stage_id = "bam.duplication_metrics"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The general BAM corpus now owns a duplicate-cluster alignment fixture suitable for governed duplication-metrics smoke checks."
 
 [[mappings]]
 stage_id = "bam.endogenous_content"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The general BAM corpus now owns an endogenous partial-mapping alignment fixture suitable for governed endogenous-content smoke checks."
 
 [[mappings]]
 stage_id = "bam.filter"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The BAM mini corpus fixture owns the mixed-filter alignment contract used by local BAM filter smoke checks."
 
 [[mappings]]
 stage_id = "bam.gc_bias"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The governed BAM corpus now owns a GC-window ladder fixture and reference contract suitable for local GC-bias smoke checks."
 
 [[mappings]]
 stage_id = "bam.genotyping"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
-fixture_id = "corpus-01-bam-mini"
-compatibility_note = "The governed BAM corpus now owns candidate-sites and target-regions contracts suitable for local ANGSD genotyping smoke checks."
+corpus_family_id = "corpus-01-genotyping"
+fixture_id = "corpus-01-genotyping-mini"
+compatibility_note = "The governed genotyping BAM corpus owns the candidate-sites sample, target-regions contract, and shared reference required for local ANGSD genotyping smoke checks."
 
 [[mappings]]
 stage_id = "bam.haplogroups"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The governed BAM corpus now owns a Y-reference haplogroup panel fixture suitable for local haplogroup planning and benchmark contract checks."
 
 [[mappings]]
 stage_id = "bam.insert_size"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The governed BAM corpus now owns a paired-fragment insert-size triplet fixture suitable for local insert-size smoke checks."
 
 [[mappings]]
 stage_id = "bam.kinship"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
-fixture_id = "corpus-01-bam-mini"
-compatibility_note = "The governed BAM corpus now owns low-overlap and related-pair kinship fixtures plus a relatedness panel contract suitable for local KING kinship smoke checks."
+corpus_family_id = "corpus-01-kinship"
+fixture_id = "corpus-01-kinship-mini"
+compatibility_note = "The governed kinship BAM corpus owns low-overlap and related-pair fixtures plus the relatedness panel contract required for local ANGSD and KING kinship smoke checks."
 
 [[mappings]]
 stage_id = "bam.length_filter"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The general BAM corpus now owns a governed length-threshold ladder alignment fixture for local read-length filtering smoke checks."
 
 [[mappings]]
 stage_id = "bam.mapping_summary"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The general BAM corpus now owns a partial-mapping alignment fixture suitable for governed local mapping-summary smoke checks."
 
 [[mappings]]
 stage_id = "bam.mapq_filter"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The general BAM corpus now owns a MAPQ-threshold ladder alignment fixture suitable for governed local MAPQ-filter smoke checks."
 
 [[mappings]]
 stage_id = "bam.markdup"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The general BAM corpus now owns a duplicate-cluster alignment fixture suitable for governed local duplicate-marking smoke checks."
 
 [[mappings]]
 stage_id = "bam.overlap_correction"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The general BAM corpus now owns a paired-overlap control alignment fixture suitable for governed local overlap-correction smoke checks."
 
 [[mappings]]
 stage_id = "bam.qc_pre"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The general BAM corpus now owns a multi-contig duplicate-flagged alignment fixture suitable for governed local qc_pre smoke checks."
 
 [[mappings]]
 stage_id = "bam.recalibration"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The general BAM corpus now owns a low-coverage recalibration fixture together with governed known-sites and shared-reference inputs for local recalibration smoke checks."
 
 [[mappings]]
 stage_id = "bam.sex"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The general BAM corpus now owns an XY-autosome coverage fixture suitable for governed local sex-inference smoke checks."
 
 [[mappings]]
 stage_id = "bam.validate"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01"
+corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
 compatibility_note = "The general BAM corpus already owns a governed validation-oriented alignment fixture with header, contig, and index expectations."

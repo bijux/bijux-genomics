@@ -452,10 +452,14 @@ mod tests {
         )
         .expect("validate corpus stage compatibility matrix");
 
-        assert_eq!(report.fixture_count, 5);
+        assert_eq!(report.fixture_count, 7);
         assert_eq!(report.stage_count, 51);
         assert_eq!(report.fixture_backed_stage_count + report.planner_only_stage_count, 51);
-        assert_eq!(report.corpus_family_counts.get("corpus-01"), Some(&38));
+        assert_eq!(report.corpus_family_counts.get("corpus-01"), Some(&19));
+        assert_eq!(report.corpus_family_counts.get("corpus-01-bam"), Some(&19));
+        assert_eq!(report.corpus_family_counts.get("corpus-01-adna-bam"), Some(&2));
+        assert_eq!(report.corpus_family_counts.get("corpus-01-genotyping"), Some(&1));
+        assert_eq!(report.corpus_family_counts.get("corpus-01-kinship"), Some(&1));
         assert_eq!(report.corpus_family_counts.get("corpus-02"), Some(&1));
         assert_eq!(report.corpus_family_counts.get("corpus-03"), Some(&5));
         assert!(
@@ -482,9 +486,9 @@ mod tests {
         assert!(
             report.stages.iter().any(|stage| {
                 stage.stage_id == "bam.authenticity"
-                    && stage.fixture_id.as_deref() == Some("corpus-01-bam-mini")
+                    && stage.fixture_id.as_deref() == Some("corpus-01-adna-damage-mini")
             }),
-            "bam.authenticity must map to the governed BAM corpus once ancient-like damage coverage is owned there"
+            "bam.authenticity must map to the governed aDNA BAM corpus once ancient-like damage coverage is owned there"
         );
         assert!(
             report.stages.iter().any(|stage| {
@@ -499,6 +503,20 @@ mod tests {
                     && stage.fixture_id.as_deref() == Some("corpus-01-bam-mini")
             }),
             "bam.sex must map to the governed BAM corpus once XY-autosome coverage is owned there"
+        );
+        assert!(
+            report.stages.iter().any(|stage| {
+                stage.stage_id == "bam.genotyping"
+                    && stage.fixture_id.as_deref() == Some("corpus-01-genotyping-mini")
+            }),
+            "bam.genotyping must map to the governed genotyping BAM corpus once candidate-sites and target-regions coverage are owned there"
+        );
+        assert!(
+            report.stages.iter().any(|stage| {
+                stage.stage_id == "bam.kinship"
+                    && stage.fixture_id.as_deref() == Some("corpus-01-kinship-mini")
+            }),
+            "bam.kinship must map to the governed kinship BAM corpus once low-overlap and related-pair fixtures are owned there"
         );
         assert!(
             report.stages.iter().any(|stage| {
