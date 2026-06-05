@@ -74,6 +74,28 @@ fn benchmark_corpus_assignment_routes_every_taxonomy_classifier_to_corpus_02() {
 }
 
 #[test]
+fn benchmark_corpus_assignment_routes_every_amplicon_binding_to_corpus_03() {
+    for (stage_id, tool_id) in [
+        ("fastq.normalize_primers", "cutadapt"),
+        ("fastq.remove_chimeras", "vsearch"),
+        ("fastq.infer_asvs", "dada2"),
+        ("fastq.cluster_otus", "vsearch"),
+        ("fastq.normalize_abundance", "seqkit"),
+        ("fastq.normalize_abundance", "seqfu"),
+    ] {
+        assert_eq!(
+            benchmark_corpus_assignment_for_stage_tool(
+                &StageId::new(stage_id.to_string()),
+                &ToolId::new(tool_id.to_string()),
+            )
+            .and_then(|assignment| assignment.assigned_family()),
+            Some(BenchmarkCorpusFamily::Corpus03),
+            "amplicon binding `{stage_id}` / `{tool_id}` must stay on the governed amplicon corpus family"
+        );
+    }
+}
+
+#[test]
 fn benchmark_corpus_assignment_preserves_precise_exclusion_reasons() {
     let index_reference = benchmark_corpus_assignment_for_stage_tool(
         &StageId::new("fastq.index_reference".to_string()),
