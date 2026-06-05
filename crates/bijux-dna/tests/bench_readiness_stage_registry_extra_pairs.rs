@@ -47,45 +47,15 @@ fn bench_readiness_stage_registry_extra_pairs_reports_registry_domain_drift() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/stage-registry-extra-pairs.tsv")
     );
-    assert_eq!(payload.get("extra_pair_count").and_then(serde_json::Value::as_u64), Some(2));
-    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
+    assert_eq!(payload.get("extra_pair_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let domain_counts = payload
         .get("domain_counts")
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(2));
-    assert!(domain_counts.get("fastq").is_none());
+    assert!(domain_counts.is_empty(), "no registry extra pairs should remain");
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 2, "governed stage-registry drift slice must retain two rows");
-    assert!(
-        rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.bias_mitigation")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
-                && row.get("contract_status").and_then(serde_json::Value::as_str)
-                    == Some("pair_missing_from_contract")
-                && row.get("intentional_override_status").and_then(serde_json::Value::as_str)
-                    == Some("none")
-        }),
-        "bam.bias_mitigation / samtools must remain visible as a registry-only pair"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.haplogroups")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
-                && row.get("contract_status").and_then(serde_json::Value::as_str)
-                    == Some("pair_missing_from_contract")
-                && row.get("intentional_override_status").and_then(serde_json::Value::as_str)
-                    == Some("none")
-        }),
-        "bam.haplogroups / samtools must remain visible as a registry-only pair"
-    );
-    assert!(
-        !rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.qc_pre")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("multiqc")
-        }),
-        "bam.qc_pre / multiqc must no longer remain visible as a registry-only tool row"
-    );
+    assert!(rows.is_empty(), "governed stage-registry drift slice must now be empty");
 }

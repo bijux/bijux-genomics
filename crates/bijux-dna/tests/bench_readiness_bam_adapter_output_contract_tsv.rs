@@ -43,7 +43,7 @@ fn bench_readiness_bam_adapter_output_contract_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 51, "TSV must retain the governed BAM 51-row slice");
+    assert_eq!(rows.len(), 50, "TSV must retain the governed BAM 50-row slice");
     let has_row = |tool_id: &str,
                    stage_id: &str,
                    adapter_status: &str,

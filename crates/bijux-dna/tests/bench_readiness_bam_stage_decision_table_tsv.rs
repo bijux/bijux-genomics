@@ -156,9 +156,9 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bam.bias_mitigation\tneeds_parser\tsamtools\tmapdamage2\tsupported\trunnable\tartifact_contract_only\tplanner_only\tstage `bam.bias_mitigation` has a supported adapter-backed BAM benchmark row via `mapdamage2` but no parser-fixture-validated result normalizer; primary `samtools` is not currently the strongest eligible row"
+            row == &"bam.bias_mitigation\tbenchmark_ready\tmapdamage2\tmapdamage2\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.bias_mitigation` is benchmark_ready via `mapdamage2` with a fixture-backed parser-validated BAM benchmark row"
         }),
-        "TSV must retain the governed fallback parser blocker for bam.bias_mitigation"
+        "TSV must retain the governed benchmark-ready bam.bias_mitigation row"
     );
     assert!(
         rows.iter().any(|row| {

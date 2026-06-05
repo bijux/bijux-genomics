@@ -41,7 +41,7 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         Some("tool_id\tstage_id\tsupport_status\tadapter_status\tparser_status\tcorpus_status")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 51, "TSV must retain the governed BAM row count");
+    assert_eq!(rows.len(), 50, "TSV must retain the governed BAM row count");
     for row in [
         "addeam\tbam.damage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini",
         "authenticct\tbam.authenticity\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
@@ -80,7 +80,7 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         "picard\tbam.length_filter\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.duplication_metrics\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "picard\tbam.duplication_metrics\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
-        "samtools\tbam.bias_mitigation\tmismatched_contract\tdeclared_only\tartifact_contract_only\tplanner_only",
+        "mapdamage2\tbam.bias_mitigation\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "yleaf\tbam.haplogroups\tsupported\trunnable\tscientific_report_contract\tplanner_only",
     ] {
         assert!(

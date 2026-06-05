@@ -465,7 +465,7 @@ mod tests {
         assert_eq!(report.domain, "bam");
         assert_eq!(report.stage_count, 24);
         assert_eq!(report.tool_count, 26);
-        assert_eq!(report.row_count, 51);
+        assert_eq!(report.row_count, 50);
         assert!(!report.rows.is_empty(), "BAM tool serving map must contain rows");
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "samtools"
@@ -510,6 +510,14 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bamutil"
                 && row.stage_id == "bam.overlap_correction"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "mapdamage2"
+                && row.stage_id == "bam.bias_mitigation"
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"

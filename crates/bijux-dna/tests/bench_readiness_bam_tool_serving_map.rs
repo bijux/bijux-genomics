@@ -55,7 +55,7 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
         payload.get("row_count").and_then(serde_json::Value::as_u64),
         Some(rows.len() as u64)
     );
-    assert_eq!(rows.len(), 51, "BAM readiness map must retain the governed 51-row slice");
+    assert_eq!(rows.len(), 50, "BAM readiness map must retain the governed 50-row slice");
 
     let has_row = |tool_id: &str,
                    stage_id: &str,
@@ -446,14 +446,14 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
     );
     assert!(
         has_row(
-            "samtools",
+            "mapdamage2",
             "bam.bias_mitigation",
-            "mismatched_contract",
-            "declared_only",
-            "artifact_contract_only",
-            "planner_only",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
         ),
-        "BAM readiness map must retain the declared-only samtools bias-mitigation row"
+        "BAM readiness map must retain the governed mapdamage2 bias-mitigation row"
     );
     assert!(
         has_row(

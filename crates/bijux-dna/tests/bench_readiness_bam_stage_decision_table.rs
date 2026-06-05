@@ -56,13 +56,13 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
         .expect("decision_counts object");
     assert_eq!(
         decision_counts.get("benchmark_ready").and_then(serde_json::Value::as_u64),
-        Some(18)
+        Some(19)
     );
     assert!(
         decision_counts.get("needs_corpus").is_none(),
         "the governed BAM stage decision table should no longer carry needs_corpus rows"
     );
-    assert_eq!(decision_counts.get("needs_parser").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(decision_counts.get("needs_parser").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(
         decision_counts.get("future_not_in_hpc_round").and_then(serde_json::Value::as_u64),
         Some(2)
@@ -384,15 +384,17 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
             row.get("stage_id").and_then(serde_json::Value::as_str)
                 == Some("bam.bias_mitigation")
                 && row.get("decision").and_then(serde_json::Value::as_str)
-                    == Some("needs_parser")
+                    == Some("benchmark_ready")
                 && row.get("primary_tool_id").and_then(serde_json::Value::as_str)
-                    == Some("samtools")
+                    == Some("mapdamage2")
                 && row.get("selected_tool_id").and_then(serde_json::Value::as_str)
                     == Some("mapdamage2")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("parser_fixture_validated")
+                && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                    == Some("fixture:corpus-01-bam-mini")
         }),
-        "bam.bias_mitigation must expose the fallback mapdamage2 row while the primary samtools row is not eligible"
+        "bam.bias_mitigation must now be benchmark_ready through the governed mapdamage2 GC-window ladder row"
     );
     for stage_id in ["bam.genotyping", "bam.recalibration"] {
         assert!(
