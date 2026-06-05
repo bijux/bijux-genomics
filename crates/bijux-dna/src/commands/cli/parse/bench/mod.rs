@@ -55,6 +55,7 @@ pub use self::readiness::{
     BenchReadinessRenderCommandArgvArgs, BenchReadinessRenderCommandsArgs,
     BenchReadinessRenderFastqAdapterOutputContractArgs,
     BenchReadinessRenderFastqCommandAdapterCoverageArgs,
+    BenchReadinessRenderFastqComparableMetricsArgs,
     BenchReadinessRenderFastqNormalizedMetricsSchemaArgs,
     BenchReadinessRenderFastqParserCoverageArgs, BenchReadinessRenderFastqToolServingMapArgs,
     BenchReadinessRenderMissingBenchmarkPairsArgs, BenchReadinessRenderOrphanToolsArgs,

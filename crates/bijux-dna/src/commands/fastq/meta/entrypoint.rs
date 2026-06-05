@@ -201,6 +201,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderFastqComparableMetrics(args) => {
+                        crate::commands::benchmark::readiness::fastq_comparable_metrics::run_render_fastq_comparable_metrics(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderFastqNormalizedMetricsSchema(args) => {
                         crate::commands::benchmark::readiness::fastq_normalized_metrics_schema::run_render_fastq_normalized_metrics_schema(
                             args,

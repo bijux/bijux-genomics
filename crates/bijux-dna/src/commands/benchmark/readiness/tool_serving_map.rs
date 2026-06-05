@@ -271,7 +271,7 @@ fn parser_status_label(
     }
 }
 
-fn load_corpus_status_by_stage(repo_root: &Path) -> Result<BTreeMap<String, String>> {
+pub(crate) fn load_corpus_status_by_stage(repo_root: &Path) -> Result<BTreeMap<String, String>> {
     let matrix_path = repo_root.join(DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH);
     let corpus_compatibility = validate_corpus_stage_compatibility_path(repo_root, &matrix_path)?;
     corpus_compatibility
