@@ -4,8 +4,17 @@ use super::{anyhow, BufRead, Context, ExecutionStep, NetworkPolicy, Result, Stag
 
 mod governance;
 mod metrics;
+mod normalized_metrics_contract;
 
 pub(super) use self::metrics::*;
+#[cfg(test)]
+pub(super) use self::normalized_metrics_contract::{
+    fastq_normalized_metrics_contract_for_stage, fastq_normalized_metrics_stage_contracts,
+    required_metrics_keys,
+};
+pub(super) use self::normalized_metrics_contract::{
+    render_fastq_normalized_metrics_schema, validate_fastq_normalized_metrics,
+};
 
 pub(super) fn stage_network_policy(stage_id: &str) -> NetworkPolicy {
     governance::stage_network_policy(stage_id)
@@ -31,6 +40,7 @@ pub(super) fn enforce_screen_db_governance(planned: &ExecutionStep) -> Result<()
 #[cfg(test)]
 #[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
+    use std::collections::BTreeSet;
     use std::path::Path;
     use std::sync::{Mutex, OnceLock};
 
@@ -38,9 +48,11 @@ mod tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{
-        fastq_backend_allowlist, parse_cluster_otus_metrics, parse_correct_errors_metrics,
-        parse_deplete_host_metrics, parse_deplete_reference_contaminants_metrics,
-        parse_deplete_rrna_metrics, parse_detect_duplicates_premerge_metrics,
+        fastq_backend_allowlist, fastq_normalized_metrics_contract_for_stage,
+        fastq_normalized_metrics_stage_contracts, parse_cluster_otus_metrics,
+        parse_correct_errors_metrics, parse_deplete_host_metrics,
+        parse_deplete_reference_contaminants_metrics, parse_deplete_rrna_metrics,
+        parse_detect_duplicates_premerge_metrics,
         parse_estimate_library_complexity_prealign_metrics, parse_extract_umis_metrics,
         parse_filter_low_complexity_metrics, parse_filter_reads_metrics,
         parse_index_reference_metrics, parse_infer_asvs_metrics, parse_merge_pairs_metrics,
@@ -49,8 +61,21 @@ mod tests {
         parse_profile_reads_metrics, parse_remove_chimeras_metrics,
         parse_remove_duplicates_metrics, parse_report_qc_metrics, parse_screen_taxonomy_metrics,
         parse_trim_polyg_metrics, parse_trim_reads_metrics, parse_trim_terminal_damage_metrics,
-        parse_validate_reads_metrics, required_metrics_keys,
+        parse_validate_reads_metrics, required_metrics_keys, validate_fastq_normalized_metrics,
     };
+
+    fn assert_valid_fastq_normalized_metrics(metrics: &serde_json::Value) {
+        let contract =
+            validate_fastq_normalized_metrics(metrics).expect("FASTQ normalized metrics contract");
+        assert_eq!(
+            metrics.get("schema_version").and_then(serde_json::Value::as_str),
+            Some("bijux.fastq_stage_metrics.v1")
+        );
+        assert_eq!(
+            metrics.get("stage").and_then(serde_json::Value::as_str),
+            Some(contract.stage_id)
+        );
+    }
 
     fn env_lock() -> &'static Mutex<()> {
         static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
@@ -152,6 +177,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_index_reference_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2_build"));
         assert_eq!(metrics["index_directory"], serde_json::json!("reference_index/bowtie2"));
         assert_eq!(
@@ -194,15 +220,12 @@ mod tests {
         assert_eq!(
             required_metrics_keys("fastq.report_qc"),
             &[
-                "schema_version",
-                "stage",
                 "tool",
                 "aggregation_engine",
                 "aggregation_scope",
                 "governed_qc_input_count",
                 "multiqc_report",
                 "multiqc_data",
-                "report_json",
             ]
         );
     }
@@ -212,8 +235,6 @@ mod tests {
         assert_eq!(
             required_metrics_keys("fastq.merge_pairs"),
             &[
-                "schema_version",
-                "stage",
                 "tool",
                 "paired_mode",
                 "merge_engine",
@@ -236,12 +257,82 @@ mod tests {
     }
 
     #[test]
+    fn normalized_metrics_stage_contracts_cover_every_declared_fastq_stage() {
+        let contract_stage_ids = fastq_normalized_metrics_stage_contracts()
+            .iter()
+            .map(|contract| contract.stage_id)
+            .collect::<BTreeSet<_>>();
+        let required_stage_ids = [
+            "fastq.validate_reads",
+            "fastq.index_reference",
+            "fastq.detect_duplicates_premerge",
+            "fastq.estimate_library_complexity_prealign",
+            "fastq.detect_adapters",
+            "fastq.trim_reads",
+            "fastq.trim_terminal_damage",
+            "fastq.merge_pairs",
+            "fastq.cluster_otus",
+            "fastq.remove_chimeras",
+            "fastq.remove_duplicates",
+            "fastq.correct_errors",
+            "fastq.filter_reads",
+            "fastq.filter_low_complexity",
+            "fastq.extract_umis",
+            "fastq.profile_reads",
+            "fastq.profile_read_lengths",
+            "fastq.profile_overrepresented_sequences",
+            "fastq.normalize_primers",
+            "fastq.trim_polyg_tails",
+            "fastq.screen_taxonomy",
+            "fastq.deplete_rrna",
+            "fastq.deplete_reference_contaminants",
+            "fastq.deplete_host",
+            "fastq.report_qc",
+            "fastq.normalize_abundance",
+            "fastq.infer_asvs",
+        ]
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+
+        assert_eq!(contract_stage_ids, required_stage_ids);
+        assert!(required_stage_ids.iter().all(|stage_id| {
+            fastq_normalized_metrics_contract_for_stage(stage_id)
+                .is_some_and(|contract| !contract.required_keys.is_empty())
+        }));
+    }
+
+    #[test]
+    fn normalized_metrics_schema_declares_every_stage_extension() {
+        let schema = super::render_fastq_normalized_metrics_schema();
+        assert_eq!(
+            schema.get("$id").and_then(serde_json::Value::as_str),
+            Some("bijux.schemas.bench.fastq-normalized-metrics.v1")
+        );
+        let stage_defs = schema
+            .get("$defs")
+            .and_then(|value| value.get("stages"))
+            .and_then(serde_json::Value::as_object)
+            .expect("stage defs");
+        assert_eq!(stage_defs.len(), 27);
+        assert!(stage_defs.iter().all(|(stage_id, value)| {
+            value
+                .get("allOf")
+                .and_then(serde_json::Value::as_array)
+                .and_then(|items| items.get(1))
+                .and_then(|value| value.get("x-bijux-extension-id"))
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|extension_id| {
+                    fastq_normalized_metrics_contract_for_stage(stage_id)
+                        .is_some_and(|contract| contract.extension_id == extension_id)
+                })
+        }));
+    }
+
+    #[test]
     fn remove_chimeras_uses_governed_report_metrics_policy() {
         assert_eq!(
             required_metrics_keys("fastq.remove_chimeras"),
             &[
-                "schema_version",
-                "stage",
                 "tool",
                 "method",
                 "detection_scope",
@@ -259,8 +350,6 @@ mod tests {
         assert_eq!(
             required_metrics_keys("fastq.cluster_otus"),
             &[
-                "schema_version",
-                "stage",
                 "tool",
                 "clustering_threshold",
                 "otu_table_tsv",
@@ -275,7 +364,7 @@ mod tests {
     fn validate_reads_uses_governed_report_metrics_policy() {
         assert_eq!(
             required_metrics_keys("fastq.validate_reads"),
-            &["schema_version", "stage", "validator", "failure_class", "strict_pass", "exit_code",]
+            &["validator", "failure_class", "strict_pass", "exit_code",]
         );
     }
 
@@ -283,14 +372,7 @@ mod tests {
     fn detect_duplicates_premerge_uses_governed_report_metrics_policy() {
         assert_eq!(
             required_metrics_keys("fastq.detect_duplicates_premerge"),
-            &[
-                "schema_version",
-                "stage",
-                "tool",
-                "duplicate_count",
-                "duplicate_fraction",
-                "inspected_pair_count",
-            ]
+            &["tool", "duplicate_count", "duplicate_fraction", "inspected_pair_count",]
         );
     }
 
@@ -299,8 +381,6 @@ mod tests {
         assert_eq!(
             required_metrics_keys("fastq.estimate_library_complexity_prealign"),
             &[
-                "schema_version",
-                "stage",
                 "tool",
                 "reads_in",
                 "estimated_complexity",
@@ -316,8 +396,6 @@ mod tests {
         assert_eq!(
             required_metrics_keys("fastq.correct_errors"),
             &[
-                "schema_version",
-                "stage",
                 "tool",
                 "correction_engine",
                 "corrected_reads_r1",
@@ -333,14 +411,7 @@ mod tests {
     fn profile_reads_uses_governed_report_metrics_policy() {
         assert_eq!(
             required_metrics_keys("fastq.profile_reads"),
-            &[
-                "schema_version",
-                "stage",
-                "tool",
-                "reads_total",
-                "bases_total",
-                "length_histogram_bins",
-            ]
+            &["tool", "reads_total", "bases_total", "length_histogram_bins",]
         );
     }
 
@@ -370,6 +441,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_detect_duplicates_premerge_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("bijux"));
         assert_eq!(metrics["paired_mode"], serde_json::json!("paired_end"));
         assert_eq!(metrics["duplicate_detection_policy"], serde_json::json!("report_only"));
@@ -408,6 +480,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_estimate_library_complexity_prealign_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("bijux"));
         assert_eq!(metrics["paired_mode"], serde_json::json!("single_end"));
         assert_eq!(metrics["complexity_policy"], serde_json::json!("prealign_kmer"));
@@ -480,6 +553,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_correct_errors_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("rcorrector"));
         assert_eq!(metrics["paired_mode"], serde_json::json!("paired_end"));
         assert_eq!(metrics["threads"], serde_json::json!(4));
@@ -497,8 +571,6 @@ mod tests {
         assert_eq!(
             required_metrics_keys("fastq.filter_reads"),
             &[
-                "schema_version",
-                "stage",
                 "tool",
                 "filtered_reads_r1",
                 "reads_in",
@@ -521,8 +593,6 @@ mod tests {
         assert_eq!(
             required_metrics_keys("fastq.profile_read_lengths"),
             &[
-                "schema_version",
-                "stage",
                 "tool",
                 "read_count",
                 "min_read_length",
@@ -538,14 +608,7 @@ mod tests {
     fn profile_overrepresented_uses_governed_report_metrics_policy() {
         assert_eq!(
             required_metrics_keys("fastq.profile_overrepresented_sequences"),
-            &[
-                "schema_version",
-                "stage",
-                "tool",
-                "sequence_count",
-                "flagged_sequences",
-                "top_fraction",
-            ]
+            &["tool", "sequence_count", "flagged_sequences", "top_fraction",]
         );
     }
 
@@ -554,8 +617,6 @@ mod tests {
         assert_eq!(
             required_metrics_keys("fastq.normalize_abundance"),
             &[
-                "schema_version",
-                "stage",
                 "tool",
                 "normalization_method",
                 "normalized_abundance_tsv",
@@ -615,6 +676,7 @@ mod tests {
                 command: "seqtk".to_string(),
             },
         );
+        assert_valid_fastq_normalized_metrics(&metrics);
 
         assert_eq!(metrics["validator"], serde_json::json!("seqtk"));
         assert_eq!(metrics["failure_class"], serde_json::json!("pair_count_mismatch"));
@@ -681,6 +743,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_trim_terminal_damage_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("cutadapt"));
         assert_eq!(metrics["execution_policy"], serde_json::json!("explicit_terminal_trim"));
         assert_eq!(metrics["threads"], serde_json::json!(4));
@@ -746,6 +809,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_filter_reads_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("fastp"));
         assert_eq!(metrics["threads"], serde_json::json!(8));
         assert_eq!(metrics["filtered_reads_r1"], serde_json::json!("filtered.fastq.gz"));
@@ -801,6 +865,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_filter_low_complexity_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("bbduk"));
         assert_eq!(metrics["filtered_fastq_r1"], serde_json::json!("filtered.fastq.gz"));
         assert_eq!(metrics["filtered_fastq_r2"], serde_json::Value::Null);
@@ -858,6 +923,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_extract_umis_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("umi_tools"));
         assert_eq!(metrics["umi_pattern"], serde_json::json!("NNNNNNNN"));
         assert_eq!(metrics["extraction_location"], serde_json::json!("read1_prefix"));
@@ -917,6 +983,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_profile_reads_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("seqkit_stats"));
         assert_eq!(metrics["paired_mode"], serde_json::json!("paired_end"));
         assert_eq!(metrics["threads"], serde_json::json!(6));
@@ -966,6 +1033,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_profile_read_lengths_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("seqkit_stats"));
         assert_eq!(metrics["paired_mode"], serde_json::json!("paired_end"));
         assert_eq!(metrics["histogram_bins"], serde_json::json!(64));
@@ -1012,6 +1080,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_profile_overrepresented_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("fastqc"));
         assert_eq!(metrics["paired_mode"], serde_json::json!("paired_end"));
         assert_eq!(metrics["top_k"], serde_json::json!(25));
@@ -1082,6 +1151,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_trim_reads_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("fastp"));
         assert_eq!(metrics["threads"], serde_json::json!(4));
         assert_eq!(metrics["adapter_policy"], serde_json::json!("bank"));
@@ -1134,6 +1204,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_merge_pairs_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("pear"));
         assert_eq!(metrics["paired_mode"], serde_json::json!("paired_end"));
         assert_eq!(metrics["merge_engine"], serde_json::json!("pear"));
@@ -1194,6 +1265,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_remove_chimeras_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("vsearch"));
         assert_eq!(metrics["paired_mode"], serde_json::json!("single_end"));
         assert_eq!(metrics["method"], serde_json::json!("vsearch_uchime_denovo"));
@@ -1248,6 +1320,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_cluster_otus_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("vsearch"));
         assert_eq!(metrics["clustering_threshold"], serde_json::json!(0.97));
         assert_eq!(metrics["otu_table_tsv"], serde_json::json!("otu_abundance.tsv"));
@@ -1308,6 +1381,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_trim_polyg_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("fastp"));
         assert_eq!(metrics["threads"], serde_json::json!(6));
         assert_eq!(metrics["trim_polyg"], serde_json::json!(true));
@@ -1362,6 +1436,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_normalize_primers_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("cutadapt"));
         assert_eq!(metrics["primer_set_id"], serde_json::json!("16S_universal_v1"));
         assert_eq!(metrics["normalized_reads_r1"], serde_json::json!("normalized_R1.fastq.gz"));
@@ -1409,6 +1484,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_normalize_abundance_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("seqkit"));
         assert_eq!(metrics["method"], serde_json::json!("counts_per_million"));
         assert_eq!(metrics["normalization_method"], serde_json::json!("counts_per_million"));
@@ -1466,6 +1542,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_infer_asvs_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("dada2"));
         assert_eq!(metrics["denoising_method"], serde_json::json!("dada2"));
         assert_eq!(metrics["asv_table_tsv"], serde_json::json!("asv_table.tsv"));
@@ -1531,6 +1608,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_screen_taxonomy_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("kraken2"));
         assert_eq!(metrics["classifier"], serde_json::json!("kraken2"));
         assert_eq!(metrics["taxonomy_database_id"], serde_json::json!("taxonomy_db"));
@@ -1591,6 +1669,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_deplete_rrna_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("sortmerna"));
         assert_eq!(metrics["database_artifact_id"], serde_json::json!("silva_nr99"));
         assert_eq!(metrics["database_digest"], serde_json::json!("sha256:silva"));
@@ -1651,6 +1730,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_deplete_reference_contaminants_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
         assert_eq!(metrics["contaminant_reference"], serde_json::json!("phix_and_spikeins"));
         assert_eq!(metrics["contaminant_index_artifact_id"], serde_json::json!("reference_index"));
@@ -1718,6 +1798,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_deplete_host_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
         assert_eq!(metrics["reference_catalog_id"], serde_json::json!("host_reference"));
         assert_eq!(metrics["host_index_artifact_id"], serde_json::json!("reference_index"));
@@ -1769,6 +1850,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_report_qc_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("multiqc"));
         assert_eq!(metrics["aggregation_engine"], serde_json::json!("multiqc"));
         assert_eq!(metrics["aggregation_scope"], serde_json::json!("governed_qc_artifacts"));
@@ -1826,6 +1908,7 @@ mod tests {
         .expect("write report");
 
         let metrics = parse_remove_duplicates_metrics(temp.path());
+        assert_valid_fastq_normalized_metrics(&metrics);
         assert_eq!(metrics["tool"], serde_json::json!("clumpify"));
         assert_eq!(metrics["threads"], serde_json::json!(4));
         assert_eq!(metrics["dedup_mode"], serde_json::json!("optical_aware"));
@@ -1864,320 +1947,15 @@ mod tests {
 }
 
 #[allow(clippy::too_many_lines)]
-pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
-    match stage_id {
-        "fastq.validate_reads" => {
-            &["schema_version", "stage", "validator", "failure_class", "strict_pass", "exit_code"]
-        }
-        "fastq.index_reference" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "index_directory",
-            "index_files",
-            "elapsed_time_s",
-            "index_size_bytes",
-            "reference_bytes",
-            "index_bytes",
-            "index_file_count",
-        ],
-        "fastq.detect_duplicates_premerge" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "duplicate_count",
-            "duplicate_fraction",
-            "inspected_pair_count",
-        ],
-        "fastq.estimate_library_complexity_prealign" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "reads_in",
-            "estimated_complexity",
-            "estimated_duplicate_fraction",
-            "insufficient_data_reason",
-            "complexity_status",
-        ],
-        "fastq.detect_adapters" => {
-            &["schema_version", "stage", "tool", "candidate_adapter_count", "adapter_inference"]
-        }
-        "fastq.trim_reads" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "threads",
-            "adapter_policy",
-            "adapter_overrides",
-            "reads_in",
-            "reads_out",
-        ],
-        "fastq.trim_terminal_damage" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "threads",
-            "reads_in",
-            "reads_out",
-            "reads_retained",
-            "bases_removed",
-            "execution_policy",
-            "trim_5p_bases",
-            "trim_3p_bases",
-            "udg_classification",
-            "ct_ga_asymmetry_pre",
-            "ct_ga_asymmetry_post",
-        ],
-        "fastq.merge_pairs" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "paired_mode",
-            "merge_engine",
-            "threads",
-            "merge_overlap",
-            "min_length",
-            "unmerged_read_policy",
-            "reads_r1",
-            "reads_r2",
-            "input_pair_count",
-            "reads_merged",
-            "reads_unmerged",
-            "merged_pair_count",
-            "unmerged_pair_count",
-            "discarded_pair_count",
-            "merge_rate",
-            "raw_backend_report_format",
-        ],
-        "fastq.cluster_otus" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "clustering_threshold",
-            "otu_table_tsv",
-            "representative_sequences_fasta",
-            "otu_count",
-            "sample_count",
-        ],
-        "fastq.remove_chimeras" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "method",
-            "detection_scope",
-            "filtered_representative_sequences",
-            "chimera_count",
-            "non_chimera_count",
-            "chimera_fraction",
-            "raw_backend_report_format",
-        ],
-        "fastq.remove_duplicates" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "threads",
-            "dedup_mode",
-            "keep_order",
-            "input_reads",
-            "duplicate_reads",
-            "unique_reads",
-            "output_reads",
-            "reads_in",
-            "reads_out",
-            "duplicates_removed",
-            "dedup_rate",
-            "duplicate_class_count",
-        ],
-        "fastq.correct_errors" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "correction_engine",
-            "corrected_reads_r1",
-            "corrected_reads",
-            "changed_reads",
-            "unchanged_reads",
-            "kmer_fix_rate",
-        ],
-        "fastq.filter_reads" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "filtered_reads_r1",
-            "reads_in",
-            "reads_out",
-            "reads_dropped",
-            "reads_retained",
-            "reads_removed",
-            "reads_removed_by_n",
-            "reads_removed_by_entropy",
-            "reads_removed_low_complexity",
-            "reads_removed_by_kmer",
-            "reads_removed_contaminant_kmer",
-            "reads_removed_by_length",
-        ],
-        "fastq.filter_low_complexity" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "filtered_fastq_r1",
-            "reads_in",
-            "reads_out",
-            "reads_removed_low_complexity",
-        ],
-        "fastq.extract_umis" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "umi_pattern",
-            "tag_header_format",
-            "downstream_propagation",
-            "reads_in",
-            "reads_out",
-            "reads_with_umi",
-            "extracted_umi_count",
-            "invalid_umi_count",
-        ],
-        "fastq.profile_reads" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "reads_total",
-            "bases_total",
-            "length_histogram_bins",
-        ],
-        "fastq.profile_read_lengths" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "read_count",
-            "min_read_length",
-            "mean_read_length",
-            "median_read_length",
-            "max_read_length",
-            "histogram_entry_count",
-        ],
-        "fastq.profile_overrepresented_sequences" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "sequence_count",
-            "flagged_sequences",
-            "top_fraction",
-        ],
-        "fastq.normalize_primers" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "primer_set_id",
-            "normalized_reads_r1",
-            "matched_primers",
-            "unmatched_reads",
-            "trimmed_primer_bases",
-        ],
-        "fastq.trim_polyg_tails" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "trim_polyg",
-            "reads_in",
-            "reads_out",
-            "trimmed_tail_count",
-            "bases_trimmed_polyg",
-        ],
-        "fastq.screen_taxonomy" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "classifier",
-            "taxonomy_database_id",
-            "classified_reads",
-            "unclassified_reads",
-            "contamination_rate",
-            "top_taxa",
-        ],
-        "fastq.deplete_rrna" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "rrna_db",
-            "database_artifact_id",
-            "retained_reads",
-            "removed_reads",
-            "depletion_rate",
-        ],
-        "fastq.deplete_reference_contaminants" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "contaminant_reference",
-            "contaminant_index_artifact_id",
-            "contaminant_screened_reads_r1",
-            "contaminant_reads",
-            "contaminant_hit_rate",
-        ],
-        "fastq.deplete_host" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "host_index_artifact_id",
-            "host_depleted_reads_r1",
-            "depleted_reads",
-            "host_hit_rate",
-        ],
-        "fastq.report_qc" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "aggregation_engine",
-            "aggregation_scope",
-            "governed_qc_input_count",
-            "multiqc_report",
-            "multiqc_data",
-            "report_json",
-        ],
-        "fastq.normalize_abundance" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "normalization_method",
-            "normalized_abundance_tsv",
-            "table_rows",
-            "sample_count",
-            "sample_totals",
-            "numeric_output_valid",
-            "zero_fraction",
-        ],
-        "fastq.infer_asvs" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "denoising_method",
-            "asv_table_tsv",
-            "representative_sequences_fasta",
-            "asv_count",
-            "sample_count",
-        ],
-        _ => &["schema_version", "stage"],
-    }
-}
-
 pub(super) fn enforce_metrics_schema(stage_root: &std::path::Path, stage_id: &str) -> Result<()> {
     let metrics_path = stage_root.join("metrics.json");
     let raw = std::fs::read_to_string(&metrics_path)
         .with_context(|| format!("reading metrics {}", metrics_path.display()))?;
     let parsed: serde_json::Value = serde_json::from_str(&raw)
         .with_context(|| format!("parsing metrics {}", metrics_path.display()))?;
-    let required = required_metrics_keys(stage_id);
-    for key in required {
-        if parsed.get(*key).is_none() {
-            return Err(anyhow!(
-                "metrics schema violation for {stage_id}: missing key `{key}` in {}",
-                metrics_path.display()
-            ));
-        }
-    }
-    Ok(())
+    validate_fastq_normalized_metrics(&parsed).map(|_| ()).map_err(|error| {
+        anyhow!("metrics schema violation for {stage_id} in {}: {error}", metrics_path.display())
+    })
 }
 
 fn count_fastq_reads_if_plain(path: &std::path::Path) -> Option<u64> {

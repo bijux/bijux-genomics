@@ -87,3 +87,7 @@ pub(crate) fn enforce_amplicon_qc_thresholds_for_bench(
 ) -> Result<()> {
     enforce_amplicon_qc_thresholds(stage_root, stage_id, metrics)
 }
+
+pub(crate) fn render_governed_fastq_normalized_metrics_schema() -> serde_json::Value {
+    stage_backend_policy::render_fastq_normalized_metrics_schema()
+}

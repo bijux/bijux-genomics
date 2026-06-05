@@ -2,6 +2,10 @@
 //!
 //! Stability: v1 (stable).
 
+use std::path::Path;
+
+use anyhow::{Context, Result};
+
 pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
 
@@ -20,3 +24,16 @@ pub use bijux_dna_planner_fastq::stage_api::*;
 /// Alias for `BenchOutcome<M: StageMetricSchema>` from the fastq handlers.
 pub type BenchOutcome<M> = crate::internal::public_bridge::handlers::fastq::BenchOutcome<M>;
 pub use crate::internal::public_bridge::handlers::fastq::*;
+
+/// Render the governed FASTQ normalized metrics schema.
+#[must_use]
+pub fn render_fastq_normalized_metrics_schema() -> serde_json::Value {
+    crate::internal::fastq::stages::preprocess::render_governed_fastq_normalized_metrics_schema()
+}
+
+/// Write the governed FASTQ normalized metrics schema to disk.
+pub fn write_fastq_normalized_metrics_schema(path: &Path) -> Result<()> {
+    let schema = render_fastq_normalized_metrics_schema();
+    bijux_dna_infra::atomic_write_json(path, &schema)
+        .with_context(|| format!("write {}", path.display()))
+}
