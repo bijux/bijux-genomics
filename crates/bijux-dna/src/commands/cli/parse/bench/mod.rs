@@ -47,6 +47,7 @@ pub use self::publication::{
     BenchCorpusFastqReportArgs, BenchPublicationTargetsArgs,
 };
 pub use self::readiness::{
+    BenchReadinessRenderCorpusAssetCoverageGateArgs,
     BenchReadinessCommand, BenchReadinessRenderAdapterMissingInputTestsArgs,
     BenchReadinessRenderBamAdapterOutputContractArgs,
     BenchReadinessRenderBamCommandAdapterCoverageArgs,

@@ -32,6 +32,8 @@ pub enum BenchReadinessCommand {
     RenderBamParserCoverage(BenchReadinessRenderBamParserCoverageArgs),
     #[command(name = "render-parser-completeness-gate")]
     RenderParserCompletenessGate(BenchReadinessRenderParserCompletenessGateArgs),
+    #[command(name = "render-corpus-asset-coverage-gate")]
+    RenderCorpusAssetCoverageGate(BenchReadinessRenderCorpusAssetCoverageGateArgs),
     #[command(name = "render-parser-failure-tests")]
     RenderParserFailureTests(BenchReadinessRenderParserFailureTestsArgs),
     #[command(name = "render-fastq-adapter-output-contract")]
@@ -182,6 +184,14 @@ pub struct BenchReadinessRenderBamParserCoverageArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderParserCompletenessGateArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderCorpusAssetCoverageGateArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

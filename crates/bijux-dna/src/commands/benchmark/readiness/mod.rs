@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod adapter_missing_input_contracts;
 pub(crate) mod adapter_missing_input_tests;
+pub(crate) mod corpus_asset_coverage_gate;
 pub(crate) mod corpus_incompatibility;
 pub(crate) mod bam_adapter_output_contract;
 pub(crate) mod bam_comparable_metrics;

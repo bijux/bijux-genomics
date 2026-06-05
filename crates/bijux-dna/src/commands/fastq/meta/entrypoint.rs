@@ -211,6 +211,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderCorpusAssetCoverageGate(args) => {
+                        crate::commands::benchmark::readiness::corpus_asset_coverage_gate::run_render_corpus_asset_coverage_gate(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderParserFailureTests(args) => {
                         crate::commands::benchmark::readiness::parser_failure_tests::run_render_parser_failure_tests(
                             args,
