@@ -10,6 +10,7 @@ pub(crate) mod bam_parser_coverage;
 pub(crate) mod bam_report_map;
 pub(crate) mod bam_stage_decision_table;
 pub(crate) mod benchmark_command_rows;
+pub(crate) mod benchmark_readiness_dashboard;
 pub(crate) mod catalog;
 pub(crate) mod corpus_asset_coverage_gate;
 pub(crate) mod corpus_centric_report;

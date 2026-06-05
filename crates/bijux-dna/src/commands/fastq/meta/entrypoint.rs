@@ -196,6 +196,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBenchmarkReadinessDashboard(args) => {
+                        crate::commands::benchmark::readiness::benchmark_readiness_dashboard::run_render_benchmark_readiness_dashboard(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamComparableMetrics(args) => {
                         crate::commands::benchmark::readiness::bam_comparable_metrics::run_render_bam_comparable_metrics(
                             args,
