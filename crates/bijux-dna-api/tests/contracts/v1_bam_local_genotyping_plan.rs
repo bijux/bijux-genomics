@@ -49,15 +49,21 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
     assert_eq!(payload["resources"]["mem_gb"], serde_json::json!(8));
     assert_eq!(
         payload["params"]["reference"],
-        serde_json::json!("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
     );
     assert_eq!(
         payload["params"]["sites"],
-        serde_json::json!("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+        )
     );
     assert_eq!(
         payload["params"]["regions"],
-        serde_json::json!("assets/toy/core-v1/bam/genotyping_target_regions.txt")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+        )
     );
     assert_eq!(
         payload["params"]["producer_contract"]["bcf"],
@@ -67,7 +73,10 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
         payload["params"]["producer_contract"]["vcf"],
         serde_json::json!("target/local-ready/bam.genotyping/genotyping.vcf.gz")
     );
-    assert_eq!(payload["params"]["sample_id"], serde_json::json!("core-v1-genotyping-panel-sites"));
+    assert_eq!(
+        payload["params"]["sample_id"],
+        serde_json::json!("human_like_genotyping_candidate_panel")
+    );
     assert_eq!(payload["params"]["tool"], serde_json::json!("angsd"));
 
     let inputs = payload["io"]["inputs"]
@@ -77,14 +86,21 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
         .iter()
         .find(|artifact| artifact["name"] == serde_json::json!("bam"))
         .unwrap_or_else(|| panic!("bam input missing from local-ready genotyping payload"));
-    assert_eq!(bam["path"], serde_json::json!("assets/toy/core-v1/bam/genotyping_panel_sites.sam"));
+    assert_eq!(
+        bam["path"],
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
+        )
+    );
     let bai = inputs
         .iter()
         .find(|artifact| artifact["name"] == serde_json::json!("bam_bai"))
         .unwrap_or_else(|| panic!("bam_bai input missing from local-ready genotyping payload"));
     assert_eq!(
         bai["path"],
-        serde_json::json!("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
+        )
     );
     let reference = inputs
         .iter()
@@ -92,7 +108,9 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
         .unwrap_or_else(|| panic!("reference input missing from local-ready genotyping payload"));
     assert_eq!(
         reference["path"],
-        serde_json::json!("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
     );
     let sites = inputs
         .iter()
@@ -100,7 +118,9 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
         .unwrap_or_else(|| panic!("sites input missing from local-ready genotyping payload"));
     assert_eq!(
         sites["path"],
-        serde_json::json!("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+        )
     );
     let regions = inputs
         .iter()
@@ -108,7 +128,9 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
         .unwrap_or_else(|| panic!("regions input missing from local-ready genotyping payload"));
     assert_eq!(
         regions["path"],
-        serde_json::json!("assets/toy/core-v1/bam/genotyping_target_regions.txt")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+        )
     );
 
     let outputs = payload["io"]["outputs"]
@@ -147,19 +169,27 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
     assert!(
         payload["command"]["template"].as_array().is_some_and(|command| command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai")
+                shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
+                )
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
+                shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+                )
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
+                shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+                )
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("assets/toy/core-v1/bam/genotyping_target_regions.txt")
+                shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+                )
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
@@ -194,9 +224,15 @@ fn write_local_genotyping_plan_preserves_governed_command_metadata() -> Result<(
         .and_then(serde_json::Value::as_str)
         .unwrap_or_else(|| panic!("local-ready genotyping plan must serialize a shell command"));
     assert!(
-        command.contains("angsd -i assets/toy/core-v1/bam/genotyping_panel_sites.sam")
-            && command.contains("-sites assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
-            && command.contains("-rf assets/toy/core-v1/bam/genotyping_target_regions.txt")
+        command.contains(
+            "angsd -i tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
+        )
+            && command.contains(
+                "-sites tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+            )
+            && command.contains(
+                "-rf tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+            )
             && command.contains("target/local-ready/bam.genotyping/genotyping.summary.json")
             && command.contains("\"min_posterior\": 0.9")
             && command.contains("\"min_call_rate\": 0.5")

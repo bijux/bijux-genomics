@@ -51,7 +51,12 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         .iter()
         .find(|artifact| artifact.name.as_str() == "bam")
         .unwrap_or_else(|| panic!("bam input missing from local-ready genotyping plan"));
-    assert_eq!(bam.path, PathBuf::from("assets/toy/core-v1/bam/genotyping_panel_sites.sam"));
+    assert_eq!(
+        bam.path,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam",
+        )
+    );
 
     let bai = plan
         .io
@@ -59,7 +64,12 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         .iter()
         .find(|artifact| artifact.name.as_str() == "bam_bai")
         .unwrap_or_else(|| panic!("bam_bai input missing from local-ready genotyping plan"));
-    assert_eq!(bai.path, PathBuf::from("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai"));
+    assert_eq!(
+        bai.path,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai",
+        )
+    );
 
     let reference = plan
         .io
@@ -69,7 +79,9 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         .unwrap_or_else(|| panic!("reference input missing from local-ready genotyping plan"));
     assert_eq!(
         reference.path,
-        PathBuf::from("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
     );
 
     let sites = plan
@@ -78,7 +90,12 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         .iter()
         .find(|artifact| artifact.name.as_str() == "sites")
         .unwrap_or_else(|| panic!("sites input missing from local-ready genotyping plan"));
-    assert_eq!(sites.path, PathBuf::from("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf"));
+    assert_eq!(
+        sites.path,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+        )
+    );
 
     let regions = plan
         .io
@@ -86,7 +103,12 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         .iter()
         .find(|artifact| artifact.name.as_str() == "regions")
         .unwrap_or_else(|| panic!("regions input missing from local-ready genotyping plan"));
-    assert_eq!(regions.path, PathBuf::from("assets/toy/core-v1/bam/genotyping_target_regions.txt"));
+    assert_eq!(
+        regions.path,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt",
+        )
+    );
 
     let bcf = plan
         .io
@@ -106,15 +128,21 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
 
     assert_eq!(
         plan.params["reference"],
-        serde_json::json!("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
     );
     assert_eq!(
         plan.params["sites"],
-        serde_json::json!("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+        )
     );
     assert_eq!(
         plan.params["regions"],
-        serde_json::json!("assets/toy/core-v1/bam/genotyping_target_regions.txt")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+        )
     );
     assert_eq!(
         plan.params["producer_contract"]["bcf"],
@@ -124,7 +152,10 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         plan.params["producer_contract"]["vcf"],
         serde_json::json!("target/local-ready/bam.genotyping/genotyping.vcf.gz")
     );
-    assert_eq!(plan.params["sample_id"], serde_json::json!("core-v1-genotyping-panel-sites"));
+    assert_eq!(
+        plan.params["sample_id"],
+        serde_json::json!("human_like_genotyping_candidate_panel")
+    );
     assert_eq!(plan.params["tool"], serde_json::json!("angsd"));
     assert_eq!(plan.effective_params["caller"], serde_json::json!("angsd"));
     assert_eq!(plan.effective_params["min_posterior"], serde_json::json!(0.9));
@@ -137,10 +168,18 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         .last()
         .unwrap_or_else(|| panic!("bam.genotyping command template must contain a shell body"));
     assert!(
-        command.contains("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai")
-            && command.contains("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
-            && command.contains("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
-            && command.contains("assets/toy/core-v1/bam/genotyping_target_regions.txt")
+        command.contains(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
+        )
+            && command.contains(
+                "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            )
+            && command.contains(
+                "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+            )
+            && command.contains(
+                "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+            )
             && command.contains("target/local-ready/bam.genotyping/genotyping.bcf")
             && command.contains("target/local-ready/bam.genotyping/genotyping.vcf.gz"),
         "local-ready genotyping command must carry the governed BAI, reference, sites, regions, BCF, and VCF outputs"
@@ -176,14 +215,14 @@ min_call_rate = 0.5
 threads = 2
 output_dir = "target/local-ready/bam.genotyping"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/genotyping_panel_sites.sam").display(),
-            bai = repo_root.join("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai").display(),
+            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
+            bai = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),
             reference =
-                repo_root.join("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta").display(),
+                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta").display(),
             sites =
-                repo_root.join("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf").display(),
+                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf").display(),
             regions =
-                repo_root.join("assets/toy/core-v1/bam/genotyping_target_regions.txt").display(),
+                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt").display(),
         ),
     )?;
 
@@ -214,14 +253,14 @@ min_call_rate = 0.5
 threads = 2
 output_dir = "target/local-ready/bam.genotyping"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/genotyping_panel_sites.sam").display(),
-            bai = repo_root.join("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai").display(),
+            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
+            bai = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),
             reference =
-                repo_root.join("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta").display(),
+                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta").display(),
             sites =
-                repo_root.join("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf").display(),
+                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf").display(),
             regions =
-                repo_root.join("assets/toy/core-v1/bam/genotyping_target_regions.txt").display(),
+                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt").display(),
         ),
     )?;
 
@@ -255,14 +294,14 @@ min_call_rate = -0.1
 threads = 2
 output_dir = "target/local-ready/bam.genotyping"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/genotyping_panel_sites.sam").display(),
-            bai = repo_root.join("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai").display(),
+            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
+            bai = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),
             reference =
-                repo_root.join("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta").display(),
+                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta").display(),
             sites =
-                repo_root.join("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf").display(),
+                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf").display(),
             regions =
-                repo_root.join("assets/toy/core-v1/bam/genotyping_target_regions.txt").display(),
+                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt").display(),
         ),
     )?;
 

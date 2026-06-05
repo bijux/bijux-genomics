@@ -6,13 +6,13 @@
 # last_updated = 2026-06-01
 
 schema_version = "bijux.bench.bam.local_genotyping.v1"
-bam = "assets/toy/core-v1/bam/genotyping_panel_sites.sam"
-bai = "assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai"
-reference_fasta = "assets/toy/core-v1/bam/genotyping_reference_chr1.fasta"
-sites_vcf = "assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf"
-regions = "assets/toy/core-v1/bam/genotyping_target_regions.txt"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
+bai = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
+reference_fasta = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+sites_vcf = "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+regions = "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
 tool_id = "angsd"
-sample_id = "core-v1-genotyping-panel-sites"
+sample_id = "human_like_genotyping_candidate_panel"
 min_posterior = 0.9
 min_call_rate = 0.5
 threads = 2

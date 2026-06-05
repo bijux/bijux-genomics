@@ -1594,7 +1594,7 @@ fn bench_local_materialize_stage_bam_genotyping_json_writes_governed_plan_bundle
     );
     assert_eq!(
         plan.get("params").and_then(|params| params.get("sample_id")),
-        Some(&serde_json::json!("core-v1-genotyping-panel-sites"))
+        Some(&serde_json::json!("human_like_genotyping_candidate_panel"))
     );
     assert_eq!(
         plan.get("params").and_then(|params| params.get("producer_contract")),
@@ -1619,11 +1619,21 @@ fn bench_local_materialize_stage_bam_genotyping_json_writes_governed_plan_bundle
     assert!(
         plan["command"]["template"].as_array().is_some_and(|command| command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("assets/toy/core-v1/bam/genotyping_panel_sites.sam")
-                    && shell.contains("assets/toy/core-v1/bam/genotyping_panel_sites.sam.bai")
-                    && shell.contains("assets/toy/core-v1/bam/genotyping_reference_chr1.fasta")
-                    && shell.contains("assets/toy/core-v1/vcf/genotyping_candidate_sites.vcf")
-                    && shell.contains("assets/toy/core-v1/bam/genotyping_target_regions.txt")
+                shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
+                )
+                    && shell.contains(
+                        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
+                    )
+                    && shell.contains(
+                        "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+                    )
+                    && shell.contains(
+                        "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+                    )
+                    && shell.contains(
+                        "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+                    )
                     && shell.contains("target/local-ready/bam.genotyping/genotyping.bcf")
                     && shell.contains("target/local-ready/bam.genotyping/genotyping.vcf.gz")
             })
