@@ -82,13 +82,7 @@ pub(crate) fn render_bam_adapter_output_contract(
     output_path: PathBuf,
 ) -> Result<BamAdapterOutputContractReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
-    let tool_map =
-        render_bam_tool_serving_map(repo_root, PathBuf::from(DEFAULT_BAM_TOOL_SERVING_MAP_PATH))?;
-    let rows = tool_map
-        .rows
-        .iter()
-        .map(|row| render_output_contract_row(repo_root, row))
-        .collect::<Vec<_>>();
+    let rows = collect_bam_adapter_output_contract_rows(repo_root)?;
 
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -126,6 +120,18 @@ pub(crate) fn render_bam_adapter_output_contract(
         missing_adapter_row_count,
         rows,
     })
+}
+
+pub(crate) fn collect_bam_adapter_output_contract_rows(
+    repo_root: &Path,
+) -> Result<Vec<BamAdapterOutputContractRow>> {
+    let tool_map =
+        render_bam_tool_serving_map(repo_root, PathBuf::from(DEFAULT_BAM_TOOL_SERVING_MAP_PATH))?;
+    Ok(tool_map
+        .rows
+        .iter()
+        .map(|row| render_output_contract_row(repo_root, row))
+        .collect::<Vec<_>>())
 }
 
 fn render_output_contract_row(

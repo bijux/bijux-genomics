@@ -94,6 +94,13 @@ pub(crate) fn collect_local_slurm_run_paths(
     Ok(paths)
 }
 
+pub(crate) fn load_fixture_sample_scope_map(repo_root: &Path) -> Result<BTreeMap<String, String>> {
+    Ok(load_fixture_sample_index(repo_root)?
+        .into_iter()
+        .map(|(fixture_id, index)| (fixture_id, sample_scope_from_sample_ids(&index.sample_ids)))
+        .collect())
+}
+
 fn build_run_paths(
     root_path: &Path,
     job: BenchLocalSlurmRunPathInputs,
@@ -107,8 +114,7 @@ fn build_run_paths(
             }
         }
     }
-    let sample_scope =
-        if sample_ids.len() == 1 { sample_ids[0].clone() } else { "sample-set".to_string() };
+    let sample_scope = sample_scope_from_sample_ids(&sample_ids);
     let corpus_scope = job.fixture_id.unwrap_or_else(|| "planner-only".to_string());
 
     let result_root = root_path
@@ -123,6 +129,14 @@ fn build_run_paths(
     let stage_result_manifest_path = result_root.join("stage-result.json");
 
     BenchLocalSlurmRunPaths { result_root, stdout_path, stderr_path, stage_result_manifest_path }
+}
+
+pub(crate) fn sample_scope_from_sample_ids(sample_ids: &[String]) -> String {
+    if sample_ids.len() == 1 {
+        sample_ids[0].clone()
+    } else {
+        "sample-set".to_string()
+    }
 }
 
 fn collect_plan_sample_ids(
