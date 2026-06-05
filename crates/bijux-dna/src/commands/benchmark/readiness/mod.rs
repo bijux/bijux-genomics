@@ -10,6 +10,7 @@ pub(crate) mod orphan_tools;
 pub(crate) mod rendered_command_argv;
 pub(crate) mod rendered_commands;
 pub(crate) mod stage_registry_extra_pairs;
+pub(crate) mod stage_tool_assets;
 pub(crate) mod stage_tool_containers;
 pub(crate) mod stage_tool_resources;
 pub(crate) mod tool_execution_modes;
