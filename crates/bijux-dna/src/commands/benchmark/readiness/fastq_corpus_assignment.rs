@@ -247,6 +247,7 @@ fn collect_fastq_corpus_assignment_rows(
         left.tool_id.cmp(&right.tool_id).then_with(|| left.stage_id.cmp(&right.stage_id))
     });
     ensure_row_completeness(&rows)?;
+    ensure_taxonomy_corpus_coverage(&rows)?;
     Ok((stage_count, tool_count, rows))
 }
 
@@ -298,6 +299,38 @@ fn ensure_row_completeness(rows: &[FastqCorpusAssignmentRow]) -> Result<()> {
                     ));
                 }
             }
+        }
+    }
+    Ok(())
+}
+
+fn ensure_taxonomy_corpus_coverage(rows: &[FastqCorpusAssignmentRow]) -> Result<()> {
+    let taxonomy_rows = rows
+        .iter()
+        .filter(|row| row.stage_id == "fastq.screen_taxonomy")
+        .collect::<Vec<_>>();
+    let expected_tool_ids = ["centrifuge", "kaiju", "kraken2", "krakenuniq"];
+    if taxonomy_rows.len() != expected_tool_ids.len() {
+        return Err(anyhow!(
+            "FASTQ taxonomy corpus assignment expected {} rows but found {}",
+            expected_tool_ids.len(),
+            taxonomy_rows.len()
+        ));
+    }
+    for tool_id in expected_tool_ids {
+        let row = taxonomy_rows
+            .iter()
+            .find(|row| row.tool_id == tool_id)
+            .ok_or_else(|| anyhow!("FASTQ taxonomy corpus assignment is missing `{tool_id}`"))?;
+        if row.assignment_status != FastqCorpusAssignmentStatus::Assigned
+            || row.corpus_family_id.as_deref() != Some("corpus-02")
+            || row.fixture_id.as_deref() != Some("corpus-02-edna-mini")
+            || row.excluded_reason.is_some()
+        {
+            return Err(anyhow!(
+                "FASTQ taxonomy corpus assignment row `{}` must remain assigned to `corpus-02` via `corpus-02-edna-mini`",
+                tool_id
+            ));
         }
     }
     Ok(())
@@ -392,12 +425,20 @@ mod tests {
                 && row.fixture_id.as_deref() == Some("corpus-01-mini")
                 && row.excluded_reason.is_none()
         }));
-        assert!(report.rows.iter().any(|row| {
-            row.stage_id == "fastq.screen_taxonomy"
-                && row.tool_id == "kraken2"
-                && row.corpus_family_id.as_deref() == Some("corpus-02")
-                && row.fixture_id.as_deref() == Some("corpus-02-edna-mini")
-        }));
+        let taxonomy_rows = report
+            .rows
+            .iter()
+            .filter(|row| row.stage_id == "fastq.screen_taxonomy")
+            .collect::<Vec<_>>();
+        assert_eq!(taxonomy_rows.len(), 4);
+        for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+            assert!(taxonomy_rows.iter().any(|row| {
+                row.tool_id == tool_id
+                    && row.corpus_family_id.as_deref() == Some("corpus-02")
+                    && row.fixture_id.as_deref() == Some("corpus-02-edna-mini")
+                    && row.excluded_reason.is_none()
+            }));
+        }
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "fastq.normalize_primers"
                 && row.tool_id == "cutadapt"
