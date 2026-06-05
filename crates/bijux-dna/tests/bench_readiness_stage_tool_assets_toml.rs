@@ -49,7 +49,7 @@ fn bench_readiness_stage_tool_assets_writes_governed_toml_file() {
     );
 
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 20);
+    assert_eq!(rows.len(), 23);
     assert!(rows.iter().all(|row| {
         row.get("asset_id")
             .and_then(toml::Value::as_str)
@@ -97,15 +97,21 @@ fn bench_readiness_stage_tool_assets_writes_governed_toml_file() {
                 && row.get("tool_id").and_then(toml::Value::as_str) == Some(tool_id)
                 && row.get("asset_role").and_then(toml::Value::as_str) == Some("reference_panel")
                 && row.get("asset_id").and_then(toml::Value::as_str)
-                    == Some("human_like_contamination_panel")
+                    == Some("adna_contamination_panel")
         }));
     }
 
     assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.sex")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("rxy")
+            && row.get("asset_role").and_then(toml::Value::as_str) == Some("reference_fasta")
+            && row.get("asset_id").and_then(toml::Value::as_str) == Some("adna_bam_reference")
+    }));
+    assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.haplogroups")
             && row.get("tool_id").and_then(toml::Value::as_str) == Some("yleaf")
             && row.get("asset_role").and_then(toml::Value::as_str) == Some("reference_panel")
-            && row.get("asset_id").and_then(toml::Value::as_str) == Some("human-like-y-hg38-mini")
+            && row.get("asset_id").and_then(toml::Value::as_str) == Some("adna-y-hg38-mini")
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.genotyping")

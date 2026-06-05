@@ -157,6 +157,7 @@ fn collect_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<StageToolAssetR
     });
     ensure_unique_stage_tool_asset_rows(&rows)?;
     ensure_taxonomy_database_asset_coverage(&rows)?;
+    ensure_bam_adna_asset_coverage(&rows)?;
     Ok(rows)
 }
 
@@ -269,6 +270,85 @@ fn ensure_taxonomy_database_asset_coverage(rows: &[StageToolAssetRow]) -> Result
     Ok(())
 }
 
+fn ensure_bam_adna_asset_coverage(rows: &[StageToolAssetRow]) -> Result<()> {
+    for tool_id in ["contammix", "schmutzi", "verifybamid2"] {
+        ensure_stage_tool_asset_row(
+            rows,
+            "bam.contamination",
+            tool_id,
+            "reference_fasta",
+            "adna_bam_reference",
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+            "BAM contamination",
+        )?;
+        ensure_stage_tool_asset_row(
+            rows,
+            "bam.contamination",
+            tool_id,
+            "reference_panel",
+            "adna_contamination_panel",
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat",
+            "BAM contamination",
+        )?;
+    }
+
+    for tool_id in ["angsd", "rxy", "yleaf"] {
+        ensure_stage_tool_asset_row(
+            rows,
+            "bam.sex",
+            tool_id,
+            "reference_fasta",
+            "adna_bam_reference",
+            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+            "BAM sex",
+        )?;
+    }
+
+    ensure_stage_tool_asset_row(
+        rows,
+        "bam.haplogroups",
+        "yleaf",
+        "reference_fasta",
+        "adna_bam_reference",
+        "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+        "BAM haplogroups",
+    )?;
+    ensure_stage_tool_asset_row(
+        rows,
+        "bam.haplogroups",
+        "yleaf",
+        "reference_panel",
+        "adna-y-hg38-mini",
+        "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv",
+        "BAM haplogroups",
+    )?;
+
+    Ok(())
+}
+
+fn ensure_stage_tool_asset_row(
+    rows: &[StageToolAssetRow],
+    stage_id: &str,
+    tool_id: &str,
+    asset_role: &str,
+    asset_id: &str,
+    asset_path: &str,
+    label: &str,
+) -> Result<()> {
+    let row = rows
+        .iter()
+        .find(|row| {
+            row.stage_id == stage_id && row.tool_id == tool_id && row.asset_role == asset_role
+        })
+        .ok_or_else(|| anyhow!("{label} asset coverage is missing `{stage_id}` / `{tool_id}` / `{asset_role}`"))?;
+    if row.asset_id != asset_id || row.asset_path != asset_path {
+        return Err(anyhow!(
+            "{label} asset row `{stage_id}` / `{tool_id}` / `{asset_role}` must stay bound to `{asset_id}` at `{asset_path}`"
+        ));
+    }
+    Ok(())
+}
+
 fn render_bam_stage_tool_asset_rows(
     stage_id: &str,
     tool_id: &str,
@@ -319,6 +399,17 @@ fn render_bam_stage_tool_asset_rows(
                     panel_path,
                 ),
             ])
+        }
+        "bam.sex" => {
+            let reference_path = find_input_path(plan, &["reference", "reference_fasta"])?;
+            Ok(vec![asset_row(
+                "bam",
+                stage_id,
+                tool_id,
+                "reference_fasta",
+                asset_id_from_path(&reference_path),
+                reference_path,
+            )])
         }
         "bam.genotyping" => {
             let reference_path = find_input_path(plan, &["reference", "reference_fasta"])?;
@@ -537,16 +628,16 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_assets.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-assets.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_command_assets");
-        assert_eq!(report.row_count, 20);
-        assert_eq!(report.declared_stage_tool_row_count, 13);
-        assert_eq!(report.asset_id_row_count, 20);
-        assert_eq!(report.unique_asset_id_count, 10);
+        assert_eq!(report.row_count, 23);
+        assert_eq!(report.declared_stage_tool_row_count, 16);
+        assert_eq!(report.asset_id_row_count, 23);
+        assert_eq!(report.unique_asset_id_count, 11);
         assert_eq!(report.domain_counts.get("fastq"), Some(&7));
-        assert_eq!(report.domain_counts.get("bam"), Some(&13));
+        assert_eq!(report.domain_counts.get("bam"), Some(&16));
         assert_eq!(report.asset_role_counts.get("taxonomy_database_root"), Some(&4));
         assert_eq!(report.asset_role_counts.get("reference_index"), Some(&2));
         assert_eq!(report.asset_role_counts.get("rrna_reference"), Some(&1));
-        assert_eq!(report.asset_role_counts.get("reference_fasta"), Some(&6));
+        assert_eq!(report.asset_role_counts.get("reference_fasta"), Some(&9));
         assert_eq!(report.asset_role_counts.get("reference_panel"), Some(&4));
         assert_eq!(report.asset_role_counts.get("sites_vcf"), Some(&1));
         assert_eq!(report.asset_role_counts.get("regions"), Some(&1));
@@ -579,15 +670,25 @@ mod tests {
             row.stage_id == "bam.contamination"
                 && row.tool_id == "verifybamid2"
                 && row.asset_role == "reference_panel"
-                && row.asset_id == "human_like_contamination_panel"
+                && row.asset_id == "adna_contamination_panel"
                 && row.asset_path
-                    == "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+                    == "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "bam.sex"
+                && row.tool_id == "rxy"
+                && row.asset_role == "reference_fasta"
+                && row.asset_id == "adna_bam_reference"
+                && row.asset_path
+                    == "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.haplogroups"
                 && row.tool_id == "yleaf"
                 && row.asset_role == "reference_panel"
-                && row.asset_id == "human-like-y-hg38-mini"
+                && row.asset_id == "adna-y-hg38-mini"
+                && row.asset_path
+                    == "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.genotyping"

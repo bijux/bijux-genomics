@@ -12,8 +12,8 @@ domain = "bam"
 stage_id = "bam.contamination"
 tool_id = "contammix"
 asset_role = "reference_fasta"
-asset_id = "corpus_01_bam_reference"
-asset_path = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+asset_id = "adna_bam_reference"
+asset_path = "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
 declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
 
 [[rows]]
@@ -21,8 +21,8 @@ domain = "bam"
 stage_id = "bam.contamination"
 tool_id = "contammix"
 asset_role = "reference_panel"
-asset_id = "human_like_contamination_panel"
-asset_path = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+asset_id = "adna_contamination_panel"
+asset_path = "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
 declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
 
 [[rows]]
@@ -30,8 +30,8 @@ domain = "bam"
 stage_id = "bam.contamination"
 tool_id = "schmutzi"
 asset_role = "reference_fasta"
-asset_id = "corpus_01_bam_reference"
-asset_path = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+asset_id = "adna_bam_reference"
+asset_path = "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
 declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
 
 [[rows]]
@@ -39,8 +39,8 @@ domain = "bam"
 stage_id = "bam.contamination"
 tool_id = "schmutzi"
 asset_role = "reference_panel"
-asset_id = "human_like_contamination_panel"
-asset_path = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+asset_id = "adna_contamination_panel"
+asset_path = "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
 declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
 
 [[rows]]
@@ -48,8 +48,8 @@ domain = "bam"
 stage_id = "bam.contamination"
 tool_id = "verifybamid2"
 asset_role = "reference_fasta"
-asset_id = "corpus_01_bam_reference"
-asset_path = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+asset_id = "adna_bam_reference"
+asset_path = "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
 declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
 
 [[rows]]
@@ -57,8 +57,8 @@ domain = "bam"
 stage_id = "bam.contamination"
 tool_id = "verifybamid2"
 asset_role = "reference_panel"
-asset_id = "human_like_contamination_panel"
-asset_path = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+asset_id = "adna_contamination_panel"
+asset_path = "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
 declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
 
 [[rows]]
@@ -93,8 +93,8 @@ domain = "bam"
 stage_id = "bam.haplogroups"
 tool_id = "yleaf"
 asset_role = "reference_fasta"
-asset_id = "corpus_01_bam_reference"
-asset_path = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+asset_id = "adna_bam_reference"
+asset_path = "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
 declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
 
 [[rows]]
@@ -102,8 +102,8 @@ domain = "bam"
 stage_id = "bam.haplogroups"
 tool_id = "yleaf"
 asset_role = "reference_panel"
-asset_id = "human-like-y-hg38-mini"
-asset_path = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv"
+asset_id = "adna-y-hg38-mini"
+asset_path = "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
 declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
 
 [[rows]]
@@ -122,6 +122,33 @@ tool_id = "gatk"
 asset_role = "reference_fasta"
 asset_id = "corpus_01_bam_reference"
 asset_path = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+tool_id = "angsd"
+asset_role = "reference_fasta"
+asset_id = "adna_bam_reference"
+asset_path = "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+tool_id = "rxy"
+asset_role = "reference_fasta"
+asset_id = "adna_bam_reference"
+asset_path = "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+tool_id = "yleaf"
+asset_role = "reference_fasta"
+asset_id = "adna_bam_reference"
+asset_path = "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
 declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
 
 [[rows]]

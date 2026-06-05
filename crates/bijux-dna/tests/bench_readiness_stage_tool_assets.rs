@@ -51,13 +51,13 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_assets")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(23));
     assert_eq!(
         payload.get("declared_stage_tool_row_count").and_then(serde_json::Value::as_u64),
-        Some(13)
+        Some(16)
     );
-    assert_eq!(payload.get("asset_id_row_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("unique_asset_id_count").and_then(serde_json::Value::as_u64), Some(10));
+    assert_eq!(payload.get("asset_id_row_count").and_then(serde_json::Value::as_u64), Some(23));
+    assert_eq!(payload.get("unique_asset_id_count").and_then(serde_json::Value::as_u64), Some(11));
     assert_eq!(
         payload
             .get("domain_counts")
@@ -70,7 +70,7 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(13)
+        Some(16)
     );
     assert_eq!(
         payload
@@ -84,7 +84,7 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
             .get("asset_role_counts")
             .and_then(|value| value.get("reference_fasta"))
             .and_then(serde_json::Value::as_u64),
-        Some(6)
+        Some(9)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -143,7 +143,20 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
         .expect("bam contamination panel row");
     assert_eq!(
         contamination_panel.get("asset_id").and_then(serde_json::Value::as_str),
-        Some("human_like_contamination_panel")
+        Some("adna_contamination_panel")
+    );
+    let sex_reference = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.sex")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("rxy")
+                && row.get("asset_role").and_then(serde_json::Value::as_str)
+                    == Some("reference_fasta")
+        })
+        .expect("bam sex reference row");
+    assert_eq!(
+        sex_reference.get("asset_id").and_then(serde_json::Value::as_str),
+        Some("adna_bam_reference")
     );
 
     let haplogroups = rows
@@ -157,7 +170,7 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
         .expect("bam haplogroups panel row");
     assert_eq!(
         haplogroups.get("asset_id").and_then(serde_json::Value::as_str),
-        Some("human-like-y-hg38-mini")
+        Some("adna-y-hg38-mini")
     );
 
     let genotyping_sites = rows
