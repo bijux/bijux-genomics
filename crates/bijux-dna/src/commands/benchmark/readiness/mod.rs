@@ -1,3 +1,5 @@
+#[cfg(test)]
+mod adapter_missing_input_contracts;
 pub(crate) mod adapter_missing_input_tests;
 pub(crate) mod bam_adapter_output_contract;
 pub(crate) mod bam_command_adapter_coverage;
