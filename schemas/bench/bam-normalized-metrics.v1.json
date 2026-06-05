@@ -1,0 +1,921 @@
+{
+  "$defs": {
+    "artifact_item": {
+      "additionalProperties": true,
+      "properties": {
+        "exists": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "exists"
+      ],
+      "type": "object"
+    },
+    "base": {
+      "additionalProperties": true,
+      "properties": {
+        "artifacts": {
+          "additionalProperties": true,
+          "properties": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/$defs/artifact_item"
+              },
+              "type": "object"
+            },
+            "missing_required": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "required_count": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "required_count",
+            "missing_required",
+            "items"
+          ],
+          "type": "object"
+        },
+        "contracts": {
+          "additionalProperties": true,
+          "properties": {
+            "bam_invariants": {
+              "type": "boolean"
+            },
+            "output_contract": {
+              "type": "boolean"
+            },
+            "tool_wrapper": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "bam_invariants",
+            "output_contract",
+            "tool_wrapper"
+          ],
+          "type": "object"
+        },
+        "execution": {
+          "additionalProperties": true,
+          "properties": {
+            "exit_code": {
+              "type": "integer"
+            },
+            "memory_mb": {
+              "type": "number"
+            },
+            "runtime_s": {
+              "type": "number"
+            },
+            "status": {
+              "enum": [
+                "ok",
+                "failed"
+              ]
+            }
+          },
+          "required": [
+            "runtime_s",
+            "memory_mb",
+            "exit_code",
+            "status"
+          ],
+          "type": "object"
+        },
+        "normalized_keys": {
+          "const": [
+            "stage_id",
+            "tool_id",
+            "tool_version",
+            "execution.runtime_s",
+            "execution.memory_mb",
+            "execution.exit_code",
+            "artifacts.required_count",
+            "artifacts.missing_required",
+            "contracts.bam_invariants",
+            "contracts.output_contract",
+            "contracts.tool_wrapper"
+          ]
+        },
+        "outputs_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "bijux.bam.metrics.normalized.v1"
+        },
+        "stage_id": {
+          "enum": [
+            "bam.align",
+            "bam.validate",
+            "bam.qc_pre",
+            "bam.mapping_summary",
+            "bam.filter",
+            "bam.mapq_filter",
+            "bam.length_filter",
+            "bam.markdup",
+            "bam.duplication_metrics",
+            "bam.complexity",
+            "bam.coverage",
+            "bam.insert_size",
+            "bam.gc_bias",
+            "bam.endogenous_content",
+            "bam.overlap_correction",
+            "bam.damage",
+            "bam.contamination",
+            "bam.sex",
+            "bam.bias_mitigation",
+            "bam.recalibration",
+            "bam.haplogroups",
+            "bam.genotyping",
+            "bam.kinship",
+            "bam.authenticity"
+          ],
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "tool_version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "tool_version",
+        "execution",
+        "outputs_count",
+        "artifacts",
+        "contracts",
+        "normalized_keys"
+      ],
+      "type": "object"
+    },
+    "stages": {
+      "bam.align": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.align"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_align_normalized_v1"
+          }
+        ]
+      },
+      "bam.authenticity": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.authenticity"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_authenticity_normalized_v1"
+          }
+        ]
+      },
+      "bam.bias_mitigation": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.bias_mitigation"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_bias_mitigation_normalized_v1"
+          }
+        ]
+      },
+      "bam.complexity": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.complexity"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_complexity_normalized_v1"
+          }
+        ]
+      },
+      "bam.contamination": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.contamination"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_contamination_normalized_v1"
+          }
+        ]
+      },
+      "bam.coverage": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.coverage"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_coverage_normalized_v1"
+          }
+        ]
+      },
+      "bam.damage": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.damage"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_damage_normalized_v1"
+          }
+        ]
+      },
+      "bam.duplication_metrics": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.duplication_metrics"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_duplication_metrics_normalized_v1"
+          }
+        ]
+      },
+      "bam.endogenous_content": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.endogenous_content"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_endogenous_content_normalized_v1"
+          }
+        ]
+      },
+      "bam.filter": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.filter"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_filter_normalized_v1"
+          }
+        ]
+      },
+      "bam.gc_bias": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.gc_bias"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_gc_bias_normalized_v1"
+          }
+        ]
+      },
+      "bam.genotyping": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.genotyping"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_genotyping_normalized_v1"
+          }
+        ]
+      },
+      "bam.haplogroups": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.haplogroups"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_haplogroups_normalized_v1"
+          }
+        ]
+      },
+      "bam.insert_size": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.insert_size"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_insert_size_normalized_v1"
+          }
+        ]
+      },
+      "bam.kinship": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.kinship"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_kinship_normalized_v1"
+          }
+        ]
+      },
+      "bam.length_filter": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.length_filter"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_length_filter_normalized_v1"
+          }
+        ]
+      },
+      "bam.mapping_summary": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.mapping_summary"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_mapping_summary_normalized_v1"
+          }
+        ]
+      },
+      "bam.mapq_filter": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.mapq_filter"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_mapq_filter_normalized_v1"
+          }
+        ]
+      },
+      "bam.markdup": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.markdup"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_markdup_normalized_v1"
+          }
+        ]
+      },
+      "bam.overlap_correction": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.overlap_correction"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_overlap_correction_normalized_v1"
+          }
+        ]
+      },
+      "bam.qc_pre": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.qc_pre"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_qc_pre_normalized_v1"
+          }
+        ]
+      },
+      "bam.recalibration": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.recalibration"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_recalibration_normalized_v1"
+          }
+        ]
+      },
+      "bam.sex": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.sex"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_sex_normalized_v1"
+          }
+        ]
+      },
+      "bam.validate": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage_id": {
+                "const": "bam.validate"
+              }
+            },
+            "required": [
+              "schema_version",
+              "stage_id",
+              "tool_id",
+              "tool_version",
+              "execution",
+              "outputs_count",
+              "artifacts",
+              "contracts",
+              "normalized_keys"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "bam_validate_normalized_v1"
+          }
+        ]
+      }
+    }
+  },
+  "$id": "bijux.schemas.bench.bam-normalized-metrics.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Governed normalized parser outputs for BAM benchmark stages. Each payload must satisfy the shared envelope and exactly one stage-specific extension.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/stages/bam.align"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.validate"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.qc_pre"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.mapping_summary"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.filter"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.mapq_filter"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.length_filter"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.markdup"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.duplication_metrics"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.complexity"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.coverage"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.insert_size"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.gc_bias"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.endogenous_content"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.overlap_correction"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.damage"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.contamination"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.sex"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.bias_mitigation"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.recalibration"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.haplogroups"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.genotyping"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.kinship"
+    },
+    {
+      "$ref": "#/$defs/stages/bam.authenticity"
+    }
+  ],
+  "title": "BAM normalized benchmark metrics",
+  "type": "object"
+}
