@@ -42,16 +42,18 @@ fn local_kinship_smoke_plans_use_governed_pair_expectations() -> Result<()> {
 
     let insufficient = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-kinship-insufficient-overlap")
+        .find(|case| case.sample_id == "human_like_kinship_low_overlap_pair")
         .unwrap_or_else(|| panic!("governed BAM kinship insufficient-overlap case missing"));
     assert_eq!(insufficient.plan.stage_id.as_str(), "bam.kinship");
     assert_eq!(insufficient.plan.tool_id.as_str(), "king");
     assert_eq!(insufficient.plan.resources.threads, 2);
     assert_eq!(
         insufficient.bam,
-        PathBuf::from("assets/toy/core-v1/bam/kinship_low_overlap_pair.sam")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
+        )
     );
-    assert_eq!(insufficient.reference_panel, "toy_human_relatedness_panel");
+    assert_eq!(insufficient.reference_panel, "human_like_relatedness_panel");
     assert_eq!(insufficient.reference_build, "grch38");
     assert_eq!(insufficient.population_scope, "human_diploid_panel");
     assert_eq!(insufficient.min_overlap_snps, 5);
@@ -65,23 +67,28 @@ fn local_kinship_smoke_plans_use_governed_pair_expectations() -> Result<()> {
     assert!(insufficient.expected_pairwise_results.is_empty());
     assert_eq!(
         insufficient.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.kinship/core-v1-kinship-insufficient-overlap/king")
+        PathBuf::from("target/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king")
     );
     assert_eq!(
         insufficient.plan.params["reference_panel"],
-        serde_json::json!("toy_human_relatedness_panel")
+        serde_json::json!("human_like_relatedness_panel")
     );
     assert_eq!(insufficient.plan.params["min_overlap_snps"], serde_json::json!(5));
     assert_eq!(insufficient.plan.params["requires_cohort_context"], serde_json::json!(true));
 
     let valid = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-kinship-related-pair")
+        .find(|case| case.sample_id == "human_like_kinship_related_pair")
         .unwrap_or_else(|| panic!("governed BAM kinship valid pair case missing"));
     assert_eq!(valid.plan.stage_id.as_str(), "bam.kinship");
     assert_eq!(valid.plan.tool_id.as_str(), "king");
-    assert_eq!(valid.bam, PathBuf::from("assets/toy/core-v1/bam/kinship_related_pair.sam"));
-    assert_eq!(valid.reference_panel, "toy_human_relatedness_panel");
+    assert_eq!(
+        valid.bam,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam"
+        )
+    );
+    assert_eq!(valid.reference_panel, "human_like_relatedness_panel");
     assert_eq!(valid.reference_build, "grch38");
     assert_eq!(valid.population_scope, "human_diploid_panel");
     assert_eq!(valid.min_overlap_snps, 6);
@@ -119,7 +126,7 @@ fn local_kinship_smoke_plans_use_governed_pair_expectations() -> Result<()> {
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.kinship/core-v1-kinship-related-pair/king/kinship.summary.json"
+            "target/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.summary.json"
         )
     );
 
@@ -151,7 +158,7 @@ output_dir = "target/local-smoke/bam.kinship"
 [[cases]]
 sample_id = " "
 bam = "{bam}"
-reference_panel = "toy_human_relatedness_panel"
+reference_panel = "human_like_relatedness_panel"
 reference_build = "grch38"
 population_scope = "human_diploid_panel"
 min_overlap_snps = 5
@@ -160,7 +167,11 @@ expected_status = "insufficient"
 expected_observed_max_overlap_snps = 4
 expected_insufficiency_reason = "insufficient_overlap_snps"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/kinship_low_overlap_pair.sam").display(),
+            bam = repo_root
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
+                )
+                .display(),
         ),
     )?;
 
@@ -186,7 +197,7 @@ output_dir = "target/local-smoke/bam.kinship"
 [[cases]]
 sample_id = "duplicate-kinship-case"
 bam = "{insufficient_bam}"
-reference_panel = "toy_human_relatedness_panel"
+reference_panel = "human_like_relatedness_panel"
 reference_build = "grch38"
 population_scope = "human_diploid_panel"
 min_overlap_snps = 5
@@ -198,7 +209,7 @@ expected_insufficiency_reason = "insufficient_overlap_snps"
 [[cases]]
 sample_id = "duplicate-kinship-case"
 bam = "{valid_bam}"
-reference_panel = "toy_human_relatedness_panel"
+reference_panel = "human_like_relatedness_panel"
 reference_build = "grch38"
 population_scope = "human_diploid_panel"
 min_overlap_snps = 6
@@ -217,8 +228,16 @@ kinship_coefficient = 0.416667
 relationship_label = "first_degree"
 "#,
             insufficient_bam =
-                repo_root.join("assets/toy/core-v1/bam/kinship_low_overlap_pair.sam").display(),
-            valid_bam = repo_root.join("assets/toy/core-v1/bam/kinship_related_pair.sam").display(),
+                repo_root
+                    .join(
+                        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
+                    )
+                    .display(),
+            valid_bam = repo_root
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam"
+                )
+                .display(),
         ),
     )?;
 
@@ -247,7 +266,7 @@ output_dir = "target/local-smoke/bam.kinship"
 [[cases]]
 sample_id = "insufficient-case-with-pairs"
 bam = "{bam}"
-reference_panel = "toy_human_relatedness_panel"
+reference_panel = "human_like_relatedness_panel"
 reference_build = "grch38"
 population_scope = "human_diploid_panel"
 min_overlap_snps = 5
@@ -266,7 +285,11 @@ concordance = 0.75
 kinship_coefficient = 0.125
 relationship_label = "unrelated"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/kinship_low_overlap_pair.sam").display(),
+            bam = repo_root
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
+                )
+                .display(),
         ),
     )?;
 
@@ -295,7 +318,7 @@ output_dir = "target/local-smoke/bam.kinship"
 [[cases]]
 sample_id = "duplicate-pairwise-combination"
 bam = "{bam}"
-reference_panel = "toy_human_relatedness_panel"
+reference_panel = "human_like_relatedness_panel"
 reference_build = "grch38"
 population_scope = "human_diploid_panel"
 min_overlap_snps = 6
@@ -323,7 +346,11 @@ concordance = 0.833333
 kinship_coefficient = 0.416667
 relationship_label = "first_degree"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/kinship_related_pair.sam").display(),
+            bam = repo_root
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam"
+                )
+                .display(),
         ),
     )?;
 

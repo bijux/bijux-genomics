@@ -1679,14 +1679,14 @@ fn bench_local_materialize_stage_bam_kinship_json_writes_governed_smoke_bundle()
         report.get("cases").and_then(serde_json::Value::as_array).is_some_and(|cases| {
             cases.iter().any(|case| {
                 case.get("sample_id").and_then(serde_json::Value::as_str)
-                    == Some("core-v1-kinship-insufficient-overlap")
+                    == Some("human_like_kinship_low_overlap_pair")
                     && case.get("status").and_then(serde_json::Value::as_str)
                         == Some("insufficient")
                     && case.get("insufficiency_reason").and_then(serde_json::Value::as_str)
                         == Some("insufficient_overlap_snps")
             }) && cases.iter().any(|case| {
                 case.get("sample_id").and_then(serde_json::Value::as_str)
-                    == Some("core-v1-kinship-related-pair")
+                    == Some("human_like_kinship_related_pair")
                     && case.get("status").and_then(serde_json::Value::as_str) == Some("ok")
                     && case.get("pair_count").and_then(serde_json::Value::as_u64) == Some(1)
                     && case
