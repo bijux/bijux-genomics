@@ -103,7 +103,7 @@ stage_tool_compatibility:
   - pmdtools
   - damageprofiler
   bam.bias_mitigation:
-  - samtools
+  - mapdamage2
   bam.complexity:
   - preseq
   bam.contamination:
@@ -177,7 +177,7 @@ stage_tool_integration:
     damageprofiler: governed_contract
     pmdtools: governed_contract
   bam.bias_mitigation:
-    samtools: governed_contract
+    mapdamage2: governed_contract
   bam.complexity:
     preseq: governed_contract
   bam.contamination:
@@ -363,7 +363,7 @@ stage_default_settings:
   bam.overlap_correction:
     bamutil: { profile: "adna_sane_default", notes: "planned overlap clipping profile" }
   bam.bias_mitigation:
-    samtools: { profile: "adna_sane_default", notes: "planned bias mitigation preset" }
+    mapdamage2: { profile: "adna_sane_default", notes: "bias mitigation projection preset" }
   bam.recalibration:
     gatk: { profile: "adna_sane_default", notes: "planned recalibration preset" }
   bam.haplogroups:

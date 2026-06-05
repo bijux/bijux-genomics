@@ -36,7 +36,7 @@ Purpose: define deterministic defaults for every BAM stage contract.
 - `bam.authenticity`: default `authenticct`.
 - `bam.contamination`: default `schmutzi`.
 - `bam.sex`: default `rxy`.
-- `bam.bias_mitigation`: default `samtools`.
+- `bam.bias_mitigation`: default `mapdamage2`.
 - `bam.recalibration`: default `gatk`.
 - `bam.haplogroups`: default `yleaf`.
 - `bam.genotyping`: default `gatk`.
@@ -71,7 +71,7 @@ single_tool_justification: bam.haplogroups
 - `bam.authenticity` rationale: stable authenticity score baseline for operator interpretation.
 - `bam.contamination` rationale: established contamination baseline for aDNA workflows.
 - `bam.sex` rationale: deterministic ratio-based sex inference baseline.
-- `bam.bias_mitigation` rationale: planned baseline keeps deterministic policy until dedicated tools are promoted.
+- `bam.bias_mitigation` rationale: preserve a governed bias-projection baseline through the admitted `mapdamage2` execution surface.
 - `bam.recalibration` rationale: planned recalibration baseline remains pinned until full validation.
 - `bam.haplogroups` rationale: planned deterministic haplogroup assignment baseline.
 - `bam.genotyping` rationale: planned pinned-caller baseline for consistent genotype outputs.
@@ -129,3 +129,5 @@ single_tool_justification: bam.haplogroups
 - `bam.contamination`: governed local-ready planning now uses the `corpus-01-bam-mini` contamination-panel fixture plus an owned population-AF panel so BAM, reference, and panel inputs are proven through corpus-owned paths instead of transitional toy assets.
 - `bam.sex`: the admitted `rxy`, `angsd`, and `yleaf` benchmark rows must preserve `sex.json`, `sex.summary.json`, and `stage.metrics.json` while reporting X coverage, Y coverage, autosomal coverage, call, and confidence/status through the governed sex report surface.
 - `bam.sex`: governed local-smoke coverage now uses the `corpus-01-bam-mini` XY-autosome coverage fixture and shared BAM reference so sex-inference coverage expectations are proven through owned corpus inputs instead of transitional toy assets.
+- `bam.bias_mitigation`: the admitted `mapdamage2` benchmark row must preserve `bias.json`, `bias.summary.json`, and `stage.metrics.json` while reporting `gc_bias_score`, `pre_mitigation_metric`, `post_mitigation_metric`, and mitigation actions through the governed bias-mitigation report surface.
+- `bam.bias_mitigation`: governed local-smoke coverage now uses the `corpus-01-bam-mini` GC-window ladder fixture and owned reference FASTA so before-and-after bias projections are proven through corpus-owned inputs instead of transitional toy assets.
