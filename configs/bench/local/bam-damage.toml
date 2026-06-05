@@ -6,7 +6,7 @@
 # last_updated = 2026-06-01
 
 schema_version = "bijux.bench.bam.local_damage.v1"
-tool_id = "pydamage"
+tool_id = "ngsbriggs"
 threads = 2
 output_dir = "target/local-smoke/bam.damage"
 

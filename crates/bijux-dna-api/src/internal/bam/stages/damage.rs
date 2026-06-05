@@ -77,7 +77,8 @@ pub(crate) fn write_stage_damage_artifacts(
         .map_or_else(|| stage_dir.join("in.bam"), |artifact| artifact.path.clone());
     let input_bam = resolve_stage_input_path(&input_bam);
     let strict_profile = strict_profile_from_plan(plan);
-    let measurements = read_stage_damage_measurements(stage_dir)?;
+    let mut measurements = read_stage_damage_measurements(stage_dir)?;
+    prioritize_damage_measurements(&mut measurements, plan.tool_id.as_str());
     let unified_path = write_stage_damage_unified_from_measurements(stage_dir, &measurements)?;
     let parser_output_path = write_stage_damage_parser_output(stage_dir, &measurements)?;
     let unified = read_damage_unified(&unified_path)?;
@@ -184,17 +185,8 @@ fn materialize_local_damage_smoke_case(
     bijux_dna_infra::ensure_dir(&case_out_dir)?;
 
     let input_bam = repo_root.join(&case.bam);
-    let damage_pydamage_path = case_out_dir.join("damage.pydamage.json");
     let damage_mapdamage2_path = case_out_dir.join("damage.mapdamage2.txt");
-
-    bijux_dna_infra::atomic_write_json(
-        &damage_pydamage_path,
-        &serde_json::json!({
-            "schema_version": "bijux.bam.damage.v1",
-            "ct_5p": case.expected_terminal_c_to_t_5p,
-            "ga_3p": case.expected_terminal_g_to_a_3p,
-        }),
-    )?;
+    write_local_damage_primary_artifact(&case_out_dir, case)?;
     bijux_dna_infra::atomic_write_bytes(
         &damage_mapdamage2_path,
         render_mapdamage2_misincorporation(
@@ -342,6 +334,43 @@ fn read_stage_damage_measurements(
         ));
     }
     Ok(measurements)
+}
+
+fn prioritize_damage_measurements(
+    measurements: &mut Vec<(String, bijux_dna_domain_bam::metrics::DamageMetricsV1)>,
+    primary_tool_id: &str,
+) {
+    if let Some(index) = measurements.iter().position(|(tool_id, _)| tool_id == primary_tool_id) {
+        let primary = measurements.remove(index);
+        measurements.insert(0, primary);
+    }
+}
+
+fn write_local_damage_primary_artifact(
+    stage_dir: &Path,
+    case: &bijux_dna_planner_bam::stage_api::LocalDamageSmokeCasePlan,
+) -> Result<()> {
+    let metrics_json = serde_json::json!({
+        "schema_version": "bijux.bam.damage.v1",
+        "ct_5p": case.expected_terminal_c_to_t_5p,
+        "ga_3p": case.expected_terminal_g_to_a_3p,
+        "pmd_score_histogram": [[0, 8], [1, 13], [2, 21]],
+    });
+    let path = match case.plan.tool_id.as_str() {
+        "addeam" => stage_dir.join("damage.addeam.json"),
+        "damageprofiler" => stage_dir.join("damage.profiler.json"),
+        "ngsbriggs" => stage_dir.join("damage.ngsbriggs.json"),
+        "pmdtools" => stage_dir.join("damage.pmdtools.json"),
+        "pydamage" => stage_dir.join("damage.pydamage.json"),
+        other => {
+            return Err(anyhow!(
+                "local-smoke bam.damage does not support synthetic artifact materialization for tool `{other}`"
+            ));
+        }
+    };
+    bijux_dna_infra::atomic_write_json(&path, &metrics_json)
+        .with_context(|| format!("write {}", path.display()))?;
+    Ok(())
 }
 
 fn read_damage_unified(path: &Path) -> Result<serde_json::Value> {

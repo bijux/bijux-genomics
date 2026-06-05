@@ -214,13 +214,13 @@ fn bench_local_render_slurm_scripts_bam_reports_governed_run_paths() {
     assert_eq!(
         bam_damage.get("stdout_path").and_then(serde_json::Value::as_str),
         Some(
-            "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/pydamage/stdout.log"
+            "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stdout.log"
         )
     );
     assert_eq!(
         bam_damage.get("stderr_path").and_then(serde_json::Value::as_str),
         Some(
-            "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/pydamage/stderr.log"
+            "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stderr.log"
         )
     );
     assert_eq!(
@@ -228,7 +228,7 @@ fn bench_local_render_slurm_scripts_bam_reports_governed_run_paths() {
             .get("stage_result_manifest_path")
             .and_then(serde_json::Value::as_str),
         Some(
-            "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/pydamage/stage-result.json"
+            "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stage-result.json"
         )
     );
 

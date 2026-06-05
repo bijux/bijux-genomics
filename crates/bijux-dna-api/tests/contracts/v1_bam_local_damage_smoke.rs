@@ -48,8 +48,8 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
     );
     assert_eq!(payload["sample_id"], serde_json::json!("adna_damage_non_udg"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
-    assert_eq!(payload["method"], serde_json::json!("pydamage"));
-    assert_eq!(payload["tools_seen"], serde_json::json!(["pydamage", "mapdamage2"]));
+    assert_eq!(payload["method"], serde_json::json!("ngsbriggs"));
+    assert_eq!(payload["tools_seen"], serde_json::json!(["ngsbriggs", "mapdamage2"]));
     assert_eq!(payload["terminal_c_to_t_5p"], serde_json::json!(0.18));
     assert_eq!(payload["terminal_g_to_a_3p"], serde_json::json!(0.11));
     assert_eq!(payload["short_fragment_fraction"], serde_json::json!(1.0));
@@ -102,7 +102,7 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
         serde_json::from_str(&std::fs::read_to_string(&terminal_position_metrics)?)?;
     assert_eq!(unified_json["canonical"]["c_to_t_5p"], serde_json::json!(0.18));
     assert_eq!(unified_json["canonical"]["g_to_a_3p"], serde_json::json!(0.11));
-    assert_eq!(unified_json["tools_seen"], serde_json::json!(["pydamage", "mapdamage2"]));
+    assert_eq!(unified_json["tools_seen"], serde_json::json!(["ngsbriggs", "mapdamage2"]));
 
     let parser_output_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&parser_output)?)?;
@@ -111,7 +111,7 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
         serde_json::json!("bijux.bam.damage.parser_output.v1")
     );
     assert_eq!(parser_output_json["stage_id"], serde_json::json!("bam.damage"));
-    assert_eq!(parser_output_json["parsed_tools"][0]["tool_id"], serde_json::json!("pydamage"));
+    assert_eq!(parser_output_json["parsed_tools"][0]["tool_id"], serde_json::json!("ngsbriggs"));
 
     let advisory_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&advisory_boundary)?)?;
@@ -124,8 +124,8 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
         stage_metrics_json["schema_version"],
         serde_json::json!("bijux.bam.damage.stage_metrics.v1")
     );
-    assert_eq!(stage_metrics_json["tool_id"], serde_json::json!("pydamage"));
-    assert_eq!(stage_metrics_json["tools_seen"], serde_json::json!(["pydamage", "mapdamage2"]));
+    assert_eq!(stage_metrics_json["tool_id"], serde_json::json!("ngsbriggs"));
+    assert_eq!(stage_metrics_json["tools_seen"], serde_json::json!(["ngsbriggs", "mapdamage2"]));
     assert_eq!(stage_metrics_json["expected_terminal_c_to_t_5p"], serde_json::json!(0.18));
     assert_eq!(stage_metrics_json["terminal_c_to_t_5p"], serde_json::json!(0.18));
     assert_eq!(stage_metrics_json["terminal_c_to_t_5p_delta"], serde_json::json!(0.0));

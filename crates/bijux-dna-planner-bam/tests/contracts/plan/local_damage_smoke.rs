@@ -21,7 +21,7 @@ fn local_damage_smoke_plans_use_governed_bam_fixture() -> Result<()> {
         .find(|case| case.sample_id == "adna_damage_non_udg")
         .unwrap_or_else(|| panic!("governed BAM damage case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.damage");
-    assert_eq!(case.plan.tool_id.as_str(), "pydamage");
+    assert_eq!(case.plan.tool_id.as_str(), "ngsbriggs");
     assert_eq!(case.plan.resources.threads, 2);
     assert_eq!(
         case.bam,
@@ -36,7 +36,7 @@ fn local_damage_smoke_plans_use_governed_bam_fixture() -> Result<()> {
     assert!(!case.expected_strict_profile_upgraded);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.damage/adna_damage_non_udg/pydamage")
+        PathBuf::from("target/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs")
     );
     assert_eq!(
         case.plan.params["bam"],
@@ -69,7 +69,9 @@ fn local_damage_smoke_plans_use_governed_bam_fixture() -> Result<()> {
         .unwrap_or_else(|| panic!("damage report output missing from BAM plan"));
     assert_eq!(
         damage_output.path,
-        PathBuf::from("target/local-smoke/bam.damage/adna_damage_non_udg/pydamage/damage.summary.json")
+        PathBuf::from(
+            "target/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json"
+        )
     );
 
     Ok(())

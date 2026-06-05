@@ -1728,8 +1728,8 @@ fn bench_local_materialize_stage_bam_damage_json_writes_governed_smoke_bundle() 
         Some("adna_damage_non_udg")
     );
     assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
-    assert_eq!(report.get("method").and_then(serde_json::Value::as_str), Some("pydamage"));
-    assert_eq!(report.get("tools_seen"), Some(&serde_json::json!(["pydamage", "mapdamage2"])));
+    assert_eq!(report.get("method").and_then(serde_json::Value::as_str), Some("ngsbriggs"));
+    assert_eq!(report.get("tools_seen"), Some(&serde_json::json!(["ngsbriggs", "mapdamage2"])));
     assert_eq!(report.get("terminal_c_to_t_5p").and_then(serde_json::Value::as_f64), Some(0.18));
     assert_eq!(report.get("terminal_g_to_a_3p").and_then(serde_json::Value::as_f64), Some(0.11));
     assert_eq!(
