@@ -24,6 +24,8 @@ pub enum BenchReadinessCommand {
     RenderFastqAdapterOutputContract(BenchReadinessRenderFastqAdapterOutputContractArgs),
     #[command(name = "render-fastq-command-adapter-coverage")]
     RenderFastqCommandAdapterCoverage(BenchReadinessRenderFastqCommandAdapterCoverageArgs),
+    #[command(name = "render-fastq-parser-coverage")]
+    RenderFastqParserCoverage(BenchReadinessRenderFastqParserCoverageArgs),
     #[command(name = "render-fastq-tool-serving-map")]
     RenderFastqToolServingMap(BenchReadinessRenderFastqToolServingMapArgs),
     #[command(name = "render-bam-tool-serving-map")]
@@ -128,6 +130,14 @@ pub struct BenchReadinessRenderFastqAdapterOutputContractArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderFastqCommandAdapterCoverageArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderFastqParserCoverageArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

@@ -326,10 +326,10 @@ mod tests {
         assert_eq!(report.stage_count, 27);
         assert_eq!(report.tool_count, 44);
         assert_eq!(report.row_count, 74);
-        assert_eq!(report.benchmark_ready_row_count, 62);
-        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 62);
+        assert_eq!(report.benchmark_ready_row_count, 63);
+        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 63);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
-        assert_eq!(report.readiness_gap_counts.get("corpus"), Some(&7));
+        assert_eq!(report.readiness_gap_counts.get("corpus"), Some(&6));
         assert_eq!(report.readiness_gap_counts.get("support"), Some(&5));
         assert!(
             report.readiness_gap_counts.get("adapter").is_none(),
