@@ -13,13 +13,12 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_corpus_01_bam_m
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new("cargo")
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["run", "-q", "-p", "bijux-dna", "--"])
         .args([
             "bench",
             "local",
@@ -557,6 +556,135 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_corpus_01_bam_m
                             sample_ids.len() == 1
                                 && sample_ids.first().and_then(serde_json::Value::as_str)
                                     == Some("adna_like_damage")
+                        })
+            })
+    }));
+}
+
+#[test]
+fn bench_local_validate_bam_corpus_fixture_json_reports_governed_genotyping_contract() {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args([
+            "bench",
+            "local",
+            "validate-corpus-fixture",
+            "--manifest",
+            "tests/fixtures/corpora/corpus-01-genotyping-mini/manifest.toml",
+            "--json",
+        ])
+        .output()
+        .expect("run cli");
+
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let payload: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("parse stdout as json");
+    assert_eq!(
+        payload.get("corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-01-genotyping-mini")
+    );
+    assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert!(payload.get("samples").and_then(serde_json::Value::as_array).is_some_and(|samples| {
+        samples.len() == 1
+            && samples.iter().any(|sample| {
+                sample.get("sample_id").and_then(serde_json::Value::as_str)
+                    == Some("human_like_genotyping_candidate_panel")
+                    && sample
+                        .get("observed_read_group_ids")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|read_groups| {
+                            read_groups
+                                == &vec![serde_json::json!("rg-genotyping-human-like")]
+                        })
+            })
+    }));
+}
+
+#[test]
+fn bench_local_validate_bam_corpus_fixture_json_reports_governed_kinship_contract() {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args([
+            "bench",
+            "local",
+            "validate-corpus-fixture",
+            "--manifest",
+            "tests/fixtures/corpora/corpus-01-kinship-mini/manifest.toml",
+            "--json",
+        ])
+        .output()
+        .expect("run cli");
+
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let payload: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("parse stdout as json");
+    assert_eq!(
+        payload.get("corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-01-kinship-mini")
+    );
+    assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert!(payload.get("samples").and_then(serde_json::Value::as_array).is_some_and(|samples| {
+        samples.len() == 2
+            && samples.iter().any(|sample| {
+                sample.get("sample_id").and_then(serde_json::Value::as_str)
+                    == Some("human_like_kinship_low_overlap_pair")
+                    && sample
+                        .get("observed_header_sample_ids")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|sample_ids| {
+                            sample_ids
+                                == &vec![
+                                    serde_json::json!("sample_a"),
+                                    serde_json::json!("sample_b"),
+                                ]
+                        })
+            })
+            && samples.iter().any(|sample| {
+                sample.get("sample_id").and_then(serde_json::Value::as_str)
+                    == Some("human_like_kinship_related_pair")
+                    && sample
+                        .get("observed_read_group_ids")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|read_groups| {
+                            read_groups
+                                == &vec![
+                                    serde_json::json!("rg-kinship-related-a"),
+                                    serde_json::json!("rg-kinship-related-b"),
+                                ]
                         })
             })
     }));

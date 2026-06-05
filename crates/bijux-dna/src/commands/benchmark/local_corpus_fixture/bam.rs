@@ -10,6 +10,10 @@ use super::{path_relative_to_repo, resolve_manifest_relative_path};
 
 pub(crate) const DEFAULT_CORPUS_01_BAM_MINI_MANIFEST_PATH: &str =
     "tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml";
+pub(crate) const DEFAULT_CORPUS_01_GENOTYPING_MINI_MANIFEST_PATH: &str =
+    "tests/fixtures/corpora/corpus-01-genotyping-mini/manifest.toml";
+pub(crate) const DEFAULT_CORPUS_01_KINSHIP_MINI_MANIFEST_PATH: &str =
+    "tests/fixtures/corpora/corpus-01-kinship-mini/manifest.toml";
 pub(crate) const BAM_CORPUS_FIXTURE_SCHEMA_VERSION: &str = "bijux.bench.bam_corpus_fixture.v1";
 const BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.bam_corpus_fixture_validation.v1";
@@ -386,7 +390,8 @@ mod tests {
 
     use super::{
         validate_bam_corpus_fixture_manifest_path, BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION,
-        DEFAULT_CORPUS_01_BAM_MINI_MANIFEST_PATH,
+        DEFAULT_CORPUS_01_BAM_MINI_MANIFEST_PATH, DEFAULT_CORPUS_01_GENOTYPING_MINI_MANIFEST_PATH,
+        DEFAULT_CORPUS_01_KINSHIP_MINI_MANIFEST_PATH,
     };
 
     fn repo_root() -> PathBuf {
@@ -407,7 +412,7 @@ mod tests {
 
         assert_eq!(report.schema_version, BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.corpus_id, "corpus-01-bam-mini");
-        assert_eq!(report.sample_count, 16);
+        assert_eq!(report.sample_count, 21);
         assert_eq!(
             report.reference_contigs,
             vec![
@@ -554,6 +559,78 @@ mod tests {
             sample.sample_id == "adna_like_damage"
                 && sample.observed_contigs == vec!["chranc".to_string()]
                 && sample.observed_header_sample_ids == vec!["adna_like_damage".to_string()]
+        }));
+    }
+
+    #[test]
+    fn corpus_01_genotyping_mini_fixture_manifest_validates_governed_candidate_site_sample() {
+        let root = repo_root();
+        let report = validate_bam_corpus_fixture_manifest_path(
+            &root,
+            &root.join(DEFAULT_CORPUS_01_GENOTYPING_MINI_MANIFEST_PATH),
+        )
+        .expect("validate corpus-01 genotyping mini fixture manifest");
+
+        assert_eq!(report.schema_version, BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION);
+        assert_eq!(report.corpus_id, "corpus-01-genotyping-mini");
+        assert_eq!(report.sample_count, 1);
+        assert_eq!(
+            report.reference_contigs,
+            vec![
+                "chr1".to_string(),
+                "chr2".to_string(),
+                "chrX".to_string(),
+                "chrY".to_string(),
+                "chranc".to_string(),
+                "chrgc".to_string(),
+            ]
+        );
+        assert!(report.valid);
+        assert_eq!(
+            report.samples.first().map(|sample| sample.sample_id.as_str()),
+            Some("human_like_genotyping_candidate_panel")
+        );
+        assert_eq!(
+            report
+                .samples
+                .first()
+                .map(|sample| sample.observed_read_group_ids.clone()),
+            Some(vec!["rg-genotyping-human-like".to_string()])
+        );
+    }
+
+    #[test]
+    fn corpus_01_kinship_mini_fixture_manifest_validates_governed_pair_samples() {
+        let root = repo_root();
+        let report = validate_bam_corpus_fixture_manifest_path(
+            &root,
+            &root.join(DEFAULT_CORPUS_01_KINSHIP_MINI_MANIFEST_PATH),
+        )
+        .expect("validate corpus-01 kinship mini fixture manifest");
+
+        assert_eq!(report.schema_version, BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION);
+        assert_eq!(report.corpus_id, "corpus-01-kinship-mini");
+        assert_eq!(report.sample_count, 2);
+        assert!(report.valid);
+        assert!(report.samples.iter().any(|sample| {
+            sample.sample_id == "human_like_kinship_low_overlap_pair"
+                && sample.observed_header_sample_ids
+                    == vec!["sample_a".to_string(), "sample_b".to_string()]
+                && sample.observed_read_group_ids
+                    == vec![
+                        "rg-kinship-low-overlap-a".to_string(),
+                        "rg-kinship-low-overlap-b".to_string(),
+                    ]
+        }));
+        assert!(report.samples.iter().any(|sample| {
+            sample.sample_id == "human_like_kinship_related_pair"
+                && sample.observed_header_sample_ids
+                    == vec!["sample_a".to_string(), "sample_b".to_string()]
+                && sample.observed_read_group_ids
+                    == vec![
+                        "rg-kinship-related-a".to_string(),
+                        "rg-kinship-related-b".to_string(),
+                    ]
         }));
     }
 
