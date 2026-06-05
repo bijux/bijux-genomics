@@ -126,6 +126,11 @@ Visible aliases are part of the operator surface:
   one governed structured row per FASTQ and BAM raw parser failure probe, proving that missing,
   empty, and malformed raw backend outputs are classified explicitly by domain-owned parser
   contracts instead of collapsing into silent zero-metric fallbacks.
+- `bijux-dna bench readiness render-parser-completeness-gate`
+  `render-parser-completeness-gate` writes `target/bench-readiness/gate-parser-complete.json`
+  with one governed row per FASTQ or BAM readiness binding, classifying whether the row belongs
+  to benchmark-reporting scope or an excluded cohort and proving that every benchmark-ready row
+  is backed by parser fixtures before downstream benchmark reporting proceeds.
 - `bijux-dna bench readiness render-commands`
   `render-commands` writes `target/bench-readiness/rendered-commands.sh` with one governed shell
   command per local benchmark stage command, preserving a parseable `bash` script that can be
@@ -169,8 +174,8 @@ Visible aliases are part of the operator surface:
   governed row per BAM stage-tool binding that is already benchmark-ready. Each row carries
   `parser_coverage`, `parser_status`, `support_status`, `adapter_status`, and `corpus_status`,
   proving that the benchmark-ready BAM slice stays fully parser-fixture-validated while still
-  reporting the excluded non-benchmark-ready parser blockers in the JSON summary instead of
-  hiding the current `bam.align` gap.
+  reporting any excluded non-benchmark-ready gaps in the JSON summary instead of hiding coverage
+  drift behind aggregate percentages.
 - `bijux-dna bench readiness render-bam-normalized-metrics-schema`
   `render-bam-normalized-metrics-schema` writes
   `schemas/bench/bam-normalized-metrics.v1.json` with the governed JSON Schema contract for
