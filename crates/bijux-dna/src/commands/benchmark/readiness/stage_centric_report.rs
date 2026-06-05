@@ -149,7 +149,9 @@ pub(crate) fn render_stage_centric_report(
     })
 }
 
-fn collect_stage_centric_stage_reports(repo_root: &Path) -> Result<Vec<StageCentricStageReport>> {
+pub(crate) fn collect_stage_centric_stage_reports(
+    repo_root: &Path,
+) -> Result<Vec<StageCentricStageReport>> {
     let rows = collect_pair_readiness_rows(repo_root)?;
     let stage_metadata = load_stage_metadata(repo_root)?;
     let shared_metric_fields_by_stage = load_shared_metric_fields_by_stage(repo_root)?;

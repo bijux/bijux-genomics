@@ -188,12 +188,17 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchReadinessCommand::RenderCorpusIncompatibility(args) => {
                         crate::commands::benchmark::readiness::corpus_incompatibility::run_render_corpus_incompatibility(
-                        args,
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderCorpusCentricReport(args) => {
+                        crate::commands::benchmark::readiness::corpus_centric_report::run_render_corpus_centric_report(
+                            args,
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderBamComparableMetrics(args) => {
                         crate::commands::benchmark::readiness::bam_comparable_metrics::run_render_bam_comparable_metrics(
-                        args,
+                            args,
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderBamNormalizedMetricsSchema(args) => {

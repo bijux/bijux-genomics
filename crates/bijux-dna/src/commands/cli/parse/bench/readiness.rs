@@ -24,6 +24,8 @@ pub enum BenchReadinessCommand {
     RenderBamCorpusAssignment(BenchReadinessRenderBamCorpusAssignmentArgs),
     #[command(name = "render-corpus-incompatibility")]
     RenderCorpusIncompatibility(BenchReadinessRenderCorpusIncompatibilityArgs),
+    #[command(name = "render-corpus-centric-report")]
+    RenderCorpusCentricReport(BenchReadinessRenderCorpusCentricReportArgs),
     #[command(name = "render-bam-comparable-metrics")]
     RenderBamComparableMetrics(BenchReadinessRenderBamComparableMetricsArgs),
     #[command(name = "render-bam-normalized-metrics-schema")]
@@ -166,6 +168,14 @@ pub struct BenchReadinessRenderBamCorpusAssignmentArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderCorpusIncompatibilityArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderCorpusCentricReportArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
