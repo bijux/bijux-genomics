@@ -51,19 +51,19 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(104));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(105));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(104)
+        Some(105)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(103));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(104));
     assert_eq!(
         payload.get("container_declared_row_count").and_then(serde_json::Value::as_u64),
-        Some(103)
+        Some(104)
     );
     assert_eq!(
         payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
-        Some(104)
+        Some(105)
     );
     assert_eq!(payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
@@ -78,7 +78,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(41)
+        Some(42)
     );
 
     assert_eq!(
@@ -86,7 +86,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("execution_mode_counts")
             .and_then(|value| value.get("containerized"))
             .and_then(serde_json::Value::as_u64),
-        Some(84)
+        Some(85)
     );
     assert_eq!(
         payload
@@ -125,6 +125,25 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    let ngsbriggs = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ngsbriggs")
+        })
+        .expect("bam damage ngsbriggs row");
+    assert_eq!(
+        ngsbriggs.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("containerized")
+    );
+    assert_eq!(
+        ngsbriggs.get("command_entrypoint").and_then(serde_json::Value::as_str),
+        Some("ngsbriggs")
+    );
+    assert_eq!(
+        ngsbriggs.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/ngsbriggs:0.1.3")
+    );
     assert!(rows.iter().all(|row| {
         row.get("container_id").is_some()
             || row.get("command_entrypoint").is_some()

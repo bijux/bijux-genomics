@@ -47,7 +47,7 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/unregistered-benchmark-pairs.tsv")
     );
-    assert_eq!(payload.get("unregistered_pair_count").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(payload.get("unregistered_pair_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
     let domain_counts = payload
@@ -55,10 +55,10 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(5));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(3));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 9, "governed registry-drift slice must retain the current nine rows");
+    assert_eq!(rows.len(), 8, "governed registry-drift slice must retain the current eight rows");
     assert!(
         rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -80,14 +80,12 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         "bam.genotyping / angsd must remain visible as a pair-missing registry row"
     );
     assert!(
-        rows.iter().any(|row| {
+        !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
                 && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ngsbriggs")
-                && row.get("registry_status").and_then(serde_json::Value::as_str)
-                    == Some("tool_missing")
         }),
-        "bam.damage / ngsbriggs must remain visible as a planned missing-tool registry row"
+        "bam.damage / ngsbriggs must leave the registry-drift slice once it is registered in production"
     );
     assert!(
         rows.iter().any(|row| {

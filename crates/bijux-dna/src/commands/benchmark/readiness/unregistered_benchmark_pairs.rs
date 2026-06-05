@@ -201,10 +201,10 @@ mod tests {
         .expect("render unregistered benchmark pairs");
 
         assert_eq!(report.schema_version, UNREGISTERED_BENCHMARK_PAIRS_SCHEMA_VERSION);
-        assert_eq!(report.unregistered_pair_count, 9);
+        assert_eq!(report.unregistered_pair_count, 8);
         assert!(!report.ok, "report must fail while registry drift remains");
         assert_eq!(report.domain_counts.get("fastq"), Some(&5));
-        assert_eq!(report.domain_counts.get("bam"), Some(&4));
+        assert_eq!(report.domain_counts.get("bam"), Some(&3));
         assert!(report.rows.iter().any(|row| {
             row.domain == "fastq"
                 && row.stage_id == "fastq.estimate_library_complexity_prealign"
@@ -220,6 +220,14 @@ mod tests {
                 && row.registered_stage_ids
                     == vec!["bam.kinship".to_string(), "bam.sex".to_string()]
         }));
+        assert!(
+            !report.rows.iter().any(|row| {
+                row.domain == "bam"
+                    && row.stage_id == "bam.damage"
+                    && row.tool_id == "ngsbriggs"
+            }),
+            "bam.damage / ngsbriggs must leave the registry-drift slice once ngsbriggs is registered in production"
+        );
         assert!(
             !report.rows.iter().any(|row| {
                 row.domain == "bam"
