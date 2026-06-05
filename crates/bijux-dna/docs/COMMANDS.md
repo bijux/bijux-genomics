@@ -182,6 +182,12 @@ Visible aliases are part of the operator surface:
   `parser_status`, and `corpus_status`. The report proves which FASTQ benchmark rows are already
   fully renderable with governed support, normalized parsing, and fixture-backed corpus coverage,
   while keeping corpus-blocked and planned-contract rows explicit instead of hidden.
+- `bijux-dna bench readiness render-fastq-normalized-metrics-schema`
+  `render-fastq-normalized-metrics-schema` writes
+  `schemas/bench/fastq-normalized-metrics.v1.json` with the governed JSON Schema contract for
+  normalized FASTQ parser outputs. The readiness report enumerates every benchmark FASTQ stage
+  extension, its durable extension ID, and the required normalized key count so schema drift
+  cannot hide behind parser-specific report formats.
 - `bijux-dna bench readiness render-fastq-parser-coverage`
   `render-fastq-parser-coverage` writes `target/bench-readiness/fastq-parser-coverage.tsv` with
   one governed row per FASTQ stage-tool binding that already has governed support,
