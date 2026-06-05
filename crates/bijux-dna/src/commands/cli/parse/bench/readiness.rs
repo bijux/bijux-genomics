@@ -28,6 +28,8 @@ pub enum BenchReadinessCommand {
     RenderCorpusCentricReport(BenchReadinessRenderCorpusCentricReportArgs),
     #[command(name = "render-benchmark-readiness-dashboard")]
     RenderBenchmarkReadinessDashboard(BenchReadinessRenderBenchmarkReadinessDashboardArgs),
+    #[command(name = "render-stage-tool-benchmark-ready")]
+    RenderStageToolBenchmarkReady(BenchReadinessRenderStageToolBenchmarkReadyArgs),
     #[command(name = "render-bam-comparable-metrics")]
     RenderBamComparableMetrics(BenchReadinessRenderBamComparableMetricsArgs),
     #[command(name = "render-bam-normalized-metrics-schema")]
@@ -186,6 +188,14 @@ pub struct BenchReadinessRenderCorpusCentricReportArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBenchmarkReadinessDashboardArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderStageToolBenchmarkReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

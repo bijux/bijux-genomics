@@ -68,9 +68,10 @@ pub use self::readiness::{
     BenchReadinessRenderPairReadinessArgs, BenchReadinessRenderParserCompletenessGateArgs,
     BenchReadinessRenderParserFailureTestsArgs, BenchReadinessRenderStageCentricReportArgs,
     BenchReadinessRenderStageRegistryExtraPairsArgs, BenchReadinessRenderStageToolAssetsArgs,
-    BenchReadinessRenderStageToolContainersArgs, BenchReadinessRenderStageToolResourcesArgs,
-    BenchReadinessRenderToolCentricReportArgs, BenchReadinessRenderToolIdNormalizationArgs,
-    BenchReadinessRenderUndercoveredStagesArgs, BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
+    BenchReadinessRenderStageToolBenchmarkReadyArgs, BenchReadinessRenderStageToolContainersArgs,
+    BenchReadinessRenderStageToolResourcesArgs, BenchReadinessRenderToolCentricReportArgs,
+    BenchReadinessRenderToolIdNormalizationArgs, BenchReadinessRenderUndercoveredStagesArgs,
+    BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
     BenchReadinessValidateToolExecutionModesArgs, BenchReadinessValidateToolFamiliesArgs,
 };
 pub use self::suite::BenchRunArgs;

@@ -37,6 +37,8 @@ use super::undercovered_stages::{render_undercovered_stages, DEFAULT_UNDERCOVERE
 use super::unregistered_benchmark_pairs::{
     render_unregistered_benchmark_pairs, DEFAULT_UNREGISTERED_BENCHMARK_PAIRS_PATH,
 };
+use crate::commands::cli::parse;
+use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_TOOL_BENCHMARK_READY_PATH: &str =
     "target/bench-readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json";
@@ -122,6 +124,24 @@ pub(crate) struct StageToolBenchmarkReadyReport {
     pub(crate) surface_summaries: Vec<StageToolBenchmarkReadySurfaceSummary>,
     pub(crate) failing_pairs: Vec<StageToolBenchmarkReadyFailingPair>,
     pub(crate) excluded_pairs: Vec<StageToolBenchmarkReadyExcludedPair>,
+}
+
+pub(crate) fn run_render_stage_tool_benchmark_ready(
+    args: &parse::BenchReadinessRenderStageToolBenchmarkReadyArgs,
+) -> Result<()> {
+    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let report = render_stage_tool_benchmark_ready(
+        &repo_root,
+        args.output
+            .clone()
+            .unwrap_or_else(|| PathBuf::from(DEFAULT_STAGE_TOOL_BENCHMARK_READY_PATH)),
+    )?;
+    if args.json {
+        render::json::print_pretty(&report)?;
+    } else {
+        println!("{}", report.output_path);
+    }
+    Ok(())
 }
 
 pub(crate) fn render_stage_tool_benchmark_ready(
