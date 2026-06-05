@@ -258,6 +258,60 @@ fn stage_tool_registration_queries_keep_planned_tools_visible_but_not_runnable()
 }
 
 #[test]
+fn multi_tool_comparable_stages_publish_shared_sanity_metrics() {
+    let comparable_multi_tool_stages = bijux_dna_domain_fastq::comparable_benchmark_stage_ids()
+        .into_iter()
+        .filter(|stage_id| {
+            bijux_dna_domain_fastq::admitted_execution_tools_for_stage(stage_id).len() >= 2
+        })
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        comparable_multi_tool_stages
+            .iter()
+            .map(std::string::ToString::to_string)
+            .collect::<BTreeSet<_>>(),
+        BTreeSet::from([
+            "fastq.index_reference".to_string(),
+            "fastq.profile_overrepresented_sequences".to_string(),
+            "fastq.validate_reads".to_string(),
+        ]),
+        "the governed multi-tool FASTQ comparable slice must stay explicit"
+    );
+
+    for stage_id in &comparable_multi_tool_stages {
+        let metrics = bijux_dna_domain_fastq::stage_sanity_metrics_for_stage(stage_id);
+        assert!(
+            !metrics.is_empty(),
+            "multi-tool comparable stage `{stage_id}` must publish shared sanity metrics"
+        );
+    }
+
+    assert_eq!(
+        bijux_dna_domain_fastq::stage_sanity_metrics_for_stage(&StageId::from_static(
+            "fastq.index_reference",
+        )),
+        vec!["index_build_exit_code".to_string()]
+    );
+    assert_eq!(
+        bijux_dna_domain_fastq::stage_sanity_metrics_for_stage(&StageId::from_static(
+            "fastq.validate_reads",
+        )),
+        vec!["format_validation_pass_rate".to_string()]
+    );
+    assert_eq!(
+        bijux_dna_domain_fastq::stage_sanity_metrics_for_stage(&StageId::from_static(
+            "fastq.profile_overrepresented_sequences",
+        )),
+        vec![
+            "sequence_count".to_string(),
+            "flagged_sequences".to_string(),
+            "top_fraction".to_string(),
+        ]
+    );
+}
+
+#[test]
 fn stage_tool_governance_profile_centralizes_benchmark_contract_truth() {
     let validation_profile = governance_profile(
         &StageId::from_static("fastq.validate_reads"),
