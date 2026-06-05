@@ -29,10 +29,10 @@
       },
       {
         "stage_id": "bam.bias_mitigation",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "admitted bias-mitigation tools must preserve the governed bias report, summary JSON, and benchmark-facing stage metrics"
         ],
         "invariants": [
           "stable_artifact_contract",

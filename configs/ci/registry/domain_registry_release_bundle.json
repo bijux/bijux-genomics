@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "f568c61e644c122cbb9696df04783455445fadd9",
-  "bundle_checksum_sha256": "b103c26c842fd53beb7dba89004370da46a1b8365bddb89ab608322665e32215",
+  "source_commit": "20eba3da2af69c219b75949028808bd8d31fff73",
+  "bundle_checksum_sha256": "a7a6682f50d552a3cc5a431fc05c8739c342f0b93e87c3c44f084abd2704b11a",
   "domains": [
     {
       "domain_id": "bam",
@@ -282,8 +282,8 @@
         },
         {
           "stage_id": "bam.bias_mitigation",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "description": "BAM bias_mitigation stage contract.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
@@ -325,10 +325,10 @@
             "bam_input"
           ],
           "compatible_tools": [
-            "samtools"
+            "mapdamage2"
           ],
           "assumptions": [
-            "default stage assumptions captured"
+            "admitted bias-mitigation tools must preserve the governed bias report, summary JSON, and benchmark-facing stage metrics"
           ],
           "invariants": [
             "stable_artifact_contract",
@@ -3415,6 +3415,11 @@
           "fixture_path": "domain/bam/fixtures/bam.authenticity/pmdtools.txt"
         },
         {
+          "stage_id": "bam.bias_mitigation",
+          "tool_id": "mapdamage2",
+          "fixture_path": "domain/bam/fixtures/bam.bias_mitigation/mapdamage2.txt"
+        },
+        {
           "stage_id": "bam.contamination",
           "tool_id": "contammix",
           "fixture_path": "domain/bam/fixtures/bam.contamination/contammix.txt"
@@ -3585,7 +3590,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "07acbe98f73fbc1c09691c02994a79ccb6246fb078f085ec3008c6affcd5682a"
+      "checksum_sha256": "add6bee6fe008dea0e941f741fc39fc7aca502533ca0434bfe5a26dc909d3c5e"
     },
     {
       "domain_id": "fastq",
@@ -12438,7 +12443,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "21ca7d97b742b36ad83055e5bde4dc3fde82489d2c01a6ea22d6a1e26587815a"
+      "checksum_sha256": "7062ec0338a7b637a9d910268654804599f802d38fc901816c967f21d415e3b4"
     },
     {
       "domain_id": "vcf",
@@ -14696,7 +14701,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "83b3934aec4a55f68e7ae2deb63ec20f91098ade6c6749da1ca5921b410750a1"
+      "checksum_sha256": "58d5ae5a9b0b473be9b4e9934dfc739c3fe46040ed8e6019bdfd29c534a43544"
     }
   ]
 }

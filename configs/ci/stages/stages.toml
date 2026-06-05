@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: f568c61e644c122cbb9696df04783455445fadd9
+# source_commit: 20eba3da2af69c219b75949028808bd8d31fff73
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -46,6 +46,25 @@ duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["pmd_enriched_reads>=500"]
 sex_kinship_sufficiency = ["not_applicable"]
 tools = ["authenticct", "damageprofiler", "pmdtools"]
+
+[[stages]]
+id = "bam.bias_mitigation"
+status = "supported"
+output_kinds = ["json"]
+ordering_after = ["bam.filter"]
+prerequisites = ["bam.filter"]
+resource_memory_gb = 10
+resource_time_minutes = 60
+resource_threads = 6
+sanity_metrics = ["gc_bias_score"]
+output_size_estimates_mb = ["bias_report:7"]
+qc_thresholds = ["gc_bias_score|warn=>0.2|fail=>0.4"]
+contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
+coverage_sufficiency = ["reads_retained_fraction>=0.1"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["mapdamage2"]
 
 [[stages]]
 id = "bam.contamination"
