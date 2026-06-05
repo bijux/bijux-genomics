@@ -37,3 +37,16 @@ pub fn write_fastq_normalized_metrics_schema(path: &Path) -> Result<()> {
     bijux_dna_infra::atomic_write_json(path, &schema)
         .with_context(|| format!("write {}", path.display()))
 }
+
+/// Render the governed BAM normalized metrics schema.
+#[must_use]
+pub fn render_bam_normalized_metrics_schema() -> serde_json::Value {
+    crate::internal::handlers::cross::render_governed_bam_normalized_metrics_schema()
+}
+
+/// Write the governed BAM normalized metrics schema to disk.
+pub fn write_bam_normalized_metrics_schema(path: &Path) -> Result<()> {
+    let schema = render_bam_normalized_metrics_schema();
+    bijux_dna_infra::atomic_write_json(path, &schema)
+        .with_context(|| format!("write {}", path.display()))
+}

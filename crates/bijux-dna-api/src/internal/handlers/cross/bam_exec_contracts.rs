@@ -1125,6 +1125,37 @@ r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFF
     }
 
     #[test]
+    fn bam_normalized_metrics_schema_declares_every_stage_extension() {
+        let schema = crate::internal::handlers::cross::render_governed_bam_normalized_metrics_schema();
+        assert_eq!(
+            schema.get("$id").and_then(serde_json::Value::as_str),
+            Some("bijux.schemas.bench.bam-normalized-metrics.v1")
+        );
+        let stage_defs = schema
+            .get("$defs")
+            .and_then(|value| value.get("stages"))
+            .and_then(serde_json::Value::as_object)
+            .expect("stage defs");
+        assert_eq!(stage_defs.len(), 24);
+        assert!(stage_defs.iter().all(|(stage_id, value)| {
+            value
+                .get("allOf")
+                .and_then(serde_json::Value::as_array)
+                .and_then(|items| items.get(1))
+                .and_then(|value| value.get("x-bijux-extension-id"))
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|extension_id| {
+                    crate::internal::handlers::cross::bam_normalized_metrics_contract::bam_normalized_metrics_contract_for_stage(stage_id)
+                        .is_some_and(|contract| contract.extension_id == extension_id)
+                })
+        }));
+        assert_eq!(
+            crate::internal::handlers::cross::bam_normalized_metrics_contract::bam_normalized_metrics_stage_contracts().len(),
+            24
+        );
+    }
+
+    #[test]
     fn bam_stage_contract_suite_emits_normalized_metrics_for_all_stages() -> Result<()> {
         let temp = tempfile::tempdir()?;
         let result = bijux_dna_runner::step_runner::StageResultV1 {
@@ -1170,6 +1201,10 @@ r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFF
             );
             assert!(payload.pointer("/metrics/normalized_keys").is_some());
             assert!(stage_payload.get("normalized_keys").is_some());
+            crate::internal::handlers::cross::bam_normalized_metrics_contract::validate_bam_normalized_metrics(
+                payload.pointer("/metrics").expect("nested normalized metrics"),
+            )?;
+            crate::internal::handlers::cross::bam_normalized_metrics_contract::validate_bam_normalized_metrics(&stage_payload)?;
         }
         Ok(())
     }
