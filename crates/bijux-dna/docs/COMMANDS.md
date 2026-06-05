@@ -243,6 +243,16 @@ Visible aliases are part of the operator surface:
   `kraken2`, and `krakenuniq` all stay on `corpus-02-edna-mini`, and it refuses amplicon drift
   unless `cutadapt`, `dada2`, `vsearch`, `seqkit`, and `seqfu` all stay on
   `corpus-03-amplicon-mini`.
+- `bijux-dna bench readiness render-corpus-incompatibility`
+  `render-corpus-incompatibility` writes
+  `target/bench-readiness/corpus-incompatibility.tsv` with one governed row per benchmark-ready
+  FASTQ or BAM stage-tool binding against each incompatible alternative fixture, carrying the
+  incompatible fixture IDs, the required governed replacement, the `incompatibility_kind`, any
+  required stage assets, and the exact contract evidence that blocks the mismatch. The report is
+  sourced from the real corpus-compatibility matrix, the FASTQ and BAM corpus-assignment reports,
+  the stage-tool asset contract, and the owned amplicon, taxonomy, and kinship fixture contracts,
+  so ASV-on-corpus-01, taxonomy-outside-corpus-02, and kinship-without-pair-manifest failures
+  stay reviewer-visible before HPC submission.
 - `bijux-dna bench readiness render-fastq-normalized-metrics-schema`
   `render-fastq-normalized-metrics-schema` writes
   `schemas/bench/fastq-normalized-metrics.v1.json` with the governed JSON Schema contract for
