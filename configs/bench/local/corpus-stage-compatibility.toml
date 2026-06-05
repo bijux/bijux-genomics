@@ -299,8 +299,10 @@ compatibility_note = "The governed BAM corpus now owns a GC-window ladder fixtur
 
 [[mappings]]
 stage_id = "bam.genotyping"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed corpus fixture yet owns the candidate-sites and target-regions contract required for local genotyping planning."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The governed BAM corpus now owns candidate-sites and target-regions contracts suitable for local ANGSD genotyping smoke checks."
 
 [[mappings]]
 stage_id = "bam.haplogroups"

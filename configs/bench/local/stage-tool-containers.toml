@@ -249,6 +249,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.genotyping"
+tool_id = "angsd"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/angsd"
+command_entrypoint = "angsd"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.haplogroups"
 tool_id = "yleaf"
 execution_mode = "containerized"

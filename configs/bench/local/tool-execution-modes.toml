@@ -31,7 +31,6 @@ tool_ids = [
   "bayeshammer",
   "bbduk",
   "bbmerge",
-  "bcftools",
   "bedtools",
   "bowtie2",
   "bowtie2_build",
