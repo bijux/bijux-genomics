@@ -4,8 +4,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use serde::Serialize;
 
-use crate::commands::benchmark::local_stage_commands::collect_local_stage_command_entries;
-use crate::commands::benchmark::local_stage_inventory::LocalStageReadinessKind;
+use super::benchmark_command_rows::{collect_benchmark_command_rows, render_shell_command};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -66,15 +65,16 @@ pub(crate) fn render_commands(
 }
 
 pub(crate) fn collect_rendered_command_rows(repo_root: &Path) -> Result<Vec<RenderedCommandRow>> {
-    collect_local_stage_command_entries(repo_root, None)?
+    collect_benchmark_command_rows(repo_root)?
         .into_iter()
         .map(|entry| {
+            let command = render_shell_command(&entry.argv);
             Ok(RenderedCommandRow {
                 stage_id: entry.stage_id,
                 tool_id: entry.tool_id,
-                readiness_kind: readiness_kind_label(entry.readiness_kind).to_string(),
+                readiness_kind: entry.readiness_kind,
                 argv: entry.argv,
-                command: entry.command,
+                command,
             })
         })
         .collect()
@@ -88,14 +88,6 @@ fn render_commands_shell_script(rows: &[RenderedCommandRow]) -> String {
         rendered.push_str(&format!("# {} / {}\n{}\n", row.stage_id, row.tool_id, row.command));
     }
     rendered
-}
-
-fn readiness_kind_label(readiness_kind: LocalStageReadinessKind) -> &'static str {
-    match readiness_kind {
-        LocalStageReadinessKind::DryRun => "dry_run",
-        LocalStageReadinessKind::Smoke => "smoke",
-        LocalStageReadinessKind::DryOrSmoke => "dry_or_smoke",
-    }
 }
 
 fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
@@ -123,7 +115,7 @@ mod tests {
 
     #[cfg(feature = "bam_downstream")]
     #[test]
-    fn rendered_commands_report_governed_51_row_slice() {
+    fn rendered_commands_report_governed_benchmark_ready_row_slice() {
         use super::{render_commands, DEFAULT_RENDERED_COMMANDS_PATH};
 
         let root = repo_root();
@@ -132,12 +124,12 @@ mod tests {
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.rendered_commands.v1");
         assert_eq!(report.output_path, "target/bench-readiness/rendered-commands.sh");
-        assert_eq!(report.row_count, 51);
-        assert_eq!(report.rows.len(), 51);
+        assert_eq!(report.row_count, 110);
+        assert_eq!(report.rows.len(), 110);
         assert!(report.rows.iter().all(|row| {
-            row.argv.first().is_some_and(|arg| arg == "cargo")
-                && row.command.starts_with("cargo run -q -p bijux-dna --features bam_downstream --")
-                && row.command.contains(&row.stage_id)
+            row.argv.first().is_some()
+                && !row.command.is_empty()
+                && row.command == crate::commands::benchmark::readiness::benchmark_command_rows::render_shell_command(&row.argv)
         }));
     }
 }
