@@ -73,7 +73,7 @@ single_tool_justification: bam.haplogroups
 - `bam.sex` rationale: deterministic ratio-based sex inference baseline.
 - `bam.bias_mitigation` rationale: preserve a governed bias-projection baseline through the admitted `mapdamage2` execution surface.
 - `bam.recalibration` rationale: preserve a governed BQSR baseline with owned known-sites and low-coverage skip semantics.
-- `bam.haplogroups` rationale: planned deterministic haplogroup assignment baseline.
+- `bam.haplogroups` rationale: deterministic Y-haplogroup assignment baseline with an owned corpus-backed panel contract.
 - `bam.genotyping` rationale: planned pinned-caller baseline for consistent genotype outputs.
 - `bam.kinship` rationale: reproducible pairwise kinship baseline.
 
