@@ -4,6 +4,33 @@ species = "Homo sapiens"
 description = "Tiny BAM kinship corpus with governed low-overlap and related-pair samples plus the shared relatedness panel used for local benchmark checks."
 reference_fasta = "../corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
 
+[kinship_contract]
+reference_panel = "human_like_relatedness_panel"
+reference_panel_path = "../corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv"
+reference_build = "grch38"
+population_scope = "human_diploid_panel"
+expected_outputs = [
+  "kinship_report",
+  "summary",
+  "kinship_segments",
+  "stage_metrics",
+]
+
+[[kinship_contract.cases]]
+sample_id = "human_like_kinship_low_overlap_pair"
+min_overlap_snps = 5
+expected_status = "insufficient"
+expected_observed_max_overlap_snps = 4
+skip_behavior = "stop_without_pairwise_results"
+
+[[kinship_contract.cases]]
+sample_id = "human_like_kinship_related_pair"
+min_overlap_snps = 6
+expected_status = "ok"
+expected_observed_max_overlap_snps = 6
+expected_relationship_labels = ["first_degree"]
+skip_behavior = "emit_pairwise_results"
+
 [[samples]]
 sample_id = "human_like_kinship_low_overlap_pair"
 cohort = "human_like"

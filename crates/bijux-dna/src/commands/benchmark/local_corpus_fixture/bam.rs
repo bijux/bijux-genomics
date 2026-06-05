@@ -34,7 +34,45 @@ pub(crate) struct BamCorpusFixtureManifest {
     pub(crate) damage_signal: Option<String>,
     #[serde(default)]
     pub(crate) expected_terminal_pattern_class: Option<String>,
+    #[serde(default)]
+    pub(crate) genotyping_contract: Option<BamCorpusFixtureGenotypingContract>,
+    #[serde(default)]
+    pub(crate) kinship_contract: Option<BamCorpusFixtureKinshipContract>,
     pub(crate) samples: Vec<BamCorpusFixtureSample>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct BamCorpusFixtureGenotypingContract {
+    pub(crate) sample_id: String,
+    pub(crate) sites_vcf: PathBuf,
+    pub(crate) regions: PathBuf,
+    pub(crate) min_posterior: f64,
+    pub(crate) min_call_rate: f64,
+    pub(crate) expected_outputs: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct BamCorpusFixtureKinshipContract {
+    pub(crate) reference_panel: String,
+    pub(crate) reference_panel_path: PathBuf,
+    pub(crate) reference_build: String,
+    pub(crate) population_scope: String,
+    pub(crate) expected_outputs: Vec<String>,
+    pub(crate) cases: Vec<BamCorpusFixtureKinshipCase>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct BamCorpusFixtureKinshipCase {
+    pub(crate) sample_id: String,
+    pub(crate) min_overlap_snps: u32,
+    pub(crate) expected_status: String,
+    pub(crate) expected_observed_max_overlap_snps: u32,
+    #[serde(default)]
+    pub(crate) expected_relationship_labels: Vec<String>,
+    pub(crate) skip_behavior: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -75,10 +113,42 @@ pub(crate) struct BamCorpusFixtureValidationReport {
     pub(crate) udg_model: Option<String>,
     pub(crate) damage_signal: Option<String>,
     pub(crate) expected_terminal_pattern_class: Option<String>,
+    pub(crate) genotyping_contract: Option<BamCorpusFixtureGenotypingContractReport>,
+    pub(crate) kinship_contract: Option<BamCorpusFixtureKinshipContractReport>,
     pub(crate) reference_contigs: Vec<String>,
     pub(crate) sample_count: usize,
     pub(crate) valid: bool,
     pub(crate) samples: Vec<BamCorpusFixtureSampleValidationReport>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct BamCorpusFixtureGenotypingContractReport {
+    pub(crate) sample_id: String,
+    pub(crate) sites_vcf: String,
+    pub(crate) regions: String,
+    pub(crate) min_posterior: f64,
+    pub(crate) min_call_rate: f64,
+    pub(crate) expected_outputs: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct BamCorpusFixtureKinshipContractReport {
+    pub(crate) reference_panel: String,
+    pub(crate) reference_panel_path: String,
+    pub(crate) reference_build: String,
+    pub(crate) population_scope: String,
+    pub(crate) expected_outputs: Vec<String>,
+    pub(crate) cases: Vec<BamCorpusFixtureKinshipCaseReport>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct BamCorpusFixtureKinshipCaseReport {
+    pub(crate) sample_id: String,
+    pub(crate) min_overlap_snps: u32,
+    pub(crate) expected_status: String,
+    pub(crate) expected_observed_max_overlap_snps: u32,
+    pub(crate) expected_relationship_labels: Vec<String>,
+    pub(crate) skip_behavior: String,
 }
 
 pub(crate) fn validate_bam_corpus_fixture_manifest_path(
@@ -112,6 +182,32 @@ pub(crate) fn validate_bam_corpus_fixture_manifest_path(
             reference_fasta.display()
         ));
     }
+    let genotyping_contract = manifest
+        .genotyping_contract
+        .as_ref()
+        .map(|contract| {
+            validate_bam_corpus_genotyping_contract(
+                repo_root,
+                manifest_dir,
+                &manifest,
+                &reference_fasta,
+                contract,
+            )
+        })
+        .transpose()?;
+    let kinship_contract = manifest
+        .kinship_contract
+        .as_ref()
+        .map(|contract| {
+            validate_bam_corpus_kinship_contract(
+                repo_root,
+                manifest_dir,
+                &manifest,
+                &reference_fasta,
+                contract,
+            )
+        })
+        .transpose()?;
 
     let samples = manifest
         .samples
@@ -130,6 +226,8 @@ pub(crate) fn validate_bam_corpus_fixture_manifest_path(
         udg_model: manifest.udg_model,
         damage_signal: manifest.damage_signal,
         expected_terminal_pattern_class: manifest.expected_terminal_pattern_class,
+        genotyping_contract,
+        kinship_contract,
         reference_contigs: reference_contigs.into_iter().collect(),
         sample_count: samples.len(),
         valid: true,
@@ -238,6 +336,234 @@ fn validate_bam_corpus_fixture_manifest_contract(
         }
     }
     Ok(())
+}
+
+fn validate_bam_corpus_genotyping_contract(
+    repo_root: &Path,
+    manifest_dir: &Path,
+    manifest: &BamCorpusFixtureManifest,
+    reference_fasta: &Path,
+    contract: &BamCorpusFixtureGenotypingContract,
+) -> Result<BamCorpusFixtureGenotypingContractReport> {
+    if contract.sample_id.trim().is_empty() {
+        return Err(anyhow!("BAM corpus genotyping contract must declare a non-empty `sample_id`"));
+    }
+    if !manifest.samples.iter().any(|sample| sample.sample_id == contract.sample_id) {
+        return Err(anyhow!(
+            "BAM corpus genotyping contract sample `{}` must exist in the fixture sample set",
+            contract.sample_id
+        ));
+    }
+    if contract.min_posterior.is_nan() || !(0.0..=1.0).contains(&contract.min_posterior) {
+        return Err(anyhow!(
+            "BAM corpus genotyping contract `min_posterior` must stay within [0, 1]"
+        ));
+    }
+    if contract.min_call_rate.is_nan() || !(0.0..=1.0).contains(&contract.min_call_rate) {
+        return Err(anyhow!(
+            "BAM corpus genotyping contract `min_call_rate` must stay within [0, 1]"
+        ));
+    }
+    let sites_vcf = resolve_manifest_relative_path(manifest_dir, &contract.sites_vcf);
+    if !sites_vcf.is_file() {
+        return Err(anyhow!(
+            "BAM corpus genotyping contract sites VCF is missing: {}",
+            sites_vcf.display()
+        ));
+    }
+    if !sites_vcf
+        .file_name()
+        .and_then(|name| name.to_str())
+        .is_some_and(|name| name.ends_with(".vcf") || name.ends_with(".vcf.gz"))
+    {
+        return Err(anyhow!(
+            "BAM corpus genotyping contract sites VCF must end with `.vcf` or `.vcf.gz`"
+        ));
+    }
+    let sites_vcf = fs::canonicalize(&sites_vcf)
+        .with_context(|| format!("canonicalize {}", sites_vcf.display()))?;
+    let regions = resolve_manifest_relative_path(manifest_dir, &contract.regions);
+    if !regions.is_file() {
+        return Err(anyhow!(
+            "BAM corpus genotyping contract regions file is missing: {}",
+            regions.display()
+        ));
+    }
+    if !regions
+        .file_name()
+        .and_then(|name| name.to_str())
+        .is_some_and(|name| name.ends_with(".txt") || name.ends_with(".bed"))
+    {
+        return Err(anyhow!(
+            "BAM corpus genotyping contract regions file must end with `.txt` or `.bed`"
+        ));
+    }
+    let regions = fs::canonicalize(&regions)
+        .with_context(|| format!("canonicalize {}", regions.display()))?;
+    let expected_outputs = validate_expected_output_contract(
+        &contract.expected_outputs,
+        "BAM corpus genotyping contract",
+    )?;
+
+    if path_relative_to_repo(repo_root, reference_fasta).trim().is_empty() {
+        return Err(anyhow!(
+            "BAM corpus genotyping contract must resolve a non-empty reference FASTA path"
+        ));
+    }
+
+    Ok(BamCorpusFixtureGenotypingContractReport {
+        sample_id: contract.sample_id.clone(),
+        sites_vcf: path_relative_to_repo(repo_root, &sites_vcf),
+        regions: path_relative_to_repo(repo_root, &regions),
+        min_posterior: contract.min_posterior,
+        min_call_rate: contract.min_call_rate,
+        expected_outputs,
+    })
+}
+
+fn validate_bam_corpus_kinship_contract(
+    repo_root: &Path,
+    manifest_dir: &Path,
+    manifest: &BamCorpusFixtureManifest,
+    reference_fasta: &Path,
+    contract: &BamCorpusFixtureKinshipContract,
+) -> Result<BamCorpusFixtureKinshipContractReport> {
+    if contract.reference_panel.trim().is_empty() {
+        return Err(anyhow!(
+            "BAM corpus kinship contract must declare a non-empty `reference_panel`"
+        ));
+    }
+    if contract.reference_build.trim().is_empty() {
+        return Err(anyhow!(
+            "BAM corpus kinship contract must declare a non-empty `reference_build`"
+        ));
+    }
+    if contract.population_scope.trim().is_empty() {
+        return Err(anyhow!(
+            "BAM corpus kinship contract must declare a non-empty `population_scope`"
+        ));
+    }
+    let reference_panel_path =
+        resolve_manifest_relative_path(manifest_dir, &contract.reference_panel_path);
+    if !reference_panel_path.is_file() {
+        return Err(anyhow!(
+            "BAM corpus kinship contract reference panel is missing: {}",
+            reference_panel_path.display()
+        ));
+    }
+    let reference_panel_path = fs::canonicalize(&reference_panel_path)
+        .with_context(|| format!("canonicalize {}", reference_panel_path.display()))?;
+    let expected_outputs = validate_expected_output_contract(
+        &contract.expected_outputs,
+        "BAM corpus kinship contract",
+    )?;
+    if contract.cases.is_empty() {
+        return Err(anyhow!("BAM corpus kinship contract must declare at least one case"));
+    }
+    let mut sample_ids = BTreeSet::new();
+    let mut cases = Vec::with_capacity(contract.cases.len());
+    for case in &contract.cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!(
+                "BAM corpus kinship contract cases must declare a non-empty `sample_id`"
+            ));
+        }
+        if !sample_ids.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "BAM corpus kinship contract repeats sample_id `{}`",
+                case.sample_id
+            ));
+        }
+        if !manifest.samples.iter().any(|sample| sample.sample_id == case.sample_id) {
+            return Err(anyhow!(
+                "BAM corpus kinship contract sample `{}` must exist in the fixture sample set",
+                case.sample_id
+            ));
+        }
+        if case.min_overlap_snps == 0 {
+            return Err(anyhow!(
+                "BAM corpus kinship contract case `{}` must declare `min_overlap_snps` greater than zero",
+                case.sample_id
+            ));
+        }
+        match case.expected_status.as_str() {
+            "ok" => {
+                if case.expected_relationship_labels.is_empty() {
+                    return Err(anyhow!(
+                        "BAM corpus kinship contract case `{}` must declare at least one relationship label when expected_status is `ok`",
+                        case.sample_id
+                    ));
+                }
+                if case.expected_observed_max_overlap_snps < case.min_overlap_snps {
+                    return Err(anyhow!(
+                        "BAM corpus kinship contract case `{}` must keep expected_observed_max_overlap_snps at or above min_overlap_snps when expected_status is `ok`",
+                        case.sample_id
+                    ));
+                }
+            }
+            "insufficient" => {
+                if !case.expected_relationship_labels.is_empty() {
+                    return Err(anyhow!(
+                        "BAM corpus kinship contract case `{}` must not declare relationship labels when expected_status is `insufficient`",
+                        case.sample_id
+                    ));
+                }
+            }
+            _ => {
+                return Err(anyhow!(
+                    "BAM corpus kinship contract case `{}` must declare expected_status as `ok` or `insufficient`",
+                    case.sample_id
+                ));
+            }
+        }
+        if case.skip_behavior.trim().is_empty() {
+            return Err(anyhow!(
+                "BAM corpus kinship contract case `{}` must declare a non-empty `skip_behavior`",
+                case.sample_id
+            ));
+        }
+        cases.push(BamCorpusFixtureKinshipCaseReport {
+            sample_id: case.sample_id.clone(),
+            min_overlap_snps: case.min_overlap_snps,
+            expected_status: case.expected_status.clone(),
+            expected_observed_max_overlap_snps: case.expected_observed_max_overlap_snps,
+            expected_relationship_labels: case.expected_relationship_labels.clone(),
+            skip_behavior: case.skip_behavior.clone(),
+        });
+    }
+
+    if path_relative_to_repo(repo_root, reference_fasta).trim().is_empty() {
+        return Err(anyhow!(
+            "BAM corpus kinship contract must resolve a non-empty reference FASTA path"
+        ));
+    }
+
+    Ok(BamCorpusFixtureKinshipContractReport {
+        reference_panel: contract.reference_panel.clone(),
+        reference_panel_path: path_relative_to_repo(repo_root, &reference_panel_path),
+        reference_build: contract.reference_build.clone(),
+        population_scope: contract.population_scope.clone(),
+        expected_outputs,
+        cases,
+    })
+}
+
+fn validate_expected_output_contract(outputs: &[String], label: &str) -> Result<Vec<String>> {
+    if outputs.is_empty() {
+        return Err(anyhow!("{label} must declare at least one expected output"));
+    }
+    let mut seen = BTreeSet::new();
+    let mut validated = Vec::with_capacity(outputs.len());
+    for output in outputs {
+        if output.trim().is_empty() {
+            return Err(anyhow!("{label} must not contain an empty expected output entry"));
+        }
+        if !seen.insert(output.clone()) {
+            return Err(anyhow!("{label} repeats expected output `{output}`"));
+        }
+        validated.push(output.clone());
+    }
+    Ok(validated)
 }
 
 fn validate_bam_corpus_fixture_sample(
@@ -630,11 +956,32 @@ mod tests {
             Some("human_like_genotyping_candidate_panel")
         );
         assert_eq!(
-            report
-                .samples
-                .first()
-                .map(|sample| sample.observed_read_group_ids.clone()),
+            report.samples.first().map(|sample| sample.observed_read_group_ids.clone()),
             Some(vec!["rg-genotyping-human-like".to_string()])
+        );
+        let contract =
+            report.genotyping_contract.as_ref().expect("genotyping contract must be present");
+        assert_eq!(contract.sample_id, "human_like_genotyping_candidate_panel");
+        assert_eq!(
+            contract.sites_vcf,
+            "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+        );
+        assert_eq!(
+            contract.regions,
+            "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+        );
+        assert_eq!(contract.min_posterior, 0.9);
+        assert_eq!(contract.min_call_rate, 0.5);
+        assert_eq!(
+            contract.expected_outputs,
+            vec![
+                "genotyping_bcf".to_string(),
+                "genotyping_vcf".to_string(),
+                "genotyping_vcf_tbi".to_string(),
+                "genotyping_gl".to_string(),
+                "summary".to_string(),
+                "stage_metrics".to_string(),
+            ]
         );
     }
 
@@ -652,10 +999,7 @@ mod tests {
         assert_eq!(report.sample_count, 3);
         assert_eq!(report.udg_model.as_deref(), Some("non_udg"));
         assert_eq!(report.damage_signal.as_deref(), Some("moderate"));
-        assert_eq!(
-            report.expected_terminal_pattern_class.as_deref(),
-            Some("ct5p_dominant")
-        );
+        assert_eq!(report.expected_terminal_pattern_class.as_deref(), Some("ct5p_dominant"));
         assert!(report.valid);
         assert!(report.samples.iter().any(|sample| {
             sample.sample_id == "adna_contamination_panel_screen"
@@ -677,8 +1021,7 @@ mod tests {
         assert!(report.samples.iter().any(|sample| {
             sample.sample_id == "adna_y_haplogroup_panel"
                 && sample.observed_contigs == vec!["chrY".to_string()]
-                && sample.observed_header_sample_ids
-                    == vec!["adna_y_haplogroup_panel".to_string()]
+                && sample.observed_header_sample_ids == vec!["adna_y_haplogroup_panel".to_string()]
                 && sample.observed_read_group_ids == vec!["rg-haplogroups-adna".to_string()]
                 && sample.observed_record_count == 4
         }));
@@ -712,10 +1055,40 @@ mod tests {
                 && sample.observed_header_sample_ids
                     == vec!["sample_a".to_string(), "sample_b".to_string()]
                 && sample.observed_read_group_ids
-                    == vec![
-                        "rg-kinship-related-a".to_string(),
-                        "rg-kinship-related-b".to_string(),
-                    ]
+                    == vec!["rg-kinship-related-a".to_string(), "rg-kinship-related-b".to_string()]
+        }));
+        let contract = report.kinship_contract.as_ref().expect("kinship contract must be present");
+        assert_eq!(contract.reference_panel, "human_like_relatedness_panel");
+        assert_eq!(
+            contract.reference_panel_path,
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv"
+        );
+        assert_eq!(contract.reference_build, "grch38");
+        assert_eq!(contract.population_scope, "human_diploid_panel");
+        assert_eq!(
+            contract.expected_outputs,
+            vec![
+                "kinship_report".to_string(),
+                "summary".to_string(),
+                "kinship_segments".to_string(),
+                "stage_metrics".to_string(),
+            ]
+        );
+        assert!(contract.cases.iter().any(|case| {
+            case.sample_id == "human_like_kinship_low_overlap_pair"
+                && case.min_overlap_snps == 5
+                && case.expected_status == "insufficient"
+                && case.expected_observed_max_overlap_snps == 4
+                && case.expected_relationship_labels.is_empty()
+                && case.skip_behavior == "stop_without_pairwise_results"
+        }));
+        assert!(contract.cases.iter().any(|case| {
+            case.sample_id == "human_like_kinship_related_pair"
+                && case.min_overlap_snps == 6
+                && case.expected_status == "ok"
+                && case.expected_observed_max_overlap_snps == 6
+                && case.expected_relationship_labels == vec!["first_degree".to_string()]
+                && case.skip_behavior == "emit_pairwise_results"
         }));
     }
 
