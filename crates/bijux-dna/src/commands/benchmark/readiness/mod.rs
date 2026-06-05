@@ -34,6 +34,7 @@ pub(crate) mod rendered_commands;
 pub(crate) mod stage_centric_report;
 pub(crate) mod stage_registry_extra_pairs;
 pub(crate) mod stage_tool_assets;
+pub(crate) mod stage_tool_benchmark_ready;
 pub(crate) mod stage_tool_containers;
 pub(crate) mod stage_tool_resources;
 pub(crate) mod tool_centric_report;
