@@ -166,6 +166,12 @@ Visible aliases are part of the operator surface:
   proving that the benchmark-ready BAM slice stays fully parser-fixture-validated while still
   reporting the excluded non-benchmark-ready parser blockers in the JSON summary instead of
   hiding the current `bam.align` gap.
+- `bijux-dna bench readiness render-bam-normalized-metrics-schema`
+  `render-bam-normalized-metrics-schema` writes
+  `schemas/bench/bam-normalized-metrics.v1.json` with the governed JSON Schema contract for
+  normalized BAM parser outputs. The readiness report enumerates every benchmark BAM stage
+  extension, its durable extension ID, and the required normalized key count so schema drift
+  cannot hide behind backend-specific metric layouts.
 - `bijux-dna bench readiness render-bam-adapter-output-contract`
   `render-bam-adapter-output-contract` writes
   `target/bench-readiness/bam-adapter-output-contract.tsv` with one governed row per BAM
