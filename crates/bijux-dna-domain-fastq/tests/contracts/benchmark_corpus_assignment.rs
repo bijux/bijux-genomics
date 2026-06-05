@@ -58,6 +58,22 @@ fn benchmark_corpus_assignment_routes_general_taxonomy_and_amplicon_stages() {
 }
 
 #[test]
+fn benchmark_corpus_assignment_routes_every_taxonomy_classifier_to_corpus_02() {
+    let stage_id = StageId::new("fastq.screen_taxonomy".to_string());
+    for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+        assert_eq!(
+            benchmark_corpus_assignment_for_stage_tool(
+                &stage_id,
+                &ToolId::new(tool_id.to_string()),
+            )
+            .and_then(|assignment| assignment.assigned_family()),
+            Some(BenchmarkCorpusFamily::Corpus02),
+            "taxonomy classifier `{tool_id}` must stay on the governed eDNA corpus family"
+        );
+    }
+}
+
+#[test]
 fn benchmark_corpus_assignment_preserves_precise_exclusion_reasons() {
     let index_reference = benchmark_corpus_assignment_for_stage_tool(
         &StageId::new("fastq.index_reference".to_string()),

@@ -50,12 +50,16 @@ fn bench_readiness_fastq_corpus_assignment_writes_governed_tsv_columns() {
         }),
         "TSV must retain the governed corpus-01 validation row"
     );
-    assert!(
-        rows.iter().any(|row| {
-            row == &"kraken2\tfastq.screen_taxonomy\tbenchmark_ready\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tassigned\tcorpus-02\tcorpus-02-edna-mini\t\trow `fastq.screen_taxonomy` / `kraken2` is benchmark_ready and maps to `corpus-02` via fixture `corpus-02-edna-mini`: Taxonomy screening requires the governed eDNA mock-community corpus rather than the general shotgun slice."
-        }),
-        "TSV must retain the governed corpus-02 taxonomy row"
-    );
+    for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+        assert!(
+            rows.iter().any(|row| {
+                row == &format!(
+                    "{tool_id}\tfastq.screen_taxonomy\tbenchmark_ready\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tassigned\tcorpus-02\tcorpus-02-edna-mini\t\trow `fastq.screen_taxonomy` / `{tool_id}` is benchmark_ready and maps to `corpus-02` via fixture `corpus-02-edna-mini`: Taxonomy screening requires the governed eDNA mock-community corpus rather than the general shotgun slice."
+                )
+            }),
+            "TSV must retain the governed corpus-02 taxonomy row for `{tool_id}`"
+        );
+    }
     assert!(
         rows.iter().any(|row| {
             row == &"cutadapt\tfastq.normalize_primers\tbenchmark_ready\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tassigned\tcorpus-03\tcorpus-03-amplicon-mini\t\trow `fastq.normalize_primers` / `cutadapt` is benchmark_ready and maps to `corpus-03` via fixture `corpus-03-amplicon-mini`: Amplicon-oriented stages must run on the governed amplicon corpus to preserve primer and ASV or OTU semantics."
