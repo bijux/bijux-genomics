@@ -19,6 +19,7 @@ pub(crate) mod fastq_comparable_metrics;
 pub(crate) mod fastq_corpus_assignment;
 pub(crate) mod fastq_normalized_metrics_schema;
 pub(crate) mod fastq_parser_coverage;
+pub(crate) mod fastq_report_map;
 pub(crate) mod missing_benchmark_pairs;
 pub(crate) mod orphan_tools;
 pub(crate) mod parser_completeness_gate;

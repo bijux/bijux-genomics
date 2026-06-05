@@ -50,6 +50,8 @@ pub enum BenchReadinessCommand {
     RenderFastqNormalizedMetricsSchema(BenchReadinessRenderFastqNormalizedMetricsSchemaArgs),
     #[command(name = "render-fastq-parser-coverage")]
     RenderFastqParserCoverage(BenchReadinessRenderFastqParserCoverageArgs),
+    #[command(name = "render-fastq-report-map")]
+    RenderFastqReportMap(BenchReadinessRenderFastqReportMapArgs),
     #[command(name = "render-fastq-tool-serving-map")]
     RenderFastqToolServingMap(BenchReadinessRenderFastqToolServingMapArgs),
     #[command(name = "render-bam-tool-serving-map")]
@@ -258,6 +260,14 @@ pub struct BenchReadinessRenderFastqNormalizedMetricsSchemaArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderFastqParserCoverageArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderFastqReportMapArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
