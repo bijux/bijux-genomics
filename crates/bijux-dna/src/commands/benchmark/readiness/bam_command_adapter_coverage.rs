@@ -313,10 +313,10 @@ mod tests {
         assert_eq!(report.stage_count, 24);
         assert_eq!(report.tool_count, 25);
         assert_eq!(report.row_count, 49);
-        assert_eq!(report.benchmark_ready_row_count, 47);
-        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 47);
+        assert_eq!(report.benchmark_ready_row_count, 49);
+        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 49);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
-        assert_eq!(report.readiness_gap_counts.get("parser"), Some(&2));
+        assert!(report.readiness_gap_counts.get("parser").is_none());
         assert!(
             report.readiness_gap_counts.get("support").is_none(),
             "the governed BAM readiness slice should no longer carry unsupported rows"
@@ -433,10 +433,20 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bwa"
                 && row.stage_id == "bam.align"
-                && super::benchmark_status_label(row.benchmark_status) == "not_benchmark_ready"
+                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
                 && super::adapter_coverage_label(row.adapter_coverage) == "covered"
-                && super::readiness_gap_label(row.readiness_gap) == "parser"
-                && row.parser_status == "artifact_contract_only"
+                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "bowtie2"
+                && row.stage_id == "bam.align"
+                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
+                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
+                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "angsd"

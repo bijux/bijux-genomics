@@ -56,13 +56,13 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
         .expect("decision_counts object");
     assert_eq!(
         decision_counts.get("benchmark_ready").and_then(serde_json::Value::as_u64),
-        Some(23)
+        Some(24)
     );
     assert!(
         decision_counts.get("needs_corpus").is_none(),
         "the governed BAM stage decision table should no longer carry needs_corpus rows"
     );
-    assert_eq!(decision_counts.get("needs_parser").and_then(serde_json::Value::as_u64), Some(1));
+    assert!(decision_counts.get("needs_parser").is_none());
     assert!(decision_counts.get("future_not_in_hpc_round").is_none());
     assert!(
         decision_counts.get("needs_adapter").is_none(),
@@ -402,13 +402,14 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
     assert!(
         rows.iter().any(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
-                && row.get("decision").and_then(serde_json::Value::as_str) == Some("needs_parser")
+                && row.get("decision").and_then(serde_json::Value::as_str)
+                    == Some("benchmark_ready")
                 && row.get("primary_tool_id").and_then(serde_json::Value::as_str) == Some("bwa")
                 && row.get("selected_tool_id").and_then(serde_json::Value::as_str) == Some("bwa")
                 && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("artifact_contract_only")
+                    == Some("parser_fixture_validated")
         }),
-        "bam.align must stay parser-blocked until a normalized BAM parser is fixture-validated"
+        "bam.align must now be benchmark-ready through the fixture-validated bwa alignment row"
     );
     assert!(
         rows.iter().any(|row| {

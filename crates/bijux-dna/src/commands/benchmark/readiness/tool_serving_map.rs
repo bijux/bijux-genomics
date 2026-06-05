@@ -468,6 +468,22 @@ mod tests {
         assert_eq!(report.row_count, 49);
         assert!(!report.rows.is_empty(), "BAM tool serving map must contain rows");
         assert!(report.rows.iter().any(|row| {
+            row.tool_id == "bwa"
+                && row.stage_id == "bam.align"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "bowtie2"
+                && row.stage_id == "bam.align"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
             row.tool_id == "samtools"
                 && row.stage_id == "bam.validate"
                 && row.support_status == "supported"

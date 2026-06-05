@@ -235,12 +235,12 @@ mod tests {
         assert_eq!(report.schema_version, BAM_PARSER_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.stage_count, 24);
         assert_eq!(report.tool_count, 25);
-        assert_eq!(report.row_count, 47);
-        assert_eq!(report.parser_covered_row_count, 47);
+        assert_eq!(report.row_count, 49);
+        assert_eq!(report.parser_covered_row_count, 49);
         assert_eq!(report.parser_missing_row_count, 0);
         assert_eq!(report.parser_coverage_percent, 100.0);
-        assert_eq!(report.excluded_non_benchmark_ready_row_count, 2);
-        assert_eq!(report.excluded_readiness_gap_counts.get("parser"), Some(&2));
+        assert_eq!(report.excluded_non_benchmark_ready_row_count, 0);
+        assert!(report.excluded_readiness_gap_counts.is_empty());
         assert!(report.rows.iter().all(|row| {
             super::parser_coverage_label(row.parser_coverage) == "covered"
                 && row.parser_status == "parser_fixture_validated"
@@ -260,6 +260,16 @@ mod tests {
             row.tool_id == "angsd"
                 && row.stage_id == "bam.genotyping"
                 && row.corpus_status == "fixture:corpus-01-bam-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "bwa"
+                && row.stage_id == "bam.align"
+                && row.corpus_status == "fixture:corpus-01-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "bowtie2"
+                && row.stage_id == "bam.align"
+                && row.corpus_status == "fixture:corpus-01-mini"
         }));
     }
 

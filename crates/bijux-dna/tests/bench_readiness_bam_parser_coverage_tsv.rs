@@ -44,7 +44,7 @@ fn bench_readiness_bam_parser_coverage_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 47);
+    assert_eq!(rows.len(), 49);
     assert!(
         rows.iter().any(|row| {
             row == &"samtools\tbam.validate\tcovered\tparser_fixture_validated\tsupported\trunnable\tfixture:corpus-01-bam-mini\trow `bam.validate` / `samtools` is benchmark_ready with governed support, adapter-backed command rendering, fixture-backed corpus coverage, and parser-fixture-validated output"
@@ -62,5 +62,17 @@ fn bench_readiness_bam_parser_coverage_writes_governed_tsv_columns() {
             row == &"angsd\tbam.genotyping\tcovered\tparser_fixture_validated\tsupported\trunnable\tfixture:corpus-01-bam-mini\trow `bam.genotyping` / `angsd` is benchmark_ready with governed support, adapter-backed command rendering, fixture-backed corpus coverage, and parser-fixture-validated output"
         }),
         "TSV must retain the governed BAM genotyping parser row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bwa\tbam.align\tcovered\tparser_fixture_validated\tsupported\trunnable\tfixture:corpus-01-mini\trow `bam.align` / `bwa` is benchmark_ready with governed support, adapter-backed command rendering, fixture-backed corpus coverage, and parser-fixture-validated output"
+        }),
+        "TSV must retain the governed BAM bwa alignment parser row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bowtie2\tbam.align\tcovered\tparser_fixture_validated\tsupported\trunnable\tfixture:corpus-01-mini\trow `bam.align` / `bowtie2` is benchmark_ready with governed support, adapter-backed command rendering, fixture-backed corpus coverage, and parser-fixture-validated output"
+        }),
+        "TSV must retain the governed BAM bowtie2 alignment parser row"
     );
 }

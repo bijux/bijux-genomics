@@ -453,9 +453,9 @@ mod tests {
         assert_eq!(report.schema_version, BAM_STAGE_DECISION_TABLE_SCHEMA_VERSION);
         assert_eq!(report.stage_count, 24);
         assert_eq!(report.row_count, 24);
-        assert_eq!(report.decision_counts.get("benchmark_ready"), Some(&23));
+        assert_eq!(report.decision_counts.get("benchmark_ready"), Some(&24));
         assert_eq!(report.decision_counts.get("needs_corpus"), None);
-        assert_eq!(report.decision_counts.get("needs_parser"), Some(&1));
+        assert_eq!(report.decision_counts.get("needs_parser"), None);
         assert_eq!(report.decision_counts.get("future_not_in_hpc_round"), None);
         assert_eq!(report.decision_counts.get("needs_adapter"), None);
 
@@ -485,10 +485,10 @@ mod tests {
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.align"
-                && row.decision == BamStageDecisionKind::NeedsParser
+                && row.decision == BamStageDecisionKind::BenchmarkReady
                 && row.primary_tool_id.as_deref() == Some("bwa")
                 && row.selected_tool_id.as_deref() == Some("bwa")
-                && row.parser_status == "artifact_contract_only"
+                && row.parser_status == "parser_fixture_validated"
                 && row.corpus_status == "fixture:corpus-01-mini"
         }));
         assert!(report.rows.iter().any(|row| {

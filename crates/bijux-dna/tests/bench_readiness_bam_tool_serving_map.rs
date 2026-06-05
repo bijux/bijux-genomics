@@ -116,7 +116,7 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
             "bam.align",
             "supported",
             "runnable",
-            "artifact_contract_only",
+            "parser_fixture_validated",
             "fixture:corpus-01-mini",
         ),
         "BAM readiness map must retain the governed bwa alignment row"
@@ -127,7 +127,7 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
             "bam.align",
             "supported",
             "runnable",
-            "artifact_contract_only",
+            "parser_fixture_validated",
             "fixture:corpus-01-mini",
         ),
         "BAM readiness map must retain the governed bowtie2 alignment row"

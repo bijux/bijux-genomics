@@ -48,10 +48,10 @@ fn bench_readiness_bam_parser_coverage_reports_governed_rows() {
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(25));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(47));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(49));
     assert_eq!(
         payload.get("parser_covered_row_count").and_then(serde_json::Value::as_u64),
-        Some(47)
+        Some(49)
     );
     assert_eq!(
         payload.get("parser_missing_row_count").and_then(serde_json::Value::as_u64),
@@ -61,14 +61,14 @@ fn bench_readiness_bam_parser_coverage_reports_governed_rows() {
         payload
             .get("excluded_non_benchmark_ready_row_count")
             .and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(0)
     );
     assert_eq!(
         payload
             .get("excluded_readiness_gap_counts")
-            .and_then(|value| value.get("parser"))
-            .and_then(serde_json::Value::as_u64),
-        Some(2)
+            .and_then(serde_json::Value::as_object)
+            .map(serde_json::Map::len),
+        Some(0)
     );
     assert_eq!(
         payload.get("parser_coverage_percent").and_then(serde_json::Value::as_f64),
@@ -76,7 +76,7 @@ fn bench_readiness_bam_parser_coverage_reports_governed_rows() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 47);
+    assert_eq!(rows.len(), 49);
     assert!(rows.iter().all(|row| {
         row.get("parser_coverage").and_then(serde_json::Value::as_str) == Some("covered")
             && row.get("parser_status").and_then(serde_json::Value::as_str)
@@ -97,5 +97,17 @@ fn bench_readiness_bam_parser_coverage_reports_governed_rows() {
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
             && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bwa")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
+            && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                == Some("fixture:corpus-01-mini")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
+            && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                == Some("fixture:corpus-01-mini")
     }));
 }
