@@ -4,3 +4,5 @@
 mod bam_tool_parsers;
 #[path = "parsers/new_tool_metrics.rs"]
 mod new_tool_metrics;
+#[path = "parsers/raw_fixture_bank.rs"]
+mod raw_fixture_bank;
