@@ -279,6 +279,26 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.kinship"
+tool_id = "angsd"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/angsd"
+command_entrypoint = "angsd"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.kinship"
+tool_id = "king"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/king:2.3.0"
+command_entrypoint = "king"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.length_filter"
 tool_id = "picard"
 execution_mode = "java"
