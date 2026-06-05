@@ -36,6 +36,8 @@ pub enum BenchReadinessCommand {
     RenderExpectedBenchmarkResults(BenchReadinessRenderExpectedBenchmarkResultsArgs),
     #[command(name = "render-missing-result-report")]
     RenderMissingResultReport(BenchReadinessRenderMissingResultReportArgs),
+    #[command(name = "render-pair-readiness")]
+    RenderPairReadiness(BenchReadinessRenderPairReadinessArgs),
     #[command(name = "render-parser-completeness-gate")]
     RenderParserCompletenessGate(BenchReadinessRenderParserCompletenessGateArgs),
     #[command(name = "render-corpus-asset-coverage-gate")]
@@ -208,6 +210,14 @@ pub struct BenchReadinessRenderExpectedBenchmarkResultsArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderMissingResultReportArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderPairReadinessArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

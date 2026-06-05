@@ -64,11 +64,11 @@ pub use self::readiness::{
     BenchReadinessRenderFastqParserCoverageArgs, BenchReadinessRenderFastqReportMapArgs,
     BenchReadinessRenderFastqToolServingMapArgs, BenchReadinessRenderMissingBenchmarkPairsArgs,
     BenchReadinessRenderMissingResultReportArgs, BenchReadinessRenderOrphanToolsArgs,
-    BenchReadinessRenderParserCompletenessGateArgs, BenchReadinessRenderParserFailureTestsArgs,
-    BenchReadinessRenderStageRegistryExtraPairsArgs, BenchReadinessRenderStageToolAssetsArgs,
-    BenchReadinessRenderStageToolContainersArgs, BenchReadinessRenderStageToolResourcesArgs,
-    BenchReadinessRenderToolIdNormalizationArgs, BenchReadinessRenderUndercoveredStagesArgs,
-    BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
+    BenchReadinessRenderPairReadinessArgs, BenchReadinessRenderParserCompletenessGateArgs,
+    BenchReadinessRenderParserFailureTestsArgs, BenchReadinessRenderStageRegistryExtraPairsArgs,
+    BenchReadinessRenderStageToolAssetsArgs, BenchReadinessRenderStageToolContainersArgs,
+    BenchReadinessRenderStageToolResourcesArgs, BenchReadinessRenderToolIdNormalizationArgs,
+    BenchReadinessRenderUndercoveredStagesArgs, BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
     BenchReadinessValidateToolExecutionModesArgs, BenchReadinessValidateToolFamiliesArgs,
 };
 pub use self::suite::BenchRunArgs;
