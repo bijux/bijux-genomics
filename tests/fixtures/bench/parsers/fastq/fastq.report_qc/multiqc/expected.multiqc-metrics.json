@@ -1,0 +1,11 @@
+{
+  "schema_version": "bijux.fixture.fastq_raw_parser.v1",
+  "stage_id": "fastq.report_qc",
+  "tool_id": "multiqc",
+  "parser_id": "parse_multiqc_general_stats_metrics",
+  "normalized": {
+    "schema_version": "bijux.multiqc.metrics.v1",
+    "sample_count": 2,
+    "module_count": 2
+  }
+}
