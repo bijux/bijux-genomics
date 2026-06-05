@@ -155,6 +155,13 @@ Visible aliases are part of the operator surface:
   blocked tool rows. Taxonomy stays reviewer-visible under `corpus-02`, ASV or OTU or chimera
   stages stay under `corpus-03`, and ancient-DNA, genotyping, kinship, and core BAM analysis
   remain bound to their owned BAM corpora.
+- `bijux-dna bench readiness render-benchmark-readiness-dashboard`
+  `render-benchmark-readiness-dashboard` writes
+  `target/bench-readiness/FASTQ_BAM_BENCHMARK_READINESS.md` and
+  `target/bench-readiness/FASTQ_BAM_BENCHMARK_READINESS.json`, aggregating the governed matrix,
+  adapter, parser, corpus, asset, and report surfaces into one local dashboard. The summary keeps
+  total expected pairs, ready pairs, blocked pairs, exact blocker counts, and every blocked
+  `stage_id × tool_id` row reviewer-visible in one place.
 - `bijux-dna bench readiness render-tool-centric-report`
   `render-tool-centric-report` writes `target/bench-readiness/tool-centric-report.md` with one
   governed section per benchmarked tool, carrying the full FASTQ/BAM stage list that tool serves
