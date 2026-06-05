@@ -125,7 +125,7 @@ pub(crate) fn render_pair_readiness(
     })
 }
 
-fn collect_pair_readiness_rows(repo_root: &Path) -> Result<Vec<PairReadinessRow>> {
+pub(crate) fn collect_pair_readiness_rows(repo_root: &Path) -> Result<Vec<PairReadinessRow>> {
     let (_, _, fastq_rows) = collect_fastq_command_adapter_coverage_rows(repo_root)?;
     let (_, _, bam_rows) = collect_bam_command_adapter_coverage_rows(repo_root)?;
     let asset_rows = collect_stage_tool_asset_rows(repo_root)?;

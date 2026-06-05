@@ -33,6 +33,7 @@ pub(crate) mod stage_registry_extra_pairs;
 pub(crate) mod stage_tool_assets;
 pub(crate) mod stage_tool_containers;
 pub(crate) mod stage_tool_resources;
+pub(crate) mod tool_centric_report;
 pub(crate) mod tool_execution_modes;
 pub(crate) mod tool_families;
 pub(crate) mod tool_id_normalization;
