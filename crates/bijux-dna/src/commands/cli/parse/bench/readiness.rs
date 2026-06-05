@@ -38,6 +38,8 @@ pub enum BenchReadinessCommand {
     RenderMissingResultReport(BenchReadinessRenderMissingResultReportArgs),
     #[command(name = "render-pair-readiness")]
     RenderPairReadiness(BenchReadinessRenderPairReadinessArgs),
+    #[command(name = "render-stage-centric-report")]
+    RenderStageCentricReport(BenchReadinessRenderStageCentricReportArgs),
     #[command(name = "render-tool-centric-report")]
     RenderToolCentricReport(BenchReadinessRenderToolCentricReportArgs),
     #[command(name = "render-parser-completeness-gate")]
@@ -220,6 +222,14 @@ pub struct BenchReadinessRenderMissingResultReportArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderPairReadinessArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderStageCentricReportArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

@@ -226,6 +226,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderStageCentricReport(args) => {
+                        crate::commands::benchmark::readiness::stage_centric_report::run_render_stage_centric_report(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderToolCentricReport(args) => {
                         crate::commands::benchmark::readiness::tool_centric_report::run_render_tool_centric_report(
                             args,

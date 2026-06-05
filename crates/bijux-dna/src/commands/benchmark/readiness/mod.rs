@@ -29,6 +29,7 @@ pub(crate) mod parser_completeness_gate;
 pub(crate) mod parser_failure_tests;
 pub(crate) mod rendered_command_argv;
 pub(crate) mod rendered_commands;
+pub(crate) mod stage_centric_report;
 pub(crate) mod stage_registry_extra_pairs;
 pub(crate) mod stage_tool_assets;
 pub(crate) mod stage_tool_containers;
