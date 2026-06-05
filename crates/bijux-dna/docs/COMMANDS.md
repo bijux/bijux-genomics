@@ -142,6 +142,12 @@ Visible aliases are part of the operator surface:
   with one governed row per expected FASTQ or BAM benchmark result, materializes a controlled
   fake result tree, removes the governed taxonomy result manifest, and proves that the report
   keeps the missing binding visible as a `missing_result` row instead of dropping it.
+- `bijux-dna bench readiness render-pair-readiness`
+  `render-pair-readiness` writes `target/bench-readiness/pair-readiness.tsv` with one governed
+  row per FASTQ or BAM stage-tool pair, carrying the exact `adapter_status`, `parser_status`,
+  `corpus_status`, and `asset_status` columns plus the resolved `readiness_gap` so incomplete
+  bindings stay reviewable by the precise missing component instead of collapsing into a generic
+  not-ready bucket.
 - `bijux-dna bench readiness render-fastq-report-map`
   `render-fastq-report-map` writes `target/bench-readiness/fastq-report-map.tsv` with one
   governed row per FASTQ benchmark-ready stage, fixing the report section, summary table, and
