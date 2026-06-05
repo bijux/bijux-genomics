@@ -13,10 +13,16 @@ outputs:
     cardinality: "One"
 parameters: []
 metrics:
-  - name: "runtime_s"
-    meaning: "Wall-clock runtime in seconds"
-  - name: "memory_mb"
-    meaning: "Peak memory usage in MB"
+  - name: "scope"
+    meaning: "Contamination scope preserved for the governed BAM contamination benchmark row"
+  - name: "prerequisites_passed"
+    meaning: "Whether the admitted BAM contamination tool satisfied the governed prerequisite checks"
+  - name: "estimate"
+    meaning: "Contamination estimate preserved across admitted BAM contamination tools when prerequisites pass"
+  - name: "ci_low"
+    meaning: "Lower confidence interval bound preserved for the governed BAM contamination estimate"
+  - name: "ci_high"
+    meaning: "Upper confidence interval bound preserved for the governed BAM contamination estimate"
 description: "BAM contamination stage contract."
 required_inputs:
   - bam

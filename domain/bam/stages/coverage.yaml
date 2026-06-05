@@ -25,10 +25,10 @@ metrics:
     meaning: "Fraction of governed target positions with at least one aligned base"
   - name: "covered_bases"
     meaning: "Count of governed target positions with at least one aligned base"
-  - name: "runtime_s"
-    meaning: "Wall-clock runtime in seconds"
-  - name: "memory_mb"
-    meaning: "Peak memory usage in MB"
+  - name: "observed_region_count"
+    meaning: "Count of governed target regions materialized in the BAM coverage comparison output"
+  - name: "region_ids"
+    meaning: "Governed ordered region identifiers preserved in the BAM coverage comparison output"
 description: "BAM coverage stage contract with governed summary, depth sidecar, and benchmark-facing coverage metrics."
 required_inputs:
   - bam

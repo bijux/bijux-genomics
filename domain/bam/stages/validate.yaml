@@ -31,6 +31,8 @@ metrics:
     meaning: "Deterministic refusal codes emitted when validation fails"
   - name: "validation_warnings"
     meaning: "Non-fatal validation findings reserved for future warning-grade checks"
+  - name: "input_bam_identity"
+    meaning: "Governed input BAM identity payload preserved for cross-tool validation comparison"
 description: "BAM validation contract for governed benchmark diagnostics and identity tracking."
 required_inputs:
   - bam

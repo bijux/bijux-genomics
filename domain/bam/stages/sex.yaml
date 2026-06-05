@@ -13,10 +13,18 @@ outputs:
     cardinality: "One"
 parameters: []
 metrics:
-  - name: "runtime_s"
-    meaning: "Wall-clock runtime in seconds"
-  - name: "memory_mb"
-    meaning: "Peak memory usage in MB"
+  - name: "x_coverage"
+    meaning: "Observed X-chromosome coverage preserved in the governed BAM sex-inference comparison surface"
+  - name: "y_coverage"
+    meaning: "Observed Y-chromosome coverage preserved in the governed BAM sex-inference comparison surface"
+  - name: "autosomal_coverage"
+    meaning: "Observed autosomal coverage preserved in the governed BAM sex-inference comparison surface"
+  - name: "call"
+    meaning: "Governed sex-inference call preserved across admitted BAM sex-inference tools"
+  - name: "confidence"
+    meaning: "Confidence assigned to the governed BAM sex-inference call"
+  - name: "status"
+    meaning: "Governed BAM sex-inference status preserved when admitted tools cannot emit a final call"
 description: "BAM sex stage contract."
 required_inputs:
   - bam

@@ -13,10 +13,14 @@ outputs:
     cardinality: "One"
 parameters: []
 metrics:
-  - name: "runtime_s"
-    meaning: "Wall-clock runtime in seconds"
-  - name: "memory_mb"
-    meaning: "Peak memory usage in MB"
+  - name: "observed_max_overlap_snps"
+    meaning: "Maximum observed SNP overlap preserved in the governed BAM kinship comparison surface"
+  - name: "pair_count"
+    meaning: "Count of pairwise kinship results emitted by the governed BAM kinship benchmark row"
+  - name: "status"
+    meaning: "Governed kinship result status preserved across admitted BAM kinship tools"
+  - name: "pairwise_results"
+    meaning: "Governed pairwise kinship results carrying comparable relationship labels and concordance outputs"
 description: "BAM kinship stage contract."
 required_inputs:
   - bam

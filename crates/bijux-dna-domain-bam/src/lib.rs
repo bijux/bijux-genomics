@@ -24,6 +24,7 @@
 )]
 
 pub mod alignment;
+mod comparison_contract;
 mod artifacts;
 pub mod defaults;
 pub mod invariants;
@@ -99,6 +100,11 @@ pub use artifacts::{
     BAM_SAMPLE_IDENTITY_SCHEMA_VERSION, BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION,
     BAM_SEX_EVIDENCE_SCHEMA_VERSION, BAM_SEX_SUMMARY_SCHEMA_VERSION,
     BAM_VALIDATION_SUMMARY_SCHEMA_VERSION, BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
+};
+pub use comparison_contract::{
+    comparable_benchmark_stage_contract_for_stage, comparable_benchmark_stage_contracts,
+    comparable_benchmark_stage_ids, comparable_tool_ids_for_stage,
+    stage_comparable_metric_fields_for_stage, BamComparableStageContract,
 };
 pub use invariants::bam_invariant_specs;
 pub use stage_specs::{
