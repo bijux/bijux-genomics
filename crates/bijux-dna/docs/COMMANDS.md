@@ -155,6 +155,15 @@ Visible aliases are part of the operator surface:
   `parser_status`, `corpus_status`, and `asset_status` columns so named tools such as
   `samtools`, `picard`, `fastp`, `vsearch`, `kraken2`, `bowtie2`, and `gatk` stay reviewer-visible
   with complete stage coverage and precise blockers.
+- `bijux-dna bench readiness render-stage-centric-report`
+  `render-stage-centric-report` writes `target/bench-readiness/stage-centric-report.md` with one
+  governed section per FASTQ or BAM benchmark stage, carrying the full tool list benchmarked
+  against that stage plus exact `benchmark_status`, `readiness_gap`, `support_status`,
+  `adapter_status`, `parser_status`, `corpus_status`, and `asset_status` columns. Multi-tool
+  stages keep their shared metric contract visible as `declared`, `not_declared`, or
+  `not_applicable`, so stages such as `trim_reads`, `screen_taxonomy`, `index_reference`,
+  `damage`, and `contamination` remain reviewer-visible with complete tool coverage and precise
+  pending rows.
 - `bijux-dna bench readiness render-fastq-report-map`
   `render-fastq-report-map` writes `target/bench-readiness/fastq-report-map.tsv` with one
   governed row per FASTQ benchmark-ready stage, fixing the report section, summary table, and
