@@ -176,8 +176,11 @@ Visible aliases are part of the operator surface:
   one governed row per admitted BAM stage-tool binding, carrying the resolved
   `corpus_family_id`, `fixture_id`, and the benchmark readiness context that proves whether a row
   belongs on the general FASTQ alignment corpus, the BAM mini corpus, the aDNA BAM fixture, the
-  genotyping BAM corpus, or the kinship BAM corpus. The report cross-checks the BAM domain-owned
-  routing contract against the local corpus compatibility matrix so fixture drift cannot hide
+  genotyping BAM corpus, or the kinship BAM corpus. For the ancient-DNA benchmark slice, each
+  row also carries the governed `sample_id`, damage expectation contract, coverage limits, and
+  required panel or reference assets for authenticity, damage, contamination, sex, and haplogroup
+  tools. The report cross-checks the BAM domain-owned routing contract against the local corpus
+  compatibility matrix and the governed aDNA fixture/config evidence so corpus drift cannot hide
   behind stage-level labels.
 - `bijux-dna bench readiness render-bam-parser-coverage`
   `render-bam-parser-coverage` writes `target/bench-readiness/bam-parser-coverage.tsv` with one
