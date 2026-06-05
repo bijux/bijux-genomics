@@ -129,6 +129,12 @@ Visible aliases are part of the operator surface:
   execution mode, install kind, declared container identity when available, and the governed
   command entrypoint or explicit host-binary mode needed to keep local and HPC runtime surfaces
   reviewable before submission.
+- `bijux-dna bench readiness render-stage-tool-assets`
+  `render-stage-tool-assets` writes `configs/bench/local/stage-tool-assets.toml` with one
+  governed asset-binding row per benchmark-ready FASTQ or BAM stage-tool command that depends on
+  external taxonomy databases, reference indexes, rRNA references, contamination panels,
+  haplogroup panels, genotyping sites and regions, or recalibration known-sites inputs, keeping
+  the HPC-facing asset contract explicit by `asset_role`, `asset_id`, and `asset_path`.
 - `bijux-dna bench readiness render-stage-tool-resources`
   `render-stage-tool-resources` writes `configs/bench/local/stage-tool-resources.toml` with one
   governed row per benchmark-ready FASTQ or BAM stage-tool command, carrying non-zero `threads`,
