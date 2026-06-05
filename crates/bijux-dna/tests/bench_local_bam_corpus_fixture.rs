@@ -53,14 +53,14 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_corpus_01_bam_m
         payload.get("corpus_id").and_then(serde_json::Value::as_str),
         Some("corpus-01-bam-mini")
     );
-    assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(18));
+    assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(
         payload.get("reference_contigs").and_then(serde_json::Value::as_array).map(Vec::len),
         Some(6)
     );
     assert!(payload.get("valid").and_then(serde_json::Value::as_bool) == Some(true));
     assert!(payload.get("samples").and_then(serde_json::Value::as_array).is_some_and(|samples| {
-        samples.len() == 18
+        samples.len() == 19
             && samples.iter().any(|sample| {
                 sample.get("sample_id").and_then(serde_json::Value::as_str)
                     == Some("human_like_duplicate_flagged_multicontig")
@@ -437,6 +437,36 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_corpus_01_bam_m
                             read_groups.len() == 1
                                 && read_groups.first().and_then(serde_json::Value::as_str)
                                     == Some("rg-haplogroups-human-like")
+                        })
+                    && sample.get("observed_record_count").and_then(serde_json::Value::as_u64)
+                        == Some(4)
+            })
+            && samples.iter().any(|sample| {
+                sample.get("sample_id").and_then(serde_json::Value::as_str)
+                    == Some("human_like_genotyping_candidate_panel")
+                    && sample
+                        .get("observed_contigs")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|contigs| {
+                            contigs.len() == 1
+                                && contigs.first().and_then(serde_json::Value::as_str)
+                                    == Some("chr1")
+                        })
+                    && sample
+                        .get("observed_header_sample_ids")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|sample_ids| {
+                            sample_ids.len() == 1
+                                && sample_ids.first().and_then(serde_json::Value::as_str)
+                                    == Some("human_like_genotyping_candidate_panel")
+                        })
+                    && sample
+                        .get("observed_read_group_ids")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|read_groups| {
+                            read_groups.len() == 1
+                                && read_groups.first().and_then(serde_json::Value::as_str)
+                                    == Some("rg-genotyping-human-like")
                         })
                     && sample.get("observed_record_count").and_then(serde_json::Value::as_u64)
                         == Some(4)
