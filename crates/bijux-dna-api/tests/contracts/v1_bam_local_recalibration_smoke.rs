@@ -49,7 +49,7 @@ fn write_local_recalibration_smoke_report_materializes_governed_outputs() -> Res
         payload["schema_version"],
         serde_json::json!("bijux.bam.recalibration.local_smoke.report.v1")
     );
-    assert_eq!(payload["sample_id"], serde_json::json!("core-v1-recalibration-low-coverage-skip"));
+    assert_eq!(payload["sample_id"], serde_json::json!("human_like_recalibration_low_coverage"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(payload["requested_mode"], serde_json::json!("standard"));
     assert_eq!(payload["effective_mode"], serde_json::json!("skip"));
@@ -57,17 +57,17 @@ fn write_local_recalibration_smoke_report_materializes_governed_outputs() -> Res
     assert_eq!(payload["reason"], serde_json::json!("coverage_below_gate"));
     assert_eq!(
         payload["known_sites"],
-        serde_json::json!(["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"])
+        serde_json::json!(["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
     );
     assert_eq!(
         payload["coverage_gate"],
         serde_json::json!({
-            "min_mean_coverage": 0.1,
-            "min_breadth_1x": 0.05
+            "min_mean_coverage": 0.2,
+            "min_breadth_1x": 0.2
         })
     );
-    assert_eq!(payload["observed_mean_coverage"], serde_json::json!(0.024));
-    assert_eq!(payload["observed_breadth_1x"], serde_json::json!(0.024));
+    assert_eq!(payload["observed_mean_coverage"], serde_json::json!(0.192));
+    assert_eq!(payload["observed_breadth_1x"], serde_json::json!(0.192));
     assert_eq!(payload["output_bam_present"], serde_json::json!(true));
     assert_eq!(payload["recalibration_report_present"], serde_json::json!(true));
 
@@ -112,19 +112,19 @@ fn write_local_recalibration_smoke_report_materializes_governed_outputs() -> Res
     assert_eq!(
         summary_json["known_sites"],
         serde_json::json!([repo_root
-            .join("assets/toy/core-v1/vcf/recalibration_known_sites.vcf")
+            .join("tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf")
             .display()
             .to_string()])
     );
     assert_eq!(
         summary_json["reference_fasta"],
         serde_json::json!(repo_root
-            .join("assets/toy/core-v1/bam/recalibration_low_coverage_reference.fasta")
+            .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
             .display()
             .to_string())
     );
-    assert_eq!(summary_json["observed_mean_coverage"], serde_json::json!(0.024));
-    assert_eq!(summary_json["observed_breadth_1x"], serde_json::json!(0.024));
+    assert_eq!(summary_json["observed_mean_coverage"], serde_json::json!(0.192));
+    assert_eq!(summary_json["observed_breadth_1x"], serde_json::json!(0.192));
     assert_eq!(summary_json["output_bam_present"], serde_json::json!(true));
     assert_eq!(summary_json["recalibration_report_present"], serde_json::json!(true));
 
@@ -144,41 +144,41 @@ fn write_local_recalibration_smoke_report_materializes_governed_outputs() -> Res
     assert_eq!(stage_metrics_json["reason"], serde_json::json!("coverage_below_gate"));
     assert_eq!(
         stage_metrics_json["expected_known_sites"],
-        serde_json::json!(["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"])
+        serde_json::json!(["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
     );
     assert_eq!(
         stage_metrics_json["known_sites"],
-        serde_json::json!(["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"])
+        serde_json::json!(["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
     );
     assert_eq!(
         stage_metrics_json["expected_coverage_gate"],
         serde_json::json!({
-            "min_mean_coverage": 0.1,
-            "min_breadth_1x": 0.05
+            "min_mean_coverage": 0.2,
+            "min_breadth_1x": 0.2
         })
     );
     assert_eq!(
         stage_metrics_json["coverage_gate"],
         serde_json::json!({
-            "min_mean_coverage": 0.1,
-            "min_breadth_1x": 0.05
+            "min_mean_coverage": 0.2,
+            "min_breadth_1x": 0.2
         })
     );
-    assert_eq!(stage_metrics_json["observed_mean_coverage"], serde_json::json!(0.024));
+    assert_eq!(stage_metrics_json["observed_mean_coverage"], serde_json::json!(0.192));
     assert!(
         (stage_metrics_json["mean_coverage_margin"]
             .as_f64()
             .unwrap_or_else(|| panic!("mean_coverage_margin missing"))
-            + 0.076)
+            + 0.008)
             .abs()
             <= 1e-12
     );
-    assert_eq!(stage_metrics_json["observed_breadth_1x"], serde_json::json!(0.024));
+    assert_eq!(stage_metrics_json["observed_breadth_1x"], serde_json::json!(0.192));
     assert!(
         (stage_metrics_json["breadth_1x_margin"]
             .as_f64()
             .unwrap_or_else(|| panic!("breadth_1x_margin missing"))
-            + 0.026)
+            + 0.008)
             .abs()
             <= 1e-12
     );

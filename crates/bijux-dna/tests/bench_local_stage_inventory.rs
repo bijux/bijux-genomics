@@ -1075,7 +1075,7 @@ fn bench_local_materialize_stage_bam_recalibration_json_writes_governed_smoke_bu
     );
     assert_eq!(
         report.get("sample_id").and_then(serde_json::Value::as_str),
-        Some("core-v1-recalibration-low-coverage-skip")
+        Some("human_like_recalibration_low_coverage")
     );
     assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(report.get("requested_mode").and_then(serde_json::Value::as_str), Some("standard"));
@@ -1087,20 +1087,20 @@ fn bench_local_materialize_stage_bam_recalibration_json_writes_governed_smoke_bu
     );
     assert_eq!(
         report.get("known_sites"),
-        Some(&serde_json::json!(["assets/toy/core-v1/vcf/recalibration_known_sites.vcf"]))
+        Some(&serde_json::json!(["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"]))
     );
     assert_eq!(
         report.get("coverage_gate"),
         Some(&serde_json::json!({
-            "min_mean_coverage": 0.1,
-            "min_breadth_1x": 0.05
+            "min_mean_coverage": 0.2,
+            "min_breadth_1x": 0.2
         }))
     );
     assert_eq!(
         report.get("observed_mean_coverage").and_then(serde_json::Value::as_f64),
-        Some(0.024)
+        Some(0.192)
     );
-    assert_eq!(report.get("observed_breadth_1x").and_then(serde_json::Value::as_f64), Some(0.024));
+    assert_eq!(report.get("observed_breadth_1x").and_then(serde_json::Value::as_f64), Some(0.192));
     assert_eq!(report.get("output_bam_present").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(
         report.get("recalibration_report_present").and_then(serde_json::Value::as_bool),
