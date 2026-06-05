@@ -265,6 +265,7 @@ fn normalized_metrics_output_id(
     }
 
     for preferred in [
+        "duplicate_signal_report",
         "validation_report",
         "classification_report_json",
         "host_depletion_report_json",
@@ -291,11 +292,17 @@ fn raw_output_artifact_ids(
     stage_expected_artifact_ids: &[String],
     normalized_metrics_output_id: Option<&str>,
 ) -> Vec<String> {
-    stage_expected_artifact_ids
+    let raw_outputs = stage_expected_artifact_ids
         .iter()
         .filter(|artifact_id| Some(artifact_id.as_str()) != normalized_metrics_output_id)
         .cloned()
-        .collect()
+        .collect::<Vec<_>>();
+    if raw_outputs.is_empty() {
+        return normalized_metrics_output_id
+            .map(|artifact_id| vec![artifact_id.to_string()])
+            .unwrap_or_default();
+    }
+    raw_outputs
 }
 
 fn collect_missing_declarations(
@@ -417,8 +424,8 @@ mod tests {
         assert_eq!(report.row_count, 74);
         assert_eq!(report.missing_adapter_row_count, 5);
         assert_eq!(report.adapter_row_count, 69);
-        assert_eq!(report.complete_adapter_row_count, 68);
-        assert_eq!(report.incomplete_adapter_row_count, 1);
+        assert_eq!(report.complete_adapter_row_count, 69);
+        assert_eq!(report.incomplete_adapter_row_count, 0);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "seqkit_stats"
                 && row.stage_id == "fastq.profile_reads"
@@ -430,6 +437,17 @@ mod tests {
                     == Some(
                         "target/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/fastq.profile_reads/{sample_scope}/seqkit_stats/stdout.log"
                     )
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "bijux_dna"
+                && row.stage_id == "fastq.detect_duplicates_premerge"
+                && super::output_contract_status_label(row.output_contract_status) == "complete"
+                && row.stage_output_ids == vec!["duplicate_signal_report".to_string()]
+                && row.stage_expected_artifact_ids == vec!["duplicate_signal_report".to_string()]
+                && row.declared_output_ids == vec!["duplicate_signal_report".to_string()]
+                && row.execution_expected_output_ids == vec!["duplicate_signal_report".to_string()]
+                && row.raw_output_artifact_ids == vec!["duplicate_signal_report".to_string()]
+                && row.normalized_metrics_output_id.as_deref() == Some("duplicate_signal_report")
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bijux_dna"
