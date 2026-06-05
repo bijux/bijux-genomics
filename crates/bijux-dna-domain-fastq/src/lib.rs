@@ -205,7 +205,7 @@ pub use comparison_contract::{
 pub use domain_adapter::FastqDomain;
 pub use execution_support::{
     admitted_tools_for_stage as admitted_execution_tools_for_stage, all_stage_execution_support,
-    closed_stage_ids as execution_closed_stage_ids,
+    closed_stage_ids as execution_closed_stage_ids, comparable_benchmark_stage_ids,
     declared_only_stage_ids as execution_declared_only_stage_ids,
     default_tool_for_stage as default_execution_tool_for_stage, execution_support_for_stage,
     ExecutionStatus, StageExecutionSupport,
@@ -220,9 +220,9 @@ pub use id_catalog::{
 pub use integration_matrix::{
     benchmark_scenarios, benchmark_scenarios_for_stage, governed_tool_ids_for_stage,
     is_reference_index_backend_compatible, planned_tool_ids_for_stage,
-    reference_index_backends_for_tool, registered_tool_ids_for_stage, stage_tool_binding,
-    stage_tool_bindings, stage_tool_bindings_for_stage, BenchmarkScenario, StageToolBinding,
-    ToolIntegrationLevel,
+    reference_index_backends_for_tool, registered_tool_ids_for_stage,
+    stage_sanity_metrics_for_stage, stage_tool_binding, stage_tool_bindings,
+    stage_tool_bindings_for_stage, BenchmarkScenario, StageToolBinding, ToolIntegrationLevel,
 };
 pub use invariants::{
     evaluate_invariants, fastq_invariant_specs, thresholds_from_env, validate_edna_table,

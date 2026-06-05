@@ -1447,7 +1447,9 @@ stage_sanity_metrics:
   - primer_trimmed_fraction
   - orientation_forward_fraction
   fastq.profile_overrepresented_sequences:
-  - reads_total
+  - sequence_count
+  - flagged_sequences
+  - top_fraction
   fastq.remove_chimeras:
   - chimera_fraction
   - chimeras_removed

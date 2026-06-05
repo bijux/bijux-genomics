@@ -178,3 +178,8 @@ pub fn reference_index_backends_for_tool(tool_id: &ToolId) -> Vec<ToolId> {
 pub fn is_reference_index_backend_compatible(tool_id: &ToolId, index_tool_id: &ToolId) -> bool {
     reference_index_backends_for_tool(tool_id).into_iter().any(|backend| backend == *index_tool_id)
 }
+
+#[must_use]
+pub fn stage_sanity_metrics_for_stage(stage_id: &StageId) -> Vec<String> {
+    domain_index_contract().stage_sanity_metrics.get(stage_id.as_str()).cloned().unwrap_or_default()
+}
