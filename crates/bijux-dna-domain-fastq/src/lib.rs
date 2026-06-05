@@ -238,6 +238,10 @@ pub use observer::contracts::{
     observer_specialization_contract_for_stage_tool, observer_specialization_contracts,
     observer_specialized_stage_tool_bindings, ObserverSpecializationContract,
 };
+pub use observer::{
+    evaluate_fastq_raw_parser_failure_contracts, FastqRawParserFailureClass,
+    FastqRawParserFailureContractRow,
+};
 pub use params::correct::FastqCorrectParams;
 pub use params::defaults::{
     correct_defaults, overrepresented_profile_defaults, read_length_profile_defaults,

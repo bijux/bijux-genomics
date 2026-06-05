@@ -34,21 +34,28 @@ pub fn parse_fastp_metrics(report_json: &str) -> Result<FastpToolMetricsV1> {
 }
 
 /// Parse `AdapterRemoval` output into canonical merge metrics.
-#[must_use]
-pub fn parse_adapterremoval_metrics(stdout: &str) -> AdapterRemovalToolMetricsV1 {
-    let pairs_processed = parse_prefix_u64(stdout, "Total number of read pairs");
-    let pairs_merged = parse_prefix_u64(stdout, "Number of fully overlapping pairs");
+///
+/// # Errors
+/// Returns an error if required summary lines are missing or malformed.
+pub fn parse_adapterremoval_metrics(stdout: &str) -> Result<AdapterRemovalToolMetricsV1> {
+    let pairs_processed =
+        parse_required_prefix_u64(stdout, "Total number of read pairs", "adapterremoval")?;
+    let pairs_merged = parse_required_prefix_u64(
+        stdout,
+        "Number of fully overlapping pairs",
+        "adapterremoval",
+    )?;
     let merge_rate = if pairs_processed > 0 {
         u64_to_f64(pairs_merged) / u64_to_f64(pairs_processed)
     } else {
         0.0
     };
-    AdapterRemovalToolMetricsV1 {
+    Ok(AdapterRemovalToolMetricsV1 {
         schema_version: "bijux.adapterremoval.metrics.v1".to_string(),
         pairs_processed,
         pairs_merged,
         merge_rate,
-    }
+    })
 }
 
 /// # Errors
@@ -65,39 +72,44 @@ pub fn parse_seqkit_tool_metrics(output: &str) -> Result<SeqkitToolMetricsV1> {
 }
 
 /// Parse `samtools flagstat` output into canonical alignment metrics.
-#[must_use]
-pub fn parse_samtools_flagstat_metrics(stdout: &str) -> SamtoolsFlagstatMetricsV1 {
-    let total_reads = parse_prefix_u64(stdout, "in total");
-    let mapped_reads = parse_prefix_u64(stdout, "mapped (");
+///
+/// # Errors
+/// Returns an error if required summary lines are missing or malformed.
+pub fn parse_samtools_flagstat_metrics(stdout: &str) -> Result<SamtoolsFlagstatMetricsV1> {
+    let total_reads = parse_required_prefix_u64(stdout, "in total", "samtools flagstat")?;
+    let mapped_reads = parse_required_prefix_u64(stdout, "mapped (", "samtools flagstat")?;
     let mapped_rate =
         if total_reads > 0 { u64_to_f64(mapped_reads) / u64_to_f64(total_reads) } else { 0.0 };
-    SamtoolsFlagstatMetricsV1 {
+    Ok(SamtoolsFlagstatMetricsV1 {
         schema_version: "bijux.samtools.flagstat.v1".to_string(),
         total_reads,
         mapped_reads,
         mapped_rate,
-    }
+    })
 }
 
 /// Parse `FastQC` summary text into canonical summary metrics.
-#[must_use]
-pub fn parse_fastqc_summary_metrics(summary_txt: &str) -> FastqcToolMetricsV1 {
-    let mut total_sequences = 0;
-    let mut gc_percent = 0.0;
+///
+/// # Errors
+/// Returns an error if required summary lines are missing or malformed.
+pub fn parse_fastqc_summary_metrics(summary_txt: &str) -> Result<FastqcToolMetricsV1> {
+    let mut total_sequences = None;
+    let mut gc_percent = None;
     for line in summary_txt.lines() {
         if let Some((key, value)) = line.split_once('\t') {
             if key.trim() == "Total Sequences" {
-                total_sequences = value.trim().parse::<u64>().unwrap_or(0);
+                total_sequences =
+                    Some(value.trim().parse::<u64>().context("parse fastqc total sequences")?);
             } else if key.trim() == "%GC" {
-                gc_percent = value.trim().parse::<f64>().unwrap_or(0.0);
+                gc_percent = Some(value.trim().parse::<f64>().context("parse fastqc %GC")?);
             }
         }
     }
-    FastqcToolMetricsV1 {
+    Ok(FastqcToolMetricsV1 {
         schema_version: "bijux.fastqc.metrics.v1".to_string(),
-        total_sequences,
-        gc_percent,
-    }
+        total_sequences: total_sequences.ok_or_else(|| anyhow!("fastqc total sequences missing"))?,
+        gc_percent: gc_percent.ok_or_else(|| anyhow!("fastqc %GC missing"))?,
+    })
 }
 
 /// # Errors
@@ -164,4 +176,29 @@ pub(super) fn parse_prefix_u64(raw: &str, marker: &str) -> u64 {
             None
         })
         .unwrap_or(0)
+}
+
+fn parse_required_prefix_u64(raw: &str, marker: &str, parser_name: &str) -> Result<u64> {
+    raw.lines()
+        .find_map(|line| {
+            if line.contains(marker) || line.starts_with(marker) {
+                if let Some(value) =
+                    line.split_whitespace().next().and_then(|value| value.parse::<u64>().ok())
+                {
+                    return Some(Ok(value));
+                }
+                return Some(
+                    line.split_once(':')
+                        .and_then(|(_, value)| value.split_whitespace().next())
+                        .ok_or_else(|| anyhow!("{parser_name} line for `{marker}` is malformed"))
+                        .and_then(|value| {
+                            value.parse::<u64>().with_context(|| {
+                                format!("{parser_name} line for `{marker}` does not start with an integer")
+                            })
+                        }),
+                );
+            }
+            None
+        })
+        .unwrap_or_else(|| Err(anyhow!("{parser_name} line for `{marker}` is missing")))
 }

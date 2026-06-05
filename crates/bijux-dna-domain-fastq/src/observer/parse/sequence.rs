@@ -67,6 +67,9 @@ pub fn parse_length_histogram(output: &str) -> Result<Vec<(u64, u64)>> {
         let length: u64 = cleaned.parse().context("parse length")?;
         *counts.entry(length).or_insert(0) += 1;
     }
+    if counts.is_empty() {
+        return Err(anyhow!("seqkit fx2tab produced no length values"));
+    }
     Ok(counts.into_iter().collect())
 }
 

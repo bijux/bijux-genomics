@@ -117,5 +117,8 @@ pub fn parse_screen_summary_tsv(summary_tsv: &str) -> Result<Vec<TaxonomyScreenS
             .with_context(|| format!("screen report line {} percent parse", idx + 1))?;
         entries.push(TaxonomyScreenSummaryEntryV1 { label, percent });
     }
+    if entries.is_empty() {
+        return Err(anyhow!("screen report contains no taxonomy summary rows"));
+    }
     Ok(entries)
 }

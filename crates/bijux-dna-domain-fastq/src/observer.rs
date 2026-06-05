@@ -14,6 +14,8 @@ pub use parse::tool_metrics::{
     parse_seqkit_tool_metrics,
 };
 pub use parse::{
+    evaluate_fastq_raw_parser_failure_contracts, FastqRawParserFailureClass,
+    FastqRawParserFailureContractRow,
     parse_bbduk_reads_removed, parse_cluster_otus_report, parse_correct_errors_report,
     parse_deduplicate_report, parse_deplete_host_report,
     parse_deplete_reference_contaminants_report, parse_deplete_rrna_report,

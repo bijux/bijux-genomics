@@ -188,8 +188,8 @@ fn parse_case(case: &FastqRawParserFixtureCase, raw: &str) -> Result<serde_json:
             serde_json::json!(parsed)
         }
         "parse_fastp_metrics" => serde_json::to_value(parse_fastp_metrics(raw)?)?,
-        "parse_adapterremoval_metrics" => serde_json::to_value(parse_adapterremoval_metrics(raw))?,
-        "parse_fastqc_summary_metrics" => serde_json::to_value(parse_fastqc_summary_metrics(raw))?,
+        "parse_adapterremoval_metrics" => serde_json::to_value(parse_adapterremoval_metrics(raw)?)?,
+        "parse_fastqc_summary_metrics" => serde_json::to_value(parse_fastqc_summary_metrics(raw)?)?,
         "parse_multiqc_general_stats_metrics" => {
             serde_json::to_value(parse_multiqc_general_stats_metrics(raw)?)?
         }

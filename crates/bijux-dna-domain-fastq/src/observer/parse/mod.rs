@@ -34,6 +34,7 @@ mod filtering;
 mod parser_contracts;
 mod profiles;
 mod reports;
+mod raw_parser_contract;
 mod sequence;
 pub(super) mod tool_metrics;
 
@@ -46,6 +47,10 @@ pub use self::reports::{
     parse_normalize_abundance_report, parse_normalize_primers_report, parse_report_qc_report,
     parse_screen_taxonomy_report, parse_terminal_damage_report, parse_trim_polyg_report,
     parse_trim_reads_report, parse_validated_reads_manifest, parse_validation_report,
+};
+pub use self::raw_parser_contract::{
+    evaluate_fastq_raw_parser_failure_contracts, FastqRawParserFailureClass,
+    FastqRawParserFailureContractRow,
 };
 
 pub use self::correct_errors::parse_correct_errors_report;
