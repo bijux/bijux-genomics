@@ -49,21 +49,21 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
     );
     assert_eq!(
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
-        Some("benchmark_ready_command_assets")
+        Some("governed_benchmark_command_assets")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(23));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(32));
     assert_eq!(
         payload.get("declared_stage_tool_row_count").and_then(serde_json::Value::as_u64),
-        Some(16)
+        Some(17)
     );
-    assert_eq!(payload.get("asset_id_row_count").and_then(serde_json::Value::as_u64), Some(23));
-    assert_eq!(payload.get("unique_asset_id_count").and_then(serde_json::Value::as_u64), Some(11));
+    assert_eq!(payload.get("asset_id_row_count").and_then(serde_json::Value::as_u64), Some(32));
+    assert_eq!(payload.get("unique_asset_id_count").and_then(serde_json::Value::as_u64), Some(14));
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(7)
+        Some(16)
     );
     assert_eq!(
         payload
@@ -71,6 +71,34 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
         Some(16)
+    );
+    assert_eq!(
+        payload
+            .get("asset_role_counts")
+            .and_then(|value| value.get("database_artifact_id"))
+            .and_then(serde_json::Value::as_u64),
+        Some(5)
+    );
+    assert_eq!(
+        payload
+            .get("asset_role_counts")
+            .and_then(|value| value.get("reference_catalog_id"))
+            .and_then(serde_json::Value::as_u64),
+        Some(2)
+    );
+    assert_eq!(
+        payload
+            .get("asset_role_counts")
+            .and_then(|value| value.get("reference_index_artifact_id"))
+            .and_then(serde_json::Value::as_u64),
+        Some(2)
+    );
+    assert_eq!(
+        payload
+            .get("asset_role_counts")
+            .and_then(|value| value.get("reference_index_output"))
+            .and_then(serde_json::Value::as_u64),
+        Some(1)
     );
     assert_eq!(
         payload
@@ -84,7 +112,7 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
             .get("asset_role_counts")
             .and_then(|value| value.get("reference_fasta"))
             .and_then(serde_json::Value::as_u64),
-        Some(9)
+        Some(10)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -119,17 +147,115 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
         );
     }
 
-    let rrna = rows
+    let rrna_reference = rows
         .iter()
         .find(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.deplete_rrna")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("sortmerna")
+                && row.get("asset_role").and_then(serde_json::Value::as_str)
+                    == Some("rrna_reference")
         })
         .expect("fastq deplete-rrna asset row");
-    assert_eq!(rrna.get("asset_role").and_then(serde_json::Value::as_str), Some("rrna_reference"));
     assert_eq!(
-        rrna.get("asset_id").and_then(serde_json::Value::as_str),
+        rrna_reference.get("asset_id").and_then(serde_json::Value::as_str),
         Some("sortmerna_common_rrna_reference")
+    );
+    let rrna_database_artifact = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.deplete_rrna")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("sortmerna")
+                && row.get("asset_role").and_then(serde_json::Value::as_str)
+                    == Some("database_artifact_id")
+        })
+        .expect("fastq deplete-rrna database artifact row");
+    assert_eq!(
+        rrna_database_artifact
+            .get("asset_id")
+            .and_then(serde_json::Value::as_str),
+        Some("sortmerna_common_rrna_reference")
+    );
+    let host_reference = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.deplete_host")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2")
+                && row.get("asset_role").and_then(serde_json::Value::as_str)
+                    == Some("reference_catalog_id")
+        })
+        .expect("fastq deplete-host reference catalog row");
+    assert_eq!(
+        host_reference.get("asset_id").and_then(serde_json::Value::as_str),
+        Some("host_reference")
+    );
+    let host_index_artifact = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.deplete_host")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2")
+                && row.get("asset_role").and_then(serde_json::Value::as_str)
+                    == Some("reference_index_artifact_id")
+        })
+        .expect("fastq deplete-host index artifact row");
+    assert_eq!(
+        host_index_artifact
+            .get("asset_id")
+            .and_then(serde_json::Value::as_str),
+        Some("reference_index")
+    );
+    let contaminant_reference = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.deplete_reference_contaminants")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2")
+                && row.get("asset_role").and_then(serde_json::Value::as_str)
+                    == Some("reference_catalog_id")
+        })
+        .expect("fastq contaminant reference catalog row");
+    assert_eq!(
+        contaminant_reference
+            .get("asset_id")
+            .and_then(serde_json::Value::as_str),
+        Some("contaminant_reference")
+    );
+    let contaminant_index_artifact = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.deplete_reference_contaminants")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2")
+                && row.get("asset_role").and_then(serde_json::Value::as_str)
+                    == Some("reference_index_artifact_id")
+        })
+        .expect("fastq contaminant index artifact row");
+    assert_eq!(
+        contaminant_index_artifact
+            .get("asset_id")
+            .and_then(serde_json::Value::as_str),
+        Some("reference_index")
+    );
+    let index_reference_output = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.index_reference")
+                && row.get("tool_id").and_then(serde_json::Value::as_str)
+                    == Some("bowtie2_build")
+                && row.get("asset_role").and_then(serde_json::Value::as_str)
+                    == Some("reference_index_output")
+        })
+        .expect("fastq index-reference output row");
+    assert_eq!(
+        index_reference_output
+            .get("asset_id")
+            .and_then(serde_json::Value::as_str),
+        Some("reference_index")
+    );
+    assert_eq!(
+        index_reference_output
+            .get("asset_path")
+            .and_then(serde_json::Value::as_str),
+        Some("target/local-ready/fastq.index_reference/reference_index/bowtie2/reference")
     );
 
     let contamination_panel = rows
