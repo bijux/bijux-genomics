@@ -206,6 +206,11 @@ pub(crate) fn handle_meta_commands(
                         args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamReportMap(args) => {
+                        crate::commands::benchmark::readiness::bam_report_map::run_render_bam_report_map(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderExpectedBenchmarkResults(args) => {
                         crate::commands::benchmark::readiness::expected_benchmark_results::run_render_expected_benchmark_results(
                             args,
