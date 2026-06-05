@@ -73,7 +73,7 @@ fn benchmark_corpus_assignment_rejects_ungoverned_tool_stage_pairs() {
     );
     assert!(
         benchmark_corpus_assignment_for_stage_tool(
-            &StageId::new("bam.damage".to_string()),
+            &StageId::new("bam.authenticity".to_string()),
             &ToolId::new("pydamage".to_string()),
         )
         .is_none()
