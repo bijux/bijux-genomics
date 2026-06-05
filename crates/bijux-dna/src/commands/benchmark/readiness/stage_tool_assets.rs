@@ -130,7 +130,7 @@ pub(crate) fn render_stage_tool_assets(
     })
 }
 
-fn collect_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<StageToolAssetRow>> {
+pub(crate) fn collect_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<StageToolAssetRow>> {
     let fastq_base_plans = canonical_stage_plan_map(repo_root, BenchLocalDomain::Fastq)?;
     let bam_base_plans = canonical_stage_plan_map(repo_root, BenchLocalDomain::Bam)?;
     let (_, _, fastq_rows) = collect_fastq_command_adapter_coverage_rows(repo_root)?;

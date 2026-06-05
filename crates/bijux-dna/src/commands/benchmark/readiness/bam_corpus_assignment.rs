@@ -144,7 +144,7 @@ pub(crate) fn render_bam_corpus_assignment(
     })
 }
 
-fn collect_bam_corpus_assignment_rows(
+pub(crate) fn collect_bam_corpus_assignment_rows(
     repo_root: &Path,
 ) -> Result<(usize, usize, Vec<BamCorpusAssignmentRow>)> {
     let compatibility_by_stage = load_bam_stage_compatibility(repo_root)?;

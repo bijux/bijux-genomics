@@ -130,7 +130,7 @@ pub(crate) fn render_fastq_corpus_assignment(
     })
 }
 
-fn collect_fastq_corpus_assignment_rows(
+pub(crate) fn collect_fastq_corpus_assignment_rows(
     repo_root: &Path,
 ) -> Result<(usize, usize, Vec<FastqCorpusAssignmentRow>)> {
     let compatibility_by_stage = load_fastq_stage_compatibility(repo_root)?;

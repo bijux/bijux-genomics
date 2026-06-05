@@ -51,6 +51,7 @@ pub use self::readiness::{
     BenchReadinessRenderBamAdapterOutputContractArgs,
     BenchReadinessRenderBamCommandAdapterCoverageArgs,
     BenchReadinessRenderBamCorpusAssignmentArgs,
+    BenchReadinessRenderCorpusIncompatibilityArgs,
     BenchReadinessRenderBamComparableMetricsArgs,
     BenchReadinessRenderBamNormalizedMetricsSchemaArgs, BenchReadinessRenderBamParserCoverageArgs,
     BenchReadinessRenderBamStageDecisionTableArgs, BenchReadinessRenderBamToolServingMapArgs,

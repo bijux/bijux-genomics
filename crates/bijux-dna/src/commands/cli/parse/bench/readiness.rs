@@ -22,6 +22,8 @@ pub enum BenchReadinessCommand {
     RenderBamCommandAdapterCoverage(BenchReadinessRenderBamCommandAdapterCoverageArgs),
     #[command(name = "render-bam-corpus-assignment")]
     RenderBamCorpusAssignment(BenchReadinessRenderBamCorpusAssignmentArgs),
+    #[command(name = "render-corpus-incompatibility")]
+    RenderCorpusIncompatibility(BenchReadinessRenderCorpusIncompatibilityArgs),
     #[command(name = "render-bam-comparable-metrics")]
     RenderBamComparableMetrics(BenchReadinessRenderBamComparableMetricsArgs),
     #[command(name = "render-bam-normalized-metrics-schema")]
@@ -140,6 +142,14 @@ pub struct BenchReadinessRenderBamCommandAdapterCoverageArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamCorpusAssignmentArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderCorpusIncompatibilityArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

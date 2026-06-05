@@ -186,6 +186,11 @@ pub(crate) fn handle_meta_commands(
                         args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderCorpusIncompatibility(args) => {
+                        crate::commands::benchmark::readiness::corpus_incompatibility::run_render_corpus_incompatibility(
+                        args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamComparableMetrics(args) => {
                         crate::commands::benchmark::readiness::bam_comparable_metrics::run_render_bam_comparable_metrics(
                         args,
