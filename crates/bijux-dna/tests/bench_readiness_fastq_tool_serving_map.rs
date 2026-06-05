@@ -341,6 +341,66 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
         }),
         "FASTQ readiness map must retain the governed infer-asvs row for dada2"
     );
+    for (tool_id, stage_id, support_status, adapter_status, parser_status) in [
+        (
+            "cutadapt",
+            "fastq.normalize_primers",
+            "governed_benchmark_cohort",
+            "runnable",
+            "benchmark_normalized",
+        ),
+        (
+            "vsearch",
+            "fastq.remove_chimeras",
+            "governed_benchmark_cohort",
+            "runnable",
+            "benchmark_normalized",
+        ),
+        (
+            "dada2",
+            "fastq.infer_asvs",
+            "governed_execution",
+            "runnable",
+            "parse_normalized",
+        ),
+        (
+            "vsearch",
+            "fastq.cluster_otus",
+            "governed_benchmark_cohort",
+            "runnable",
+            "benchmark_normalized",
+        ),
+        (
+            "seqkit",
+            "fastq.normalize_abundance",
+            "governed_benchmark_cohort",
+            "runnable",
+            "benchmark_normalized",
+        ),
+        (
+            "seqfu",
+            "fastq.normalize_abundance",
+            "planned_contract",
+            "declared_only",
+            "not_normalized",
+        ),
+    ] {
+        assert!(
+            rows.iter().any(|row| {
+                row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                    && row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
+                    && row.get("support_status").and_then(serde_json::Value::as_str)
+                        == Some(support_status)
+                    && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                        == Some(adapter_status)
+                    && row.get("parser_status").and_then(serde_json::Value::as_str)
+                        == Some(parser_status)
+                    && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                        == Some("fixture:corpus-03-amplicon-mini")
+            }),
+            "FASTQ readiness map must retain the governed amplicon row for {stage_id} / {tool_id}"
+        );
+    }
     for tool_id in ["bayeshammer", "lighter", "musket", "rcorrector"] {
         assert!(
             rows.iter().any(|row| {

@@ -182,6 +182,59 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
         }),
         "TSV must retain the governed infer-asvs row for dada2"
     );
+    for (tool_id, stage_id, support_status, adapter_status, parser_status) in [
+        (
+            "cutadapt",
+            "fastq.normalize_primers",
+            "governed_benchmark_cohort",
+            "runnable",
+            "benchmark_normalized",
+        ),
+        (
+            "vsearch",
+            "fastq.remove_chimeras",
+            "governed_benchmark_cohort",
+            "runnable",
+            "benchmark_normalized",
+        ),
+        (
+            "dada2",
+            "fastq.infer_asvs",
+            "governed_execution",
+            "runnable",
+            "parse_normalized",
+        ),
+        (
+            "vsearch",
+            "fastq.cluster_otus",
+            "governed_benchmark_cohort",
+            "runnable",
+            "benchmark_normalized",
+        ),
+        (
+            "seqkit",
+            "fastq.normalize_abundance",
+            "governed_benchmark_cohort",
+            "runnable",
+            "benchmark_normalized",
+        ),
+        (
+            "seqfu",
+            "fastq.normalize_abundance",
+            "planned_contract",
+            "declared_only",
+            "not_normalized",
+        ),
+    ] {
+        assert!(
+            rows.iter().any(|row| {
+                row == &format!(
+                    "{tool_id}\t{stage_id}\t{support_status}\t{adapter_status}\t{parser_status}\tfixture:corpus-03-amplicon-mini"
+                )
+            }),
+            "TSV must retain the governed amplicon row for `{stage_id}` / `{tool_id}`"
+        );
+    }
     for tool_id in ["bayeshammer", "lighter", "musket", "rcorrector"] {
         assert!(
             rows.iter().any(|row| {
