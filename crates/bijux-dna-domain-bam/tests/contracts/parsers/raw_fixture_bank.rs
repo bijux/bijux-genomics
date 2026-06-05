@@ -205,9 +205,7 @@ fn parse_case(case: &BamRawParserFixtureCase) -> Result<serde_json::Value> {
         }
         "parse_preseq_estimates" => serde_json::to_value(parse_preseq_estimates(&raw_path)?)?,
         "parse_pydamage_json" => serde_json::to_value(parse_pydamage_json(&raw_path)?)?,
-        "parse_damageprofiler_json" => {
-            serde_json::to_value(parse_damageprofiler_json(&raw_path)?)?
-        }
+        "parse_damageprofiler_json" => serde_json::to_value(parse_damageprofiler_json(&raw_path)?)?,
         "parse_mapdamage2_misincorporation" => {
             serde_json::to_value(parse_mapdamage2_misincorporation(&raw_path)?)?
         }
@@ -256,11 +254,7 @@ fn repo_root() -> PathBuf {
         .expect("canonicalize repo root")
 }
 
-fn assert_json_matches(
-    observed: &serde_json::Value,
-    expected: &serde_json::Value,
-    context: &str,
-) {
+fn assert_json_matches(observed: &serde_json::Value, expected: &serde_json::Value, context: &str) {
     assert!(
         json_matches(observed, expected),
         "BAM raw parser fixture mismatch for {context}\nobserved: {observed:#}\nexpected: {expected:#}"
@@ -288,9 +282,7 @@ fn json_matches(observed: &serde_json::Value, expected: &serde_json::Value) -> b
         (serde_json::Value::Object(left), serde_json::Value::Object(right)) => {
             left.len() == right.len()
                 && left.iter().all(|(key, left_value)| {
-                    right
-                        .get(key)
-                        .is_some_and(|right_value| json_matches(left_value, right_value))
+                    right.get(key).is_some_and(|right_value| json_matches(left_value, right_value))
                 })
         }
         _ => false,
