@@ -56,7 +56,7 @@ The BAM domain is not reviewable if tool admission, stage claims, and citation c
 | --- | --- | --- | --- |
 | preseq | `bam.complexity` | governed paper locator present; runtime closure remains separate | https://github.com/smithlabcode/preseq |
 | bamutil | `bam.overlap_correction` | upstream software locator captured; paper mapping still pending | https://github.com/statgen/bamUtil |
-| gatk | `bam.recalibration` | governed paper locator present; promotion and runtime evidence still pending | https://github.com/broadinstitute/gatk |
+| gatk | `bam.recalibration` | governed paper locator present; runtime and promotion evidence are now documented in the supported recalibration surface | https://github.com/broadinstitute/gatk |
 | ngsbriggs | `bam.damage` | governed paper locator and upstream repository are now present; promotion and runtime evidence still pending | https://github.com/RAHenriksen/ngsBriggs |
 
 ## Failure modes

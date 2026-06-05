@@ -46,7 +46,7 @@ Clarifies tool coverage and rationale.
 | bam.contamination | supported | schmutzi, verifybamid2, contammix | Contamination estimation requires multiple model families for method comparison. |
 | bam.sex | supported | rxy, yleaf, angsd | Sex inference admits ratio-, haplogroup-, and GL-aware backends. |
 | bam.bias_mitigation | planned | samtools | Bias-mitigation remains planned until its mutation/reporting contract is promoted. |
-| bam.recalibration | planned | gatk | BQSR remains visible as a planned stage, not an admitted default surface. |
+| bam.recalibration | supported | gatk | BQSR is admitted through the governed low-coverage skip contract with owned known-sites evidence. |
 | bam.haplogroups | planned | yleaf | Haplogroup inference stays planned until reference and scientific acceptance are closed. |
 | bam.genotyping | planned | gatk | BAM-driven genotype summaries remain planned in the current pre-HPC surface. |
 | bam.kinship | supported | king, angsd | Kinship inference admits pairwise and GL-aware method families. |
