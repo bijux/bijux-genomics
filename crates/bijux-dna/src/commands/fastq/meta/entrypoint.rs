@@ -181,6 +181,11 @@ pub(crate) fn handle_meta_commands(
                         args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamNormalizedMetricsSchema(args) => {
+                        crate::commands::benchmark::readiness::bam_normalized_metrics_schema::run_render_bam_normalized_metrics_schema(
+                        args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamParserCoverage(args) => {
                         crate::commands::benchmark::readiness::bam_parser_coverage::run_render_bam_parser_coverage(
                         args,
