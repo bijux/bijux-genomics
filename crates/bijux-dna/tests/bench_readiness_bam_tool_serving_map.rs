@@ -189,6 +189,19 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
         ),
         "BAM readiness map must retain the governed samtools qc_pre evidence row"
     );
+    for tool_id in ["angsd", "rxy", "yleaf"] {
+        assert!(
+            has_row(
+                tool_id,
+                "bam.sex",
+                "supported",
+                "runnable",
+                "parser_fixture_validated",
+                "fixture:corpus-01-bam-mini",
+            ),
+            "BAM readiness map must retain the governed sex row for {tool_id}"
+        );
+    }
     assert!(
         has_row(
             "bedtools",
@@ -444,17 +457,6 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
     );
     assert!(
         has_row(
-            "samtools",
-            "bam.haplogroups",
-            "mismatched_contract",
-            "declared_only",
-            "scientific_report_contract",
-            "planner_only",
-        ),
-        "BAM readiness map must retain the declared-only samtools haplogroups row"
-    );
-    assert!(
-        has_row(
             "yleaf",
             "bam.haplogroups",
             "supported",
@@ -463,6 +465,14 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
             "planner_only",
         ),
         "BAM readiness map must retain the governed yleaf haplogroups row"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.haplogroups")
+        }),
+        "BAM readiness map must not retain a declared-only samtools haplogroups row once yleaf is the only admitted haplogroups tool"
     );
     assert!(
         !rows.iter().any(|row| {

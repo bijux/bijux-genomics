@@ -56,6 +56,9 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         "bamtools\tbam.validate\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "multiqc\tbam.qc_pre\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.qc_pre\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "angsd\tbam.sex\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "rxy\tbam.sex\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "yleaf\tbam.sex\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "bedtools\tbam.coverage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "mosdepth\tbam.coverage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.coverage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
@@ -78,7 +81,6 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         "samtools\tbam.duplication_metrics\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "picard\tbam.duplication_metrics\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.bias_mitigation\tmismatched_contract\tdeclared_only\tartifact_contract_only\tplanner_only",
-        "samtools\tbam.haplogroups\tmismatched_contract\tdeclared_only\tscientific_report_contract\tplanner_only",
         "yleaf\tbam.haplogroups\tsupported\trunnable\tscientific_report_contract\tplanner_only",
     ] {
         assert!(
@@ -86,6 +88,12 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain governed BAM readiness row: {row}"
         );
     }
+    assert!(
+        !rows
+            .iter()
+            .any(|row| row == &"samtools\tbam.haplogroups\tmismatched_contract\tdeclared_only\tscientific_report_contract\tplanner_only"),
+        "TSV must not retain a declared-only samtools haplogroups row once yleaf is the only admitted haplogroups tool"
+    );
     assert!(
         !rows.iter().any(|row| row == &"samtools\tbam.align\tsupported\trunnable\tartifact_contract_only\tfixture:corpus-01-mini"),
         "TSV must not retain a samtools alignment row once bam.align is limited to the admitted aligners"

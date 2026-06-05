@@ -74,6 +74,22 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            let columns = row.split('\t').collect::<Vec<_>>();
+            columns.len() == 9
+                && columns[0] == "bam.sex"
+                && columns[1] == "benchmark_ready"
+                && columns[2] == "rxy"
+                && columns[3] == "rxy"
+                && columns[4] == "supported"
+                && columns[5] == "runnable"
+                && columns[6] == "parser_fixture_validated"
+                && columns[7] == "fixture:corpus-01-bam-mini"
+                && columns[8].contains("benchmark_ready via `rxy`")
+        }),
+        "TSV must retain the governed benchmark-ready bam.sex row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"bam.mapq_filter\tbenchmark_ready\tsamtools\tsamtools\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.mapq_filter` is benchmark_ready via `samtools` with a fixture-backed parser-validated BAM benchmark row"
         }),
         "TSV must retain the governed benchmark-ready bam.mapq_filter row"

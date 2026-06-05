@@ -46,34 +46,17 @@ fn bench_readiness_missing_benchmark_pairs_reports_governed_gaps() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/missing-benchmark-pairs.tsv")
     );
-    assert_eq!(payload.get("missing_pair_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
+    assert_eq!(payload.get("missing_pair_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let domain_counts = payload
         .get("domain_counts")
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
-    assert_eq!(
-        domain_counts.get("bam").and_then(serde_json::Value::as_u64),
-        Some(1),
-        "the current missing benchmark-pair slice must be entirely BAM-owned"
-    );
-    assert!(
-        domain_counts.get("fastq").is_none(),
-        "FASTQ currently has no missing benchmark pairs in this governed slice"
-    );
+    assert!(domain_counts.is_empty(), "the current missing benchmark-pair slice must be empty");
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 1, "the governed missing-pair slice must retain one BAM row");
-    assert!(
-        rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.sex")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("yleaf")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("supported")
-        }),
-        "bam.sex / yleaf must remain visible as a missing benchmark pair"
-    );
+    assert!(rows.is_empty(), "the governed missing-pair slice must now be empty");
     assert!(
         !rows.iter().any(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")

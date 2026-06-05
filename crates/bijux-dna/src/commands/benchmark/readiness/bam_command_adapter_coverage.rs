@@ -313,11 +313,11 @@ mod tests {
         assert_eq!(report.stage_count, 24);
         assert_eq!(report.tool_count, 26);
         assert_eq!(report.row_count, 51);
-        assert_eq!(report.benchmark_ready_row_count, 37);
-        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 37);
+        assert_eq!(report.benchmark_ready_row_count, 40);
+        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 40);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
-        assert_eq!(report.readiness_gap_counts.get("parser"), Some(&8));
-        assert_eq!(report.readiness_gap_counts.get("support"), Some(&6));
+        assert_eq!(report.readiness_gap_counts.get("parser"), Some(&6));
+        assert_eq!(report.readiness_gap_counts.get("support"), Some(&5));
         assert!(
             report.readiness_gap_counts.get("corpus").is_none(),
             "the governed BAM readiness slice should no longer carry corpus gaps"
@@ -352,6 +352,15 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "schmutzi"
                 && row.stage_id == "bam.contamination"
+                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
+                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
+                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "rxy"
+                && row.stage_id == "bam.sex"
                 && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
                 && super::adapter_coverage_label(row.adapter_coverage) == "covered"
                 && super::readiness_gap_label(row.readiness_gap) == "none"

@@ -202,19 +202,8 @@ mod tests {
         .expect("render missing benchmark pairs");
 
         assert_eq!(report.schema_version, MISSING_BENCHMARK_PAIRS_SCHEMA_VERSION);
-        assert_eq!(report.missing_pair_count, 9);
-        assert!(!report.ok, "missing benchmark pair report must fail while governed gaps remain");
-        assert!(report.rows.iter().any(|row| {
-            row.domain == "bam"
-                && row.stage_id == "bam.damage"
-                && row.tool_id == "addeam"
-                && row.support_status == "supported"
-        }));
-        assert!(report.rows.iter().any(|row| {
-            row.domain == "bam"
-                && row.stage_id == "bam.overlap_correction"
-                && row.tool_id == "samtools"
-                && row.support_status == "planned"
-        }));
+        assert_eq!(report.missing_pair_count, 0);
+        assert!(report.ok, "missing benchmark pair report must pass once governed gaps are closed");
+        assert!(report.rows.is_empty(), "the governed missing benchmark-pair slice must be empty");
     }
 }

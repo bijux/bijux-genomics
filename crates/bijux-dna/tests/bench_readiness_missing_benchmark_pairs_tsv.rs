@@ -41,7 +41,7 @@ fn bench_readiness_missing_benchmark_pairs_writes_governed_tsv_columns() {
         Some("domain\tstage_id\ttool_id\tsupport_status\tregistered_tool_ids\treason")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 1, "TSV must retain the governed missing-pair row count");
+    assert_eq!(rows.len(), 0, "TSV must retain the governed missing-pair row count");
     assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.overlap_correction\t")),
         "TSV must not retain a missing benchmark-pair row for bam.overlap_correction once samtools is no longer admitted for that stage"
@@ -49,12 +49,6 @@ fn bench_readiness_missing_benchmark_pairs_writes_governed_tsv_columns() {
     assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.align\t")),
         "TSV must not retain a missing benchmark-pair row for bam.align once the admitted aligner set is fully covered"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row == &"bam\tbam.sex\tyleaf\tsupported\tangsd,rxy\tdomain-compatible pair `bam.sex` / `yleaf` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: angsd, rxy"
-        }),
-        "TSV must retain the governed bam.sex / yleaf gap"
     );
     assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.damage\t")),

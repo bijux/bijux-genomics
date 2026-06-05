@@ -47,10 +47,7 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/unregistered-benchmark-pairs.tsv")
     );
-    assert_eq!(
-        payload.get("unregistered_pair_count").and_then(serde_json::Value::as_u64),
-        Some(10)
-    );
+    assert_eq!(payload.get("unregistered_pair_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
     let domain_counts = payload
@@ -58,10 +55,10 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(5));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(4));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 10, "governed registry-drift slice must retain the current ten rows");
+    assert_eq!(rows.len(), 9, "governed registry-drift slice must retain the current nine rows");
     assert!(
         rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -91,17 +88,6 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
                     == Some("tool_missing")
         }),
         "bam.damage / ngsbriggs must remain visible as a planned missing-tool registry row"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.haplogroups")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("yleaf")
-                && row.get("registry_status").and_then(serde_json::Value::as_str)
-                    == Some("tool_missing")
-        }),
-        "bam.haplogroups / yleaf must remain visible as a missing-tool registry row"
     );
     assert!(
         rows.iter().any(|row| {
@@ -210,6 +196,14 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
                     == Some("bam.overlap_correction")
         }),
         "bam.overlap_correction must not drift against the registry once the admitted bamutil row is published in production"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.haplogroups")
+        }),
+        "bam.haplogroups must not remain visible as registry drift once yleaf is registered in production"
     );
     assert!(
         !rows.iter().any(|row| {

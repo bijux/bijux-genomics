@@ -419,10 +419,10 @@ mod tests {
 
         assert_eq!(report.schema_version, BAM_ADAPTER_OUTPUT_CONTRACT_SCHEMA_VERSION);
         assert_eq!(report.row_count, 51);
-        assert_eq!(report.adapter_row_count, 48);
-        assert_eq!(report.complete_adapter_row_count, 48);
+        assert_eq!(report.adapter_row_count, 49);
+        assert_eq!(report.complete_adapter_row_count, 49);
         assert_eq!(report.incomplete_adapter_row_count, 0);
-        assert_eq!(report.missing_adapter_row_count, 3);
+        assert_eq!(report.missing_adapter_row_count, 2);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "samtools"
                 && row.stage_id == "bam.validate"
@@ -435,6 +435,12 @@ mod tests {
                 && super::output_contract_status_label(row.output_contract_status) == "complete"
                 && row.normalized_metrics_output_id.as_deref() == Some("damage_report")
                 && row.raw_output_artifact_ids.contains(&"damage_profile".to_string())
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "yleaf"
+                && row.stage_id == "bam.sex"
+                && super::output_contract_status_label(row.output_contract_status) == "complete"
+                && row.normalized_metrics_output_id.as_deref() == Some("sex_report")
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bcftools"

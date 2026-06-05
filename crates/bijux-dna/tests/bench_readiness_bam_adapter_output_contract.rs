@@ -48,10 +48,10 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
         Some("target/bench-readiness/bam-adapter-output-contract.tsv")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(51));
-    assert_eq!(payload.get("adapter_row_count").and_then(serde_json::Value::as_u64), Some(48));
+    assert_eq!(payload.get("adapter_row_count").and_then(serde_json::Value::as_u64), Some(49));
     assert_eq!(
         payload.get("complete_adapter_row_count").and_then(serde_json::Value::as_u64),
-        Some(48)
+        Some(49)
     );
     assert_eq!(
         payload.get("incomplete_adapter_row_count").and_then(serde_json::Value::as_u64),
@@ -59,7 +59,7 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("missing_adapter_row_count").and_then(serde_json::Value::as_u64),
-        Some(3)
+        Some(2)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -122,6 +122,21 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
         }),
         "report must retain the governed bamutil overlap-correction contract row"
     );
+    for tool_id in ["rxy", "yleaf"] {
+        assert!(
+            rows.iter().any(|row| {
+                row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                    && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.sex")
+                    && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                        == Some("runnable")
+                    && row.get("output_contract_status").and_then(serde_json::Value::as_str)
+                        == Some("complete")
+                    && row.get("normalized_metrics_output_id").and_then(serde_json::Value::as_str)
+                        == Some("sex_report")
+            }),
+            "report must retain the governed bam.sex contract row for {tool_id}"
+        );
+    }
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")

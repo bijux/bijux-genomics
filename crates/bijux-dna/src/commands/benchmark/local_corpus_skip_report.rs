@@ -188,8 +188,8 @@ mod tests {
 
         assert_eq!(report.fixture_count, 5);
         assert_eq!(report.stage_count, 51);
-        assert_eq!(report.skip_count, 168);
-        assert_eq!(report.planner_only_stage_count, 9);
+        assert_eq!(report.skip_count, 172);
+        assert_eq!(report.planner_only_stage_count, 8);
         assert!(
             report.skips.iter().any(|skip| {
                 skip.stage_id == "fastq.screen_taxonomy"

@@ -488,6 +488,13 @@ mod tests {
         );
         assert!(
             report.stages.iter().any(|stage| {
+                stage.stage_id == "bam.sex"
+                    && stage.fixture_id.as_deref() == Some("corpus-01-bam-mini")
+            }),
+            "bam.sex must map to the governed BAM corpus once XY-autosome coverage is owned there"
+        );
+        assert!(
+            report.stages.iter().any(|stage| {
                 stage.stage_id == "fastq.trim_polyg_tails"
                     && stage.fixture_id.as_deref() == Some("corpus-01-mini")
             }),

@@ -47,10 +47,10 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
     );
     assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
-    assert_eq!(payload.get("skip_count").and_then(serde_json::Value::as_u64), Some(168));
+    assert_eq!(payload.get("skip_count").and_then(serde_json::Value::as_u64), Some(172));
     assert_eq!(
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
-        Some(9)
+        Some(8)
     );
 
     let skips = payload.get("skips").and_then(serde_json::Value::as_array).expect("skips array");
@@ -83,6 +83,16 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
                     == Some("corpus-01-bam-mini")
         }),
         "fixture-backed bam.mapping_summary skips must name the governed BAM corpus replacement"
+    );
+    assert!(
+        skips.iter().any(|skip| {
+            skip.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.sex")
+                && skip.get("corpus_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-01-mini")
+                && skip.get("replacement_corpus_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-01-bam-mini")
+        }),
+        "fixture-backed bam.sex skips must name the governed BAM corpus replacement"
     );
     assert!(
         skips.iter().any(|skip| {

@@ -81,6 +81,14 @@ fn bench_readiness_bam_adapter_output_contract_writes_governed_tsv_columns() {
         "TSV must retain the governed bowtie2 alignment contract row"
     );
     assert!(
+        has_row("rxy", "bam.sex", "runnable", "complete", "sex_report", ""),
+        "TSV must retain the governed rxy bam.sex contract row"
+    );
+    assert!(
+        has_row("yleaf", "bam.sex", "runnable", "complete", "sex_report", ""),
+        "TSV must retain the governed yleaf bam.sex contract row"
+    );
+    assert!(
         has_row("bamutil", "bam.overlap_correction", "runnable", "complete", "summary", ""),
         "TSV must retain the governed bamutil overlap-correction contract row"
     );

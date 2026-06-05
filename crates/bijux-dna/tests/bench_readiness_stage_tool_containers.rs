@@ -51,19 +51,19 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(100));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(103));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(100)
+        Some(103)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(99));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(102));
     assert_eq!(
         payload.get("container_declared_row_count").and_then(serde_json::Value::as_u64),
-        Some(99)
+        Some(102)
     );
     assert_eq!(
         payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
-        Some(100)
+        Some(103)
     );
     assert_eq!(payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
@@ -78,7 +78,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(37)
+        Some(40)
     );
 
     assert_eq!(
@@ -86,7 +86,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("execution_mode_counts")
             .and_then(|value| value.get("containerized"))
             .and_then(serde_json::Value::as_u64),
-        Some(80)
+        Some(83)
     );
     assert_eq!(
         payload
@@ -188,6 +188,25 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     assert_eq!(
         bamutil_overlap.get("container_id").and_then(serde_json::Value::as_str),
         Some("bijuxdna/bamutil:1.0.15")
+    );
+    let bam_sex_rxy = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.sex")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("rxy")
+        })
+        .expect("bam sex rxy row");
+    assert_eq!(
+        bam_sex_rxy.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("containerized")
+    );
+    assert_eq!(
+        bam_sex_rxy.get("command_entrypoint").and_then(serde_json::Value::as_str),
+        Some("rxy")
+    );
+    assert_eq!(
+        bam_sex_rxy.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/rxy")
     );
     let fastqc = rows
         .iter()
