@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 20eba3da2af69c219b75949028808bd8d31fff73
+# source_commit: b46143bee6fe7a5d1ba7dd35b617ffce13b10352
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1370,6 +1370,40 @@ apptainer_def = "containers/apptainer/shared/musket.def"
 require_labels = true
 
 [[tools]]
+id = "ngsbriggs"
+tool_id = "ngsbriggs"
+domain = "bam"
+domains = ["bam"]
+status = "production"
+stage_ids = ["bam.damage"]
+bindings = ["bam.damage"]
+tool_role = "transform"
+version = "0.1.3"
+default_version = "0.1.3"
+upstream = "https://github.com/RAHenriksen/ngsBriggs"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC11646307/"
+pinned_commit = "release:0.1.3"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/ngsbriggs:0.1.3:0.1.3"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "ngsbriggs --version"
+help_cmd = "ngsbriggs --help"
+smoke_version_cmd = "ngsbriggs --version"
+smoke_help_cmd = "ngsbriggs --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "ngsbriggs --help"
+expected_bin = "ngsbriggs"
+expected_artifacts = ["damage_profile", "damage_parameters"]
+metrics_schema = "bijux.bam.damage.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.ngsbriggs"
+apptainer_def = "containers/apptainer/shared/ngsbriggs.def"
+require_labels = true
+
+[[tools]]
 id = "pear"
 tool_id = "pear"
 domain = "fastq"
@@ -2227,7 +2261,7 @@ requires_reporting = false
 id = "bam.damage"
 required_tool_roles = ["transform"]
 primary_tools = ["mapdamage2"]
-optional_alternatives = ["addeam", "damageprofiler", "pmdtools", "pydamage"]
+optional_alternatives = ["addeam", "damageprofiler", "ngsbriggs", "pmdtools", "pydamage"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []

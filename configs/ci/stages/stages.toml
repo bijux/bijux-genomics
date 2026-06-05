@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 20eba3da2af69c219b75949028808bd8d31fff73
+# source_commit: b46143bee6fe7a5d1ba7dd35b617ffce13b10352
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -121,7 +121,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["coverage_at_damage_sites>=0.2"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["addeam", "damageprofiler", "mapdamage2", "pmdtools", "pydamage"]
+tools = ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
 
 [[stages]]
 id = "bam.duplication_metrics"

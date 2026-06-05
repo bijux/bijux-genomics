@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "20eba3da2af69c219b75949028808bd8d31fff73",
-  "bundle_checksum_sha256": "a7a6682f50d552a3cc5a431fc05c8739c342f0b93e87c3c44f084abd2704b11a",
+  "source_commit": "b46143bee6fe7a5d1ba7dd35b617ffce13b10352",
+  "bundle_checksum_sha256": "75162ec2ec5c8fa9ae99bb342eb3fc8443357cebfe13c49dcd35ec8b38ce9af1",
   "domains": [
     {
       "domain_id": "bam",
@@ -2734,10 +2734,10 @@
         },
         {
           "tool_id": "ngsbriggs",
-          "status": "planned",
+          "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "planned",
+          "default_version": "0.1.3",
           "upstream": "https://github.com/RAHenriksen/ngsBriggs",
           "pin_strategy": "pinned",
           "license": "GPL-3.0",
@@ -2757,7 +2757,10 @@
           ],
           "metrics_schema_id": "bijux.bam.damage.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/ngsbriggs:0.1.3",
+            "digest": ""
+          }
         },
         {
           "tool_id": "picard",
@@ -3590,7 +3593,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "add6bee6fe008dea0e941f741fc39fc7aca502533ca0434bfe5a26dc909d3c5e"
+      "checksum_sha256": "6b5678393a24679de464d44484bd2d58c83c7e01403ee017939e62c500ab3715"
     },
     {
       "domain_id": "fastq",
@@ -12443,7 +12446,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "7062ec0338a7b637a9d910268654804599f802d38fc901816c967f21d415e3b4"
+      "checksum_sha256": "ff5b4edd58b198853ea26ef05b38778a74c5393a9ede6fb768eeb537cef767e7"
     },
     {
       "domain_id": "vcf",
@@ -14701,7 +14704,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "58d5ae5a9b0b473be9b4e9934dfc739c3fe46040ed8e6019bdfd29c534a43544"
+      "checksum_sha256": "115094f5e6c94fa113fcc95962c9753aba3cd9710c792b74e62230ee8219f230"
     }
   ]
 }
