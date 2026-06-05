@@ -210,6 +210,12 @@ pub(crate) fn parse_container_ref(
     if !image.is_empty() && digest.starts_with("sha256:") {
         return format!("{image}@{digest}");
     }
+    if !image.is_empty()
+        && (image.contains('@')
+            || image.rsplit_once(':').is_some_and(|(_, suffix)| !suffix.contains('/')))
+    {
+        return image.to_string();
+    }
     if !image.is_empty() && version != "latest-pinned" {
         return format!("{image}:{version}");
     }
@@ -283,4 +289,30 @@ pub(crate) fn required_tool_roles_for_stage(stage_id: &str) -> Vec<String> {
     };
 
     roles.into_iter().map(str::to_string).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_container_ref;
+
+    #[test]
+    fn parse_container_ref_preserves_explicit_tagged_image() {
+        assert_eq!(
+            parse_container_ref("bijuxdna/king:2.3.0", "", "king", "2.3.0"),
+            "bijuxdna/king:2.3.0"
+        );
+    }
+
+    #[test]
+    fn parse_container_ref_preserves_explicit_digest_image() {
+        assert_eq!(
+            parse_container_ref(
+                "bijuxdna/kaiju",
+                "sha256:4f30fd9becc62e873bc223231c717bba5b42db8a4f993979bf26c7fc00979f9b",
+                "kaiju",
+                "1.10.1"
+            ),
+            "bijuxdna/kaiju@sha256:4f30fd9becc62e873bc223231c717bba5b42db8a4f993979bf26c7fc00979f9b"
+        );
+    }
 }

@@ -562,6 +562,21 @@ mod tests {
     }
 
     #[test]
+    fn load_bam_domain_tool_execution_spec_accepts_supported_king_kinship_stage() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("bam.kinship".to_string());
+        let tool_id = ToolId::new("king");
+
+        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(spec.tool_id.as_str(), "king");
+        assert_eq!(spec.command.template, vec!["king".to_string()]);
+        assert_eq!(spec.image.image, "bijuxdna/king:2.3.0");
+        assert!(spec.image.digest.is_none());
+        Ok(())
+    }
+
+    #[test]
     fn load_bam_domain_tool_execution_spec_accepts_supported_multiqc_qc_pre_stage() -> Result<()> {
         let repo_root = repo_root();
         let stage_id = StageId::new("bam.qc_pre".to_string());

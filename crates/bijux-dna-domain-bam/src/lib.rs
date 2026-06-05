@@ -154,6 +154,7 @@ pub fn bam_stage_has_invariants(stage: BamStage) -> bool {
             | BamStage::Authenticity
             | BamStage::Contamination
             | BamStage::Sex
+            | BamStage::Kinship
             | BamStage::BiasMitigation
             | BamStage::Recalibration
             | BamStage::Genotyping
@@ -187,6 +188,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
             | BamStage::Authenticity
             | BamStage::Contamination
             | BamStage::Sex
+            | BamStage::Kinship
             | BamStage::BiasMitigation
             | BamStage::Recalibration
             | BamStage::Genotyping
@@ -212,6 +214,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
             | BamStage::Authenticity
             | BamStage::Contamination
             | BamStage::Sex
+            | BamStage::Kinship
             | BamStage::BiasMitigation
             | BamStage::Recalibration
             | BamStage::Genotyping
@@ -246,6 +249,7 @@ pub fn bam_stage_is_stable(stage: BamStage) -> bool {
             | BamStage::Authenticity
             | BamStage::Contamination
             | BamStage::Sex
+            | BamStage::Kinship
             | BamStage::BiasMitigation
             | BamStage::Recalibration
             | BamStage::Genotyping
@@ -363,5 +367,17 @@ mod tests {
         assert!(completeness.is_complete());
         assert!(bam_stage_has_invariants(BamStage::Haplogroups));
         assert!(bam_stage_is_stable(BamStage::Haplogroups));
+    }
+
+    #[test]
+    fn kinship_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::Kinship);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::Kinship));
+        assert!(bam_stage_is_stable(BamStage::Kinship));
     }
 }
