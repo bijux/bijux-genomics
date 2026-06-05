@@ -148,6 +148,13 @@ Visible aliases are part of the operator surface:
   `corpus_status`, and `asset_status` columns plus the resolved `readiness_gap` so incomplete
   bindings stay reviewable by the precise missing component instead of collapsing into a generic
   not-ready bucket.
+- `bijux-dna bench readiness render-corpus-centric-report`
+  `render-corpus-centric-report` writes `target/bench-readiness/corpus-centric-report.md` with
+  one governed section per FASTQ or BAM corpus family, carrying the stage inventory that corpus
+  exercises plus exact fixture IDs, ready-vs-blocked tool counts, shared metric visibility, and
+  blocked tool rows. Taxonomy stays reviewer-visible under `corpus-02`, ASV or OTU or chimera
+  stages stay under `corpus-03`, and ancient-DNA, genotyping, kinship, and core BAM analysis
+  remain bound to their owned BAM corpora.
 - `bijux-dna bench readiness render-tool-centric-report`
   `render-tool-centric-report` writes `target/bench-readiness/tool-centric-report.md` with one
   governed section per benchmarked tool, carrying the full FASTQ/BAM stage list that tool serves
