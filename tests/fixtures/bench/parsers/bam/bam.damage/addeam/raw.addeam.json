@@ -1,0 +1,15 @@
+{
+  "tool": "addeam",
+  "five_prime_c_to_t": 0.24,
+  "three_prime_g_to_a": 0.2,
+  "pmd_score_histogram": [
+    [
+      0,
+      310
+    ],
+    [
+      3,
+      980
+    ]
+  ]
+}
