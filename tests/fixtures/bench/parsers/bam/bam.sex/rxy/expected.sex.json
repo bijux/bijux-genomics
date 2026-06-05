@@ -1,0 +1,13 @@
+{
+  "schema_version": "bijux.fixture.bam_raw_parser.v1",
+  "stage_id": "bam.sex",
+  "tool_id": "rxy",
+  "parser_id": "parse_sex_json",
+  "normalized": {
+    "x_to_y_ratio": 0.4,
+    "confidence": 0.8,
+    "method": "rxy",
+    "classification": "male",
+    "sufficient_data": true
+  }
+}
