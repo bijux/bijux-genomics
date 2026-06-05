@@ -121,6 +121,11 @@ Visible aliases are part of the operator surface:
   row per benchmark-ready adapter probe, proving that missing FASTQ, BAM, reference, and taxonomy
   database inputs fail early through the real planner entrypoints with the exact missing input role
   preserved in reviewer-visible JSON.
+- `bijux-dna bench readiness render-parser-failure-tests`
+  `render-parser-failure-tests` writes `target/bench-readiness/parser-failure-tests.json` with
+  one governed structured row per FASTQ and BAM raw parser failure probe, proving that missing,
+  empty, and malformed raw backend outputs are classified explicitly by domain-owned parser
+  contracts instead of collapsing into silent zero-metric fallbacks.
 - `bijux-dna bench readiness render-commands`
   `render-commands` writes `target/bench-readiness/rendered-commands.sh` with one governed shell
   command per local benchmark stage command, preserving a parseable `bash` script that can be
