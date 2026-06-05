@@ -150,12 +150,13 @@ Visible aliases are part of the operator surface:
   governed asset-binding row per local benchmark FASTQ or BAM stage-tool command that depends on
   external taxonomy databases, database artifact IDs, host or contaminant reference catalogs,
   reference index artifacts, rRNA references, reference-index outputs, contamination panels,
-  haplogroup panels, genotyping sites and regions, or recalibration known-sites inputs, keeping
-  the benchmark asset contract explicit by `asset_role`, `asset_id`, and `asset_path`. The FASTQ
-  taxonomy slice is only accepted when `centrifuge`, `kaiju`, `kraken2`, and `krakenuniq` all
-  keep their governed `taxonomy_database_root` and `database_artifact_id` bindings, and the
-  `fastq.index_reference` slice is emitted only for the canonical local backend selected by the
-  governed plan.
+  haplogroup panels, genotyping sites and regions, kinship relatedness panels, or recalibration
+  known-sites inputs, keeping the benchmark asset contract explicit by `asset_role`, `asset_id`,
+  and `asset_path`. The FASTQ taxonomy slice is only accepted when `centrifuge`, `kaiju`,
+  `kraken2`, and `krakenuniq` all keep their governed `taxonomy_database_root` and
+  `database_artifact_id` bindings, the `fastq.index_reference` slice is emitted only for the
+  canonical local backend selected by the governed plan, and the BAM kinship slice must keep the
+  governed `reference_fasta` and `reference_panel` bindings for both `angsd` and `king`.
 - `bijux-dna bench readiness render-stage-tool-resources`
   `render-stage-tool-resources` writes `configs/bench/local/stage-tool-resources.toml` with one
   governed row per benchmark-ready FASTQ or BAM stage-tool command, carrying non-zero `threads`,
