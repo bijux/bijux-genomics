@@ -1,6 +1,6 @@
 extends: "_schema.yaml"
 stage_id: "bam.haplogroups"
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "bam"
 inputs:

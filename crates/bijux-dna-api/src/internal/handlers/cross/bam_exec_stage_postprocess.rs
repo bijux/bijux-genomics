@@ -470,9 +470,16 @@ fn stage_postprocess(
                 &path,
                 &serde_json::json!({
                     "schema_version": "bijux.bam.haplogroups.v1",
+                    "stage_id": stage.as_str(),
                     "summary_present": summary_exists,
-                    "panel": plan.params.get("reference_panel").cloned(),
+                    "sample_id": plan.params.get("sample_id").and_then(serde_json::Value::as_str),
+                    "reference_panel_id": plan.params.get("reference_panel_id").and_then(serde_json::Value::as_str),
+                    "reference_panel": plan.params.get("reference_panel").and_then(serde_json::Value::as_str),
+                    "reference_build": plan.params.get("reference_build").and_then(serde_json::Value::as_str),
+                    "population_scope": plan.params.get("population_scope").and_then(serde_json::Value::as_str),
                     "min_coverage": plan.params.get("min_coverage").cloned(),
+                    "refuse_without_population_context": plan.params.get("refuse_without_population_context").cloned(),
+                    "normalized_metrics_output_id": "haplogroups",
                 }),
             )
             .with_context(|| format!("write {}", path.display()))?;

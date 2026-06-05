@@ -31,14 +31,17 @@ pub fn args_with_outputs(
         "refuse_without_population_context": params.refuse_without_population_context,
     }));
     let report_payload = python_json_literal(serde_json::json!({
-        "status": "planned",
+        "schema_version": "bijux.bam.haplogroups.v1",
         "tool": tool_id,
+        "classification_scope": "y_haplogroup_inference",
         "reference_panel": params.reference_panel,
         "reference_build": params.reference_build,
         "population_scope": population_scope,
         "coverage_gate": {
             "min_coverage": min_coverage,
         },
+        "refuse_without_population_context": params.refuse_without_population_context,
+        "summary_output": summary.display().to_string(),
         "assignment_output_prefix": output_prefix.display().to_string(),
     }));
     let command = match tool_id {
