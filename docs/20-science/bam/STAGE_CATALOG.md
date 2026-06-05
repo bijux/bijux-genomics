@@ -184,8 +184,8 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - References: GATK.
 
 ### bam.haplogroups {#bam-haplogroups}
-- Status: planned.
-- Purpose: infer haplogroups from BAM-aligned evidence once reference and acceptance rules are promoted.
+- Status: supported.
+- Purpose: infer haplogroups from governed BAM-aligned Y-panel evidence with explicit readiness and contamination guardrails.
 - Inputs/Outputs: bam → haplogroups report.
 - Metrics: haplogroup calls.
 - Tools: yleaf.

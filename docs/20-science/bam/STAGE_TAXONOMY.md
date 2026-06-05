@@ -40,7 +40,7 @@ Planning, science review, and runtime promotion all depend on a stable statement
 | bam.sex | biological inference | inference | supported | Infer biological sex from BAM-domain evidence. |
 | bam.bias_mitigation | policy mediation | mutation | planned | Record explicit bias-mitigation actions rather than observational bias only. |
 | bam.recalibration | policy mediation | mutation | supported | Recalibrate base qualities through the governed low-coverage skip contract and owned known-sites inputs. |
-| bam.haplogroups | biological inference | inference | planned | Infer haplogroups once reference and science closure are promoted. |
+| bam.haplogroups | biological inference | inference | supported | Infer haplogroups from governed Y-panel BAM evidence with explicit readiness guardrails. |
 | bam.genotyping | biological inference | inference | planned | Summarize genotype calling from BAM evidence without default promotion. |
 | bam.kinship | biological inference | inference | supported | Estimate relatedness from BAM-domain evidence. |
 

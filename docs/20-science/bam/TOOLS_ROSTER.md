@@ -47,6 +47,6 @@ Clarifies tool coverage and rationale.
 | bam.sex | supported | rxy, yleaf, angsd | Sex inference admits ratio-, haplogroup-, and GL-aware backends. |
 | bam.bias_mitigation | planned | samtools | Bias-mitigation remains planned until its mutation/reporting contract is promoted. |
 | bam.recalibration | supported | gatk | BQSR is admitted through the governed low-coverage skip contract with owned known-sites evidence. |
-| bam.haplogroups | planned | yleaf | Haplogroup inference stays planned until reference and scientific acceptance are closed. |
+| bam.haplogroups | supported | yleaf | Haplogroup inference is admitted through the governed Y-panel fixture and owned readiness contract. |
 | bam.genotyping | planned | gatk | BAM-driven genotype summaries remain planned in the current pre-HPC surface. |
 | bam.kinship | supported | king, angsd | Kinship inference admits pairwise and GL-aware method families. |
