@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: b46143bee6fe7a5d1ba7dd35b617ffce13b10352
+# source_commit: 88480cd52a8a1c6be2e5813069fa5f68a356a285
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -114,6 +114,9 @@ version = "2.2.00"
 
 [fqtools]
 version = "latest-pinned"
+
+[gatk]
+version = "4.6.2.0"
 
 [germline]
 version = "planned"

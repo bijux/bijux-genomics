@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "b46143bee6fe7a5d1ba7dd35b617ffce13b10352",
-  "bundle_checksum_sha256": "75162ec2ec5c8fa9ae99bb342eb3fc8443357cebfe13c49dcd35ec8b38ce9af1",
+  "source_commit": "88480cd52a8a1c6be2e5813069fa5f68a356a285",
+  "bundle_checksum_sha256": "872fe4f0209e1f0f55d2d0d68f4f851568d97c90698fc6a43beb16da1a6a49b4",
   "domains": [
     {
       "domain_id": "bam",
@@ -2587,10 +2587,10 @@
         },
         {
           "tool_id": "gatk",
-          "status": "planned",
+          "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "latest-pinned",
+          "default_version": "4.6.2.0",
           "upstream": "https://github.com/broadinstitute/gatk",
           "pin_strategy": "pinned",
           "license": "GPL-3.0",
@@ -2609,7 +2609,10 @@
           ],
           "metrics_schema_id": "bijux.bam.recalibration.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/gatk:4.6.2.0",
+            "digest": ""
+          }
         },
         {
           "tool_id": "king",
@@ -3593,7 +3596,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "6b5678393a24679de464d44484bd2d58c83c7e01403ee017939e62c500ab3715"
+      "checksum_sha256": "9520a32b38bd8ff36fddeaf284bc5d7b412d2aa4d87236b7ede449ec4e9e3e2d"
     },
     {
       "domain_id": "fastq",
@@ -12446,7 +12449,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "ff5b4edd58b198853ea26ef05b38778a74c5393a9ede6fb768eeb537cef767e7"
+      "checksum_sha256": "872d3923a771ea3f4993eb24e758139a17e0d6c370a19866fc82c447b28a84f8"
     },
     {
       "domain_id": "vcf",
@@ -14704,7 +14707,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "115094f5e6c94fa113fcc95962c9753aba3cd9710c792b74e62230ee8219f230"
+      "checksum_sha256": "4f00d92a4d25fd364162b000bec77ae759e488a8612999553a31fb22de8d0210"
     }
   ]
 }
