@@ -32,6 +32,7 @@ use bijux_dna_core::id_catalog;
 mod backend_metric_fixtures;
 mod processing_reports;
 mod profile_reports;
+mod raw_fixture_bank;
 mod read_cleanup_reports;
 mod screening_reports;
 mod validation_reports;
