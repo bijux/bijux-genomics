@@ -79,6 +79,14 @@ fn bench_readiness_fastq_adapter_output_contract_writes_governed_tsv_columns() {
     assert!(
         rows.iter().any(|row| {
             row.starts_with(
+                "bijux_dna\tfastq.detect_duplicates_premerge\trunnable\tcomplete\tduplicate_signal_report\tduplicate_signal_report\tduplicate_signal_report\tduplicate_signal_report\tduplicate_signal_report\tduplicate_signal_report\t"
+            )
+        }),
+        "TSV must retain the governed duplicate-signal output-contract row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row.starts_with(
                 "bijux_dna\tfastq.estimate_library_complexity_prealign\tdeclared_only\tmissing_adapter\tlibrary_complexity_report\t"
             ) && row.ends_with("\tadapter\trow `fastq.estimate_library_complexity_prealign` / `bijux_dna` has no runnable or plannable FASTQ adapter (`declared_only`)")
         }),
