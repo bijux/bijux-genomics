@@ -10,6 +10,8 @@ use super::{path_relative_to_repo, resolve_manifest_relative_path};
 
 pub(crate) const DEFAULT_CORPUS_01_BAM_MINI_MANIFEST_PATH: &str =
     "tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml";
+pub(crate) const DEFAULT_CORPUS_01_ADNA_BAM_MINI_MANIFEST_PATH: &str =
+    "tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml";
 pub(crate) const DEFAULT_CORPUS_01_GENOTYPING_MINI_MANIFEST_PATH: &str =
     "tests/fixtures/corpora/corpus-01-genotyping-mini/manifest.toml";
 pub(crate) const DEFAULT_CORPUS_01_KINSHIP_MINI_MANIFEST_PATH: &str =
@@ -26,6 +28,12 @@ pub(crate) struct BamCorpusFixtureManifest {
     pub(crate) species: String,
     pub(crate) description: String,
     pub(crate) reference_fasta: PathBuf,
+    #[serde(default)]
+    pub(crate) udg_model: Option<String>,
+    #[serde(default)]
+    pub(crate) damage_signal: Option<String>,
+    #[serde(default)]
+    pub(crate) expected_terminal_pattern_class: Option<String>,
     pub(crate) samples: Vec<BamCorpusFixtureSample>,
 }
 
@@ -64,6 +72,9 @@ pub(crate) struct BamCorpusFixtureValidationReport {
     pub(crate) corpus_id: String,
     pub(crate) species: String,
     pub(crate) reference_fasta: String,
+    pub(crate) udg_model: Option<String>,
+    pub(crate) damage_signal: Option<String>,
+    pub(crate) expected_terminal_pattern_class: Option<String>,
     pub(crate) reference_contigs: Vec<String>,
     pub(crate) sample_count: usize,
     pub(crate) valid: bool,
@@ -116,6 +127,9 @@ pub(crate) fn validate_bam_corpus_fixture_manifest_path(
         corpus_id: manifest.corpus_id,
         species: manifest.species,
         reference_fasta: path_relative_to_repo(repo_root, &reference_fasta),
+        udg_model: manifest.udg_model,
+        damage_signal: manifest.damage_signal,
+        expected_terminal_pattern_class: manifest.expected_terminal_pattern_class,
         reference_contigs: reference_contigs.into_iter().collect(),
         sample_count: samples.len(),
         valid: true,
@@ -143,6 +157,30 @@ fn validate_bam_corpus_fixture_manifest_contract(
     }
     if manifest.description.trim().is_empty() {
         return Err(anyhow!("BAM corpus fixture must declare a non-empty `description`"));
+    }
+    let has_adna_profile = manifest.udg_model.is_some()
+        || manifest.damage_signal.is_some()
+        || manifest.expected_terminal_pattern_class.is_some();
+    if has_adna_profile {
+        if manifest.udg_model.as_deref().is_none_or(|value| value.trim().is_empty()) {
+            return Err(anyhow!(
+                "BAM corpus fixture with an aDNA profile must declare a non-empty `udg_model`"
+            ));
+        }
+        if manifest.damage_signal.as_deref().is_none_or(|value| value.trim().is_empty()) {
+            return Err(anyhow!(
+                "BAM corpus fixture with an aDNA profile must declare a non-empty `damage_signal`"
+            ));
+        }
+        if manifest
+            .expected_terminal_pattern_class
+            .as_deref()
+            .is_none_or(|value| value.trim().is_empty())
+        {
+            return Err(anyhow!(
+                "BAM corpus fixture with an aDNA profile must declare a non-empty `expected_terminal_pattern_class`"
+            ));
+        }
     }
     if manifest.samples.is_empty() {
         return Err(anyhow!("BAM corpus fixture must declare at least one sample"));
@@ -390,7 +428,8 @@ mod tests {
 
     use super::{
         validate_bam_corpus_fixture_manifest_path, BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION,
-        DEFAULT_CORPUS_01_BAM_MINI_MANIFEST_PATH, DEFAULT_CORPUS_01_GENOTYPING_MINI_MANIFEST_PATH,
+        DEFAULT_CORPUS_01_ADNA_BAM_MINI_MANIFEST_PATH, DEFAULT_CORPUS_01_BAM_MINI_MANIFEST_PATH,
+        DEFAULT_CORPUS_01_GENOTYPING_MINI_MANIFEST_PATH,
         DEFAULT_CORPUS_01_KINSHIP_MINI_MANIFEST_PATH,
     };
 
@@ -597,6 +636,52 @@ mod tests {
                 .map(|sample| sample.observed_read_group_ids.clone()),
             Some(vec!["rg-genotyping-human-like".to_string()])
         );
+    }
+
+    #[test]
+    fn corpus_01_adna_bam_mini_fixture_manifest_validates_governed_adna_support_samples() {
+        let root = repo_root();
+        let report = validate_bam_corpus_fixture_manifest_path(
+            &root,
+            &root.join(DEFAULT_CORPUS_01_ADNA_BAM_MINI_MANIFEST_PATH),
+        )
+        .expect("validate corpus-01 adna bam mini fixture manifest");
+
+        assert_eq!(report.schema_version, BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION);
+        assert_eq!(report.corpus_id, "corpus-01-adna-bam-mini");
+        assert_eq!(report.sample_count, 3);
+        assert_eq!(report.udg_model.as_deref(), Some("non_udg"));
+        assert_eq!(report.damage_signal.as_deref(), Some("moderate"));
+        assert_eq!(
+            report.expected_terminal_pattern_class.as_deref(),
+            Some("ct5p_dominant")
+        );
+        assert!(report.valid);
+        assert!(report.samples.iter().any(|sample| {
+            sample.sample_id == "adna_contamination_panel_screen"
+                && sample.observed_contigs == vec!["chr1".to_string()]
+                && sample.observed_header_sample_ids
+                    == vec!["adna_contamination_panel_screen".to_string()]
+                && sample.observed_read_group_ids == vec!["rg-contamination-adna".to_string()]
+                && sample.observed_record_count == 3
+        }));
+        assert!(report.samples.iter().any(|sample| {
+            sample.sample_id == "adna_xy_autosome_coverage"
+                && sample.observed_contigs
+                    == vec!["chr1".to_string(), "chrX".to_string(), "chrY".to_string()]
+                && sample.observed_header_sample_ids
+                    == vec!["adna_xy_autosome_coverage".to_string()]
+                && sample.observed_read_group_ids == vec!["rg-sex-adna".to_string()]
+                && sample.observed_record_count == 5
+        }));
+        assert!(report.samples.iter().any(|sample| {
+            sample.sample_id == "adna_y_haplogroup_panel"
+                && sample.observed_contigs == vec!["chrY".to_string()]
+                && sample.observed_header_sample_ids
+                    == vec!["adna_y_haplogroup_panel".to_string()]
+                && sample.observed_read_group_ids == vec!["rg-haplogroups-adna".to_string()]
+                && sample.observed_record_count == 4
+        }));
     }
 
     #[test]
