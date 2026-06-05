@@ -369,6 +369,16 @@ resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.recalibration"
+tool_id = "gatk"
+threads = 3
+memory_gb = 2
+walltime_minutes = 7
+scratch_gb = 2
+resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.sex"
 tool_id = "angsd"
 threads = 3

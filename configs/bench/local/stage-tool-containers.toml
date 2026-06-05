@@ -369,6 +369,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.recalibration"
+tool_id = "gatk"
+execution_mode = "java"
+install_kind = "container"
+container_id = "bijuxdna/gatk:4.6.2.0"
+command_entrypoint = "gatk"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.sex"
 tool_id = "angsd"
 execution_mode = "containerized"
