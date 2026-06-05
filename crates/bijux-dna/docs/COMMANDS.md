@@ -141,6 +141,10 @@ Visible aliases are part of the operator surface:
   `render-fastq-report-map` writes `target/bench-readiness/fastq-report-map.tsv` with one
   governed row per FASTQ benchmark-ready stage, fixing the report section, summary table, and
   benchmark anchor tool that downstream stage-centric benchmark reporting must use.
+- `bijux-dna bench readiness render-bam-report-map`
+  `render-bam-report-map` writes `target/bench-readiness/bam-report-map.tsv` with one governed
+  row per BAM benchmark-ready stage, fixing the report section, summary table, workflow branch,
+  and benchmark anchor tool that downstream BAM stage reporting must use.
 - `bijux-dna bench readiness render-corpus-asset-coverage-gate`
   `render-corpus-asset-coverage-gate` writes
   `target/bench-readiness/gate-corpus-assets-complete.json` with one governed row per FASTQ or
