@@ -51,13 +51,13 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("governed_benchmark_command_assets")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(32));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(36));
     assert_eq!(
         payload.get("declared_stage_tool_row_count").and_then(serde_json::Value::as_u64),
-        Some(17)
+        Some(19)
     );
-    assert_eq!(payload.get("asset_id_row_count").and_then(serde_json::Value::as_u64), Some(32));
-    assert_eq!(payload.get("unique_asset_id_count").and_then(serde_json::Value::as_u64), Some(14));
+    assert_eq!(payload.get("asset_id_row_count").and_then(serde_json::Value::as_u64), Some(36));
+    assert_eq!(payload.get("unique_asset_id_count").and_then(serde_json::Value::as_u64), Some(15));
     assert_eq!(
         payload
             .get("domain_counts")
@@ -70,7 +70,7 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(16)
+        Some(20)
     );
     assert_eq!(
         payload
@@ -112,7 +112,14 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
             .get("asset_role_counts")
             .and_then(|value| value.get("reference_fasta"))
             .and_then(serde_json::Value::as_u64),
-        Some(10)
+        Some(12)
+    );
+    assert_eq!(
+        payload
+            .get("asset_role_counts")
+            .and_then(|value| value.get("reference_panel"))
+            .and_then(serde_json::Value::as_u64),
+        Some(6)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -324,4 +331,36 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
         recalibration.get("asset_id").and_then(serde_json::Value::as_str),
         Some("human_like_recalibration_known_sites")
     );
+    for tool_id in ["angsd", "king"] {
+        let kinship_panel = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.kinship")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                    && row.get("asset_role").and_then(serde_json::Value::as_str)
+                        == Some("reference_panel")
+            })
+            .unwrap_or_else(|| panic!("bam kinship panel row for {tool_id}"));
+        assert_eq!(
+            kinship_panel.get("asset_id").and_then(serde_json::Value::as_str),
+            Some("human_like_relatedness_panel")
+        );
+        assert_eq!(
+            kinship_panel.get("asset_path").and_then(serde_json::Value::as_str),
+            Some("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv")
+        );
+        let kinship_reference = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.kinship")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                    && row.get("asset_role").and_then(serde_json::Value::as_str)
+                        == Some("reference_fasta")
+            })
+            .unwrap_or_else(|| panic!("bam kinship reference row for {tool_id}"));
+        assert_eq!(
+            kinship_reference.get("asset_id").and_then(serde_json::Value::as_str),
+            Some("corpus_01_bam_reference")
+        );
+    }
 }
