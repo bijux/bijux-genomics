@@ -248,6 +248,7 @@ fn collect_fastq_corpus_assignment_rows(
     });
     ensure_row_completeness(&rows)?;
     ensure_taxonomy_corpus_coverage(&rows)?;
+    ensure_amplicon_corpus_coverage(&rows)?;
     Ok((stage_count, tool_count, rows))
 }
 
@@ -329,6 +330,40 @@ fn ensure_taxonomy_corpus_coverage(rows: &[FastqCorpusAssignmentRow]) -> Result<
         {
             return Err(anyhow!(
                 "FASTQ taxonomy corpus assignment row `{}` must remain assigned to `corpus-02` via `corpus-02-edna-mini`",
+                tool_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_amplicon_corpus_coverage(rows: &[FastqCorpusAssignmentRow]) -> Result<()> {
+    let expected_rows = [
+        ("cutadapt", "fastq.normalize_primers"),
+        ("vsearch", "fastq.remove_chimeras"),
+        ("dada2", "fastq.infer_asvs"),
+        ("vsearch", "fastq.cluster_otus"),
+        ("seqkit", "fastq.normalize_abundance"),
+        ("seqfu", "fastq.normalize_abundance"),
+    ];
+    for (tool_id, stage_id) in expected_rows {
+        let row = rows
+            .iter()
+            .find(|row| row.tool_id == tool_id && row.stage_id == stage_id)
+            .ok_or_else(|| {
+                anyhow!(
+                    "FASTQ amplicon corpus assignment is missing `{}` / `{}`",
+                    stage_id,
+                    tool_id
+                )
+            })?;
+        if row.corpus_family_id.as_deref() != Some("corpus-03")
+            || row.fixture_id.as_deref() != Some("corpus-03-amplicon-mini")
+            || row.excluded_reason.is_some()
+        {
+            return Err(anyhow!(
+                "FASTQ amplicon corpus assignment row `{}` / `{}` must remain assigned to `corpus-03` via `corpus-03-amplicon-mini`",
+                stage_id,
                 tool_id
             ));
         }
@@ -436,6 +471,22 @@ mod tests {
                 row.tool_id == tool_id
                     && row.corpus_family_id.as_deref() == Some("corpus-02")
                     && row.fixture_id.as_deref() == Some("corpus-02-edna-mini")
+                    && row.excluded_reason.is_none()
+            }));
+        }
+        for (tool_id, stage_id) in [
+            ("cutadapt", "fastq.normalize_primers"),
+            ("vsearch", "fastq.remove_chimeras"),
+            ("dada2", "fastq.infer_asvs"),
+            ("vsearch", "fastq.cluster_otus"),
+            ("seqkit", "fastq.normalize_abundance"),
+            ("seqfu", "fastq.normalize_abundance"),
+        ] {
+            assert!(report.rows.iter().any(|row| {
+                row.tool_id == tool_id
+                    && row.stage_id == stage_id
+                    && row.corpus_family_id.as_deref() == Some("corpus-03")
+                    && row.fixture_id.as_deref() == Some("corpus-03-amplicon-mini")
                     && row.excluded_reason.is_none()
             }));
         }
