@@ -169,6 +169,14 @@ Visible aliases are part of the operator surface:
   `parser_status`, and `corpus_status`. The report proves which BAM benchmark rows are already
   fully renderable with parser-fixture-validated outputs and fixture-backed corpus coverage while
   keeping parser-blocked, corpus-blocked, and support-blocked rows explicit.
+- `bijux-dna bench readiness render-bam-corpus-assignment`
+  `render-bam-corpus-assignment` writes `target/bench-readiness/bam-corpus-assignment.tsv` with
+  one governed row per admitted BAM stage-tool binding, carrying the resolved
+  `corpus_family_id`, `fixture_id`, and the benchmark readiness context that proves whether a row
+  belongs on the general FASTQ alignment corpus, the BAM mini corpus, the aDNA BAM fixture, the
+  genotyping BAM corpus, or the kinship BAM corpus. The report cross-checks the BAM domain-owned
+  routing contract against the local corpus compatibility matrix so fixture drift cannot hide
+  behind stage-level labels.
 - `bijux-dna bench readiness render-bam-parser-coverage`
   `render-bam-parser-coverage` writes `target/bench-readiness/bam-parser-coverage.tsv` with one
   governed row per BAM stage-tool binding that is already benchmark-ready. Each row carries
