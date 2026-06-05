@@ -39,6 +39,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.bias_mitigation"
+tool_id = "mapdamage2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/mapdamage2:2.2.2"
+command_entrypoint = "mapdamage2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.complexity"
 tool_id = "preseq"
 execution_mode = "containerized"
