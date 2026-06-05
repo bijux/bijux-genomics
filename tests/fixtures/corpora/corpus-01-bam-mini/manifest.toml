@@ -38,6 +38,21 @@ expected_record_count = 3
 source_paths = ["tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"]
 
 [[samples]]
+sample_id = "human_like_recalibration_low_coverage"
+cohort = "human_like"
+alignment_path = "aligned/human_like_recalibration_low_coverage.sam"
+index_path = "aligned/human_like_recalibration_low_coverage.sam.bai"
+expected_contigs = ["chr1"]
+expected_header_sample_ids = ["human_like_recalibration_low_coverage"]
+expected_read_group_ids = ["rg-recalibration-human-like"]
+expected_record_count = 2
+source_paths = [
+  "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam",
+  "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+  "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf",
+]
+
+[[samples]]
 sample_id = "human_like_endogenous_partial_mapping"
 cohort = "human_like"
 alignment_path = "aligned/human_like_endogenous_partial_mapping.sam"

@@ -1,0 +1,4 @@
+##fileformat=VCFv4.2
+##contig=<ID=chr1,length=125>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr1	10	recalibration_site_1	C	T	60	PASS	.
