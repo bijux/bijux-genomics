@@ -51,11 +51,11 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
     assert_eq!(payload.get("adapter_row_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(
         payload.get("complete_adapter_row_count").and_then(serde_json::Value::as_u64),
-        Some(68)
+        Some(69)
     );
     assert_eq!(
         payload.get("incomplete_adapter_row_count").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(0)
     );
     assert_eq!(
         payload.get("missing_adapter_row_count").and_then(serde_json::Value::as_u64),
@@ -137,6 +137,28 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
                     })
         }),
         "report must retain the governed extract-umis contract row for umi_tools"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.detect_duplicates_premerge")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
+                && row.get("output_contract_status").and_then(serde_json::Value::as_str)
+                    == Some("complete")
+                && row.get("normalized_metrics_output_id").and_then(serde_json::Value::as_str)
+                    == Some("duplicate_signal_report")
+                && row
+                    .get("stage_expected_artifact_ids")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|artifacts| {
+                        artifacts
+                            == &vec![serde_json::Value::String(
+                                "duplicate_signal_report".to_string(),
+                            )]
+                    })
+        }),
+        "report must retain the governed duplicate-signal contract row for bijux_dna"
     );
     assert!(
         rows.iter().any(|row| {
