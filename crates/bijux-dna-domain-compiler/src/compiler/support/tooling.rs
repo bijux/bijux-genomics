@@ -138,6 +138,7 @@ pub(crate) fn tool_version_override(tool_id: &str) -> Option<&'static str> {
         "authenticct" | "rxy" => Some("1.0.0"),
         "schmutzi" => Some("1.5.4"),
         "seqkit_stats" => Some("2.7.0"),
+        "yleaf" => Some("3.0.3"),
         _ => None,
     }
 }

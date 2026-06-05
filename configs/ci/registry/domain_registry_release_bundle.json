@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "b0b6c35fc6e224a2343137eafa7e08d5f86d4c86",
-  "bundle_checksum_sha256": "0b9ff2a48231f1118886eceb7084f91fac1adf4a7b84b2d064323f3580c6f130",
+  "source_commit": "f568c61e644c122cbb9696df04783455445fadd9",
+  "bundle_checksum_sha256": "b103c26c842fd53beb7dba89004370da46a1b8365bddb89ab608322665e32215",
   "domains": [
     {
       "domain_id": "bam",
@@ -2349,7 +2349,10 @@
           ],
           "metrics_schema_id": "bijux.bam.authenticity.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/authenticct:1.0.0",
+            "digest": ""
+          }
         },
         {
           "tool_id": "bamtools",
@@ -2413,7 +2416,10 @@
           ],
           "metrics_schema_id": "bijux.bam.overlap_correction.v1",
           "comparability_notes": "Comparable only within overlap-correction stage with identical paired-end inputs.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/bamutil:1.0.15",
+            "digest": ""
+          }
         },
         {
           "tool_id": "bedtools",
@@ -2689,7 +2695,10 @@
           ],
           "metrics_schema_id": "bijux.bam.coverage.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/mosdepth:0.3.10",
+            "digest": ""
+          }
         },
         {
           "tool_id": "multiqc",
@@ -2898,7 +2907,10 @@
           ],
           "metrics_schema_id": "bijux.bam.sex.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/rxy",
+            "digest": ""
+          }
         },
         {
           "tool_id": "samtools",
@@ -3573,7 +3585,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "7ad543e672e9aafed3037aab613ec1fc9712a6305fbb7aa3bc13fdb67e557671"
+      "checksum_sha256": "07acbe98f73fbc1c09691c02994a79ccb6246fb078f085ec3008c6affcd5682a"
     },
     {
       "domain_id": "fastq",
@@ -12426,7 +12438,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "ee15354a39572781228a4a5ea764e5fdd5c5a6d225e0d3089a166aa38df04e16"
+      "checksum_sha256": "21ca7d97b742b36ad83055e5bde4dc3fde82489d2c01a6ea22d6a1e26587815a"
     },
     {
       "domain_id": "vcf",
@@ -14684,7 +14696,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "8926516fde538c1fd44bd713a193b14a3a8cef364cda06332775c0a01e30b16f"
+      "checksum_sha256": "83b3934aec4a55f68e7ae2deb63ec20f91098ade6c6749da1ca5921b410750a1"
     }
   ]
 }

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: b0b6c35fc6e224a2343137eafa7e08d5f86d4c86
+# source_commit: f568c61e644c122cbb9696df04783455445fadd9
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -273,7 +273,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["chrX_chrY_covered_sites>=1000"]
 sex_kinship_sufficiency = ["chrY_observed_sites>=100", "chrX_coverage_stable=true"]
-tools = ["angsd", "rxy"]
+tools = ["angsd", "rxy", "yleaf"]
 
 [[stages]]
 id = "bam.validate"
