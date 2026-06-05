@@ -173,6 +173,34 @@ expected_record_count = 6
 source_paths = ["tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"]
 
 [[samples]]
+sample_id = "human_like_kinship_low_overlap_pair"
+cohort = "human_like"
+alignment_path = "aligned/human_like_kinship_low_overlap_pair.sam"
+index_path = "aligned/human_like_kinship_low_overlap_pair.sam.bai"
+expected_contigs = ["chr1"]
+expected_header_sample_ids = ["sample_a", "sample_b"]
+expected_read_group_ids = ["rg-kinship-low-overlap-a", "rg-kinship-low-overlap-b"]
+expected_record_count = 2
+source_paths = [
+  "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam",
+  "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv",
+]
+
+[[samples]]
+sample_id = "human_like_kinship_related_pair"
+cohort = "human_like"
+alignment_path = "aligned/human_like_kinship_related_pair.sam"
+index_path = "aligned/human_like_kinship_related_pair.sam.bai"
+expected_contigs = ["chr1"]
+expected_header_sample_ids = ["sample_a", "sample_b"]
+expected_read_group_ids = ["rg-kinship-related-a", "rg-kinship-related-b"]
+expected_record_count = 2
+source_paths = [
+  "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam",
+  "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv",
+]
+
+[[samples]]
 sample_id = "human_like_gc_window_ladder"
 cohort = "human_like"
 alignment_path = "aligned/human_like_gc_window_ladder.sam"
