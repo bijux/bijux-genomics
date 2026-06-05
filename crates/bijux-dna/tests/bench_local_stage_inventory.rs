@@ -1521,11 +1521,11 @@ fn bench_local_materialize_stage_bam_haplogroups_json_writes_governed_plan_bundl
     );
     assert_eq!(
         plan.get("params").and_then(|params| params.get("sample_id")),
-        Some(&serde_json::json!("core-v1-haplogroups-y-panel-screen"))
+        Some(&serde_json::json!("human_like_y_haplogroup_panel"))
     );
     assert_eq!(
         plan.get("params").and_then(|params| params.get("reference_panel_id")),
-        Some(&serde_json::json!("toy-human-y-hg38"))
+        Some(&serde_json::json!("human-like-y-hg38-mini"))
     );
     assert_eq!(
         plan.get("params").and_then(|params| params.get("coverage_gate")),
@@ -1545,9 +1545,13 @@ fn bench_local_materialize_stage_bam_haplogroups_json_writes_governed_plan_bundl
     assert!(
         plan["command"]["template"].as_array().is_some_and(|command| command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
-                    && shell.contains("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
-                    && shell.contains("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+                shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam"
+                ) && shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai"
+                ) && shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv"
+                )
                     && shell.contains("--reference_genome hg38")
                     && shell.contains("target/local-ready/bam.haplogroups/haplogroups")
             })

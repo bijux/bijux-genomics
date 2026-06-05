@@ -47,14 +47,21 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
     assert_eq!(payload["tool_id"], serde_json::json!("yleaf"));
     assert_eq!(payload["resources"]["threads"], serde_json::json!(2));
     assert_eq!(payload["resources"]["mem_gb"], serde_json::json!(8));
-    assert_eq!(payload["params"]["reference_panel_id"], serde_json::json!("toy-human-y-hg38"));
+    assert_eq!(
+        payload["params"]["reference_panel_id"],
+        serde_json::json!("human-like-y-hg38-mini")
+    );
     assert_eq!(
         payload["params"]["reference_panel"],
-        serde_json::json!("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv"
+        )
     );
     assert_eq!(
         payload["params"]["reference_fasta"],
-        serde_json::json!("assets/reference/host/references/toy_human_y_reference.fasta")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
     );
     assert_eq!(payload["params"]["reference_build"], serde_json::json!("hg38"));
     assert_eq!(
@@ -62,10 +69,7 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
         serde_json::json!("human_y_haplogroup_panel")
     );
     assert_eq!(payload["params"]["coverage_gate"], serde_json::json!({ "min_coverage": 2.0 }));
-    assert_eq!(
-        payload["params"]["sample_id"],
-        serde_json::json!("core-v1-haplogroups-y-panel-screen")
-    );
+    assert_eq!(payload["params"]["sample_id"], serde_json::json!("human_like_y_haplogroup_panel"));
 
     let inputs = payload["io"]["inputs"]
         .as_array()
@@ -76,7 +80,9 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
         .unwrap_or_else(|| panic!("bam input missing from local-ready haplogroups plan payload"));
     assert_eq!(
         bam["path"],
-        serde_json::json!("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam"
+        )
     );
     let bai = inputs
         .iter()
@@ -86,7 +92,9 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
         });
     assert_eq!(
         bai["path"],
-        serde_json::json!("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai"
+        )
     );
     let reference = inputs
         .iter()
@@ -96,7 +104,9 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
         });
     assert_eq!(
         reference["path"],
-        serde_json::json!("assets/reference/host/references/toy_human_y_reference.fasta")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
     );
     let reference_panel = inputs
         .iter()
@@ -106,7 +116,9 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
         });
     assert_eq!(
         reference_panel["path"],
-        serde_json::json!("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv"
+        )
     );
 
     let outputs = payload["io"]["outputs"]
@@ -146,11 +158,15 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
     assert!(
         payload["command"]["template"].as_array().is_some_and(|command| command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
+                shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai"
+                )
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+                shell.contains(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv"
+                )
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
@@ -183,7 +199,9 @@ fn write_local_haplogroups_plan_preserves_governed_command_metadata() -> Result<
     );
     assert_eq!(
         payload["effective_params"]["reference_panel"],
-        serde_json::json!("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv"
+        )
     );
     assert_eq!(
         payload["effective_params"]["refuse_without_population_context"],
@@ -196,7 +214,9 @@ fn write_local_haplogroups_plan_preserves_governed_command_metadata() -> Result<
         .and_then(serde_json::Value::as_str)
         .unwrap_or_else(|| panic!("local-ready haplogroups plan must serialize a shell command"));
     assert!(
-        command.contains("yleaf -bam assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
+        command.contains(
+            "yleaf -bam tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam"
+        )
             && command.contains("--reference_genome hg38")
             && command.contains(
                 "target/local-ready/bam.haplogroups/haplogroups.summary.json"

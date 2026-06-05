@@ -51,7 +51,12 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
         .iter()
         .find(|artifact| artifact.name.as_str() == "bam")
         .unwrap_or_else(|| panic!("bam input missing from local-ready haplogroups plan"));
-    assert_eq!(bam.path, PathBuf::from("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam"));
+    assert_eq!(
+        bam.path,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam"
+        )
+    );
 
     let bai = plan
         .io
@@ -61,7 +66,9 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
         .unwrap_or_else(|| panic!("bam_bai input missing from local-ready haplogroups plan"));
     assert_eq!(
         bai.path,
-        PathBuf::from("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai"
+        )
     );
 
     let reference = plan
@@ -72,7 +79,9 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
         .unwrap_or_else(|| panic!("reference input missing from local-ready haplogroups plan"));
     assert_eq!(
         reference.path,
-        PathBuf::from("assets/reference/host/references/toy_human_y_reference.fasta")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
     );
 
     let reference_panel = plan
@@ -85,7 +94,9 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
         });
     assert_eq!(
         reference_panel.path,
-        PathBuf::from("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv"
+        )
     );
 
     let haplogroups_report = plan
@@ -99,19 +110,23 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
         PathBuf::from("target/local-ready/bam.haplogroups/haplogroups.json")
     );
 
-    assert_eq!(plan.params["reference_panel_id"], serde_json::json!("toy-human-y-hg38"));
+    assert_eq!(plan.params["reference_panel_id"], serde_json::json!("human-like-y-hg38-mini"));
     assert_eq!(
         plan.params["reference_panel"],
-        serde_json::json!("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv"
+        )
     );
     assert_eq!(
         plan.params["reference_fasta"],
-        serde_json::json!("assets/reference/host/references/toy_human_y_reference.fasta")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
     );
     assert_eq!(plan.params["reference_build"], serde_json::json!("hg38"));
     assert_eq!(plan.params["population_scope"], serde_json::json!("human_y_haplogroup_panel"));
     assert_eq!(plan.params["coverage_gate"], serde_json::json!({ "min_coverage": 2.0 }));
-    assert_eq!(plan.params["sample_id"], serde_json::json!("core-v1-haplogroups-y-panel-screen"));
+    assert_eq!(plan.params["sample_id"], serde_json::json!("human_like_y_haplogroup_panel"));
     assert_eq!(plan.params["tool"], serde_json::json!("yleaf"));
     assert_eq!(plan.effective_params["min_coverage"], serde_json::json!(2.0));
 
@@ -120,9 +135,13 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
             panic!("bam.haplogroups command template must contain a shell body")
         });
     assert!(
-        command.contains("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam")
-            && command.contains("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
-            && command.contains("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+        command.contains(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam"
+        ) && command.contains(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai"
+        ) && command.contains(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv"
+        )
             && command.contains("target/local-ready/bam.haplogroups/haplogroups")
             && command.contains("--reference_genome hg38"),
         "local-ready haplogroups command must carry the governed BAM, BAI, panel, output prefix, and reference build"
@@ -149,7 +168,7 @@ schema_version = "bijux.bench.bam.local_haplogroups.v1"
 bam = "{bam}"
 bai = "{bai}"
 reference_fasta = "{reference}"
-reference_panel_id = "toy-human-y-hg38"
+reference_panel_id = "human-like-y-hg38-mini"
 reference_panel = "{panel}"
 tool_id = "yleaf"
 sample_id = " "
@@ -160,15 +179,19 @@ refuse_without_population_context = true
 threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
+                .display(),
             bai = repo_root
-                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
+                )
                 .display(),
             reference = repo_root
-                .join("assets/reference/host/references/toy_human_y_reference.fasta")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
                 .display(),
         ),
     )?;
@@ -202,15 +225,19 @@ refuse_without_population_context = true
 threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
+                .display(),
             bai = repo_root
-                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
+                )
                 .display(),
             reference = repo_root
-                .join("assets/reference/host/references/toy_human_y_reference.fasta")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
                 .display(),
         ),
     )?;
@@ -236,7 +263,7 @@ schema_version = "bijux.bench.bam.local_haplogroups.v1"
 bam = "{bam}"
 bai = "{bai}"
 reference_fasta = "{reference}"
-reference_panel_id = "toy-human-y-hg38"
+reference_panel_id = "human-like-y-hg38-mini"
 reference_panel = "{panel}"
 tool_id = "yleaf"
 sample_id = "missing-reference-build"
@@ -247,15 +274,19 @@ refuse_without_population_context = true
 threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
+                .display(),
             bai = repo_root
-                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
+                )
                 .display(),
             reference = repo_root
-                .join("assets/reference/host/references/toy_human_y_reference.fasta")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
                 .display(),
         ),
     )?;
@@ -278,7 +309,7 @@ schema_version = "bijux.bench.bam.local_haplogroups.v1"
 bam = "{bam}"
 bai = "{bai}"
 reference_fasta = "{reference}"
-reference_panel_id = "toy-human-y-hg38"
+reference_panel_id = "human-like-y-hg38-mini"
 reference_panel = "{panel}"
 tool_id = "yleaf"
 sample_id = "missing-population-scope"
@@ -289,15 +320,19 @@ refuse_without_population_context = true
 threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
+                .display(),
             bai = repo_root
-                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
+                )
                 .display(),
             reference = repo_root
-                .join("assets/reference/host/references/toy_human_y_reference.fasta")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
                 .display(),
         ),
     )?;
@@ -320,7 +355,7 @@ schema_version = "bijux.bench.bam.local_haplogroups.v1"
 bam = "{bam}"
 bai = "{bai}"
 reference_fasta = "{reference}"
-reference_panel_id = "toy-human-y-hg38"
+reference_panel_id = "human-like-y-hg38-mini"
 reference_panel = "{panel}"
 tool_id = "yleaf"
 sample_id = "non-positive-coverage-gate"
@@ -331,15 +366,19 @@ refuse_without_population_context = true
 threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam").display(),
+            bam = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
+                .display(),
             bai = repo_root
-                .join("assets/toy/core-v1/bam/haplogroups_y_panel_screen.sam.bai")
+                .join(
+                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
+                )
                 .display(),
             reference = repo_root
-                .join("assets/reference/host/references/toy_human_y_reference.fasta")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("assets/reference/host/references/toy_human_y_haplogroup_panel.tsv")
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
                 .display(),
         ),
     )?;
