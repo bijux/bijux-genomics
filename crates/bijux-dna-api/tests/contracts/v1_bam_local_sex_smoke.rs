@@ -43,7 +43,7 @@ fn write_local_sex_smoke_report_materializes_governed_outputs() -> Result<()> {
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
     assert_eq!(payload["stage_id"], serde_json::json!("bam.sex"));
     assert_eq!(payload["schema_version"], serde_json::json!("bijux.bam.sex.local_smoke.report.v1"));
-    assert_eq!(payload["sample_id"], serde_json::json!("core-v1-sex-xy-autosome-male"));
+    assert_eq!(payload["sample_id"], serde_json::json!("human_like_xy_autosome_coverage"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(payload["method"], serde_json::json!("rxy"));
     assert_eq!(payload["chromosome_system"], serde_json::json!("xy"));
@@ -88,7 +88,9 @@ fn write_local_sex_smoke_report_materializes_governed_outputs() -> Result<()> {
     assert_eq!(
         summary_json["reference_fasta"],
         serde_json::json!(repo_root
-            .join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta")
+            .join(
+                "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            )
             .display()
             .to_string())
     );

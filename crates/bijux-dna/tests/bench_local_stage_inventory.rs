@@ -1180,7 +1180,7 @@ fn bench_local_materialize_stage_bam_sex_json_writes_governed_smoke_bundle() {
     );
     assert_eq!(
         report.get("sample_id").and_then(serde_json::Value::as_str),
-        Some("core-v1-sex-xy-autosome-male")
+        Some("human_like_xy_autosome_coverage")
     );
     assert_eq!(report.get("expectation_matched").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(report.get("method").and_then(serde_json::Value::as_str), Some("rxy"));

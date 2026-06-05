@@ -11,9 +11,9 @@ threads = 2
 output_dir = "target/local-smoke/bam.sex"
 
 [[cases]]
-sample_id = "core-v1-sex-xy-autosome-male"
-bam = "assets/toy/core-v1/bam/sex_xy_autosome_male.sam"
-reference = "assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta"
+sample_id = "human_like_xy_autosome_coverage"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
 chromosome_system = "xy"
 minimum_y_sites = 5
 expected_method = "rxy"

@@ -34,15 +34,22 @@ fn local_sex_smoke_plans_use_governed_bam_reference_and_expectations() -> Result
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "core-v1-sex-xy-autosome-male")
+        .find(|case| case.sample_id == "human_like_xy_autosome_coverage")
         .unwrap_or_else(|| panic!("governed BAM sex case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.sex");
     assert_eq!(case.plan.tool_id.as_str(), "rxy");
     assert_eq!(case.plan.resources.threads, 2);
-    assert_eq!(case.bam, PathBuf::from("assets/toy/core-v1/bam/sex_xy_autosome_male.sam"));
+    assert_eq!(
+        case.bam,
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam"
+        )
+    );
     assert_eq!(
         case.reference,
-        PathBuf::from("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
     );
     assert_eq!(case.chromosome_system, "xy");
     assert_eq!(case.minimum_y_sites, 5);
@@ -55,15 +62,19 @@ fn local_sex_smoke_plans_use_governed_bam_reference_and_expectations() -> Result
     assert_eq!(case.expected_status, "ok");
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.sex/core-v1-sex-xy-autosome-male/rxy")
+        PathBuf::from("target/local-smoke/bam.sex/human_like_xy_autosome_coverage/rxy")
     );
     assert_eq!(
         case.plan.params["bam"],
-        serde_json::json!("assets/toy/core-v1/bam/sex_xy_autosome_male.sam")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam"
+        )
     );
     assert_eq!(
         case.plan.params["reference"],
-        serde_json::json!("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
     );
     assert_eq!(case.plan.params["chromosome_system"], serde_json::json!("xy"));
     assert_eq!(case.plan.params["minimum_y_sites"], serde_json::json!(5));
@@ -96,7 +107,7 @@ fn local_sex_smoke_plans_use_governed_bam_reference_and_expectations() -> Result
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.sex/core-v1-sex-xy-autosome-male/rxy/sex.summary.json"
+            "target/local-smoke/bam.sex/human_like_xy_autosome_coverage/rxy/sex.summary.json"
         )
     );
 
@@ -138,9 +149,10 @@ expected_call = "male"
 expected_confidence = 0.9
 expected_status = "ok"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/sex_xy_autosome_male.sam").display(),
-            reference =
-                repo_root.join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta").display(),
+            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam").display(),
+            reference = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+                .display(),
         ),
     )?;
 
@@ -180,9 +192,10 @@ expected_call = "female"
 expected_confidence = 0.9
 expected_status = "ok"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/sex_xy_autosome_male.sam").display(),
-            reference =
-                repo_root.join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta").display(),
+            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam").display(),
+            reference = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+                .display(),
         ),
     )?;
 
@@ -222,9 +235,10 @@ expected_call = "male"
 expected_confidence = 0.9
 expected_status = "ok"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/sex_xy_autosome_male.sam").display(),
-            reference =
-                repo_root.join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta").display(),
+            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam").display(),
+            reference = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+                .display(),
         ),
     )?;
 
@@ -264,9 +278,10 @@ expected_call = "male"
 expected_confidence = 0.9
 expected_status = "insufficient_coverage"
 "#,
-            bam = repo_root.join("assets/toy/core-v1/bam/sex_xy_autosome_male.sam").display(),
-            reference =
-                repo_root.join("assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta").display(),
+            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam").display(),
+            reference = repo_root
+                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+                .display(),
         ),
     )?;
 
@@ -292,8 +307,8 @@ output_dir = "target/local-smoke/bam.sex"
 
 [[cases]]
 sample_id = " "
-bam = "assets/toy/core-v1/bam/sex_xy_autosome_male.sam"
-reference = "assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
 chromosome_system = "xy"
 minimum_y_sites = 5
 expected_method = "rxy"
@@ -325,8 +340,8 @@ output_dir = "target/local-smoke/bam.sex"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/sex_xy_autosome_male.sam"
-reference = "assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
 chromosome_system = "xy"
 minimum_y_sites = 5
 expected_method = "rxy"
@@ -339,8 +354,8 @@ expected_status = "ok"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "assets/toy/core-v1/bam/sex_xy_autosome_male.sam"
-reference = "assets/toy/core-v1/bam/sex_reference_xy_autosome.fasta"
+bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam"
+reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
 chromosome_system = "xy"
 minimum_y_sites = 5
 expected_method = "rxy"

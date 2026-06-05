@@ -237,12 +237,12 @@ fn bench_local_render_slurm_scripts_bam_reports_governed_run_paths() {
     let script_body = std::fs::read_to_string(&sex_script).expect("read sex script");
     assert!(
         script_body.contains(
-            "#SBATCH --output=target/slurm-dry-run/runs/local-benchmark-dry-run/planner-only/bam.sex/core-v1-sex-xy-autosome-male/rxy/stdout.log"
+            "#SBATCH --output=target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.sex/human_like_xy_autosome_coverage/rxy/stdout.log"
         )
     );
     assert!(
         script_body.contains(
-            "STAGE_RESULT_MANIFEST_PATH=target/slurm-dry-run/runs/local-benchmark-dry-run/planner-only/bam.sex/core-v1-sex-xy-autosome-male/rxy/stage-result.json"
+            "STAGE_RESULT_MANIFEST_PATH=target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.sex/human_like_xy_autosome_coverage/rxy/stage-result.json"
         )
     );
 }
