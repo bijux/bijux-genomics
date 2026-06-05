@@ -64,6 +64,8 @@ governed_stage_ids:
   - bam.duplication_metrics
   - bam.endogenous_content
   - bam.filter
+  - bam.genotyping
+  - bam.haplogroups
   - bam.kinship
   - bam.length_filter
   - bam.mapping_summary
@@ -136,7 +138,7 @@ stage_tool_compatibility:
   bam.gc_bias:
   - picard
   bam.genotyping:
-  - gatk
+  - angsd
   bam.haplogroups:
   - yleaf
   bam.insert_size:
@@ -210,7 +212,7 @@ stage_tool_integration:
   bam.gc_bias:
     picard: governed_contract
   bam.genotyping:
-    gatk: governed_contract
+    angsd: governed_contract
   bam.haplogroups:
     yleaf: governed_contract
   bam.insert_size:

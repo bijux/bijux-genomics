@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 88480cd52a8a1c6be2e5813069fa5f68a356a285
+# source_commit: 974c00670eee1ae0bb0f5eb07f6cd74844f7e56f
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -179,6 +179,44 @@ duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["reads_retained_fraction>=0.1"]
 sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bamtools", "bedtools", "samtools"]
+
+[[stages]]
+id = "bam.genotyping"
+status = "supported"
+output_kinds = ["json"]
+ordering_after = ["bam.recalibration"]
+prerequisites = ["bam.recalibration"]
+resource_memory_gb = 20
+resource_time_minutes = 180
+resource_threads = 12
+sanity_metrics = ["genotype_call_rate"]
+output_size_estimates_mb = ["genotype_report:40"]
+qc_thresholds = ["genotype_call_rate|warn=<0.7|fail=<0.4"]
+contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
+coverage_sufficiency = ["callable_sites>=1000"]
+sex_kinship_sufficiency = ["genotype_loci_covered>=1000"]
+tools = ["angsd"]
+
+[[stages]]
+id = "bam.haplogroups"
+status = "supported"
+output_kinds = ["json"]
+ordering_after = ["bam.coverage"]
+prerequisites = ["bam.coverage"]
+resource_memory_gb = 8
+resource_time_minutes = 45
+resource_threads = 4
+sanity_metrics = ["haplogroup_call_confidence"]
+output_size_estimates_mb = ["haplogroup_report:4"]
+qc_thresholds = ["haplogroup_call_confidence|warn=<0.6|fail=<0.4"]
+contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
+coverage_sufficiency = ["haplogroup_markers_covered>=100"]
+sex_kinship_sufficiency = ["haplogroup_markers_covered>=100"]
+tools = ["yleaf"]
 
 [[stages]]
 id = "bam.kinship"

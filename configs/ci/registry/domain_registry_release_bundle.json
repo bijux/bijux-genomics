@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "88480cd52a8a1c6be2e5813069fa5f68a356a285",
-  "bundle_checksum_sha256": "872fe4f0209e1f0f55d2d0d68f4f851568d97c90698fc6a43beb16da1a6a49b4",
+  "source_commit": "974c00670eee1ae0bb0f5eb07f6cd74844f7e56f",
+  "bundle_checksum_sha256": "4a040747d71e256edc7af3e67838b42ecab28f9c545973579b21136c109b7192",
   "domains": [
     {
       "domain_id": "bam",
@@ -1088,8 +1088,8 @@
         },
         {
           "stage_id": "bam.genotyping",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "description": "BAM genotyping stage contract.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
@@ -1131,7 +1131,7 @@
             "bam_input"
           ],
           "compatible_tools": [
-            "gatk"
+            "angsd"
           ],
           "assumptions": [
             "default stage assumptions captured"
@@ -1150,8 +1150,8 @@
         },
         {
           "stage_id": "bam.haplogroups",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "description": "BAM haplogroups stage contract.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
@@ -2306,12 +2306,11 @@
           "version_cmd": "angsd --version",
           "help_cmd": "angsd --help",
           "stage_ids": [
+            "bam.genotyping",
             "bam.kinship",
             "bam.sex"
           ],
-          "planned_stage_ids": [
-            "bam.genotyping"
-          ],
+          "planned_stage_ids": [],
           "expected_artifacts": [
             "population_metrics"
           ],
@@ -3511,6 +3510,16 @@
           "fixture_path": "domain/bam/fixtures/bam.filter/samtools.txt"
         },
         {
+          "stage_id": "bam.genotyping",
+          "tool_id": "angsd",
+          "fixture_path": "domain/bam/fixtures/bam.genotyping/angsd.txt"
+        },
+        {
+          "stage_id": "bam.haplogroups",
+          "tool_id": "yleaf",
+          "fixture_path": "domain/bam/fixtures/bam.haplogroups/yleaf.txt"
+        },
+        {
           "stage_id": "bam.kinship",
           "tool_id": "angsd",
           "fixture_path": "domain/bam/fixtures/bam.kinship/angsd.txt"
@@ -3596,7 +3605,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "9520a32b38bd8ff36fddeaf284bc5d7b412d2aa4d87236b7ede449ec4e9e3e2d"
+      "checksum_sha256": "69ed637f06a9926372f8962ce6fdcd511593b45b0ad1c161efd46d697af52d6f"
     },
     {
       "domain_id": "fastq",
@@ -12449,7 +12458,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "872d3923a771ea3f4993eb24e758139a17e0d6c370a19866fc82c447b28a84f8"
+      "checksum_sha256": "a3670543b4f21359be50c509e73b717b9a8fc1c98c662deeeefb48e7cc762cef"
     },
     {
       "domain_id": "vcf",
@@ -14707,7 +14716,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "4f00d92a4d25fd364162b000bec77ae759e488a8612999553a31fb22de8d0210"
+      "checksum_sha256": "af91f353ebefe870d63a76eb3d4d1b223fdc1b1cd74882723e6c0bfb6a7b01a9"
     }
   ]
 }

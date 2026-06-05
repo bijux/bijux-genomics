@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 88480cd52a8a1c6be2e5813069fa5f68a356a285
+# source_commit: 974c00670eee1ae0bb0f5eb07f6cd74844f7e56f
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -117,8 +117,8 @@ tool_id = "angsd"
 domain = "bam"
 domains = ["bam"]
 status = "production"
-stage_ids = ["bam.kinship", "bam.sex"]
-bindings = ["bam.kinship", "bam.sex"]
+stage_ids = ["bam.genotyping", "bam.kinship", "bam.sex"]
+bindings = ["bam.genotyping", "bam.kinship", "bam.sex"]
 tool_role = "transform"
 version = "0.940"
 default_version = "0.940"
@@ -2343,6 +2343,18 @@ requires_reporting = false
 id = "bam.gc_bias"
 required_tool_roles = ["transform"]
 primary_tools = ["picard"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = ""
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.genotyping"
+required_tool_roles = ["transform"]
+primary_tools = ["angsd"]
 optional_alternatives = []
 validation_tools = []
 reporting_tools = []

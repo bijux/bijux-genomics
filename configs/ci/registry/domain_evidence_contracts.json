@@ -146,7 +146,7 @@
       },
       {
         "stage_id": "bam.genotyping",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "default stage assumptions captured"
@@ -158,7 +158,7 @@
       },
       {
         "stage_id": "bam.haplogroups",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "default stage assumptions captured"
