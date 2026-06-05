@@ -349,6 +349,36 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.sex"
+tool_id = "angsd"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/angsd"
+command_entrypoint = "angsd"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+tool_id = "rxy"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/rxy"
+command_entrypoint = "rxy"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+tool_id = "yleaf"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/yleaf"
+command_entrypoint = "yleaf"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.validate"
 tool_id = "bamtools"
 execution_mode = "containerized"

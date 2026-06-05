@@ -63,6 +63,7 @@ tool_ids = [
   "prinseq",
   "pydamage",
   "rcorrector",
+  "rxy",
   "samtools",
   "schmutzi",
   "seqfu",
@@ -90,7 +91,7 @@ execution_mode = "r"
 expected_install_kind = "container"
 required_runtime_fields = ["help_cmd", "install_kind", "version_cmd"]
 summary = "Benchmarked tools whose governed operator surface is an R-driven analysis interface inside a managed container."
-tool_ids = ["dada2", "rxy"]
+tool_ids = ["dada2"]
 
 [[modes]]
 execution_mode = "java"

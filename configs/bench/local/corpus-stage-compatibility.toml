@@ -366,8 +366,10 @@ compatibility_note = "No governed corpus fixture yet owns the known-sites and co
 
 [[mappings]]
 stage_id = "bam.sex"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed BAM corpus fixture yet owns an XY-autosome coverage contract for local sex-inference smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns an XY-autosome coverage fixture suitable for governed local sex-inference smoke checks."
 
 [[mappings]]
 stage_id = "bam.validate"
