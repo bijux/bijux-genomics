@@ -7,6 +7,17 @@ default_version: "workspace"
 install_kind: "workspace_binary"
 license: "project"
 citation: "software:https://github.com/bijux/bijux-genomics"
+outputs:
+  - name: "duplicate_signal_report"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "reads"
+  expected_outputs:
+    - "duplicate_signal_report"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 planned_stage_ids:
   - "fastq.build_contaminant_db"
   - "fastq.build_rrna_db"
