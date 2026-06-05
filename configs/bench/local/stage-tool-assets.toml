@@ -1,11 +1,11 @@
 # schema_version = 1
 # owner = bijux-dna-bench
-# purpose = Governed asset declarations for benchmark-ready FASTQ and BAM stage-tool commands.
+# purpose = Governed asset declarations for local benchmark FASTQ and BAM stage-tool commands.
 # authority = bijux-dna-bench
 # stability = evolving
 
 schema_version = "bijux.bench.local_stage_tool_assets.v1"
-classification_scope = "benchmark_ready_command_assets"
+classification_scope = "governed_benchmark_command_assets"
 
 [[rows]]
 domain = "bam"
@@ -155,8 +155,17 @@ declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_param
 domain = "fastq"
 stage_id = "fastq.deplete_host"
 tool_id = "bowtie2"
-asset_role = "reference_index"
+asset_role = "reference_catalog_id"
 asset_id = "host_reference"
+asset_path = "assets/reference/host/references/toy_host_reference"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.deplete_host"
+tool_id = "bowtie2"
+asset_role = "reference_index_artifact_id"
+asset_id = "reference_index"
 asset_path = "assets/reference/host/references/toy_host_reference"
 declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
 
@@ -164,9 +173,27 @@ declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_param
 domain = "fastq"
 stage_id = "fastq.deplete_reference_contaminants"
 tool_id = "bowtie2"
-asset_role = "reference_index"
+asset_role = "reference_catalog_id"
 asset_id = "contaminant_reference"
 asset_path = "assets/reference/contaminants/references/toy_contaminant_reference"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.deplete_reference_contaminants"
+tool_id = "bowtie2"
+asset_role = "reference_index_artifact_id"
+asset_id = "reference_index"
+asset_path = "assets/reference/contaminants/references/toy_contaminant_reference"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.deplete_rrna"
+tool_id = "sortmerna"
+asset_role = "database_artifact_id"
+asset_id = "sortmerna_common_rrna_reference"
+asset_path = "assets/reference/rrna/references/sortmerna_common_rrna_reference.fasta"
 declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
 
 [[rows]]
@@ -180,10 +207,46 @@ declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_param
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.index_reference"
+tool_id = "bowtie2_build"
+asset_role = "reference_fasta"
+asset_id = "phix174"
+asset_path = "assets/reference/contaminants/references/phix174.fasta"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.index_reference"
+tool_id = "bowtie2_build"
+asset_role = "reference_index_output"
+asset_id = "reference_index"
+asset_path = "target/local-ready/fastq.index_reference/reference_index/bowtie2/reference"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.screen_taxonomy"
+tool_id = "centrifuge"
+asset_role = "database_artifact_id"
+asset_id = "taxonomy_db"
+asset_path = "assets/reference/taxonomy/references/mock_community_taxonomy"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.screen_taxonomy"
 tool_id = "centrifuge"
 asset_role = "taxonomy_database_root"
 asset_id = "taxonomy_reference"
+asset_path = "assets/reference/taxonomy/references/mock_community_taxonomy"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.screen_taxonomy"
+tool_id = "kaiju"
+asset_role = "database_artifact_id"
+asset_id = "taxonomy_db"
 asset_path = "assets/reference/taxonomy/references/mock_community_taxonomy"
 declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
 
@@ -200,8 +263,26 @@ declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_param
 domain = "fastq"
 stage_id = "fastq.screen_taxonomy"
 tool_id = "kraken2"
+asset_role = "database_artifact_id"
+asset_id = "taxonomy_db"
+asset_path = "assets/reference/taxonomy/references/mock_community_taxonomy"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.screen_taxonomy"
+tool_id = "kraken2"
 asset_role = "taxonomy_database_root"
 asset_id = "taxonomy_reference"
+asset_path = "assets/reference/taxonomy/references/mock_community_taxonomy"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.screen_taxonomy"
+tool_id = "krakenuniq"
+asset_role = "database_artifact_id"
+asset_id = "taxonomy_db"
 asset_path = "assets/reference/taxonomy/references/mock_community_taxonomy"
 declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
 
