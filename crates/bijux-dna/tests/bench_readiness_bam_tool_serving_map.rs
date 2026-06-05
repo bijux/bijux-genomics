@@ -226,6 +226,28 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
     );
     assert!(
         has_row(
+            "angsd",
+            "bam.kinship",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
+        ),
+        "BAM readiness map must retain the governed angsd kinship comparison row"
+    );
+    assert!(
+        has_row(
+            "king",
+            "bam.kinship",
+            "supported",
+            "runnable",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
+        ),
+        "BAM readiness map must retain the governed king kinship row"
+    );
+    assert!(
+        has_row(
             "bedtools",
             "bam.coverage",
             "supported",

@@ -48,7 +48,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         Some("benchmark_ready_runtime_declarations")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 108);
+    assert_eq!(rows.len(), 110);
     assert!(rows.iter().all(|row| {
         row.get("container_id").is_some()
             || row.get("command_entrypoint").is_some()
@@ -90,6 +90,13 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
             && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
             && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("angsd")
             && row.get("container_id").and_then(toml::Value::as_str) == Some("bijuxdna/angsd")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.kinship")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("king")
+            && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
+            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("king")
+            && row.get("container_id").and_then(toml::Value::as_str) == Some("bijuxdna/king:2.3.0")
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.normalize_primers")

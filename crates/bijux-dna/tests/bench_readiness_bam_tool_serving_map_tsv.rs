@@ -59,6 +59,8 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         "samtools\tbam.qc_pre\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "angsd\tbam.sex\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "angsd\tbam.genotyping\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "angsd\tbam.kinship\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "king\tbam.kinship\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "rxy\tbam.sex\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "yleaf\tbam.sex\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "bedtools\tbam.coverage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
