@@ -172,6 +172,13 @@ Visible aliases are part of the operator surface:
   normalized BAM parser outputs. The readiness report enumerates every benchmark BAM stage
   extension, its durable extension ID, and the required normalized key count so schema drift
   cannot hide behind backend-specific metric layouts.
+- `bijux-dna bench readiness render-bam-comparable-metrics`
+  `render-bam-comparable-metrics` writes
+  `target/bench-readiness/bam-comparable-metrics.tsv` with one governed row per BAM stage that
+  still has more than one admitted comparable tool in the BAM benchmark surface. Each row carries
+  the admitted comparable tools, the default tool, the current corpus-routing status, and the
+  governed shared metric fields that make same-stage BAM tool comparisons interpretable without
+  relying on tool-private report details.
 - `bijux-dna bench readiness render-bam-adapter-output-contract`
   `render-bam-adapter-output-contract` writes
   `target/bench-readiness/bam-adapter-output-contract.tsv` with one governed row per BAM

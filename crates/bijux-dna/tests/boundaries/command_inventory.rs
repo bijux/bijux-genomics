@@ -96,6 +96,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-bam-adapter-output-contract",
     "bijux-dna bench readiness render-bam-stage-decision-table",
     "bijux-dna bench readiness render-bam-command-adapter-coverage",
+    "bijux-dna bench readiness render-bam-comparable-metrics",
     "bijux-dna bench readiness render-bam-normalized-metrics-schema",
     "bijux-dna bench readiness render-bam-parser-coverage",
     "bijux-dna bench readiness render-fastq-adapter-output-contract",
