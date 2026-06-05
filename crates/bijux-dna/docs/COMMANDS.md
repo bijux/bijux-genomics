@@ -231,8 +231,9 @@ Visible aliases are part of the operator surface:
   every benchmark-ready FASTQ row maps to the correct corpus family (`corpus-01`, `corpus-02`, or
   `corpus-03`) while keeping planner-only or intentionally excluded corpus gaps explicit in a
   reviewer-stable table, and it refuses taxonomy coverage drift unless `centrifuge`, `kaiju`,
-  `kraken2`, and `krakenuniq` all stay on `corpus-02-edna-mini`.
-  reviewer-visible contract.
+  `kraken2`, and `krakenuniq` all stay on `corpus-02-edna-mini`, and it refuses amplicon drift
+  unless `cutadapt`, `dada2`, `vsearch`, `seqkit`, and `seqfu` all stay on
+  `corpus-03-amplicon-mini`.
 - `bijux-dna bench readiness render-fastq-normalized-metrics-schema`
   `render-fastq-normalized-metrics-schema` writes
   `schemas/bench/fastq-normalized-metrics.v1.json` with the governed JSON Schema contract for
@@ -258,7 +259,10 @@ Visible aliases are part of the operator surface:
   `render-fastq-tool-serving-map` writes `target/bench-readiness/fastq-tool-serving-map.tsv`
   with one governed row per FASTQ stage-tool binding in the 27-stage benchmark slice, carrying
   `tool_id`, `stage_id`, `support_status`, `adapter_status`, `parser_status`, and `corpus_status`
-  from the real FASTQ governance contracts and local corpus-compatibility matrix.
+  from the real FASTQ governance contracts and local corpus-compatibility matrix. The amplicon
+  branch is only accepted when primer normalization, chimera removal, ASV inference, OTU
+  clustering, and abundance normalization all remain fixture-backed by
+  `corpus-03-amplicon-mini`.
 - `bijux-dna bench readiness render-bam-tool-serving-map`
   `render-bam-tool-serving-map` writes `target/bench-readiness/bam-tool-serving-map.tsv`
   with one governed row per BAM stage-tool binding in the 24-stage benchmark slice, carrying
