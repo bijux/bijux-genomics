@@ -202,7 +202,8 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
     );
     let has_parser_fixtures = matches!(
         stage,
-        BamStage::Validate
+        BamStage::Align
+            | BamStage::Validate
             | BamStage::MappingSummary
             | BamStage::MapqFilter
             | BamStage::LengthFilter
