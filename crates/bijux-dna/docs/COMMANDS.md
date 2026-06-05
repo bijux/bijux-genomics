@@ -115,6 +115,10 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench corpus-fastq-report`
 - `bijux-dna bench corpus-fastq-publication-status`
 - `bijux-dna bench corpus-fastq-published-dossiers`
+- `bijux-dna bench readiness render-commands`
+  `render-commands` writes `target/bench-readiness/rendered-commands.sh` with one governed shell
+  command per local benchmark stage command, preserving a parseable `bash` script that can be
+  syntax-checked before any HPC-facing submission or wrapper generation.
 - `bijux-dna bench readiness render-command-argv`
   `render-command-argv` writes `target/bench-readiness/rendered-commands.argv.jsonl` with one
   governed JSON row per benchmark command, preserving the executable and arguments as a separated
