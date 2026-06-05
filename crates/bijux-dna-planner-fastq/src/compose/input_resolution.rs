@@ -70,7 +70,7 @@ pub(super) fn resolved_stage_input_artifacts(
             .and_then(|artifacts| {
                 artifacts
                     .iter()
-                    .find(|artifact| artifact.name.as_str() == stage_input.from_output_id)
+                    .find(|artifact| artifact.artifact.name.as_str() == stage_input.from_output_id)
             })
             .ok_or_else(|| {
                 anyhow!(
@@ -80,10 +80,10 @@ pub(super) fn resolved_stage_input_artifacts(
             })?;
         inputs.push(ResolvedStageInputArtifact {
             to_input_id: stage_input.to_input_id.clone(),
-            artifact: synthetic_artifact.clone(),
+            artifact: synthetic_artifact.artifact.clone(),
             source_stage_id: stage_input.from_stage_node_id.clone(),
             source_stage_node_id: stage_input.from_stage_node_id.clone(),
-            source_tool_id: "planner".to_string(),
+            source_tool_id: synthetic_artifact.source_tool_id.clone(),
         });
     }
     inputs.sort_by(|left, right| {

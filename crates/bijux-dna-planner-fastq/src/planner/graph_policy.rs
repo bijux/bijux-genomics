@@ -114,12 +114,13 @@ pub(super) fn synthetic_stage_artifact_policy(
             node_id,
             artifact_ids
                 .into_iter()
-                .map(|artifact_id| {
-                    ArtifactRef::required(
+                .map(|artifact_id| crate::compose::SyntheticStageArtifact {
+                    artifact: ArtifactRef::required(
                         ArtifactId::new(artifact_id.clone()),
                         select_out_dir.join(selection_artifact_file_name(&artifact_id)),
                         inferred_selection_artifact_role(&artifact_id),
-                    )
+                    ),
+                    source_tool_id: "planner".to_string(),
                 })
                 .collect(),
         );

@@ -18,7 +18,14 @@ pub struct StageArtifactInputBinding {
 
 pub type StageArtifactInputPolicy = BTreeMap<String, Vec<StageArtifactInputBinding>>;
 pub type StageDependencyPolicy = BTreeMap<String, Vec<String>>;
-pub type SyntheticStageArtifactPolicy = BTreeMap<String, Vec<ArtifactRef>>;
+
+#[derive(Debug, Clone)]
+pub struct SyntheticStageArtifact {
+    pub artifact: ArtifactRef,
+    pub source_tool_id: String,
+}
+
+pub type SyntheticStageArtifactPolicy = BTreeMap<String, Vec<SyntheticStageArtifact>>;
 
 #[derive(Debug, Clone)]
 pub(super) struct ResolvedStageInputArtifact {
