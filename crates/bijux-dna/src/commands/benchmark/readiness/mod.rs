@@ -12,6 +12,7 @@ pub(crate) mod catalog;
 pub(crate) mod fastq_adapter_output_contract;
 pub(crate) mod fastq_command_adapter_coverage;
 pub(crate) mod fastq_comparable_metrics;
+pub(crate) mod fastq_corpus_assignment;
 pub(crate) mod fastq_normalized_metrics_schema;
 pub(crate) mod fastq_parser_coverage;
 pub(crate) mod parser_completeness_gate;
