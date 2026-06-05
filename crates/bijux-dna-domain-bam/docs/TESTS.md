@@ -22,6 +22,7 @@ Tests should explain the contract they enforce.
 - `tests/determinism.rs` → determinism suite aggregator for fixture and snapshot stability.
 - `tests/semantics.rs` → semantic suite aggregator for invariant behavior.
 - `tests/contracts/parsers/bam_tool_parsers.rs` and `tests/contracts/parsers/new_tool_metrics.rs` → parsing fixtures under `tests/fixtures/bam/default/*` and `tests/fixtures/tool_metrics/default/*`.
+- `tests/contracts/parsers/raw_fixture_bank.rs` → governed raw BAM parser fixtures under `tests/fixtures/bench/parsers/bam/<stage>/<tool>/`.
 - `tests/contracts/*` → stage contracts, public surface, canonical serialization, and docs checks.
 - `tests/semantics/invariants/*` → invariant specs and stage semantics.
 - `tests/contracts/reference_suite/*` → reference suite coverage.
@@ -30,6 +31,11 @@ Tests should explain the contract they enforce.
 - `tests/support/mod.rs` → crate-local test helpers; shared helpers belong in `bijux-dna-testkit`.
 - `tests/snapshots/*` → reviewed stage contract snapshots.
 - `tests/fixtures/*` → small deterministic BAM/reference/tool-metric fixtures.
+
+The raw BAM parser bank for benchmark-facing observer fixtures lives at
+`tests/fixtures/bench/parsers/bam/<stage>/<tool>/` in the repository root.
+Domain BAM parser contracts consume that bank directly so raw tool outputs and expected normalized
+JSON stay governed in one location.
 
 ## Examples
 - `tests/contracts/parsers/bam_parsers.rs` → fixture parsing assertions.
