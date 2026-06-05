@@ -363,8 +363,10 @@ compatibility_note = "The general BAM corpus now owns a multi-contig duplicate-f
 
 [[mappings]]
 stage_id = "bam.recalibration"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed corpus fixture yet owns the known-sites and coverage-gate contract required for local recalibration smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a low-coverage recalibration fixture together with governed known-sites and shared-reference inputs for local recalibration smoke checks."
 
 [[mappings]]
 stage_id = "bam.sex"
