@@ -47,7 +47,7 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/unregistered-benchmark-pairs.tsv")
     );
-    assert_eq!(payload.get("unregistered_pair_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("unregistered_pair_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
     let domain_counts = payload
@@ -55,10 +55,10 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(5));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(2));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 8, "governed registry-drift slice must retain the current eight rows");
+    assert_eq!(rows.len(), 7, "governed registry-drift slice must retain the current seven rows");
     assert!(
         rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -88,15 +88,13 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         "bam.damage / ngsbriggs must leave the registry-drift slice once it is registered in production"
     );
     assert!(
-        rows.iter().any(|row| {
+        !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("bam.recalibration")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("gatk")
-                && row.get("registry_status").and_then(serde_json::Value::as_str)
-                    == Some("tool_missing")
         }),
-        "bam.recalibration / gatk must remain visible as a missing tool row"
+        "bam.recalibration / gatk must leave the registry-drift slice once the governed production row is registered"
     );
     assert!(
         rows.iter().any(|row| {

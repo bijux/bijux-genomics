@@ -69,6 +69,7 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         "samtools\tbam.endogenous_content\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "bamutil\tbam.overlap_correction\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.mapping_summary\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "gatk\tbam.recalibration\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "picard\tbam.mapping_summary\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.mapq_filter\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "bamtools\tbam.mapq_filter\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",

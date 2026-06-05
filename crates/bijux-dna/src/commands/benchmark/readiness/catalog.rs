@@ -373,9 +373,12 @@ mod tests {
             !matrix.stage_policies.contains_key("bam.genotyping"),
             "bam.genotyping must remain outside the governed benchmark registry until its stage policy is explicitly added"
         );
+        let bam_recalibration =
+            matrix.stage_policies.get("bam.recalibration").expect("bam.recalibration policy");
+        assert_eq!(bam_recalibration.primary_tool_ids, vec!["gatk".to_string()]);
         assert!(
-            !matrix.stage_policies.contains_key("bam.recalibration"),
-            "bam.recalibration must remain outside the governed benchmark registry until its stage policy is explicitly added"
+            bam_recalibration.optional_alternative_tool_ids.is_empty(),
+            "bam.recalibration currently carries a single governed gatk benchmark row"
         );
         let bam_complexity =
             matrix.stage_policies.get("bam.complexity").expect("bam.complexity policy");

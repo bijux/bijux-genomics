@@ -51,19 +51,19 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(105));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(106));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(105)
+        Some(106)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(104));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(105));
     assert_eq!(
         payload.get("container_declared_row_count").and_then(serde_json::Value::as_u64),
-        Some(104)
+        Some(105)
     );
     assert_eq!(
         payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
-        Some(105)
+        Some(106)
     );
     assert_eq!(payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
@@ -78,7 +78,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(42)
+        Some(43)
     );
 
     assert_eq!(
@@ -100,7 +100,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("execution_mode_counts")
             .and_then(|value| value.get("java"))
             .and_then(serde_json::Value::as_u64),
-        Some(9)
+        Some(10)
     );
     assert_eq!(
         payload
@@ -143,6 +143,25 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     assert_eq!(
         ngsbriggs.get("container_id").and_then(serde_json::Value::as_str),
         Some("bijuxdna/ngsbriggs:0.1.3")
+    );
+    let gatk_recalibration = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.recalibration")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("gatk")
+        })
+        .expect("bam recalibration gatk row");
+    assert_eq!(
+        gatk_recalibration.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("java")
+    );
+    assert_eq!(
+        gatk_recalibration.get("command_entrypoint").and_then(serde_json::Value::as_str),
+        Some("gatk")
+    );
+    assert_eq!(
+        gatk_recalibration.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/gatk:4.6.2.0")
     );
     assert!(rows.iter().all(|row| {
         row.get("container_id").is_some()

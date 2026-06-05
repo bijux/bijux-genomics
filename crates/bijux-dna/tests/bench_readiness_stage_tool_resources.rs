@@ -51,14 +51,14 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(105));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(106));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(105)
+        Some(106)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(105)
+        Some(106)
     );
     assert_eq!(
         payload
@@ -72,7 +72,7 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(42)
+        Some(43)
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let fastqc = rows
@@ -122,6 +122,20 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
     assert_eq!(ngsbriggs.get("memory_gb").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(ngsbriggs.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(ngsbriggs.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(1));
+    let gatk_recalibration = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.recalibration")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("gatk")
+        })
+        .expect("bam recalibration gatk row");
+    assert_eq!(gatk_recalibration.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(gatk_recalibration.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        gatk_recalibration.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(7)
+    );
+    assert_eq!(gatk_recalibration.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
     let bamutil_overlap = rows
         .iter()
         .find(|row| {

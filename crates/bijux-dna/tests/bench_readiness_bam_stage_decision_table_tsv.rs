@@ -162,6 +162,12 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"bam.recalibration\tbenchmark_ready\tgatk\tgatk\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.recalibration` is benchmark_ready via `gatk` with a fixture-backed parser-validated BAM benchmark row"
+        }),
+        "TSV must retain the governed benchmark-ready bam.recalibration row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"bam.complexity\tbenchmark_ready\tpreseq\tpreseq\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.complexity` is benchmark_ready via `preseq` with a fixture-backed parser-validated BAM benchmark row"
         }),
         "TSV must publish the governed benchmark-ready classification for bam.complexity"
@@ -171,11 +177,5 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
             row == &"bam.genotyping\tfuture_not_in_hpc_round\t\tangsd\tplanned\trunnable\tartifact_contract_only\tplanner_only\tstage `bam.genotyping` is not yet in the governed BAM benchmark registry; strongest admitted row `angsd` remains `planned`"
         }),
         "TSV must retain the governed future classification for bam.genotyping"
-    );
-    assert!(
-        rows.iter().any(|row| {
-            row == &"bam.recalibration\tfuture_not_in_hpc_round\t\tgatk\tplanned\tplannable\tartifact_contract_only\tplanner_only\tstage `bam.recalibration` is not yet in the governed BAM benchmark registry; strongest admitted row `gatk` remains `planned`"
-        }),
-        "TSV must retain the governed future classification for bam.recalibration"
     );
 }
