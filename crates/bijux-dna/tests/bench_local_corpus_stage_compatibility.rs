@@ -46,7 +46,7 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
         payload.get("matrix_path").and_then(serde_json::Value::as_str),
         Some("configs/bench/local/corpus-stage-compatibility.toml")
     );
-    assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(
         payload.get("fixture_backed_stage_count").and_then(serde_json::Value::as_u64),
@@ -59,8 +59,8 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
     let corpus_family_counts =
         payload.get("corpus_family_counts").and_then(serde_json::Value::as_object).expect("family counts");
     assert_eq!(corpus_family_counts.get("corpus-01"), Some(&serde_json::json!(19)));
-    assert_eq!(corpus_family_counts.get("corpus-01-bam"), Some(&serde_json::json!(19)));
-    assert_eq!(corpus_family_counts.get("corpus-01-adna-bam"), Some(&serde_json::json!(2)));
+    assert_eq!(corpus_family_counts.get("corpus-01-bam"), Some(&serde_json::json!(16)));
+    assert_eq!(corpus_family_counts.get("corpus-01-adna-bam"), Some(&serde_json::json!(5)));
     assert_eq!(corpus_family_counts.get("corpus-01-genotyping"), Some(&serde_json::json!(1)));
     assert_eq!(corpus_family_counts.get("corpus-01-kinship"), Some(&serde_json::json!(1)));
     assert_eq!(corpus_family_counts.get("corpus-02"), Some(&serde_json::json!(1)));
@@ -246,11 +246,33 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
         stages.iter().any(|stage| {
             stage.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.sex")
                 && stage.get("fixture_id").and_then(serde_json::Value::as_str)
-                    == Some("corpus-01-bam-mini")
+                    == Some("corpus-01-adna-bam-mini")
                 && stage.get("compatibility_kind").and_then(serde_json::Value::as_str)
                     == Some("fixture")
         }),
-        "bam.sex must map to the governed BAM corpus once XY-autosome coverage is owned there"
+        "bam.sex must map to the governed aDNA BAM corpus once XY-autosome coverage is owned there"
+    );
+    assert!(
+        stages.iter().any(|stage| {
+            stage.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.contamination")
+                && stage.get("fixture_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-01-adna-bam-mini")
+                && stage.get("compatibility_kind").and_then(serde_json::Value::as_str)
+                    == Some("fixture")
+        }),
+        "bam.contamination must map to the governed aDNA BAM corpus once ancient-like contamination coverage is owned there"
+    );
+    assert!(
+        stages.iter().any(|stage| {
+            stage.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.haplogroups")
+                && stage.get("fixture_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-01-adna-bam-mini")
+                && stage.get("compatibility_kind").and_then(serde_json::Value::as_str)
+                    == Some("fixture")
+        }),
+        "bam.haplogroups must map to the governed aDNA BAM corpus once ancient-like Y-panel coverage is owned there"
     );
     assert!(
         stages.iter().any(|stage| {
@@ -262,17 +284,6 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
                     == Some("fixture")
         }),
         "bam.genotyping must map to the governed genotyping BAM corpus once candidate-sites and target-regions coverage are owned there"
-    );
-    assert!(
-        stages.iter().any(|stage| {
-            stage.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("bam.haplogroups")
-                && stage.get("fixture_id").and_then(serde_json::Value::as_str)
-                    == Some("corpus-01-bam-mini")
-                && stage.get("compatibility_kind").and_then(serde_json::Value::as_str)
-                    == Some("fixture")
-        }),
-        "bam.haplogroups must map to the governed BAM corpus once the Y-panel fixture is owned there"
     );
     assert!(
         stages.iter().any(|stage| {
@@ -295,17 +306,6 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
                     == Some("fixture")
         }),
         "bam.bias_mitigation must map to the governed BAM corpus once the GC-window ladder fixture owns before-and-after bias expectations"
-    );
-    assert!(
-        stages.iter().any(|stage| {
-            stage.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("bam.contamination")
-                && stage.get("fixture_id").and_then(serde_json::Value::as_str)
-                    == Some("corpus-01-bam-mini")
-                && stage.get("compatibility_kind").and_then(serde_json::Value::as_str)
-                    == Some("fixture")
-        }),
-        "bam.contamination must map to the governed BAM corpus once the contamination-panel fixture and AF resources are owned there"
     );
     assert!(
         stages.iter().any(|stage| {

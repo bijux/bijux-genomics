@@ -481,7 +481,7 @@ mod tests {
                 && row.primary_tool_id.as_deref() == Some("king")
                 && row.selected_tool_id.as_deref() == Some("king")
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "fixture:corpus-01-bam-mini"
+                && row.corpus_status == "fixture:corpus-01-kinship-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.align"
@@ -543,7 +543,7 @@ mod tests {
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "fixture:corpus-01-bam-mini"
+                && row.corpus_status == "fixture:corpus-01-adna-bam-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.overlap_correction"
@@ -573,7 +573,7 @@ mod tests {
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "fixture:corpus-01-bam-mini"
+                && row.corpus_status == "fixture:corpus-01-adna-bam-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.recalibration"
@@ -593,7 +593,7 @@ mod tests {
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "fixture:corpus-01-bam-mini"
+                && row.corpus_status == "fixture:corpus-01-genotyping-mini"
         }));
     }
 }

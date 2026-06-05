@@ -44,11 +44,11 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     assert_eq!(rows.len(), 49, "TSV must retain the governed BAM row count");
     for row in [
         "addeam\tbam.damage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini",
-        "authenticct\tbam.authenticity\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
-        "contammix\tbam.contamination\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
-        "schmutzi\tbam.contamination\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
-        "verifybamid2\tbam.contamination\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
-        "damageprofiler\tbam.authenticity\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "authenticct\tbam.authenticity\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini",
+        "contammix\tbam.contamination\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-bam-mini",
+        "schmutzi\tbam.contamination\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-bam-mini",
+        "verifybamid2\tbam.contamination\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-bam-mini",
+        "damageprofiler\tbam.authenticity\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini",
         "damageprofiler\tbam.damage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini",
         "ngsbriggs\tbam.damage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini",
         "bwa\tbam.align\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-mini",
@@ -57,18 +57,18 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         "bamtools\tbam.validate\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "multiqc\tbam.qc_pre\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.qc_pre\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
-        "angsd\tbam.sex\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
-        "angsd\tbam.genotyping\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
-        "angsd\tbam.kinship\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
-        "king\tbam.kinship\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
-        "rxy\tbam.sex\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
-        "yleaf\tbam.sex\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "angsd\tbam.sex\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-bam-mini",
+        "angsd\tbam.genotyping\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-genotyping-mini",
+        "angsd\tbam.kinship\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-kinship-mini",
+        "king\tbam.kinship\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-kinship-mini",
+        "rxy\tbam.sex\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-bam-mini",
+        "yleaf\tbam.sex\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-bam-mini",
         "bedtools\tbam.coverage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "mosdepth\tbam.coverage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.coverage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "picard\tbam.gc_bias\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "picard\tbam.insert_size\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
-        "pmdtools\tbam.authenticity\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "pmdtools\tbam.authenticity\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini",
         "samtools\tbam.endogenous_content\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "bamutil\tbam.overlap_correction\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "samtools\tbam.mapping_summary\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
@@ -86,7 +86,7 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         "samtools\tbam.duplication_metrics\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "picard\tbam.duplication_metrics\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "mapdamage2\tbam.bias_mitigation\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
-        "yleaf\tbam.haplogroups\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
+        "yleaf\tbam.haplogroups\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-bam-mini",
     ] {
         assert!(
             rows.iter().any(|candidate| candidate == &row),
@@ -96,7 +96,7 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     assert!(
         !rows
             .iter()
-            .any(|row| row == &"samtools\tbam.haplogroups\tmismatched_contract\tdeclared_only\tparser_fixture_validated\tfixture:corpus-01-bam-mini"),
+            .any(|row| row == &"samtools\tbam.haplogroups\tmismatched_contract\tdeclared_only\tparser_fixture_validated\tfixture:corpus-01-adna-bam-mini"),
         "TSV must not retain a declared-only samtools haplogroups row once yleaf is the only admitted haplogroups tool"
     );
     assert!(

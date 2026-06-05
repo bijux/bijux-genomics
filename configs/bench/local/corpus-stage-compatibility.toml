@@ -26,6 +26,12 @@ fixture_manifest = "tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.t
 summary = "Ancient-like BAM-stage proxy fixture with governed terminal-damage expectations."
 
 [[fixtures]]
+corpus_family_id = "corpus-01-adna-bam"
+fixture_id = "corpus-01-adna-bam-mini"
+fixture_manifest = "tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml"
+summary = "Ancient-like BAM-stage proxy corpus with governed contamination, sex, and haplogroup support fixtures plus the shared non-UDG reference contract."
+
+[[fixtures]]
 corpus_family_id = "corpus-01-genotyping"
 fixture_id = "corpus-01-genotyping-mini"
 fixture_manifest = "tests/fixtures/corpora/corpus-01-genotyping-mini/manifest.toml"
@@ -262,10 +268,10 @@ compatibility_note = "The governed BAM corpus now owns an observed-unique-read c
 
 [[mappings]]
 stage_id = "bam.contamination"
-fixture_id = "corpus-01-bam-mini"
+fixture_id = "corpus-01-adna-bam-mini"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01-bam"
-compatibility_note = "The general BAM corpus now owns a contamination-panel alignment fixture and governed population-AF panel suitable for local contamination planning."
+corpus_family_id = "corpus-01-adna-bam"
+compatibility_note = "The aDNA BAM corpus now owns a contamination-panel alignment fixture, shared non-UDG reference, and governed population-AF panel suitable for local ancient-like contamination planning."
 
 [[mappings]]
 stage_id = "bam.coverage"
@@ -319,9 +325,9 @@ compatibility_note = "The governed genotyping BAM corpus owns the candidate-site
 [[mappings]]
 stage_id = "bam.haplogroups"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01-bam"
-fixture_id = "corpus-01-bam-mini"
-compatibility_note = "The governed BAM corpus now owns a Y-reference haplogroup panel fixture suitable for local haplogroup planning and benchmark contract checks."
+corpus_family_id = "corpus-01-adna-bam"
+fixture_id = "corpus-01-adna-bam-mini"
+compatibility_note = "The governed aDNA BAM corpus now owns a Y-reference haplogroup panel fixture suitable for local ancient-like haplogroup planning and benchmark contract checks."
 
 [[mappings]]
 stage_id = "bam.insert_size"
@@ -389,9 +395,9 @@ compatibility_note = "The general BAM corpus now owns a low-coverage recalibrati
 [[mappings]]
 stage_id = "bam.sex"
 compatibility_kind = "fixture"
-corpus_family_id = "corpus-01-bam"
-fixture_id = "corpus-01-bam-mini"
-compatibility_note = "The general BAM corpus now owns an XY-autosome coverage fixture suitable for governed local sex-inference smoke checks."
+corpus_family_id = "corpus-01-adna-bam"
+fixture_id = "corpus-01-adna-bam-mini"
+compatibility_note = "The governed aDNA BAM corpus now owns an XY-autosome coverage fixture suitable for governed local ancient-like sex-inference smoke checks."
 
 [[mappings]]
 stage_id = "bam.validate"

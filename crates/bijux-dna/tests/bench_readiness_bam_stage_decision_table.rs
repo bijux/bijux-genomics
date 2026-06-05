@@ -113,7 +113,7 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
                 && row.get("parser_status").and_then(serde_json::Value::as_str)
                     == Some("parser_fixture_validated")
                 && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("fixture:corpus-01-bam-mini")
+                    == Some("fixture:corpus-01-adna-damage-mini")
         }),
         "bam.authenticity must now be benchmark_ready through the governed authenticct advisory row"
     );
@@ -182,7 +182,7 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
                 && row.get("parser_status").and_then(serde_json::Value::as_str)
                     == Some("parser_fixture_validated")
                 && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("fixture:corpus-01-bam-mini")
+                    == Some("fixture:corpus-01-adna-bam-mini")
         }),
         "bam.mapping_summary must now be benchmark_ready through the governed samtools partial-mapping row"
     );
@@ -199,7 +199,7 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
                 && row.get("parser_status").and_then(serde_json::Value::as_str)
                     == Some("parser_fixture_validated")
                 && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("fixture:corpus-01-bam-mini")
+                    == Some("fixture:corpus-01-adna-bam-mini")
         }),
         "bam.sex must now be benchmark_ready through the governed rxy XY-autosome coverage row"
     );
@@ -215,7 +215,7 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
                 && row.get("parser_status").and_then(serde_json::Value::as_str)
                     == Some("parser_fixture_validated")
                 && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                    == Some("fixture:corpus-01-bam-mini")
+                    == Some("fixture:corpus-01-genotyping-mini")
         }),
         "bam.mapq_filter must now be benchmark_ready through the governed samtools MAPQ-threshold row"
     );

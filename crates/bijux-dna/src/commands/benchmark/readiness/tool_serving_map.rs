@@ -690,7 +690,7 @@ mod tests {
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "fixture:corpus-01-bam-mini"
+                && row.corpus_status == "fixture:corpus-01-adna-bam-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "yleaf"
@@ -698,7 +698,7 @@ mod tests {
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "fixture:corpus-01-bam-mini"
+                && row.corpus_status == "fixture:corpus-01-adna-bam-mini"
         }));
         for tool_id in ["contammix", "schmutzi", "verifybamid2"] {
             assert!(report.rows.iter().any(|row| {
@@ -707,7 +707,7 @@ mod tests {
                     && row.support_status == "supported"
                     && row.adapter_status == "runnable"
                     && row.parser_status == "parser_fixture_validated"
-                    && row.corpus_status == "fixture:corpus-01-bam-mini"
+                    && row.corpus_status == "fixture:corpus-01-adna-bam-mini"
             }));
         }
         assert!(report.rows.iter().any(|row| {
@@ -716,7 +716,7 @@ mod tests {
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "fixture:corpus-01-bam-mini"
+                && row.corpus_status == "fixture:corpus-01-genotyping-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "angsd"
@@ -724,7 +724,7 @@ mod tests {
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "fixture:corpus-01-bam-mini"
+                && row.corpus_status == "fixture:corpus-01-kinship-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "king"
@@ -732,7 +732,7 @@ mod tests {
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "fixture:corpus-01-bam-mini"
+                && row.corpus_status == "fixture:corpus-01-kinship-mini"
         }));
     }
 }

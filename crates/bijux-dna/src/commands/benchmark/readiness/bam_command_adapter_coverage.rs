@@ -359,7 +359,7 @@ mod tests {
                 && super::adapter_coverage_label(row.adapter_coverage) == "covered"
                 && super::readiness_gap_label(row.readiness_gap) == "none"
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "fixture:corpus-01-bam-mini"
+                && row.corpus_status == "fixture:corpus-01-adna-damage-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "schmutzi"
@@ -368,7 +368,7 @@ mod tests {
                 && super::adapter_coverage_label(row.adapter_coverage) == "covered"
                 && super::readiness_gap_label(row.readiness_gap) == "none"
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "fixture:corpus-01-bam-mini"
+                && row.corpus_status == "fixture:corpus-01-adna-bam-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "mapdamage2"
@@ -386,7 +386,7 @@ mod tests {
                 && super::adapter_coverage_label(row.adapter_coverage) == "covered"
                 && super::readiness_gap_label(row.readiness_gap) == "none"
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "fixture:corpus-01-bam-mini"
+                && row.corpus_status == "fixture:corpus-01-adna-bam-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "mosdepth"
@@ -456,7 +456,7 @@ mod tests {
                 && super::readiness_gap_label(row.readiness_gap) == "none"
                 && row.support_status == "supported"
                 && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "fixture:corpus-01-bam-mini"
+                && row.corpus_status == "fixture:corpus-01-genotyping-mini"
         }));
     }
 
@@ -487,7 +487,7 @@ mod tests {
         assert!(
             rows.iter().any(|row| {
                 row.starts_with(
-                    "authenticct\tbam.authenticity\tbenchmark_ready\tcovered\tnone\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\t"
+                    "authenticct\tbam.authenticity\tbenchmark_ready\tcovered\tnone\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini\t"
                 )
             }),
             "the governed BAM authenticity row must now be benchmark-ready and adapter-covered"
@@ -495,7 +495,7 @@ mod tests {
         assert!(
             rows.iter().any(|row| {
                 row.starts_with(
-                    "schmutzi\tbam.contamination\tbenchmark_ready\tcovered\tnone\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\t"
+                    "schmutzi\tbam.contamination\tbenchmark_ready\tcovered\tnone\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-bam-mini\t"
                 )
             }),
             "the governed BAM contamination row must now be benchmark-ready and adapter-covered"
@@ -519,7 +519,7 @@ mod tests {
         assert!(
             rows.iter().any(|row| {
                 row.starts_with(
-                    "angsd\tbam.genotyping\tbenchmark_ready\tcovered\tnone\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\t"
+                    "angsd\tbam.genotyping\tbenchmark_ready\tcovered\tnone\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-genotyping-mini\t"
                 )
             }),
             "the governed BAM genotyping row must be benchmark-ready and adapter-covered through the owned angsd fixture"

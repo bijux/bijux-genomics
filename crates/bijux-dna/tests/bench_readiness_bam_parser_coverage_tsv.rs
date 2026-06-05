@@ -59,7 +59,7 @@ fn bench_readiness_bam_parser_coverage_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"angsd\tbam.genotyping\tcovered\tparser_fixture_validated\tsupported\trunnable\tfixture:corpus-01-bam-mini\trow `bam.genotyping` / `angsd` is benchmark_ready with governed support, adapter-backed command rendering, fixture-backed corpus coverage, and parser-fixture-validated output"
+            row == &"angsd\tbam.genotyping\tcovered\tparser_fixture_validated\tsupported\trunnable\tfixture:corpus-01-genotyping-mini\trow `bam.genotyping` / `angsd` is benchmark_ready with governed support, adapter-backed command rendering, fixture-backed corpus coverage, and parser-fixture-validated output"
         }),
         "TSV must retain the governed BAM genotyping parser row"
     );

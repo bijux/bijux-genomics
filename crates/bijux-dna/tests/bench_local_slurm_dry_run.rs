@@ -43,6 +43,26 @@ fn run_cargo_cli(args: &[&str]) -> std::process::Output {
         .expect("run cargo cli")
 }
 
+#[cfg(feature = "bam_downstream")]
+fn run_cargo_cli(args: &[&str]) -> std::process::Output {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    Command::new("cargo")
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(["run", "-q", "-p", "bijux-dna", "--features", "bam_downstream", "--"])
+        .args(args)
+        .output()
+        .expect("run cargo cli with bam_downstream")
+}
+
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let output = run_cli(args);
     assert!(
@@ -200,8 +220,17 @@ fn bench_local_render_slurm_scripts_bam_json_reports_governed_24_stage_slice() {
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_slurm_scripts_bam_reports_governed_run_paths() {
-    let payload =
-        run_cli_json(&["bench", "local", "render-slurm-scripts", "--domain", "bam", "--json"]);
+    let output =
+        run_cargo_cli(&["bench", "local", "render-slurm-scripts", "--domain", "bam", "--json"]);
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let payload = serde_json::from_slice::<serde_json::Value>(&output.stdout)
+        .expect("parse stdout as json");
     let scripts =
         payload.get("scripts").and_then(serde_json::Value::as_array).expect("scripts array");
 
@@ -237,12 +266,12 @@ fn bench_local_render_slurm_scripts_bam_reports_governed_run_paths() {
     let script_body = std::fs::read_to_string(&sex_script).expect("read sex script");
     assert!(
         script_body.contains(
-            "#SBATCH --output=target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.sex/human_like_xy_autosome_coverage/rxy/stdout.log"
+            "#SBATCH --output=target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/adna_xy_autosome_coverage/rxy/stdout.log"
         )
     );
     assert!(
         script_body.contains(
-            "STAGE_RESULT_MANIFEST_PATH=target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.sex/human_like_xy_autosome_coverage/rxy/stage-result.json"
+            "STAGE_RESULT_MANIFEST_PATH=target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/adna_xy_autosome_coverage/rxy/stage-result.json"
         )
     );
 }

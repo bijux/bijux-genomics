@@ -45,9 +45,9 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/local-ready/corpus-skip-report.json")
     );
-    assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
-    assert_eq!(payload.get("skip_count").and_then(serde_json::Value::as_u64), Some(192));
+    assert_eq!(payload.get("skip_count").and_then(serde_json::Value::as_u64), Some(336));
     assert_eq!(
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
         Some(3)
@@ -60,9 +60,9 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
                 && skip.get("corpus_id").and_then(serde_json::Value::as_str)
                     == Some("corpus-01-mini")
                 && skip.get("replacement_corpus_id").and_then(serde_json::Value::as_str)
-                    == Some("corpus-01-bam-mini")
+                    == Some("corpus-01-kinship-mini")
         }),
-        "fixture-backed bam.kinship skips must name the governed BAM corpus replacement"
+        "fixture-backed bam.kinship skips must name the governed kinship BAM corpus replacement"
     );
     assert!(
         skips.iter().any(|skip| {
@@ -70,9 +70,9 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
                 && skip.get("corpus_id").and_then(serde_json::Value::as_str)
                     == Some("corpus-01-mini")
                 && skip.get("replacement_corpus_id").and_then(serde_json::Value::as_str)
-                    == Some("corpus-01-bam-mini")
+                    == Some("corpus-01-adna-bam-mini")
         }),
-        "fixture-backed bam.contamination skips must name the governed BAM corpus replacement"
+        "fixture-backed bam.contamination skips must name the governed aDNA BAM corpus replacement"
     );
     assert!(
         skips.iter().any(|skip| {
@@ -110,9 +110,9 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
                 && skip.get("corpus_id").and_then(serde_json::Value::as_str)
                     == Some("corpus-01-mini")
                 && skip.get("replacement_corpus_id").and_then(serde_json::Value::as_str)
-                    == Some("corpus-01-bam-mini")
+                    == Some("corpus-01-adna-bam-mini")
         }),
-        "fixture-backed bam.sex skips must name the governed BAM corpus replacement"
+        "fixture-backed bam.sex skips must name the governed aDNA BAM corpus replacement"
     );
     assert!(
         skips.iter().any(|skip| {
@@ -120,9 +120,9 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
                 && skip.get("corpus_id").and_then(serde_json::Value::as_str)
                     == Some("corpus-01-mini")
                 && skip.get("replacement_corpus_id").and_then(serde_json::Value::as_str)
-                    == Some("corpus-01-bam-mini")
+                    == Some("corpus-01-genotyping-mini")
         }),
-        "fixture-backed bam.genotyping skips must name the governed BAM corpus replacement"
+        "fixture-backed bam.genotyping skips must name the governed genotyping BAM corpus replacement"
     );
     assert!(
         skips.iter().any(|skip| {
@@ -130,9 +130,9 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
                 && skip.get("corpus_id").and_then(serde_json::Value::as_str)
                     == Some("corpus-01-mini")
                 && skip.get("replacement_corpus_id").and_then(serde_json::Value::as_str)
-                    == Some("corpus-01-bam-mini")
+                    == Some("corpus-01-adna-bam-mini")
         }),
-        "fixture-backed bam.haplogroups skips must name the governed BAM corpus replacement"
+        "fixture-backed bam.haplogroups skips must name the governed aDNA BAM corpus replacement"
     );
     assert!(
         skips.iter().any(|skip| {
@@ -140,9 +140,9 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
                 && skip.get("corpus_id").and_then(serde_json::Value::as_str)
                     == Some("corpus-01-mini")
                 && skip.get("replacement_corpus_id").and_then(serde_json::Value::as_str)
-                    == Some("corpus-01-bam-mini")
+                    == Some("corpus-01-adna-damage-mini")
         }),
-        "fixture-backed bam.authenticity skips must name the governed BAM corpus replacement"
+        "fixture-backed bam.authenticity skips must name the governed aDNA damage corpus replacement"
     );
     assert!(
         skips.iter().any(|skip| {

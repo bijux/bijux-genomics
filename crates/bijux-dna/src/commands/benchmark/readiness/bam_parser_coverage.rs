@@ -308,7 +308,7 @@ mod tests {
         assert!(
             rows.iter().any(|row| {
                 row.starts_with(
-                    "angsd\tbam.genotyping\tcovered\tparser_fixture_validated\tsupported\trunnable\tfixture:corpus-01-bam-mini\t"
+                    "angsd\tbam.genotyping\tcovered\tparser_fixture_validated\tsupported\trunnable\tfixture:corpus-01-genotyping-mini\t"
                 )
             }),
             "the governed BAM genotyping row must retain parser coverage"

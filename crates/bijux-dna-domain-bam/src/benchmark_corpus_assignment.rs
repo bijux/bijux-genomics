@@ -56,13 +56,19 @@ pub fn benchmark_corpus_assignment_for_stage_tool(
         }),
         ("bam.authenticity", "authenticct" | "damageprofiler" | "pmdtools")
         | (
+            "bam.contamination",
+            "contammix" | "schmutzi" | "verifybamid2",
+        )
+        | (
             "bam.damage",
             "addeam" | "damageprofiler" | "mapdamage2" | "ngsbriggs" | "pmdtools" | "pydamage",
-        ) => {
+        )
+        | ("bam.haplogroups", "yleaf")
+        | ("bam.sex", "angsd" | "rxy" | "yleaf") => {
             Some(BenchmarkCorpusAssignment::Assigned {
                 family: BenchmarkCorpusFamily::AdnaBam,
                 rationale:
-                    "Damage-aware BAM interpretation requires the governed ancient-like alignment fixture rather than the general BAM mini corpus.",
+                    "Ancient-like BAM interpretation requires the governed non-UDG aDNA fixture family rather than the general BAM mini corpus.",
             })
         }
         ("bam.genotyping", "angsd") => Some(BenchmarkCorpusAssignment::Assigned {
@@ -146,13 +152,11 @@ fn is_bam_mini_stage_tool(stage_id: &str, tool_id: &str) -> bool {
         (stage_id, tool_id),
         ("bam.bias_mitigation", "mapdamage2")
             | ("bam.complexity", "preseq")
-            | ("bam.contamination", "contammix" | "schmutzi" | "verifybamid2")
             | ("bam.coverage", "bedtools" | "mosdepth" | "samtools")
             | ("bam.duplication_metrics", "picard" | "samtools")
             | ("bam.endogenous_content", "samtools")
             | ("bam.filter", "bamtools" | "bedtools" | "samtools")
             | ("bam.gc_bias", "picard")
-            | ("bam.haplogroups", "yleaf")
             | ("bam.insert_size", "picard")
             | ("bam.length_filter", "picard" | "samtools")
             | ("bam.mapping_summary", "picard" | "samtools")
@@ -161,7 +165,6 @@ fn is_bam_mini_stage_tool(stage_id: &str, tool_id: &str) -> bool {
             | ("bam.overlap_correction", "bamutil")
             | ("bam.qc_pre", "multiqc" | "samtools")
             | ("bam.recalibration", "gatk")
-            | ("bam.sex", "angsd" | "rxy" | "yleaf")
             | ("bam.validate", "bamtools" | "bedtools" | "samtools")
     )
 }
