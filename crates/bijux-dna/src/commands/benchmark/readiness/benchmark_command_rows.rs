@@ -212,8 +212,8 @@ fn render_bam_stage_tool_argv(
     .with_context(|| format!("load BAM execution spec for `{stage_id}` / `{tool_id}`"))?;
     let (r1, r2) = if stage_id == "bam.align" {
         (
-            Some(find_fastq_input(base_plan, "reads_r1").context("resolve align reads_r1")?),
-            find_fastq_input(base_plan, "reads_r2"),
+            Some(find_first_input(base_plan, &["reads_r1", "fastq_r1"]).context("resolve align reads_r1")?),
+            find_first_input(base_plan, &["reads_r2", "fastq_r2"]),
         )
     } else {
         (None, None)
@@ -224,8 +224,12 @@ fn render_bam_stage_tool_argv(
     let reference = find_reference_fasta(base_plan).or(derived_reference.as_deref());
     let params = project_bam_benchmark_params_for_tool(stage_id, tool_id, base_plan);
     let params_ref = params.as_ref();
-    let sample_id =
-        params_ref.and_then(|value| value.get("sample_id")).and_then(serde_json::Value::as_str);
+    let sample_id = params_ref
+        .and_then(|value| value.get("sample_id"))
+        .and_then(serde_json::Value::as_str)
+        .or_else(|| {
+            base_plan.params.get("sample_id").and_then(serde_json::Value::as_str)
+        });
     let out_dir = benchmark_command_out_dir("bam", stage_id, tool_id).with_context(|| {
         format!("build benchmark command output dir for `{stage_id}` / `{tool_id}`")
     })?;
@@ -724,10 +728,14 @@ fn project_bam_contamination_params_for_tool(
 }
 
 fn find_fastq_input<'a>(plan: &'a StagePlanV1, artifact_name: &str) -> Option<&'a Path> {
+    find_first_input(plan, &[artifact_name])
+}
+
+fn find_first_input<'a>(plan: &'a StagePlanV1, artifact_names: &[&str]) -> Option<&'a Path> {
     plan.io
         .inputs
         .iter()
-        .find(|artifact| artifact.name.as_str() == artifact_name)
+        .find(|artifact| artifact_names.iter().any(|name| artifact.name.as_str() == *name))
         .map(|artifact| artifact.path.as_path())
 }
 

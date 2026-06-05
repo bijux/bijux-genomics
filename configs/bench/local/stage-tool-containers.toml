@@ -9,6 +9,26 @@ classification_scope = "benchmark_ready_runtime_declarations"
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.align"
+tool_id = "bowtie2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bowtie2"
+command_entrypoint = "bowtie2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.align"
+tool_id = "bwa"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bwa"
+command_entrypoint = "bwa"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.authenticity"
 tool_id = "authenticct"
 execution_mode = "containerized"

@@ -104,6 +104,22 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::path::PathBuf;
 
+    struct CurrentDirGuard(PathBuf);
+
+    impl CurrentDirGuard {
+        fn enter(path: &std::path::Path) -> Self {
+            let original = std::env::current_dir().expect("capture current dir");
+            std::env::set_current_dir(path).expect("set current dir");
+            Self(original)
+        }
+    }
+
+    impl Drop for CurrentDirGuard {
+        fn drop(&mut self) {
+            std::env::set_current_dir(&self.0).expect("restore current dir");
+        }
+    }
+
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../..")
@@ -117,13 +133,14 @@ mod tests {
         use super::{render_command_argv, DEFAULT_RENDERED_COMMAND_ARGV_PATH};
 
         let root = repo_root();
+        let _cwd = CurrentDirGuard::enter(&root);
         let report = render_command_argv(&root, PathBuf::from(DEFAULT_RENDERED_COMMAND_ARGV_PATH))
             .expect("render command argv");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.rendered_command_argv.v1");
         assert_eq!(report.output_path, "target/bench-readiness/rendered-commands.argv.jsonl");
-        assert_eq!(report.row_count, 110);
-        assert_eq!(report.rows.len(), 110);
+        assert_eq!(report.row_count, 112);
+        assert_eq!(report.rows.len(), 112);
         assert!(report.rows.iter().all(|row| !row.argv.is_empty()));
     }
 }

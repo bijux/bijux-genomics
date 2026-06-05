@@ -51,19 +51,19 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(110));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(112));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(110)
+        Some(112)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(109));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(111));
     assert_eq!(
         payload.get("container_declared_row_count").and_then(serde_json::Value::as_u64),
-        Some(109)
+        Some(111)
     );
     assert_eq!(
         payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
-        Some(110)
+        Some(112)
     );
     assert_eq!(payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
@@ -78,7 +78,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("domain_counts")
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
-        Some(47)
+        Some(49)
     );
 
     assert_eq!(
@@ -86,7 +86,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("execution_mode_counts")
             .and_then(|value| value.get("containerized"))
             .and_then(serde_json::Value::as_u64),
-        Some(89)
+        Some(91)
     );
     assert_eq!(
         payload
@@ -143,6 +143,44 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     assert_eq!(
         ngsbriggs.get("container_id").and_then(serde_json::Value::as_str),
         Some("bijuxdna/ngsbriggs:0.1.3")
+    );
+    let bwa_align = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bwa")
+        })
+        .expect("bam align bwa row");
+    assert_eq!(
+        bwa_align.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("containerized")
+    );
+    assert_eq!(
+        bwa_align.get("command_entrypoint").and_then(serde_json::Value::as_str),
+        Some("bwa")
+    );
+    assert_eq!(
+        bwa_align.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/bwa")
+    );
+    let bowtie2_align = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2")
+        })
+        .expect("bam align bowtie2 row");
+    assert_eq!(
+        bowtie2_align.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("containerized")
+    );
+    assert_eq!(
+        bowtie2_align.get("command_entrypoint").and_then(serde_json::Value::as_str),
+        Some("bowtie2")
+    );
+    assert_eq!(
+        bowtie2_align.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/bowtie2")
     );
     let angsd_genotyping = rows
         .iter()

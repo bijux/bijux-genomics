@@ -47,8 +47,8 @@ fn bench_readiness_render_commands_reports_governed_benchmark_ready_row_slice() 
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/rendered-commands.sh")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(110));
-    assert_eq!(payload.get("rows").and_then(serde_json::Value::as_array).map(Vec::len), Some(110));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(112));
+    assert_eq!(payload.get("rows").and_then(serde_json::Value::as_array).map(Vec::len), Some(112));
     assert!(payload
         .get("rows")
         .and_then(serde_json::Value::as_array)
