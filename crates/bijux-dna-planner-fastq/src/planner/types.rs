@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use bijux_dna_core::contract::PipelineSpec;
 use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::prelude::{ContainerImageRefV1, ToolExecutionSpecV1};
+use bijux_dna_stage_contract::ArtifactRef;
 use bijux_dna_stage_contract::PlanDecisionReason;
 
 #[derive(Debug, Clone)]
@@ -42,6 +43,13 @@ pub struct FastqStageToolsetBinding {
     pub tools: Vec<ToolExecutionSpecV1>,
     pub reason: Option<PlanDecisionReason>,
     pub params: Option<FastqStageParameters>,
+}
+
+#[derive(Debug, Clone)]
+pub struct FastqStageExplicitInput {
+    pub input_id: String,
+    pub artifact: ArtifactRef,
+    pub source_tool_id: Option<String>,
 }
 
 #[derive(Debug, Clone)]

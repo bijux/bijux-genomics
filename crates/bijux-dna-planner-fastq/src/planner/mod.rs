@@ -230,6 +230,75 @@ pub fn plan_fastq_stage_plans(config: &FastqPlanConfig) -> Result<Vec<StagePlanV
     Ok(plans)
 }
 
+/// # Errors
+/// Returns an error if the explicit-input stage binding cannot be composed into a single stage
+/// plan.
+pub fn plan_fastq_stage_binding_with_explicit_inputs(
+    binding: FastqStageBinding,
+    aux_images: &BTreeMap<String, ContainerImageRefV1>,
+    adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
+    enable_contaminant_removal: bool,
+    r1: &std::path::Path,
+    r2: Option<&std::path::Path>,
+    reference_fasta: Option<&std::path::Path>,
+    explicit_inputs: &[FastqStageExplicitInput],
+    out_dir: PathBuf,
+) -> Result<StagePlanV1> {
+    let synthetic_node_id = format!("{}.explicit_inputs", binding.stage_id);
+    let mut explicit_stage_inputs = crate::compose::StageArtifactInputPolicy::new();
+    explicit_stage_inputs.insert(
+        binding.stage_id.clone(),
+        explicit_inputs
+            .iter()
+            .map(|input| crate::compose::StageArtifactInputBinding {
+                from_stage_node_id: synthetic_node_id.clone(),
+                from_output_id: input.artifact.name.as_str().to_string(),
+                to_input_id: input.input_id.clone(),
+            })
+            .collect(),
+    );
+    let mut synthetic_stage_artifacts = crate::compose::SyntheticStageArtifactPolicy::new();
+    synthetic_stage_artifacts.insert(
+        synthetic_node_id,
+        explicit_inputs
+            .iter()
+            .map(|input| crate::compose::SyntheticStageArtifact {
+                artifact: input.artifact.clone(),
+                source_tool_id: input
+                    .source_tool_id
+                    .clone()
+                    .unwrap_or_else(|| "planner".to_string()),
+            })
+            .collect(),
+    );
+    let stage_id = binding.stage_id.clone();
+    let tool_id = binding.tool.tool_id.as_str().to_string();
+    let plans = crate::compose::compose_fastq_stage_bindings_with_dependencies(
+        &[binding],
+        aux_images,
+        adapter_bank,
+        polyx_bank,
+        contaminant_bank,
+        enable_contaminant_removal,
+        r1,
+        r2,
+        reference_fasta,
+        Some(&explicit_stage_inputs),
+        Some(&synthetic_stage_artifacts),
+        None,
+        |_, _, _| Ok(out_dir.clone()),
+    )?;
+    plans.into_iter().next().ok_or_else(|| {
+        anyhow!(
+            "explicit-input fastq planner produced no stage plan for {} / {}",
+            stage_id,
+            tool_id
+        )
+    })
+}
+
 fn stage_benchmark_declared_bindings(stage_id: &StageId) -> Vec<bijux_dna_core::ids::ToolId> {
     crate::stage_api::toolset_for_stage(
         stage_id,
