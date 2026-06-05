@@ -108,6 +108,42 @@ declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_param
 
 [[rows]]
 domain = "bam"
+stage_id = "bam.kinship"
+tool_id = "angsd"
+asset_role = "reference_fasta"
+asset_id = "corpus_01_bam_reference"
+asset_path = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.kinship"
+tool_id = "angsd"
+asset_role = "reference_panel"
+asset_id = "human_like_relatedness_panel"
+asset_path = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.kinship"
+tool_id = "king"
+asset_role = "reference_fasta"
+asset_id = "corpus_01_bam_reference"
+asset_path = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.kinship"
+tool_id = "king"
+asset_role = "reference_panel"
+asset_id = "human_like_relatedness_panel"
+asset_path = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "bam"
 stage_id = "bam.recalibration"
 tool_id = "gatk"
 asset_role = "known_sites"
