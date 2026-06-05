@@ -212,6 +212,15 @@ Visible aliases are part of the operator surface:
   more than one comparable tool. Each row carries the admitted comparable tools, the default tool,
   the current corpus-routing status, and the governed shared metric fields that make same-stage
   tool comparisons interpretable without relying on tool-private report details.
+- `bijux-dna bench readiness render-fastq-corpus-assignment`
+  `render-fastq-corpus-assignment` writes
+  `target/bench-readiness/fastq-corpus-assignment.tsv` with one governed row per FASTQ
+  stage-tool binding in the 27-stage benchmark slice, carrying `benchmark_status`,
+  `support_status`, `adapter_status`, `parser_status`, and either an assigned
+  `corpus_family_id` plus `fixture_id` or a precise `excluded_reason`. The report validates that
+  every benchmark-ready FASTQ row maps to the correct corpus family (`corpus-01`, `corpus-02`, or
+  `corpus-03`) while keeping planner-only or intentionally excluded corpus gaps explicit in a
+  reviewer-visible contract.
 - `bijux-dna bench readiness render-fastq-normalized-metrics-schema`
   `render-fastq-normalized-metrics-schema` writes
   `schemas/bench/fastq-normalized-metrics.v1.json` with the governed JSON Schema contract for
