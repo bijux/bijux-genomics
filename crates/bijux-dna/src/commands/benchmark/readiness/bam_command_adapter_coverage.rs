@@ -311,13 +311,16 @@ mod tests {
 
         assert_eq!(report.schema_version, BAM_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.stage_count, 24);
-        assert_eq!(report.tool_count, 26);
-        assert_eq!(report.row_count, 50);
-        assert_eq!(report.benchmark_ready_row_count, 42);
-        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 42);
+        assert_eq!(report.tool_count, 25);
+        assert_eq!(report.row_count, 49);
+        assert_eq!(report.benchmark_ready_row_count, 47);
+        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 47);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
-        assert_eq!(report.readiness_gap_counts.get("parser"), Some(&5));
-        assert_eq!(report.readiness_gap_counts.get("support"), Some(&3));
+        assert_eq!(report.readiness_gap_counts.get("parser"), Some(&2));
+        assert!(
+            report.readiness_gap_counts.get("support").is_none(),
+            "the governed BAM readiness slice should no longer carry unsupported rows"
+        );
         assert!(
             report.readiness_gap_counts.get("corpus").is_none(),
             "the governed BAM readiness slice should no longer carry corpus gaps"

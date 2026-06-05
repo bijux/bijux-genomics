@@ -20,6 +20,8 @@ pub enum BenchReadinessCommand {
     RenderBamStageDecisionTable(BenchReadinessRenderBamStageDecisionTableArgs),
     #[command(name = "render-bam-command-adapter-coverage")]
     RenderBamCommandAdapterCoverage(BenchReadinessRenderBamCommandAdapterCoverageArgs),
+    #[command(name = "render-bam-parser-coverage")]
+    RenderBamParserCoverage(BenchReadinessRenderBamParserCoverageArgs),
     #[command(name = "render-fastq-adapter-output-contract")]
     RenderFastqAdapterOutputContract(BenchReadinessRenderFastqAdapterOutputContractArgs),
     #[command(name = "render-fastq-command-adapter-coverage")]
@@ -114,6 +116,14 @@ pub struct BenchReadinessRenderBamStageDecisionTableArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamCommandAdapterCoverageArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamParserCoverageArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
