@@ -40,7 +40,7 @@ fn bench_readiness_render_commands_writes_bash_parseable_script() {
         script.contains("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../..\" && pwd)\"")
     );
     assert!(script.contains("# fastq.detect_adapters / "));
-    assert!(script.contains("# bam.align / "));
+    assert!(script.contains("# bam.damage / ngsbriggs"));
 
     let syntax = Command::new("bash").arg("-n").arg(&script_path).output().expect("run bash -n");
     assert!(syntax.status.success(), "bash -n failed: {}", String::from_utf8_lossy(&syntax.stderr));
