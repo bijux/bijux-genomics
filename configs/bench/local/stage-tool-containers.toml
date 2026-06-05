@@ -150,6 +150,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 [[rows]]
 domain = "bam"
 stage_id = "bam.damage"
+tool_id = "ngsbriggs"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/ngsbriggs:0.1.3"
+command_entrypoint = "ngsbriggs"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
 tool_id = "pmdtools"
 execution_mode = "python"
 install_kind = "container"

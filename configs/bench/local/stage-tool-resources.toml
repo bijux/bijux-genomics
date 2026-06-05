@@ -150,6 +150,16 @@ resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
 [[rows]]
 domain = "bam"
 stage_id = "bam.damage"
+tool_id = "ngsbriggs"
+threads = 1
+memory_gb = 1
+walltime_minutes = 8
+scratch_gb = 1
+resource_origin = "tool_constraints_with_tiny_bam_stage_estimate"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
 tool_id = "pmdtools"
 threads = 1
 memory_gb = 1
