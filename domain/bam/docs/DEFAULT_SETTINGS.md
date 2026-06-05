@@ -72,7 +72,7 @@ single_tool_justification: bam.haplogroups
 - `bam.contamination` rationale: established contamination baseline for aDNA workflows.
 - `bam.sex` rationale: deterministic ratio-based sex inference baseline.
 - `bam.bias_mitigation` rationale: preserve a governed bias-projection baseline through the admitted `mapdamage2` execution surface.
-- `bam.recalibration` rationale: planned recalibration baseline remains pinned until full validation.
+- `bam.recalibration` rationale: preserve a governed BQSR baseline with owned known-sites and low-coverage skip semantics.
 - `bam.haplogroups` rationale: planned deterministic haplogroup assignment baseline.
 - `bam.genotyping` rationale: planned pinned-caller baseline for consistent genotype outputs.
 - `bam.kinship` rationale: reproducible pairwise kinship baseline.
@@ -86,6 +86,8 @@ single_tool_justification: bam.haplogroups
 - `bam.qc_pre`: the admitted `samtools` benchmark row and the governed `multiqc` reporting companion must preserve `total_reads`, `mapped_reads`, `unmapped_reads`, `duplicate_flagged_reads`, and `contig_summary`.
 - `bam.qc_pre`: `samtools` remains the primary executor for raw flagstat/idxstats/stats artifacts, while `multiqc` is currently plannable reporting coverage rather than a local-smoke execution backend.
 - `bam.qc_pre`: governed local-smoke coverage now uses the `corpus-01-bam-mini` duplicate-flagged multi-contig alignment fixture so the canonical count and contig metrics are proven through owned corpus inputs rather than toy asset paths.
+- `bam.recalibration`: the admitted `gatk` benchmark row must preserve the recalibrated BAM, index, recalibration report, summary JSON, and stage-metrics contract.
+- `bam.recalibration`: governed local-smoke coverage now uses the `corpus-01-bam-mini` low-coverage recalibration fixture plus owned known-sites and shared-reference inputs, so coverage-gated skip behavior is proven through owned corpus assets rather than toy paths.
 - `bam.mapping_summary`: the admitted `samtools` row and the governed `picard` comparison row must preserve `mapping_fraction`, `mapped_reads`, `unmapped_reads`, `secondary_reads`, and `supplementary_reads`.
 - `bam.mapping_summary`: `samtools` remains the fixture-backed execution baseline, while `picard` currently contributes supported comparison coverage through alignment-summary metrics plus governed companion artifacts.
 - `bam.mapping_summary`: governed local-smoke coverage now uses the `corpus-01-bam-mini` partial-mapping alignment fixture so the canonical mapped/unmapped split is proven through owned corpus inputs rather than toy asset paths.
