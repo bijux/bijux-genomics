@@ -50,6 +50,7 @@ pub use self::readiness::{
     BenchReadinessCommand, BenchReadinessRenderAdapterMissingInputTestsArgs,
     BenchReadinessRenderBamAdapterOutputContractArgs,
     BenchReadinessRenderBamCommandAdapterCoverageArgs,
+    BenchReadinessRenderBamCorpusAssignmentArgs,
     BenchReadinessRenderBamComparableMetricsArgs,
     BenchReadinessRenderBamNormalizedMetricsSchemaArgs, BenchReadinessRenderBamParserCoverageArgs,
     BenchReadinessRenderBamStageDecisionTableArgs, BenchReadinessRenderBamToolServingMapArgs,

@@ -55,7 +55,10 @@ pub fn benchmark_corpus_assignment_for_stage_tool(
                 "Alignment consumes governed FASTQ reads, so BAM planning stays on the general corpus-01 read fixture.",
         }),
         ("bam.authenticity", "authenticct" | "damageprofiler" | "pmdtools")
-        | ("bam.damage", "addeam" | "damageprofiler" | "ngsbriggs") => {
+        | (
+            "bam.damage",
+            "addeam" | "damageprofiler" | "mapdamage2" | "ngsbriggs" | "pmdtools" | "pydamage",
+        ) => {
             Some(BenchmarkCorpusAssignment::Assigned {
                 family: BenchmarkCorpusFamily::AdnaBam,
                 rationale:
@@ -101,7 +104,10 @@ pub fn governed_benchmark_stage_tool_bindings() -> &'static [(&'static str, &'st
         ("bam.coverage", "samtools"),
         ("bam.damage", "addeam"),
         ("bam.damage", "damageprofiler"),
+        ("bam.damage", "mapdamage2"),
         ("bam.damage", "ngsbriggs"),
+        ("bam.damage", "pmdtools"),
+        ("bam.damage", "pydamage"),
         ("bam.duplication_metrics", "picard"),
         ("bam.duplication_metrics", "samtools"),
         ("bam.endogenous_content", "samtools"),

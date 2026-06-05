@@ -181,6 +181,11 @@ pub(crate) fn handle_meta_commands(
                         args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamCorpusAssignment(args) => {
+                        crate::commands::benchmark::readiness::bam_corpus_assignment::run_render_bam_corpus_assignment(
+                        args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamComparableMetrics(args) => {
                         crate::commands::benchmark::readiness::bam_comparable_metrics::run_render_bam_comparable_metrics(
                         args,

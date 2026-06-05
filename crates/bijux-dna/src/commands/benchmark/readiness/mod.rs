@@ -4,6 +4,7 @@ pub(crate) mod adapter_missing_input_tests;
 pub(crate) mod bam_adapter_output_contract;
 pub(crate) mod bam_comparable_metrics;
 pub(crate) mod bam_command_adapter_coverage;
+pub(crate) mod bam_corpus_assignment;
 pub(crate) mod bam_normalized_metrics_schema;
 pub(crate) mod bam_parser_coverage;
 pub(crate) mod bam_stage_decision_table;
