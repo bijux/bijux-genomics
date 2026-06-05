@@ -32,7 +32,7 @@ private implementation modules.
 - Metrics and invariants: QC summaries, classification metrics, invariant specs, thresholds, and
   invariant evaluation.
 - Execution support and governance: execution support catalogs, stage/tool governance profiles,
-  input-layout filtering, maturity, and benchmark readiness.
+  input-layout filtering, maturity, benchmark readiness, and benchmark corpus-family routing.
 - Observer and run helpers: parser contracts, observer specialization, FASTQ input discovery, and
   benchmark corpus descriptors.
 

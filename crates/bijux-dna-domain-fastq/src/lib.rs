@@ -277,13 +277,14 @@ pub use run::{
     BenchDatasetScenario, BENCH_CORPUS_MANIFEST_SCHEMA_VERSION,
 };
 pub use stage_tool_governance::{
-    benchmark_readiness_for_stage_tool, declared_input_layouts_for_stage,
-    filter_tools_for_input_layout, stage_accepts_input_layout, stage_benchmark_governance,
-    stage_tool_capability_contract, stage_tool_governance_profile,
+    benchmark_corpus_assignment_for_stage_tool, benchmark_readiness_for_stage_tool,
+    declared_input_layouts_for_stage, filter_tools_for_input_layout, stage_accepts_input_layout,
+    stage_benchmark_governance, stage_tool_capability_contract, stage_tool_governance_profile,
     stage_tool_governance_profiles_for_stage, stage_tool_maturity, tool_supports_input_layout,
-    BenchmarkReadinessLevel, FastqStageLayoutPolicy, RuntimeNormalizationLevel,
-    StageBenchmarkGovernance, StageToolBenchmarkContractMaturity, StageToolCapabilityContract,
-    StageToolGovernanceProfile, StageToolMaturityLevel, StageToolNormalizationMaturity,
+    BenchmarkCorpusAssignment, BenchmarkCorpusFamily, BenchmarkReadinessLevel,
+    FastqStageLayoutPolicy, RuntimeNormalizationLevel, StageBenchmarkGovernance,
+    StageToolBenchmarkContractMaturity, StageToolCapabilityContract, StageToolGovernanceProfile,
+    StageToolMaturityLevel, StageToolNormalizationMaturity,
 };
 pub use stages::{
     assess_merge_suitability, contract_for_stage, ensure_umi_headers, inspect_headers,
