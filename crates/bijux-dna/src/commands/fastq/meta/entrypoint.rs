@@ -206,6 +206,11 @@ pub(crate) fn handle_meta_commands(
                         args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderExpectedBenchmarkResults(args) => {
+                        crate::commands::benchmark::readiness::expected_benchmark_results::run_render_expected_benchmark_results(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderParserCompletenessGate(args) => {
                         crate::commands::benchmark::readiness::parser_completeness_gate::run_render_parser_completeness_gate(
                             args,

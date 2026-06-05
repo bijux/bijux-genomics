@@ -30,6 +30,8 @@ pub enum BenchReadinessCommand {
     RenderBamNormalizedMetricsSchema(BenchReadinessRenderBamNormalizedMetricsSchemaArgs),
     #[command(name = "render-bam-parser-coverage")]
     RenderBamParserCoverage(BenchReadinessRenderBamParserCoverageArgs),
+    #[command(name = "render-expected-benchmark-results")]
+    RenderExpectedBenchmarkResults(BenchReadinessRenderExpectedBenchmarkResultsArgs),
     #[command(name = "render-parser-completeness-gate")]
     RenderParserCompletenessGate(BenchReadinessRenderParserCompletenessGateArgs),
     #[command(name = "render-corpus-asset-coverage-gate")]
@@ -176,6 +178,14 @@ pub struct BenchReadinessRenderBamNormalizedMetricsSchemaArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamParserCoverageArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderExpectedBenchmarkResultsArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
