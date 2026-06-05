@@ -84,7 +84,9 @@ fn local_authenticity_smoke_plans_use_governed_bam_fixture() -> Result<()> {
         .unwrap_or_else(|| panic!("authenticity report output missing from BAM plan"));
     assert_eq!(
         authenticity_output.path,
-        PathBuf::from("target/local-smoke/bam.authenticity/adna_like_damage/authenticct/authenticity.json")
+        PathBuf::from(
+            "target/local-smoke/bam.authenticity/adna_like_damage/authenticct/authenticity.json"
+        )
     );
 
     Ok(())

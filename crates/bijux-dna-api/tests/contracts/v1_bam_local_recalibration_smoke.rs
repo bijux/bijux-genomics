@@ -119,7 +119,9 @@ fn write_local_recalibration_smoke_report_materializes_governed_outputs() -> Res
     assert_eq!(
         summary_json["reference_fasta"],
         serde_json::json!(repo_root
-            .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+            .join(
+                "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            )
             .display()
             .to_string())
     );

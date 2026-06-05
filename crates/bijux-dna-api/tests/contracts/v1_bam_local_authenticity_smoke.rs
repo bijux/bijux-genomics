@@ -215,11 +215,19 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
             path.display()
         );
     }
-    assert!(damage_path.ends_with("target/local-smoke/bam.authenticity/adna_like_damage/damage/damage.unified_metrics.json"));
+    assert!(damage_path.ends_with(
+        "target/local-smoke/bam.authenticity/adna_like_damage/damage/damage.unified_metrics.json"
+    ));
     assert!(contamination_path.ends_with("target/local-smoke/bam.authenticity/adna_like_damage/contamination/contamination.summary.json"));
-    assert!(complexity_path.ends_with("target/local-smoke/bam.authenticity/adna_like_damage/complexity/complexity.summary.json"));
-    assert!(coverage_path.ends_with("target/local-smoke/bam.authenticity/adna_like_damage/coverage/coverage.regime.json"));
-    assert!(mapping_path.ends_with("target/local-smoke/bam.authenticity/adna_like_damage/mapping_summary/mapping_summary.json"));
+    assert!(complexity_path.ends_with(
+        "target/local-smoke/bam.authenticity/adna_like_damage/complexity/complexity.summary.json"
+    ));
+    assert!(coverage_path.ends_with(
+        "target/local-smoke/bam.authenticity/adna_like_damage/coverage/coverage.regime.json"
+    ));
+    assert!(mapping_path.ends_with(
+        "target/local-smoke/bam.authenticity/adna_like_damage/mapping_summary/mapping_summary.json"
+    ));
 
     let report_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&authenticity_report)?)?;
@@ -233,10 +241,7 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
         stage_metrics_json["schema_version"],
         serde_json::json!("bijux.bam.authenticity.local_smoke.metrics.v1")
     );
-    assert_eq!(
-        stage_metrics_json["sample_id"],
-        serde_json::json!("adna_like_damage")
-    );
+    assert_eq!(stage_metrics_json["sample_id"], serde_json::json!("adna_like_damage"));
     assert_eq!(stage_metrics_json["method"], serde_json::json!("authenticct"));
     assert_eq!(stage_metrics_json["expected_score"], serde_json::json!(0.5333333333333333));
     assert_eq!(stage_metrics_json["score"], serde_json::json!(0.5333333333333333));

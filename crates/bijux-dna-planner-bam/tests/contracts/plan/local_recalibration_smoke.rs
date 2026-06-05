@@ -51,7 +51,9 @@ fn local_recalibration_smoke_plans_use_governed_skip_case() -> Result<()> {
     );
     assert_eq!(
         case.reference,
-        PathBuf::from("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
     );
     assert_eq!(
         case.known_sites,
@@ -79,7 +81,9 @@ fn local_recalibration_smoke_plans_use_governed_skip_case() -> Result<()> {
     );
     assert_eq!(
         case.plan.params["reference"],
-        serde_json::json!("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+        serde_json::json!(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
     );
     assert_eq!(
         case.plan.params["known_sites"],

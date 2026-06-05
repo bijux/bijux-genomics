@@ -76,8 +76,7 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
     );
     assert!(
         skips.iter().any(|skip| {
-            skip.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("bam.recalibration")
+            skip.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.recalibration")
                 && skip.get("corpus_id").and_then(serde_json::Value::as_str)
                     == Some("corpus-01-mini")
                 && skip.get("replacement_corpus_id").and_then(serde_json::Value::as_str)
@@ -117,8 +116,7 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
     );
     assert!(
         skips.iter().any(|skip| {
-            skip.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("bam.bias_mitigation")
+            skip.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.bias_mitigation")
                 && skip.get("corpus_id").and_then(serde_json::Value::as_str)
                     == Some("corpus-01-mini")
                 && skip.get("replacement_corpus_id").and_then(serde_json::Value::as_str)

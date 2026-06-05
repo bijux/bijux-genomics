@@ -49,10 +49,7 @@ fn write_local_overlap_correction_smoke_report_materializes_governed_outputs() -
         payload["schema_version"],
         serde_json::json!("bijux.bam.overlap_correction.local_smoke.report.v1")
     );
-    assert_eq!(
-        payload["sample_id"],
-        serde_json::json!("human_like_paired_overlap_control")
-    );
+    assert_eq!(payload["sample_id"], serde_json::json!("human_like_paired_overlap_control"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(payload["method"], serde_json::json!("bamutil"));
     assert_eq!(payload["pair_count"], serde_json::json!(2));

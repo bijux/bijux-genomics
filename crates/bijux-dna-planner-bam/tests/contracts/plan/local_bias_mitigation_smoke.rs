@@ -63,7 +63,9 @@ fn local_bias_mitigation_smoke_plans_use_governed_bam_reference_and_expectations
     assert!((case.expected_post_mitigation_metric - 0.125).abs() <= 1e-9);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2")
+        PathBuf::from(
+            "target/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2"
+        )
     );
     assert_eq!(
         case.plan.params["bam"],
