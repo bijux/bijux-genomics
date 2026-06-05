@@ -12,9 +12,9 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_TAXONOMY_MINI_MANIFEST_PATH: &str =
     "tests/fixtures/databases/taxonomy-mini/manifest.toml";
 pub(crate) const TAXONOMY_DATABASE_FIXTURE_SCHEMA_VERSION: &str =
-    "bijux.bench.taxonomy_database_fixture.v1";
+    "bijux.bench.taxonomy_database_fixture.v2";
 const TAXONOMY_DATABASE_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
-    "bijux.bench.taxonomy_database_fixture_validation.v1";
+    "bijux.bench.taxonomy_database_fixture_validation.v2";
 const ADMITTED_CLASSIFIER_COMPATIBILITY: &[&str] =
     &["kraken2", "krakenuniq", "centrifuge", "kaiju"];
 
@@ -26,11 +26,18 @@ pub(crate) struct TaxonomyDatabaseFixtureManifest {
     pub(crate) description: String,
     pub(crate) lineage_table_path: PathBuf,
     pub(crate) source_manifest_path: PathBuf,
-    pub(crate) sequence_index_path: PathBuf,
     pub(crate) expected_classifier_compatibility: Vec<String>,
+    pub(crate) classifier_backends: Vec<TaxonomyClassifierBackendManifest>,
     pub(crate) limitations: Vec<String>,
     pub(crate) source_paths: Vec<PathBuf>,
     pub(crate) taxa: Vec<TaxonomyFixtureTaxon>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct TaxonomyClassifierBackendManifest {
+    pub(crate) classifier: String,
+    pub(crate) index_path: PathBuf,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -49,8 +56,8 @@ pub(crate) struct TaxonomyDatabaseFixtureValidationReport {
     pub(crate) description: String,
     pub(crate) lineage_table_path: String,
     pub(crate) source_manifest_path: String,
-    pub(crate) sequence_index_path: String,
     pub(crate) expected_classifier_compatibility: Vec<String>,
+    pub(crate) classifier_backends: Vec<TaxonomyClassifierBackendReport>,
     pub(crate) limitations: Vec<String>,
     pub(crate) taxa_count: usize,
     pub(crate) taxa: Vec<TaxonomyFixtureTaxon>,
@@ -58,6 +65,12 @@ pub(crate) struct TaxonomyDatabaseFixtureValidationReport {
     pub(crate) backend_roots: Vec<BackendRootDigest>,
     pub(crate) source_paths: Vec<String>,
     pub(crate) valid: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub(crate) struct TaxonomyClassifierBackendReport {
+    pub(crate) classifier: String,
+    pub(crate) index_path: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -100,26 +113,14 @@ pub(crate) fn validate_taxonomy_database_fixture_manifest_path(
         resolve_manifest_relative_path(manifest_dir, &manifest.lineage_table_path);
     let source_manifest_path =
         resolve_manifest_relative_path(manifest_dir, &manifest.source_manifest_path);
-    let sequence_index_path =
-        resolve_manifest_relative_path(manifest_dir, &manifest.sequence_index_path);
 
     ensure_file(&lineage_table_path, "taxonomy lineage table")?;
     ensure_file(&source_manifest_path, "taxonomy source manifest")?;
-    ensure_file(&sequence_index_path, "taxonomy sequence index")?;
+    let classifier_backends =
+        resolve_classifier_backend_reports(repo_root, fixture_root, manifest_dir, &manifest)?;
 
     let lineage_rows = parse_lineage_rows(&lineage_table_path)?;
     validate_manifest_taxa_against_lineage(&manifest, &lineage_rows)?;
-
-    if !manifest
-        .expected_classifier_compatibility
-        .iter()
-        .any(|backend| sequence_index_path.starts_with(fixture_root.join(backend)))
-    {
-        return Err(anyhow!(
-            "taxonomy database fixture sequence_index_path `{}` is not rooted under any expected classifier compatibility backend",
-            sequence_index_path.display()
-        ));
-    }
 
     let lineage_payload = build_lineage_payload(
         fixture_root,
@@ -153,8 +154,8 @@ pub(crate) fn validate_taxonomy_database_fixture_manifest_path(
         description: manifest.description,
         lineage_table_path: path_relative_to_repo(repo_root, &lineage_table_path),
         source_manifest_path: path_relative_to_repo(repo_root, &source_manifest_path),
-        sequence_index_path: path_relative_to_repo(repo_root, &sequence_index_path),
         expected_classifier_compatibility: manifest.expected_classifier_compatibility,
+        classifier_backends,
         limitations: manifest.limitations,
         taxa_count: manifest.taxa.len(),
         taxa: manifest.taxa,
@@ -193,7 +194,7 @@ fn validate_taxonomy_database_fixture_manifest_contract(
             "taxonomy database fixture must declare at least one `expected_classifier_compatibility` entry"
         ));
     }
-    let mut classifiers = BTreeSet::new();
+    let mut expected_classifiers = BTreeSet::new();
     for classifier in &manifest.expected_classifier_compatibility {
         if classifier.trim().is_empty() {
             return Err(anyhow!(
@@ -206,12 +207,48 @@ fn validate_taxonomy_database_fixture_manifest_contract(
                 classifier
             ));
         }
-        if !classifiers.insert(classifier.clone()) {
+        if !expected_classifiers.insert(classifier.clone()) {
             return Err(anyhow!(
                 "taxonomy database fixture repeats classifier compatibility `{}`",
                 classifier
             ));
         }
+    }
+    if manifest.classifier_backends.is_empty() {
+        return Err(anyhow!(
+            "taxonomy database fixture must declare at least one `classifier_backends` entry"
+        ));
+    }
+    let mut backend_classifiers = BTreeSet::new();
+    for backend in &manifest.classifier_backends {
+        if backend.classifier.trim().is_empty() {
+            return Err(anyhow!(
+                "taxonomy database fixture classifier backend entries must declare a non-empty `classifier`"
+            ));
+        }
+        if backend.index_path.as_os_str().is_empty() {
+            return Err(anyhow!(
+                "taxonomy database fixture classifier backend `{}` must declare a non-empty `index_path`",
+                backend.classifier
+            ));
+        }
+        if !ADMITTED_CLASSIFIER_COMPATIBILITY.contains(&backend.classifier.as_str()) {
+            return Err(anyhow!(
+                "taxonomy database fixture classifier backend `{}` is not admitted",
+                backend.classifier
+            ));
+        }
+        if !backend_classifiers.insert(backend.classifier.clone()) {
+            return Err(anyhow!(
+                "taxonomy database fixture repeats classifier backend `{}`",
+                backend.classifier
+            ));
+        }
+    }
+    if expected_classifiers != backend_classifiers {
+        return Err(anyhow!(
+            "taxonomy database fixture classifier_backends must match expected_classifier_compatibility exactly"
+        ));
     }
     if manifest.limitations.is_empty()
         || manifest.limitations.iter().any(|entry| entry.trim().is_empty())
@@ -250,6 +287,37 @@ fn validate_taxonomy_database_fixture_manifest_contract(
         }
     }
     Ok(())
+}
+
+fn resolve_classifier_backend_reports(
+    repo_root: &Path,
+    fixture_root: &Path,
+    manifest_dir: &Path,
+    manifest: &TaxonomyDatabaseFixtureManifest,
+) -> Result<Vec<TaxonomyClassifierBackendReport>> {
+    manifest
+        .classifier_backends
+        .iter()
+        .map(|backend| {
+            let index_path = resolve_manifest_relative_path(manifest_dir, &backend.index_path);
+            ensure_file(
+                &index_path,
+                &format!("taxonomy classifier backend `{}` index", backend.classifier),
+            )?;
+            if !index_path.starts_with(fixture_root.join(&backend.classifier)) {
+                return Err(anyhow!(
+                    "taxonomy database fixture classifier backend `{}` index `{}` is not rooted under `{}`",
+                    backend.classifier,
+                    index_path.display(),
+                    fixture_root.join(&backend.classifier).display()
+                ));
+            }
+            Ok(TaxonomyClassifierBackendReport {
+                classifier: backend.classifier.clone(),
+                index_path: path_relative_to_repo(repo_root, &index_path),
+            })
+        })
+        .collect()
 }
 
 fn validate_manifest_taxa_against_lineage(
@@ -364,7 +432,41 @@ mod tests {
 
         assert_eq!(report.schema_version, TAXONOMY_DATABASE_FIXTURE_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.database_id, "taxonomy-mini");
-        assert_eq!(report.expected_classifier_compatibility, vec!["kraken2".to_string()]);
+        assert_eq!(
+            report.expected_classifier_compatibility,
+            vec![
+                "kraken2".to_string(),
+                "krakenuniq".to_string(),
+                "centrifuge".to_string(),
+                "kaiju".to_string()
+            ]
+        );
+        assert_eq!(
+            report.classifier_backends,
+            vec![
+                super::TaxonomyClassifierBackendReport {
+                    classifier: "kraken2".to_string(),
+                    index_path:
+                        "tests/fixtures/databases/taxonomy-mini/kraken2/hash.k2d".to_string(),
+                },
+                super::TaxonomyClassifierBackendReport {
+                    classifier: "krakenuniq".to_string(),
+                    index_path: "tests/fixtures/databases/taxonomy-mini/krakenuniq/database.kdb"
+                        .to_string(),
+                },
+                super::TaxonomyClassifierBackendReport {
+                    classifier: "centrifuge".to_string(),
+                    index_path:
+                        "tests/fixtures/databases/taxonomy-mini/centrifuge/reference.1.cf"
+                            .to_string(),
+                },
+                super::TaxonomyClassifierBackendReport {
+                    classifier: "kaiju".to_string(),
+                    index_path: "tests/fixtures/databases/taxonomy-mini/kaiju/nodes.dmp"
+                        .to_string(),
+                },
+            ]
+        );
         assert_eq!(report.taxa_count, 3);
         assert_eq!(report.source_record_count, 3);
         assert_eq!(report.backend_roots.len(), 5);
@@ -382,8 +484,8 @@ mod tests {
         let broken = fs::read_to_string(root.join(DEFAULT_TAXONOMY_MINI_MANIFEST_PATH))
             .expect("read governed taxonomy-mini manifest")
             .replacen(
-                "expected_classifier_compatibility = [\"kraken2\"]",
-                "expected_classifier_compatibility = [\"metaphlan\"]",
+                "expected_classifier_compatibility = [\"kraken2\", \"krakenuniq\", \"centrifuge\", \"kaiju\"]",
+                "expected_classifier_compatibility = [\"metaphlan\", \"krakenuniq\", \"centrifuge\", \"kaiju\"]",
                 1,
             );
         fs::write(&manifest_path, broken).expect("write broken manifest");
@@ -395,6 +497,29 @@ mod tests {
                 .to_string()
                 .contains("taxonomy database fixture classifier `metaphlan` is not admitted"),
             "validation error should explain classifier compatibility drift: {error:#}"
+        );
+    }
+
+    #[test]
+    fn taxonomy_mini_fixture_validation_requires_backend_row_for_every_classifier() {
+        let root = repo_root();
+        let temp = tempfile::tempdir().expect("tempdir");
+        let manifest_path = temp.path().join("manifest.toml");
+        let broken = fs::read_to_string(root.join(DEFAULT_TAXONOMY_MINI_MANIFEST_PATH))
+            .expect("read governed taxonomy-mini manifest")
+            .replace(
+                "[[classifier_backends]]\nclassifier = \"kaiju\"\nindex_path = \"kaiju/nodes.dmp\"\n",
+                "",
+            );
+        fs::write(&manifest_path, broken).expect("write broken manifest");
+
+        let error = validate_taxonomy_database_fixture_manifest_path(&root, &manifest_path)
+            .expect_err("manifest validation should reject missing classifier backend rows");
+        assert!(
+            error.to_string().contains(
+                "taxonomy database fixture classifier_backends must match expected_classifier_compatibility exactly"
+            ),
+            "validation error should explain classifier-backend drift: {error:#}"
         );
     }
 }
