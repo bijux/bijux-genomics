@@ -136,6 +136,11 @@ pub(crate) fn handle_meta_commands(
                     )?;
                 }
                 BenchCommand::Readiness { command } => match command {
+                    cli::BenchReadinessCommand::RenderCommands(args) => {
+                        crate::commands::benchmark::readiness::rendered_commands::run_render_commands(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderCommandArgv(args) => {
                         crate::commands::benchmark::readiness::rendered_command_argv::run_render_command_argv(
                             args,

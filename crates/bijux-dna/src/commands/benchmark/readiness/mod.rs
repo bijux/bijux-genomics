@@ -7,6 +7,7 @@ pub(crate) mod fastq_command_adapter_coverage;
 pub(crate) mod missing_benchmark_pairs;
 pub(crate) mod orphan_tools;
 pub(crate) mod rendered_command_argv;
+pub(crate) mod rendered_commands;
 pub(crate) mod stage_registry_extra_pairs;
 pub(crate) mod stage_tool_containers;
 pub(crate) mod stage_tool_resources;

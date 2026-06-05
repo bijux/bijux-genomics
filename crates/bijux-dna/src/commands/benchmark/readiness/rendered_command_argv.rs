@@ -4,8 +4,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use serde::Serialize;
 
-use crate::commands::benchmark::local_stage_commands::collect_local_stage_command_entries;
-use crate::commands::benchmark::local_stage_inventory::LocalStageReadinessKind;
+use super::rendered_commands::{collect_rendered_command_rows, RenderedCommandRow};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -50,14 +49,9 @@ pub(crate) fn render_command_argv(
     output_path: PathBuf,
 ) -> Result<RenderedCommandArgvReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
-    let rows = collect_local_stage_command_entries(repo_root, None)?
+    let rows = collect_rendered_command_rows(repo_root)?
         .into_iter()
-        .map(|entry| RenderedCommandArgvRow {
-            stage_id: entry.stage_id,
-            tool_id: entry.tool_id,
-            readiness_kind: readiness_kind_label(entry.readiness_kind).to_string(),
-            argv: entry.argv,
-        })
+        .map(|entry| rendered_command_argv_row(entry))
         .collect::<Vec<_>>();
 
     if let Some(parent) = output_path.parent() {
@@ -74,6 +68,15 @@ pub(crate) fn render_command_argv(
     })
 }
 
+fn rendered_command_argv_row(entry: RenderedCommandRow) -> RenderedCommandArgvRow {
+    RenderedCommandArgvRow {
+        stage_id: entry.stage_id,
+        tool_id: entry.tool_id,
+        readiness_kind: entry.readiness_kind,
+        argv: entry.argv,
+    }
+}
+
 fn render_command_argv_jsonl(rows: &[RenderedCommandArgvRow]) -> Result<String> {
     let mut rendered = String::new();
     for row in rows {
@@ -83,14 +86,6 @@ fn render_command_argv_jsonl(rows: &[RenderedCommandArgvRow]) -> Result<String> 
         rendered.push('\n');
     }
     Ok(rendered)
-}
-
-fn readiness_kind_label(readiness_kind: LocalStageReadinessKind) -> &'static str {
-    match readiness_kind {
-        LocalStageReadinessKind::DryRun => "dry_run",
-        LocalStageReadinessKind::Smoke => "smoke",
-        LocalStageReadinessKind::DryOrSmoke => "dry_or_smoke",
-    }
 }
 
 fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
