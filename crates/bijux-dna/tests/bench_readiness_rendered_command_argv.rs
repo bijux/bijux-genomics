@@ -62,4 +62,25 @@ fn bench_readiness_render_command_argv_reports_governed_51_row_slice() {
                         && argv.iter().any(|arg| arg.as_str() == Some("--stage-id"))
                 })
         }));
+    let rows = payload
+        .get("rows")
+        .and_then(serde_json::Value::as_array)
+        .expect("rows array");
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.detect_adapters")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastqc")
+            && row.get("readiness_kind").and_then(serde_json::Value::as_str) == Some("smoke")
+            && row.get("argv").and_then(serde_json::Value::as_array).is_some_and(|argv| {
+                argv.last().and_then(serde_json::Value::as_str) == Some("fastq.detect_adapters")
+            })
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2")
+            && row.get("readiness_kind").and_then(serde_json::Value::as_str)
+                == Some("dry_or_smoke")
+            && row.get("argv").and_then(serde_json::Value::as_array).is_some_and(|argv| {
+                argv.last().and_then(serde_json::Value::as_str) == Some("bam.align")
+            })
+    }));
 }
