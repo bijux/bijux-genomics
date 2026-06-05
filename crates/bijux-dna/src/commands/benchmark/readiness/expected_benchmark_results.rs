@@ -114,7 +114,7 @@ pub(crate) fn render_expected_benchmark_results(
     })
 }
 
-fn collect_expected_benchmark_result_rows(
+pub(crate) fn collect_expected_benchmark_result_rows(
     repo_root: &Path,
 ) -> Result<Vec<ExpectedBenchmarkResultRow>> {
     let fixture_sample_scopes = load_fixture_sample_scope_map(repo_root)?;
