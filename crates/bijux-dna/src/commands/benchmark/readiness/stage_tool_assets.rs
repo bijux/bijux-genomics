@@ -156,6 +156,7 @@ fn collect_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<StageToolAssetR
             .then_with(|| left.asset_id.cmp(&right.asset_id))
     });
     ensure_unique_stage_tool_asset_rows(&rows)?;
+    ensure_taxonomy_database_asset_coverage(&rows)?;
     Ok(rows)
 }
 
@@ -232,6 +233,40 @@ fn render_fastq_stage_tool_asset_rows(
         }
         _ => Ok(Vec::new()),
     }
+}
+
+fn ensure_taxonomy_database_asset_coverage(rows: &[StageToolAssetRow]) -> Result<()> {
+    let taxonomy_rows = rows
+        .iter()
+        .filter(|row| {
+            row.domain == "fastq"
+                && row.stage_id == "fastq.screen_taxonomy"
+                && row.asset_role == "taxonomy_database_root"
+        })
+        .collect::<Vec<_>>();
+    let expected_tool_ids = ["centrifuge", "kaiju", "kraken2", "krakenuniq"];
+    if taxonomy_rows.len() != expected_tool_ids.len() {
+        return Err(anyhow!(
+            "FASTQ taxonomy asset coverage expected {} rows but found {}",
+            expected_tool_ids.len(),
+            taxonomy_rows.len()
+        ));
+    }
+    for tool_id in expected_tool_ids {
+        let row = taxonomy_rows
+            .iter()
+            .find(|row| row.tool_id == tool_id)
+            .ok_or_else(|| anyhow!("FASTQ taxonomy asset coverage is missing `{tool_id}`"))?;
+        if row.asset_id != "taxonomy_reference"
+            || row.asset_path != "assets/reference/taxonomy/references/mock_community_taxonomy"
+        {
+            return Err(anyhow!(
+                "FASTQ taxonomy asset row `{}` must stay bound to the governed taxonomy reference root",
+                tool_id
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn render_bam_stage_tool_asset_rows(
@@ -516,13 +551,23 @@ mod tests {
         assert_eq!(report.asset_role_counts.get("sites_vcf"), Some(&1));
         assert_eq!(report.asset_role_counts.get("regions"), Some(&1));
         assert_eq!(report.asset_role_counts.get("known_sites"), Some(&1));
-        assert!(report.rows.iter().any(|row| {
-            row.stage_id == "fastq.screen_taxonomy"
-                && row.tool_id == "kraken2"
-                && row.asset_role == "taxonomy_database_root"
-                && row.asset_id == "taxonomy_reference"
-                && row.asset_path == "assets/reference/taxonomy/references/mock_community_taxonomy"
-        }));
+        let taxonomy_rows = report
+            .rows
+            .iter()
+            .filter(|row| {
+                row.stage_id == "fastq.screen_taxonomy"
+                    && row.asset_role == "taxonomy_database_root"
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(taxonomy_rows.len(), 4);
+        for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+            assert!(taxonomy_rows.iter().any(|row| {
+                row.tool_id == tool_id
+                    && row.asset_id == "taxonomy_reference"
+                    && row.asset_path
+                        == "assets/reference/taxonomy/references/mock_community_taxonomy"
+            }));
+        }
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "fastq.deplete_host"
                 && row.tool_id == "bowtie2"
