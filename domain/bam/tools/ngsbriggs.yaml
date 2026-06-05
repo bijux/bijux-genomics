@@ -3,8 +3,10 @@ tool_id: "ngsbriggs"
 upstream: "https://github.com/RAHenriksen/ngsBriggs"
 versioning_strategy: "pinned"
 pin_strategy: "pinned"
-default_version: "planned"
+default_version: "0.1.3"
 install_kind: "container"
+container:
+  image: "bijuxdna/ngsbriggs:0.1.3"
 license: "GPL-3.0"
 citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC11646307/"
 outputs:
@@ -39,7 +41,7 @@ execution_contract:
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 stage_ids: ["bam.damage"]
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
 stage_contracts:
   bam.damage:

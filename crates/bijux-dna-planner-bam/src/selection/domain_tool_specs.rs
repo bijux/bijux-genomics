@@ -453,7 +453,8 @@ mod tests {
         let repo_root = repo_root();
         let stage_id = StageId::new("bam.damage".to_string());
 
-        let supported_tools = ["addeam", "damageprofiler", "mapdamage2", "pmdtools", "pydamage"];
+        let supported_tools =
+            ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"];
         for tool_name in supported_tools {
             let tool_id = ToolId::new(tool_name);
             let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
@@ -461,20 +462,14 @@ mod tests {
                 metadata.stage_ids.iter().any(|candidate| candidate == &stage_id),
                 "{tool_name} metadata must retain admitted bam.damage coverage"
             );
+            assert_eq!(
+                metadata.support_level,
+                BamDomainToolSupportLevel::Supported,
+                "{tool_name} must remain admitted as supported bam.damage coverage"
+            );
             let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
             assert_eq!(spec.tool_id.as_str(), tool_name);
         }
-
-        let planned_tool = ToolId::new("ngsbriggs");
-        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &planned_tool)?;
-        assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Planned);
-        assert_eq!(
-            metadata.pair_support_level(&stage_id).as_str(),
-            "planned",
-            "ngsbriggs must remain explicit planned coverage for bam.damage"
-        );
-        let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &planned_tool)?;
-        assert_eq!(spec.tool_id.as_str(), "ngsbriggs");
         Ok(())
     }
 
@@ -518,6 +513,7 @@ mod tests {
             ("bam.validate", "samtools", "bijuxdna/samtools:1.21"),
             ("bam.damage", "damageprofiler", "bijuxdna/damageprofiler:1.1"),
             ("bam.damage", "mapdamage2", "bijuxdna/mapdamage2:2.2.2"),
+            ("bam.damage", "ngsbriggs", "bijuxdna/ngsbriggs:0.1.3"),
             ("bam.damage", "pmdtools", "bijuxdna/pmdtools:0.60"),
             ("bam.damage", "pydamage", "bijuxdna/pydamage:1.0.0"),
         ] {

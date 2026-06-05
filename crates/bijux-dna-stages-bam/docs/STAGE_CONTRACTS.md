@@ -102,7 +102,7 @@ chr1	1	0.12	0.10
 {"schema_version":"bijux.stage.metrics.v1","stage_id":"bam.damage","tool_id":"pydamage","runtime_s":1.2,"wall_time_ms":1200,"memory_mb":256.0,"exit_code":0}
 ```
 
-The governed BAM damage comparison surface now admits `mapdamage2`, `pydamage`, `damageprofiler`, `addeam`, and `pmdtools`, while retaining a visible planned `ngsbriggs` row. Every row must preserve a damage report, terminal-position metrics, and parser-output semantics even when the backend raw artifact layout differs.
+The governed BAM damage comparison surface now admits `mapdamage2`, `pydamage`, `damageprofiler`, `addeam`, `pmdtools`, and `ngsbriggs`. Every row must preserve a damage report, terminal-position metrics, and parser-output semantics even when the backend raw artifact layout differs.
 
 ### bam.validate
 - Required artifacts:
