@@ -33,7 +33,7 @@ in sync with `bijux-dna-domain-bam` when adding, renaming, or removing stages.
 | `bam.bias_mitigation` | downstream | mapdamage2 | bias report |
 | `bam.recalibration` | downstream | gatk | recalibrated BAM, index, recalibration report |
 | `bam.haplogroups` | downstream | yleaf | haplogroup report |
-| `bam.genotyping` | downstream | angsd, bcftools | genotyping report |
+| `bam.genotyping` | downstream | angsd | genotyping report |
 | `bam.kinship` | downstream | king | kinship report |
 
 ## Observer Contracts

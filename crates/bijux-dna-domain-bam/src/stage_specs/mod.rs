@@ -410,7 +410,7 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "bam.contamination" => vec!["schmutzi", "contammix", "verifybamid2"],
         "bam.sex" => vec!["rxy", "yleaf", "angsd"],
         "bam.bias_mitigation" => vec!["mapdamage2"],
-        "bam.genotyping" => vec!["angsd", "bcftools"],
+        "bam.genotyping" => vec!["angsd"],
         _ => Vec::new(),
     }
 }

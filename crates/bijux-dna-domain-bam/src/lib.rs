@@ -156,6 +156,7 @@ pub fn bam_stage_has_invariants(stage: BamStage) -> bool {
             | BamStage::Sex
             | BamStage::BiasMitigation
             | BamStage::Recalibration
+            | BamStage::Genotyping
             | BamStage::Haplogroups
     )
 }
@@ -188,6 +189,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
             | BamStage::Sex
             | BamStage::BiasMitigation
             | BamStage::Recalibration
+            | BamStage::Genotyping
             | BamStage::Haplogroups
     );
     let has_parser_fixtures = matches!(
@@ -212,6 +214,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
             | BamStage::Sex
             | BamStage::BiasMitigation
             | BamStage::Recalibration
+            | BamStage::Genotyping
             | BamStage::Haplogroups
     );
     let has_invariants = bam_stage_has_invariants(stage);
@@ -245,6 +248,7 @@ pub fn bam_stage_is_stable(stage: BamStage) -> bool {
             | BamStage::Sex
             | BamStage::BiasMitigation
             | BamStage::Recalibration
+            | BamStage::Genotyping
             | BamStage::Haplogroups
     )
 }
@@ -335,6 +339,18 @@ mod tests {
         assert!(completeness.is_complete());
         assert!(bam_stage_has_invariants(BamStage::Recalibration));
         assert!(bam_stage_is_stable(BamStage::Recalibration));
+    }
+
+    #[test]
+    fn genotyping_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::Genotyping);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::Genotyping));
+        assert!(bam_stage_is_stable(BamStage::Genotyping));
     }
 
     #[test]

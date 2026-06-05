@@ -40,8 +40,8 @@ execution_contract:
     - "population_metrics"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
-stage_ids: ["bam.sex","bam.kinship"]
-planned_stage_ids: ["bam.genotyping"]
+stage_ids: ["bam.sex","bam.kinship","bam.genotyping"]
+planned_stage_ids: []
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 stage_contracts:
