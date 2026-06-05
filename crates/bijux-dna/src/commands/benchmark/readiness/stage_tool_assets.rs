@@ -12,6 +12,9 @@ use super::bam_command_adapter_coverage::{
 use super::fastq_command_adapter_coverage::{
     collect_fastq_command_adapter_coverage_rows, FastqBenchmarkStatus,
 };
+use crate::commands::benchmark::local_corpus_fixture::bam::{
+    validate_bam_corpus_fixture_manifest_path, DEFAULT_CORPUS_01_KINSHIP_MINI_MANIFEST_PATH,
+};
 use crate::commands::benchmark::local_stage_commands::collect_local_stage_plan_bundles;
 use crate::commands::benchmark::local_stage_inventory::BenchLocalDomain;
 use crate::commands::cli::parse;
@@ -25,6 +28,13 @@ const STAGE_TOOL_ASSETS_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.sta
 const STAGE_TOOL_ASSETS_SCOPE: &str = "governed_benchmark_command_assets";
 const STAGE_TOOL_ASSETS_DECLARATION_ORIGIN: &str =
     "canonical_local_stage_plan_inputs_and_governed_stage_params";
+
+#[derive(Debug, Clone)]
+struct BamKinshipAssetContract {
+    reference_fasta: PathBuf,
+    reference_panel: String,
+    reference_panel_path: PathBuf,
+}
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -125,6 +135,18 @@ fn collect_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<StageToolAssetR
     let bam_base_plans = canonical_stage_plan_map(repo_root, BenchLocalDomain::Bam)?;
     let (_, _, fastq_rows) = collect_fastq_command_adapter_coverage_rows(repo_root)?;
     let (_, _, bam_rows) = collect_bam_command_adapter_coverage_rows(repo_root)?;
+    let kinship_fixture = validate_bam_corpus_fixture_manifest_path(
+        repo_root,
+        &repo_root.join(DEFAULT_CORPUS_01_KINSHIP_MINI_MANIFEST_PATH),
+    )?;
+    let kinship_contract = kinship_fixture.kinship_contract.as_ref().ok_or_else(|| {
+        anyhow!("BAM kinship asset coverage requires a governed kinship fixture contract")
+    })?;
+    let kinship_assets = BamKinshipAssetContract {
+        reference_fasta: normalize_report_path(repo_root, &kinship_fixture.reference_fasta)?,
+        reference_panel: kinship_contract.reference_panel.clone(),
+        reference_panel_path: normalize_report_path(repo_root, &kinship_contract.reference_panel_path)?,
+    };
 
     let mut rows = Vec::new();
     for row in fastq_rows
@@ -147,7 +169,12 @@ fn collect_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<StageToolAssetR
         let Some(plan) = bam_base_plans.get(&row.stage_id) else {
             continue;
         };
-        rows.extend(render_bam_stage_tool_asset_rows(&row.stage_id, &row.tool_id, plan)?);
+        rows.extend(render_bam_stage_tool_asset_rows(
+            &row.stage_id,
+            &row.tool_id,
+            plan,
+            &kinship_assets,
+        )?);
     }
 
     rows.sort_by(|left, right| {
@@ -160,7 +187,7 @@ fn collect_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<StageToolAssetR
     });
     ensure_unique_stage_tool_asset_rows(&rows)?;
     ensure_taxonomy_database_asset_coverage(&rows)?;
-    ensure_bam_adna_asset_coverage(&rows)?;
+    ensure_bam_asset_coverage(&rows)?;
     Ok(rows)
 }
 
@@ -445,7 +472,7 @@ fn ensure_taxonomy_database_asset_coverage(rows: &[StageToolAssetRow]) -> Result
     Ok(())
 }
 
-fn ensure_bam_adna_asset_coverage(rows: &[StageToolAssetRow]) -> Result<()> {
+fn ensure_bam_asset_coverage(rows: &[StageToolAssetRow]) -> Result<()> {
     for tool_id in ["contammix", "schmutzi", "verifybamid2"] {
         ensure_stage_tool_asset_row(
             rows,
@@ -498,6 +525,72 @@ fn ensure_bam_adna_asset_coverage(rows: &[StageToolAssetRow]) -> Result<()> {
         "BAM haplogroups",
     )?;
 
+    ensure_stage_tool_asset_row(
+        rows,
+        "bam.genotyping",
+        "angsd",
+        "reference_fasta",
+        "corpus_01_bam_reference",
+        "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+        "BAM genotyping",
+    )?;
+    ensure_stage_tool_asset_row(
+        rows,
+        "bam.genotyping",
+        "angsd",
+        "sites_vcf",
+        "human_like_genotyping_candidate_sites",
+        "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+        "BAM genotyping",
+    )?;
+    ensure_stage_tool_asset_row(
+        rows,
+        "bam.genotyping",
+        "angsd",
+        "regions",
+        "human_like_genotyping_target_regions",
+        "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt",
+        "BAM genotyping",
+    )?;
+    ensure_stage_tool_asset_row(
+        rows,
+        "bam.recalibration",
+        "gatk",
+        "reference_fasta",
+        "corpus_01_bam_reference",
+        "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+        "BAM recalibration",
+    )?;
+    ensure_stage_tool_asset_row(
+        rows,
+        "bam.recalibration",
+        "gatk",
+        "known_sites",
+        "human_like_recalibration_known_sites",
+        "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf",
+        "BAM recalibration",
+    )?;
+    for tool_id in ["angsd", "king"] {
+        ensure_stage_tool_asset_row(
+            rows,
+            "bam.kinship",
+            tool_id,
+            "reference_fasta",
+            "corpus_01_bam_reference",
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+            "BAM kinship",
+        )?;
+        ensure_stage_tool_asset_row(
+            rows,
+            "bam.kinship",
+            tool_id,
+            "reference_panel",
+            "human_like_relatedness_panel",
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv",
+            "BAM kinship",
+        )?;
+    }
+
     Ok(())
 }
 
@@ -528,6 +621,7 @@ fn render_bam_stage_tool_asset_rows(
     stage_id: &str,
     tool_id: &str,
     plan: &StagePlanV1,
+    kinship_assets: &BamKinshipAssetContract,
 ) -> Result<Vec<StageToolAssetRow>> {
     match stage_id {
         "bam.contamination" => {
@@ -639,6 +733,26 @@ fn render_bam_stage_tool_asset_rows(
                 ));
             }
             Ok(rows)
+        }
+        "bam.kinship" => {
+            Ok(vec![
+                asset_row(
+                    "bam",
+                    stage_id,
+                    tool_id,
+                    "reference_fasta",
+                    asset_id_from_path(&kinship_assets.reference_fasta),
+                    kinship_assets.reference_fasta.clone(),
+                ),
+                asset_row(
+                    "bam",
+                    stage_id,
+                    tool_id,
+                    "reference_panel",
+                    kinship_assets.reference_panel.clone(),
+                    kinship_assets.reference_panel_path.clone(),
+                ),
+            ])
         }
         _ => Ok(Vec::new()),
     }
@@ -792,6 +906,14 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
     }
 }
 
+fn normalize_report_path(repo_root: &Path, path: &str) -> Result<PathBuf> {
+    let candidate = PathBuf::from(path);
+    let absolute = repo_relative_path(repo_root, &candidate)
+        .canonicalize()
+        .with_context(|| format!("canonicalize {}", repo_relative_path(repo_root, &candidate).display()))?;
+    Ok(PathBuf::from(path_relative_to_repo(repo_root, &absolute)))
+}
+
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
@@ -819,20 +941,20 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_assets.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-assets.toml");
         assert_eq!(report.classification_scope, "governed_benchmark_command_assets");
-        assert_eq!(report.row_count, 32);
-        assert_eq!(report.declared_stage_tool_row_count, 17);
-        assert_eq!(report.asset_id_row_count, 32);
-        assert_eq!(report.unique_asset_id_count, 14);
+        assert_eq!(report.row_count, 36);
+        assert_eq!(report.declared_stage_tool_row_count, 19);
+        assert_eq!(report.asset_id_row_count, 36);
+        assert_eq!(report.unique_asset_id_count, 15);
         assert_eq!(report.domain_counts.get("fastq"), Some(&16));
-        assert_eq!(report.domain_counts.get("bam"), Some(&16));
+        assert_eq!(report.domain_counts.get("bam"), Some(&20));
         assert_eq!(report.asset_role_counts.get("taxonomy_database_root"), Some(&4));
         assert_eq!(report.asset_role_counts.get("database_artifact_id"), Some(&5));
         assert_eq!(report.asset_role_counts.get("reference_catalog_id"), Some(&2));
         assert_eq!(report.asset_role_counts.get("reference_index_artifact_id"), Some(&2));
         assert_eq!(report.asset_role_counts.get("rrna_reference"), Some(&1));
-        assert_eq!(report.asset_role_counts.get("reference_fasta"), Some(&10));
+        assert_eq!(report.asset_role_counts.get("reference_fasta"), Some(&12));
         assert_eq!(report.asset_role_counts.get("reference_index_output"), Some(&1));
-        assert_eq!(report.asset_role_counts.get("reference_panel"), Some(&4));
+        assert_eq!(report.asset_role_counts.get("reference_panel"), Some(&6));
         assert_eq!(report.asset_role_counts.get("sites_vcf"), Some(&1));
         assert_eq!(report.asset_role_counts.get("regions"), Some(&1));
         assert_eq!(report.asset_role_counts.get("known_sites"), Some(&1));
@@ -958,5 +1080,23 @@ mod tests {
                 && row.asset_role == "known_sites"
                 && row.asset_id == "human_like_recalibration_known_sites"
         }));
+        for tool_id in ["angsd", "king"] {
+            assert!(report.rows.iter().any(|row| {
+                row.stage_id == "bam.kinship"
+                    && row.tool_id == tool_id
+                    && row.asset_role == "reference_fasta"
+                    && row.asset_id == "corpus_01_bam_reference"
+                    && row.asset_path
+                        == "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            }));
+            assert!(report.rows.iter().any(|row| {
+                row.stage_id == "bam.kinship"
+                    && row.tool_id == tool_id
+                    && row.asset_role == "reference_panel"
+                    && row.asset_id == "human_like_relatedness_panel"
+                    && row.asset_path
+                        == "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv"
+            }));
+        }
     }
 }
