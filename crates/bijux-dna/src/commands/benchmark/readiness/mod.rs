@@ -24,6 +24,7 @@ pub(crate) mod fastq_report_map;
 pub(crate) mod missing_benchmark_pairs;
 pub(crate) mod missing_result_report;
 pub(crate) mod orphan_tools;
+pub(crate) mod pair_readiness;
 pub(crate) mod parser_completeness_gate;
 pub(crate) mod parser_failure_tests;
 pub(crate) mod rendered_command_argv;
