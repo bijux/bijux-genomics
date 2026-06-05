@@ -39,7 +39,7 @@ Purpose: define deterministic defaults for every BAM stage contract.
 - `bam.bias_mitigation`: default `mapdamage2`.
 - `bam.recalibration`: default `gatk`.
 - `bam.haplogroups`: default `yleaf`.
-- `bam.genotyping`: default `gatk`.
+- `bam.genotyping`: default `angsd`.
 - `bam.kinship`: default `king`.
 
 single_tool_justification: bam.complexity
@@ -74,7 +74,7 @@ single_tool_justification: bam.haplogroups
 - `bam.bias_mitigation` rationale: preserve a governed bias-projection baseline through the admitted `mapdamage2` execution surface.
 - `bam.recalibration` rationale: preserve a governed BQSR baseline with owned known-sites and low-coverage skip semantics.
 - `bam.haplogroups` rationale: deterministic Y-haplogroup assignment baseline with an owned corpus-backed panel contract.
-- `bam.genotyping` rationale: planned pinned-caller baseline for consistent genotype outputs.
+- `bam.genotyping` rationale: preserve a governed low-depth genotyping baseline with owned candidate-sites and target-regions contracts.
 - `bam.kinship` rationale: reproducible pairwise kinship baseline.
 
 ## Benchmark Contract Notes

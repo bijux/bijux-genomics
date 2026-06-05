@@ -48,5 +48,5 @@ Clarifies tool coverage and rationale.
 | bam.bias_mitigation | planned | samtools | Bias-mitigation remains planned until its mutation/reporting contract is promoted. |
 | bam.recalibration | supported | gatk | BQSR is admitted through the governed low-coverage skip contract with owned known-sites evidence. |
 | bam.haplogroups | supported | yleaf | Haplogroup inference is admitted through the governed Y-panel fixture and owned readiness contract. |
-| bam.genotyping | planned | gatk | BAM-driven genotype summaries remain planned in the current pre-HPC surface. |
+| bam.genotyping | supported | angsd | BAM-driven genotype summaries are admitted through the governed low-depth ANGSD contract with owned candidate-sites and target-regions inputs. |
 | bam.kinship | supported | king, angsd | Kinship inference admits pairwise and GL-aware method families. |

@@ -39,6 +39,6 @@ instead of merely syntactically valid.
   scientific interpretations in the pre-HPC surface.
 - Planned stages such as `bam.qc_pre`, `bam.markdup`, `bam.gc_bias`, `bam.insert_size`,
   `bam.overlap_correction`, `bam.bias_mitigation`, `bam.recalibration`,
-  `bam.genotyping`, and `bam.complexity` stay documented in
+  and `bam.complexity` stay documented in
   [STAGE_CATALOG.md](STAGE_CATALOG.md) and [TOOLS_ROSTER.md](TOOLS_ROSTER.md), but they do not belong in this
   supported-stage assumption ledger yet.
