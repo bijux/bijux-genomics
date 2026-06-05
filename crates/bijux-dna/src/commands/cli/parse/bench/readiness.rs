@@ -2,6 +2,8 @@ use clap::{Args, Subcommand};
 
 #[derive(Debug, Subcommand)]
 pub enum BenchReadinessCommand {
+    #[command(name = "render-adapter-missing-input-tests")]
+    RenderAdapterMissingInputTests(BenchReadinessRenderAdapterMissingInputTestsArgs),
     #[command(name = "render-commands")]
     RenderCommands(BenchReadinessRenderCommandsArgs),
     #[command(name = "render-command-argv")]
@@ -42,6 +44,14 @@ pub enum BenchReadinessCommand {
     RenderOrphanTools(BenchReadinessRenderOrphanToolsArgs),
     #[command(name = "render-undercovered-stages")]
     RenderUndercoveredStages(BenchReadinessRenderUndercoveredStagesArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderAdapterMissingInputTestsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
 }
 
 #[derive(Debug, Args)]

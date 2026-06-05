@@ -136,6 +136,11 @@ pub(crate) fn handle_meta_commands(
                     )?;
                 }
                 BenchCommand::Readiness { command } => match command {
+                    cli::BenchReadinessCommand::RenderAdapterMissingInputTests(args) => {
+                        crate::commands::benchmark::readiness::adapter_missing_input_tests::run_render_adapter_missing_input_tests(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderCommands(args) => {
                         crate::commands::benchmark::readiness::rendered_commands::run_render_commands(
                             args,
