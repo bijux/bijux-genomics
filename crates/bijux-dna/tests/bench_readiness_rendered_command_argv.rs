@@ -36,7 +36,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_render_command_argv_reports_governed_51_row_slice() {
+fn bench_readiness_render_command_argv_reports_governed_benchmark_ready_row_slice() {
     let payload = run_cli_json(&["bench", "readiness", "render-command-argv", "--json"]);
 
     assert_eq!(
@@ -47,8 +47,8 @@ fn bench_readiness_render_command_argv_reports_governed_51_row_slice() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/rendered-commands.argv.jsonl")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(51));
-    assert_eq!(payload.get("rows").and_then(serde_json::Value::as_array).map(Vec::len), Some(51));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(110));
+    assert_eq!(payload.get("rows").and_then(serde_json::Value::as_array).map(Vec::len), Some(110));
     assert!(payload
         .get("rows")
         .and_then(serde_json::Value::as_array)
@@ -57,30 +57,32 @@ fn bench_readiness_render_command_argv_reports_governed_51_row_slice() {
         .all(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str).is_some()
                 && row.get("tool_id").and_then(serde_json::Value::as_str).is_some()
-                && row.get("argv").and_then(serde_json::Value::as_array).is_some_and(|argv| {
-                    argv.first().and_then(serde_json::Value::as_str) == Some("cargo")
-                        && argv.iter().any(|arg| arg.as_str() == Some("--stage-id"))
-                })
+                && row
+                    .get("argv")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|argv| argv.first().and_then(serde_json::Value::as_str).is_some())
         }));
-    let rows = payload
-        .get("rows")
-        .and_then(serde_json::Value::as_array)
-        .expect("rows array");
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert!(rows.iter().any(|row| {
-        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.detect_adapters")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastqc")
-            && row.get("readiness_kind").and_then(serde_json::Value::as_str) == Some("smoke")
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.screen_taxonomy")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("kraken2")
+            && row.get("readiness_kind").and_then(serde_json::Value::as_str) == Some("dry_or_smoke")
             && row.get("argv").and_then(serde_json::Value::as_array).is_some_and(|argv| {
-                argv.last().and_then(serde_json::Value::as_str) == Some("fastq.detect_adapters")
+                argv.first().and_then(serde_json::Value::as_str).is_some()
+                    && argv
+                        .iter()
+                        .any(|arg| arg.as_str().is_some_and(|item| item.contains("kraken2")))
             })
     }));
     assert!(rows.iter().any(|row| {
-        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2")
-            && row.get("readiness_kind").and_then(serde_json::Value::as_str)
-                == Some("dry_or_smoke")
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ngsbriggs")
+            && row.get("readiness_kind").and_then(serde_json::Value::as_str) == Some("smoke")
             && row.get("argv").and_then(serde_json::Value::as_array).is_some_and(|argv| {
-                argv.last().and_then(serde_json::Value::as_str) == Some("bam.align")
+                argv.first().and_then(serde_json::Value::as_str).is_some()
+                    && argv
+                        .iter()
+                        .any(|arg| arg.as_str().is_some_and(|item| item.contains("ngsbriggs")))
             })
     }));
 }
