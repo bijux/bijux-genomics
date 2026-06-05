@@ -150,6 +150,12 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row == &"bam.haplogroups\tbenchmark_ready\tyleaf\tyleaf\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.haplogroups` is benchmark_ready via `yleaf` with a fixture-backed parser-validated BAM benchmark row"
+        }),
+        "TSV must retain the governed benchmark-ready bam.haplogroups row"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row == &"bam.align\tneeds_parser\tbwa\tbwa\tsupported\trunnable\tartifact_contract_only\tfixture:corpus-01-mini\tstage `bam.align` has a supported adapter-backed BAM benchmark row via `bwa` but no parser-fixture-validated result normalizer"
         }),
         "TSV must retain the governed parser blocker for bam.align"

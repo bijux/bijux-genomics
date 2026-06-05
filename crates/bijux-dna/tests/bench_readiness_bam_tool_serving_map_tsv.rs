@@ -83,7 +83,7 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         "samtools\tbam.duplication_metrics\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "picard\tbam.duplication_metrics\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
         "mapdamage2\tbam.bias_mitigation\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
-        "yleaf\tbam.haplogroups\tsupported\trunnable\tscientific_report_contract\tplanner_only",
+        "yleaf\tbam.haplogroups\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini",
     ] {
         assert!(
             rows.iter().any(|candidate| candidate == &row),
@@ -93,7 +93,7 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     assert!(
         !rows
             .iter()
-            .any(|row| row == &"samtools\tbam.haplogroups\tmismatched_contract\tdeclared_only\tscientific_report_contract\tplanner_only"),
+            .any(|row| row == &"samtools\tbam.haplogroups\tmismatched_contract\tdeclared_only\tparser_fixture_validated\tfixture:corpus-01-bam-mini"),
         "TSV must not retain a declared-only samtools haplogroups row once yleaf is the only admitted haplogroups tool"
     );
     assert!(

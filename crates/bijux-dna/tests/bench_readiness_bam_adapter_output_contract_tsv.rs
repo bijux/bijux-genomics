@@ -89,6 +89,10 @@ fn bench_readiness_bam_adapter_output_contract_writes_governed_tsv_columns() {
         "TSV must retain the governed yleaf bam.sex contract row"
     );
     assert!(
+        has_row("yleaf", "bam.haplogroups", "runnable", "complete", "haplogroups", ""),
+        "TSV must retain the governed yleaf bam.haplogroups contract row"
+    );
+    assert!(
         has_row("bamutil", "bam.overlap_correction", "runnable", "complete", "summary", ""),
         "TSV must retain the governed bamutil overlap-correction contract row"
     );

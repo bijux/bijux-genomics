@@ -321,13 +321,13 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_containers.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-containers.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_runtime_declarations");
-        assert_eq!(report.row_count, 105);
-        assert_eq!(report.benchmark_ready_row_count, 105);
-        assert_eq!(report.external_row_count, 104);
-        assert_eq!(report.container_declared_row_count, 104);
-        assert_eq!(report.command_entrypoint_row_count, 105);
+        assert_eq!(report.row_count, 107);
+        assert_eq!(report.benchmark_ready_row_count, 107);
+        assert_eq!(report.external_row_count, 106);
+        assert_eq!(report.container_declared_row_count, 106);
+        assert_eq!(report.command_entrypoint_row_count, 107);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
-        assert_eq!(report.domain_counts.get("bam"), Some(&42));
+        assert_eq!(report.domain_counts.get("bam"), Some(&44));
         assert!(report.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()
@@ -389,6 +389,13 @@ mod tests {
                 && row.execution_mode == "containerized"
                 && row.command_entrypoint.as_deref() == Some("rxy")
                 && row.container_id.as_deref() == Some("bijuxdna/rxy")
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "bam.haplogroups"
+                && row.tool_id == "yleaf"
+                && row.execution_mode == "containerized"
+                && row.command_entrypoint.as_deref() == Some("yleaf")
+                && row.container_id.as_deref() == Some("bijuxdna/yleaf")
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "fastq.trim_polyg_tails"
@@ -489,7 +496,7 @@ mod tests {
 
         assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_VERSION);
         assert_eq!(config.classification_scope, STAGE_TOOL_CONTAINERS_SCOPE);
-        assert_eq!(config.rows.len(), 103);
+        assert_eq!(config.rows.len(), 107);
         assert!(config.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()

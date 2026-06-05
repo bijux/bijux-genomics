@@ -483,8 +483,8 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
             "bam.haplogroups",
             "supported",
             "runnable",
-            "scientific_report_contract",
-            "planner_only",
+            "parser_fixture_validated",
+            "fixture:corpus-01-bam-mini",
         ),
         "BAM readiness map must retain the governed yleaf haplogroups row"
     );

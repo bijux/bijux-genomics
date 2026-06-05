@@ -443,6 +443,12 @@ mod tests {
                 && row.normalized_metrics_output_id.as_deref() == Some("sex_report")
         }));
         assert!(report.rows.iter().any(|row| {
+            row.tool_id == "yleaf"
+                && row.stage_id == "bam.haplogroups"
+                && super::output_contract_status_label(row.output_contract_status) == "complete"
+                && row.normalized_metrics_output_id.as_deref() == Some("haplogroups")
+        }));
+        assert!(report.rows.iter().any(|row| {
             row.tool_id == "bcftools"
                 && row.stage_id == "bam.genotyping"
                 && super::output_contract_status_label(row.output_contract_status)
