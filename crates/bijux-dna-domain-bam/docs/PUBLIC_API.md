@@ -12,6 +12,9 @@ Public modules exported from `src/lib.rs`:
 - types
 
 Primary stage-spec helpers:
+- `benchmark_corpus_assignment_for_stage_tool`
+- `governed_benchmark_stage_tool_bindings`
+- `BenchmarkCorpusFamily`
 - `contract_for_stage`
 - `required_audit_artifacts`
 - `stage_contract_hash`

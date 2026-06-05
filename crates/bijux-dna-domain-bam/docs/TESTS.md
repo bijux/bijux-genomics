@@ -18,6 +18,7 @@ Tests should explain the contract they enforce.
 - `tests/boundaries/commands.rs` → command-free library boundary and `docs/COMMANDS.md`.
 - `tests/boundaries/dependencies.rs` → direct dependency graph and forbidden execution-layer edges.
 - `tests/contracts.rs` → contract suite aggregator for serialized API, stage contracts, parsers, docs, snapshots, and public surface.
+- `tests/contracts/benchmark_corpus_assignment.rs` → governed BAM benchmark corpus routing for every admitted stage-tool binding.
 - `tests/contracts/public_surface.rs` → exported module and `docs/PUBLIC_API.md` alignment.
 - `tests/determinism.rs` → determinism suite aggregator for fixture and snapshot stability.
 - `tests/semantics.rs` → semantic suite aggregator for invariant behavior.

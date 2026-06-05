@@ -24,8 +24,9 @@
 )]
 
 pub mod alignment;
-mod comparison_contract;
 mod artifacts;
+mod benchmark_corpus_assignment;
+mod comparison_contract;
 pub mod defaults;
 pub mod invariants;
 pub mod metrics;
@@ -100,6 +101,10 @@ pub use artifacts::{
     BAM_SAMPLE_IDENTITY_SCHEMA_VERSION, BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION,
     BAM_SEX_EVIDENCE_SCHEMA_VERSION, BAM_SEX_SUMMARY_SCHEMA_VERSION,
     BAM_VALIDATION_SUMMARY_SCHEMA_VERSION, BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
+};
+pub use benchmark_corpus_assignment::{
+    benchmark_corpus_assignment_for_stage_tool, governed_benchmark_stage_tool_bindings,
+    BenchmarkCorpusAssignment, BenchmarkCorpusFamily,
 };
 pub use comparison_contract::{
     comparable_benchmark_stage_contract_for_stage, comparable_benchmark_stage_contracts,

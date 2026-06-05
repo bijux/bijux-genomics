@@ -38,12 +38,17 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
     for name in &pub_mods {
         assert!(allowed_mods.contains(&name.as_str()), "unexpected public module: {name}");
     }
+    let allowed_substrings = [
+        "artifacts",
+        "benchmark_corpus_assignment",
+        "comparison_contract",
+        "invariants",
+        "stage_specs",
+        "types",
+    ];
     for line in &pub_use_lines {
         assert!(
-            line.contains("artifacts")
-                || line.contains("stage_specs")
-                || line.contains("types")
-                || line.contains("invariants"),
+            allowed_substrings.iter().any(|token| line.contains(token)),
             "unexpected public re-export: {line}"
         );
     }
@@ -70,6 +75,9 @@ fn public_api_doc_names_exported_surface() -> anyhow::Result<()> {
     }
 
     for symbol in [
+        "benchmark_corpus_assignment_for_stage_tool",
+        "governed_benchmark_stage_tool_bindings",
+        "BenchmarkCorpusFamily",
         "contract_for_stage",
         "required_audit_artifacts",
         "stage_contract_hash",
