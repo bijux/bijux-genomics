@@ -318,11 +318,11 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_resources.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-resources.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_command_resources");
-        assert_eq!(report.row_count, 108);
-        assert_eq!(report.benchmark_ready_row_count, 108);
-        assert_eq!(report.nonzero_resource_row_count, 108);
+        assert_eq!(report.row_count, 110);
+        assert_eq!(report.benchmark_ready_row_count, 110);
+        assert_eq!(report.nonzero_resource_row_count, 110);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
-        assert_eq!(report.domain_counts.get("bam"), Some(&45));
+        assert_eq!(report.domain_counts.get("bam"), Some(&47));
         assert!(report.rows.iter().all(|row| {
             row.threads > 0 && row.memory_gb > 0 && row.walltime_minutes > 0 && row.scratch_gb > 0
         }));
@@ -352,6 +352,15 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.overlap_correction"
                 && row.tool_id == "bamutil"
+                && row.threads == 3
+                && row.memory_gb == 2
+                && row.walltime_minutes == 7
+                && row.scratch_gb == 2
+                && row.resource_origin == BAM_RESOURCE_ORIGIN
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "bam.kinship"
+                && row.tool_id == "king"
                 && row.threads == 3
                 && row.memory_gb == 2
                 && row.walltime_minutes == 7

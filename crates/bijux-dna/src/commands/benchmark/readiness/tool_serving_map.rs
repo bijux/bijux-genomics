@@ -581,5 +581,21 @@ mod tests {
                 && row.parser_status == "parser_fixture_validated"
                 && row.corpus_status == "fixture:corpus-01-bam-mini"
         }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "angsd"
+                && row.stage_id == "bam.kinship"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "king"
+                && row.stage_id == "bam.kinship"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parser_fixture_validated"
+                && row.corpus_status == "fixture:corpus-01-bam-mini"
+        }));
     }
 }
