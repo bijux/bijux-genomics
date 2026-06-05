@@ -66,6 +66,57 @@ fn bench_readiness_fastq_corpus_assignment_writes_governed_tsv_columns() {
         }),
         "TSV must retain the governed corpus-03 amplicon row"
     );
+    for (tool_id, stage_id, benchmark_status, support_status, adapter_status, parser_status) in [
+        (
+            "vsearch",
+            "fastq.remove_chimeras",
+            "benchmark_ready",
+            "governed_benchmark_cohort",
+            "runnable",
+            "benchmark_normalized",
+        ),
+        (
+            "dada2",
+            "fastq.infer_asvs",
+            "benchmark_ready",
+            "governed_execution",
+            "runnable",
+            "parse_normalized",
+        ),
+        (
+            "vsearch",
+            "fastq.cluster_otus",
+            "benchmark_ready",
+            "governed_benchmark_cohort",
+            "runnable",
+            "benchmark_normalized",
+        ),
+        (
+            "seqkit",
+            "fastq.normalize_abundance",
+            "benchmark_ready",
+            "governed_benchmark_cohort",
+            "runnable",
+            "benchmark_normalized",
+        ),
+        (
+            "seqfu",
+            "fastq.normalize_abundance",
+            "not_benchmark_ready",
+            "planned_contract",
+            "declared_only",
+            "not_normalized",
+        ),
+    ] {
+        assert!(
+            rows.iter().any(|row| {
+                row == &format!(
+                    "{tool_id}\t{stage_id}\t{benchmark_status}\t{support_status}\t{adapter_status}\t{parser_status}\tassigned\tcorpus-03\tcorpus-03-amplicon-mini\t\trow `{stage_id}` / `{tool_id}` is {benchmark_status} and maps to `corpus-03` via fixture `corpus-03-amplicon-mini`: Amplicon-oriented stages must run on the governed amplicon corpus to preserve primer and ASV or OTU semantics."
+                )
+            }),
+            "TSV must retain the governed corpus-03 amplicon row for `{stage_id}` / `{tool_id}`"
+        );
+    }
     assert!(
         rows.iter().any(|row| {
             row == &"bowtie2_build\tfastq.index_reference\tnot_benchmark_ready\tobserver_specialized_benchmark\trunnable\tcomparable\texcluded\t\t\treference_index_stage_has_no_read_corpus\trow `fastq.index_reference` / `bowtie2_build` is not_benchmark_ready and remains excluded from governed corpus assignment: Reference indexing prepares a governed reference asset and does not consume corpus reads."
