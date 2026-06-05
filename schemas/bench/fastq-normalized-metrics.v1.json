@@ -1,0 +1,929 @@
+{
+  "$defs": {
+    "base": {
+      "additionalProperties": true,
+      "properties": {
+        "report_json": {
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "bijux.fastq_stage_metrics.v1"
+        },
+        "stage": {
+          "enum": [
+            "fastq.validate_reads",
+            "fastq.index_reference",
+            "fastq.detect_duplicates_premerge",
+            "fastq.estimate_library_complexity_prealign",
+            "fastq.detect_adapters",
+            "fastq.trim_reads",
+            "fastq.trim_terminal_damage",
+            "fastq.merge_pairs",
+            "fastq.cluster_otus",
+            "fastq.remove_chimeras",
+            "fastq.remove_duplicates",
+            "fastq.correct_errors",
+            "fastq.filter_reads",
+            "fastq.filter_low_complexity",
+            "fastq.extract_umis",
+            "fastq.profile_reads",
+            "fastq.profile_read_lengths",
+            "fastq.profile_overrepresented_sequences",
+            "fastq.normalize_primers",
+            "fastq.trim_polyg_tails",
+            "fastq.screen_taxonomy",
+            "fastq.deplete_rrna",
+            "fastq.deplete_reference_contaminants",
+            "fastq.deplete_host",
+            "fastq.report_qc",
+            "fastq.normalize_abundance",
+            "fastq.infer_asvs"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage",
+        "report_json"
+      ],
+      "type": "object"
+    },
+    "stages": {
+      "fastq.cluster_otus": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.cluster_otus"
+              }
+            },
+            "required": [
+              "clustering_threshold",
+              "otu_count",
+              "otu_table_tsv",
+              "report_json",
+              "representative_sequences_fasta",
+              "sample_count",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_cluster_otus_v1"
+          }
+        ]
+      },
+      "fastq.correct_errors": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.correct_errors"
+              }
+            },
+            "required": [
+              "changed_reads",
+              "corrected_reads",
+              "corrected_reads_r1",
+              "correction_engine",
+              "kmer_fix_rate",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool",
+              "unchanged_reads"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_correct_errors_v1"
+          }
+        ]
+      },
+      "fastq.deplete_host": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.deplete_host"
+              }
+            },
+            "required": [
+              "depleted_reads",
+              "host_depleted_reads_r1",
+              "host_hit_rate",
+              "host_index_artifact_id",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_deplete_host_v1"
+          }
+        ]
+      },
+      "fastq.deplete_reference_contaminants": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.deplete_reference_contaminants"
+              }
+            },
+            "required": [
+              "contaminant_hit_rate",
+              "contaminant_index_artifact_id",
+              "contaminant_reads",
+              "contaminant_reference",
+              "contaminant_screened_reads_r1",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_deplete_reference_contaminants_v1"
+          }
+        ]
+      },
+      "fastq.deplete_rrna": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.deplete_rrna"
+              }
+            },
+            "required": [
+              "database_artifact_id",
+              "depletion_rate",
+              "removed_reads",
+              "report_json",
+              "retained_reads",
+              "rrna_db",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_deplete_rrna_v2"
+          }
+        ]
+      },
+      "fastq.detect_adapters": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.detect_adapters"
+              }
+            },
+            "required": [
+              "adapter_inference",
+              "candidate_adapter_count",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_detect_adapters_v1"
+          }
+        ]
+      },
+      "fastq.detect_duplicates_premerge": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.detect_duplicates_premerge"
+              }
+            },
+            "required": [
+              "duplicate_count",
+              "duplicate_fraction",
+              "inspected_pair_count",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_detect_duplicates_premerge_v1"
+          }
+        ]
+      },
+      "fastq.estimate_library_complexity_prealign": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.estimate_library_complexity_prealign"
+              }
+            },
+            "required": [
+              "complexity_status",
+              "estimated_complexity",
+              "estimated_duplicate_fraction",
+              "insufficient_data_reason",
+              "reads_in",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_estimate_library_complexity_prealign_v1"
+          }
+        ]
+      },
+      "fastq.extract_umis": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.extract_umis"
+              }
+            },
+            "required": [
+              "downstream_propagation",
+              "extracted_umi_count",
+              "invalid_umi_count",
+              "reads_in",
+              "reads_out",
+              "reads_with_umi",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tag_header_format",
+              "tool",
+              "umi_pattern"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_extract_umis_v1"
+          }
+        ]
+      },
+      "fastq.filter_low_complexity": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.filter_low_complexity"
+              }
+            },
+            "required": [
+              "filtered_fastq_r1",
+              "reads_in",
+              "reads_out",
+              "reads_removed_low_complexity",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_low_complexity_v1"
+          }
+        ]
+      },
+      "fastq.filter_reads": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.filter_reads"
+              }
+            },
+            "required": [
+              "filtered_reads_r1",
+              "reads_dropped",
+              "reads_in",
+              "reads_out",
+              "reads_removed",
+              "reads_removed_by_entropy",
+              "reads_removed_by_kmer",
+              "reads_removed_by_length",
+              "reads_removed_by_n",
+              "reads_removed_contaminant_kmer",
+              "reads_removed_low_complexity",
+              "reads_retained",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_filter_reads_v2"
+          }
+        ]
+      },
+      "fastq.index_reference": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.index_reference"
+              }
+            },
+            "required": [
+              "elapsed_time_s",
+              "index_bytes",
+              "index_directory",
+              "index_file_count",
+              "index_files",
+              "index_size_bytes",
+              "reference_bytes",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_index_reference_v1"
+          }
+        ]
+      },
+      "fastq.infer_asvs": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.infer_asvs"
+              }
+            },
+            "required": [
+              "asv_count",
+              "asv_table_tsv",
+              "denoising_method",
+              "report_json",
+              "representative_sequences_fasta",
+              "sample_count",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_infer_asvs_v1"
+          }
+        ]
+      },
+      "fastq.merge_pairs": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.merge_pairs"
+              }
+            },
+            "required": [
+              "discarded_pair_count",
+              "input_pair_count",
+              "merge_engine",
+              "merge_overlap",
+              "merge_rate",
+              "merged_pair_count",
+              "min_length",
+              "paired_mode",
+              "raw_backend_report_format",
+              "reads_merged",
+              "reads_r1",
+              "reads_r2",
+              "reads_unmerged",
+              "report_json",
+              "schema_version",
+              "stage",
+              "threads",
+              "tool",
+              "unmerged_pair_count",
+              "unmerged_read_policy"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_merge_pairs_v1"
+          }
+        ]
+      },
+      "fastq.normalize_abundance": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.normalize_abundance"
+              }
+            },
+            "required": [
+              "normalization_method",
+              "normalized_abundance_tsv",
+              "numeric_output_valid",
+              "report_json",
+              "sample_count",
+              "sample_totals",
+              "schema_version",
+              "stage",
+              "table_rows",
+              "tool",
+              "zero_fraction"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_normalize_abundance_v1"
+          }
+        ]
+      },
+      "fastq.normalize_primers": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.normalize_primers"
+              }
+            },
+            "required": [
+              "matched_primers",
+              "normalized_reads_r1",
+              "primer_set_id",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool",
+              "trimmed_primer_bases",
+              "unmatched_reads"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_normalize_primers_v1"
+          }
+        ]
+      },
+      "fastq.profile_overrepresented_sequences": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.profile_overrepresented_sequences"
+              }
+            },
+            "required": [
+              "flagged_sequences",
+              "report_json",
+              "schema_version",
+              "sequence_count",
+              "stage",
+              "tool",
+              "top_fraction"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_profile_overrepresented_sequences_v1"
+          }
+        ]
+      },
+      "fastq.profile_read_lengths": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.profile_read_lengths"
+              }
+            },
+            "required": [
+              "histogram_entry_count",
+              "max_read_length",
+              "mean_read_length",
+              "median_read_length",
+              "min_read_length",
+              "read_count",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_profile_read_lengths_v1"
+          }
+        ]
+      },
+      "fastq.profile_reads": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.profile_reads"
+              }
+            },
+            "required": [
+              "bases_total",
+              "length_histogram_bins",
+              "reads_total",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_profile_reads_v1"
+          }
+        ]
+      },
+      "fastq.remove_chimeras": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.remove_chimeras"
+              }
+            },
+            "required": [
+              "chimera_count",
+              "chimera_fraction",
+              "detection_scope",
+              "filtered_representative_sequences",
+              "method",
+              "non_chimera_count",
+              "raw_backend_report_format",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_remove_chimeras_v1"
+          }
+        ]
+      },
+      "fastq.remove_duplicates": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.remove_duplicates"
+              }
+            },
+            "required": [
+              "dedup_mode",
+              "dedup_rate",
+              "duplicate_class_count",
+              "duplicate_reads",
+              "duplicates_removed",
+              "input_reads",
+              "keep_order",
+              "output_reads",
+              "reads_in",
+              "reads_out",
+              "report_json",
+              "schema_version",
+              "stage",
+              "threads",
+              "tool",
+              "unique_reads"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_deduplicate_v1"
+          }
+        ]
+      },
+      "fastq.report_qc": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.report_qc"
+              }
+            },
+            "required": [
+              "aggregation_engine",
+              "aggregation_scope",
+              "governed_qc_input_count",
+              "multiqc_data",
+              "multiqc_report",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_report_qc_v1"
+          }
+        ]
+      },
+      "fastq.screen_taxonomy": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.screen_taxonomy"
+              }
+            },
+            "required": [
+              "classified_reads",
+              "classifier",
+              "contamination_rate",
+              "report_json",
+              "schema_version",
+              "stage",
+              "taxonomy_database_id",
+              "tool",
+              "top_taxa",
+              "unclassified_reads"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_screen_taxonomy_v1"
+          }
+        ]
+      },
+      "fastq.trim_polyg_tails": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.trim_polyg_tails"
+              }
+            },
+            "required": [
+              "bases_trimmed_polyg",
+              "reads_in",
+              "reads_out",
+              "report_json",
+              "schema_version",
+              "stage",
+              "tool",
+              "trim_polyg",
+              "trimmed_tail_count"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_trim_polyg_tails_v1"
+          }
+        ]
+      },
+      "fastq.trim_reads": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.trim_reads"
+              }
+            },
+            "required": [
+              "adapter_overrides",
+              "adapter_policy",
+              "reads_in",
+              "reads_out",
+              "report_json",
+              "schema_version",
+              "stage",
+              "threads",
+              "tool"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_trim_reads_v2"
+          }
+        ]
+      },
+      "fastq.trim_terminal_damage": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.trim_terminal_damage"
+              }
+            },
+            "required": [
+              "bases_removed",
+              "ct_ga_asymmetry_post",
+              "ct_ga_asymmetry_pre",
+              "execution_policy",
+              "reads_in",
+              "reads_out",
+              "reads_retained",
+              "report_json",
+              "schema_version",
+              "stage",
+              "threads",
+              "tool",
+              "trim_3p_bases",
+              "trim_5p_bases",
+              "udg_classification"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_trim_terminal_damage_v2"
+          }
+        ]
+      },
+      "fastq.validate_reads": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/base"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "stage": {
+                "const": "fastq.validate_reads"
+              }
+            },
+            "required": [
+              "exit_code",
+              "failure_class",
+              "report_json",
+              "schema_version",
+              "stage",
+              "strict_pass",
+              "validator"
+            ],
+            "type": "object",
+            "x-bijux-extension-id": "fastq_validate_reads_v1"
+          }
+        ]
+      }
+    }
+  },
+  "$id": "bijux.schemas.bench.fastq-normalized-metrics.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Governed normalized parser outputs for FASTQ benchmark stages. Each payload must satisfy the shared envelope and exactly one stage-specific extension.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/stages/fastq.validate_reads"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.index_reference"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.detect_duplicates_premerge"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.estimate_library_complexity_prealign"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.detect_adapters"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.trim_reads"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.trim_terminal_damage"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.merge_pairs"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.cluster_otus"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.remove_chimeras"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.remove_duplicates"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.correct_errors"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.filter_reads"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.filter_low_complexity"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.extract_umis"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.profile_reads"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.profile_read_lengths"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.profile_overrepresented_sequences"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.normalize_primers"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.trim_polyg_tails"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.screen_taxonomy"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.deplete_rrna"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.deplete_reference_contaminants"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.deplete_host"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.report_qc"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.normalize_abundance"
+    },
+    {
+      "$ref": "#/$defs/stages/fastq.infer_asvs"
+    }
+  ],
+  "title": "FASTQ normalized benchmark metrics",
+  "type": "object"
+}
