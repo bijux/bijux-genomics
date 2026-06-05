@@ -82,6 +82,7 @@ governed_tool_ids:
   - bwa
   - contammix
   - damageprofiler
+  - gatk
   - king
   - mapdamage2
   - mosdepth
