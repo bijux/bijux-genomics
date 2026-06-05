@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "974c00670eee1ae0bb0f5eb07f6cd74844f7e56f",
-  "bundle_checksum_sha256": "4a040747d71e256edc7af3e67838b42ecab28f9c545973579b21136c109b7192",
+  "source_commit": "f0b600318fd047ad9a102722933e9c31c7716b31",
+  "bundle_checksum_sha256": "c4f5f0440e85fd9bb04f9c1fa4ec1ea279612c2d270d0532d36e01efad6dc569",
   "domains": [
     {
       "domain_id": "bam",
@@ -2637,7 +2637,10 @@
           ],
           "metrics_schema_id": "bijux.bam.kinship.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
-          "container": null
+          "container": {
+            "image": "bijuxdna/king:2.3.0",
+            "digest": ""
+          }
         },
         {
           "tool_id": "mapdamage2",
@@ -3605,7 +3608,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "69ed637f06a9926372f8962ce6fdcd511593b45b0ad1c161efd46d697af52d6f"
+      "checksum_sha256": "648cb35faee05c40f60c6da27134b9fc70d8b4ad2d0068fcbf2919a39de9f47e"
     },
     {
       "domain_id": "fastq",
@@ -12458,7 +12461,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "a3670543b4f21359be50c509e73b717b9a8fc1c98c662deeeefb48e7cc762cef"
+      "checksum_sha256": "2322fd95c65194a926973219e6f9924326397728c3e0766692e778e7b0b1a457"
     },
     {
       "domain_id": "vcf",
@@ -14716,7 +14719,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "af91f353ebefe870d63a76eb3d4d1b223fdc1b1cd74882723e6c0bfb6a7b01a9"
+      "checksum_sha256": "46c85ee5089c2808b49aad03b935e063f3c78c5a988508faf1edbe18fe7f7f38"
     }
   ]
 }
