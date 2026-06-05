@@ -9,6 +9,7 @@ pub mod genotyping;
 pub mod haplogroups;
 pub mod kinship;
 pub mod rxy;
+pub mod yleaf_sex;
 pub use contamination::{contammix, schmutzi, verifybamid2};
 
 #[must_use]

@@ -362,6 +362,11 @@ pub mod sex {
                             bam, &report, &summary, params,
                         )
                     }
+                    ("yleaf", _) | (_, "yleaf") => {
+                        crate::tool_adapters::tools::yleaf_sex::args_with_outputs(
+                            bam, &report, &summary, params,
+                        )
+                    }
                     _ => crate::tool_adapters::tools::rxy::args_with_outputs(
                         bam, &report, &summary, params,
                     ),
