@@ -20,6 +20,8 @@ pub enum BenchReadinessCommand {
     RenderBamStageDecisionTable(BenchReadinessRenderBamStageDecisionTableArgs),
     #[command(name = "render-bam-command-adapter-coverage")]
     RenderBamCommandAdapterCoverage(BenchReadinessRenderBamCommandAdapterCoverageArgs),
+    #[command(name = "render-bam-comparable-metrics")]
+    RenderBamComparableMetrics(BenchReadinessRenderBamComparableMetricsArgs),
     #[command(name = "render-bam-normalized-metrics-schema")]
     RenderBamNormalizedMetricsSchema(BenchReadinessRenderBamNormalizedMetricsSchemaArgs),
     #[command(name = "render-bam-parser-coverage")]
@@ -122,6 +124,14 @@ pub struct BenchReadinessRenderBamStageDecisionTableArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamCommandAdapterCoverageArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamComparableMetricsArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
