@@ -39,7 +39,7 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
     assert_eq!(
         lines.next(),
         Some(
-            "tool_id\tstage_id\tbenchmark_status\tsupport_status\tadapter_status\tparser_status\tcorpus_family_id\tfixture_id\tsample_id\tdamage_expectation\tcoverage_limits\trequired_assets\treason"
+            "tool_id\tstage_id\tbenchmark_status\tsupport_status\tadapter_status\tparser_status\tcorpus_family_id\tfixture_id\tsample_id\tinput_contract\tbenchmark_limits\trequired_assets\texpected_outputs\tskip_behavior\treason"
         )
     );
     let rows = lines.map(|line| line.split('\t').collect::<Vec<_>>()).collect::<Vec<_>>();
@@ -59,6 +59,8 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
             && row[10] == "complexity_min_reads=3;coverage_depth_thresholds=1,5,10"
             && row[11]
                 == "expected_damage=expected_damage.json;reference_fasta=adna_damage_reference.fasta"
+            && row[12] == "authenticity_report,summary,stage_metrics"
+            && row[13] == "not_applicable"
     }));
     assert!(rows.iter().any(|row| {
         row[0] == "mapdamage2"
@@ -71,6 +73,8 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
             && row[10] == "not_applicable"
             && row[11]
                 == "expected_damage=expected_damage.json;reference_fasta=adna_damage_reference.fasta"
+            && row[12] == "damage_report,terminal_position_metrics,stage_metrics"
+            && row[13] == "not_applicable"
     }));
     assert!(rows.iter().any(|row| {
         row[0] == "verifybamid2"
@@ -82,6 +86,8 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
             && row[10] == "minimum_mean_coverage=0.5"
             && row[11]
                 == "reference_fasta=adna_bam_reference;reference_panel=adna_contamination_panel"
+            && row[12] == "contamination_report,summary,stage_metrics"
+            && row[13] == "not_applicable"
     }));
     assert!(rows.iter().any(|row| {
         row[0] == "rxy"
@@ -93,6 +99,8 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
             && row[10]
                 == "expected_autosomal_coverage=1;expected_x_coverage=0.5;expected_y_coverage=0.5;minimum_y_sites=5"
             && row[11] == "reference_fasta=adna_bam_reference"
+            && row[12] == "sex_report,summary,stage_metrics"
+            && row[13] == "not_applicable"
     }));
     assert!(rows.iter().any(|row| {
         row[0] == "yleaf"
@@ -103,6 +111,8 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
             && row[9] == "signal=moderate;terminal=ct5p_dominant;udg=non_udg"
             && row[10] == "min_coverage=2"
             && row[11] == "reference_fasta=adna_bam_reference;reference_panel=adna-y-hg38-mini"
+            && row[12] == "haplogroups,summary,stage_metrics"
+            && row[13] == "not_applicable"
     }));
     assert!(rows.iter().any(|row| {
         row[0] == "angsd"
@@ -113,10 +123,15 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
             && row[5] == "parser_fixture_validated"
             && row[6] == "corpus-01-genotyping"
             && row[7] == "corpus-01-genotyping-mini"
-            && row[8] == "not_applicable"
-            && row[9] == "not_applicable"
-            && row[10] == "not_applicable"
-            && row[11] == "not_applicable"
+            && row[8] == "human_like_genotyping_candidate_panel"
+            && row[9]
+                == "reference=corpus_01_bam_reference;regions=human_like_genotyping_target_regions;sites=human_like_genotyping_candidate_sites"
+            && row[10] == "min_call_rate=0.5;min_posterior=0.9"
+            && row[11]
+                == "reference_fasta=corpus_01_bam_reference;regions=human_like_genotyping_target_regions;sites_vcf=human_like_genotyping_candidate_sites"
+            && row[12]
+                == "genotyping_bcf,genotyping_vcf,genotyping_vcf_tbi,genotyping_gl,summary,stage_metrics"
+            && row[13] == "not_applicable"
     }));
     assert!(rows.iter().any(|row| {
         row[0] == "king"
@@ -127,10 +142,26 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
             && row[5] == "parser_fixture_validated"
             && row[6] == "corpus-01-kinship"
             && row[7] == "corpus-01-kinship-mini"
-            && row[8] == "not_applicable"
-            && row[9] == "not_applicable"
-            && row[10] == "not_applicable"
-            && row[11] == "not_applicable"
+            && row[8] == "human_like_kinship_low_overlap_pair,human_like_kinship_related_pair"
+            && row[9]
+                == "population_scope=human_diploid_panel;reference=corpus_01_bam_reference;reference_build=grch38;reference_panel=human_like_relatedness_panel"
+            && row[10]
+                == "human_like_kinship_low_overlap_pair.min_overlap_snps=5;human_like_kinship_low_overlap_pair.observed_max_overlap_snps=4;human_like_kinship_related_pair.min_overlap_snps=6;human_like_kinship_related_pair.observed_max_overlap_snps=6"
+            && row[11]
+                == "reference_fasta=corpus_01_bam_reference;reference_panel=human_like_relatedness_panel"
+            && row[12] == "kinship_report,summary,kinship_segments,stage_metrics"
+            && row[13]
+                == "human_like_kinship_low_overlap_pair=stop_without_pairwise_results;human_like_kinship_related_pair=emit_pairwise_results"
+    }));
+    assert!(rows.iter().any(|row| {
+        row[0] == "angsd"
+            && row[1] == "bam.kinship"
+            && row[6] == "corpus-01-kinship"
+            && row[7] == "corpus-01-kinship-mini"
+            && row[8] == "human_like_kinship_low_overlap_pair,human_like_kinship_related_pair"
+            && row[12] == "kinship_report,summary,kinship_segments,stage_metrics"
+            && row[13]
+                == "human_like_kinship_low_overlap_pair=stop_without_pairwise_results;human_like_kinship_related_pair=emit_pairwise_results"
     }));
     assert!(rows.iter().any(|row| {
         row[0] == "samtools"
@@ -145,6 +176,8 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
             && row[9] == "not_applicable"
             && row[10] == "not_applicable"
             && row[11] == "not_applicable"
+            && row[12] == "not_applicable"
+            && row[13] == "not_applicable"
     }));
     assert!(rows.iter().any(|row| {
         row[0] == "bwa"
@@ -159,5 +192,7 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
             && row[9] == "not_applicable"
             && row[10] == "not_applicable"
             && row[11] == "not_applicable"
+            && row[12] == "not_applicable"
+            && row[13] == "not_applicable"
     }));
 }
