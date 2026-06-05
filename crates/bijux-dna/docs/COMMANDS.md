@@ -148,6 +148,13 @@ Visible aliases are part of the operator surface:
   `corpus_status`, and `asset_status` columns plus the resolved `readiness_gap` so incomplete
   bindings stay reviewable by the precise missing component instead of collapsing into a generic
   not-ready bucket.
+- `bijux-dna bench readiness render-tool-centric-report`
+  `render-tool-centric-report` writes `target/bench-readiness/tool-centric-report.md` with one
+  governed section per benchmarked tool, carrying the full FASTQ/BAM stage list that tool serves
+  plus exact `benchmark_status`, `readiness_gap`, `support_status`, `adapter_status`,
+  `parser_status`, `corpus_status`, and `asset_status` columns so named tools such as
+  `samtools`, `picard`, `fastp`, `vsearch`, `kraken2`, `bowtie2`, and `gatk` stay reviewer-visible
+  with complete stage coverage and precise blockers.
 - `bijux-dna bench readiness render-fastq-report-map`
   `render-fastq-report-map` writes `target/bench-readiness/fastq-report-map.tsv` with one
   governed row per FASTQ benchmark-ready stage, fixing the report section, summary table, and
