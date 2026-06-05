@@ -36,6 +36,8 @@ pub enum BenchReadinessCommand {
     RenderFastqCommandAdapterCoverage(BenchReadinessRenderFastqCommandAdapterCoverageArgs),
     #[command(name = "render-fastq-comparable-metrics")]
     RenderFastqComparableMetrics(BenchReadinessRenderFastqComparableMetricsArgs),
+    #[command(name = "render-fastq-corpus-assignment")]
+    RenderFastqCorpusAssignment(BenchReadinessRenderFastqCorpusAssignmentArgs),
     #[command(name = "render-fastq-normalized-metrics-schema")]
     RenderFastqNormalizedMetricsSchema(BenchReadinessRenderFastqNormalizedMetricsSchemaArgs),
     #[command(name = "render-fastq-parser-coverage")]
@@ -192,6 +194,14 @@ pub struct BenchReadinessRenderFastqCommandAdapterCoverageArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderFastqComparableMetricsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderFastqCorpusAssignmentArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

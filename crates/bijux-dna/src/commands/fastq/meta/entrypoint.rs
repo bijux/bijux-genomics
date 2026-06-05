@@ -221,6 +221,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderFastqCorpusAssignment(args) => {
+                        crate::commands::benchmark::readiness::fastq_corpus_assignment::run_render_fastq_corpus_assignment(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderFastqNormalizedMetricsSchema(args) => {
                         crate::commands::benchmark::readiness::fastq_normalized_metrics_schema::run_render_fastq_normalized_metrics_schema(
                             args,
