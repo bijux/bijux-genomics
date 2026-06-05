@@ -182,4 +182,27 @@ mod tests {
         );
         Ok(())
     }
+
+    #[test]
+    fn load_fastq_domain_tool_stage_output_contract_reads_duplicate_signal_outputs() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("fastq.detect_duplicates_premerge".to_string());
+        let tool_id = ToolId::new("bijux_dna");
+
+        let contract =
+            load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(contract.tool_id.as_str(), "bijux_dna");
+        assert_eq!(contract.stage_id.as_str(), "fastq.detect_duplicates_premerge");
+        assert_eq!(contract.declared_output_ids, vec!["duplicate_signal_report".to_string()]);
+        assert_eq!(
+            contract.execution_expected_output_ids,
+            vec!["duplicate_signal_report".to_string()]
+        );
+        assert_eq!(
+            contract.stage_expected_artifact_ids,
+            vec!["duplicate_signal_report".to_string()]
+        );
+        Ok(())
+    }
 }
