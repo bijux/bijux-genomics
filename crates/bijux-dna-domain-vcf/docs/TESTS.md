@@ -17,12 +17,20 @@ guardrails, and crate layout.
   retained `bcftools` VCF stages.
 - `tests/fixtures/bench/parsers/vcf/angsd/<stage>/` stores the governed raw artifact bank for
   retained `angsd` low-coverage VCF stages.
+- `tests/fixtures/bench/parsers/vcf/plink/<stage>/` stores the governed raw artifact bank for the
+  retained classic `plink` VCF rows.
+- `tests/fixtures/bench/parsers/vcf/plink2/<stage>/` stores the governed raw artifact bank for the
+  retained `plink2` VCF rows.
 - Every stage directory must contain the raw parser inputs required by `src/parsers/bcftools.rs`
-  or `src/parsers/angsd.rs` plus `expected.normalized.json`.
+  `src/parsers/angsd.rs`, or `src/parsers/plink_family.rs` plus `expected.normalized.json`.
 - `tests/contracts/parsers/bcftools_fixture_bank.rs` is the SSOT that proves the checked-in raw
   artifacts still normalize to the committed expected payloads.
 - `tests/contracts/parsers/angsd_fixture_bank.rs` is the SSOT for the retained ANGSD low-coverage
   parser bank.
+- `tests/contracts/parsers/plink_fixture_bank.rs` is the SSOT for the retained classic `plink`
+  parser bank.
+- `tests/contracts/parsers/plink2_fixture_bank.rs` is the SSOT for the retained `plink2`
+  population-analysis parser bank.
 
 ## Commands
 
