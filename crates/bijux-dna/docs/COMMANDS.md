@@ -919,6 +919,7 @@ Visible aliases are part of the operator surface:
   are covered by corpus-01, corpus-02, corpus-03, or an explicit planner-only reason.
 - `bijux-dna bench local validate-pipeline-dag`
   `validate-pipeline-dag` checks governed local pipeline DAG configs such as
+  `configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml` and
   `configs/pipelines/local/fastq-core-preprocess.toml` and
   `configs/pipelines/local/fastq-to-bam.toml` and
   `configs/pipelines/local/core-germline-fastq-bam-vcf.toml` and
@@ -939,6 +940,11 @@ Visible aliases are part of the operator surface:
   `target/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json`, and fails closed unless the
   requested id matches the config identity and the DAG validates with explicit FASTQ, BAM, and VCF
   handoff coverage.
+  `plan validate --id adna-pseudohaploid-fastq-bam-vcf --strict` resolves the governed ancient-DNA
+  pseudohaploid pipeline config, writes
+  `target/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json`, and fails closed unless
+  the validator confirms the terminal-damage trim, BAM damage and authenticity branch, and
+  pseudohaploid plus damage-filter VCF path stay explicit.
 - `bijux-dna bench local simulate-dag-watchdog`
   `simulate-dag-watchdog` writes governed DAG scheduling simulations such as
   `target/local-ready/dag-sim/no-global-wait.json` and
