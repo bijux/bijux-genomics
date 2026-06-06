@@ -423,6 +423,11 @@ Visible aliases are part of the operator surface:
   slice. Each row keeps `stage_id`, `metric_id`, `metric_name`, `unit`, `direction`, `required`,
   and `tools_covered`, and the command fails closed unless every retained multi-tool stage has at
   least one governed normalized metric shared across all covered tools.
+- `bijux-dna bench readiness render-vcf-parser-coverage`
+  `render-vcf-parser-coverage` writes `target/bench-readiness/vcf-parser-coverage.tsv` with one
+  row per benchmark-ready VCF stage-tool parser surface. Each row keeps `stage_id`, `tool_id`,
+  `parser_id`, `fixture_path`, `schema_id`, and `coverage_status`, and the command fails closed
+  unless every benchmark-ready VCF row has a governed parser fixture and schema mapping.
 - `bijux-dna bench readiness render-vcf-normalized-metrics-schema`
   `render-vcf-normalized-metrics-schema` writes
   `schemas/bench/vcf-normalized-metrics.v1.json` plus one stage-specific schema file under
