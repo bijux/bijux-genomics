@@ -122,6 +122,11 @@ pub(crate) fn stage_command(
             return Ok(CommandSpecV1 { template });
         }
     }
+    if tool == "eigensoft" {
+        if let Some(template) = eigensoft_stage_command(stage, inputs, outputs)? {
+            return Ok(CommandSpecV1 { template });
+        }
+    }
 
     let mut template = vec![tool.to_string()];
     match stage {
@@ -414,6 +419,55 @@ fn plink_family_stage_command(
                 "-lc".to_string(),
                 format!(
                     "plink2 --vcf '{input_vcf}' --double-id --allow-extra-chr --indep-pairwise 50 5 0.2 --out '{output_prefix}' && plink2 --vcf '{input_vcf}' --double-id --allow-extra-chr --pca 10 --out '{pca_prefix}'"
+                ),
+            ]
+        }
+        _ => return Ok(None),
+    };
+    Ok(Some(template))
+}
+
+fn eigensoft_stage_command(
+    stage: VcfDomainStage,
+    inputs: &[ArtifactSpec],
+    outputs: &[ArtifactSpec],
+) -> Result<Option<Vec<String>>> {
+    let input_vcf = input_path(inputs, "vcf")?.display().to_string();
+    let output_prefix = output_prefix_path(outputs, stage_output_name(stage))?;
+    let template = match stage {
+        VcfDomainStage::Pca | VcfDomainStage::PopulationStructure => {
+            let convertf_par = format!("{output_prefix}.convertf.par");
+            let smartpca_par = format!("{output_prefix}.smartpca.par");
+            let geno_path = format!("{output_prefix}.geno");
+            let snp_path = format!("{output_prefix}.snp");
+            let ind_path = format!("{output_prefix}.ind");
+            let evec_path = format!("{output_prefix}.evec");
+            let eval_path = format!("{output_prefix}.eval");
+            let log_path = format!("{output_prefix}.smartpca.log");
+            vec![
+                "sh".to_string(),
+                "-lc".to_string(),
+                format!(
+                    "cat > '{convertf_par}' <<'EOF'\n\
+genotypename: {input_vcf}\n\
+snpname: {snp_path}\n\
+indivname: {ind_path}\n\
+outputformat: EIGENSTRAT\n\
+genotypeoutname: {geno_path}\n\
+snpoutname: {snp_path}\n\
+indivoutname: {ind_path}\n\
+familynames: NO\n\
+EOF\n\
+convertf -p '{convertf_par}' >/dev/null 2>&1 && cat > '{smartpca_par}' <<'EOF'\n\
+genotypename: {geno_path}\n\
+snpname: {snp_path}\n\
+indivname: {ind_path}\n\
+evecoutname: {evec_path}\n\
+evaloutname: {eval_path}\n\
+numoutevec: 10\n\
+familynames: NO\n\
+EOF\n\
+smartpca -p '{smartpca_par}' > '{log_path}' 2>&1"
                 ),
             ]
         }
