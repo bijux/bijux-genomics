@@ -54,6 +54,10 @@ pub enum BenchReadinessCommand {
     RenderCorpusAssetCoverageGate(BenchReadinessRenderCorpusAssetCoverageGateArgs),
     #[command(name = "render-essential-pipeline-corpus-assets")]
     RenderEssentialPipelineCorpusAssets(BenchReadinessRenderEssentialPipelineCorpusAssetsArgs),
+    #[command(name = "render-essential-pipeline-failure-isolation")]
+    RenderEssentialPipelineFailureIsolation(
+        BenchReadinessRenderEssentialPipelineFailureIsolationArgs,
+    ),
     #[command(name = "render-essential-pipeline-partial-resume")]
     RenderEssentialPipelinePartialResume(BenchReadinessRenderEssentialPipelinePartialResumeArgs),
     #[command(name = "render-essential-pipeline-commands")]
@@ -520,6 +524,14 @@ pub struct BenchReadinessRenderCorpusAssetCoverageGateArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderEssentialPipelineCorpusAssetsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderEssentialPipelineFailureIsolationArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

@@ -76,6 +76,7 @@ pub use self::readiness::{
     BenchReadinessRenderCorpusIncompatibilityArgs,
     BenchReadinessRenderEssentialPipelineCommandsArgs,
     BenchReadinessRenderEssentialPipelineCorpusAssetsArgs,
+    BenchReadinessRenderEssentialPipelineFailureIsolationArgs,
     BenchReadinessRenderEssentialPipelinePartialResumeArgs,
     BenchReadinessRenderExpectedBenchmarkResultsArgs,
     BenchReadinessRenderFastqAdapterOutputContractArgs,

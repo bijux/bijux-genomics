@@ -288,6 +288,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderEssentialPipelineFailureIsolation(args) => {
+                        crate::commands::benchmark::readiness::essential_pipeline_failure_isolation::run_render_essential_pipeline_failure_isolation(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderEssentialPipelinePartialResume(args) => {
                         crate::commands::benchmark::readiness::essential_pipeline_partial_resume::run_render_essential_pipeline_partial_resume(
                             args,
