@@ -76,6 +76,8 @@ pub enum BenchReadinessCommand {
     RenderVcfToolServingMap(BenchReadinessRenderVcfToolServingMapArgs),
     #[command(name = "render-vcf-comparable-metrics")]
     RenderVcfComparableMetrics(BenchReadinessRenderVcfComparableMetricsArgs),
+    #[command(name = "render-vcf-parser-coverage")]
+    RenderVcfParserCoverage(BenchReadinessRenderVcfParserCoverageArgs),
     #[command(name = "render-vcf-normalized-metrics-schema")]
     RenderVcfNormalizedMetricsSchema(BenchReadinessRenderVcfNormalizedMetricsSchemaArgs),
     #[command(name = "render-vcf-parser-failure-tests")]
@@ -262,6 +264,14 @@ pub struct BenchReadinessRenderBamNormalizedMetricsSchemaArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfComparableMetricsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfParserCoverageArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
