@@ -426,7 +426,7 @@ fn write_non_empty_output(
                 "artifact_id": output_spec.artifact_id,
                 "asset_profile_id": row.asset_profile_id,
             });
-            bijux_dna_infra::atomic_write_json(output_path, &payload)
+            bijux_dna_infra::atomic_write_json(output_path, &payload).map_err(Into::into)
         }
         LocalVcfNoEmptyOutputKind::Tsv => {
             let rendered = format!(
@@ -434,6 +434,7 @@ fn write_non_empty_output(
                 row.stage_id, row.tool_id, output_spec.artifact_id
             );
             bijux_dna_infra::atomic_write_bytes(output_path, rendered.as_bytes())
+                .map_err(Into::into)
         }
         LocalVcfNoEmptyOutputKind::Log => {
             let rendered = format!(
@@ -441,6 +442,7 @@ fn write_non_empty_output(
                 row.stage_id, row.tool_id, output_spec.artifact_id
             );
             bijux_dna_infra::atomic_write_bytes(output_path, rendered.as_bytes())
+                .map_err(Into::into)
         }
     }
     .with_context(|| format!("write {}", output_path.display()))
