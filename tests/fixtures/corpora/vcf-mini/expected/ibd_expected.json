@@ -1,0 +1,43 @@
+{
+  "schema_version": "bijux.bench.vcf_expected_truth.ibd_expected.v1",
+  "corpus_id": "vcf-mini",
+  "source_variant_role": "multisample",
+  "pairs": [
+    {
+      "left_sample_id": "sample_a",
+      "right_sample_id": "sample_b",
+      "shared_genotype_site_count": 0,
+      "expected_ibd_segment_count": 0
+    },
+    {
+      "left_sample_id": "sample_a",
+      "right_sample_id": "sample_c",
+      "shared_genotype_site_count": 1,
+      "expected_ibd_segment_count": 0
+    },
+    {
+      "left_sample_id": "sample_a",
+      "right_sample_id": "sample_d",
+      "shared_genotype_site_count": 0,
+      "expected_ibd_segment_count": 0
+    },
+    {
+      "left_sample_id": "sample_b",
+      "right_sample_id": "sample_c",
+      "shared_genotype_site_count": 0,
+      "expected_ibd_segment_count": 0
+    },
+    {
+      "left_sample_id": "sample_b",
+      "right_sample_id": "sample_d",
+      "shared_genotype_site_count": 1,
+      "expected_ibd_segment_count": 0
+    },
+    {
+      "left_sample_id": "sample_c",
+      "right_sample_id": "sample_d",
+      "shared_genotype_site_count": 0,
+      "expected_ibd_segment_count": 0
+    }
+  ]
+}
