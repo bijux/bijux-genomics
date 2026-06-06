@@ -40,6 +40,7 @@ pub(crate) mod local_vcf_no_empty_output;
 pub(crate) mod local_vcf_panel_workflow_smoke_support;
 pub(crate) mod local_vcf_pca_smoke;
 pub(crate) mod local_vcf_phasing_smoke;
+pub(crate) mod local_vcf_population_structure_smoke;
 pub(crate) mod local_vcf_prepare_reference_panel_smoke;
 pub(crate) mod local_vcf_qc_smoke;
 pub(crate) mod local_vcf_reference_compatibility;
