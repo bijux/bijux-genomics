@@ -500,6 +500,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateVcfSmokeSuiteReady(args) => {
+                        crate::commands::benchmark::local_vcf_smoke_suite_ready::run_validate_vcf_smoke_suite_ready(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateVcfReferenceCompatibility(args) => {
                         crate::commands::benchmark::local_vcf_reference_compatibility::run_validate_vcf_reference_compatibility(
                             &args,

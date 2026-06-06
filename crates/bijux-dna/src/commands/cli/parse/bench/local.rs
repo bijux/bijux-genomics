@@ -66,6 +66,8 @@ pub enum BenchLocalCommand {
     ValidateVcfNoEmptyOutput(BenchLocalValidateVcfNoEmptyOutputArgs),
     #[command(name = "validate-vcf-stage-catalog-ready")]
     ValidateVcfStageCatalogReady(BenchLocalValidateVcfStageCatalogReadyArgs),
+    #[command(name = "validate-vcf-smoke-suite-ready")]
+    ValidateVcfSmokeSuiteReady(BenchLocalValidateVcfSmokeSuiteReadyArgs),
     #[command(name = "validate-vcf-reference-compatibility")]
     ValidateVcfReferenceCompatibility(BenchLocalValidateVcfReferenceCompatibilityArgs),
     #[command(name = "validate-vcf-sample-compatibility")]
@@ -314,6 +316,14 @@ pub struct BenchLocalValidateVcfNoEmptyOutputArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalValidateVcfStageCatalogReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateVcfSmokeSuiteReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
