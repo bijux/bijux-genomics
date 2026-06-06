@@ -395,6 +395,14 @@ Visible aliases are part of the operator surface:
   `benchmark_status` from the owned VCF stage catalog and matrix. The report fails closed unless
   every matrix row appears exactly once and the supported-vs-planned split remains aligned with
   the canonical VCF stage contracts.
+- `bijux-dna bench readiness render-vcf-angsd-adapter`
+  `render-vcf-angsd-adapter` writes `target/bench-readiness/adapters/angsd.vcf.json` with one
+  governed row per admitted VCF `angsd` registry binding. Each row keeps the materialized BAM-list
+  helper when the stage is BAM-backed, the governed reference and sites inputs, the declared
+  likelihood model, the output prefix, the parser output ids, the concrete `angsd` argv, and a
+  real missing-input probe result, so GL calling, pseudohaploid calling, damage-aware calling, and
+  VCF-GL propagation cannot silently fall back to placeholders or drift away from the owned command
+  contract.
 - `bijux-dna bench readiness render-vcf-bcftools-adapter`
   `render-vcf-bcftools-adapter` writes `target/bench-readiness/adapters/bcftools.vcf.json` with
   one governed row per retained VCF `bcftools` matrix binding. Each row keeps the concrete
