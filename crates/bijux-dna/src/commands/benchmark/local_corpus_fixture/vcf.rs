@@ -110,9 +110,12 @@ struct ReferenceDictRow {
 }
 
 #[derive(Debug, Clone)]
-struct SampleMetadataRow {
-    sample_id: String,
-    population_id: String,
+pub(crate) struct SampleMetadataRow {
+    pub(crate) sample_id: String,
+    pub(crate) population_id: String,
+    pub(crate) sex: String,
+    pub(crate) role: String,
+    pub(crate) description: String,
 }
 
 #[derive(Debug, Clone)]
@@ -634,7 +637,7 @@ fn validate_target_sites_bed(target_sites_bed: &Path, reference_contigs: &[Refer
     Ok(interval_count)
 }
 
-fn load_sample_metadata(sample_metadata_path: &Path) -> Result<Vec<SampleMetadataRow>> {
+pub(crate) fn load_sample_metadata(sample_metadata_path: &Path) -> Result<Vec<SampleMetadataRow>> {
     if !sample_metadata_path.is_file() {
         return Err(anyhow!(
             "VCF corpus fixture sample metadata is missing: {}",
@@ -669,9 +672,30 @@ fn load_sample_metadata(sample_metadata_path: &Path) -> Result<Vec<SampleMetadat
         }
         let sample_id = fields[0].trim();
         let population_id = fields[1].trim();
-        if sample_id.is_empty() || population_id.is_empty() {
+        let sex = fields[2].trim();
+        let role = fields[3].trim();
+        let description = fields[4].trim();
+        if sample_id.is_empty() || population_id.is_empty() || sex.is_empty() || role.is_empty() {
             return Err(anyhow!(
-                "VCF corpus fixture sample metadata row {} must declare non-empty sample_id and population_id",
+                "VCF corpus fixture sample metadata row {} must declare non-empty sample_id, population_id, sex, and role",
+                row_index + 2
+            ));
+        }
+        if description.is_empty() {
+            return Err(anyhow!(
+                "VCF corpus fixture sample metadata row {} must declare a non-empty description",
+                row_index + 2
+            ));
+        }
+        if !matches!(sex, "female" | "male" | "unknown") {
+            return Err(anyhow!(
+                "VCF corpus fixture sample metadata row {} has unsupported sex `{sex}`",
+                row_index + 2
+            ));
+        }
+        if !matches!(role, "cohort" | "panel") {
+            return Err(anyhow!(
+                "VCF corpus fixture sample metadata row {} has unsupported role `{role}`",
                 row_index + 2
             ));
         }
@@ -683,6 +707,9 @@ fn load_sample_metadata(sample_metadata_path: &Path) -> Result<Vec<SampleMetadat
         rows.push(SampleMetadataRow {
             sample_id: sample_id.to_string(),
             population_id: population_id.to_string(),
+            sex: sex.to_string(),
+            role: role.to_string(),
+            description: description.to_string(),
         });
     }
     if rows.is_empty() {
