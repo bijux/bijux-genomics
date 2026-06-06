@@ -543,6 +543,16 @@ Visible aliases are part of the operator surface:
   logs, and consumed upstream reports visible, and records exact review evidence
   (`consumed_pca`, `consumed_admixture`, `sample_groups`, `distance_summary`, and `status`) so
   the final report is grounded in real upstream local-smoke outputs instead of an invented join.
+- `bijux-dna bench local run-vcf-ibd-smoke`
+  `run-vcf-ibd-smoke` writes `target/local-smoke/vcf.ibd/germline/ibd.tsv` and
+  `target/local-smoke/vcf.ibd/germline/ibd.json` from the governed `vcf.ibd` matrix row. The
+  command materializes the owned `vcf-mini` multisample cohort plus sample metadata contract, runs
+  the retained IBD stage, keeps the source input, segment, merged, filtered, summary, metrics, and
+  log artifacts visible, and records exact normalized pair evidence (`sample_a`, `sample_b`,
+  `segment_count`, `total_length`, `overlap_marker_count`, and `status`). It also runs a built-in
+  sparse-overlap probe that must mark only IBD as `insufficient_marker_overlap` while a direct ROH
+  run on the same sparse input still succeeds, so the suite-local block remains reviewer-visible
+  instead of collapsing into a generic command failure.
 - `bijux-dna bench local run-vcf-roh-smoke`
   `run-vcf-roh-smoke` writes `target/local-smoke/vcf.roh/plink2/roh.tsv` and
   `target/local-smoke/vcf.roh/plink2/roh.json` from the governed `vcf.roh` matrix row. The
