@@ -58,6 +58,8 @@ pub enum BenchReadinessCommand {
     RenderEssentialPipelineFailureIsolation(
         BenchReadinessRenderEssentialPipelineFailureIsolationArgs,
     ),
+    #[command(name = "render-essential-pipelines-ready")]
+    RenderEssentialPipelinesReady(BenchReadinessRenderEssentialPipelinesReadyArgs),
     #[command(name = "render-essential-pipeline-report-map")]
     RenderEssentialPipelineReportMap(BenchReadinessRenderEssentialPipelineReportMapArgs),
     #[command(name = "render-essential-pipeline-partial-resume")]
@@ -534,6 +536,14 @@ pub struct BenchReadinessRenderEssentialPipelineCorpusAssetsArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderEssentialPipelineFailureIsolationArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderEssentialPipelinesReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

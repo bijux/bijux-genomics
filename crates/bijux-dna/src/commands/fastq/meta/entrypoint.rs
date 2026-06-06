@@ -293,6 +293,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderEssentialPipelinesReady(args) => {
+                        crate::commands::benchmark::readiness::essential_pipelines_ready::run_render_essential_pipelines_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderEssentialPipelineReportMap(args) => {
                         crate::commands::benchmark::readiness::essential_pipeline_report_map::run_render_essential_pipeline_report_map(
                             args,
