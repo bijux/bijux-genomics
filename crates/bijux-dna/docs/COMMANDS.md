@@ -242,6 +242,13 @@ Visible aliases are part of the operator surface:
   BAM readiness binding, classifying whether the row belongs to benchmark-submission scope or an
   excluded cohort and proving that every benchmark-ready row retains governed corpus assignment
   plus any required stage-tool asset bindings before HPC benchmark submission proceeds.
+- `bijux-dna bench readiness render-essential-pipeline-corpus-assets`
+  `render-essential-pipeline-corpus-assets` writes
+  `target/bench-readiness/essential-pipeline-corpus-assets.tsv` with one governed row per node in
+  the essential local pipeline set, keeping explicit `pipeline_id`, `node_id`, `stage_id`,
+  `corpus_id`, derived `asset_profile_id`, symbolic input handoffs, symbolic output handoffs, and
+  resolution status reviewer-visible so no essential pipeline node falls back to implicit global
+  corpus or asset paths.
 - `bijux-dna bench readiness render-commands`
   `render-commands` writes `target/bench-readiness/rendered-commands.sh` with one governed shell
   command per local benchmark stage command, preserving a parseable `bash` script that can be
