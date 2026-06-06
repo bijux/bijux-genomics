@@ -388,6 +388,13 @@ Visible aliases are part of the operator surface:
   matrix. Rows remain visible when a BAM tool binding is governed by stage metadata but lacks a BAM
   tool contract (`missing_contract`) or is admitted by stage metadata but not by the BAM tool YAML
   (`mismatched_contract`).
+- `bijux-dna bench readiness render-vcf-tool-serving-map`
+  `render-vcf-tool-serving-map` writes `target/bench-readiness/vcf-tool-serving-map.tsv` with one
+  governed row per VCF stage-tool matrix binding, carrying `tool_id`, `stage_id`,
+  `support_status`, `adapter_status`, `parser_status`, `corpus_status`, `asset_status`, and
+  `benchmark_status` from the owned VCF stage catalog and matrix. The report fails closed unless
+  every matrix row appears exactly once and the supported-vs-planned split remains aligned with
+  the canonical VCF stage contracts.
 - `bijux-dna bench readiness render-orphan-tools`
   `render-orphan-tools` writes `target/bench-readiness/orphan-tools.tsv` with one governed row per
   FASTQ or BAM tool contract that exists in scope but serves no currently rendered benchmark stage.
