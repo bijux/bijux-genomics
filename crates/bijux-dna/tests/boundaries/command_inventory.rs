@@ -119,6 +119,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-pair-readiness",
     "bijux-dna bench readiness render-corpus-centric-report",
     "bijux-dna bench readiness render-benchmark-readiness-dashboard",
+    "bijux-dna bench readiness render-stage-tool-benchmark-ready",
     "bijux-dna bench readiness render-stage-centric-report",
     "bijux-dna bench readiness render-tool-centric-report",
     "bijux-dna bench readiness render-missing-benchmark-pairs",
