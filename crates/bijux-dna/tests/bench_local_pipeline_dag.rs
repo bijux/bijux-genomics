@@ -1336,6 +1336,155 @@ fn bench_local_pipeline_dag_validates_relatedness_segments_contract() {
 }
 
 #[test]
+fn bench_local_pipeline_dag_validates_bam_genotyping_to_vcf_downstream_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/bam-genotyping-to-vcf-downstream.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/bam-genotyping-to-vcf-downstream.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("bam-genotyping-to-vcf-downstream")
+    );
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-01-bam-mini")
+    );
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(payload.get("edge_count").and_then(serde_json::Value::as_u64), Some(11));
+
+    let profiles = payload
+        .get("validation_profiles")
+        .and_then(serde_json::Value::as_array)
+        .expect("validation profiles");
+    assert!(
+        profiles.iter().any(|profile| {
+            profile.get("profile_id").and_then(serde_json::Value::as_str)
+                == Some("bam_genotyping_vcf_downstream")
+                && profile.get("check_count").and_then(serde_json::Value::as_u64) == Some(8)
+        }),
+        "bam-genotyping to vcf downstream pipeline must emit the bam_genotyping_vcf_downstream validation profile"
+    );
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("filtered_bam"))
+                            && inputs.iter().any(|value| value.as_str() == Some("recalibrated_bam"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("recalibration_summary_json"))
+                    },
+                )
+                && node.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |outputs| {
+                        outputs.iter().any(|value| value.as_str() == Some("genotyping_bcf"))
+                            && outputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("genotyping_vcf_gz"))
+                            && outputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("genotyping_vcf_tbi"))
+                    },
+                )
+        }),
+        "bam.genotyping must expose the exact bridge outputs for downstream vcf stages"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.filter")
+                && node.get("depends_on").and_then(serde_json::Value::as_array).is_some_and(
+                    |deps| deps.iter().any(|value| value.as_str() == Some("bam.genotyping")),
+                )
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("genotyping_vcf_gz"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("genotyping_vcf_tbi"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("genotyping_report_json"))
+                    },
+                )
+        }),
+        "vcf.filter must bridge directly from bam.genotyping outputs"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc")
+                && node.get("depends_on").and_then(serde_json::Value::as_array).is_some_and(
+                    |deps| {
+                        deps.iter().any(|value| value.as_str() == Some("vcf.filter"))
+                            && deps.iter().any(|value| value.as_str() == Some("vcf.stats"))
+                    },
+                )
+                && node.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |outputs| {
+                        outputs.iter().any(|value| value.as_str() == Some("qc_cohort_vcf"))
+                            && outputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("pruned_variants_tsv"))
+                    },
+                )
+        }),
+        "vcf.qc must export a qc-qualified cohort handoff for downstream optional branches"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.pca")
+                && node
+                    .get("depends_on")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|deps| deps.iter().any(|value| value.as_str() == Some("vcf.qc")))
+                && node.get("external_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| {
+                            value.as_str() == Some("sample_metadata_manifest_contract")
+                        }) && inputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("population_labels_contract"))
+                    },
+                )
+        }),
+        "optional pca must remain downstream of qc with explicit metadata contracts"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.roh")
+                && node
+                    .get("depends_on")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|deps| deps.iter().any(|value| value.as_str() == Some("vcf.qc")))
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("qc_cohort_vcf"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("pruned_variants_tsv"))
+                    },
+                )
+        }),
+        "optional roh must remain downstream of qc with the same bridged cohort handoff"
+    );
+}
+
+#[test]
 fn bench_local_pipeline_dag_validates_bam_genotyping_contract() {
     let payload = run_cli_json(&[
         "bench",
