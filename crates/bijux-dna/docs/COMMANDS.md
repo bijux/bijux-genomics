@@ -103,9 +103,14 @@ Visible aliases are part of the operator surface:
 - `bijux-dna plan list`
 - `bijux-dna plan explain`
 - `bijux-dna plan explain-profile`
+- `bijux-dna plan validate`
 - `bijux-dna plan validate-profile`
 - `bijux-dna plan profile-diff`
 - `bijux-dna plan audit`
+
+Visible aliases are part of the operator surface:
+
+- `bijux-dna pipeline validate` aliases `bijux-dna plan validate`.
 
 ### Analysis And Explanation
 - `bijux-dna analyze runs`
@@ -916,6 +921,7 @@ Visible aliases are part of the operator surface:
   `validate-pipeline-dag` checks governed local pipeline DAG configs such as
   `configs/pipelines/local/fastq-core-preprocess.toml` and
   `configs/pipelines/local/fastq-to-bam.toml` and
+  `configs/pipelines/local/core-germline-fastq-bam-vcf.toml` and
   `configs/pipelines/local/fastq-paired-merge.toml` and
   `configs/pipelines/local/fastq-edna-taxonomy.toml` and
   `configs/pipelines/local/fastq-amplicon.toml` and
@@ -926,7 +932,13 @@ Visible aliases are part of the operator surface:
   `configs/pipelines/local/bam-kinship.toml`, writes a validation report under
   `target/local-ready/pipeline-dag/`, proves the DAG is acyclic, and verifies that every node is
   inventory-aligned with declared inputs, outputs, and dependency handoffs, including governed
-  mixed FASTQ-to-BAM path handoffs for cross-domain DAGs.
+  mixed FASTQ-to-BAM-to-VCF path handoffs for cross-domain DAGs.
+- `bijux-dna plan validate`
+  `plan validate --id core-germline-fastq-bam-vcf --strict` resolves the governed local pipeline
+  config at `configs/pipelines/local/core-germline-fastq-bam-vcf.toml`, writes
+  `target/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json`, and fails closed unless the
+  requested id matches the config identity and the DAG validates with explicit FASTQ, BAM, and VCF
+  handoff coverage.
 - `bijux-dna bench local simulate-dag-watchdog`
   `simulate-dag-watchdog` writes governed DAG scheduling simulations such as
   `target/local-ready/dag-sim/no-global-wait.json` and
