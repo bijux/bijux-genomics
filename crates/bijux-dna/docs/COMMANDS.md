@@ -430,6 +430,13 @@ Visible aliases are part of the operator surface:
   `asset_profile_id`, `expected_outputs`, `expected_metrics`, and `report_section`, and the
   command fails closed unless the owned benchmark-ready VCF slice retains complete expected-result
   coverage.
+- `bijux-dna bench readiness render-vcf-missing-result-report`
+  `render-vcf-missing-result-report` writes
+  `target/bench-readiness/vcf-missing-result-report-test.json` after materializing a governed fake
+  VCF benchmark-result tree under `target/bench-readiness/vcf-missing-result-report-fixture`,
+  deleting exactly one governed VCF manifest, and auditing the remaining rows. The report fails
+  closed unless exactly one row is visible as `missing_result` instead of disappearing from the
+  table.
 - `bijux-dna bench readiness render-vcf-parser-coverage`
   `render-vcf-parser-coverage` writes `target/bench-readiness/vcf-parser-coverage.tsv` with one
   row per benchmark-ready VCF stage-tool parser surface. Each row keeps `stage_id`, `tool_id`,
