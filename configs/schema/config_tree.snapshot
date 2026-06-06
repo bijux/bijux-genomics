@@ -145,6 +145,7 @@ configs/logging/index.md
 configs/logging/runtime.toml
 configs/pipelines/local/adna-gl-fastq-bam-vcf.toml
 configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml
+configs/pipelines/local/amplicon-asv-otu-no-vcf.toml
 configs/pipelines/local/diploid-small-fastq-bam-vcf.toml
 configs/pipelines/local/bam-authenticity.toml
 configs/pipelines/local/bam-core-qc.toml
