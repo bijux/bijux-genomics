@@ -1,0 +1,15 @@
+{
+  "schema_version": "bijux.fixture.vcf_raw_parser.v1",
+  "stage_id": "vcf.call",
+  "tool_id": "bcftools",
+  "parser_id": "parse_bcftools_call_metrics",
+  "normalized": {
+    "schema_version": "bijux.vcf.call.v1",
+    "stage_id": "vcf.call",
+    "tool_id": "bcftools",
+    "variant_count": 3,
+    "snp_count": 3,
+    "indel_count": 0,
+    "sample_count": 1
+  }
+}

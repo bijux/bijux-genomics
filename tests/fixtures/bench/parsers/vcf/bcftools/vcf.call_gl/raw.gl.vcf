@@ -1,0 +1,8 @@
+##fileformat=VCFv4.2
+##contig=<ID=chr1,length=1000>
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Phred-scaled Genotype Likelihood">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample_a
+chr1	3	.	A	G	60	PASS	.	GT:PL	0/1:0,10,20
+chr1	7	.	C	T	55	PASS	.	GT:PL	1/1:22,10,0
+chr1	11	.	G	A	70	PASS	.	GT:PL	0/0:0,16,32
