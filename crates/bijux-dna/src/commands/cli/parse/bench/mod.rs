@@ -87,7 +87,7 @@ pub use self::readiness::{
     BenchReadinessRenderStageToolBenchmarkReadyArgs, BenchReadinessRenderStageToolContainersArgs,
     BenchReadinessRenderStageToolResourcesArgs, BenchReadinessRenderToolCentricReportArgs,
     BenchReadinessRenderToolIdNormalizationArgs, BenchReadinessRenderUndercoveredStagesArgs,
-    BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
+    BenchReadinessRenderUnregisteredBenchmarkPairsArgs, BenchReadinessRenderVcfAngsdAdapterArgs,
     BenchReadinessRenderVcfBcftoolsAdapterArgs,
     BenchReadinessRenderVcfMatrixRegistryConsistencyArgs, BenchReadinessRenderVcfOrphanToolsArgs,
     BenchReadinessRenderVcfToolServingMapArgs, BenchReadinessRenderVcfUndercoveredStagesArgs,

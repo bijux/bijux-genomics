@@ -327,6 +327,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfAngsdAdapter(args) => {
+                        crate::commands::benchmark::readiness::vcf_angsd_adapter::run_render_vcf_angsd_adapter(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfBcftoolsAdapter(args) => {
                         crate::commands::benchmark::readiness::vcf_bcftools_adapter::run_render_vcf_bcftools_adapter(
                             args,

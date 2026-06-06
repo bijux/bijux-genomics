@@ -74,6 +74,8 @@ pub enum BenchReadinessCommand {
     RenderBamToolServingMap(BenchReadinessRenderBamToolServingMapArgs),
     #[command(name = "render-vcf-tool-serving-map")]
     RenderVcfToolServingMap(BenchReadinessRenderVcfToolServingMapArgs),
+    #[command(name = "render-vcf-angsd-adapter")]
+    RenderVcfAngsdAdapter(BenchReadinessRenderVcfAngsdAdapterArgs),
     #[command(name = "render-vcf-bcftools-adapter")]
     RenderVcfBcftoolsAdapter(BenchReadinessRenderVcfBcftoolsAdapterArgs),
     #[command(name = "render-vcf-matrix-registry-consistency")]
@@ -254,6 +256,14 @@ pub struct BenchReadinessRenderExpectedBenchmarkResultsArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderMissingResultReportArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfAngsdAdapterArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
