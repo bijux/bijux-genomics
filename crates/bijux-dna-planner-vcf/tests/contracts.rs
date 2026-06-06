@@ -254,6 +254,83 @@ fn vcf_planner_renders_executable_eigensoft_stage_templates_when_overridden() {
     }
 }
 
+#[test]
+fn vcf_planner_renders_executable_phasing_stage_templates_for_retained_backends() {
+    let cases = [
+        (CoverageRegime::Diploid, "shapeit5"),
+        (CoverageRegime::Diploid, "eagle"),
+        (CoverageRegime::Diploid, "beagle"),
+    ];
+
+    for (regime, tool_id) in cases {
+        let mut input = base_inputs(regime);
+        input.requested_stages = Some(vec!["vcf.phasing".to_string()]);
+        input.stage_tool_overrides.insert("vcf.phasing".to_string(), tool_id.to_string());
+
+        let plans = plan_vcf_stage_plans(&input)
+            .unwrap_or_else(|err| panic!("stage plans for phasing backend {tool_id}: {err}"));
+        let phasing_plan = plans
+            .iter()
+            .find(|plan| plan.stage_id.to_string() == "vcf.phasing")
+            .unwrap_or_else(|| panic!("phasing plan for {tool_id}"));
+        let joined = phasing_plan.command.template.join(" ");
+
+        assert!(
+            !joined.contains("--help"),
+            "phasing backend {tool_id} must not fall back to placeholder rendering: {:?}",
+            phasing_plan.command.template
+        );
+        assert!(
+            joined.contains("reference_panel_vcf")
+                || joined.contains("vcf_mini_reference_panel.vcf"),
+            "phasing backend {tool_id} must keep panel input wiring: {:?}",
+            phasing_plan.command.template
+        );
+        assert!(
+            joined.contains("map.tsv.gz"),
+            "phasing backend {tool_id} must keep genetic-map wiring: {:?}",
+            phasing_plan.command.template
+        );
+        assert!(
+            joined.contains("bcftools index"),
+            "phasing backend {tool_id} must keep phased-vcf indexing: {:?}",
+            phasing_plan.command.template
+        );
+
+        match tool_id {
+            "shapeit5" => {
+                assert!(
+                    joined.contains("shapeit5 phase_common"),
+                    "shapeit5 phasing must render phase_common: {:?}",
+                    phasing_plan.command.template
+                );
+                assert!(joined.contains("--reference"));
+                assert!(joined.contains("--map"));
+            }
+            "eagle" => {
+                assert!(
+                    joined.contains("eagle"),
+                    "eagle phasing must render eagle command: {:?}",
+                    phasing_plan.command.template
+                );
+                assert!(joined.contains("--vcfTarget"));
+                assert!(joined.contains("--geneticMapFile"));
+            }
+            "beagle" => {
+                assert!(
+                    joined.contains("beagle"),
+                    "beagle phasing must render beagle command: {:?}",
+                    phasing_plan.command.template
+                );
+                assert!(joined.contains("gt='") || joined.contains("gt="));
+                assert!(joined.contains("ref='") || joined.contains("ref="));
+                assert!(joined.contains("map='") || joined.contains("map="));
+            }
+            other => panic!("unexpected phasing backend {other}"),
+        }
+    }
+}
+
 fn assert_snapshot_json(name: &str, kind: &str, value: &serde_json::Value) {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
