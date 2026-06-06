@@ -332,6 +332,16 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfPlinkAdapter(args) => {
+                        crate::commands::benchmark::readiness::vcf_plink_family_adapter::run_render_vcf_plink_adapter(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderVcfPlink2Adapter(args) => {
+                        crate::commands::benchmark::readiness::vcf_plink_family_adapter::run_render_vcf_plink2_adapter(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfBcftoolsAdapter(args) => {
                         crate::commands::benchmark::readiness::vcf_bcftools_adapter::run_render_vcf_bcftools_adapter(
                             args,

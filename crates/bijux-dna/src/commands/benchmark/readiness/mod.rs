@@ -48,5 +48,6 @@ pub(crate) mod vcf_angsd_adapter;
 pub(crate) mod vcf_bcftools_adapter;
 pub(crate) mod vcf_matrix_registry_consistency;
 pub(crate) mod vcf_orphan_tools;
+pub(crate) mod vcf_plink_family_adapter;
 pub(crate) mod vcf_tool_serving_map;
 pub(crate) mod vcf_undercovered_stages;
