@@ -283,6 +283,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderEssentialPipelineCorpusAssets(args) => {
+                        crate::commands::benchmark::readiness::essential_pipeline_corpus_assets::run_render_essential_pipeline_corpus_assets(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderParserFailureTests(args) => {
                         crate::commands::benchmark::readiness::parser_failure_tests::run_render_parser_failure_tests(
                             args,

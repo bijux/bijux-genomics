@@ -15,6 +15,7 @@ pub(crate) mod catalog;
 pub(crate) mod corpus_asset_coverage_gate;
 pub(crate) mod corpus_centric_report;
 pub(crate) mod corpus_incompatibility;
+pub(crate) mod essential_pipeline_corpus_assets;
 pub(crate) mod expected_benchmark_results;
 pub(crate) mod fastq_adapter_output_contract;
 pub(crate) mod fastq_command_adapter_coverage;
