@@ -355,6 +355,9 @@ fn build_validation_profiles(
     if stage_ids.contains("vcf.call_gl") || stage_ids.contains("vcf.gl_propagation") {
         profiles.push(validate_ancient_dna_gl_profile(repo_root, config)?);
     }
+    if stage_ids.contains("vcf.call_diploid") && stage_ids.contains("bam.recalibration") {
+        profiles.push(validate_diploid_small_sample_profile(repo_root, config)?);
+    }
 
     Ok(profiles)
 }
@@ -710,6 +713,251 @@ fn validate_ancient_dna_gl_profile(
         "vcf.call_gl consumes BAM damage and authenticity evidence with ancient-DNA reference contracts".to_string(),
         "vcf.gl_propagation stays downstream of genotype-likelihood calling with explicit GL handoff coverage".to_string(),
         "vcf.qc stays downstream of propagated genotype-likelihood outputs".to_string(),
+    ];
+
+    Ok(LocalPipelineDagValidationProfileReport {
+        profile_id: PROFILE_ID.to_string(),
+        check_count: checks.len(),
+        checks,
+    })
+}
+
+fn validate_diploid_small_sample_profile(
+    repo_root: &Path,
+    config: &LocalPipelineDagConfig,
+) -> Result<LocalPipelineDagValidationProfileReport> {
+    const PROFILE_ID: &str = "diploid_small_sample";
+
+    if config.default_corpus_id != "corpus-01-mini" {
+        return Err(anyhow!(
+            "{PROFILE_ID} local pipeline DAG must start from governed FASTQ corpus `corpus-01-mini`, found `{}`",
+            config.default_corpus_id
+        ));
+    }
+
+    let stage_index =
+        config.nodes.iter().map(|node| (node.stage_id.clone(), node)).collect::<BTreeMap<_, _>>();
+
+    let bam_filter = require_profile_stage(&stage_index, PROFILE_ID, "bam.filter")?;
+    let bam_recalibration = require_profile_stage(&stage_index, PROFILE_ID, "bam.recalibration")?;
+    let vcf_call_diploid = require_profile_stage(&stage_index, PROFILE_ID, "vcf.call_diploid")?;
+    let vcf_filter = require_profile_stage(&stage_index, PROFILE_ID, "vcf.filter")?;
+    let vcf_stats = require_profile_stage(&stage_index, PROFILE_ID, "vcf.stats")?;
+    let vcf_qc = require_profile_stage(&stage_index, PROFILE_ID, "vcf.qc")?;
+    let vcf_phasing = require_profile_stage(&stage_index, PROFILE_ID, "vcf.phasing")?;
+
+    require_list_contains(
+        &bam_filter.outputs,
+        "filtered_bam",
+        PROFILE_ID,
+        "bam.filter must keep the filtered-BAM fallback output explicit",
+    )?;
+    require_list_contains(
+        &bam_filter.outputs,
+        "filtered_bai",
+        PROFILE_ID,
+        "bam.filter must keep the filtered-BAM index fallback output explicit",
+    )?;
+    require_list_contains(
+        &bam_recalibration.external_inputs,
+        "recalibration_reference_contract",
+        PROFILE_ID,
+        "bam.recalibration must declare the governed recalibration reference contract",
+    )?;
+    require_list_contains(
+        &bam_recalibration.external_inputs,
+        "recalibration_known_sites_contract",
+        PROFILE_ID,
+        "bam.recalibration must declare the governed known-sites recalibration contract",
+    )?;
+    require_list_contains(
+        &bam_recalibration.external_inputs,
+        "recalibration_coverage_gate_contract",
+        PROFILE_ID,
+        "bam.recalibration must declare the governed low-coverage recalibration gate contract",
+    )?;
+    require_list_contains(
+        &vcf_call_diploid.depends_on,
+        "bam.filter",
+        PROFILE_ID,
+        "vcf.call_diploid must remain downstream of the filtered-BAM fallback branch",
+    )?;
+    require_list_contains(
+        &vcf_call_diploid.depends_on,
+        "bam.recalibration",
+        PROFILE_ID,
+        "vcf.call_diploid must remain downstream of the recalibrated-BAM run branch",
+    )?;
+    require_list_contains(
+        &vcf_call_diploid.upstream_inputs,
+        "filtered_bam",
+        PROFILE_ID,
+        "vcf.call_diploid must consume the filtered-BAM fallback handoff",
+    )?;
+    require_list_contains(
+        &vcf_call_diploid.upstream_inputs,
+        "filtered_bai",
+        PROFILE_ID,
+        "vcf.call_diploid must consume the filtered-BAM index fallback handoff",
+    )?;
+    require_list_contains(
+        &vcf_call_diploid.upstream_inputs,
+        "recalibrated_bam",
+        PROFILE_ID,
+        "vcf.call_diploid must consume the recalibrated-BAM run-path handoff",
+    )?;
+    require_list_contains(
+        &vcf_call_diploid.upstream_inputs,
+        "recalibrated_bai",
+        PROFILE_ID,
+        "vcf.call_diploid must consume the recalibrated-BAM index run-path handoff",
+    )?;
+    require_list_contains(
+        &vcf_call_diploid.upstream_inputs,
+        "recalibration_summary_json",
+        PROFILE_ID,
+        "vcf.call_diploid must consume the recalibration decision summary",
+    )?;
+    require_list_contains(
+        &vcf_call_diploid.upstream_inputs,
+        "coverage_report_json",
+        PROFILE_ID,
+        "vcf.call_diploid must consume explicit coverage evidence for the low-coverage skip path",
+    )?;
+    require_list_contains(
+        &vcf_call_diploid.external_inputs,
+        "reference_fasta_contract",
+        PROFILE_ID,
+        "vcf.call_diploid must declare the governed reference FASTA contract",
+    )?;
+    require_list_contains(
+        &vcf_call_diploid.external_inputs,
+        "reference_fai_contract",
+        PROFILE_ID,
+        "vcf.call_diploid must declare the governed reference FASTA index contract",
+    )?;
+    require_list_contains(
+        &vcf_filter.depends_on,
+        "vcf.call_diploid",
+        PROFILE_ID,
+        "vcf.filter must remain downstream of diploid calling",
+    )?;
+    require_list_contains(
+        &vcf_filter.upstream_inputs,
+        "diploid_vcf",
+        PROFILE_ID,
+        "vcf.filter must consume the diploid VCF handoff",
+    )?;
+    require_list_contains(
+        &vcf_stats.depends_on,
+        "vcf.filter",
+        PROFILE_ID,
+        "vcf.stats must remain downstream of variant filtering",
+    )?;
+    require_list_contains(
+        &vcf_qc.depends_on,
+        "vcf.filter",
+        PROFILE_ID,
+        "vcf.qc must remain downstream of filtered VCF outputs",
+    )?;
+    require_list_contains(
+        &vcf_qc.depends_on,
+        "vcf.stats",
+        PROFILE_ID,
+        "vcf.qc must remain downstream of explicit VCF stats evidence",
+    )?;
+    require_list_contains(
+        &vcf_qc.upstream_inputs,
+        "filtered_vcf",
+        PROFILE_ID,
+        "vcf.qc must consume the filtered VCF handoff",
+    )?;
+    require_list_contains(
+        &vcf_qc.upstream_inputs,
+        "stats_json",
+        PROFILE_ID,
+        "vcf.qc must consume explicit VCF stats evidence",
+    )?;
+    if vcf_qc.depends_on.iter().any(|value| value == "vcf.phasing") {
+        return Err(anyhow!("{PROFILE_ID}: vcf.qc must not depend on optional phasing output"));
+    }
+    require_list_contains(
+        &vcf_phasing.depends_on,
+        "vcf.filter",
+        PROFILE_ID,
+        "vcf.phasing must remain downstream of the filtered VCF handoff",
+    )?;
+    require_list_contains(
+        &vcf_phasing.depends_on,
+        "vcf.qc",
+        PROFILE_ID,
+        "vcf.phasing must remain downstream of VCF QC instead of blocking it",
+    )?;
+    require_list_contains(
+        &vcf_phasing.upstream_inputs,
+        "filtered_vcf",
+        PROFILE_ID,
+        "vcf.phasing must consume the filtered VCF handoff",
+    )?;
+    require_list_contains(
+        &vcf_phasing.upstream_inputs,
+        "qc_report",
+        PROFILE_ID,
+        "vcf.phasing must consume the QC report from the completed small-sample branch",
+    )?;
+    require_list_contains(
+        &vcf_phasing.external_inputs,
+        "genetic_map_contract",
+        PROFILE_ID,
+        "vcf.phasing must declare the governed genetic map contract",
+    )?;
+    require_list_contains(
+        &vcf_phasing.external_inputs,
+        "reference_panel_lock_contract",
+        PROFILE_ID,
+        "vcf.phasing must declare the governed reference-panel lock contract",
+    )?;
+
+    let compatibility_report = validate_corpus_stage_compatibility_path(
+        repo_root,
+        &repo_root.join(DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH),
+    )?;
+    let compatibility_index = compatibility_report
+        .stages
+        .iter()
+        .map(|entry| (entry.stage_id.as_str(), entry))
+        .collect::<BTreeMap<_, _>>();
+    require_compatibility_fixture(
+        &compatibility_index,
+        PROFILE_ID,
+        "bam.filter",
+        "corpus-01-bam",
+        "corpus-01-bam-mini",
+    )?;
+    require_compatibility_fixture(
+        &compatibility_index,
+        PROFILE_ID,
+        "bam.recalibration",
+        "corpus-01-bam",
+        "corpus-01-bam-mini",
+    )?;
+
+    let checks = vec![
+        "default corpus anchored to corpus-01-mini for governed small-sample FASTQ inputs"
+            .to_string(),
+        "bam.filter and bam.recalibration stay fixture-backed by corpus-01-bam-mini"
+            .to_string(),
+        "bam.recalibration keeps the low-coverage gate and known-sites contracts explicit"
+            .to_string(),
+        "vcf.call_diploid consumes both the filtered-BAM fallback and recalibrated-BAM run-path handoffs"
+            .to_string(),
+        "vcf.call_diploid keeps explicit coverage and recalibration decision evidence"
+            .to_string(),
+        "vcf.filter and vcf.stats stay downstream of diploid calling".to_string(),
+        "vcf.qc stays downstream of filtered VCF and stats without depending on phasing"
+            .to_string(),
+        "vcf.phasing remains an optional downstream branch with explicit map and panel contracts"
+            .to_string(),
     ];
 
     Ok(LocalPipelineDagValidationProfileReport {
