@@ -15,13 +15,13 @@ mod contracts {
             validate_reference_panel_governance, validate_species_context, validate_vcf_invariants,
             vcf_calling_mode_contracts, vcf_cohort_analysis_boundary_contracts,
             vcf_likelihood_workflow_contracts, vcf_panel_boundary_contracts,
-            vcf_phasing_imputation_boundary_contracts, vcf_population_guardrail_contracts,
-            ContigSpec, DamageAwareGenotypeLogicContract, DefaultPanelSelectionPolicy,
-            EntryVcfInvariantState, PanelMapInvariantState, PanelSelectionContext,
-            PanelSelectionPolicy, ReferencePanelGovernance, SpeciesContext, VcfArtifactClass,
-            VcfComparableMetricDirection, VcfInvariantState, DAMAGE_AWARE_GENOTYPE_LOGIC,
-            OUTPUT_GUARANTEE, VCF_COHORT_VALIDATION_CONTRACT, VCF_DAMAGE_FILTER_CONTRACT,
-            VCF_FILTER_EVIDENCE_CONTRACT, VCF_NORMALIZATION_CONTRACT,
+            vcf_parser_fixture_inventory, vcf_phasing_imputation_boundary_contracts,
+            vcf_population_guardrail_contracts, ContigSpec, DamageAwareGenotypeLogicContract,
+            DefaultPanelSelectionPolicy, EntryVcfInvariantState, PanelMapInvariantState,
+            PanelSelectionContext, PanelSelectionPolicy, ReferencePanelGovernance, SpeciesContext,
+            VcfArtifactClass, VcfComparableMetricDirection, VcfInvariantState,
+            DAMAGE_AWARE_GENOTYPE_LOGIC, OUTPUT_GUARANTEE, VCF_COHORT_VALIDATION_CONTRACT,
+            VCF_DAMAGE_FILTER_CONTRACT, VCF_FILTER_EVIDENCE_CONTRACT, VCF_NORMALIZATION_CONTRACT,
             VCF_NORMALIZATION_POLICY_MATRIX_CONTRACT, VCF_PRODUCTION_CORPUS_CONTRACT,
             VCF_REFERENCE_CONTEXT_CONTRACT, VCF_REPORT_COVERAGE_CONTRACT,
             VCF_SCIENTIFIC_DRIFT_CONTRACT, VCF_STATS_REPORT_CONTRACT, VCF_VALIDATION_CONTRACT,
@@ -233,6 +233,44 @@ mod contracts {
             metric.metric_id == "masked_truth_match_count"
                 && metric.direction == VcfComparableMetricDirection::HigherIsBetter
         }));
+    }
+
+    #[test]
+    fn vcf_parser_fixture_inventory_covers_governed_tool_stage_rows() {
+        let rows = vcf_parser_fixture_inventory();
+        assert_eq!(rows.len(), 38);
+
+        let unique_rows = rows
+            .iter()
+            .map(|row| format!("{}:{}", row.tool_id, row.stage.as_str()))
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(unique_rows.len(), rows.len());
+
+        assert!(rows.iter().any(|row| {
+            row.tool_id == "bcftools"
+                && row.stage == VcfDomainStage::Call
+                && row.parser_id == "parse_bcftools_call_metrics"
+                && row.fixture_path == "tests/fixtures/bench/parsers/vcf/bcftools/vcf.call"
+        }));
+        assert!(rows.iter().any(|row| {
+            row.tool_id == "bcftools"
+                && row.stage == VcfDomainStage::Stats
+                && row.parser_id == "parse_bcftools_stats_metrics"
+        }));
+        assert!(rows.iter().any(|row| {
+            row.tool_id == "shapeit5"
+                && row.stage == VcfDomainStage::Phasing
+                && row.parser_id == "parse_shapeit5_phasing_metrics"
+        }));
+        assert!(rows.iter().any(|row| {
+            row.tool_id == "beagle"
+                && row.stage == VcfDomainStage::Imputation
+                && row.parser_id == "parse_beagle_imputation_metrics"
+        }));
+        assert!(rows.iter().all(|row| !row.fixture_path.is_empty()));
+        assert!(rows.iter().all(|row| stage_metrics_contract(row.stage)
+            .metrics_schema_id
+            .starts_with("bijux.vcf.")));
     }
 
     #[test]
