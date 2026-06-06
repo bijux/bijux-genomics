@@ -148,14 +148,9 @@ fn vcf_planner_renders_executable_plink2_stage_templates_for_cohort_rows() {
     {
         let plans = plan_vcf_stage_plans(&base_inputs(regime))
             .unwrap_or_else(|err| panic!("stage plans for {regime:?}: {err}"));
-        let plink2_rows = plans
-            .iter()
-            .filter(|plan| plan.tool_id.to_string() == "plink2")
-            .collect::<Vec<_>>();
-        assert!(
-            !plink2_rows.is_empty(),
-            "expected plink2 cohort-analysis rows for {regime:?}"
-        );
+        let plink2_rows =
+            plans.iter().filter(|plan| plan.tool_id.to_string() == "plink2").collect::<Vec<_>>();
+        assert!(!plink2_rows.is_empty(), "expected plink2 cohort-analysis rows for {regime:?}");
         for plan in plink2_rows {
             assert!(
                 !plan.command.template.is_empty(),
@@ -182,8 +177,7 @@ fn vcf_planner_renders_executable_plink2_stage_templates_for_cohort_rows() {
 #[test]
 fn vcf_planner_renders_executable_plink_stage_templates_when_overridden() {
     let mut input = base_inputs(CoverageRegime::Diploid);
-    input.requested_stages =
-        Some(vec!["vcf.qc".to_string(), "vcf.admixture".to_string()]);
+    input.requested_stages = Some(vec!["vcf.qc".to_string(), "vcf.admixture".to_string()]);
     input.stage_tool_overrides.insert("vcf.qc".to_string(), "plink".to_string());
     input.stage_tool_overrides.insert("vcf.admixture".to_string(), "plink".to_string());
 
@@ -196,11 +190,7 @@ fn vcf_planner_renders_executable_plink_stage_templates_when_overridden() {
                 && matches!(plan.stage_id.as_str(), "vcf.qc" | "vcf.admixture")
         })
         .collect::<Vec<_>>();
-    assert_eq!(
-        plink_rows.len(),
-        2,
-        "expected governed plink overrides for qc and admixture"
-    );
+    assert_eq!(plink_rows.len(), 2, "expected governed plink overrides for qc and admixture");
     for plan in plink_rows {
         assert!(
             !plan.command.template.is_empty(),
@@ -216,6 +206,48 @@ fn vcf_planner_renders_executable_plink_stage_templates_when_overridden() {
         assert!(
             !plan.command.template.iter().any(|part| part == "--help"),
             "plink stage {} must not fall back to --help placeholder rendering: {:?}",
+            plan.stage_id,
+            plan.command.template
+        );
+    }
+}
+
+#[test]
+fn vcf_planner_renders_executable_eigensoft_stage_templates_when_overridden() {
+    for stage_id in ["vcf.pca", "vcf.population_structure"] {
+        let mut input = base_inputs(CoverageRegime::Diploid);
+        input.requested_stages = Some(vec![stage_id.to_string()]);
+        input.stage_tool_overrides.insert(stage_id.to_string(), "eigensoft".to_string());
+
+        let plans = plan_vcf_stage_plans(&input)
+            .unwrap_or_else(|err| panic!("stage plans with eigensoft for {stage_id}: {err}"));
+        let plan = plans
+            .iter()
+            .find(|plan| {
+                plan.tool_id.to_string() == "eigensoft" && plan.stage_id.as_str() == stage_id
+            })
+            .unwrap_or_else(|| panic!("expected governed eigensoft override for {stage_id}"));
+        assert!(
+            !plan.command.template.is_empty(),
+            "eigensoft stage {} must keep a real command template",
+            plan.stage_id
+        );
+        let joined = plan.command.template.join(" ");
+        assert!(
+            joined.contains("convertf"),
+            "eigensoft stage {} must render convertf input conversion: {:?}",
+            plan.stage_id,
+            plan.command.template
+        );
+        assert!(
+            joined.contains("smartpca"),
+            "eigensoft stage {} must render smartpca execution: {:?}",
+            plan.stage_id,
+            plan.command.template
+        );
+        assert!(
+            !plan.command.template.iter().any(|part| part == "--help"),
+            "eigensoft stage {} must not fall back to --help placeholder rendering: {:?}",
             plan.stage_id,
             plan.command.template
         );
