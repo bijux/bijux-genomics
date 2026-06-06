@@ -1,0 +1,9 @@
+{
+  "tool_id": "eigensoft",
+  "stage_id": "vcf.pca",
+  "argv": [
+    "sh",
+    "-lc",
+    "convertf -p pca.convertf.par && smartpca -p pca.smartpca.par > pca.smartpca.log 2>&1"
+  ]
+}
