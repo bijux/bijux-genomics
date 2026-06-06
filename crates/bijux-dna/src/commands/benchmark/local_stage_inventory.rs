@@ -277,6 +277,8 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::path::PathBuf;
 
+    use crate::commands::benchmark::local_vcf_stage_matrix::DEFAULT_VCF_STAGE_MATRIX_PATH;
+
     use super::{
         load_local_stage_inventory, render_all_domain_stage_inventory, BenchLocalDomain,
         LocalStageReadinessKind, DEFAULT_ALL_DOMAIN_STAGE_LIST_PATH,

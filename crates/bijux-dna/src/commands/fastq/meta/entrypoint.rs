@@ -368,6 +368,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderAllDomainStageToolTable(args) => {
+                        crate::commands::benchmark::readiness::all_domain_stage_tool_table::run_render_all_domain_stage_tool_table(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfComparableMetrics(args) => {
                         crate::commands::benchmark::readiness::vcf_comparable_metrics::run_render_vcf_comparable_metrics(
                             args,
