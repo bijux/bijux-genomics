@@ -292,11 +292,14 @@ fn parse_gl_propagation_metrics(root: &Path) -> Result<serde_json::Value> {
 
 fn parse_postprocess_metrics(root: &Path) -> Result<serde_json::Value> {
     let readable = parse_vcf_document(&root.join(RAW_POSTPROCESS_VCF_NAME)).is_ok();
+    require_existing_file(
+        &root.join(RAW_POSTPROCESS_TBI_NAME),
+        "required tabix index for postprocess output",
+    )?;
     let validate = read_json(&root.join(RAW_POSTPROCESS_VALIDATE_NAME))?;
     let manifest = read_json(&root.join(RAW_POSTPROCESS_MANIFEST_NAME))?;
     let readable_vcf = readable && json_bool(&validate, "/readable_vcf", "readable_vcf")?;
-    let tabix_present = root.join(RAW_POSTPROCESS_TBI_NAME).exists()
-        && json_bool(&validate, "/tabix_present", "tabix_present")?;
+    let tabix_present = json_bool(&validate, "/tabix_present", "tabix_present")?;
     Ok(serde_json::json!({
         "schema_version": "bijux.vcf.postprocess.v1",
         "stage_id": "vcf.postprocess",
@@ -342,6 +345,10 @@ fn parse_postprocess_metrics(root: &Path) -> Result<serde_json::Value> {
 }
 
 fn parse_prepare_reference_panel_metrics(root: &Path) -> Result<serde_json::Value> {
+    require_existing_file(
+        &root.join(RAW_PANEL_TBI_NAME),
+        "required tabix index for prepared reference panel",
+    )?;
     let manifest = read_json(&root.join(RAW_PANEL_MANIFEST_NAME))?;
     let sample_ids = parse_vcf_document(&root.join(RAW_PANEL_VCF_NAME))?.sample_ids;
     let manifest_sample_ids =
@@ -378,7 +385,7 @@ fn parse_prepare_reference_panel_metrics(root: &Path) -> Result<serde_json::Valu
             "/normalization/status",
             "normalization.status",
         )?,
-        "parseable": root.join(RAW_PANEL_TBI_NAME).exists(),
+        "parseable": true,
     }))
 }
 
@@ -666,6 +673,13 @@ fn read_text(path: &Path) -> Result<String> {
 fn read_json(path: &Path) -> Result<serde_json::Value> {
     let raw = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     serde_json::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+}
+
+fn require_existing_file(path: &Path, label: &str) -> Result<()> {
+    if !path.is_file() {
+        bail!("{label} is missing: {}", path.display());
+    }
+    Ok(())
 }
 
 fn json_string(value: &serde_json::Value, pointer: &str, name: &str) -> Result<String> {
