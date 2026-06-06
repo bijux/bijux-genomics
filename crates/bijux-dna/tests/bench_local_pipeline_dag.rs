@@ -354,6 +354,82 @@ fn bench_local_pipeline_dag_validates_fastq_amplicon_contract() {
 }
 
 #[test]
+fn bench_local_pipeline_dag_validates_amplicon_asv_otu_no_vcf_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/amplicon-asv-otu-no-vcf.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/amplicon-asv-otu-no-vcf.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/amplicon-asv-otu-no-vcf.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("amplicon-asv-otu-no-vcf")
+    );
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-03-amplicon-mini")
+    );
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().all(|node| {
+            node.get("stage_id")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|stage_id| stage_id.starts_with("fastq."))
+        }),
+        "amplicon-only pipeline must keep all declared stages in the fastq domain"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.cluster_otus")
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("normalized_amplicon_reads"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("non_chimeric_representatives"))
+                    },
+                )
+                && node.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |outputs| {
+                        outputs.iter().any(|value| value.as_str() == Some("otu_table"))
+                            && outputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("otu_representatives"))
+                    },
+                )
+        }),
+        "cluster_otus must keep the governed OTU-clustering handoffs explicit"
+    );
+
+    let profiles = payload
+        .get("validation_profiles")
+        .and_then(serde_json::Value::as_array)
+        .expect("validation profiles");
+    assert!(
+        profiles.iter().any(|profile| {
+            profile.get("profile_id").and_then(serde_json::Value::as_str)
+                == Some("amplicon_asv_otu_no_vcf")
+                && profile.get("check_count").and_then(serde_json::Value::as_u64) == Some(8)
+        }),
+        "validate-pipeline-dag must surface the governed no-vcf amplicon separation checks"
+    );
+}
+
+#[test]
 fn bench_local_pipeline_dag_validates_fastq_umi_contract() {
     let payload = run_cli_json(&[
         "bench",
