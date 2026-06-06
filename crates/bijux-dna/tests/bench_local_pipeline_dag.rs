@@ -428,6 +428,80 @@ fn bench_local_pipeline_dag_validates_fastq_to_bam_contract() {
 }
 
 #[test]
+fn bench_local_pipeline_dag_validates_core_germline_fastq_bam_vcf_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/core-germline-fastq-bam-vcf.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/core-germline-fastq-bam-vcf.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("core-germline-fastq-bam-vcf")
+    );
+    assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("cross"));
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-01-mini")
+    );
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(12));
+    assert_eq!(payload.get("edge_count").and_then(serde_json::Value::as_u64), Some(15));
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.call")
+                && node.get("depends_on").and_then(serde_json::Value::as_array).is_some_and(
+                    |deps| {
+                        deps.iter().any(|value| value.as_str() == Some("bam.align"))
+                            && deps.iter().any(|value| value.as_str() == Some("bam.coverage"))
+                    },
+                )
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("aligned_bam"))
+                            && inputs.iter().any(|value| value.as_str() == Some("aligned_bai"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("coverage_report_json"))
+                    },
+                )
+        }),
+        "vcf.call must stay downstream of BAM alignment and governed coverage readiness"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc")
+                && node.get("depends_on").and_then(serde_json::Value::as_array).is_some_and(
+                    |deps| {
+                        deps.iter().any(|value| value.as_str() == Some("vcf.filter"))
+                            && deps.iter().any(|value| value.as_str() == Some("vcf.stats"))
+                    },
+                )
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("filtered_vcf"))
+                            && inputs.iter().any(|value| value.as_str() == Some("filtered_vcf_tbi"))
+                            && inputs.iter().any(|value| value.as_str() == Some("stats_json"))
+                    },
+                )
+        }),
+        "vcf.qc must consume the filtered VCF handoff plus explicit stats evidence"
+    );
+}
+
+#[test]
 fn bench_local_pipeline_dag_validates_bam_core_qc_contract() {
     let payload = run_cli_json(&[
         "bench",
