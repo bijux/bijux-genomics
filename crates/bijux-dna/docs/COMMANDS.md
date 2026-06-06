@@ -506,6 +506,17 @@ Visible aliases are part of the operator surface:
   (`input_variants`, `removed_variants`, `retained_variants`, `damage_context_rule`,
   `terminal_context_count`) so the local smoke proves real damage filtering instead of a fixture
   copy.
+- `bijux-dna bench local run-vcf-gl-propagation-smoke`
+  `run-vcf-gl-propagation-smoke` writes
+  `target/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz`,
+  `target/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf`, and
+  `target/local-smoke/vcf.gl_propagation/bcftools/metrics.json` from the governed
+  `vcf.gl_propagation` matrix row. The command materializes a deterministic single-sample GL/PL/GP
+  input VCF, runs the real retained `bcftools` propagation stage, keeps the normalized VCF, BCF,
+  CSI, and stage report visible, and records exact smoke metrics
+  (`input_likelihood_fields`, `output_likelihood_fields`, `lost_fields`, `site_count_before`,
+  `site_count_after`) so likelihood-field survival is proved by the repo command instead of
+  inferred from policy files.
 - `bijux-dna bench local run-vcf-call-pseudohaploid-smoke`
   `run-vcf-call-pseudohaploid-smoke` writes
   `target/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz`,
