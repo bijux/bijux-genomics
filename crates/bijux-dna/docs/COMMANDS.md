@@ -553,6 +553,15 @@ Visible aliases are part of the operator surface:
   sparse-overlap probe that must mark only IBD as `insufficient_marker_overlap` while a direct ROH
   run on the same sparse input still succeeds, so the suite-local block remains reviewer-visible
   instead of collapsing into a generic command failure.
+- `bijux-dna bench local run-vcf-demography-smoke`
+  `run-vcf-demography-smoke` writes `target/local-smoke/vcf.demography/ibdne/demography.json`
+  from the governed `vcf.demography` matrix row. The command reruns the owned IBD smoke first,
+  consumes the governed filtered-segment artifact as its real upstream input, runs the retained
+  demography stage, keeps the upstream IBD report plus the source Ne trajectory, contract, metrics,
+  and logs visible, and records exact normalized demography evidence (`method`, `input_ibd`,
+  `time_bins`, `ne_estimates`, `status`, and `insufficient_reason`). It also reruns demography on
+  the built-in sparse-overlap IBD probe and requires an explicit `insufficient_data` result instead
+  of a stderr-only failure, so missing IBD support stays reviewer-visible as structured output.
 - `bijux-dna bench local run-vcf-roh-smoke`
   `run-vcf-roh-smoke` writes `target/local-smoke/vcf.roh/plink2/roh.tsv` and
   `target/local-smoke/vcf.roh/plink2/roh.json` from the governed `vcf.roh` matrix row. The
