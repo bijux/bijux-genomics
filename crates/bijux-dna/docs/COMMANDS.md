@@ -506,6 +506,16 @@ Visible aliases are part of the operator surface:
   (`input_variants`, `removed_variants`, `retained_variants`, `damage_context_rule`,
   `terminal_context_count`) so the local smoke proves real damage filtering instead of a fixture
   copy.
+- `bijux-dna bench local run-vcf-filter-smoke`
+  `run-vcf-filter-smoke` writes `target/local-smoke/vcf.filter/bcftools/filtered.vcf.gz`,
+  `target/local-smoke/vcf.filter/bcftools/filtered.vcf.gz.tbi`, and
+  `target/local-smoke/vcf.filter/bcftools/metrics.json` from the governed `vcf.filter` matrix
+  row. The command materializes a deterministic single-sample site-filter fixture with known
+  `LOWQUAL`, `LOW_DP`, `LOW_MQ`, and `HIGH_MISSING` rows, runs the real retained `bcftools`
+  filter stage with tagged-record retention, keeps the breakdown and explain artifacts visible,
+  and records exact smoke metrics (`input_variants`, `pass_variants`, `failed_variants`,
+  `filter_ids`, `depth_threshold`, `quality_threshold`, and `missingness_threshold`) so reviewer
+  evidence comes from the repo command instead of an implied threshold contract.
 - `bijux-dna bench local run-vcf-gl-propagation-smoke`
   `run-vcf-gl-propagation-smoke` writes
   `target/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz`,
