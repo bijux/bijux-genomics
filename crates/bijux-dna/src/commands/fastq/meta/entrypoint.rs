@@ -352,6 +352,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfImputationFamilyAdapter(args) => {
+                        crate::commands::benchmark::readiness::vcf_imputation_family_adapter::run_render_vcf_imputation_family_adapter(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfPlinkAdapter(args) => {
                         crate::commands::benchmark::readiness::vcf_plink_family_adapter::run_render_vcf_plink_adapter(
                             args,

@@ -84,6 +84,8 @@ pub enum BenchReadinessCommand {
     RenderVcfEagleAdapter(BenchReadinessRenderVcfEagleAdapterArgs),
     #[command(name = "render-vcf-beagle-adapter")]
     RenderVcfBeagleAdapter(BenchReadinessRenderVcfBeagleAdapterArgs),
+    #[command(name = "render-vcf-imputation-family-adapter")]
+    RenderVcfImputationFamilyAdapter(BenchReadinessRenderVcfImputationFamilyAdapterArgs),
     #[command(name = "render-vcf-plink-adapter")]
     RenderVcfPlinkAdapter(BenchReadinessRenderVcfPlinkAdapterArgs),
     #[command(name = "render-vcf-plink2-adapter")]
@@ -308,6 +310,14 @@ pub struct BenchReadinessRenderVcfEagleAdapterArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfBeagleAdapterArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfImputationFamilyAdapterArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

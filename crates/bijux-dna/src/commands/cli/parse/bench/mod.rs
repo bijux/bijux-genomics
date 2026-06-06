@@ -90,6 +90,7 @@ pub use self::readiness::{
     BenchReadinessRenderUnregisteredBenchmarkPairsArgs, BenchReadinessRenderVcfAngsdAdapterArgs,
     BenchReadinessRenderVcfBcftoolsAdapterArgs, BenchReadinessRenderVcfBeagleAdapterArgs,
     BenchReadinessRenderVcfEagleAdapterArgs, BenchReadinessRenderVcfEigensoftAdapterArgs,
+    BenchReadinessRenderVcfImputationFamilyAdapterArgs,
     BenchReadinessRenderVcfMatrixRegistryConsistencyArgs, BenchReadinessRenderVcfOrphanToolsArgs,
     BenchReadinessRenderVcfPlink2AdapterArgs, BenchReadinessRenderVcfPlinkAdapterArgs,
     BenchReadinessRenderVcfShapeit5AdapterArgs, BenchReadinessRenderVcfToolServingMapArgs,
