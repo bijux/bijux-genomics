@@ -14,3 +14,5 @@ mod phasing_fixture_bank;
 mod plink2_fixture_bank;
 #[path = "parsers/plink_fixture_bank.rs"]
 mod plink_fixture_bank;
+#[path = "parsers/segments_fixture_bank.rs"]
+mod segments_fixture_bank;
