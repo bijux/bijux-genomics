@@ -143,6 +143,7 @@ configs/lab/config_example.toml
 configs/lab/index.md
 configs/logging/index.md
 configs/logging/runtime.toml
+configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml
 configs/pipelines/local/bam-authenticity.toml
 configs/pipelines/local/bam-core-qc.toml
 configs/pipelines/local/bam-genotyping.toml
