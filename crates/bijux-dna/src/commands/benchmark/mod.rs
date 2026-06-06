@@ -34,6 +34,7 @@ pub(crate) mod local_vcf_damage_filter_smoke;
 pub(crate) mod local_vcf_filter_smoke;
 pub(crate) mod local_vcf_gl_propagation_smoke;
 pub(crate) mod local_vcf_no_empty_output;
+pub(crate) mod local_vcf_qc_smoke;
 pub(crate) mod local_vcf_reference_compatibility;
 pub(crate) mod local_vcf_sample_compatibility;
 pub(crate) mod local_vcf_smoke_root;
