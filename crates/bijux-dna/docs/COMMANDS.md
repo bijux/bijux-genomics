@@ -473,6 +473,17 @@ Visible aliases are part of the operator surface:
   beside the outputs so reviewers can trace the exact input BAM, reference FASTA, sample identity,
   variant counts, and parseability checks for the real local smoke without mutating the governed
   fixture tree.
+- `bijux-dna bench local run-vcf-call-diploid-smoke`
+  `run-vcf-call-diploid-smoke` writes `target/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz`,
+  `target/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz.tbi`, and
+  `target/local-smoke/vcf.call_diploid/bcftools/metrics.json` from the governed
+  `vcf.call_diploid` matrix row and the real `human_like_validation` BAM fixture in
+  `corpus-01-bam-mini`. The command uses the retained `bcftools` caller, materializes a private
+  reference copy under `artifacts/reference`, validates that GT-bearing output stays parseable and
+  indexed, and writes a `stage-result.json` manifest plus diploid genotype metrics
+  (`ploidy`, `called_genotypes`, `heterozygous_count`, `homozygous_ref_count`,
+  `homozygous_alt_count`, and `missing_count`) so diploid genotype representation is proved by a
+  real local smoke instead of inferred from the generic calling alias.
 - `bijux-dna bench local validate-vcf-no-empty-output`
   `validate-vcf-no-empty-output` writes `target/local-ready/vcf/no-empty-output-check.json`,
   refreshes the governed VCF smoke-output fixture tree under `target/local-smoke/vcf`, and fails
