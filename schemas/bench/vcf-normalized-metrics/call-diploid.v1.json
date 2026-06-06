@@ -1,0 +1,66 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.call-diploid.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "called_genotypes": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "heterozygous_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "homozygous_alt_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "homozygous_ref_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "missing_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "ploidy": {
+          "type": "string"
+        },
+        "sample_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.call_diploid.v1"
+        },
+        "stage_id": {
+          "const": "vcf.call_diploid"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "ploidy",
+        "called_genotypes",
+        "heterozygous_count",
+        "homozygous_ref_count",
+        "homozygous_alt_count",
+        "missing_count",
+        "sample_count"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_call_diploid_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.call_diploid`.",
+  "title": "VCF normalized benchmark metrics: vcf.call_diploid"
+}

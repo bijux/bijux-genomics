@@ -1,0 +1,71 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.prepare-reference-panel.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "duplicate_sites_removed": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "input_variants": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "normalization_status": {
+          "type": "string"
+        },
+        "output_variants": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "parseable": {
+          "type": "boolean"
+        },
+        "sample_consistent": {
+          "type": "boolean"
+        },
+        "sample_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sample_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.prepare_reference_panel.v1"
+        },
+        "stage_id": {
+          "const": "vcf.prepare_reference_panel"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "input_variants",
+        "output_variants",
+        "sample_count",
+        "sample_ids",
+        "sample_consistent",
+        "duplicate_sites_removed",
+        "normalization_status",
+        "parseable"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_prepare_reference_panel_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.prepare_reference_panel`.",
+  "title": "VCF normalized benchmark metrics: vcf.prepare_reference_panel"
+}

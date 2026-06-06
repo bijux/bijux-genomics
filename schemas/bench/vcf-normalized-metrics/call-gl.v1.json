@@ -1,0 +1,56 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.call-gl.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "likelihood_field": {
+          "type": "string"
+        },
+        "missing_likelihoods": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sample_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "samples_with_likelihoods": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.call_gl.v1"
+        },
+        "sites_with_likelihoods": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage_id": {
+          "const": "vcf.call_gl"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "likelihood_field",
+        "sites_with_likelihoods",
+        "samples_with_likelihoods",
+        "missing_likelihoods",
+        "sample_count"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_call_gl_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.call_gl`.",
+  "title": "VCF normalized benchmark metrics: vcf.call_gl"
+}

@@ -1,0 +1,63 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.demography.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "inference_status": {
+          "type": "string"
+        },
+        "insufficient_data_probe": {
+          "type": "object"
+        },
+        "method": {
+          "type": "string"
+        },
+        "ne_estimates": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.demography.v1"
+        },
+        "stage_id": {
+          "const": "vcf.demography"
+        },
+        "status": {
+          "type": "string"
+        },
+        "time_bins": {
+          "items": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "method",
+        "inference_status",
+        "status",
+        "time_bins",
+        "ne_estimates",
+        "insufficient_data_probe"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_demography_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.demography`.",
+  "title": "VCF normalized benchmark metrics: vcf.demography"
+}

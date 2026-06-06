@@ -1,0 +1,70 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.pca.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "eigenvalues": {
+          "items": {
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "excluded_samples": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "rows": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "sample_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.pca.v1"
+        },
+        "stage_id": {
+          "const": "vcf.pca"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "unexpected_samples": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "variant_count": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "variant_count",
+        "sample_count",
+        "excluded_samples",
+        "unexpected_samples",
+        "eigenvalues",
+        "rows"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_pca_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.pca`.",
+  "title": "VCF normalized benchmark metrics: vcf.pca"
+}

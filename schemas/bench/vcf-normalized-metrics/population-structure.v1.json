@@ -1,0 +1,55 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.population-structure.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "consumed_admixture": {
+          "type": "object"
+        },
+        "consumed_pca": {
+          "type": "object"
+        },
+        "distance_summary": {
+          "type": "object"
+        },
+        "sample_groups": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.population_structure.v1"
+        },
+        "stage_id": {
+          "const": "vcf.population_structure"
+        },
+        "status": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "consumed_pca",
+        "consumed_admixture",
+        "sample_groups",
+        "distance_summary",
+        "status"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_population_structure_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.population_structure`.",
+  "title": "VCF normalized benchmark metrics: vcf.population_structure"
+}

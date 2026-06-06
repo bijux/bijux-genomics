@@ -1,0 +1,52 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.call.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "indel_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sample_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.call.v1"
+        },
+        "snp_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage_id": {
+          "const": "vcf.call"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "variant_count": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "variant_count",
+        "snp_count",
+        "indel_count",
+        "sample_count"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_call_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.call`.",
+  "title": "VCF normalized benchmark metrics: vcf.call"
+}
