@@ -21,8 +21,12 @@ guardrails, and crate layout.
   retained classic `plink` VCF rows.
 - `tests/fixtures/bench/parsers/vcf/plink2/<stage>/` stores the governed raw artifact bank for the
   retained `plink2` VCF rows.
+- `tests/fixtures/bench/parsers/vcf/eigensoft/pca/` and
+  `tests/fixtures/bench/parsers/vcf/eigensoft/population_structure/` store the governed raw
+  artifact bank for the retained `eigensoft` population-analysis rows.
 - Every stage directory must contain the raw parser inputs required by `src/parsers/bcftools.rs`
-  `src/parsers/angsd.rs`, or `src/parsers/plink_family.rs` plus `expected.normalized.json`.
+  `src/parsers/angsd.rs`, `src/parsers/eigensoft.rs`, or `src/parsers/plink_family.rs` plus
+  `expected.normalized.json`.
 - `tests/contracts/parsers/bcftools_fixture_bank.rs` is the SSOT that proves the checked-in raw
   artifacts still normalize to the committed expected payloads.
 - `tests/contracts/parsers/angsd_fixture_bank.rs` is the SSOT for the retained ANGSD low-coverage
@@ -31,6 +35,8 @@ guardrails, and crate layout.
   parser bank.
 - `tests/contracts/parsers/plink2_fixture_bank.rs` is the SSOT for the retained `plink2`
   population-analysis parser bank.
+- `tests/contracts/parsers/eigensoft_fixture_bank.rs` is the SSOT for the retained `eigensoft`
+  PCA and population-structure parser bank.
 
 ## Commands
 
