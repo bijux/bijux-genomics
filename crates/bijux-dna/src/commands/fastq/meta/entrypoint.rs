@@ -348,6 +348,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfMissingResultReport(args) => {
+                        crate::commands::benchmark::readiness::vcf_missing_result_report::run_render_vcf_missing_result_report(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfParserCoverage(args) => {
                         crate::commands::benchmark::readiness::vcf_parser_coverage::run_render_vcf_parser_coverage(
                             args,
