@@ -403,6 +403,23 @@ Visible aliases are part of the operator surface:
   real missing-input probe result, so GL calling, pseudohaploid calling, damage-aware calling, and
   VCF-GL propagation cannot silently fall back to placeholders or drift away from the owned command
   contract.
+- `bijux-dna bench readiness render-vcf-plink-adapter`
+  `render-vcf-plink-adapter` writes `target/bench-readiness/adapters/plink.vcf.json` with one
+  governed row per admitted VCF `plink` registry binding. Each row keeps the concrete cohort
+  command argv, declared input artifacts, raw PLINK outputs such as `.imiss`, `.lmiss`, `.frq`,
+  `.het`, `.hwe`, `.bed`, `.bim`, `.fam`, and `.log`, plus the normalized metrics mapping to
+  `qc_report` or `admixture_report`. The report fails closed unless every row retains a concrete
+  missing-input probe result and an explicit normalized-report mapping instead of leaving raw
+  PLINK outputs unmapped.
+- `bijux-dna bench readiness render-vcf-plink2-adapter`
+  `render-vcf-plink2-adapter` writes `target/bench-readiness/adapters/plink2.vcf.json` with one
+  governed row per benchmarked VCF `plink2` matrix binding. Each row keeps the concrete command
+  argv, declared input artifacts, raw PLINK2 outputs such as `.smiss`, `.vmiss`, `.afreq`,
+  `.het`, `.hardy`, `.eigenvec`, `.eigenval`, `.hom`, `.prune.in`, `.prune.out`, and `.log`,
+  plus the normalized metrics mapping to `qc_report`, `pca_report`, `population_structure_report`,
+  `admixture_report`, or `roh_report`. The `vcf.admixture` row stays honest about the current
+  PLINK2 PCA-proxy contract by keeping eigen outputs explicit instead of pretending PLINK2 owns a
+  native Q-matrix artifact.
 - `bijux-dna bench readiness render-vcf-bcftools-adapter`
   `render-vcf-bcftools-adapter` writes `target/bench-readiness/adapters/bcftools.vcf.json` with
   one governed row per retained VCF `bcftools` matrix binding. Each row keeps the concrete
