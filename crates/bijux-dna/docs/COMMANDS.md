@@ -516,6 +516,16 @@ Visible aliases are part of the operator surface:
   and records exact smoke metrics (`input_variants`, `pass_variants`, `failed_variants`,
   `filter_ids`, `depth_threshold`, `quality_threshold`, and `missingness_threshold`) so reviewer
   evidence comes from the repo command instead of an implied threshold contract.
+- `bijux-dna bench local run-vcf-qc-smoke`
+  `run-vcf-qc-smoke` writes `target/local-smoke/vcf.qc/plink2/qc.json`,
+  `target/local-smoke/vcf.qc/plink2/qc_summary.json`, and
+  `target/local-smoke/vcf.qc/plink2/metrics.json` from the governed `vcf.qc` matrix row. The
+  command materializes a deterministic three-sample cohort VCF with one known high-missingness
+  sample and one known high-missingness variant, runs the real retained `plink2`-owned QC stage,
+  keeps the copied summary, warnings, histogram, and table artifacts visible, and records exact
+  smoke metrics (`sample_missingness`, `variant_missingness`, `maf_summary`, `heterozygosity`,
+  `excluded_samples`, and `excluded_variants`) so reviewer evidence comes from the repo command
+  instead of an implied parser contract.
 - `bijux-dna bench local run-vcf-stats-smoke`
   `run-vcf-stats-smoke` writes `target/local-smoke/vcf.stats/bcftools/stats.json`,
   `target/local-smoke/vcf.stats/bcftools/bcftools_stats.txt`, and
