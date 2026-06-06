@@ -42,6 +42,7 @@ pub(crate) fn handle_corpus_root(command: &cli::CorpusCommand, cwd: &Path) -> Re
 
 pub(crate) fn handle_fixtures_root(command: &cli::FixturesCommand, cwd: &Path) -> Result<()> {
     match command {
+        cli::FixturesCommand::Build(args) => fixtures::entrypoint::build_fixture(cwd, args)?,
         cli::FixturesCommand::Validate(args) => fixtures::entrypoint::validate_fixture(cwd, args)?,
         cli::FixturesCommand::ValidateExpected(args) => {
             fixtures::entrypoint::validate_expected_fixture(cwd, args)?
