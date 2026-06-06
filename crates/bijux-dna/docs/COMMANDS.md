@@ -162,6 +162,14 @@ Visible aliases are part of the operator surface:
   adapter, parser, corpus, asset, and report surfaces into one local dashboard. The summary keeps
   total expected pairs, ready pairs, blocked pairs, exact blocker counts, and every blocked
   `stage_id × tool_id` row reviewer-visible in one place.
+- `bijux-dna bench readiness render-stage-tool-benchmark-ready`
+  `render-stage-tool-benchmark-ready` writes
+  `target/bench-readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json`, proving that the
+  benchmark-ready FASTQ/BAM slice is complete enough to generate local HPC benchmark jobs and
+  report expectations while keeping every excluded `not_benchmark_ready` pair explicit. The gate
+  passes only when the ready slice retains matrix, registry, adapter, parser, corpus, asset,
+  expected-result, and report-map coverage; excluded pairs stay visible with exact readiness gaps
+  and explicit confirmation that they are omitted from generated jobs and expected results.
 - `bijux-dna bench readiness render-tool-centric-report`
   `render-tool-centric-report` writes `target/bench-readiness/tool-centric-report.md` with one
   governed section per benchmarked tool, carrying the full FASTQ/BAM stage list that tool serves
