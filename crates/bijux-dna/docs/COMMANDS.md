@@ -237,6 +237,13 @@ Visible aliases are part of the operator surface:
   `render-command-argv` writes `target/bench-readiness/rendered-commands.argv.jsonl` with one
   governed JSON row per benchmark command, preserving the executable and arguments as a separated
   `argv` array so local benchmark rendering is reproducible without shell-parsing ambiguity.
+- `bijux-dna bench readiness render-vcf-commands`
+  `render-vcf-commands` writes both `target/bench-readiness/vcf-rendered-commands.sh` and
+  `target/bench-readiness/vcf-rendered-commands.argv.jsonl` for the canonical VCF
+  `benchmark_ready` slice. The shell script preserves the real multi-step adapter pipelines in a
+  `bash -n` parseable form, and the JSONL preserves one governed row per benchmark-ready VCF pair
+  with structured `command_steps` argv so VCF command rendering stays executable without shell
+  placeholders or synthetic `echo execute` stubs.
 - `bijux-dna bench readiness render-stage-tool-containers`
   `render-stage-tool-containers` writes `configs/bench/local/stage-tool-containers.toml` with one
   governed row per benchmark-ready FASTQ or BAM stage-tool command, preserving the primary
