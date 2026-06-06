@@ -111,6 +111,9 @@ fn validate_slurm_dry_run_domain_support(domain: BenchLocalDomain) -> Result<()>
         BenchLocalDomain::Bam => Err(anyhow::anyhow!(
             "domain `bam` requires the `bam_downstream` feature; rerun with `cargo run -p bijux-dna --features bam_downstream -- bench local render-slurm-scripts --domain bam`"
         )),
+        BenchLocalDomain::Vcf => Err(anyhow::anyhow!(
+            "domain `vcf` is governed by dedicated VCF adapter and smoke-rendering surfaces, not the FASTQ/BAM local slurm dry-run path"
+        )),
     }
 }
 

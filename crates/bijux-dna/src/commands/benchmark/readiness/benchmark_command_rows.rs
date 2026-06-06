@@ -178,6 +178,11 @@ fn collect_selected_domain_command_rows(
             BenchLocalDomain::Bam => {
                 render_bam_stage_tool_argv(repo_root, stage_id, &tool_id, &plan)?
             }
+            BenchLocalDomain::Vcf => {
+                return Err(anyhow!(
+                    "benchmark command rows do not render VCF plans through the FASTQ/BAM command adapter path"
+                ));
+            }
         };
         rows.insert(
             stage_id.clone(),
@@ -326,6 +331,7 @@ fn domain_label(domain: BenchLocalDomain) -> &'static str {
     match domain {
         BenchLocalDomain::Fastq => "FASTQ",
         BenchLocalDomain::Bam => "BAM",
+        BenchLocalDomain::Vcf => "VCF",
     }
 }
 
