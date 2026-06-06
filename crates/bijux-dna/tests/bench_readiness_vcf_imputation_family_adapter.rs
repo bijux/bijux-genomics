@@ -94,9 +94,16 @@ fn bench_readiness_vcf_imputation_family_adapter_reports_governed_rows() {
                 && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation")
         })
         .expect("beagle imputation row");
-    assert_eq!(
-        beagle_imputation.get("target_vcf_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/vcf-mini/variants/vcf_mini_phased.vcf")
+    assert!(
+        beagle_imputation
+            .get("target_vcf_path")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|path| {
+                path.ends_with(
+                    "target/bench-readiness/adapters/imputation/beagle/vcf.imputation/artifacts/input/vcf_imputation.vcf.gz",
+                )
+            }),
+        "beagle imputation row must retain the materialized indexed target VCF path"
     );
     assert_eq!(
         beagle_imputation.get("quality_output_path").and_then(serde_json::Value::as_str),

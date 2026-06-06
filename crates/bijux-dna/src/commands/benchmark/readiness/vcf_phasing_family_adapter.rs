@@ -16,6 +16,9 @@ use crate::commands::benchmark::local_vcf_stage_catalog::{
 use crate::commands::benchmark::local_vcf_stage_matrix::{
     build_vcf_stage_matrix_rows, VcfStageMatrixRow,
 };
+use crate::commands::benchmark::readiness::vcf_readiness_inputs::{
+    load_governed_vcf_fixture_inputs, materialize_indexed_vcf_input,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -284,8 +287,16 @@ fn build_phasing_family_row(
         format!("target/bench-readiness/adapters/{}/{}", registry_tool.tool_id, stage_id);
     let output_prefix = format!("{output_root}/phased");
     let materialized_inputs = materialize_panel_inputs(repo_root, &output_root)?;
+    let fixture_inputs = load_governed_vcf_fixture_inputs(repo_root)?;
+    let (indexed_input_vcf_path, indexed_input_vcf_tbi_path) = materialize_indexed_vcf_input(
+        repo_root,
+        &fixture_inputs.multisample_vcf_path,
+        &PathBuf::from(&output_root).join("artifacts/input"),
+        "phasing_input.vcf.gz",
+    )?;
     let required_inputs = vec![
-        artifact("vcf", "variant", GOVERNED_COHORT_VCF_PATH),
+        artifact("vcf", "variant", &indexed_input_vcf_path),
+        artifact("vcf_index", "index", &indexed_input_vcf_tbi_path),
         artifact("reference_panel_vcf", "variant", &materialized_inputs.panel_vcf_path),
         artifact("genetic_map_tsv", "reference", &materialized_inputs.genetic_map_path),
     ];
@@ -338,7 +349,7 @@ fn build_phasing_family_row(
         output_prefix,
         panel_id: materialized_inputs.panel_id,
         map_id: materialized_inputs.map_id,
-        input_vcf_path: GOVERNED_COHORT_VCF_PATH.to_string(),
+        input_vcf_path: indexed_input_vcf_path,
         panel_vcf_path: materialized_inputs.panel_vcf_path,
         genetic_map_path: materialized_inputs.genetic_map_path,
         phased_vcf_path: contract.phased_vcf_path,

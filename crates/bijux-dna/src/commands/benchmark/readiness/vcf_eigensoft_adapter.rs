@@ -15,6 +15,7 @@ use crate::commands::benchmark::local_vcf_stage_catalog::{
 use crate::commands::benchmark::local_vcf_stage_matrix::{
     build_vcf_stage_matrix_rows, VcfStageMatrixRow,
 };
+use crate::commands::benchmark::readiness::vcf_readiness_inputs::load_governed_vcf_fixture_inputs;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -248,7 +249,15 @@ fn build_eigensoft_row(
     let output_root =
         format!("target/bench-readiness/adapters/{}/{}", registry_tool.tool_id, stage_id);
     let output_prefix = format!("{output_root}/{}", stage_output_name_hint(stage));
-    let required_inputs = vec![artifact("vcf", "variant", GOVERNED_COHORT_VCF_PATH)];
+    let fixture_inputs = load_governed_vcf_fixture_inputs(repo_root)?;
+    let required_inputs = vec![
+        artifact("vcf", "variant", GOVERNED_COHORT_VCF_PATH),
+        artifact(
+            "sample_metadata_manifest",
+            "sample_metadata",
+            &fixture_inputs.sample_metadata_path,
+        ),
+    ];
     validate_required_inputs(repo_root, stage_id, &required_inputs)?;
     let stage_output_ids = vcf_domain_stage_expected_output_ids(stage)
         .ok_or_else(|| anyhow!("VCF {stage_id} is missing expected output ids"))?

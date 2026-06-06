@@ -13,13 +13,13 @@ use crate::commands::benchmark::local_vcf_stage_catalog::{
 use crate::commands::benchmark::local_vcf_stage_matrix::{
     build_vcf_stage_matrix_rows, VcfStageMatrixRow,
 };
+use crate::commands::benchmark::readiness::vcf_readiness_inputs::materialize_reference_fasta_with_index;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_BCFTOOLS_ADAPTER_PATH: &str =
     "target/bench-readiness/adapters/bcftools.vcf.json";
-const VCF_BCFTOOLS_ADAPTER_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.vcf_bcftools_adapter.v1";
+const VCF_BCFTOOLS_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_bcftools_adapter.v1";
 const GOVERNED_BCFTOOLS_TOOL_ID: &str = "bcftools";
 const GOVERNED_BAM_PATH: &str =
     "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam";
@@ -98,9 +98,7 @@ pub(crate) fn run_render_vcf_bcftools_adapter(
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let report = render_vcf_bcftools_adapter(
         &repo_root,
-        args.output
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_BCFTOOLS_ADAPTER_PATH)),
+        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_BCFTOOLS_ADAPTER_PATH)),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -160,7 +158,9 @@ pub(crate) fn render_vcf_bcftools_adapter(
     })
 }
 
-pub(crate) fn collect_vcf_bcftools_adapter_rows(repo_root: &Path) -> Result<Vec<VcfBcftoolsAdapterRow>> {
+pub(crate) fn collect_vcf_bcftools_adapter_rows(
+    repo_root: &Path,
+) -> Result<Vec<VcfBcftoolsAdapterRow>> {
     let catalog_by_stage = build_vcf_stage_catalog_rows()?
         .into_iter()
         .map(|row| (row.stage_id.clone(), row))
@@ -190,22 +190,27 @@ fn build_bcftools_row(
 ) -> Result<VcfBcftoolsAdapterRow> {
     let stage = VcfDomainStage::try_from(matrix_row.stage_id.as_str())
         .map_err(|error| anyhow!("unknown VCF stage `{}`: {error}", matrix_row.stage_id))?;
-    let output_root = format!(
-        "target/bench-readiness/adapters/{}/{}",
-        matrix_row.tool_id, matrix_row.stage_id
-    );
-    let required_inputs = governed_inputs_for_stage(stage);
+    let output_root =
+        format!("target/bench-readiness/adapters/{}/{}", matrix_row.tool_id, matrix_row.stage_id);
+    let required_inputs = governed_inputs_for_stage(repo_root, stage, &output_root)?;
     validate_required_inputs(repo_root, &matrix_row.stage_id, &required_inputs)?;
     let stage_output_ids = vcf_domain_stage_expected_output_ids(stage)
-        .ok_or_else(|| anyhow!("VCF stage `{}` is missing expected output ids", matrix_row.stage_id))?
+        .ok_or_else(|| {
+            anyhow!("VCF stage `{}` is missing expected output ids", matrix_row.stage_id)
+        })?
         .iter()
         .map(|output| (*output).to_string())
         .collect::<Vec<_>>();
     let (raw_output_ids, parser_output_ids, declared_outputs, command_steps) =
         build_stage_adapter_contract(stage, &matrix_row.stage_id, &output_root, &required_inputs)?;
-    let argv_validation_passed = validate_command_steps(&matrix_row.stage_id, &command_steps).is_ok();
-    let (missing_input_probe_artifact_id, missing_input_expected_error_fragment, missing_input_observed_error, missing_input_test_passed) =
-        run_missing_input_probe(repo_root, &matrix_row.stage_id, &required_inputs);
+    let argv_validation_passed =
+        validate_command_steps(&matrix_row.stage_id, &command_steps).is_ok();
+    let (
+        missing_input_probe_artifact_id,
+        missing_input_expected_error_fragment,
+        missing_input_observed_error,
+        missing_input_test_passed,
+    ) = run_missing_input_probe(repo_root, &matrix_row.stage_id, &required_inputs);
     let benchmark_status = match catalog_row.support_status.as_str() {
         "supported" => "benchmark_ready",
         _ => "not_benchmark_ready",
@@ -246,37 +251,37 @@ fn build_bcftools_row(
     })
 }
 
-fn governed_inputs_for_stage(stage: VcfDomainStage) -> Vec<VcfBcftoolsAdapterArtifact> {
-    match stage {
-        VcfDomainStage::PrepareReferencePanel => vec![artifact(
-            "reference_panel_vcf",
-            "variant",
-            GOVERNED_REFERENCE_PANEL_VCF_PATH,
-        )],
+fn governed_inputs_for_stage(
+    repo_root: &Path,
+    stage: VcfDomainStage,
+    output_root: &str,
+) -> Result<Vec<VcfBcftoolsAdapterArtifact>> {
+    Ok(match stage {
+        VcfDomainStage::PrepareReferencePanel => {
+            vec![artifact("reference_panel_vcf", "variant", GOVERNED_REFERENCE_PANEL_VCF_PATH)]
+        }
         VcfDomainStage::Call
         | VcfDomainStage::CallDiploid
         | VcfDomainStage::CallGl
-        | VcfDomainStage::CallPseudohaploid => vec![
+        | VcfDomainStage::CallPseudohaploid => {
+            let (reference_fasta, reference_fai) = materialize_reference_fasta_with_index(
+                repo_root,
+                GOVERNED_REFERENCE_FASTA_PATH,
+                &PathBuf::from(output_root).join("artifacts/reference"),
+            )?;
+            vec![
             artifact("input_bam", "bam", GOVERNED_BAM_PATH),
             artifact("input_bam_index", "index", GOVERNED_BAM_INDEX_PATH),
-            artifact("reference_fasta", "reference", GOVERNED_REFERENCE_FASTA_PATH),
-        ],
-        VcfDomainStage::Stats => vec![artifact(
-            "vcf",
-            "variant",
-            GOVERNED_MULTISAMPLE_VCF_PATH,
-        )],
-        VcfDomainStage::Postprocess => vec![artifact(
-            "vcf",
-            "variant",
-            GOVERNED_FILTERED_SINGLE_SAMPLE_VCF_PATH,
-        )],
-        _ => vec![artifact(
-            "vcf",
-            "variant",
-            GOVERNED_RAW_SINGLE_SAMPLE_VCF_PATH,
-        )],
-    }
+            artifact("reference_fasta", "reference", &reference_fasta),
+            artifact("reference_fai", "index", &reference_fai),
+        ]
+        }
+        VcfDomainStage::Stats => vec![artifact("vcf", "variant", GOVERNED_MULTISAMPLE_VCF_PATH)],
+        VcfDomainStage::Postprocess => {
+            vec![artifact("vcf", "variant", GOVERNED_FILTERED_SINGLE_SAMPLE_VCF_PATH)]
+        }
+        _ => vec![artifact("vcf", "variant", GOVERNED_RAW_SINGLE_SAMPLE_VCF_PATH)],
+    })
 }
 
 fn build_stage_adapter_contract(
@@ -481,16 +486,7 @@ fn build_stage_adapter_contract(
                     step(
                         "call_pseudohaploid",
                         "pipeline_sink",
-                        vec![
-                            "bcftools",
-                            "call",
-                            "--ploidy",
-                            "1",
-                            "-mv",
-                            "-Oz",
-                            "-o",
-                            &output,
-                        ],
+                        vec!["bcftools", "call", "--ploidy", "1", "-mv", "-Oz", "-o", &output],
                         true,
                         &["pseudohaploid_vcf"],
                     ),
@@ -712,10 +708,7 @@ fn validate_required_inputs(
     Ok(())
 }
 
-fn validate_command_steps(
-    stage_id: &str,
-    steps: &[VcfBcftoolsAdapterCommandStep],
-) -> Result<()> {
+fn validate_command_steps(stage_id: &str, steps: &[VcfBcftoolsAdapterCommandStep]) -> Result<()> {
     for step in steps {
         if step.argv.is_empty() {
             return Err(anyhow!(

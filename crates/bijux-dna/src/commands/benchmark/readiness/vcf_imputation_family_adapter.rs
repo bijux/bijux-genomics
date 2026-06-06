@@ -16,6 +16,7 @@ use crate::commands::benchmark::local_vcf_stage_catalog::{
 use crate::commands::benchmark::local_vcf_stage_matrix::{
     build_vcf_stage_matrix_rows, VcfStageMatrixRow,
 };
+use crate::commands::benchmark::readiness::vcf_readiness_inputs::materialize_indexed_vcf_input;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -264,9 +265,15 @@ fn build_imputation_family_row(
     );
     let output_prefix = format!("{output_root}/imputed");
     let materialized_inputs = materialize_panel_inputs(repo_root, &output_root)?;
-    let target_vcf_path = governed_target_vcf_path(registry_tool.tool_id.as_str()).to_string();
+    let (target_vcf_path, target_vcf_index_path) = materialize_indexed_vcf_input(
+        repo_root,
+        governed_target_vcf_path(registry_tool.tool_id.as_str()),
+        &PathBuf::from(&output_root).join("artifacts/input"),
+        &format!("{}.vcf.gz", stage_id.replace('.', "_")),
+    )?;
     let mut required_inputs = vec![
         artifact("vcf", "variant", &target_vcf_path),
+        artifact("vcf_index", "index", &target_vcf_index_path),
         artifact("reference_panel_vcf", "variant", &materialized_inputs.panel_vcf_path),
     ];
     if registry_tool.tool_id == "minimac4" {
