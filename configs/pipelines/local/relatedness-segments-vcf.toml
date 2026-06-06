@@ -1,0 +1,69 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for the local relatedness and segment VCF DAG.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-06
+
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "relatedness-segments-vcf"
+domain = "vcf"
+summary = "Cohort VCF DAG for governed QC, kinship and IBD, ROH, and demography with explicit localization of insufficient-data branches."
+default_corpus_id = "vcf_production_regression"
+
+[[nodes]]
+node_id = "vcf.qc"
+stage_id = "vcf.qc"
+readiness_kind = "smoke"
+summary = "Run governed cohort QC on the input VCF and export the pruning and filtering handoff for downstream relatedness and segment stages."
+depends_on = []
+external_inputs = ["corpus.target_cohort_vcf", "corpus.target_cohort_vcf_tbi"]
+upstream_inputs = []
+outputs = [
+  "qc_cohort_vcf",
+  "qc_cohort_vcf_tbi",
+  "qc_report",
+  "sample_qc_report_tsv",
+  "variant_qc_report_tsv",
+  "pruned_variants_tsv",
+]
+
+[[nodes]]
+node_id = "vcf.ibd"
+stage_id = "vcf.ibd"
+readiness_kind = "smoke"
+summary = "Run governed kinship and IBD inference from the QC-qualified pruned cohort VCF while exporting explicit insufficiency evidence for the demography branch."
+depends_on = ["vcf.qc"]
+external_inputs = []
+upstream_inputs = [
+  "qc_cohort_vcf",
+  "qc_cohort_vcf_tbi",
+  "pruned_variants_tsv",
+  "qc_report",
+]
+outputs = ["ibd_segments", "ibd_report", "ibd_pairwise_table_tsv", "ibd_insufficient_data_json"]
+
+[[nodes]]
+node_id = "vcf.roh"
+stage_id = "vcf.roh"
+readiness_kind = "smoke"
+summary = "Run governed ROH directly from the QC-qualified pruned cohort VCF on a branch that remains independent of IBD insufficiency."
+depends_on = ["vcf.qc"]
+external_inputs = []
+upstream_inputs = [
+  "qc_cohort_vcf",
+  "qc_cohort_vcf_tbi",
+  "pruned_variants_tsv",
+  "qc_report",
+]
+outputs = ["roh_report", "roh_segments_tsv", "roh_summary_json"]
+
+[[nodes]]
+node_id = "vcf.demography"
+stage_id = "vcf.demography"
+readiness_kind = "smoke"
+summary = "Run governed demography only from the IBD branch so insufficient-data outcomes stay local to demographic inference."
+depends_on = ["vcf.ibd"]
+external_inputs = []
+upstream_inputs = ["ibd_segments", "ibd_report", "ibd_insufficient_data_json"]
+outputs = ["demography_report", "demography_insufficient_data_json", "demography_trajectory_tsv"]
