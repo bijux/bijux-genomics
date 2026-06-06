@@ -569,6 +569,17 @@ Visible aliases are part of the operator surface:
   metrics (`input_genotypes`, `phased_genotypes`, `unphased_genotypes`, `phase_set_count`, and
   `tool_id`) so reviewer evidence proves phased separators are emitted instead of only inferring
   phasing readiness from the stage catalog.
+- `bijux-dna bench local run-vcf-impute-smoke`
+  `run-vcf-impute-smoke` writes `target/local-smoke/vcf.impute/beagle/imputed.vcf.gz`,
+  `target/local-smoke/vcf.impute/beagle/imputed.vcf.gz.tbi`, and
+  `target/local-smoke/vcf.impute/beagle/metrics.json` from the governed `vcf.impute` matrix row.
+  The command materializes a deterministic two-sample masked-truth cohort plus the owned
+  panel/map lock assets, runs the real retained `beagle` imputation stage, keeps the imputation
+  QC, manifest, overlap, warning, acceptance, and panel-mismatch artifacts visible, and records
+  exact smoke metrics (`missing_before`, `missing_after`, `imputed_genotypes`,
+  `low_confidence_count`, `masked_truth_site_count`, `masked_truth_match_count`, and
+  `unresolved_count`) so reviewer evidence proves a known masked genotype is either filled or
+  surfaced with an explicit unresolved reason instead of being hidden by wrapper logic.
 - `bijux-dna bench local run-vcf-call-pseudohaploid-smoke`
   `run-vcf-call-pseudohaploid-smoke` writes
   `target/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz`,
