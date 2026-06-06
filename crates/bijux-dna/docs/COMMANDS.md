@@ -262,6 +262,12 @@ Visible aliases are part of the operator surface:
   real failed `stage-result.json` for the seeded `relatedness-segments-vcf` IBD node, then proves
   that only the dependent demography descendant is blocked while the unrelated ROH branch remains
   completed.
+- `bijux-dna bench readiness render-essential-pipeline-report-map`
+  `render-essential-pipeline-report-map` writes
+  `target/bench-readiness/essential-pipeline-report-map.tsv` with one governed row per declared
+  essential-pipeline output symbol, keeping explicit `pipeline_id`, `stage_id`, `tool_id`,
+  `output_metric`, `report_section`, and `failure_column`. It fails closed unless every declared
+  FASTQ, BAM, and VCF pipeline output is collected into a stable report section.
 - `bijux-dna bench readiness render-essential-pipeline-commands`
   `render-essential-pipeline-commands` writes
   `target/bench-readiness/essential-pipelines-rendered-commands.sh` plus
