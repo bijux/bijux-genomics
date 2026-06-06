@@ -1,0 +1,10 @@
+tool=plink2
+tool_version=pinned
+stage=vcf.qc
+domain=vcf
+shipping=external
+fixture_kind=truth
+command=plink2
+args=--vcf cohort.vcf.gz --double-id --allow-extra-chr --missing --freq --het --hardy --out qc
+expected_outputs=qc.smiss,qc.vmiss,qc.afreq,qc.het,qc.hardy,qc.log,qc_report.json
+expected_stdout_patterns=sample_missingness,variant_missingness,heterozygosity,allele_frequency,qc_report

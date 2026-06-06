@@ -1,0 +1,10 @@
+tool=plink2
+tool_version=pinned
+stage=vcf.pca
+domain=vcf
+shipping=external
+fixture_kind=truth
+command=plink2
+args=--vcf cohort.vcf.gz --double-id --allow-extra-chr --pca 10 --out pca
+expected_outputs=pca.eigenvec,pca.eigenval,pca.log,pca_report.json
+expected_stdout_patterns=eigenvec,eigenval,eigenvalues,pca_report

@@ -1,0 +1,10 @@
+tool=plink
+tool_version=pinned
+stage=vcf.admixture
+domain=vcf
+shipping=external
+fixture_kind=truth
+command=plink
+args=--vcf cohort.vcf.gz --double-id --allow-extra-chr --missing --freq --make-bed --out admixture
+expected_outputs=admixture.bed,admixture.bim,admixture.fam,admixture.frq,admixture.imiss,admixture.lmiss,admixture.log,admixture_report.json
+expected_stdout_patterns=bed_prep,missingness,allele_frequency,admixture_report

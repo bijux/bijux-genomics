@@ -1,0 +1,10 @@
+tool=plink2
+tool_version=pinned
+stage=vcf.admixture
+domain=vcf
+shipping=external
+fixture_kind=truth
+command=plink2
+args=--vcf cohort.vcf.gz --double-id --allow-extra-chr --pca 2 --out admixture
+expected_outputs=admixture.eigenvec,admixture.eigenval,admixture.log,admixture_report.json
+expected_stdout_patterns=pca_proxy,cluster_columns,admixture_report
