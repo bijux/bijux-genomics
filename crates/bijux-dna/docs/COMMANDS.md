@@ -395,6 +395,14 @@ Visible aliases are part of the operator surface:
   `benchmark_status` from the owned VCF stage catalog and matrix. The report fails closed unless
   every matrix row appears exactly once and the supported-vs-planned split remains aligned with
   the canonical VCF stage contracts.
+- `bijux-dna bench readiness render-vcf-adapter-missing-input-tests`
+  `render-vcf-adapter-missing-input-tests` writes
+  `target/bench-readiness/vcf-adapter-missing-input-tests.json` with one governed missing-input
+  probe row for each required Goal 243 VCF role: `bam`, `bai`, `fasta`, `fai`, `vcf`,
+  `vcf_index`, `sites_bed`, `panel_vcf`, `map_file`, and `sample_metadata`. The report replays
+  adapter-contract validation before any external tool argv can run, and it keeps the one honest
+  support-only exception explicit: `sites_bed` is owned by the governed `vcf-mini` fixture
+  contract because no retained VCF adapter currently consumes a target-sites BED directly.
 - `bijux-dna bench readiness render-vcf-adapter-output-coverage`
   `render-vcf-adapter-output-coverage` writes
   `target/bench-readiness/vcf-adapter-output-coverage.tsv` with one governed row per retained VCF
