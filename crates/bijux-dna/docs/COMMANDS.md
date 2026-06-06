@@ -921,6 +921,7 @@ Visible aliases are part of the operator surface:
   `validate-pipeline-dag` checks governed local pipeline DAG configs such as
   `configs/pipelines/local/adna-gl-fastq-bam-vcf.toml` and
   `configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml` and
+  `configs/pipelines/local/amplicon-asv-otu-no-vcf.toml` and
   `configs/pipelines/local/bam-genotyping-to-vcf-downstream.toml` and
   `configs/pipelines/local/diploid-small-fastq-bam-vcf.toml` and
   `configs/pipelines/local/popgen-structure-vcf.toml` and
@@ -982,6 +983,10 @@ Visible aliases are part of the operator surface:
   `plan validate --id edna-taxonomy-no-vcf --strict` resolves the governed eDNA taxonomy-only
   pipeline config, writes `target/local-ready/pipeline-dag/edna-taxonomy-no-vcf.json`, and fails
   closed unless taxonomy screening remains local to FASTQ filtering and reporting instead of
+  bridging into BAM or VCF germline stages.
+  `plan validate --id amplicon-asv-otu-no-vcf --strict` resolves the governed amplicon-only
+  pipeline config, writes `target/local-ready/pipeline-dag/amplicon-asv-otu-no-vcf.json`, and
+  fails closed unless ASV, OTU, and abundance outputs remain local to FASTQ reporting instead of
   bridging into BAM or VCF germline stages.
 - `bijux-dna bench local simulate-dag-watchdog`
   `simulate-dag-watchdog` writes governed DAG scheduling simulations such as
