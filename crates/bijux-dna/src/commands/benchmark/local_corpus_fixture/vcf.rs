@@ -23,6 +23,7 @@ pub(crate) struct VcfCorpusFixtureManifest {
     pub(crate) description: String,
     pub(crate) reference_fasta_path: PathBuf,
     pub(crate) reference_fasta_index_path: PathBuf,
+    pub(crate) reference_dict_path: PathBuf,
     pub(crate) raw_vcf_path: PathBuf,
     pub(crate) filtered_vcf_path: PathBuf,
     pub(crate) multisample_vcf_path: PathBuf,
@@ -46,6 +47,7 @@ pub(crate) struct VcfCorpusFixtureValidationReport {
     pub(crate) reference_id: String,
     pub(crate) reference_fasta_path: String,
     pub(crate) reference_fasta_index_path: String,
+    pub(crate) reference_dict_path: String,
     pub(crate) reference_contigs: Vec<String>,
     pub(crate) target_sites_bed_path: String,
     pub(crate) target_interval_count: usize,
@@ -102,6 +104,12 @@ struct FastaIndexRow {
 }
 
 #[derive(Debug, Clone)]
+struct ReferenceDictRow {
+    name: String,
+    length: usize,
+}
+
+#[derive(Debug, Clone)]
 struct SampleMetadataRow {
     sample_id: String,
     population_id: String,
@@ -128,13 +136,18 @@ pub(crate) fn validate_vcf_corpus_fixture_manifest_path(
     let reference_fasta = resolve_manifest_relative_path(manifest_dir, &manifest.reference_fasta_path);
     let reference_fasta_index =
         resolve_manifest_relative_path(manifest_dir, &manifest.reference_fasta_index_path);
+    let reference_dict = resolve_manifest_relative_path(manifest_dir, &manifest.reference_dict_path);
     let target_sites_bed = resolve_manifest_relative_path(manifest_dir, &manifest.target_sites_bed_path);
     let sample_metadata_path =
         resolve_manifest_relative_path(manifest_dir, &manifest.sample_metadata_path);
     let population_metadata_path =
         resolve_manifest_relative_path(manifest_dir, &manifest.population_metadata_path);
 
-    let reference_contigs = load_validated_reference_contigs(&reference_fasta, &reference_fasta_index)?;
+    let reference_contigs = load_validated_reference_contigs(
+        &reference_fasta,
+        &reference_fasta_index,
+        &reference_dict,
+    )?;
     let reference_contig_names =
         reference_contigs.iter().map(|contig| contig.name.clone()).collect::<Vec<_>>();
     let target_interval_count = validate_target_sites_bed(&target_sites_bed, &reference_contigs)?;
@@ -191,6 +204,7 @@ pub(crate) fn validate_vcf_corpus_fixture_manifest_path(
         reference_id: manifest.reference_id,
         reference_fasta_path: path_relative_to_repo(repo_root, &reference_fasta),
         reference_fasta_index_path: path_relative_to_repo(repo_root, &reference_fasta_index),
+        reference_dict_path: path_relative_to_repo(repo_root, &reference_dict),
         reference_contigs: reference_contig_names,
         target_sites_bed_path: path_relative_to_repo(repo_root, &target_sites_bed),
         target_interval_count,
@@ -235,6 +249,7 @@ pub(crate) fn validate_vcf_corpus_fixture_manifest_contract(
     for (field_name, path) in [
         ("reference_fasta_path", &manifest.reference_fasta_path),
         ("reference_fasta_index_path", &manifest.reference_fasta_index_path),
+        ("reference_dict_path", &manifest.reference_dict_path),
         ("raw_vcf_path", &manifest.raw_vcf_path),
         ("filtered_vcf_path", &manifest.filtered_vcf_path),
         ("multisample_vcf_path", &manifest.multisample_vcf_path),
@@ -303,6 +318,7 @@ fn validate_expected_sample_ids(field_name: &str, sample_ids: &[String]) -> Resu
 fn load_validated_reference_contigs(
     reference_fasta: &Path,
     reference_fasta_index: &Path,
+    reference_dict: &Path,
 ) -> Result<Vec<ReferenceContig>> {
     if !reference_fasta.is_file() {
         return Err(anyhow!(
@@ -316,13 +332,27 @@ fn load_validated_reference_contigs(
             reference_fasta_index.display()
         ));
     }
+    if !reference_dict.is_file() {
+        return Err(anyhow!(
+            "VCF corpus fixture reference dictionary is missing: {}",
+            reference_dict.display()
+        ));
+    }
 
     let reference_contigs = parse_reference_fasta(reference_fasta)?;
     let index_rows = parse_reference_fasta_index(reference_fasta_index)?;
+    let dict_rows = parse_reference_dict(reference_dict)?;
     if reference_contigs.len() != index_rows.len() {
         return Err(anyhow!(
             "VCF corpus fixture reference FASTA index count {} does not match FASTA contig count {}",
             index_rows.len(),
+            reference_contigs.len()
+        ));
+    }
+    if reference_contigs.len() != dict_rows.len() {
+        return Err(anyhow!(
+            "VCF corpus fixture reference dictionary count {} does not match FASTA contig count {}",
+            dict_rows.len(),
             reference_contigs.len()
         ));
     }
@@ -340,6 +370,23 @@ fn load_validated_reference_contigs(
                 "VCF corpus fixture FASTA index length for `{}` is {}, expected {}",
                 index_row.name,
                 index_row.length,
+                reference_contig.length
+            ));
+        }
+    }
+    for (reference_contig, dict_row) in reference_contigs.iter().zip(dict_rows.iter()) {
+        if reference_contig.name != dict_row.name {
+            return Err(anyhow!(
+                "VCF corpus fixture reference dictionary contig `{}` does not match FASTA contig `{}`",
+                dict_row.name,
+                reference_contig.name
+            ));
+        }
+        if reference_contig.length != dict_row.length {
+            return Err(anyhow!(
+                "VCF corpus fixture reference dictionary length for `{}` is {}, expected {}",
+                dict_row.name,
+                dict_row.length,
                 reference_contig.length
             ));
         }
@@ -457,6 +504,62 @@ fn parse_reference_fasta_index(reference_fasta_index: &Path) -> Result<Vec<Fasta
     if rows.is_empty() {
         return Err(anyhow!(
             "VCF corpus fixture FASTA index must declare at least one contig row"
+        ));
+    }
+    Ok(rows)
+}
+
+fn parse_reference_dict(reference_dict: &Path) -> Result<Vec<ReferenceDictRow>> {
+    let raw = fs::read_to_string(reference_dict)
+        .with_context(|| format!("read {}", reference_dict.display()))?;
+    let mut rows = Vec::new();
+    let mut seen = BTreeSet::new();
+    for (line_number, line) in raw.lines().enumerate() {
+        if line.trim().is_empty() || line.starts_with("@HD") {
+            continue;
+        }
+        if !line.starts_with("@SQ") {
+            return Err(anyhow!(
+                "VCF corpus fixture reference dictionary line {} must start with `@SQ` or `@HD`",
+                line_number + 1
+            ));
+        }
+        let name = line
+            .split('\t')
+            .find_map(|field| field.strip_prefix("SN:"))
+            .ok_or_else(|| {
+                anyhow!(
+                    "VCF corpus fixture reference dictionary line {} is missing `SN:`",
+                    line_number + 1
+                )
+            })?;
+        let length = line
+            .split('\t')
+            .find_map(|field| field.strip_prefix("LN:"))
+            .ok_or_else(|| {
+                anyhow!(
+                    "VCF corpus fixture reference dictionary line {} is missing `LN:`",
+                    line_number + 1
+                )
+            })?
+            .parse::<usize>()
+            .with_context(|| {
+                format!(
+                    "parse reference dictionary length on line {} in {}",
+                    line_number + 1,
+                    reference_dict.display()
+                )
+            })?;
+        if !seen.insert(name.to_string()) {
+            return Err(anyhow!(
+                "VCF corpus fixture reference dictionary repeats contig `{name}`"
+            ));
+        }
+        rows.push(ReferenceDictRow { name: name.to_string(), length });
+    }
+    if rows.is_empty() {
+        return Err(anyhow!(
+            "VCF corpus fixture reference dictionary must declare at least one `@SQ` row"
         ));
     }
     Ok(rows)
