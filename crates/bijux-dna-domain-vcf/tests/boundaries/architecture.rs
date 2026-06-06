@@ -38,6 +38,7 @@ fn crate_tree_matches_domain_vcf_boundary() {
         "lib.rs",
         "metrics.rs",
         "params/",
+        "parsers/",
         "registry_emit.rs",
         "run.rs",
         "stage_baseline.rs",
@@ -52,6 +53,7 @@ fn crate_tree_matches_domain_vcf_boundary() {
     let expected_tests: BTreeSet<_> = [
         "boundaries/",
         "boundaries.rs",
+        "contracts/",
         "contracts.rs",
         "guardrails.rs",
         "public_api_docs.rs",

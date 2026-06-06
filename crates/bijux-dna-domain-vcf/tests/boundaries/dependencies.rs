@@ -9,7 +9,10 @@ fn dependency_graph_matches_domain_vcf_boundary() {
 
     let dependencies = section_keys(&manifest, "[dependencies]");
     let expected_dependencies: BTreeSet<_> =
-        ["anyhow", "schemars", "serde", "serde_json"].into_iter().map(str::to_string).collect();
+        ["anyhow", "flate2", "schemars", "serde", "serde_json"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(dependencies, expected_dependencies, "unexpected direct dependency shape");
 
     let dev_dependencies = section_keys(&manifest, "[dev-dependencies]");
