@@ -18,6 +18,7 @@ bijux-dna-domain-bam.workspace = true
 bijux-dna-domain-fastq.workspace = true
 bijux-dna-domain-compiler.workspace = true
 bijux-dna-domain-vcf.workspace = true
+bijux-dna-db-ref.workspace = true
 bijux-dna-infra.workspace = true
 bijux-dna-db-ena.workspace = true
 bijux-dna-planner-bam.workspace = true
