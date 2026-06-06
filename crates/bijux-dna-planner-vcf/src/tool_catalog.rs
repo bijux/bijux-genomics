@@ -19,7 +19,7 @@ pub(crate) fn stage_compat_tools(stage: VcfDomainStage) -> &'static [&'static st
         }
         VcfDomainStage::Postprocess => &["bcftools"],
         VcfDomainStage::PopulationStructure | VcfDomainStage::Pca => &["plink2", "eigensoft"],
-        VcfDomainStage::Admixture => &["plink2"],
+        VcfDomainStage::Admixture => &["plink2", "plink"],
         VcfDomainStage::Ibd => &["germline", "ibdhap"],
         VcfDomainStage::Roh => &["plink2"],
         VcfDomainStage::Demography => &["ibdne"],

@@ -142,6 +142,86 @@ fn vcf_planner_renders_executable_angsd_stage_templates_for_low_coverage_rows() 
     }
 }
 
+#[test]
+fn vcf_planner_renders_executable_plink2_stage_templates_for_cohort_rows() {
+    for regime in [CoverageRegime::Diploid, CoverageRegime::LowCovGl, CoverageRegime::Pseudohaploid]
+    {
+        let plans = plan_vcf_stage_plans(&base_inputs(regime))
+            .unwrap_or_else(|err| panic!("stage plans for {regime:?}: {err}"));
+        let plink2_rows = plans
+            .iter()
+            .filter(|plan| plan.tool_id.to_string() == "plink2")
+            .collect::<Vec<_>>();
+        assert!(
+            !plink2_rows.is_empty(),
+            "expected plink2 cohort-analysis rows for {regime:?}"
+        );
+        for plan in plink2_rows {
+            assert!(
+                !plan.command.template.is_empty(),
+                "plink2 stage {} must keep a real command template",
+                plan.stage_id
+            );
+            let joined = plan.command.template.join(" ");
+            assert!(
+                joined.contains("plink2"),
+                "plink2 stage {} must keep the concrete plink2 binary in its command template: {:?}",
+                plan.stage_id,
+                plan.command.template
+            );
+            assert!(
+                !plan.command.template.iter().any(|part| part == "--help"),
+                "plink2 stage {} must not fall back to --help placeholder rendering: {:?}",
+                plan.stage_id,
+                plan.command.template
+            );
+        }
+    }
+}
+
+#[test]
+fn vcf_planner_renders_executable_plink_stage_templates_when_overridden() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.requested_stages =
+        Some(vec!["vcf.qc".to_string(), "vcf.admixture".to_string()]);
+    input.stage_tool_overrides.insert("vcf.qc".to_string(), "plink".to_string());
+    input.stage_tool_overrides.insert("vcf.admixture".to_string(), "plink".to_string());
+
+    let plans =
+        plan_vcf_stage_plans(&input).unwrap_or_else(|err| panic!("stage plans with plink: {err}"));
+    let plink_rows = plans
+        .iter()
+        .filter(|plan| {
+            plan.tool_id.to_string() == "plink"
+                && matches!(plan.stage_id.as_str(), "vcf.qc" | "vcf.admixture")
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        plink_rows.len(),
+        2,
+        "expected governed plink overrides for qc and admixture"
+    );
+    for plan in plink_rows {
+        assert!(
+            !plan.command.template.is_empty(),
+            "plink stage {} must keep a real command template",
+            plan.stage_id
+        );
+        assert_eq!(
+            plan.command.template.first().map(String::as_str),
+            Some("plink"),
+            "plink stage {} must start with the real plink binary",
+            plan.stage_id
+        );
+        assert!(
+            !plan.command.template.iter().any(|part| part == "--help"),
+            "plink stage {} must not fall back to --help placeholder rendering: {:?}",
+            plan.stage_id,
+            plan.command.template
+        );
+    }
+}
+
 fn assert_snapshot_json(name: &str, kind: &str, value: &serde_json::Value) {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")

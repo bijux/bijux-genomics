@@ -117,6 +117,11 @@ pub(crate) fn stage_command(
             return Ok(CommandSpecV1 { template });
         }
     }
+    if matches!(tool, "plink" | "plink2") {
+        if let Some(template) = plink_family_stage_command(stage, tool, inputs, outputs)? {
+            return Ok(CommandSpecV1 { template });
+        }
+    }
 
     let mut template = vec![tool.to_string()];
     match stage {
@@ -318,6 +323,100 @@ fn angsd_stage_command(
             "-out".to_string(),
             output_prefix_path(outputs, "gl_propagated_vcf")?,
         ],
+        _ => return Ok(None),
+    };
+    Ok(Some(template))
+}
+
+fn plink_family_stage_command(
+    stage: VcfDomainStage,
+    tool: &str,
+    inputs: &[ArtifactSpec],
+    outputs: &[ArtifactSpec],
+) -> Result<Option<Vec<String>>> {
+    let input_vcf = input_path(inputs, "vcf")?.display().to_string();
+    let output_prefix = output_prefix_path(outputs, stage_output_name(stage))?;
+    let template = match (tool, stage) {
+        ("plink", VcfDomainStage::Qc) => vec![
+            "plink".to_string(),
+            "--vcf".to_string(),
+            input_vcf,
+            "--double-id".to_string(),
+            "--allow-extra-chr".to_string(),
+            "--missing".to_string(),
+            "--freq".to_string(),
+            "--het".to_string(),
+            "--hardy".to_string(),
+            "--out".to_string(),
+            output_prefix,
+        ],
+        ("plink", VcfDomainStage::Admixture) => vec![
+            "plink".to_string(),
+            "--vcf".to_string(),
+            input_vcf,
+            "--double-id".to_string(),
+            "--allow-extra-chr".to_string(),
+            "--missing".to_string(),
+            "--freq".to_string(),
+            "--make-bed".to_string(),
+            "--out".to_string(),
+            output_prefix,
+        ],
+        ("plink2", VcfDomainStage::Qc) => vec![
+            "plink2".to_string(),
+            "--vcf".to_string(),
+            input_vcf,
+            "--double-id".to_string(),
+            "--allow-extra-chr".to_string(),
+            "--missing".to_string(),
+            "--freq".to_string(),
+            "--het".to_string(),
+            "--hardy".to_string(),
+            "--out".to_string(),
+            output_prefix,
+        ],
+        ("plink2", VcfDomainStage::Pca) => vec![
+            "plink2".to_string(),
+            "--vcf".to_string(),
+            input_vcf,
+            "--double-id".to_string(),
+            "--allow-extra-chr".to_string(),
+            "--pca".to_string(),
+            "10".to_string(),
+            "--out".to_string(),
+            output_prefix,
+        ],
+        ("plink2", VcfDomainStage::Admixture) => vec![
+            "plink2".to_string(),
+            "--vcf".to_string(),
+            input_vcf,
+            "--double-id".to_string(),
+            "--allow-extra-chr".to_string(),
+            "--pca".to_string(),
+            "2".to_string(),
+            "--out".to_string(),
+            output_prefix,
+        ],
+        ("plink2", VcfDomainStage::Roh) => vec![
+            "plink2".to_string(),
+            "--vcf".to_string(),
+            input_vcf,
+            "--double-id".to_string(),
+            "--allow-extra-chr".to_string(),
+            "--homozyg".to_string(),
+            "--out".to_string(),
+            output_prefix,
+        ],
+        ("plink2", VcfDomainStage::PopulationStructure) => {
+            let pca_prefix = format!("{output_prefix}.pca");
+            vec![
+                "sh".to_string(),
+                "-lc".to_string(),
+                format!(
+                    "plink2 --vcf '{input_vcf}' --double-id --allow-extra-chr --indep-pairwise 50 5 0.2 --out '{output_prefix}' && plink2 --vcf '{input_vcf}' --double-id --allow-extra-chr --pca 10 --out '{pca_prefix}'"
+                ),
+            ]
+        }
         _ => return Ok(None),
     };
     Ok(Some(template))
