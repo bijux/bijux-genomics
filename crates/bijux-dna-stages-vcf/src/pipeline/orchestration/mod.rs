@@ -107,6 +107,8 @@ pub(crate) fn load_imputation_qc_thresholds() -> std::collections::BTreeMap<Stri
         ("vcf_variant_density_fail", 1.0_f64),
         ("vcf_missingness_block_warn", 3.0_f64),
         ("vcf_missingness_block_fail", 6.0_f64),
+        ("vcf_qc_sample_missingness_exclude", 0.50_f64),
+        ("vcf_qc_variant_missingness_exclude", 0.50_f64),
     ];
     for (key, fallback) in defaults {
         out.insert(key.to_string(), parse_threshold_value(&raw, key).unwrap_or(fallback));
