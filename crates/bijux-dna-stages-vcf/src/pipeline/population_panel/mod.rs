@@ -96,6 +96,16 @@ fn parse_plink2_eigenval(path: &Path) -> Option<String> {
     Some(out)
 }
 
+fn parse_eigenvalues_tsv(raw: &str) -> Vec<f64> {
+    raw.lines()
+        .skip(1)
+        .filter_map(|line| {
+            let value = line.split('\t').nth(1)?.trim();
+            value.parse::<f64>().ok()
+        })
+        .collect()
+}
+
 /// # Errors
 /// Returns an error if PCA preprocessing requirements are not satisfied.
 pub fn run_pca_stage(
@@ -124,6 +134,11 @@ pub fn run_pca_stage(
             passing += 1;
         }
     }
+    let sample_population_labels = params
+        .sample_metadata_manifest
+        .as_ref()
+        .map(|manifest_path| parse_sample_population_labels(manifest_path, &samples))
+        .transpose()?;
     if passing == 0 {
         bail!("vcf.pca refusal: no variants pass preprocessing (LD/MAF/missingness)");
     }
@@ -225,6 +240,7 @@ pub fn run_pca_stage(
             val_rows.push_str(&format!("PC{i}\t{:.6}\n", 1.0 / i as f64));
         }
     }
+    let eigenvalues = parse_eigenvalues_tsv(&val_rows);
     atomic_write_bytes(&eigenval_tsv, val_rows.as_bytes())?;
     atomic_write_json(
         &pca_manifest_json,
@@ -233,6 +249,20 @@ pub fn run_pca_stage(
             "toolchain": tool_id,
             "execution_mode": execution_mode,
             "components": params.components,
+            "sample_count": samples.len(),
+            "sample_ids": samples,
+            "eigenvalues": eigenvalues,
+            "sample_metadata_manifest": params.sample_metadata_manifest.as_ref(),
+            "sample_population_labels": sample_population_labels.as_ref().map(|labels| {
+                labels
+                    .iter()
+                    .filter(|(sample_id, _)| samples.iter().any(|sample| sample == *sample_id))
+                    .map(|(sample_id, population_id)| serde_json::json!({
+                        "sample_id": sample_id,
+                        "population_id": population_id,
+                    }))
+                    .collect::<Vec<_>>()
+            }),
             "ld_pruning_policy": ld_policy,
             "plot_references": {
                 "scree_plot": "plots/pca_scree.png",
