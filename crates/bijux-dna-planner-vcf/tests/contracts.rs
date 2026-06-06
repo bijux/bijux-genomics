@@ -415,6 +415,72 @@ fn vcf_planner_renders_executable_imputation_stage_templates_for_retained_backen
     }
 }
 
+#[test]
+fn vcf_planner_renders_executable_descent_stage_templates_for_retained_backends() {
+    let cases = [
+        (CoverageRegime::Diploid, "vcf.roh", "plink2"),
+        (CoverageRegime::Diploid, "vcf.ibd", "germline"),
+        (CoverageRegime::Diploid, "vcf.ibd", "ibdseq"),
+        (CoverageRegime::Diploid, "vcf.ibd", "ibdhap"),
+        (CoverageRegime::Diploid, "vcf.demography", "ibdne"),
+    ];
+
+    for (regime, stage_id, tool_id) in cases {
+        let mut input = base_inputs(regime);
+        input.requested_stages = Some(if stage_id == "vcf.demography" {
+            vec!["vcf.ibd".to_string(), stage_id.to_string()]
+        } else {
+            vec![stage_id.to_string()]
+        });
+        input.stage_tool_overrides.insert(stage_id.to_string(), tool_id.to_string());
+
+        let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| {
+            panic!("stage plans for descent backend {tool_id} on {stage_id}: {err}")
+        });
+        let stage_plan = plans
+            .iter()
+            .find(|plan| plan.stage_id.as_str() == stage_id)
+            .unwrap_or_else(|| panic!("stage plan for {tool_id} on {stage_id}"));
+        let joined = stage_plan.command.template.join(" ");
+
+        assert!(
+            !joined.contains("--help"),
+            "descent backend {tool_id} on {stage_id} must not fall back to placeholder rendering: {:?}",
+            stage_plan.command.template
+        );
+
+        match (stage_id, tool_id) {
+            ("vcf.roh", "plink2") => {
+                assert!(joined.contains("plink2"));
+                assert!(joined.contains("--homozyg"));
+                assert!(joined.contains("--vcf"));
+            }
+            ("vcf.ibd", "germline") => {
+                assert!(joined.contains("germline"));
+                assert!(joined.contains("plink2 --vcf"));
+                assert!(joined.contains("-make-bed") || joined.contains("--make-bed"));
+                assert!(joined.contains("-output"));
+            }
+            ("vcf.ibd", "ibdseq") => {
+                assert!(joined.contains("ibdseq"));
+                assert!(joined.contains("--vcf"));
+                assert!(joined.contains(".segments.tsv"));
+            }
+            ("vcf.ibd", "ibdhap") => {
+                assert!(joined.contains("ibdhap"));
+                assert!(joined.contains("--vcf"));
+                assert!(joined.contains(".segments.tsv"));
+            }
+            ("vcf.demography", "ibdne") => {
+                assert!(joined.contains("ibdne"));
+                assert!(joined.contains("ibd_segments.tsv"));
+                assert!(joined.contains("--out"));
+            }
+            other => panic!("unexpected descent backend {:?}", other),
+        }
+    }
+}
+
 fn assert_snapshot_json(name: &str, kind: &str, value: &serde_json::Value) {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
@@ -838,6 +904,21 @@ fn vcf_planner_keeps_variant_stream_after_report_stages() {
 
     assert_eq!(roh.io.inputs[0].path, PathBuf::from("out/postprocess_vcf.vcf.gz"));
     assert_eq!(stats.io.inputs[0].path, PathBuf::from("out/postprocess_vcf.vcf.gz"));
+}
+
+#[test]
+fn vcf_planner_aligns_ibd_and_demography_io_contracts() {
+    let input = base_inputs(CoverageRegime::Diploid);
+    let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| panic!("stage plans: {err}"));
+    let ibd =
+        plans.iter().find(|plan| plan.stage_id.to_string() == "vcf.ibd").expect("ibd stage plan");
+    let demography = plans
+        .iter()
+        .find(|plan| plan.stage_id.to_string() == "vcf.demography")
+        .expect("demography stage plan");
+
+    assert_eq!(ibd.io.outputs[0].path, PathBuf::from("out/ibd_segments.tsv"));
+    assert_eq!(demography.io.inputs[0].path, PathBuf::from("out/ibd_segments.tsv"));
 }
 
 #[test]

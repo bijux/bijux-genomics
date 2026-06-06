@@ -66,8 +66,8 @@ pub(crate) fn stage_inputs_for(
         ]),
         VcfDomainStage::Demography => Ok(vec![ArtifactSpec::required(
             ArtifactId::new("ibd_segments"),
-            out_dir.join("ibd_segments.json"),
-            ArtifactRole::MetricsJson,
+            out_dir.join("ibd_segments.tsv"),
+            ArtifactRole::SummaryTsv,
         )]),
         _ => Ok(vec![ArtifactSpec::required(
             ArtifactId::new("vcf"),
@@ -79,16 +79,12 @@ pub(crate) fn stage_inputs_for(
 
 pub(crate) fn stage_outputs_for(stage: VcfDomainStage, out_dir: &Path) -> Vec<ArtifactSpec> {
     let output = stage_output_name(stage);
-    let path =
-        if output.ends_with("json") || output.contains("report") || output.contains("segments") {
-            out_dir.join(format!("{output}.json"))
-        } else {
-            out_dir.join(format!("{output}.vcf.gz"))
-        };
-    let role = if path.extension().and_then(|ext| ext.to_str()) == Some("json") {
-        ArtifactRole::MetricsJson
-    } else {
-        ArtifactRole::Variant
+    let (path, role) = match stage {
+        VcfDomainStage::Ibd => (out_dir.join(format!("{output}.tsv")), ArtifactRole::SummaryTsv),
+        _ if output.ends_with("json") || output.contains("report") => {
+            (out_dir.join(format!("{output}.json")), ArtifactRole::MetricsJson)
+        }
+        _ => (out_dir.join(format!("{output}.vcf.gz")), ArtifactRole::Variant),
     };
     let mut outputs = vec![ArtifactSpec::required(ArtifactId::new(output), path, role)];
     if stage == VcfDomainStage::PrepareReferencePanel {
@@ -134,6 +130,11 @@ pub(crate) fn stage_command(
     }
     if matches!(tool, "beagle" | "glimpse" | "impute5" | "minimac4") {
         if let Some(template) = imputation_stage_command(stage, tool, inputs, outputs)? {
+            return Ok(CommandSpecV1 { template });
+        }
+    }
+    if matches!(tool, "germline" | "ibdseq" | "ibdhap" | "ibdne") {
+        if let Some(template) = descent_stage_command(stage, tool, inputs, outputs)? {
             return Ok(CommandSpecV1 { template });
         }
     }
@@ -510,6 +511,50 @@ fn imputation_stage_command(
     Ok(Some(vec!["sh".to_string(), "-lc".to_string(), command]))
 }
 
+fn descent_stage_command(
+    stage: VcfDomainStage,
+    tool: &str,
+    inputs: &[ArtifactSpec],
+    outputs: &[ArtifactSpec],
+) -> Result<Option<Vec<String>>> {
+    let command = match (tool, stage) {
+        ("germline", VcfDomainStage::Ibd) => {
+            let input_vcf = input_path(inputs, "vcf")?.display().to_string();
+            let output_prefix = output_prefix_path(outputs, "ibd_segments")?;
+            let cohort_prefix = format!("{output_prefix}.cohort");
+            let log_path = format!("{output_prefix}.log");
+            format!(
+                "plink2 --vcf '{input_vcf}' --double-id --allow-extra-chr --make-bed --out '{cohort_prefix}' >/dev/null 2>&1 && germline -input '{cohort_prefix}' -bits 128 -min_m 3 -err_hom 2 -err_het 1 -output '{output_prefix}' > '{log_path}' 2>&1"
+            )
+        }
+        ("ibdseq", VcfDomainStage::Ibd) => {
+            let input_vcf = input_path(inputs, "vcf")?.display().to_string();
+            let output_prefix = output_prefix_path(outputs, "ibd_segments")?;
+            let log_path = format!("{output_prefix}.log");
+            format!(
+                "ibdseq --vcf '{input_vcf}' --out '{output_prefix}.segments.tsv' > '{log_path}' 2>&1"
+            )
+        }
+        ("ibdhap", VcfDomainStage::Ibd) => {
+            let input_vcf = input_path(inputs, "vcf")?.display().to_string();
+            let output_prefix = output_prefix_path(outputs, "ibd_segments")?;
+            let log_path = format!("{output_prefix}.log");
+            format!("ibdhap --vcf '{input_vcf}' --out '{output_prefix}.segments.tsv' > '{log_path}' 2>&1")
+        }
+        ("ibdne", VcfDomainStage::Demography) => {
+            let input_ibd_segments = input_path(inputs, "ibd_segments")?.display().to_string();
+            let output_prefix = output_prefix_path(outputs, "demography_report")?;
+            let log_path = format!("{output_prefix}.log");
+            format!(
+                "ibdne --ibd '{input_ibd_segments}' --out '{output_prefix}' > '{log_path}' 2>&1"
+            )
+        }
+        _ => return Ok(None),
+    };
+
+    Ok(Some(vec!["sh".to_string(), "-lc".to_string(), command]))
+}
+
 fn eigensoft_stage_command(
     stage: VcfDomainStage,
     inputs: &[ArtifactSpec],
@@ -562,7 +607,7 @@ smartpca -p '{smartpca_par}' > '{log_path}' 2>&1"
 fn output_prefix_path(outputs: &[ArtifactSpec], artifact_id: &str) -> Result<String> {
     let output = output_path(outputs, artifact_id)?;
     let rendered = output.display().to_string();
-    for suffix in [".vcf.gz", ".vcf", ".json"] {
+    for suffix in [".vcf.gz", ".vcf", ".json", ".tsv"] {
         if let Some(prefix) = rendered.strip_suffix(suffix) {
             return Ok(prefix.to_string());
         }
