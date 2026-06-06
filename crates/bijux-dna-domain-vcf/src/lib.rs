@@ -30,7 +30,7 @@ pub use artifacts::{
     VCF_VALIDATION_SUMMARY_SCHEMA_VERSION,
 };
 pub use metrics::{VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStatsMetricsV1};
-pub use parsers::parse_bcftools_stage_metrics;
+pub use parsers::{parse_angsd_stage_metrics, parse_bcftools_stage_metrics};
 pub use registry_emit::{param_registry_toml, required_tools_toml};
 pub use run::{
     required_vcf_bench_corpus_scenarios, vcf_bench_corpus_datasets, vcf_bench_corpus_manifest,
