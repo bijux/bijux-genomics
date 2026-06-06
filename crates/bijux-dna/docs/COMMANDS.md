@@ -138,6 +138,14 @@ Visible aliases are part of the operator surface:
   and the owned adapter, parser, and expected-output contracts. It fails closed when any VCF
   catalog stage is missing, any row drifts from the owned contract set, or any row references a
   tool that is not declared in the VCF benchmark tool inventories.
+- `bijux-dna bench validate-schemas`
+  `validate-schemas --domain vcf` checks the committed VCF normalized metrics schema files against
+  the governed parser-supported VCF stage catalog and writes
+  `target/bench-readiness/vcf-schema-validation.json`. The gate fails closed unless the shared
+  schema file `schemas/bench/vcf-normalized-metrics.v1.json` and the full
+  `schemas/bench/vcf-normalized-metrics/` stage-specific file set match the canonical API-rendered
+  contracts exactly, including the required VCF benchmark stages for calling, filtering, QC,
+  phasing, imputation, population analyses, ROH, IBD, and demography.
 - `bijux-dna bench publication-targets`
 - `bijux-dna bench corpus-fastq`
 - `bijux-dna bench normalize-workspace-layout`
@@ -409,6 +417,13 @@ Visible aliases are part of the operator surface:
   `benchmark_status` from the owned VCF stage catalog and matrix. The report fails closed unless
   every matrix row appears exactly once and the supported-vs-planned split remains aligned with
   the canonical VCF stage contracts.
+- `bijux-dna bench readiness render-vcf-normalized-metrics-schema`
+  `render-vcf-normalized-metrics-schema` writes
+  `schemas/bench/vcf-normalized-metrics.v1.json` plus one stage-specific schema file under
+  `schemas/bench/vcf-normalized-metrics/` for every parser-supported VCF stage. The readiness
+  report enumerates each stage schema version, durable schema ID, stage file name, extension ID,
+  and required normalized key count so parser-owned VCF metrics stay governed by one shared schema
+  family instead of drifting into tool-private JSON shapes.
 - `bijux-dna bench readiness render-vcf-adapter-missing-input-tests`
   `render-vcf-adapter-missing-input-tests` writes
   `target/bench-readiness/vcf-adapter-missing-input-tests.json` with one governed missing-input
