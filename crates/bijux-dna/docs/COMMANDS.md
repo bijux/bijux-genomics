@@ -54,6 +54,13 @@ Commands listed here are owned by this crate even when their durable behavior is
   FAI, single-sample/cohort/phased/panel VCF assets, target-sites BED, and sample/population
   metadata. It fails closed when any declared file is missing, when the reference and FAI drift,
   or when VCF sample ids fall out of sync with the metadata tables.
+- `bijux-dna fixtures validate-expected`
+  `fixtures validate-expected --corpus vcf-mini` validates the governed
+  `tests/fixtures/corpora/vcf-mini/expected/*.json` truth bundle against the owned multisample,
+  phased, panel, filtered, and raw VCF assets plus the cohort metadata contract. It fails closed
+  when variant counts, sample missingness, genotype-state tallies, allele frequencies, phasing
+  status, pairwise cohort distances, ROH expectations, or IBD expectations drift away from the
+  governed fixture corpus.
 
 ### Status
 - `bijux-dna status`
