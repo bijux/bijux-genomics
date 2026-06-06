@@ -43,6 +43,7 @@ pub use self::local::{
     BenchLocalValidatePipelineDagArgs, BenchLocalValidateSlurmDependenciesArgs,
     BenchLocalValidateSlurmScriptBodiesArgs, BenchLocalValidateSlurmShellSyntaxArgs,
     BenchLocalValidateStageResultArgs, BenchLocalValidateTaxonomyDatabaseFixtureArgs,
+    BenchLocalValidateVcfReferenceCompatibilityArgs,
 };
 pub use self::matrix::{BenchMatrixDomainArg, BenchValidateMatrixArgs};
 pub use self::publication::{

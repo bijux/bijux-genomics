@@ -400,6 +400,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateVcfReferenceCompatibility(args) => {
+                        crate::commands::benchmark::local_vcf_reference_compatibility::run_validate_vcf_reference_compatibility(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateHpcSubmissionReady(args) => {
                         crate::commands::benchmark::local_hpc_submission_ready::run_validate_hpc_submission_ready(
                             args.output.clone(),
