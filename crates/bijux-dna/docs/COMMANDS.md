@@ -559,6 +559,16 @@ Visible aliases are part of the operator surface:
   `duplicate_sites_removed`, `normalization_status`, and `index_path`) so reviewer evidence proves
   the output panel is sorted, indexed, normalized, and sample-consistent instead of only copying a
   panel fixture.
+- `bijux-dna bench local run-vcf-phasing-smoke`
+  `run-vcf-phasing-smoke` writes `target/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz`,
+  `target/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz.tbi`, and
+  `target/local-smoke/vcf.phasing/shapeit5/metrics.json` from the governed `vcf.phasing` matrix
+  row. The command materializes a deterministic two-sample unphased cohort VCF plus the owned
+  panel/map lock assets, runs the real retained `shapeit5` phasing stage, keeps the phasing QC,
+  manifest, phase-block, switch-proxy, and panel-asset reports visible, and records exact smoke
+  metrics (`input_genotypes`, `phased_genotypes`, `unphased_genotypes`, `phase_set_count`, and
+  `tool_id`) so reviewer evidence proves phased separators are emitted instead of only inferring
+  phasing readiness from the stage catalog.
 - `bijux-dna bench local run-vcf-call-pseudohaploid-smoke`
   `run-vcf-call-pseudohaploid-smoke` writes
   `target/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz`,
