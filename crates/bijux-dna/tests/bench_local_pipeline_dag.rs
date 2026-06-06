@@ -641,6 +641,97 @@ fn bench_local_pipeline_dag_validates_bam_authenticity_contract() {
 }
 
 #[test]
+fn bench_local_pipeline_dag_validates_adna_pseudohaploid_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("adna-pseudohaploid-fastq-bam-vcf")
+    );
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-01-mini")
+    );
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(payload.get("edge_count").and_then(serde_json::Value::as_u64), Some(24));
+
+    let profiles = payload
+        .get("validation_profiles")
+        .and_then(serde_json::Value::as_array)
+        .expect("validation profiles");
+    assert!(
+        profiles.iter().any(|profile| {
+            profile.get("profile_id").and_then(serde_json::Value::as_str)
+                == Some("ancient_dna_pseudohaploid")
+                && profile.get("check_count").and_then(serde_json::Value::as_u64) == Some(8)
+        }),
+        "aDNA pseudohaploid pipeline must emit the ancient_dna_pseudohaploid validation profile"
+    );
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.remove_duplicates")
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| {
+                            value.as_str() == Some("terminal_damage_trimmed_reads_r1_path")
+                        }) && inputs.iter().any(|value| {
+                            value.as_str() == Some("terminal_damage_trimmed_reads_r2_path")
+                        })
+                    },
+                )
+        }),
+        "duplicate handling must stay downstream of terminal-damage trimming"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.call_pseudohaploid")
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("damage_report_json"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("authenticity_report_json"))
+                    },
+                )
+        }),
+        "pseudohaploid calling must consume BAM damage and authenticity evidence"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.damage_filter")
+                && node
+                    .get("depends_on")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|deps| {
+                        deps.iter().any(|value| value.as_str() == Some("vcf.call_pseudohaploid"))
+                            && deps.iter().any(|value| value.as_str() == Some("bam.damage"))
+                    })
+        }),
+        "damage-aware filtering must stay downstream of pseudohaploid calling and BAM damage evidence"
+    );
+}
+
+#[test]
 fn bench_local_pipeline_dag_validates_bam_genotyping_contract() {
     let payload = run_cli_json(&[
         "bench",
