@@ -100,6 +100,10 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             &current_vcf,
             &inputs.out_dir,
             &tool,
+            inputs.call_bam.as_deref(),
+            inputs.call_bam_index.as_deref(),
+            inputs.reference_fasta.as_deref(),
+            inputs.reference_panel_vcf.as_deref(),
             resolved_coverage,
             selected_panel.as_ref(),
             &map_catalog,
@@ -115,7 +119,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             .io
             .outputs
             .iter()
-            .find(|output| output.role == ArtifactRole::Reads)
+            .find(|output| output.role == ArtifactRole::Variant)
             .filter(|_| stage != VcfDomainStage::PrepareReferencePanel)
         {
             current_vcf = out.path.clone();

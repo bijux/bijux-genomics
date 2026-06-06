@@ -31,8 +31,12 @@
       "command": {
         "template": [
           "bcftools",
-          "prepare-panel",
-          "--lock"
+          "norm",
+          "-m-any",
+          "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+          "-Oz",
+          "-o",
+          "out/prepared_panel.vcf.gz"
         ]
       },
       "effective_params": {
@@ -82,10 +86,10 @@
       "io": {
         "inputs": [
           {
-            "name": "vcf",
+            "name": "reference_panel_vcf",
             "optional": false,
-            "path": "out/panel.vcf.gz",
-            "role": "reads"
+            "path": "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+            "role": "variant"
           }
         ],
         "outputs": [
@@ -93,7 +97,7 @@
             "name": "prepared_panel",
             "optional": false,
             "path": "out/prepared_panel.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           },
           {
             "name": "chunks_json",
@@ -171,8 +175,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "bcftools",
-          "--help"
+          "sh",
+          "-lc",
+          "bcftools mpileup -Ou -f 'tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta' 'tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam' | bcftools call -mv -Oz -o 'out/diploid_vcf.vcf.gz'"
         ]
       },
       "effective_params": {
@@ -195,10 +200,22 @@
       "io": {
         "inputs": [
           {
-            "name": "vcf",
+            "name": "input_bam",
             "optional": false,
-            "path": "sample.vcf.gz",
-            "role": "reads"
+            "path": "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
+            "role": "bam"
+          },
+          {
+            "name": "input_bam_index",
+            "optional": false,
+            "path": "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai",
+            "role": "index"
+          },
+          {
+            "name": "reference_fasta",
+            "optional": false,
+            "path": "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+            "role": "reference"
           }
         ],
         "outputs": [
@@ -206,7 +223,7 @@
             "name": "diploid_vcf",
             "optional": false,
             "path": "out/diploid_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ]
       },
@@ -935,7 +952,7 @@
             "name": "vcf",
             "optional": false,
             "path": "out/diploid_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ],
         "outputs": [
@@ -943,7 +960,7 @@
             "name": "imputed_vcf",
             "optional": false,
             "path": "out/imputed_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ]
       },
@@ -1687,7 +1704,7 @@
             "name": "vcf",
             "optional": false,
             "path": "out/imputed_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ],
         "outputs": [
@@ -1791,7 +1808,7 @@
       "io": {
         "inputs": [
           {
-            "name": "vcf",
+            "name": "ibd_segments",
             "optional": false,
             "path": "out/ibd_segments.json",
             "role": "metrics_json"
@@ -1859,7 +1876,12 @@
       "command": {
         "template": [
           "bcftools",
-          "--help"
+          "stats",
+          "-s",
+          "-",
+          "-o",
+          "out/stats_json.json",
+          "out/imputed_vcf.vcf.gz"
         ]
       },
       "effective_params": {
@@ -1898,7 +1920,7 @@
             "name": "vcf",
             "optional": false,
             "path": "out/imputed_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ],
         "outputs": [

@@ -1,6 +1,6 @@
 {
   "domain": "vcf",
-  "graph_hash": "b3c9a98ff279759aab6a6e40a77c991bfac4addfd5be59d1d29e8731faff1134",
+  "graph_hash": "46d1e103c2e49b365d81808f61bbbdd47859105270cd5f4efbd96e5999ee5a65",
   "ordered_steps": [
     {
       "advisory": false,
@@ -9,7 +9,7 @@
           "artifact_id": "prepared_panel",
           "optional": false,
           "path": "out/prepared_panel.vcf.gz",
-          "role": "reads"
+          "role": "variant"
         },
         {
           "artifact_id": "chunks_json",
@@ -18,7 +18,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "ac27f6331dad689e3c7aee3bbd1a52402252843dccb7e019599f1a99667ec9fe",
+      "cache_key": "f745764e5afad193f49f9ef3b3b66ebb0cacf669b0cdfe30cf8e1c885fce554c",
       "effective_parameters_json": {
         "license_policy": "panel_license_must_match_operator_constraints",
         "map_coordinate_system": "bp",
@@ -62,8 +62,12 @@
       "environment": {
         "command": [
           "bcftools",
-          "prepare-panel",
-          "--lock"
+          "norm",
+          "-m-any",
+          "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+          "-Oz",
+          "-o",
+          "out/prepared_panel.vcf.gz"
         ],
         "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
         "out_dir": "out/vcf_prepare_reference_panel",
@@ -84,10 +88,10 @@
           "artifact_id": "diploid_vcf",
           "optional": false,
           "path": "out/diploid_vcf.vcf.gz",
-          "role": "reads"
+          "role": "variant"
         }
       ],
-      "cache_key": "de81327b6027816602f000cf3bbc74696795eb4fc142b5019103231dd307d668",
+      "cache_key": "dcfdfa6e74f364c0e0e8a2f9d9188592e93957d41f16ab8245aae3863d97fbc8",
       "dependencies": [
         "vcf.prepare_reference_panel"
       ],
@@ -106,8 +110,9 @@
       },
       "environment": {
         "command": [
-          "bcftools",
-          "--help"
+          "sh",
+          "-lc",
+          "bcftools mpileup -Ou -f 'tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta' 'tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam' | bcftools call -mv -Oz -o 'out/diploid_vcf.vcf.gz'"
         ],
         "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
         "out_dir": "out/vcf_call_diploid",
@@ -128,10 +133,10 @@
           "artifact_id": "damage_filtered_vcf",
           "optional": false,
           "path": "out/damage_filtered_vcf.vcf.gz",
-          "role": "reads"
+          "role": "variant"
         }
       ],
-      "cache_key": "46db14ab095504f287c86f64489ee2bbd447655848c5a9f450d31df5fb720fda",
+      "cache_key": "9067c56f669152574fa75dcb4d0feb202a936bb2fb7520c43cf50794f4903315",
       "dependencies": [
         "vcf.call_diploid"
       ],
@@ -174,7 +179,12 @@
         "command": [
           "bcftools",
           "filter",
-          "--damage-aware"
+          "-e",
+          "((REF=\"C\" && ALT=\"T\") || (REF=\"G\" && ALT=\"A\")) && INFO/PMD>3",
+          "out/diploid_vcf.vcf.gz",
+          "-Oz",
+          "-o",
+          "out/damage_filtered_vcf.vcf.gz"
         ],
         "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
         "out_dir": "out/vcf_damage_filter",
@@ -195,10 +205,10 @@
           "artifact_id": "filtered_vcf",
           "optional": false,
           "path": "out/filtered_vcf.vcf.gz",
-          "role": "reads"
+          "role": "variant"
         }
       ],
-      "cache_key": "30536f9db878336b10e8d1814920c371e32c1c9c1d0ed3ff4386ba616ef69471",
+      "cache_key": "5ba9e6b7542d605bbfdcb1b83a42cf2dc7561e7d323c0de25a2976af6f86904a",
       "dependencies": [
         "vcf.damage_filter"
       ],
@@ -218,7 +228,15 @@
       "environment": {
         "command": [
           "bcftools",
-          "--help"
+          "filter",
+          "-s",
+          "LOWQUAL",
+          "-e",
+          "QUAL<30",
+          "out/damage_filtered_vcf.vcf.gz",
+          "-Oz",
+          "-o",
+          "out/filtered_vcf.vcf.gz"
         ],
         "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
         "out_dir": "out/vcf_filter",
@@ -239,10 +257,10 @@
           "artifact_id": "phased_vcf",
           "optional": false,
           "path": "out/phased_vcf.vcf.gz",
-          "role": "reads"
+          "role": "variant"
         }
       ],
-      "cache_key": "2bb23e506b34b36c30ef9f372099b4ddcb62042189b339010dd424649855e2ce",
+      "cache_key": "99d52484a7310be65a225f3d73643d06e9e112be69fc5c1883cd06a8129120f4",
       "dependencies": [
         "vcf.filter"
       ],
@@ -941,10 +959,10 @@
           "artifact_id": "imputed_vcf",
           "optional": false,
           "path": "out/imputed_vcf.vcf.gz",
-          "role": "reads"
+          "role": "variant"
         }
       ],
-      "cache_key": "898ac5b8bc58f463dd595cef0ae15287def5ef898a7db78d99b4119c2ed9335b",
+      "cache_key": "8a26c44b8b53e9f00011c62bbe5e3aa504e1d7c3da2327678ae6f9a116f90d26",
       "dependencies": [
         "vcf.phasing"
       ],
@@ -1642,10 +1660,10 @@
           "artifact_id": "postprocess_vcf",
           "optional": false,
           "path": "out/postprocess_vcf.vcf.gz",
-          "role": "reads"
+          "role": "variant"
         }
       ],
-      "cache_key": "7d43767e29b9b1f2a259a54566aeb0a9dda4aca78b867a9b6d4f58f7175a8629",
+      "cache_key": "0151b8f2c06d1f0d9a875a40f6446fb236e014abe2b69fc4f2d30c79176a9ab6",
       "dependencies": [
         "vcf.impute"
       ],
@@ -1682,7 +1700,14 @@
       "environment": {
         "command": [
           "bcftools",
-          "--help"
+          "+fill-tags",
+          "out/imputed_vcf.vcf.gz",
+          "-Oz",
+          "-o",
+          "out/postprocess_vcf.vcf.gz",
+          "--",
+          "-t",
+          "AC,AN,AF"
         ],
         "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
         "out_dir": "out/vcf_postprocess",
@@ -1706,7 +1731,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "a5ad42cfe01fabae7d291370cfcb405d092a2ef5f8b5bf720190f157a3e0a688",
+      "cache_key": "66709bc0e25bda8cd38b92fca0b622198e12a8a821172f9b2102ff2f94987ae4",
       "dependencies": [
         "vcf.postprocess"
       ],
@@ -1779,7 +1804,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "ee0362902a9d3386c5a72c8bc7df75e1116661ab52b883e85443693d0d3b2931",
+      "cache_key": "386bc9903db866fa58229671ea93a0712a2cadc22665d9f7bfa26cd84dea5cee",
       "dependencies": [
         "vcf.population_structure"
       ],
@@ -1837,7 +1862,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "9432c4e15b520991d8141928598609f9ac2833db1a7926b193869762a24e0b65",
+      "cache_key": "9a589e5d0eabe76e17f0fac5f70a781b60ea0e3adefc1b4ce71764ca723a352b",
       "dependencies": [
         "vcf.roh"
       ],
@@ -1898,7 +1923,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "23ad42ac72a60613a9ee7b1409f6771e8098e8fb3bf9998d1eabb2266a28dd87",
+      "cache_key": "d65360071f5f58e68e9809593970a1d69caede773d6b784c1b0005876beb47fa",
       "dependencies": [
         "vcf.ibd"
       ],
@@ -1954,7 +1979,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "8693bdcad39a6af57e08224724809496c00e83bf4dea5a61c8a6e5ab891d1e2f",
+      "cache_key": "fabaa1da49cb24d21bebc53c170dfd64577a58eec0e2cebc2ea2e0ea11ef9bee",
       "dependencies": [
         "vcf.demography"
       ],
@@ -1987,7 +2012,12 @@
       "environment": {
         "command": [
           "bcftools",
-          "--help"
+          "stats",
+          "-s",
+          "-",
+          "-o",
+          "out/stats_json.json",
+          "out/postprocess_vcf.vcf.gz"
         ],
         "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
         "out_dir": "out/vcf_stats",
@@ -2154,7 +2184,7 @@
     }
   ],
   "pipeline_id": "vcf-to-vcf__downstream_diploid_sctx_0a9734ff9d35__v2",
-  "plan_fingerprint": "3836932f5d30cb2600e96e2a5d2c159f1d89cfc00ce872469c01d3f35ea51a01",
+  "plan_fingerprint": "39c1391730ddba0056838799310602c50968a6df52facbbb2b8c114046d9dcf9",
   "planner_version": "bijux-dna-planner-vcf.v2",
   "policy": "PreferAccuracy",
   "profile_id": "vcf-downstream",

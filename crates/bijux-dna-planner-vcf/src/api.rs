@@ -24,6 +24,14 @@ pub struct VcfPipelineInputs {
     #[serde(default)]
     pub mean_depth_x: Option<f64>,
     pub vcf: PathBuf,
+    #[serde(default)]
+    pub call_bam: Option<PathBuf>,
+    #[serde(default)]
+    pub call_bam_index: Option<PathBuf>,
+    #[serde(default)]
+    pub reference_fasta: Option<PathBuf>,
+    #[serde(default)]
+    pub reference_panel_vcf: Option<PathBuf>,
     pub out_dir: PathBuf,
     #[serde(default)]
     pub stage_tool_overrides: BTreeMap<String, String>,

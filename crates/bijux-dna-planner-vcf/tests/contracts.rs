@@ -24,6 +24,18 @@ fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
         coverage_regime: regime,
         mean_depth_x: None,
         vcf: PathBuf::from("sample.vcf.gz"),
+        call_bam: Some(PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
+        )),
+        call_bam_index: Some(PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai",
+        )),
+        reference_fasta: Some(PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+        )),
+        reference_panel_vcf: Some(PathBuf::from(
+            "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+        )),
         out_dir: PathBuf::from("out"),
         stage_tool_overrides: BTreeMap::new(),
         requested_stages: None,
@@ -78,6 +90,31 @@ fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
         pipeline_domain: "vcf".to_string(),
         chunking: ChunkPlanSettings::default(),
         stage_param_overrides: BTreeMap::new(),
+    }
+}
+
+#[test]
+fn vcf_planner_renders_executable_bcftools_stage_templates_for_retained_rows() {
+    for regime in [
+        CoverageRegime::Diploid,
+        CoverageRegime::LowCovGl,
+        CoverageRegime::Pseudohaploid,
+    ] {
+        let plans = plan_vcf_stage_plans(&base_inputs(regime))
+            .unwrap_or_else(|err| panic!("stage plans for {regime:?}: {err}"));
+        for plan in plans.iter().filter(|plan| plan.tool_id.to_string() == "bcftools") {
+            assert!(
+                !plan.command.template.is_empty(),
+                "bcftools stage {} must keep a real command template",
+                plan.stage_id
+            );
+            assert!(
+                !plan.command.template.iter().any(|part| part == "--help"),
+                "bcftools stage {} must not fall back to --help placeholder rendering: {:?}",
+                plan.stage_id,
+                plan.command.template
+            );
+        }
     }
 }
 
@@ -475,7 +512,7 @@ fn vcf_planner_resolves_coverage_regime_from_mean_depth() {
 }
 
 #[test]
-fn vcf_planner_keeps_sample_vcf_after_reference_panel_preparation() {
+fn vcf_planner_keeps_bam_call_inputs_after_reference_panel_preparation() {
     let input = base_inputs(CoverageRegime::LowCovGl);
     let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| panic!("stage plans: {err}"));
     let call_gl = plans
@@ -483,7 +520,10 @@ fn vcf_planner_keeps_sample_vcf_after_reference_panel_preparation() {
         .find(|plan| plan.stage_id.to_string() == "vcf.call_gl")
         .expect("call_gl stage plan");
 
-    assert_eq!(call_gl.io.inputs[0].path, PathBuf::from("sample.vcf.gz"));
+    assert_eq!(
+        call_gl.io.inputs[0].path,
+        PathBuf::from("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam")
+    );
 }
 
 #[test]

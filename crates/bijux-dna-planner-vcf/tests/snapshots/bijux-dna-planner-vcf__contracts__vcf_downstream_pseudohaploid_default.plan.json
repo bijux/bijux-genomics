@@ -67,10 +67,22 @@
       "io": {
         "inputs": [
           {
-            "name": "vcf",
+            "name": "input_bam",
             "optional": false,
-            "path": "sample.vcf.gz",
-            "role": "reads"
+            "path": "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
+            "role": "bam"
+          },
+          {
+            "name": "input_bam_index",
+            "optional": false,
+            "path": "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai",
+            "role": "index"
+          },
+          {
+            "name": "reference_fasta",
+            "optional": false,
+            "path": "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+            "role": "reference"
           }
         ],
         "outputs": [
@@ -78,7 +90,7 @@
             "name": "pseudohaploid_vcf",
             "optional": false,
             "path": "out/pseudohaploid_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ]
       },
@@ -142,7 +154,12 @@
         "template": [
           "bcftools",
           "filter",
-          "--damage-aware"
+          "-e",
+          "((REF=\"C\" && ALT=\"T\") || (REF=\"G\" && ALT=\"A\")) && INFO/PMD>3",
+          "out/pseudohaploid_vcf.vcf.gz",
+          "-Oz",
+          "-o",
+          "out/damage_filtered_vcf.vcf.gz"
         ]
       },
       "effective_params": {
@@ -190,7 +207,7 @@
             "name": "vcf",
             "optional": false,
             "path": "out/pseudohaploid_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ],
         "outputs": [
@@ -198,7 +215,7 @@
             "name": "damage_filtered_vcf",
             "optional": false,
             "path": "out/damage_filtered_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ]
       },
@@ -266,7 +283,15 @@
       "command": {
         "template": [
           "bcftools",
-          "--help"
+          "filter",
+          "-s",
+          "LOWQUAL",
+          "-e",
+          "QUAL<30",
+          "out/damage_filtered_vcf.vcf.gz",
+          "-Oz",
+          "-o",
+          "out/filtered_vcf.vcf.gz"
         ]
       },
       "effective_params": {
@@ -292,7 +317,7 @@
             "name": "vcf",
             "optional": false,
             "path": "out/damage_filtered_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ],
         "outputs": [
@@ -300,7 +325,7 @@
             "name": "filtered_vcf",
             "optional": false,
             "path": "out/filtered_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ]
       },
@@ -386,7 +411,7 @@
             "name": "vcf",
             "optional": false,
             "path": "out/filtered_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ],
         "outputs": [
@@ -452,7 +477,12 @@
       "command": {
         "template": [
           "bcftools",
-          "--help"
+          "stats",
+          "-s",
+          "-",
+          "-o",
+          "out/stats_json.json",
+          "out/filtered_vcf.vcf.gz"
         ]
       },
       "effective_params": {
@@ -491,7 +521,7 @@
             "name": "vcf",
             "optional": false,
             "path": "out/filtered_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ],
         "outputs": [
