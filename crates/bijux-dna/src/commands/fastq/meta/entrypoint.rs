@@ -322,6 +322,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfToolServingMap(args) => {
+                        crate::commands::benchmark::readiness::vcf_tool_serving_map::run_render_vcf_tool_serving_map(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderMissingBenchmarkPairs(args) => {
                         crate::commands::benchmark::readiness::missing_benchmark_pairs::run_render_missing_benchmark_pairs(
                             args,

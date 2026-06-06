@@ -72,6 +72,8 @@ pub enum BenchReadinessCommand {
     RenderFastqToolServingMap(BenchReadinessRenderFastqToolServingMapArgs),
     #[command(name = "render-bam-tool-serving-map")]
     RenderBamToolServingMap(BenchReadinessRenderBamToolServingMapArgs),
+    #[command(name = "render-vcf-tool-serving-map")]
+    RenderVcfToolServingMap(BenchReadinessRenderVcfToolServingMapArgs),
     #[command(name = "render-missing-benchmark-pairs")]
     RenderMissingBenchmarkPairs(BenchReadinessRenderMissingBenchmarkPairsArgs),
     #[command(name = "render-stage-registry-extra-pairs")]
@@ -364,6 +366,14 @@ pub struct BenchReadinessRenderFastqToolServingMapArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamToolServingMapArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfToolServingMapArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
