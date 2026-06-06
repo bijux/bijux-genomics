@@ -456,6 +456,13 @@ Visible aliases are part of the operator surface:
   keeps `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `adapter_id`, `parser_id`, and
   `expected_outputs` explicit so every catalog stage stays benchmark-addressable through a real
   local contract row.
+- `bijux-dna bench local render-vcf-smoke-root`
+  `render-vcf-smoke-root` writes `target/local-smoke/vcf/SMOKE_ROOT.json`, deriving the governed
+  local VCF smoke root from the owned VCF stage catalog, benchmark matrix, and current `HEAD`
+  revision. The manifest keeps `run_id`, `repo_revision`, `corpus_id`, `created_at`, `command`,
+  `stage_count`, `tool_pair_count`, and one explicit row per stage-tool pair with deterministic
+  `pair_root`, `artifacts_root`, and `result_manifest_path` values so repeated local smoke runs
+  cannot drift onto random temp paths.
 - `bijux-dna bench local validate-vcf-reference-compatibility`
   `validate-vcf-reference-compatibility` writes
   `target/local-ready/vcf/reference-compatibility.json`, deriving the governed VCF contig
