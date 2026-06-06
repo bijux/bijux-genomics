@@ -6,6 +6,8 @@ mod angsd_fixture_bank;
 mod bcftools_fixture_bank;
 #[path = "parsers/eigensoft_fixture_bank.rs"]
 mod eigensoft_fixture_bank;
+#[path = "parsers/phasing_fixture_bank.rs"]
+mod phasing_fixture_bank;
 #[path = "parsers/plink2_fixture_bank.rs"]
 mod plink2_fixture_bank;
 #[path = "parsers/plink_fixture_bank.rs"]
