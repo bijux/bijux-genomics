@@ -922,6 +922,7 @@ Visible aliases are part of the operator surface:
   `configs/pipelines/local/adna-gl-fastq-bam-vcf.toml` and
   `configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml` and
   `configs/pipelines/local/diploid-small-fastq-bam-vcf.toml` and
+  `configs/pipelines/local/reference-panel-imputation.toml` and
   `configs/pipelines/local/fastq-core-preprocess.toml` and
   `configs/pipelines/local/fastq-to-bam.toml` and
   `configs/pipelines/local/core-germline-fastq-bam-vcf.toml` and
@@ -957,6 +958,11 @@ Visible aliases are part of the operator surface:
   `target/local-ready/pipeline-dag/diploid-small-fastq-bam-vcf.json`, and fails closed unless the
   validator confirms both the filtered-BAM fallback path and recalibrated-BAM run path remain
   explicit while VCF QC stays independent of optional phasing.
+  `plan validate --id reference-panel-imputation --strict` resolves the governed VCF panel-backed
+  imputation pipeline config, writes
+  `target/local-ready/pipeline-dag/reference-panel-imputation.json`, and fails closed unless panel
+  preparation, target QC, optional prephasing, imputation, and downstream imputation metrics keep
+  explicit panel identity plus map and reference contracts.
 - `bijux-dna bench local simulate-dag-watchdog`
   `simulate-dag-watchdog` writes governed DAG scheduling simulations such as
   `target/local-ready/dag-sim/no-global-wait.json` and
