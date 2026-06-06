@@ -282,6 +282,12 @@ fn population_structure_refuses_without_metadata_manifest() {
 #[test]
 fn admixture_stage_emits_q_matrix_and_selection_artifacts() {
     let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+    let input = dir.path().join("admixture_input.vcf");
+    std::fs::write(
+        &input,
+        "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample1\tsample2\n1\t100\t.\tA\tG\t60\tPASS\t.\tGT\t0/1\t1/1\n",
+    )
+    .unwrap_or_else(|err| panic!("write vcf input: {err}"));
     let metadata = dir.path().join("population_labels.json");
     std::fs::write(
             &metadata,
@@ -289,7 +295,7 @@ fn admixture_stage_emits_q_matrix_and_selection_artifacts() {
         )
         .unwrap_or_else(|err| panic!("write metadata: {err}"));
     let out = run_admixture_stage(
-        Path::new("tests/fixtures/vcf/default/input.vcf"),
+        &input,
         dir.path(),
         &AdmixtureStageParams {
             sample_metadata_manifest: Some(metadata),
@@ -300,6 +306,85 @@ fn admixture_stage_emits_q_matrix_and_selection_artifacts() {
     assert!(out.q_matrix_tsv.exists());
     assert!(out.k_selection_json.exists());
     assert!(out.logs_txt.exists());
+    let q_matrix_raw = std::fs::read_to_string(&out.q_matrix_tsv)
+        .unwrap_or_else(|err| panic!("read q matrix: {err}"));
+    assert_eq!(q_matrix_raw.lines().next(), Some("sample\tcluster_1\tcluster_2"));
+    let manifest_raw = std::fs::read_to_string(&out.k_selection_json)
+        .unwrap_or_else(|err| panic!("read admixture manifest: {err}"));
+    let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
+        .unwrap_or_else(|err| panic!("parse admixture manifest: {err}"));
+    assert_eq!(
+        manifest.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.vcf.admixture.v1")
+    );
+    assert_eq!(manifest.get("status").and_then(serde_json::Value::as_str), Some("complete"));
+    assert_eq!(manifest.get("insufficient_data_reason").and_then(serde_json::Value::as_str), None);
+    assert_eq!(manifest.get("sample_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(manifest.get("population_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(manifest.get("cluster_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        manifest
+            .get("sample_ids")
+            .and_then(serde_json::Value::as_array)
+            .map(|rows| rows.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()),
+        Some(vec!["sample1", "sample2"])
+    );
+    assert_eq!(
+        manifest
+            .get("cluster_headers")
+            .and_then(serde_json::Value::as_array)
+            .map(|rows| rows.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()),
+        Some(vec!["cluster_1", "cluster_2"])
+    );
+    assert_eq!(
+        manifest
+            .get("cluster_population_labels")
+            .and_then(serde_json::Value::as_array)
+            .map(|rows| rows.len()),
+        Some(2)
+    );
+}
+
+#[test]
+fn admixture_stage_reports_structured_insufficient_data_when_k_exceeds_population_labels() {
+    let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+    let metadata = dir.path().join("population_labels.json");
+    std::fs::write(
+        &metadata,
+        r#"{"samples":[{"sample":"sample1","population":"POP_A"},{"sample":"sample2","population":"POP_A"}]}"#,
+    )
+    .unwrap_or_else(|err| panic!("write metadata: {err}"));
+    let out = run_admixture_stage(
+        Path::new("tests/fixtures/vcf/default/input.vcf"),
+        dir.path(),
+        &AdmixtureStageParams {
+            sample_metadata_manifest: Some(metadata),
+            k_values: vec![2],
+            ..AdmixtureStageParams::default()
+        },
+    )
+    .unwrap_or_else(|err| panic!("run admixture stage: {err}"));
+    let manifest_raw = std::fs::read_to_string(&out.k_selection_json)
+        .unwrap_or_else(|err| panic!("read admixture manifest: {err}"));
+    let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
+        .unwrap_or_else(|err| panic!("parse admixture manifest: {err}"));
+    assert_eq!(
+        manifest.get("status").and_then(serde_json::Value::as_str),
+        Some("insufficient_data")
+    );
+    assert_eq!(
+        manifest.get("insufficient_data_reason").and_then(serde_json::Value::as_str),
+        Some("population_label_count_below_selected_k")
+    );
+    assert_eq!(manifest.get("population_count").and_then(serde_json::Value::as_u64), Some(1));
+    let q_matrix_raw = std::fs::read_to_string(&out.q_matrix_tsv)
+        .unwrap_or_else(|err| panic!("read q matrix: {err}"));
+    let rows = q_matrix_raw.lines().collect::<Vec<_>>();
+    assert_eq!(rows.first().copied(), Some("sample\tcluster_1\tcluster_2"));
+    assert!(
+        rows.iter().skip(1).all(|line| line.ends_with("\t1.000000\t0.000000")),
+        "expected deterministic zero-fill for unavailable clusters, got {rows:?}"
+    );
 }
 
 #[test]
