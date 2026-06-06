@@ -60,6 +60,7 @@ pub(crate) mod vcf_normalized_metrics_schema;
 pub(crate) mod vcf_orphan_tools;
 pub(crate) mod vcf_parser_coverage;
 pub(crate) mod vcf_parser_failure_tests;
+pub(crate) mod vcf_parsers_report_ready;
 pub(crate) mod vcf_phasing_family_adapter;
 pub(crate) mod vcf_plink_family_adapter;
 pub(crate) mod vcf_readiness_inputs;
