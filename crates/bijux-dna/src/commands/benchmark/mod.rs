@@ -40,6 +40,7 @@ pub(crate) mod local_vcf_smoke_root;
 pub(crate) mod local_vcf_stage_catalog;
 pub(crate) mod local_vcf_stage_catalog_ready;
 pub(crate) mod local_vcf_stage_matrix;
+pub(crate) mod local_vcf_stats_smoke;
 pub(crate) mod publication;
 pub(crate) mod readiness;
 pub(crate) mod repo_checks;
