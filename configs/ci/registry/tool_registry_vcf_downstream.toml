@@ -43,6 +43,43 @@ dockerfile = "containers/docker/arm64/Dockerfile.beagle"
 require_labels = true
 
 [[tools]]
+id = "beagle-imputation"
+tool_id = "beagle"
+domain = "vcf"
+domains = ["vcf"]
+status = "experimental"
+stage_ids = ["vcf.impute", "vcf.imputation"]
+bindings = ["vcf.impute", "vcf.imputation"]
+tool_role = "imputation"
+version = "5.4"
+default_version = "5.4"
+upstream = "https://faculty.washington.edu/browning/beagle/beagle.html"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "planned"
+pinned_commit = "planned"
+pin_strategy = "planned"
+container_ref = "registry_lock"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "beagle --version"
+help_cmd = "beagle --help"
+smoke_version_cmd = "beagle --version"
+smoke_help_cmd = "beagle --help"
+smoke_minimal_cmd = "beagle --help"
+smoke_minimal_exit_code = 0
+smoke_minimal_rationale = "no deterministic imputation fixture is promoted into the downstream registry smoke surface yet; keep help/version smoke until that packaging contract is governed."
+expected_version_regex = "beagle [0-9]+([.][0-9]+)?"
+healthcheck_cmd = "beagle --help"
+expected_bin = "beagle"
+expected_artifacts = ["imputed_vcf"]
+metrics_schema = "bijux.vcf.imputation.v1"
+comparability_notes = "planned"
+apptainer_def = "containers/apptainer/shared/beagle.def"
+dockerfile = "containers/docker/arm64/Dockerfile.beagle"
+require_labels = true
+
+[[tools]]
 id = "angsd"
 tool_id = "angsd"
 domain = "vcf"
