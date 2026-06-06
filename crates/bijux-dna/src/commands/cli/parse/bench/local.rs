@@ -110,6 +110,8 @@ pub enum BenchLocalCommand {
     ValidateStageResult(BenchLocalValidateStageResultArgs),
     #[command(name = "materialize-stage")]
     MaterializeStage(BenchLocalMaterializeStageArgs),
+    #[command(name = "fake-run-essential-pipelines")]
+    FakeRunEssentialPipelines(BenchLocalFakeRunEssentialPipelinesArgs),
     #[command(name = "fake-run-failures")]
     FakeRunFailures(BenchLocalFakeRunFailuresArgs),
     #[command(name = "fake-run-stages")]
@@ -530,6 +532,14 @@ pub struct BenchLocalMaterializeStageArgs {
 pub struct BenchLocalValidateStageResultArgs {
     #[arg(long)]
     pub manifest: std::path::PathBuf,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalFakeRunEssentialPipelinesArgs {
+    #[arg(long)]
+    pub output_root: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }
