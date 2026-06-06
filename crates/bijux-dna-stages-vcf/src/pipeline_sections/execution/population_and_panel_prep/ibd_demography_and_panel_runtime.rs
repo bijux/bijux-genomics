@@ -41,21 +41,74 @@ pub fn run_demography_stage(
             cols[5].parse::<f64>().ok().is_some_and(|cm| cm > 0.0)
         })
         .count();
-    if valid_segments < params.min_segments {
-        bail!("vcf.demography refusal: not enough IBD segments for ibdne");
-    }
+    let enough_segments = valid_segments >= params.min_segments;
     let readiness_json = write_downstream_readiness_artifact(
         out_dir,
         "vcf.demography",
         0,
         0.0,
         0.0,
-        &[("min_segments", true)],
+        &[("min_segments", enough_segments)],
     )?;
     let ne_trajectory_tsv = out_dir.join("ne_trajectory.tsv");
     let demography_json = out_dir.join("demography.json");
     let demography_metrics_json = out_dir.join("demography_metrics.json");
     let logs_txt = out_dir.join("logs.txt");
+    let insufficient_data_reason =
+        if enough_segments { None } else { Some("not_enough_ibd_segments") };
+    if !enough_segments {
+        atomic_write_bytes(&ne_trajectory_tsv, b"generation\tne\tci_low\tci_high\n")?;
+        atomic_write_json(
+            &demography_json,
+            &serde_json::json!({
+                "schema_version": "bijux.vcf.demography.contract.v1",
+                "method": "ibdne",
+                "input_ibd_segments": input_ibd_segments,
+                "inference_status": "insufficient_data",
+                "status": "insufficient_data",
+                "insufficient_data_reason": insufficient_data_reason,
+                "segments_validated": valid_segments,
+                "time_bins": [],
+                "ne_estimates": [],
+                "ne_trajectory_tsv": ne_trajectory_tsv,
+                "readiness_contract": readiness_json,
+            }),
+        )?;
+        atomic_write_json(
+            &demography_metrics_json,
+            &serde_json::json!({
+                "schema_version": "bijux.vcf.demography.v1",
+                "method": "ibdne",
+                "input_ibd_segments": input_ibd_segments,
+                "inference_status": "insufficient_data",
+                "status": "insufficient_data",
+                "insufficient_data_reason": insufficient_data_reason,
+                "segments_validated": valid_segments,
+                "time_bins": [],
+                "ne_estimates": [],
+                "ne_recent": serde_json::Value::Null,
+                "ne_time_series": [],
+                "ne_confidence_interval": "generated_per_generation",
+                "tool_attempts": {
+                    "ibdne": false
+                }
+            }),
+        )?;
+        atomic_write_bytes(
+            &logs_txt,
+            format!(
+                "runner=ibdne_like\nsegments_validated={valid_segments}\nibdne_attempted=false\nstatus=insufficient_data\ninsufficient_data_reason={}\n",
+                insufficient_data_reason.unwrap_or("not_reported")
+            )
+            .as_bytes(),
+        )?;
+        return Ok(DemographyStageOutputs {
+            ne_trajectory_tsv,
+            demography_json,
+            demography_metrics_json,
+            logs_txt,
+        });
+    }
     let ibdne_ok = try_run_tool(
         "ibdne",
         &[
@@ -89,6 +142,11 @@ pub fn run_demography_stage(
     } else {
         inference_status = "tool_executed";
     }
+    let time_bins = series
+        .iter()
+        .filter_map(|point| point.get("generation").and_then(|value| value.as_u64()))
+        .collect::<Vec<_>>();
+    let ne_estimates = series.clone();
     for point in &series {
         let g = point.get("generation").and_then(|v| v.as_u64()).unwrap_or(0);
         let ne = point.get("ne").and_then(|v| v.as_f64()).unwrap_or(0.0);
@@ -101,8 +159,14 @@ pub fn run_demography_stage(
         &demography_json,
         &serde_json::json!({
             "schema_version": "bijux.vcf.demography.contract.v1",
+            "method": "ibdne",
+            "input_ibd_segments": input_ibd_segments,
             "inference_status": inference_status,
+            "status": "complete",
+            "insufficient_data_reason": insufficient_data_reason,
             "segments_validated": valid_segments,
+            "time_bins": time_bins,
+            "ne_estimates": ne_estimates,
             "ne_trajectory_tsv": ne_trajectory_tsv,
             "readiness_contract": readiness_json,
         }),
@@ -111,8 +175,14 @@ pub fn run_demography_stage(
         &demography_metrics_json,
         &serde_json::json!({
             "schema_version": "bijux.vcf.demography.v1",
+            "method": "ibdne",
+            "input_ibd_segments": input_ibd_segments,
             "inference_status": inference_status,
+            "status": "complete",
+            "insufficient_data_reason": insufficient_data_reason,
             "segments_validated": valid_segments,
+            "time_bins": time_bins,
+            "ne_estimates": ne_estimates,
             "ne_recent": series.first().and_then(|v| v.get("ne")).unwrap_or(&serde_json::Value::Null),
             "ne_time_series": series,
             "ne_confidence_interval": "generated_per_generation",
@@ -123,7 +193,10 @@ pub fn run_demography_stage(
     )?;
     atomic_write_bytes(
         &logs_txt,
-        format!("runner=ibdne_like\nsegments_validated={valid_segments}\nibdne_attempted={ibdne_ok}\n").as_bytes(),
+        format!(
+            "runner=ibdne_like\nsegments_validated={valid_segments}\nibdne_attempted={ibdne_ok}\n"
+        )
+        .as_bytes(),
     )?;
     Ok(DemographyStageOutputs {
         ne_trajectory_tsv,
@@ -147,16 +220,8 @@ pub fn run_prepare_reference_panel_stage(
     {
         bail!("species/build mismatch between stage params and SpeciesContext");
     }
-    let panel = resolve_panel(
-        &params.species_id,
-        &params.build_id,
-        params.panel_id.as_deref(),
-    )?;
-    let map = resolve_map(
-        &params.species_id,
-        &params.build_id,
-        params.map_id.as_deref(),
-    )?;
+    let panel = resolve_panel(&params.species_id, &params.build_id, params.panel_id.as_deref())?;
+    let map = resolve_map(&params.species_id, &params.build_id, params.map_id.as_deref())?;
     if panel.species_id != species_context.species_id || panel.build_id != species_context.build_id
     {
         bail!("panel species/build does not match SpeciesContext");
@@ -174,7 +239,10 @@ pub fn run_prepare_reference_panel_stage(
         })?;
     }
     if !panel.compatibility.tool_tags.iter().any(|t| t == "beagle") {
-        bail!("prepare_reference_panel refusal: panel {} does not advertise beagle support", panel.id);
+        bail!(
+            "prepare_reference_panel refusal: panel {} does not advertise beagle support",
+            panel.id
+        );
     }
     if !panel.compatibility.supports_gl_input {
         bail!("prepare_reference_panel refusal: beagle compatibility requires GL input support");
@@ -199,9 +267,8 @@ pub fn run_prepare_reference_panel_stage(
             "panel materialization refusal: panel must be acquired via cargo run -q -p bijux-dna-dev -- tooling run acquire-panels and live under .../raw/"
         );
     }
-    let source_panel_root = panel_parent
-        .parent()
-        .ok_or_else(|| anyhow!("panel raw path missing panel root"))?;
+    let source_panel_root =
+        panel_parent.parent().ok_or_else(|| anyhow!("panel raw path missing panel root"))?;
     if !source_panel_root.join("normalized").exists() || !source_panel_root.join("derived").exists()
     {
         bail!(
@@ -242,9 +309,8 @@ pub fn run_prepare_reference_panel_stage(
         }
     }
     let has_gt = format_keys.contains("GT");
-    let has_gl_like = format_keys.contains("GL")
-        || format_keys.contains("GP")
-        || format_keys.contains("PL");
+    let has_gl_like =
+        format_keys.contains("GL") || format_keys.contains("GP") || format_keys.contains("PL");
     let backend_contracts = [
         ("minimac4", has_gt, "requires GT format"),
         ("impute5", has_gt, "requires GT format"),
@@ -260,8 +326,7 @@ pub fn run_prepare_reference_panel_stage(
     }
     let chunk_plan = plan_regions_deterministic(species_context, &ChunkingPlanParams::default())?;
     let mut input_keys = std::collections::BTreeSet::<String>::new();
-    let mut input_locus =
-        std::collections::BTreeMap::<(String, u64), (String, String)>::new();
+    let mut input_locus = std::collections::BTreeMap::<(String, u64), (String, String)>::new();
     let mut panel_by_chr = std::collections::BTreeMap::<String, u64>::new();
     let mut overlap_by_chr = std::collections::BTreeMap::<String, u64>::new();
     let mut mismatch_by_chr = std::collections::BTreeMap::<String, u64>::new();
@@ -298,10 +363,7 @@ pub fn run_prepare_reference_panel_stage(
         if let Some(fields) = parse_record_fields(line) {
             if let Some((chr, key)) = variant_key(&fields) {
                 *panel_by_chr.entry(chr.clone()).or_insert(0) += 1;
-                let pos = fields
-                    .get(1)
-                    .and_then(|p| p.parse::<u64>().ok())
-                    .unwrap_or(0);
+                let pos = fields.get(1).and_then(|p| p.parse::<u64>().ok()).unwrap_or(0);
                 let region_key = region_for_pos(&chr, pos);
                 *panel_by_region.entry(region_key.clone()).or_insert(0) += 1;
                 if input_keys.contains(&key) {
@@ -321,16 +383,10 @@ pub fn run_prepare_reference_panel_stage(
     let panel_total: u64 = panel_by_chr.values().sum();
     let overlap_total: u64 = overlap_by_chr.values().sum();
     let mismatch_total: u64 = mismatch_by_chr.values().sum();
-    let overlap_fraction = if panel_total == 0 {
-        0.0
-    } else {
-        overlap_total as f64 / panel_total as f64
-    };
-    let mismatch_fraction = if panel_total == 0 {
-        0.0
-    } else {
-        mismatch_total as f64 / panel_total as f64
-    };
+    let overlap_fraction =
+        if panel_total == 0 { 0.0 } else { overlap_total as f64 / panel_total as f64 };
+    let mismatch_fraction =
+        if panel_total == 0 { 0.0 } else { mismatch_total as f64 / panel_total as f64 };
     let overlap_min = std::env::var("BIJUX_VCF_PANEL_OVERLAP_MIN")
         .ok()
         .and_then(|v| v.parse::<f64>().ok())
@@ -355,25 +411,12 @@ pub fn run_prepare_reference_panel_stage(
         "{}|{}|{}|{}|{}",
         panel.id,
         panel.version,
-        panel_lock
-            .files
-            .iter()
-            .map(|f| f.checksum_sha256.as_str())
-            .collect::<Vec<_>>()
-            .join(","),
+        panel_lock.files.iter().map(|f| f.checksum_sha256.as_str()).collect::<Vec<_>>().join(","),
         map.id,
-        map_lock
-            .files
-            .iter()
-            .map(|f| f.checksum_sha256.as_str())
-            .collect::<Vec<_>>()
-            .join(","),
+        map_lock.files.iter().map(|f| f.checksum_sha256.as_str()).collect::<Vec<_>>().join(","),
     );
     let lock_hash = checksum_hex(lock_seed.as_bytes());
-    let panel_root = out_dir
-        .join("panels")
-        .join(panel.id.clone())
-        .join(&lock_hash);
+    let panel_root = out_dir.join("panels").join(panel.id.clone()).join(&lock_hash);
     let local_raw = panel_root.join("raw");
     let local_normalized = panel_root.join("normalized");
     let local_derived = panel_root.join("derived");
@@ -381,12 +424,8 @@ pub fn run_prepare_reference_panel_stage(
     bijux_dna_infra::ensure_dir(&local_normalized)?;
     bijux_dna_infra::ensure_dir(&local_derived)?;
 
-    let local_raw_panel_vcf = local_raw.join(
-        panel_vcf
-            .file_name()
-            .and_then(|x| x.to_str())
-            .unwrap_or("panel.vcf.gz"),
-    );
+    let local_raw_panel_vcf =
+        local_raw.join(panel_vcf.file_name().and_then(|x| x.to_str()).unwrap_or("panel.vcf.gz"));
     atomic_write_bytes(&local_raw_panel_vcf, &std::fs::read(panel_vcf)?)?;
 
     let prepared_panel_vcf = local_normalized.join("prepared_panel.vcf.gz");
@@ -431,17 +470,9 @@ pub fn run_prepare_reference_panel_stage(
     record_lines.sort_by(|a, b| {
         let ka = parse_variant_key(a).unwrap_or_default();
         let kb = parse_variant_key(b).unwrap_or_default();
-        let ra = contig_rank
-            .get(&canonical_contig_label(&ka.0))
-            .copied()
-            .unwrap_or(usize::MAX);
-        let rb = contig_rank
-            .get(&canonical_contig_label(&kb.0))
-            .copied()
-            .unwrap_or(usize::MAX);
-        ra.cmp(&rb)
-            .then(ka.1.cmp(&kb.1))
-            .then(ka.2.cmp(&kb.2))
+        let ra = contig_rank.get(&canonical_contig_label(&ka.0)).copied().unwrap_or(usize::MAX);
+        let rb = contig_rank.get(&canonical_contig_label(&kb.0)).copied().unwrap_or(usize::MAX);
+        ra.cmp(&rb).then(ka.1.cmp(&kb.1)).then(ka.2.cmp(&kb.2))
     });
     let input_variant_count = u64::try_from(record_lines.len()).unwrap_or(u64::MAX);
     let mut seen_variant_keys = std::collections::BTreeSet::<String>::new();
@@ -456,11 +487,8 @@ pub fn run_prepare_reference_panel_stage(
     }
     let output_variant_count = u64::try_from(deduplicated_records.len()).unwrap_or(u64::MAX);
     let duplicate_sites_removed = input_variant_count.saturating_sub(output_variant_count);
-    let normalization_status = if duplicate_sites_removed > 0 {
-        "sorted_indexed_deduplicated"
-    } else {
-        "sorted_indexed"
-    };
+    let normalization_status =
+        if duplicate_sites_removed > 0 { "sorted_indexed_deduplicated" } else { "sorted_indexed" };
     let sample_ids = header_lines
         .iter()
         .find(|line| line.starts_with("#CHROM\t"))
@@ -480,18 +508,13 @@ pub fn run_prepare_reference_panel_stage(
     let mut site_rows = String::from("contig\tpos\tref\talt\n");
     for rec in &deduplicated_records {
         if let Some(fields) = parse_record_fields(rec) {
-            site_rows.push_str(&format!(
-                "{}\t{}\t{}\t{}\n",
-                fields[0], fields[1], fields[3], fields[4]
-            ));
+            site_rows
+                .push_str(&format!("{}\t{}\t{}\t{}\n", fields[0], fields[1], fields[3], fields[4]));
         }
     }
     atomic_write_bytes(&site_list, site_rows.as_bytes())?;
     let chunk_regions = local_derived.join("chunk_regions.tsv");
-    atomic_write_bytes(
-        &chunk_regions,
-        b"chunk_id\tregion\nchunk_000\t1:1-1000000\n",
-    )?;
+    atomic_write_bytes(&chunk_regions, b"chunk_id\tregion\nchunk_000\t1:1-1000000\n")?;
     if panel.compatibility.supports_minimac_m3vcf {
         let minimac_ready = local_derived.join("minimac.m3vcf.ready");
         atomic_write_bytes(&minimac_ready, b"true\n")?;
@@ -553,11 +576,7 @@ pub fn run_prepare_reference_panel_stage(
         .map(|(chr, total)| {
             let overlap = *overlap_by_chr.get(chr).unwrap_or(&0);
             let mismatch = *mismatch_by_chr.get(chr).unwrap_or(&0);
-            let frac = if *total == 0 {
-                0.0
-            } else {
-                overlap as f64 / *total as f64
-            };
+            let frac = if *total == 0 { 0.0 } else { overlap as f64 / *total as f64 };
             serde_json::json!({
                 "chr": chr,
                 "panel_sites": total,
@@ -572,11 +591,7 @@ pub fn run_prepare_reference_panel_stage(
         .map(|(region, total)| {
             let overlap = *overlap_by_region.get(region).unwrap_or(&0);
             let mismatch = *mismatch_by_region.get(region).unwrap_or(&0);
-            let frac = if *total == 0 {
-                0.0
-            } else {
-                overlap as f64 / *total as f64
-            };
+            let frac = if *total == 0 { 0.0 } else { overlap as f64 / *total as f64 };
             serde_json::json!({
                 "region": region,
                 "panel_sites": total,
@@ -613,11 +628,7 @@ pub fn run_prepare_reference_panel_stage(
     for (chr, total) in &panel_by_chr {
         let overlap = *overlap_by_chr.get(chr).unwrap_or(&0);
         let mismatch = *mismatch_by_chr.get(chr).unwrap_or(&0);
-        let frac = if *total == 0 {
-            0.0
-        } else {
-            overlap as f64 / *total as f64
-        };
+        let frac = if *total == 0 { 0.0 } else { overlap as f64 / *total as f64 };
         tsv.push_str(&format!("{chr}\t{total}\t{overlap}\t{mismatch}\t{frac:.6}\n"));
     }
     atomic_write_bytes(&overlap_tsv, tsv.as_bytes())?;
@@ -627,11 +638,8 @@ pub fn run_prepare_reference_panel_stage(
         .map(|c| {
             let panel_sites = *panel_by_chr.get(&c.contig).unwrap_or(&0);
             let overlap_sites = *overlap_by_chr.get(&c.contig).unwrap_or(&0);
-            let overlap_fraction = if panel_sites == 0 {
-                0.0
-            } else {
-                overlap_sites as f64 / panel_sites as f64
-            };
+            let overlap_fraction =
+                if panel_sites == 0 { 0.0 } else { overlap_sites as f64 / panel_sites as f64 };
             serde_json::json!({
                 "chunk_id": c.chunk_id,
                 "region": c.region_string(),
