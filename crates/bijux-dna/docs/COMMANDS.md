@@ -244,6 +244,13 @@ Visible aliases are part of the operator surface:
   `bash -n` parseable form, and the JSONL preserves one governed row per benchmark-ready VCF pair
   with structured `command_steps` argv so VCF command rendering stays executable without shell
   placeholders or synthetic `echo execute` stubs.
+- `bijux-dna bench readiness render-vcf-adapters-ready`
+  `render-vcf-adapters-ready` writes `target/bench-readiness/VCF_ADAPTERS_READY.json` and
+  fail-closes across the governed VCF readiness slice for Goals 231 through 244. The gate reruns
+  each owned VCF readiness surface, keeps one explicit row per goal with `goal_id`, `surface`,
+  `output_path`, `ok`, and `detail`, and also verifies that the canonical benchmark-ready VCF pair
+  set matches across the tool-serving map, executable adapter rows, complete output declarations,
+  and rendered shell or argv commands.
 - `bijux-dna bench readiness render-stage-tool-containers`
   `render-stage-tool-containers` writes `configs/bench/local/stage-tool-containers.toml` with one
   governed row per benchmark-ready FASTQ or BAM stage-tool command, preserving the primary
