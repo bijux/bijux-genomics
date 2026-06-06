@@ -921,6 +921,7 @@ Visible aliases are part of the operator surface:
   `validate-pipeline-dag` checks governed local pipeline DAG configs such as
   `configs/pipelines/local/adna-gl-fastq-bam-vcf.toml` and
   `configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml` and
+  `configs/pipelines/local/bam-genotyping-to-vcf-downstream.toml` and
   `configs/pipelines/local/diploid-small-fastq-bam-vcf.toml` and
   `configs/pipelines/local/popgen-structure-vcf.toml` and
   `configs/pipelines/local/relatedness-segments-vcf.toml` and
@@ -973,6 +974,10 @@ Visible aliases are part of the operator surface:
   segment pipeline config, writes `target/local-ready/pipeline-dag/relatedness-segments-vcf.json`,
   and fails closed unless IBD insufficiency remains local to demography instead of blocking ROH or
   QC outputs.
+  `plan validate --id bam-genotyping-to-vcf-downstream --strict` resolves the governed BAM-to-VCF
+  bridge pipeline config, writes `target/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json`,
+  and fails closed unless `vcf.filter` consumes the exact `bam.genotyping` VCF handoff instead of
+  a conceptual external cohort-VCF placeholder.
 - `bijux-dna bench local simulate-dag-watchdog`
   `simulate-dag-watchdog` writes governed DAG scheduling simulations such as
   `target/local-ready/dag-sim/no-global-wait.json` and
