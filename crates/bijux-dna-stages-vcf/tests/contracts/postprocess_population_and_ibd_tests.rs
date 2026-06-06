@@ -248,6 +248,12 @@ fn pca_stage_refuses_without_ld_pruning_policy() {
 #[test]
 fn population_structure_stage_emits_structured_outputs() {
     let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+    let input = dir.path().join("population_structure_input.vcf");
+    std::fs::write(
+        &input,
+        "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample1\tsample2\n1\t100\t.\tA\tG\t60\tPASS\t.\tGT\t0/1\t1/1\n1\t200\t.\tC\tT\t60\tPASS\t.\tGT\t0/0\t0/1\n",
+    )
+    .unwrap_or_else(|err| panic!("write vcf input: {err}"));
     let metadata = dir.path().join("population_labels.json");
     std::fs::write(
             &metadata,
@@ -255,9 +261,10 @@ fn population_structure_stage_emits_structured_outputs() {
         )
         .unwrap_or_else(|err| panic!("write metadata: {err}"));
     let out = run_population_structure_stage(
-        Path::new("tests/fixtures/vcf/default/input.vcf"),
+        &input,
         dir.path(),
         &PopulationStructureStageParams {
+            run_admixture: true,
             sample_metadata_manifest: Some(metadata),
             ..PopulationStructureStageParams::default()
         },
@@ -265,6 +272,47 @@ fn population_structure_stage_emits_structured_outputs() {
     .unwrap_or_else(|err| panic!("run population_structure stage: {err}"));
     assert!(out.pruned_variants_tsv.exists());
     assert!(out.population_structure_json.exists());
+    let report_raw = std::fs::read_to_string(&out.population_structure_json)
+        .unwrap_or_else(|err| panic!("read population structure json: {err}"));
+    let report: serde_json::Value = serde_json::from_str(&report_raw)
+        .unwrap_or_else(|err| panic!("parse population structure json: {err}"));
+    assert_eq!(
+        report.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.vcf.population_structure.v1")
+    );
+    assert_eq!(report.get("status").and_then(serde_json::Value::as_str), Some("complete"));
+    assert_eq!(report.get("variants_passing").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        report
+            .get("sample_ids")
+            .and_then(serde_json::Value::as_array)
+            .map(|rows| rows.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()),
+        Some(vec!["sample1", "sample2"])
+    );
+    assert_eq!(
+        report
+            .pointer("/sample_labels/rows")
+            .and_then(serde_json::Value::as_array)
+            .map(|rows| rows.len()),
+        Some(2)
+    );
+    assert_eq!(report.pointer("/pca/sample_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert!(
+        report.pointer("/pca/execution_mode").and_then(serde_json::Value::as_str).is_some(),
+        "expected nested PCA execution evidence"
+    );
+    assert_eq!(
+        report.pointer("/admixture/sample_count").and_then(serde_json::Value::as_u64),
+        Some(2)
+    );
+    assert_eq!(
+        report.pointer("/admixture/selected_k").and_then(serde_json::Value::as_u64),
+        Some(2)
+    );
+    assert_eq!(
+        report.pointer("/admixture/status").and_then(serde_json::Value::as_str),
+        Some("complete")
+    );
 }
 
 #[test]
