@@ -395,6 +395,12 @@ Visible aliases are part of the operator surface:
   `benchmark_status` from the owned VCF stage catalog and matrix. The report fails closed unless
   every matrix row appears exactly once and the supported-vs-planned split remains aligned with
   the canonical VCF stage contracts.
+- `bijux-dna bench readiness render-vcf-bcftools-adapter`
+  `render-vcf-bcftools-adapter` writes `target/bench-readiness/adapters/bcftools.vcf.json` with
+  one governed row per retained VCF `bcftools` matrix binding. Each row keeps the concrete
+  command-step argv, declared input artifacts, raw output artifacts, parser output artifacts, and
+  a real missing-input probe result, so calling, filtering, GL propagation, postprocess, stats,
+  and panel-preparation rows cannot fall back to placeholder execution or silent input drift.
 - `bijux-dna bench readiness render-orphan-tools`
   `render-orphan-tools` writes `target/bench-readiness/orphan-tools.tsv` with one governed row per
   FASTQ or BAM tool contract that exists in scope but serves no currently rendered benchmark stage.
