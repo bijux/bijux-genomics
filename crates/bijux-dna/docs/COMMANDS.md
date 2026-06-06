@@ -48,6 +48,13 @@ Commands listed here are owned by this crate even when their durable behavior is
 - `bijux-dna corpus diff`
 
 ### Fixtures
+- `bijux-dna fixtures build`
+  `fixtures build --corpus vcf-mini --out target/local-ready/vcf-mini-regeneration` regenerates
+  the owned `vcf-mini` corpus from the repo-side reference, metadata, interval, and variant
+  contract, writes the expected-truth bundle and `CHECKSUMS.sha256`, then emits
+  `target/local-ready/vcf-mini-regeneration/manifest.json`. It fails closed if the regenerated
+  fixture or truth bundle does not validate or if the regenerated sample, population, interval,
+  variant, or cohort-pair counts drift from the governed fixture.
 - `bijux-dna fixtures validate`
   `fixtures validate --corpus vcf-mini` validates the governed
   `tests/fixtures/corpora/vcf-mini/manifest.toml` contract against the owned reference FASTA and
