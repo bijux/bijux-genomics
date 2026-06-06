@@ -93,6 +93,59 @@ fn stage_catalog_default_tools_are_present_in_runtime_surface() {
 }
 
 #[test]
+fn stage_catalog_rows_keep_benchmark_adapter_and_parser_contract_ids() {
+    for spec in bijux_dna_stages_vcf::stage_specs::vcf_stage_catalog() {
+        let stage = bijux_dna_domain_vcf::VcfDomainStage::all()
+            .iter()
+            .copied()
+            .find(|stage| stage.as_str() == spec.stage_id)
+            .unwrap_or_else(|| panic!("catalog stage {} missing from domain enum", spec.stage_id));
+        assert!(
+            bijux_dna_stages_vcf::stage_specs::vcf_domain_stage_adapter_id(stage)
+                .is_some_and(|adapter_id| !adapter_id.trim().is_empty()),
+            "stage {} must declare a benchmark adapter contract id",
+            spec.stage_id
+        );
+        assert!(
+            bijux_dna_stages_vcf::stage_specs::vcf_domain_stage_parser_id(stage)
+                .is_some_and(|parser_id| !parser_id.trim().is_empty()),
+            "stage {} must declare a benchmark parser contract id",
+            spec.stage_id
+        );
+    }
+}
+
+#[test]
+fn stage_catalog_rows_keep_expected_output_contract_ids() {
+    for spec in bijux_dna_stages_vcf::stage_specs::vcf_stage_catalog() {
+        let stage = bijux_dna_domain_vcf::VcfDomainStage::all()
+            .iter()
+            .copied()
+            .find(|stage| stage.as_str() == spec.stage_id)
+            .unwrap_or_else(|| panic!("catalog stage {} missing from domain enum", spec.stage_id));
+        assert!(
+            bijux_dna_stages_vcf::stage_specs::vcf_domain_stage_expected_output_ids(stage)
+                .is_some_and(|output_ids| !output_ids.is_empty()),
+            "stage {} must declare benchmark output ids",
+            spec.stage_id
+        );
+    }
+
+    let prepare_reference_panel_outputs =
+        bijux_dna_stages_vcf::stage_specs::vcf_domain_stage_expected_output_ids(
+            bijux_dna_domain_vcf::VcfDomainStage::PrepareReferencePanel,
+        )
+        .unwrap_or_else(|| panic!("prepare reference panel outputs"));
+    assert_eq!(prepare_reference_panel_outputs, ["prepared_panel", "chunks_json"]);
+
+    let stats_outputs = bijux_dna_stages_vcf::stage_specs::vcf_domain_stage_expected_output_ids(
+        bijux_dna_domain_vcf::VcfDomainStage::Stats,
+    )
+    .unwrap_or_else(|| panic!("stats outputs"));
+    assert_eq!(stats_outputs, ["stats_json"]);
+}
+
+#[test]
 fn supported_stage_defaults_match_domain_index_defaults() {
     let defaults = parse_domain_index_active_defaults();
     for spec in bijux_dna_stages_vcf::stage_specs::vcf_stage_catalog() {
@@ -139,10 +192,8 @@ fn parse_domain_index_active_defaults() -> std::collections::BTreeMap<String, St
             continue;
         }
         if let Some((stage_id, tool_id)) = line.trim().split_once(':') {
-            defaults.insert(
-                stage_id.trim().to_string(),
-                tool_id.trim().trim_matches('"').to_string(),
-            );
+            defaults
+                .insert(stage_id.trim().to_string(), tool_id.trim().trim_matches('"').to_string());
         }
     }
     defaults
@@ -171,8 +222,5 @@ fn catalog_stage_ids() -> std::collections::BTreeSet<String> {
 }
 
 fn domain_stage_ids() -> std::collections::BTreeSet<String> {
-    bijux_dna_domain_vcf::VCF_STAGE_ID_CATALOG
-        .iter()
-        .map(|stage| (*stage).to_string())
-        .collect()
+    bijux_dna_domain_vcf::VCF_STAGE_ID_CATALOG.iter().map(|stage| (*stage).to_string()).collect()
 }
