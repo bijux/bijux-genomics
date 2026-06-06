@@ -363,6 +363,9 @@ fn build_validation_profiles(
     if stage_ids.contains("vcf.prepare_reference_panel") && stage_ids.contains("vcf.impute") {
         profiles.push(validate_reference_panel_imputation_profile(repo_root, config)?);
     }
+    if stage_ids.contains("vcf.population_structure") && stage_ids.contains("vcf.admixture") {
+        profiles.push(validate_population_structure_vcf_profile(repo_root, config)?);
+    }
 
     Ok(profiles)
 }
@@ -1305,6 +1308,245 @@ fn validate_reference_panel_imputation_profile(
             .to_string(),
         "vcf.imputation stays downstream of imputation execution with panel-provenance and imputation-qc evidence"
             .to_string(),
+    ];
+
+    Ok(LocalPipelineDagValidationProfileReport {
+        profile_id: PROFILE_ID.to_string(),
+        check_count: checks.len(),
+        checks,
+    })
+}
+
+fn validate_population_structure_vcf_profile(
+    repo_root: &Path,
+    config: &LocalPipelineDagConfig,
+) -> Result<LocalPipelineDagValidationProfileReport> {
+    const PROFILE_ID: &str = "population_structure_vcf";
+
+    if config.default_corpus_id != "vcf_production_regression" {
+        return Err(anyhow!(
+            "{PROFILE_ID} local pipeline DAG must start from governed VCF corpus `vcf_production_regression`, found `{}`",
+            config.default_corpus_id
+        ));
+    }
+
+    let stage_index =
+        config.nodes.iter().map(|node| (node.stage_id.clone(), node)).collect::<BTreeMap<_, _>>();
+
+    let vcf_qc = require_profile_stage(&stage_index, PROFILE_ID, "vcf.qc")?;
+    let vcf_pca = require_profile_stage(&stage_index, PROFILE_ID, "vcf.pca")?;
+    let vcf_admixture = require_profile_stage(&stage_index, PROFILE_ID, "vcf.admixture")?;
+    let vcf_population_structure =
+        require_profile_stage(&stage_index, PROFILE_ID, "vcf.population_structure")?;
+
+    let matrix_index = load_local_vcf_stage_matrix_index(repo_root)?;
+    require_vcf_matrix_binding(
+        &matrix_index,
+        PROFILE_ID,
+        "vcf.qc",
+        "vcf_cohort",
+        "vcf_production_regression",
+    )?;
+    require_vcf_matrix_binding(
+        &matrix_index,
+        PROFILE_ID,
+        "vcf.pca",
+        "vcf_cohort",
+        "vcf_production_regression",
+    )?;
+    require_vcf_matrix_binding(
+        &matrix_index,
+        PROFILE_ID,
+        "vcf.admixture",
+        "vcf_cohort",
+        "vcf_production_regression",
+    )?;
+    require_vcf_matrix_binding(
+        &matrix_index,
+        PROFILE_ID,
+        "vcf.population_structure",
+        "vcf_cohort",
+        "vcf_production_regression",
+    )?;
+
+    require_list_contains(
+        &vcf_qc.external_inputs,
+        "corpus.target_cohort_vcf",
+        PROFILE_ID,
+        "vcf.qc must declare the governed target-cohort VCF input",
+    )?;
+    require_list_contains(
+        &vcf_qc.external_inputs,
+        "corpus.target_cohort_vcf_tbi",
+        PROFILE_ID,
+        "vcf.qc must declare the governed target-cohort tabix input",
+    )?;
+    require_list_contains(
+        &vcf_qc.outputs,
+        "qc_cohort_vcf",
+        PROFILE_ID,
+        "vcf.qc must export the QC-qualified cohort VCF handoff",
+    )?;
+    require_list_contains(
+        &vcf_qc.outputs,
+        "qc_cohort_vcf_tbi",
+        PROFILE_ID,
+        "vcf.qc must export the QC-qualified cohort tabix handoff",
+    )?;
+    require_list_contains(
+        &vcf_qc.outputs,
+        "pruned_variants_tsv",
+        PROFILE_ID,
+        "vcf.qc must export the governed pruning/filtering handoff",
+    )?;
+
+    for (stage_id, node) in [("vcf.pca", vcf_pca), ("vcf.admixture", vcf_admixture)] {
+        require_list_contains(
+            &node.external_inputs,
+            "sample_metadata_manifest_contract",
+            PROFILE_ID,
+            &format!("{stage_id} must declare the governed sample-metadata contract"),
+        )?;
+        require_list_contains(
+            &node.external_inputs,
+            "population_labels_contract",
+            PROFILE_ID,
+            &format!("{stage_id} must declare the governed population-label contract"),
+        )?;
+        require_list_contains(
+            &node.external_inputs,
+            "population_metadata_manifest_contract",
+            PROFILE_ID,
+            &format!("{stage_id} must declare the governed population-metadata contract"),
+        )?;
+        require_list_contains(
+            &node.depends_on,
+            "vcf.qc",
+            PROFILE_ID,
+            &format!("{stage_id} must remain downstream of cohort QC and pruning/filtering"),
+        )?;
+        require_list_contains(
+            &node.upstream_inputs,
+            "qc_cohort_vcf",
+            PROFILE_ID,
+            &format!("{stage_id} must consume the QC-qualified cohort VCF handoff"),
+        )?;
+        require_list_contains(
+            &node.upstream_inputs,
+            "pruned_variants_tsv",
+            PROFILE_ID,
+            &format!("{stage_id} must consume the governed pruning/filtering handoff"),
+        )?;
+    }
+
+    require_list_contains(
+        &vcf_pca.outputs,
+        "pca_report",
+        PROFILE_ID,
+        "vcf.pca must export the normalized PCA report",
+    )?;
+    require_list_contains(
+        &vcf_pca.outputs,
+        "pca_metadata_join_tsv",
+        PROFILE_ID,
+        "vcf.pca must export a sample-metadata join handoff",
+    )?;
+
+    require_list_contains(
+        &vcf_admixture.depends_on,
+        "vcf.pca",
+        PROFILE_ID,
+        "vcf.admixture must remain downstream of PCA in the governed population-structure branch",
+    )?;
+    require_list_contains(
+        &vcf_admixture.upstream_inputs,
+        "pca_report",
+        PROFILE_ID,
+        "vcf.admixture must consume explicit PCA evidence",
+    )?;
+    require_list_contains(
+        &vcf_admixture.outputs,
+        "admixture_report",
+        PROFILE_ID,
+        "vcf.admixture must export the normalized admixture report",
+    )?;
+    require_list_contains(
+        &vcf_admixture.outputs,
+        "admixture_metadata_join_tsv",
+        PROFILE_ID,
+        "vcf.admixture must export a sample-metadata join handoff",
+    )?;
+
+    require_list_contains(
+        &vcf_population_structure.external_inputs,
+        "sample_metadata_manifest_contract",
+        PROFILE_ID,
+        "vcf.population_structure must declare the governed sample-metadata contract",
+    )?;
+    require_list_contains(
+        &vcf_population_structure.external_inputs,
+        "population_labels_contract",
+        PROFILE_ID,
+        "vcf.population_structure must declare the governed population-label contract",
+    )?;
+    require_list_contains(
+        &vcf_population_structure.external_inputs,
+        "population_metadata_manifest_contract",
+        PROFILE_ID,
+        "vcf.population_structure must declare the governed population-metadata contract",
+    )?;
+    require_list_contains(
+        &vcf_population_structure.depends_on,
+        "vcf.qc",
+        PROFILE_ID,
+        "vcf.population_structure must remain downstream of cohort QC",
+    )?;
+    require_list_contains(
+        &vcf_population_structure.depends_on,
+        "vcf.pca",
+        PROFILE_ID,
+        "vcf.population_structure must remain downstream of PCA",
+    )?;
+    require_list_contains(
+        &vcf_population_structure.depends_on,
+        "vcf.admixture",
+        PROFILE_ID,
+        "vcf.population_structure must remain downstream of admixture",
+    )?;
+    require_list_contains(
+        &vcf_population_structure.upstream_inputs,
+        "pca_report",
+        PROFILE_ID,
+        "vcf.population_structure must consume PCA evidence",
+    )?;
+    require_list_contains(
+        &vcf_population_structure.upstream_inputs,
+        "admixture_report",
+        PROFILE_ID,
+        "vcf.population_structure must consume admixture evidence",
+    )?;
+    require_list_contains(
+        &vcf_population_structure.upstream_inputs,
+        "pca_metadata_join_tsv",
+        PROFILE_ID,
+        "vcf.population_structure must consume the PCA sample-metadata join handoff",
+    )?;
+    require_list_contains(
+        &vcf_population_structure.upstream_inputs,
+        "admixture_metadata_join_tsv",
+        PROFILE_ID,
+        "vcf.population_structure must consume the admixture sample-metadata join handoff",
+    )?;
+
+    let checks = vec![
+        "default corpus anchored to vcf_production_regression for governed cohort-vcf population-structure inputs".to_string(),
+        "vcf.qc, vcf.pca, vcf.admixture, and vcf.population_structure stay bound to the vcf_cohort asset profile".to_string(),
+        "vcf.qc exports the governed pruning/filtering handoff for downstream cohort analysis".to_string(),
+        "vcf.pca requires sample metadata, population metadata, and population labels as explicit inputs".to_string(),
+        "vcf.admixture requires sample metadata, population metadata, and population labels as explicit inputs".to_string(),
+        "vcf.admixture stays downstream of pca with explicit pca evidence".to_string(),
+        "vcf.pca and vcf.admixture both export sample-metadata join handoffs".to_string(),
+        "vcf.population_structure consumes the pca and admixture metadata-join handoffs with mandatory labels".to_string(),
     ];
 
     Ok(LocalPipelineDagValidationProfileReport {
