@@ -138,6 +138,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench local render-vcf-stage-catalog",
     "bijux-dna bench local render-vcf-stage-matrix",
     "bijux-dna bench local render-vcf-smoke-root",
+    "bijux-dna bench local run-vcf-call-smoke",
     "bijux-dna bench local validate-vcf-no-empty-output",
     "bijux-dna bench local validate-vcf-stage-catalog-ready",
     "bijux-dna bench local validate-vcf-reference-compatibility",
