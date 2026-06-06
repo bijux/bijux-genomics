@@ -12,7 +12,9 @@ use crate::commands::benchmark::local_corpus_stage_compatibility::{
 use crate::commands::benchmark::local_stage_inventory::{
     load_local_stage_inventory, BenchLocalDomain, LocalStageReadinessKind,
 };
-use crate::commands::benchmark::local_vcf_stage_matrix::LocalVcfStageMatrixConfig;
+use crate::commands::benchmark::local_vcf_stage_matrix::{
+    LocalVcfStageMatrixConfig, VcfStageMatrixRow,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -357,6 +359,9 @@ fn build_validation_profiles(
     }
     if stage_ids.contains("vcf.call_diploid") && stage_ids.contains("bam.recalibration") {
         profiles.push(validate_diploid_small_sample_profile(repo_root, config)?);
+    }
+    if stage_ids.contains("vcf.prepare_reference_panel") && stage_ids.contains("vcf.impute") {
+        profiles.push(validate_reference_panel_imputation_profile(repo_root, config)?);
     }
 
     Ok(profiles)
@@ -967,6 +972,348 @@ fn validate_diploid_small_sample_profile(
     })
 }
 
+fn validate_reference_panel_imputation_profile(
+    repo_root: &Path,
+    config: &LocalPipelineDagConfig,
+) -> Result<LocalPipelineDagValidationProfileReport> {
+    const PROFILE_ID: &str = "reference_panel_imputation";
+
+    if config.default_corpus_id != "vcf_production_regression" {
+        return Err(anyhow!(
+            "{PROFILE_ID} local pipeline DAG must start from governed VCF corpus `vcf_production_regression`, found `{}`",
+            config.default_corpus_id
+        ));
+    }
+
+    let stage_index =
+        config.nodes.iter().map(|node| (node.stage_id.clone(), node)).collect::<BTreeMap<_, _>>();
+
+    let prepare_reference_panel =
+        require_profile_stage(&stage_index, PROFILE_ID, "vcf.prepare_reference_panel")?;
+    let vcf_qc = require_profile_stage(&stage_index, PROFILE_ID, "vcf.qc")?;
+    let vcf_phasing = require_profile_stage(&stage_index, PROFILE_ID, "vcf.phasing")?;
+    let vcf_impute = require_profile_stage(&stage_index, PROFILE_ID, "vcf.impute")?;
+    let vcf_imputation = require_profile_stage(&stage_index, PROFILE_ID, "vcf.imputation")?;
+
+    let matrix_index = load_local_vcf_stage_matrix_index(repo_root)?;
+    require_vcf_matrix_binding(
+        &matrix_index,
+        PROFILE_ID,
+        "vcf.prepare_reference_panel",
+        "vcf_reference_panel",
+        "vcf_production_regression",
+    )?;
+    require_vcf_matrix_binding(
+        &matrix_index,
+        PROFILE_ID,
+        "vcf.qc",
+        "vcf_cohort",
+        "vcf_production_regression",
+    )?;
+    require_vcf_matrix_binding(
+        &matrix_index,
+        PROFILE_ID,
+        "vcf.phasing",
+        "vcf_cohort_with_panel",
+        "vcf_production_regression",
+    )?;
+    require_vcf_matrix_binding(
+        &matrix_index,
+        PROFILE_ID,
+        "vcf.impute",
+        "vcf_cohort_with_panel",
+        "vcf_production_regression",
+    )?;
+    require_vcf_matrix_binding(
+        &matrix_index,
+        PROFILE_ID,
+        "vcf.imputation",
+        "vcf_cohort_with_panel",
+        "vcf_production_regression",
+    )?;
+
+    require_list_contains(
+        &prepare_reference_panel.external_inputs,
+        "reference_panel_id_contract",
+        PROFILE_ID,
+        "vcf.prepare_reference_panel must declare the governed panel-id contract",
+    )?;
+    require_list_contains(
+        &prepare_reference_panel.external_inputs,
+        "reference_panel_lock_contract",
+        PROFILE_ID,
+        "vcf.prepare_reference_panel must declare the governed reference-panel lock contract",
+    )?;
+    require_list_contains(
+        &prepare_reference_panel.external_inputs,
+        "genetic_map_contract",
+        PROFILE_ID,
+        "vcf.prepare_reference_panel must declare the governed genetic map contract",
+    )?;
+    require_list_contains(
+        &prepare_reference_panel.external_inputs,
+        "reference_fasta_contract",
+        PROFILE_ID,
+        "vcf.prepare_reference_panel must declare the governed reference FASTA contract",
+    )?;
+    require_list_contains(
+        &prepare_reference_panel.external_inputs,
+        "reference_fai_contract",
+        PROFILE_ID,
+        "vcf.prepare_reference_panel must declare the governed reference FASTA index contract",
+    )?;
+    require_list_contains(
+        &prepare_reference_panel.external_inputs,
+        "reference_dict_contract",
+        PROFILE_ID,
+        "vcf.prepare_reference_panel must declare the governed reference dictionary contract",
+    )?;
+    require_list_contains(
+        &prepare_reference_panel.outputs,
+        "prepared_panel_vcf",
+        PROFILE_ID,
+        "vcf.prepare_reference_panel must produce the prepared panel VCF handoff",
+    )?;
+    require_list_contains(
+        &prepare_reference_panel.outputs,
+        "prepared_panel_vcf_tbi",
+        PROFILE_ID,
+        "vcf.prepare_reference_panel must produce the prepared panel tabix handoff",
+    )?;
+    require_list_contains(
+        &prepare_reference_panel.outputs,
+        "prepared_panel_panel_id",
+        PROFILE_ID,
+        "vcf.prepare_reference_panel must surface explicit panel identity for downstream phasing and imputation",
+    )?;
+
+    require_list_contains(
+        &vcf_qc.outputs,
+        "qc_target_vcf",
+        PROFILE_ID,
+        "vcf.qc must keep the target-cohort VCF handoff explicit for optional prephasing",
+    )?;
+    require_list_contains(
+        &vcf_qc.outputs,
+        "qc_target_vcf_tbi",
+        PROFILE_ID,
+        "vcf.qc must keep the target-cohort tabix handoff explicit for optional prephasing",
+    )?;
+    require_list_contains(
+        &vcf_qc.outputs,
+        "phasing_requirement_decision_json",
+        PROFILE_ID,
+        "vcf.qc must emit the governed phasing-requirement decision handoff",
+    )?;
+
+    require_list_contains(
+        &vcf_phasing.depends_on,
+        "vcf.prepare_reference_panel",
+        PROFILE_ID,
+        "vcf.phasing must remain downstream of prepared-panel materialization",
+    )?;
+    require_list_contains(
+        &vcf_phasing.depends_on,
+        "vcf.qc",
+        PROFILE_ID,
+        "vcf.phasing must remain downstream of target-cohort QC",
+    )?;
+    require_list_contains(
+        &vcf_phasing.external_inputs,
+        "reference_panel_id_contract",
+        PROFILE_ID,
+        "vcf.phasing must declare the governed panel-id contract",
+    )?;
+    require_list_contains(
+        &vcf_phasing.external_inputs,
+        "reference_panel_lock_contract",
+        PROFILE_ID,
+        "vcf.phasing must declare the governed reference-panel lock contract",
+    )?;
+    require_list_contains(
+        &vcf_phasing.external_inputs,
+        "genetic_map_contract",
+        PROFILE_ID,
+        "vcf.phasing must declare the governed genetic map contract",
+    )?;
+    require_list_contains(
+        &vcf_phasing.upstream_inputs,
+        "qc_target_vcf",
+        PROFILE_ID,
+        "vcf.phasing must consume the QC-qualified target VCF handoff",
+    )?;
+    require_list_contains(
+        &vcf_phasing.upstream_inputs,
+        "phasing_requirement_decision_json",
+        PROFILE_ID,
+        "vcf.phasing must consume the explicit phasing decision handoff",
+    )?;
+    require_list_contains(
+        &vcf_phasing.upstream_inputs,
+        "prepared_panel_vcf",
+        PROFILE_ID,
+        "vcf.phasing must consume the prepared reference panel VCF handoff",
+    )?;
+    require_list_contains(
+        &vcf_phasing.upstream_inputs,
+        "prepared_panel_panel_id",
+        PROFILE_ID,
+        "vcf.phasing must consume explicit prepared-panel identity",
+    )?;
+
+    require_list_contains(
+        &vcf_impute.depends_on,
+        "vcf.prepare_reference_panel",
+        PROFILE_ID,
+        "vcf.impute must remain downstream of prepared-panel materialization",
+    )?;
+    require_list_contains(
+        &vcf_impute.depends_on,
+        "vcf.qc",
+        PROFILE_ID,
+        "vcf.impute must remain downstream of target-cohort QC",
+    )?;
+    require_list_contains(
+        &vcf_impute.depends_on,
+        "vcf.phasing",
+        PROFILE_ID,
+        "vcf.impute must remain downstream of the optional prephasing branch",
+    )?;
+    require_list_contains(
+        &vcf_impute.external_inputs,
+        "reference_panel_id_contract",
+        PROFILE_ID,
+        "vcf.impute must not run without the governed panel-id contract",
+    )?;
+    require_list_contains(
+        &vcf_impute.external_inputs,
+        "reference_panel_lock_contract",
+        PROFILE_ID,
+        "vcf.impute must declare the governed reference-panel lock contract",
+    )?;
+    require_list_contains(
+        &vcf_impute.external_inputs,
+        "genetic_map_contract",
+        PROFILE_ID,
+        "vcf.impute must declare the governed genetic map contract",
+    )?;
+    require_list_contains(
+        &vcf_impute.external_inputs,
+        "reference_fasta_contract",
+        PROFILE_ID,
+        "vcf.impute must declare the governed imputation reference FASTA contract",
+    )?;
+    require_list_contains(
+        &vcf_impute.external_inputs,
+        "reference_fai_contract",
+        PROFILE_ID,
+        "vcf.impute must declare the governed imputation reference FASTA index contract",
+    )?;
+    require_list_contains(
+        &vcf_impute.upstream_inputs,
+        "qc_target_vcf",
+        PROFILE_ID,
+        "vcf.impute must consume the QC-qualified target VCF fallback handoff",
+    )?;
+    require_list_contains(
+        &vcf_impute.upstream_inputs,
+        "phased_vcf",
+        PROFILE_ID,
+        "vcf.impute must consume the phased VCF run-path handoff",
+    )?;
+    require_list_contains(
+        &vcf_impute.upstream_inputs,
+        "phasing_requirement_decision_json",
+        PROFILE_ID,
+        "vcf.impute must consume the explicit phasing-decision handoff",
+    )?;
+    require_list_contains(
+        &vcf_impute.upstream_inputs,
+        "prepared_panel_vcf",
+        PROFILE_ID,
+        "vcf.impute must consume the prepared panel VCF handoff",
+    )?;
+    require_list_contains(
+        &vcf_impute.upstream_inputs,
+        "prepared_panel_panel_id",
+        PROFILE_ID,
+        "vcf.impute must consume explicit panel identity from prepared-panel outputs",
+    )?;
+
+    require_list_contains(
+        &vcf_imputation.depends_on,
+        "vcf.prepare_reference_panel",
+        PROFILE_ID,
+        "vcf.imputation must remain downstream of prepared-panel provenance",
+    )?;
+    require_list_contains(
+        &vcf_imputation.depends_on,
+        "vcf.impute",
+        PROFILE_ID,
+        "vcf.imputation must remain downstream of the imputation execution stage",
+    )?;
+    require_list_contains(
+        &vcf_imputation.external_inputs,
+        "reference_panel_id_contract",
+        PROFILE_ID,
+        "vcf.imputation must declare the governed panel-id contract",
+    )?;
+    require_list_contains(
+        &vcf_imputation.external_inputs,
+        "reference_panel_lock_contract",
+        PROFILE_ID,
+        "vcf.imputation must declare the governed reference-panel lock contract",
+    )?;
+    require_list_contains(
+        &vcf_imputation.external_inputs,
+        "genetic_map_contract",
+        PROFILE_ID,
+        "vcf.imputation must declare the governed genetic map contract",
+    )?;
+    require_list_contains(
+        &vcf_imputation.upstream_inputs,
+        "prepared_panel_panel_id",
+        PROFILE_ID,
+        "vcf.imputation must retain explicit panel identity in the downstream metrics branch",
+    )?;
+    require_list_contains(
+        &vcf_imputation.upstream_inputs,
+        "imputation_manifest_json",
+        PROFILE_ID,
+        "vcf.imputation must consume explicit imputation manifest evidence",
+    )?;
+    require_list_contains(
+        &vcf_imputation.upstream_inputs,
+        "imputation_qc_json",
+        PROFILE_ID,
+        "vcf.imputation must consume explicit imputation QC evidence",
+    )?;
+
+    let checks = vec![
+        "default corpus anchored to vcf_production_regression for governed target-cohort VCF inputs"
+            .to_string(),
+        "vcf.prepare_reference_panel stays bound to the vcf_reference_panel asset profile"
+            .to_string(),
+        "vcf.qc stays bound to the vcf_cohort asset profile".to_string(),
+        "vcf.phasing, vcf.impute, and vcf.imputation stay bound to the vcf_cohort_with_panel asset profile"
+            .to_string(),
+        "vcf.prepare_reference_panel keeps panel, map, and reference contracts explicit"
+            .to_string(),
+        "vcf.phasing consumes the qc-qualified target VCF plus prepared-panel identity for the optional prephasing branch"
+            .to_string(),
+        "vcf.impute consumes both the qc-target fallback path and phased run path with explicit panel identity"
+            .to_string(),
+        "vcf.imputation stays downstream of imputation execution with panel-provenance and imputation-qc evidence"
+            .to_string(),
+    ];
+
+    Ok(LocalPipelineDagValidationProfileReport {
+        profile_id: PROFILE_ID.to_string(),
+        check_count: checks.len(),
+        checks,
+    })
+}
+
 fn require_profile_stage<'a>(
     stage_index: &'a BTreeMap<String, &'a LocalPipelineDagNode>,
     profile_id: &str,
@@ -1063,6 +1410,48 @@ fn load_local_vcf_pipeline_inventory_index(
         inventory_index.entry(row.stage_id).or_insert(LocalStageReadinessKind::Smoke);
     }
     Ok(inventory_index)
+}
+
+fn load_local_vcf_stage_matrix_index(
+    repo_root: &Path,
+) -> Result<BTreeMap<String, VcfStageMatrixRow>> {
+    let matrix_path = repo_root.join("configs/bench/local/vcf-stage-matrix.toml");
+    let raw = fs::read_to_string(&matrix_path)
+        .with_context(|| format!("read {}", matrix_path.display()))?;
+    let matrix: LocalVcfStageMatrixConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", matrix_path.display()))?;
+
+    if matrix.schema_version != "bijux.bench.vcf.local_stage_matrix.v1" {
+        return Err(anyhow!(
+            "{} declares `{}` but `bijux.bench.vcf.local_stage_matrix.v1` is required for VCF stage-matrix validation",
+            matrix_path.display(),
+            matrix.schema_version
+        ));
+    }
+
+    Ok(matrix.rows.into_iter().map(|row| (row.stage_id.clone(), row)).collect::<BTreeMap<_, _>>())
+}
+
+fn require_vcf_matrix_binding(
+    matrix_index: &BTreeMap<String, VcfStageMatrixRow>,
+    profile_id: &str,
+    stage_id: &str,
+    expected_asset_profile_id: &str,
+    expected_corpus_id: &str,
+) -> Result<()> {
+    let Some(row) = matrix_index.get(stage_id) else {
+        return Err(anyhow!(
+            "{profile_id} local pipeline DAG cannot confirm governed VCF stage-matrix coverage for missing stage `{stage_id}`"
+        ));
+    };
+    if row.asset_profile_id != expected_asset_profile_id || row.corpus_id != expected_corpus_id {
+        return Err(anyhow!(
+            "{profile_id} local pipeline DAG expected `{stage_id}` to remain governed by asset profile `{expected_asset_profile_id}` and corpus `{expected_corpus_id}`, found `{}` / `{}`",
+            row.asset_profile_id,
+            row.corpus_id
+        ));
+    }
+    Ok(())
 }
 
 fn validate_pipeline_contract(config: &LocalPipelineDagConfig) -> Result<()> {
