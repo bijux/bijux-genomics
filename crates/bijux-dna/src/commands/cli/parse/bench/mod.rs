@@ -45,6 +45,7 @@ pub use self::local::{
     BenchLocalValidateSlurmShellSyntaxArgs, BenchLocalValidateStageResultArgs,
     BenchLocalValidateTaxonomyDatabaseFixtureArgs, BenchLocalValidateVcfNoEmptyOutputArgs,
     BenchLocalValidateVcfReferenceCompatibilityArgs, BenchLocalValidateVcfSampleCompatibilityArgs,
+    BenchLocalValidateVcfStageCatalogReadyArgs,
 };
 pub use self::matrix::{BenchMatrixDomainArg, BenchValidateMatrixArgs};
 pub use self::publication::{

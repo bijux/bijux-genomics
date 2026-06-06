@@ -30,6 +30,7 @@ pub(crate) mod local_vcf_reference_compatibility;
 pub(crate) mod local_vcf_sample_compatibility;
 pub(crate) mod local_vcf_smoke_root;
 pub(crate) mod local_vcf_stage_catalog;
+pub(crate) mod local_vcf_stage_catalog_ready;
 pub(crate) mod local_vcf_stage_matrix;
 pub(crate) mod publication;
 pub(crate) mod readiness;
