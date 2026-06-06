@@ -1,0 +1,10 @@
+tool=eigensoft
+tool_version=pinned
+stage=vcf.pca
+domain=vcf
+shipping=external
+fixture_kind=truth
+command=sh
+args=-lc "convertf -p pca.convertf.par && smartpca -p pca.smartpca.par > pca.smartpca.log 2>&1"
+expected_outputs=pca.geno,pca.snp,pca.ind,pca.evec,pca.eval,pca.smartpca.log,pca_report.json
+expected_stdout_patterns=convertf,smartpca,pca_report

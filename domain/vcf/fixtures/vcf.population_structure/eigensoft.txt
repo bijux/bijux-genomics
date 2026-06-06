@@ -3,7 +3,7 @@ tool_version=pinned
 stage=vcf.population_structure
 domain=vcf
 fixture_kind=parity
-command=smartpca
-args=-p parfile.population_structure -o eigensoft.population_structure
-expected_outputs=population_structure_report,metrics.json
-expected_stdout_patterns=smartpca,metrics_schema=bijux.vcf.population_structure.v1
+command=sh
+args=-lc "convertf -p population_structure.convertf.par && smartpca -p population_structure.smartpca.par > population_structure.smartpca.log 2>&1"
+expected_outputs=population_structure.geno,population_structure.snp,population_structure.ind,population_structure.evec,population_structure.eval,population_structure.smartpca.log,population_structure_report.json
+expected_stdout_patterns=convertf,smartpca,population_structure_report
