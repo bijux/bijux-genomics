@@ -42,6 +42,8 @@ pub enum BenchLocalCommand {
     RunVcfPopulationStructureSmoke(BenchLocalRunVcfPopulationStructureSmokeArgs),
     #[command(name = "run-vcf-ibd-smoke")]
     RunVcfIbdSmoke(BenchLocalRunVcfIbdSmokeArgs),
+    #[command(name = "run-vcf-demography-smoke")]
+    RunVcfDemographySmoke(BenchLocalRunVcfDemographySmokeArgs),
     #[command(name = "run-vcf-roh-smoke")]
     RunVcfRohSmoke(BenchLocalRunVcfRohSmokeArgs),
     #[command(name = "run-vcf-pca-smoke")]
@@ -215,6 +217,14 @@ pub struct BenchLocalRunVcfPopulationStructureSmokeArgs {
 #[derive(Debug, Args)]
 pub struct BenchLocalRunVcfIbdSmokeArgs {
     #[arg(long, default_value = "germline")]
+    pub tool_id: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunVcfDemographySmokeArgs {
+    #[arg(long, default_value = "ibdne")]
     pub tool_id: String,
     #[arg(long, default_value_t = false)]
     pub json: bool,

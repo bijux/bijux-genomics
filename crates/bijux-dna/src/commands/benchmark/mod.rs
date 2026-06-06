@@ -32,6 +32,7 @@ pub(crate) mod local_vcf_call_gl_smoke;
 pub(crate) mod local_vcf_call_pseudohaploid_smoke;
 pub(crate) mod local_vcf_call_smoke;
 pub(crate) mod local_vcf_damage_filter_smoke;
+pub(crate) mod local_vcf_demography_smoke;
 pub(crate) mod local_vcf_filter_smoke;
 pub(crate) mod local_vcf_gl_propagation_smoke;
 pub(crate) mod local_vcf_ibd_smoke;
