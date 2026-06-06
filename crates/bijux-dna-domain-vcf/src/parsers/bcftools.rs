@@ -22,6 +22,7 @@ const RAW_FILTER_VCF_NAME: &str = "raw.filtered.vcf";
 const RAW_FILTER_EXPLAIN_NAME: &str = "raw.filter_explain.json";
 const RAW_GL_PROPAGATION_INPUT_NAME: &str = "raw.input.vcf";
 const RAW_GL_PROPAGATION_OUTPUT_NAME: &str = "raw.propagated.vcf";
+const RAW_POSTPROCESS_VCF_NAME: &str = "raw.postprocess.vcf";
 const RAW_POSTPROCESS_TBI_NAME: &str = "raw.postprocess.vcf.tbi";
 const RAW_POSTPROCESS_VALIDATE_NAME: &str = "raw.validate_outputs.json";
 const RAW_POSTPROCESS_MANIFEST_NAME: &str = "raw.final_manifest.json";
@@ -290,9 +291,10 @@ fn parse_gl_propagation_metrics(root: &Path) -> Result<serde_json::Value> {
 }
 
 fn parse_postprocess_metrics(root: &Path) -> Result<serde_json::Value> {
+    let readable = parse_vcf_document(&root.join(RAW_POSTPROCESS_VCF_NAME)).is_ok();
     let validate = read_json(&root.join(RAW_POSTPROCESS_VALIDATE_NAME))?;
     let manifest = read_json(&root.join(RAW_POSTPROCESS_MANIFEST_NAME))?;
-    let readable_vcf = json_bool(&validate, "/readable_vcf", "readable_vcf")?;
+    let readable_vcf = readable && json_bool(&validate, "/readable_vcf", "readable_vcf")?;
     let tabix_present = root.join(RAW_POSTPROCESS_TBI_NAME).exists()
         && json_bool(&validate, "/tabix_present", "tabix_present")?;
     Ok(serde_json::json!({
