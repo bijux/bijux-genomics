@@ -88,11 +88,13 @@ pub use self::readiness::{
     BenchReadinessRenderStageToolResourcesArgs, BenchReadinessRenderToolCentricReportArgs,
     BenchReadinessRenderToolIdNormalizationArgs, BenchReadinessRenderUndercoveredStagesArgs,
     BenchReadinessRenderUnregisteredBenchmarkPairsArgs, BenchReadinessRenderVcfAngsdAdapterArgs,
-    BenchReadinessRenderVcfBcftoolsAdapterArgs, BenchReadinessRenderVcfEigensoftAdapterArgs,
+    BenchReadinessRenderVcfBcftoolsAdapterArgs, BenchReadinessRenderVcfBeagleAdapterArgs,
+    BenchReadinessRenderVcfEagleAdapterArgs, BenchReadinessRenderVcfEigensoftAdapterArgs,
     BenchReadinessRenderVcfMatrixRegistryConsistencyArgs, BenchReadinessRenderVcfOrphanToolsArgs,
     BenchReadinessRenderVcfPlink2AdapterArgs, BenchReadinessRenderVcfPlinkAdapterArgs,
-    BenchReadinessRenderVcfToolServingMapArgs, BenchReadinessRenderVcfUndercoveredStagesArgs,
-    BenchReadinessValidateToolExecutionModesArgs, BenchReadinessValidateToolFamiliesArgs,
+    BenchReadinessRenderVcfShapeit5AdapterArgs, BenchReadinessRenderVcfToolServingMapArgs,
+    BenchReadinessRenderVcfUndercoveredStagesArgs, BenchReadinessValidateToolExecutionModesArgs,
+    BenchReadinessValidateToolFamiliesArgs,
 };
 pub use self::suite::BenchRunArgs;
 

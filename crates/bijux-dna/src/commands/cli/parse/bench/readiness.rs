@@ -78,6 +78,12 @@ pub enum BenchReadinessCommand {
     RenderVcfAngsdAdapter(BenchReadinessRenderVcfAngsdAdapterArgs),
     #[command(name = "render-vcf-eigensoft-adapter")]
     RenderVcfEigensoftAdapter(BenchReadinessRenderVcfEigensoftAdapterArgs),
+    #[command(name = "render-vcf-shapeit5-adapter")]
+    RenderVcfShapeit5Adapter(BenchReadinessRenderVcfShapeit5AdapterArgs),
+    #[command(name = "render-vcf-eagle-adapter")]
+    RenderVcfEagleAdapter(BenchReadinessRenderVcfEagleAdapterArgs),
+    #[command(name = "render-vcf-beagle-adapter")]
+    RenderVcfBeagleAdapter(BenchReadinessRenderVcfBeagleAdapterArgs),
     #[command(name = "render-vcf-plink-adapter")]
     RenderVcfPlinkAdapter(BenchReadinessRenderVcfPlinkAdapterArgs),
     #[command(name = "render-vcf-plink2-adapter")]
@@ -278,6 +284,30 @@ pub struct BenchReadinessRenderVcfAngsdAdapterArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfEigensoftAdapterArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfShapeit5AdapterArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfEagleAdapterArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfBeagleAdapterArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

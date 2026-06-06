@@ -337,6 +337,21 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfShapeit5Adapter(args) => {
+                        crate::commands::benchmark::readiness::vcf_phasing_family_adapter::run_render_vcf_shapeit5_adapter(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderVcfEagleAdapter(args) => {
+                        crate::commands::benchmark::readiness::vcf_phasing_family_adapter::run_render_vcf_eagle_adapter(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderVcfBeagleAdapter(args) => {
+                        crate::commands::benchmark::readiness::vcf_phasing_family_adapter::run_render_vcf_beagle_adapter(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfPlinkAdapter(args) => {
                         crate::commands::benchmark::readiness::vcf_plink_family_adapter::run_render_vcf_plink_adapter(
                             args,
