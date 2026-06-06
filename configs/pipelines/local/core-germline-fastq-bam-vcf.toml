@@ -1,0 +1,136 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for the local core germline FASTQ-to-BAM-to-VCF DAG.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-06
+
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "core-germline-fastq-bam-vcf"
+domain = "cross"
+summary = "Core germline FASTQ-to-BAM-to-VCF DAG for governed read validation, read profiling, trimming, alignment, BAM QC, coverage, variant calling, filtering, summary statistics, and cohort QC handoffs."
+default_corpus_id = "corpus-01-mini"
+
+[[nodes]]
+node_id = "fastq.validate_reads"
+stage_id = "fastq.validate_reads"
+readiness_kind = "smoke"
+summary = "Validate governed raw FASTQ inputs before downstream profiling, trimming, and alignment consume the read paths."
+depends_on = []
+external_inputs = ["corpus.raw_fastq_reads"]
+upstream_inputs = []
+outputs = ["validated_reads_r1_path", "validated_reads_r2_path", "validation_report"]
+
+[[nodes]]
+node_id = "fastq.profile_reads"
+stage_id = "fastq.profile_reads"
+readiness_kind = "smoke"
+summary = "Profile governed validated reads before trimming changes the sequence content and quality distribution."
+depends_on = ["fastq.validate_reads"]
+external_inputs = []
+upstream_inputs = ["validated_reads_r1_path", "validated_reads_r2_path"]
+outputs = ["validated_profile"]
+
+[[nodes]]
+node_id = "fastq.trim_reads"
+stage_id = "fastq.trim_reads"
+readiness_kind = "smoke"
+summary = "Trim governed validated reads into explicit R1 and R2 path outputs that become the alignment inputs."
+depends_on = ["fastq.validate_reads"]
+external_inputs = []
+upstream_inputs = ["validated_reads_r1_path", "validated_reads_r2_path"]
+outputs = ["trimmed_reads_r1_path", "trimmed_reads_r2_path", "trim_metrics"]
+
+[[nodes]]
+node_id = "fastq.filter_reads"
+stage_id = "fastq.filter_reads"
+readiness_kind = "smoke"
+summary = "Filter the trimmed FASTQ handoff into governed alignment-ready read paths."
+depends_on = ["fastq.trim_reads"]
+external_inputs = []
+upstream_inputs = ["trimmed_reads_r1_path", "trimmed_reads_r2_path"]
+outputs = ["filtered_reads_r1_path", "filtered_reads_r2_path", "filter_metrics"]
+
+[[nodes]]
+node_id = "bam.align"
+stage_id = "bam.align"
+readiness_kind = "dry_or_smoke"
+summary = "Align the governed filtered FASTQ path outputs against the declared reference and read-group contracts."
+depends_on = ["fastq.filter_reads"]
+external_inputs = [
+  "alignment_reference_fasta_contract",
+  "alignment_reference_index_contract",
+  "alignment_read_group_contract",
+]
+upstream_inputs = ["filtered_reads_r1_path", "filtered_reads_r2_path"]
+outputs = ["aligned_bam", "aligned_bai", "align_metrics"]
+
+[[nodes]]
+node_id = "bam.validate"
+stage_id = "bam.validate"
+readiness_kind = "smoke"
+summary = "Validate the aligned BAM handoff before downstream BAM QC and VCF calling consume it."
+depends_on = ["bam.align"]
+external_inputs = ["reference_fasta_contract"]
+upstream_inputs = ["aligned_bam", "aligned_bai", "align_metrics"]
+outputs = ["bam_validation_report"]
+
+[[nodes]]
+node_id = "bam.qc_pre"
+stage_id = "bam.qc_pre"
+readiness_kind = "smoke"
+summary = "Collect governed pre-QC BAM metrics from the validated alignment handoff."
+depends_on = ["bam.align", "bam.validate"]
+external_inputs = []
+upstream_inputs = ["aligned_bam", "aligned_bai", "bam_validation_report"]
+outputs = ["qc_pre_flagstat", "qc_pre_idxstats", "qc_pre_stats", "qc_pre_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.coverage"
+stage_id = "bam.coverage"
+readiness_kind = "smoke"
+summary = "Measure governed coverage from the aligned BAM while carrying forward the pre-QC context needed for call readiness."
+depends_on = ["bam.align", "bam.qc_pre"]
+external_inputs = ["coverage_region_contract"]
+upstream_inputs = ["aligned_bam", "aligned_bai", "qc_pre_stage_metrics"]
+outputs = ["coverage_report_json", "coverage_stage_metrics"]
+
+[[nodes]]
+node_id = "vcf.call"
+stage_id = "vcf.call"
+readiness_kind = "smoke"
+summary = "Call variants from the aligned BAM handoff once BAM coverage has established the governed calling context."
+depends_on = ["bam.align", "bam.coverage"]
+external_inputs = ["reference_fasta_contract", "reference_fai_contract"]
+upstream_inputs = ["aligned_bam", "aligned_bai", "coverage_report_json"]
+outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
+
+[[nodes]]
+node_id = "vcf.filter"
+stage_id = "vcf.filter"
+readiness_kind = "smoke"
+summary = "Filter the governed called VCF before downstream summary statistics and cohort QC consume it."
+depends_on = ["vcf.call"]
+external_inputs = []
+upstream_inputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
+outputs = ["filtered_vcf", "filtered_vcf_tbi", "filter_report_json", "filter_stage_metrics"]
+
+[[nodes]]
+node_id = "vcf.stats"
+stage_id = "vcf.stats"
+readiness_kind = "smoke"
+summary = "Derive governed VCF summary statistics from the filtered VCF handoff."
+depends_on = ["vcf.filter"]
+external_inputs = []
+upstream_inputs = ["filtered_vcf", "filtered_vcf_tbi", "filter_report_json"]
+outputs = ["stats_json", "stats_stage_metrics"]
+
+[[nodes]]
+node_id = "vcf.qc"
+stage_id = "vcf.qc"
+readiness_kind = "smoke"
+summary = "Run governed cohort QC from the filtered VCF while incorporating the explicit statistics handoff."
+depends_on = ["vcf.filter", "vcf.stats"]
+external_inputs = []
+upstream_inputs = ["filtered_vcf", "filtered_vcf_tbi", "stats_json"]
+outputs = ["qc_report", "qc_stage_metrics"]
