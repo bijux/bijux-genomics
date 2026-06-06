@@ -543,6 +543,14 @@ Visible aliases are part of the operator surface:
   logs, and consumed upstream reports visible, and records exact review evidence
   (`consumed_pca`, `consumed_admixture`, `sample_groups`, `distance_summary`, and `status`) so
   the final report is grounded in real upstream local-smoke outputs instead of an invented join.
+- `bijux-dna bench local run-vcf-roh-smoke`
+  `run-vcf-roh-smoke` writes `target/local-smoke/vcf.roh/plink2/roh.tsv` and
+  `target/local-smoke/vcf.roh/plink2/roh.json` from the governed `vcf.roh` matrix row. The
+  command materializes the owned `vcf-mini` multisample cohort plus sample metadata contract, runs
+  the retained ROH stage, keeps the source segment table, per-sample summary, source report,
+  metrics, and logs visible, and records exact normalized smoke evidence (`sample_id`, `contig`,
+  `start`, `end`, `length`, `variant_count`, `segment_count`, and `total_length`) so reviewer
+  evidence comes from the repo command instead of a raw PLINK-shaped artifact.
 - `bijux-dna bench local run-vcf-pca-smoke`
   `run-vcf-pca-smoke` writes `target/local-smoke/vcf.pca/plink2/pca.tsv` and
   `target/local-smoke/vcf.pca/plink2/pca.json` from the governed `vcf.pca` matrix row. The
