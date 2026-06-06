@@ -463,6 +463,14 @@ Visible aliases are part of the operator surface:
   `stage_count`, `tool_pair_count`, and one explicit row per stage-tool pair with deterministic
   `pair_root`, `artifacts_root`, and `result_manifest_path` values so repeated local smoke runs
   cannot drift onto random temp paths.
+- `bijux-dna bench local validate-vcf-no-empty-output`
+  `validate-vcf-no-empty-output` writes `target/local-ready/vcf/no-empty-output-check.json`,
+  refreshes the governed VCF smoke-output fixture tree under `target/local-smoke/vcf`, and fails
+  closed unless every declared `.vcf.gz`, `.json`, `.tsv`, and `.log` artifact remains present
+  and non-empty. The report keeps one explicit row per checked output with `stage_id`, `tool_id`,
+  `output_id`, `output_kind`, `output_path`, `bytes`, `status`, and `allow_empty_reason`, and the
+  optional `--skip-refresh` mode lets reviewers prove that a zero-byte artifact is rejected
+  instead of being silently regenerated.
 - `bijux-dna bench local validate-vcf-reference-compatibility`
   `validate-vcf-reference-compatibility` writes
   `target/local-ready/vcf/reference-compatibility.json`, deriving the governed VCF contig
