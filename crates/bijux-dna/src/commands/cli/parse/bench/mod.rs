@@ -9,6 +9,7 @@ mod local;
 mod matrix;
 mod publication;
 mod readiness;
+mod schema_validation;
 mod suite;
 
 pub use self::config::{
@@ -95,12 +96,14 @@ pub use self::readiness::{
     BenchReadinessRenderVcfDescentFamilyAdapterArgs, BenchReadinessRenderVcfEagleAdapterArgs,
     BenchReadinessRenderVcfEigensoftAdapterArgs,
     BenchReadinessRenderVcfImputationFamilyAdapterArgs,
-    BenchReadinessRenderVcfMatrixRegistryConsistencyArgs, BenchReadinessRenderVcfOrphanToolsArgs,
+    BenchReadinessRenderVcfMatrixRegistryConsistencyArgs,
+    BenchReadinessRenderVcfNormalizedMetricsSchemaArgs, BenchReadinessRenderVcfOrphanToolsArgs,
     BenchReadinessRenderVcfPlink2AdapterArgs, BenchReadinessRenderVcfPlinkAdapterArgs,
     BenchReadinessRenderVcfShapeit5AdapterArgs, BenchReadinessRenderVcfToolServingMapArgs,
     BenchReadinessRenderVcfUndercoveredStagesArgs, BenchReadinessValidateToolExecutionModesArgs,
     BenchReadinessValidateToolFamiliesArgs,
 };
+pub use self::schema_validation::{BenchSchemaDomainArg, BenchValidateSchemasArgs};
 pub use self::suite::BenchRunArgs;
 
 #[derive(Debug, Subcommand)]
@@ -121,6 +124,8 @@ pub enum BenchCommand {
     WriteScreenTaxonomyDatabaseLineage(BenchWriteScreenTaxonomyDatabaseLineageArgs),
     #[command(name = "validate-matrix")]
     ValidateMatrix(BenchValidateMatrixArgs),
+    #[command(name = "validate-schemas")]
+    ValidateSchemas(BenchValidateSchemasArgs),
     #[command(name = "publication-targets")]
     PublicationTargets(BenchPublicationTargetsArgs),
     #[command(name = "corpus-fastq")]

@@ -60,4 +60,5 @@ pub(crate) mod repo_checks;
 pub(crate) mod stage_catalog;
 pub(crate) mod suite;
 pub(crate) mod taxonomy_database;
+pub(crate) mod vcf_schema_validation;
 pub(crate) mod workspace;

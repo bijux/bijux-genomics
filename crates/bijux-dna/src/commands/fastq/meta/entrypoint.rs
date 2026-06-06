@@ -110,6 +110,17 @@ pub(crate) fn handle_meta_commands(
                         }
                     }
                 }
+                BenchCommand::ValidateSchemas(args) => {
+                    let cwd = std::env::current_dir()?;
+                    match args.domain {
+                        cli::BenchSchemaDomainArg::Vcf => {
+                            crate::commands::benchmark::vcf_schema_validation::run_validate_vcf_schemas(
+                                &cwd,
+                                args,
+                            )?;
+                        }
+                    }
+                }
                 BenchCommand::WriteScreenTaxonomyDatabaseLineage(args) => {
                     crate::commands::benchmark_taxonomy_database::run_write_screen_taxonomy_database_lineage(
                         &std::env::current_dir()?,
@@ -324,6 +335,11 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchReadinessCommand::RenderVcfToolServingMap(args) => {
                         crate::commands::benchmark::readiness::vcf_tool_serving_map::run_render_vcf_tool_serving_map(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderVcfNormalizedMetricsSchema(args) => {
+                        crate::commands::benchmark::readiness::vcf_normalized_metrics_schema::run_render_vcf_normalized_metrics_schema(
                             args,
                         )?;
                     }
