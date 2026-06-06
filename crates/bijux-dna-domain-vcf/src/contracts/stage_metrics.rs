@@ -99,10 +99,30 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
         &["sample_count", "variant_count", "excluded_samples", "unexpected_samples", "eigenvalues"];
     const ADMIXTURE_METRICS: &[&str] =
         &["selected_k", "sample_count", "population_count", "status"];
-    const IBD_METRICS: &[&str] =
-        &["ibd_segment_count", "ibd_total_length_cM", "pairwise_ibd_sharing_matrix"];
-    const ROH_METRICS: &[&str] = &["roh_count", "roh_total_mb", "roh_mean_length_mb"];
-    const DEMOGRAPHY_METRICS: &[&str] = &["ne_recent", "ne_time_series", "ne_confidence_interval"];
+    const IBD_METRICS: &[&str] = &[
+        "pair_count",
+        "rows",
+        "status",
+        "insufficient_reason",
+        "insufficient_overlap_probe",
+    ];
+    const ROH_METRICS: &[&str] = &[
+        "sample_count",
+        "segment_count",
+        "total_length",
+        "segments",
+        "per_sample_summary",
+        "status",
+    ];
+    const DEMOGRAPHY_METRICS: &[&str] = &[
+        "method",
+        "inference_status",
+        "status",
+        "insufficient_reason",
+        "time_bins",
+        "ne_estimates",
+        "insufficient_data_probe",
+    ];
     const QC_METRICS: &[&str] = &[
         "sample_count",
         "missingness_post",

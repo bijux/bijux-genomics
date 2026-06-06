@@ -160,6 +160,21 @@ mod contracts {
         let gl_propagation = stage_metrics_contract(VcfDomainStage::GlPropagation);
         assert_eq!(gl_propagation.metrics_schema_id, "bijux.vcf.gl_propagation.v1");
         assert!(gl_propagation.required_metrics.contains(&"input_likelihood_fields"));
+
+        let roh = stage_metrics_contract(VcfDomainStage::Roh);
+        assert_eq!(roh.metrics_schema_id, "bijux.vcf.roh.v1");
+        assert!(roh.required_metrics.contains(&"segment_count"));
+        assert!(roh.required_metrics.contains(&"per_sample_summary"));
+
+        let ibd = stage_metrics_contract(VcfDomainStage::Ibd);
+        assert_eq!(ibd.metrics_schema_id, "bijux.vcf.ibd.v1");
+        assert!(ibd.required_metrics.contains(&"rows"));
+        assert!(ibd.required_metrics.contains(&"insufficient_reason"));
+
+        let demography = stage_metrics_contract(VcfDomainStage::Demography);
+        assert_eq!(demography.metrics_schema_id, "bijux.vcf.demography.v1");
+        assert!(demography.required_metrics.contains(&"time_bins"));
+        assert!(demography.required_metrics.contains(&"insufficient_data_probe"));
     }
 
     #[test]
