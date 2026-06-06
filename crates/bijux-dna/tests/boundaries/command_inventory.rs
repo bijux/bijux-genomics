@@ -131,6 +131,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness validate-tool-execution-modes",
     "bijux-dna bench readiness validate-tool-families",
     "bijux-dna bench local list-stages",
+    "bijux-dna bench local render-vcf-stage-catalog",
     "bijux-dna bench local validate-hpc-submission-ready",
     "bijux-dna bench local simulate-dag-watchdog",
     "bijux-dna bench local validate-pipeline-dag",
