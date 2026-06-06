@@ -34,6 +34,8 @@ pub enum BenchLocalCommand {
     RunVcfDamageFilterSmoke(BenchLocalRunVcfDamageFilterSmokeArgs),
     #[command(name = "run-vcf-filter-smoke")]
     RunVcfFilterSmoke(BenchLocalRunVcfFilterSmokeArgs),
+    #[command(name = "run-vcf-qc-smoke")]
+    RunVcfQcSmoke(BenchLocalRunVcfQcSmokeArgs),
     #[command(name = "run-vcf-stats-smoke")]
     RunVcfStatsSmoke(BenchLocalRunVcfStatsSmokeArgs),
     #[command(name = "run-vcf-gl-propagation-smoke")]
@@ -163,6 +165,14 @@ pub struct BenchLocalRunVcfDamageFilterSmokeArgs {
 #[derive(Debug, Args)]
 pub struct BenchLocalRunVcfFilterSmokeArgs {
     #[arg(long, default_value = "bcftools")]
+    pub tool_id: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunVcfQcSmokeArgs {
+    #[arg(long, default_value = "plink2")]
     pub tool_id: String,
     #[arg(long, default_value_t = false)]
     pub json: bool,

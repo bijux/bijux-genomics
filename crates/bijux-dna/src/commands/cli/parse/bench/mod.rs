@@ -42,7 +42,7 @@ pub use self::local::{
     BenchLocalRunVcfCallGlSmokeArgs, BenchLocalRunVcfCallPseudohaploidSmokeArgs,
     BenchLocalRunVcfCallSmokeArgs, BenchLocalRunVcfDamageFilterSmokeArgs,
     BenchLocalRunVcfFilterSmokeArgs, BenchLocalRunVcfGlPropagationSmokeArgs,
-    BenchLocalRunVcfStatsSmokeArgs, BenchLocalSimulateDagWatchdogArgs,
+    BenchLocalRunVcfQcSmokeArgs, BenchLocalRunVcfStatsSmokeArgs, BenchLocalSimulateDagWatchdogArgs,
     BenchLocalValidateCorpusFixtureArgs, BenchLocalValidateCorpusStageCompatibilityArgs,
     BenchLocalValidateHpcSubmissionReadyArgs, BenchLocalValidatePipelineDagArgs,
     BenchLocalValidateSlurmDependenciesArgs, BenchLocalValidateSlurmScriptBodiesArgs,
