@@ -442,6 +442,12 @@ Visible aliases are part of the operator surface:
   expected benchmark-ready VCF result. Each row keeps `stage_id`, `tool_id`, `section_id`,
   `summary_table`, `metric_columns`, and `failure_columns`, and the command fails closed unless
   every expected VCF result row maps to one governed report section and summary table.
+- `bijux-dna bench readiness render-vcf-parsers-report-ready`
+  `render-vcf-parsers-report-ready` writes `target/bench-readiness/VCF_PARSERS_REPORT_READY.json`
+  and fail-closes across Goals 246–260. The gate reruns the governed VCF schema, parser-fixture,
+  parser-failure, parser-coverage, expected-result, missing-result, comparable-metric, and
+  report-map surfaces, then validates that parser coverage, expected results, and report mapping
+  stay aligned on the same benchmark-ready VCF pair slice.
 - `bijux-dna bench readiness render-vcf-parser-coverage`
   `render-vcf-parser-coverage` writes `target/bench-readiness/vcf-parser-coverage.tsv` with one
   row per benchmark-ready VCF stage-tool parser surface. Each row keeps `stage_id`, `tool_id`,
