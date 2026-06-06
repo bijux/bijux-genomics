@@ -537,27 +537,58 @@ pub(crate) fn handle_meta_commands(
                 BenchCommand::Local { command } => match command {
                     cli::BenchLocalCommand::ListStages(args) => {
                         let cwd = std::env::current_dir()?;
-                        let domain = match args.domain {
-                            cli::BenchLocalDomainArg::Fastq => {
-                                crate::commands::benchmark::local_stage_inventory::BenchLocalDomain::Fastq
+                        let selected_domains = [
+                            (
+                                cli::BenchLocalStageListDomainArg::Fastq,
+                                crate::commands::benchmark::local_stage_inventory::BenchLocalDomain::Fastq,
+                            ),
+                            (
+                                cli::BenchLocalStageListDomainArg::Bam,
+                                crate::commands::benchmark::local_stage_inventory::BenchLocalDomain::Bam,
+                            ),
+                            (
+                                cli::BenchLocalStageListDomainArg::Vcf,
+                                crate::commands::benchmark::local_stage_inventory::BenchLocalDomain::Vcf,
+                            ),
+                        ]
+                        .into_iter()
+                        .filter_map(|(requested_domain, inventory_domain)| {
+                            args.domain.contains(&requested_domain).then_some(inventory_domain)
+                        })
+                        .collect::<Vec<_>>();
+
+                        if selected_domains.len() == 1 {
+                            let inventory = crate::commands::benchmark::local_stage_inventory::load_local_stage_inventory(
+                                &cwd,
+                                selected_domains[0],
+                            )?;
+                            if cli.json || args.json {
+                                render::json::print_pretty(&inventory)?;
+                            } else {
+                                println!(
+                                    "{} local benchmark stages ({})",
+                                    inventory.domain, inventory.stage_count
+                                );
+                                for stage in &inventory.stages {
+                                    println!(
+                                        "{}\t{}",
+                                        stage.stage_id,
+                                        stage.readiness_kind.as_str()
+                                    );
+                                }
                             }
-                            cli::BenchLocalDomainArg::Bam => {
-                                crate::commands::benchmark::local_stage_inventory::BenchLocalDomain::Bam
-                            }
-                        };
-                        let inventory = crate::commands::benchmark::local_stage_inventory::load_local_stage_inventory(
-                            &cwd,
-                            domain,
-                        )?;
-                        if cli.json || args.json {
-                            render::json::print_pretty(&inventory)?;
                         } else {
-                            println!(
-                                "{} local benchmark stages ({})",
-                                inventory.domain, inventory.stage_count
-                            );
-                            for stage in &inventory.stages {
-                                println!("{}\t{}", stage.stage_id, stage.readiness_kind.as_str());
+                            let report = crate::commands::benchmark::local_stage_inventory::render_all_domain_stage_inventory(
+                                &cwd,
+                                &selected_domains,
+                                std::path::PathBuf::from(
+                                    crate::commands::benchmark::local_stage_inventory::DEFAULT_ALL_DOMAIN_STAGE_LIST_PATH,
+                                ),
+                            )?;
+                            if cli.json || args.json {
+                                render::json::print_pretty(&report)?;
+                            } else {
+                                println!("{}", report.output_path);
                             }
                         }
                     }

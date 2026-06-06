@@ -6,6 +6,13 @@ pub enum BenchLocalDomainArg {
     Bam,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum BenchLocalStageListDomainArg {
+    Fastq,
+    Bam,
+    Vcf,
+}
+
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum BenchLocalDagWatchdogScenarioArg {
     NoGlobalWait,
@@ -124,8 +131,8 @@ pub enum BenchLocalCommand {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalListStagesArgs {
-    #[arg(long, value_enum)]
-    pub domain: BenchLocalDomainArg,
+    #[arg(long, value_enum, value_delimiter = ',', num_args = 1..)]
+    pub domain: Vec<BenchLocalStageListDomainArg>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }
