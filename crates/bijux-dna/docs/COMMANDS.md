@@ -484,6 +484,16 @@ Visible aliases are part of the operator surface:
   (`ploidy`, `called_genotypes`, `heterozygous_count`, `homozygous_ref_count`,
   `homozygous_alt_count`, and `missing_count`) so diploid genotype representation is proved by a
   real local smoke instead of inferred from the generic calling alias.
+- `bijux-dna bench local run-vcf-call-gl-smoke`
+  `run-vcf-call-gl-smoke` writes `target/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz`,
+  `target/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz.tbi`, and
+  `target/local-smoke/vcf.call_gl/bcftools/metrics.json` from the governed `vcf.call_gl` matrix
+  row and the real `human_like_validation` BAM fixture in `corpus-01-bam-mini`. The command
+  materializes a private reference copy under `artifacts/reference`, emits the real retained
+  `bcftools` likelihood representation, validates that the output remains indexed and parseable
+  without GT dependence, and records explicit likelihood metrics (`likelihood_field`,
+  `sites_with_likelihoods`, `samples_with_likelihoods`, `missing_likelihoods`, and `tool_id`) plus
+  a `stage-result.json` manifest so GL-bearing local smoke evidence stays reviewer-visible.
 - `bijux-dna bench local run-vcf-call-pseudohaploid-smoke`
   `run-vcf-call-pseudohaploid-smoke` writes
   `target/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz`,
