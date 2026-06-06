@@ -7,7 +7,7 @@ use anyhow::Context;
 use anyhow::Result;
 use bijux_dna_domain_compiler::{domain_coverage_report, validate_domain, ValidateOptions};
 
-use crate::commands::{cli, corpus, ena, hpc};
+use crate::commands::{cli, corpus, ena, fixtures, hpc};
 
 pub(crate) fn handle_ena_root(command: &cli::EnaCommand, cwd: &Path) -> Result<()> {
     match command {
@@ -36,6 +36,13 @@ pub(crate) fn handle_corpus_root(command: &cli::CorpusCommand, cwd: &Path) -> Re
                 corpus::diff_manifests_text(cwd, left, right)?;
             }
         }
+    }
+    Ok(())
+}
+
+pub(crate) fn handle_fixtures_root(command: &cli::FixturesCommand, cwd: &Path) -> Result<()> {
+    match command {
+        cli::FixturesCommand::Validate(args) => fixtures::entrypoint::validate_fixture(cwd, args)?,
     }
     Ok(())
 }
