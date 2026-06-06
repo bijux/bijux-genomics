@@ -72,6 +72,12 @@ fn bench_local_vcf_call_smoke_reports_real_governed_outputs() {
         Some("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
     );
     assert_eq!(
+        payload
+            .get("materialized_reference_path")
+            .and_then(serde_json::Value::as_str),
+        Some("target/local-smoke/vcf.call/bcftools/artifacts/reference/corpus_01_bam_reference.fasta")
+    );
+    assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
         Some("target/local-smoke/vcf.call/bcftools")
     );

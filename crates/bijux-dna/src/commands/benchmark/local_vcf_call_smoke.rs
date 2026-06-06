@@ -79,6 +79,7 @@ pub(crate) struct LocalVcfCallSmokeReport {
     pub(crate) input_bam: String,
     pub(crate) input_bam_index: String,
     pub(crate) reference: String,
+    pub(crate) materialized_reference_path: String,
     pub(crate) output_root: String,
     pub(crate) output_vcf_path: String,
     pub(crate) output_tbi_path: String,
@@ -125,6 +126,7 @@ pub(crate) fn run_local_vcf_call_smoke(
 
     let input_bam = repo_root.join(&contract.input_bam);
     let reference = repo_root.join(&contract.reference);
+    let materialized_reference = materialize_reference_fasta(&reference, &artifacts_root)?;
     let started_at = timestamp_marker();
     let started = Instant::now();
     let stage_outputs = run_call_diploid_stage(
@@ -133,7 +135,7 @@ pub(crate) fn run_local_vcf_call_smoke(
         &VcfCallParams {
             caller: contract.tool_id.clone(),
             sample_name: contract.sample_name.clone(),
-            reference_fasta: Some(reference.display().to_string()),
+            reference_fasta: Some(materialized_reference.display().to_string()),
             ..VcfCallParams::default()
         },
     )
@@ -210,6 +212,7 @@ pub(crate) fn run_local_vcf_call_smoke(
         input_bam: contract.input_bam,
         input_bam_index: contract.input_bam_index,
         reference: contract.reference,
+        materialized_reference_path: path_relative_to_repo(repo_root, &materialized_reference),
         output_root: path_relative_to_repo(repo_root, &output_root),
         output_vcf_path: path_relative_to_repo(repo_root, &output_vcf),
         output_tbi_path: path_relative_to_repo(repo_root, &output_tbi),
@@ -384,6 +387,24 @@ fn build_stage_result_manifest(
             },
         ],
     }
+}
+
+fn materialize_reference_fasta(source_reference: &Path, artifacts_root: &Path) -> Result<PathBuf> {
+    let reference_root = artifacts_root.join("reference");
+    fs::create_dir_all(&reference_root)
+        .with_context(|| format!("create {}", reference_root.display()))?;
+    let file_name = source_reference.file_name().ok_or_else(|| {
+        anyhow!("reference FASTA has no file name: {}", source_reference.display())
+    })?;
+    let materialized_reference = reference_root.join(file_name);
+    fs::copy(source_reference, &materialized_reference).with_context(|| {
+        format!(
+            "copy governed reference {} to {}",
+            source_reference.display(),
+            materialized_reference.display()
+        )
+    })?;
+    Ok(materialized_reference)
 }
 
 fn timestamp_marker() -> String {
