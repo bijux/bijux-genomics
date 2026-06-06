@@ -379,6 +379,11 @@ pub(crate) fn handle_meta_commands(
                             }
                         }
                     }
+                    cli::BenchLocalCommand::RenderVcfStageCatalog(args) => {
+                        crate::commands::benchmark::local_vcf_stage_catalog::run_render_vcf_stage_catalog(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateHpcSubmissionReady(args) => {
                         crate::commands::benchmark::local_hpc_submission_ready::run_validate_hpc_submission_ready(
                             args.output.clone(),

@@ -18,6 +18,8 @@ pub enum BenchLocalDagWatchdogScenarioArg {
 pub enum BenchLocalCommand {
     #[command(name = "list-stages")]
     ListStages(BenchLocalListStagesArgs),
+    #[command(name = "render-vcf-stage-catalog")]
+    RenderVcfStageCatalog(BenchLocalRenderVcfStageCatalogArgs),
     #[command(name = "validate-hpc-submission-ready")]
     ValidateHpcSubmissionReady(BenchLocalValidateHpcSubmissionReadyArgs),
     #[command(name = "simulate-dag-watchdog")]
@@ -70,6 +72,14 @@ pub enum BenchLocalCommand {
 pub struct BenchLocalListStagesArgs {
     #[arg(long, value_enum)]
     pub domain: BenchLocalDomainArg,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderVcfStageCatalogArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

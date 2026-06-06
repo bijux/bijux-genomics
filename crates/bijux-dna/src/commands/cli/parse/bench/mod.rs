@@ -36,11 +36,12 @@ pub use self::local::{
     BenchLocalRenderBenchmarkSummaryArgs, BenchLocalRenderCorpusSkipReportArgs,
     BenchLocalRenderSlurmScriptsArgs, BenchLocalRenderSlurmSubmitManifestArgs,
     BenchLocalRenderStageCommandsArgs, BenchLocalRenderToolComparisonTemplateArgs,
-    BenchLocalSimulateDagWatchdogArgs, BenchLocalValidateCorpusFixtureArgs,
-    BenchLocalValidateCorpusStageCompatibilityArgs, BenchLocalValidateHpcSubmissionReadyArgs,
-    BenchLocalValidatePipelineDagArgs, BenchLocalValidateSlurmDependenciesArgs,
-    BenchLocalValidateSlurmScriptBodiesArgs, BenchLocalValidateSlurmShellSyntaxArgs,
-    BenchLocalValidateStageResultArgs, BenchLocalValidateTaxonomyDatabaseFixtureArgs,
+    BenchLocalRenderVcfStageCatalogArgs, BenchLocalSimulateDagWatchdogArgs,
+    BenchLocalValidateCorpusFixtureArgs, BenchLocalValidateCorpusStageCompatibilityArgs,
+    BenchLocalValidateHpcSubmissionReadyArgs, BenchLocalValidatePipelineDagArgs,
+    BenchLocalValidateSlurmDependenciesArgs, BenchLocalValidateSlurmScriptBodiesArgs,
+    BenchLocalValidateSlurmShellSyntaxArgs, BenchLocalValidateStageResultArgs,
+    BenchLocalValidateTaxonomyDatabaseFixtureArgs,
 };
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
