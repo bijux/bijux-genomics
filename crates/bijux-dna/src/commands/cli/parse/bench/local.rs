@@ -20,6 +20,8 @@ pub enum BenchLocalCommand {
     ListStages(BenchLocalListStagesArgs),
     #[command(name = "render-vcf-stage-catalog")]
     RenderVcfStageCatalog(BenchLocalRenderVcfStageCatalogArgs),
+    #[command(name = "render-vcf-stage-matrix")]
+    RenderVcfStageMatrix(BenchLocalRenderVcfStageMatrixArgs),
     #[command(name = "validate-hpc-submission-ready")]
     ValidateHpcSubmissionReady(BenchLocalValidateHpcSubmissionReadyArgs),
     #[command(name = "simulate-dag-watchdog")]
@@ -78,6 +80,14 @@ pub struct BenchLocalListStagesArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalRenderVcfStageCatalogArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderVcfStageMatrixArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

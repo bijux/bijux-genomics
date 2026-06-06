@@ -99,6 +99,17 @@ pub(crate) fn handle_meta_commands(
                         args,
                     )?;
                 }
+                BenchCommand::ValidateMatrix(args) => {
+                    let cwd = std::env::current_dir()?;
+                    match args.domain {
+                        cli::BenchMatrixDomainArg::Vcf => {
+                            crate::commands::benchmark::local_vcf_stage_matrix::run_validate_vcf_stage_matrix(
+                                &cwd,
+                                args,
+                            )?;
+                        }
+                    }
+                }
                 BenchCommand::WriteScreenTaxonomyDatabaseLineage(args) => {
                     crate::commands::benchmark_taxonomy_database::run_write_screen_taxonomy_database_lineage(
                         &std::env::current_dir()?,
@@ -381,6 +392,11 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchLocalCommand::RenderVcfStageCatalog(args) => {
                         crate::commands::benchmark::local_vcf_stage_catalog::run_render_vcf_stage_catalog(
+                            &args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderVcfStageMatrix(args) => {
+                        crate::commands::benchmark::local_vcf_stage_matrix::run_render_vcf_stage_matrix(
                             &args,
                         )?;
                     }

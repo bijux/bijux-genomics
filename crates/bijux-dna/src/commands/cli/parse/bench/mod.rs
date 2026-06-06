@@ -6,6 +6,7 @@ mod config;
 mod corpus_fastq;
 mod fastq;
 mod local;
+mod matrix;
 mod publication;
 mod readiness;
 mod suite;
@@ -36,13 +37,14 @@ pub use self::local::{
     BenchLocalRenderBenchmarkSummaryArgs, BenchLocalRenderCorpusSkipReportArgs,
     BenchLocalRenderSlurmScriptsArgs, BenchLocalRenderSlurmSubmitManifestArgs,
     BenchLocalRenderStageCommandsArgs, BenchLocalRenderToolComparisonTemplateArgs,
-    BenchLocalRenderVcfStageCatalogArgs, BenchLocalSimulateDagWatchdogArgs,
-    BenchLocalValidateCorpusFixtureArgs, BenchLocalValidateCorpusStageCompatibilityArgs,
-    BenchLocalValidateHpcSubmissionReadyArgs, BenchLocalValidatePipelineDagArgs,
-    BenchLocalValidateSlurmDependenciesArgs, BenchLocalValidateSlurmScriptBodiesArgs,
-    BenchLocalValidateSlurmShellSyntaxArgs, BenchLocalValidateStageResultArgs,
-    BenchLocalValidateTaxonomyDatabaseFixtureArgs,
+    BenchLocalRenderVcfStageCatalogArgs, BenchLocalRenderVcfStageMatrixArgs,
+    BenchLocalSimulateDagWatchdogArgs, BenchLocalValidateCorpusFixtureArgs,
+    BenchLocalValidateCorpusStageCompatibilityArgs, BenchLocalValidateHpcSubmissionReadyArgs,
+    BenchLocalValidatePipelineDagArgs, BenchLocalValidateSlurmDependenciesArgs,
+    BenchLocalValidateSlurmScriptBodiesArgs, BenchLocalValidateSlurmShellSyntaxArgs,
+    BenchLocalValidateStageResultArgs, BenchLocalValidateTaxonomyDatabaseFixtureArgs,
 };
+pub use self::matrix::{BenchMatrixDomainArg, BenchValidateMatrixArgs};
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
     BenchCorpusFastqReportArgs, BenchPublicationTargetsArgs,
@@ -93,6 +95,8 @@ pub enum BenchCommand {
     RepoChecks(BenchRepoChecksArgs),
     #[command(name = "write-screen-taxonomy-database-lineage")]
     WriteScreenTaxonomyDatabaseLineage(BenchWriteScreenTaxonomyDatabaseLineageArgs),
+    #[command(name = "validate-matrix")]
+    ValidateMatrix(BenchValidateMatrixArgs),
     #[command(name = "publication-targets")]
     PublicationTargets(BenchPublicationTargetsArgs),
     #[command(name = "corpus-fastq")]
