@@ -78,7 +78,7 @@ pub(crate) fn collect_vcf_rendered_command_rows(
     Ok(rows)
 }
 
-fn collect_vcf_adapter_command_row_map(
+pub(crate) fn collect_vcf_adapter_command_row_map(
     repo_root: &Path,
 ) -> Result<BTreeMap<(String, String), VcfRenderedCommandRow>> {
     let temp_root = repo_root.join("artifacts/bench-readiness/vcf-rendered-command-rows");

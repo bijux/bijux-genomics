@@ -20,7 +20,7 @@ pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_CORPUS_ASSETS_PATH: &str =
     "target/bench-readiness/essential-pipeline-corpus-assets.tsv";
 const ESSENTIAL_PIPELINE_CORPUS_ASSETS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.essential_pipeline_corpus_assets.v1";
-const ESSENTIAL_PIPELINE_IDS: &[&str] = &[
+pub(crate) const ESSENTIAL_PIPELINE_IDS: &[&str] = &[
     "core-germline-fastq-bam-vcf",
     "adna-pseudohaploid-fastq-bam-vcf",
     "adna-gl-fastq-bam-vcf",

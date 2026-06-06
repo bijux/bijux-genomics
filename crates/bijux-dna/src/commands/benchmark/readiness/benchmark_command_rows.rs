@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -16,9 +16,11 @@ use super::bam_command_adapter_coverage::{
 use super::fastq_command_adapter_coverage::{
     collect_fastq_command_adapter_coverage_rows, FastqBenchmarkStatus,
 };
-use crate::commands::benchmark::local_stage_commands::collect_local_stage_plan_bundles;
+use crate::commands::benchmark::local_stage_commands::{
+    collect_local_stage_plan_bundles, local_stage_plans,
+};
 use crate::commands::benchmark::local_stage_inventory::{
-    BenchLocalDomain, LocalStageReadinessKind,
+    load_local_stage_inventory, BenchLocalDomain, LocalStageReadinessKind,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -91,6 +93,20 @@ pub(crate) fn collect_benchmark_command_rows(repo_root: &Path) -> Result<Vec<Ben
     Ok(rows)
 }
 
+pub(crate) fn collect_selected_fastq_command_rows(
+    repo_root: &Path,
+    stage_ids: &BTreeSet<String>,
+) -> Result<BTreeMap<String, BenchmarkCommandRow>> {
+    collect_selected_domain_command_rows(repo_root, BenchLocalDomain::Fastq, stage_ids)
+}
+
+pub(crate) fn collect_selected_bam_command_rows(
+    repo_root: &Path,
+    stage_ids: &BTreeSet<String>,
+) -> Result<BTreeMap<String, BenchmarkCommandRow>> {
+    collect_selected_domain_command_rows(repo_root, BenchLocalDomain::Bam, stage_ids)
+}
+
 pub(crate) fn render_shell_command(argv: &[String]) -> String {
     argv.iter()
         .map(|arg| {
@@ -127,6 +143,54 @@ fn canonical_stage_plan_map(
             ))
         })
         .collect()
+}
+
+fn collect_selected_domain_command_rows(
+    repo_root: &Path,
+    domain: BenchLocalDomain,
+    stage_ids: &BTreeSet<String>,
+) -> Result<BTreeMap<String, BenchmarkCommandRow>> {
+    let readiness_by_stage = load_local_stage_inventory(repo_root, domain)?
+        .stages
+        .into_iter()
+        .map(|stage| (stage.stage_id, stage.readiness_kind))
+        .collect::<BTreeMap<_, _>>();
+    let mut rows = BTreeMap::new();
+
+    for stage_id in stage_ids {
+        let Some(readiness_kind) = readiness_by_stage.get(stage_id).copied() else {
+            return Err(anyhow!(
+                "missing canonical {} local stage inventory row for `{stage_id}`",
+                domain_label(domain)
+            ));
+        };
+        let plan = local_stage_plans(repo_root, stage_id)?.into_iter().next().ok_or_else(|| {
+            anyhow!(
+                "local benchmark stage `{stage_id}` did not yield any governed {} plans",
+                domain_label(domain)
+            )
+        })?;
+        let tool_id = plan.tool_id.as_str().to_string();
+        let argv = match domain {
+            BenchLocalDomain::Fastq => {
+                render_fastq_stage_tool_argv(repo_root, stage_id, &tool_id, &plan)?
+            }
+            BenchLocalDomain::Bam => {
+                render_bam_stage_tool_argv(repo_root, stage_id, &tool_id, &plan)?
+            }
+        };
+        rows.insert(
+            stage_id.clone(),
+            BenchmarkCommandRow {
+                stage_id: stage_id.clone(),
+                tool_id,
+                readiness_kind: readiness_kind_label(readiness_kind).to_string(),
+                argv,
+            },
+        );
+    }
+
+    Ok(rows)
 }
 
 fn render_fastq_stage_tool_argv(
@@ -212,7 +276,10 @@ fn render_bam_stage_tool_argv(
     .with_context(|| format!("load BAM execution spec for `{stage_id}` / `{tool_id}`"))?;
     let (r1, r2) = if stage_id == "bam.align" {
         (
-            Some(find_first_input(base_plan, &["reads_r1", "fastq_r1"]).context("resolve align reads_r1")?),
+            Some(
+                find_first_input(base_plan, &["reads_r1", "fastq_r1"])
+                    .context("resolve align reads_r1")?,
+            ),
             find_first_input(base_plan, &["reads_r2", "fastq_r2"]),
         )
     } else {
@@ -227,9 +294,7 @@ fn render_bam_stage_tool_argv(
     let sample_id = params_ref
         .and_then(|value| value.get("sample_id"))
         .and_then(serde_json::Value::as_str)
-        .or_else(|| {
-            base_plan.params.get("sample_id").and_then(serde_json::Value::as_str)
-        });
+        .or_else(|| base_plan.params.get("sample_id").and_then(serde_json::Value::as_str));
     let out_dir = benchmark_command_out_dir("bam", stage_id, tool_id).with_context(|| {
         format!("build benchmark command output dir for `{stage_id}` / `{tool_id}`")
     })?;
@@ -255,6 +320,13 @@ fn benchmark_command_out_dir(domain: &str, stage_id: &str, tool_id: &str) -> Res
         .join(domain)
         .join(stage_path)
         .join(tool_id))
+}
+
+fn domain_label(domain: BenchLocalDomain) -> &'static str {
+    match domain {
+        BenchLocalDomain::Fastq => "FASTQ",
+        BenchLocalDomain::Bam => "BAM",
+    }
 }
 
 fn fastq_stage_params_from_plan(

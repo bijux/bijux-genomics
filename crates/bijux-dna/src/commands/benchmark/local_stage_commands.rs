@@ -257,11 +257,11 @@ fn materialize_feature_gated_stage(stage_id: &str) -> Result<PathBuf> {
 #[cfg(not(feature = "bam_downstream"))]
 fn materialize_feature_gated_stage(stage_id: &str) -> Result<PathBuf> {
     match stage_id {
-        "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship" => Err(
-            anyhow!(
+        "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship" => {
+            Err(anyhow!(
                 "stage `{stage_id}` requires the `bam_downstream` feature; rerun with `cargo run -p bijux-dna --features bam_downstream -- ...`"
-            ),
-        ),
+            ))
+        }
         other => Err(anyhow!("unsupported local benchmark stage `{other}`")),
     }
 }
@@ -432,7 +432,7 @@ where
     artifacts
 }
 
-fn local_stage_plans(repo_root: &Path, stage_id: &str) -> Result<Vec<StagePlanV1>> {
+pub(crate) fn local_stage_plans(repo_root: &Path, stage_id: &str) -> Result<Vec<StagePlanV1>> {
     macro_rules! smoke_plans {
         ($expr:expr) => {
             Ok($expr?.into_iter().map(|case| case.plan).collect::<Vec<_>>())
@@ -657,16 +657,16 @@ fn feature_gated_local_stage_plans(repo_root: &Path, stage_id: &str) -> Result<V
 #[cfg(not(feature = "bam_downstream"))]
 fn feature_gated_local_stage_plans(_repo_root: &Path, stage_id: &str) -> Result<Vec<StagePlanV1>> {
     match stage_id {
-        "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship" => Err(
-            anyhow!(
+        "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship" => {
+            Err(anyhow!(
                 "stage `{stage_id}` requires the `bam_downstream` feature for rendered local benchmark metadata; rerun with `cargo run -p bijux-dna --features bam_downstream -- bench local render-stage-commands`"
-            ),
-        ),
+            ))
+        }
         other => Err(anyhow!("unsupported local benchmark stage `{other}`")),
     }
 }
 
-fn rendered_stage_materialize_argv(stage_id: &str) -> Vec<String> {
+pub(crate) fn rendered_stage_materialize_argv(stage_id: &str) -> Vec<String> {
     vec![
         "cargo".to_string(),
         "run".to_string(),
