@@ -42,6 +42,8 @@ pub enum BenchLocalCommand {
     RunVcfGlPropagationSmoke(BenchLocalRunVcfGlPropagationSmokeArgs),
     #[command(name = "run-vcf-impute-smoke")]
     RunVcfImputeSmoke(BenchLocalRunVcfImputeSmokeArgs),
+    #[command(name = "run-vcf-imputation-metrics-smoke")]
+    RunVcfImputationMetricsSmoke(BenchLocalRunVcfImputationMetricsSmokeArgs),
     #[command(name = "run-vcf-call-pseudohaploid-smoke")]
     RunVcfCallPseudohaploidSmoke(BenchLocalRunVcfCallPseudohaploidSmokeArgs),
     #[command(name = "run-vcf-phasing-smoke")]
@@ -202,6 +204,14 @@ pub struct BenchLocalRunVcfGlPropagationSmokeArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalRunVcfImputeSmokeArgs {
+    #[arg(long, default_value = "beagle")]
+    pub tool_id: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunVcfImputationMetricsSmokeArgs {
     #[arg(long, default_value = "beagle")]
     pub tool_id: String,
     #[arg(long, default_value_t = false)]

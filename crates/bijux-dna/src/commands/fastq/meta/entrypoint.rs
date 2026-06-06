@@ -448,6 +448,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RunVcfImputationMetricsSmoke(args) => {
+                        crate::commands::benchmark::local_vcf_imputation_metrics_smoke::run_vcf_imputation_metrics_smoke(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RunVcfCallPseudohaploidSmoke(args) => {
                         crate::commands::benchmark::local_vcf_call_pseudohaploid_smoke::run_vcf_call_pseudohaploid_smoke(
                             &args,
