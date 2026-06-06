@@ -49,6 +49,7 @@ pub(crate) mod vcf_adapter_output_coverage;
 pub(crate) mod vcf_adapters_ready;
 pub(crate) mod vcf_angsd_adapter;
 pub(crate) mod vcf_bcftools_adapter;
+pub(crate) mod vcf_comparable_metrics;
 pub(crate) mod vcf_descent_family_adapter;
 pub(crate) mod vcf_eigensoft_adapter;
 pub(crate) mod vcf_imputation_family_adapter;
