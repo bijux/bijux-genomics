@@ -99,6 +99,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-parser-completeness-gate",
     "bijux-dna bench readiness render-corpus-asset-coverage-gate",
     "bijux-dna bench readiness render-essential-pipeline-corpus-assets",
+    "bijux-dna bench readiness render-essential-pipeline-commands",
     "bijux-dna bench readiness render-parser-failure-tests",
     "bijux-dna bench readiness render-commands",
     "bijux-dna bench readiness render-command-argv",
