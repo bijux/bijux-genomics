@@ -46,6 +46,7 @@ pub(crate) mod undercovered_stages;
 pub(crate) mod unregistered_benchmark_pairs;
 pub(crate) mod vcf_adapter_missing_input_tests;
 pub(crate) mod vcf_adapter_output_coverage;
+pub(crate) mod vcf_adapters_ready;
 pub(crate) mod vcf_angsd_adapter;
 pub(crate) mod vcf_bcftools_adapter;
 pub(crate) mod vcf_descent_family_adapter;

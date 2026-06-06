@@ -332,6 +332,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfAdaptersReady(args) => {
+                        crate::commands::benchmark::readiness::vcf_adapters_ready::run_render_vcf_adapters_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfAdapterOutputCoverage(args) => {
                         crate::commands::benchmark::readiness::vcf_adapter_output_coverage::run_render_vcf_adapter_output_coverage(
                             args,
