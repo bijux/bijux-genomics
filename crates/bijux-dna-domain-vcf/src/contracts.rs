@@ -1,3 +1,4 @@
+mod comparable_metrics;
 mod invariants;
 mod panel_governance;
 mod stage_delivery;
@@ -5,6 +6,10 @@ mod stage_io;
 mod stage_metrics;
 mod workflow_surfaces;
 
+pub use comparable_metrics::{
+    comparable_metric_stage_ids, stage_comparable_metric_specs, VcfComparableMetricDirection,
+    VcfComparableMetricSpec,
+};
 pub use invariants::{
     refuse_unsupported_regime_transition, validate_entry_vcf_invariants,
     validate_panel_map_invariants, validate_species_context, validate_vcf_invariants, ContigSpec,

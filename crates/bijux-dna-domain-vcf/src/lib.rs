@@ -29,6 +29,10 @@ pub use artifacts::{
     VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION, VCF_STATS_WORKFLOW_SCHEMA_VERSION,
     VCF_VALIDATION_SUMMARY_SCHEMA_VERSION,
 };
+pub use contracts::{
+    comparable_metric_stage_ids, stage_comparable_metric_specs, VcfComparableMetricDirection,
+    VcfComparableMetricSpec,
+};
 pub use metrics::{VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStatsMetricsV1};
 pub use parsers::{
     parse_angsd_stage_metrics, parse_bcftools_stage_metrics, parse_eigensoft_stage_metrics,
