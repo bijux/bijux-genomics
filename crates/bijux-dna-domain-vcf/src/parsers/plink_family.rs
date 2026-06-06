@@ -6,6 +6,8 @@ use anyhow::{anyhow, bail, Context, Result};
 
 use crate::taxonomy::VcfDomainStage;
 
+use super::segments::parse_segment_stage_metrics;
+
 const PLINK_TOOL_ID: &str = "plink";
 const PLINK2_TOOL_ID: &str = "plink2";
 
@@ -449,103 +451,7 @@ fn parse_plink2_population_structure_metrics(root: &Path) -> Result<serde_json::
 }
 
 fn parse_plink2_roh_metrics(root: &Path) -> Result<serde_json::Value> {
-    let _log = parse_key_value_lines(&root.join("raw.log"))?;
-    let segments = parse_roh_segments(&root.join("raw.hom"))?;
-    let mut per_sample_counts = BTreeMap::<String, u64>::new();
-    let mut per_sample_lengths = BTreeMap::<String, u64>::new();
-    let mut total_length = 0_u64;
-
-    for segment in &segments {
-        total_length += segment.length;
-        *per_sample_counts.entry(segment.sample_id.clone()).or_insert(0) += 1;
-        *per_sample_lengths.entry(segment.sample_id.clone()).or_insert(0) += segment.length;
-    }
-
-    let mut per_sample_summary = Vec::<serde_json::Value>::new();
-    for sample_id in per_sample_counts.keys() {
-        let segment_count = per_sample_counts[sample_id];
-        let sample_total = per_sample_lengths[sample_id];
-        let mean_length =
-            if segment_count == 0 { 0.0 } else { sample_total as f64 / segment_count as f64 };
-        per_sample_summary.push(serde_json::json!({
-            "sample_id": sample_id,
-            "segment_count": segment_count,
-            "total_length": sample_total,
-            "mean_length": mean_length,
-        }));
-    }
-
-    Ok(serde_json::json!({
-        "schema_version": "bijux.vcf.roh.v1",
-        "stage_id": "vcf.roh",
-        "tool_id": PLINK2_TOOL_ID,
-        "status": "complete",
-        "sample_count": per_sample_counts.len(),
-        "segment_count": segments.len(),
-        "total_length": total_length,
-        "segments": segments
-            .into_iter()
-            .map(|segment| {
-                serde_json::json!({
-                    "sample_id": segment.sample_id,
-                    "contig": segment.contig,
-                    "start": segment.start,
-                    "end": segment.end,
-                    "length": segment.length,
-                    "variant_count": segment.variant_count,
-                })
-            })
-            .collect::<Vec<_>>(),
-        "per_sample_summary": per_sample_summary,
-    }))
-}
-
-#[derive(Debug, Clone)]
-struct RohSegment {
-    sample_id: String,
-    contig: String,
-    start: u64,
-    end: u64,
-    length: u64,
-    variant_count: u64,
-}
-
-fn parse_roh_segments(path: &Path) -> Result<Vec<RohSegment>> {
-    let (header, rows) = read_table(path)?;
-    let sample_idx = index_for(&header, &["sample", "iid"])?;
-    let contig_idx = index_for(&header, &["contig", "chr"])?;
-    let start_idx = index_for(&header, &["start", "pos1"])?;
-    let end_idx = index_for(&header, &["end", "pos2"])?;
-    let length_idx = index_for(&header, &["length_bp", "length", "kb"])?;
-    let variant_idx = index_for(&header, &["n_sites", "nsnp", "variant_count"])?;
-
-    let mut segments = rows
-        .into_iter()
-        .map(|row| {
-            let length_text = field(&row, length_idx, path)?;
-            let length = if normalize_header(&header[length_idx]) == "kb" {
-                parse_f64(length_text, "KB length")?.round() as u64
-            } else {
-                parse_u64(length_text, "segment length")?
-            };
-            Ok(RohSegment {
-                sample_id: field(&row, sample_idx, path)?.to_string(),
-                contig: field(&row, contig_idx, path)?.to_string(),
-                start: parse_u64(field(&row, start_idx, path)?, "segment start")?,
-                end: parse_u64(field(&row, end_idx, path)?, "segment end")?,
-                length,
-                variant_count: parse_u64(field(&row, variant_idx, path)?, "segment variant count")?,
-            })
-        })
-        .collect::<Result<Vec<_>>>()?;
-    segments.sort_by(|left, right| {
-        left.sample_id
-            .cmp(&right.sample_id)
-            .then_with(|| left.contig.cmp(&right.contig))
-            .then_with(|| left.start.cmp(&right.start))
-            .then_with(|| left.end.cmp(&right.end))
-    });
-    Ok(segments)
+    parse_segment_stage_metrics(PLINK2_TOOL_ID, VcfDomainStage::Roh, root)
 }
 
 fn build_population_structure_row(

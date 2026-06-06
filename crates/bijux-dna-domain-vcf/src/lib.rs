@@ -33,7 +33,7 @@ pub use metrics::{VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStats
 pub use parsers::{
     parse_angsd_stage_metrics, parse_bcftools_stage_metrics, parse_eigensoft_stage_metrics,
     parse_imputation_stage_metrics, parse_phasing_stage_metrics, parse_plink2_stage_metrics,
-    parse_plink_stage_metrics,
+    parse_plink_stage_metrics, parse_segment_stage_metrics,
 };
 pub use registry_emit::{param_registry_toml, required_tools_toml};
 pub use run::{

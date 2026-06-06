@@ -66,7 +66,7 @@ const VCF_PLINK2_FIXTURE_CASES: &[VcfPlink2FixtureCase] = &[
     VcfPlink2FixtureCase {
         stage: VcfDomainStage::Roh,
         parser_id: "parse_plink2_roh_metrics",
-        required_files: &["raw.hom", "raw.log", "expected.normalized.json"],
+        required_files: &["raw.command.json", "raw.hom", "raw.log", "expected.normalized.json"],
     },
 ];
 
