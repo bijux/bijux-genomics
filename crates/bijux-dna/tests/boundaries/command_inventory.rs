@@ -101,6 +101,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-essential-pipeline-corpus-assets",
     "bijux-dna bench readiness render-essential-pipeline-partial-resume",
     "bijux-dna bench readiness render-essential-pipeline-failure-isolation",
+    "bijux-dna bench readiness render-essential-pipeline-report-map",
     "bijux-dna bench readiness render-essential-pipeline-commands",
     "bijux-dna bench readiness render-parser-failure-tests",
     "bijux-dna bench readiness render-commands",
