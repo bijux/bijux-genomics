@@ -9,6 +9,7 @@ schema_version = "bijux.required_tools.v1"
 required_tools = [
   "angsd",
   "beagle",
+  "beagle-imputation",
   "eagle",
   "eigensoft",
   "germline",

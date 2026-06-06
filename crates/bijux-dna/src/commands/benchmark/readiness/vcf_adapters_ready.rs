@@ -148,9 +148,9 @@ pub(crate) fn render_vcf_adapters_ready(
         || {
             let report =
                 render_vcf_orphan_tools(repo_root, PathBuf::from(DEFAULT_VCF_ORPHAN_TOOLS_PATH))?;
-            if report.orphan_count != 10
-                || report.required_tool_count != 16
-                || report.registered_tool_count != 16
+            if report.orphan_count != 11
+                || report.required_tool_count != 17
+                || report.registered_tool_count != 17
                 || report.served_tool_count != 6
                 || report.rows.iter().any(|row| {
                     row.served_stage_count != 0 || row.decision != "future_not_benchmark_ready"
@@ -158,7 +158,7 @@ pub(crate) fn render_vcf_adapters_ready(
             {
                 bail!("VCF orphan-tool report drifted from the governed orphan tool slice");
             }
-            Ok("validated 10 governed orphan VCF tools with explicit future_not_benchmark_ready decisions".to_string())
+            Ok("validated 11 governed orphan VCF tools with explicit future_not_benchmark_ready decisions".to_string())
         },
     );
 
@@ -207,7 +207,7 @@ pub(crate) fn render_vcf_adapters_ready(
             if !report.passes_gate
                 || report.stage_count != 20
                 || report.matrix_row_count != 20
-                || report.registry_pair_count != 46
+                || report.registry_pair_count != 48
                 || report.benchmark_ready_registry_pair_count != 8
                 || report.unregistered_matrix_pair_count != 0
                 || report.missing_benchmark_ready_registry_pair_count != 0

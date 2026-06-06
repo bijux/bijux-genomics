@@ -49,7 +49,7 @@ fn bench_readiness_vcf_matrix_registry_consistency_file_writes_self_describing_r
     assert_eq!(report.get("passes_gate"), Some(&serde_json::Value::Bool(true)));
     assert_eq!(report.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(report.get("matrix_row_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(report.get("registry_pair_count").and_then(serde_json::Value::as_u64), Some(46));
+    assert_eq!(report.get("registry_pair_count").and_then(serde_json::Value::as_u64), Some(48));
     assert_eq!(
         report.get("benchmark_ready_registry_pair_count").and_then(serde_json::Value::as_u64),
         Some(8)
