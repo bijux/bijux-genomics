@@ -42,6 +42,8 @@ pub enum BenchLocalCommand {
     RunVcfGlPropagationSmoke(BenchLocalRunVcfGlPropagationSmokeArgs),
     #[command(name = "run-vcf-call-pseudohaploid-smoke")]
     RunVcfCallPseudohaploidSmoke(BenchLocalRunVcfCallPseudohaploidSmokeArgs),
+    #[command(name = "run-vcf-prepare-reference-panel-smoke")]
+    RunVcfPrepareReferencePanelSmoke(BenchLocalRunVcfPrepareReferencePanelSmokeArgs),
     #[command(name = "validate-vcf-no-empty-output")]
     ValidateVcfNoEmptyOutput(BenchLocalValidateVcfNoEmptyOutputArgs),
     #[command(name = "validate-vcf-stage-catalog-ready")]
@@ -196,6 +198,14 @@ pub struct BenchLocalRunVcfGlPropagationSmokeArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalRunVcfCallPseudohaploidSmokeArgs {
+    #[arg(long, default_value = "bcftools")]
+    pub tool_id: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunVcfPrepareReferencePanelSmokeArgs {
     #[arg(long, default_value = "bcftools")]
     pub tool_id: String,
     #[arg(long, default_value_t = false)]

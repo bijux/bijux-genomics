@@ -448,6 +448,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RunVcfPrepareReferencePanelSmoke(args) => {
+                        crate::commands::benchmark::local_vcf_prepare_reference_panel_smoke::run_vcf_prepare_reference_panel_smoke(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateVcfNoEmptyOutput(args) => {
                         crate::commands::benchmark::local_vcf_no_empty_output::run_validate_vcf_no_empty_output(
                             &args,
