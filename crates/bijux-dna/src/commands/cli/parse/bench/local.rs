@@ -24,6 +24,8 @@ pub enum BenchLocalCommand {
     RenderVcfStageMatrix(BenchLocalRenderVcfStageMatrixArgs),
     #[command(name = "validate-vcf-reference-compatibility")]
     ValidateVcfReferenceCompatibility(BenchLocalValidateVcfReferenceCompatibilityArgs),
+    #[command(name = "validate-vcf-sample-compatibility")]
+    ValidateVcfSampleCompatibility(BenchLocalValidateVcfSampleCompatibilityArgs),
     #[command(name = "validate-hpc-submission-ready")]
     ValidateHpcSubmissionReady(BenchLocalValidateHpcSubmissionReadyArgs),
     #[command(name = "simulate-dag-watchdog")]
@@ -98,6 +100,16 @@ pub struct BenchLocalRenderVcfStageMatrixArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalValidateVcfReferenceCompatibilityArgs {
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateVcfSampleCompatibilityArgs {
     #[arg(long)]
     pub manifest: Option<std::path::PathBuf>,
     #[arg(long)]

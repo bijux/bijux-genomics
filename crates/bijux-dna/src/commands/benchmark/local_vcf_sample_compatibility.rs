@@ -2,13 +2,15 @@ use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use serde::Serialize;
 
 use crate::commands::benchmark::local_corpus_fixture::vcf::{
     load_sample_metadata, load_vcf_corpus_fixture_manifest_path,
-    validate_vcf_corpus_fixture_manifest_path,
+    validate_vcf_corpus_fixture_manifest_path, DEFAULT_VCF_MINI_MANIFEST_PATH,
 };
+use crate::commands::cli::parse;
+use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_SAMPLE_COMPATIBILITY_PATH: &str =
     "target/local-ready/vcf/sample-compatibility.json";
@@ -41,6 +43,36 @@ pub(crate) struct LocalVcfSampleCompatibilityReport {
     pub(crate) missing_population_labels: Vec<String>,
     pub(crate) missing_sex_labels: Vec<String>,
     pub(crate) status: String,
+}
+
+pub(crate) fn run_validate_vcf_sample_compatibility(
+    args: &parse::BenchLocalValidateVcfSampleCompatibilityArgs,
+) -> Result<()> {
+    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let manifest_path = match &args.manifest {
+        Some(path) if path.is_absolute() => path.clone(),
+        Some(path) => repo_root.join(path),
+        None => repo_root.join(DEFAULT_VCF_MINI_MANIFEST_PATH),
+    };
+    let output_path = match &args.output {
+        Some(path) if path.is_absolute() => path.clone(),
+        Some(path) => repo_root.join(path),
+        None => repo_root.join(DEFAULT_VCF_SAMPLE_COMPATIBILITY_PATH),
+    };
+    let report = render_vcf_sample_compatibility(&repo_root, &manifest_path, &output_path)?;
+    if args.json {
+        render::json::print_pretty(&report)?;
+    } else {
+        println!("{}", report.output_path);
+    }
+    if report.status != "compatible" {
+        bail!(
+            "VCF sample compatibility drifted for `{}`; inspect {}",
+            report.corpus_id,
+            report.output_path
+        );
+    }
+    Ok(())
 }
 
 pub(crate) fn render_vcf_sample_compatibility(
