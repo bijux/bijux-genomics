@@ -662,6 +662,59 @@ fn demography_stage_consumes_ibd_segments_and_emits_ne_metrics() {
         "bijux.vcf.demography.contract.v1"
     );
     assert!(demography_json.get("inference_status").is_some());
+    assert_eq!(demography_json.get("method").and_then(|value| value.as_str()), Some("ibdne"));
+    assert_eq!(demography_json.get("status").and_then(|value| value.as_str()), Some("complete"));
+    assert_eq!(
+        demography_json.get("insufficient_data_reason").and_then(|value| value.as_str()),
+        None
+    );
+    assert!(demography_json
+        .get("ne_estimates")
+        .and_then(|value| value.as_array())
+        .is_some_and(|rows| !rows.is_empty()));
+}
+
+#[test]
+fn demography_stage_reports_structured_insufficient_data_without_abort() {
+    let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+    let ibd_segments = dir.path().join("ibd_segments.tsv");
+    std::fs::write(
+        &ibd_segments,
+        "sample_a\tsample_b\tcontig\tstart\tend\tlength_cm\ns1\ts2\tchr1\t1000\t5000\t3.50\n",
+    )
+    .unwrap_or_else(|err| panic!("write ibd segments fixture: {err}"));
+    let out = run_demography_stage(
+        &ibd_segments,
+        &dir.path().join("demography"),
+        &DemographyStageParams { min_segments: 2, ..DemographyStageParams::default() },
+    )
+    .unwrap_or_else(|err| panic!("run demography: {err}"));
+    assert!(out.ne_trajectory_tsv.exists());
+    assert!(out.demography_json.exists());
+    assert!(out.demography_metrics_json.exists());
+    let demography_raw = std::fs::read_to_string(&out.demography_json)
+        .unwrap_or_else(|err| panic!("read demography json: {err}"));
+    let demography_json: serde_json::Value = serde_json::from_str(&demography_raw)
+        .unwrap_or_else(|err| panic!("parse demography json: {err}"));
+    assert_eq!(
+        demography_json.get("status").and_then(|value| value.as_str()),
+        Some("insufficient_data")
+    );
+    assert_eq!(
+        demography_json.get("insufficient_data_reason").and_then(|value| value.as_str()),
+        Some("not_enough_ibd_segments")
+    );
+    assert_eq!(
+        demography_json.get("time_bins").and_then(|value| value.as_array()).map(Vec::len),
+        Some(0)
+    );
+    assert_eq!(
+        demography_json.get("ne_estimates").and_then(|value| value.as_array()).map(Vec::len),
+        Some(0)
+    );
+    let trajectory_tsv = std::fs::read_to_string(&out.ne_trajectory_tsv)
+        .unwrap_or_else(|err| panic!("read trajectory tsv: {err}"));
+    assert_eq!(trajectory_tsv, "generation\tne\tci_low\tci_high\n");
 }
 
 #[test]
