@@ -407,6 +407,12 @@ Visible aliases are part of the operator surface:
   current VCF matrix rows. Each row carries `tool_id`, `registered_binary`, `served_stage_count`,
   and `decision`, and the detector fails closed unless every orphan is explicitly
   `future_not_benchmark_ready` or `remove_from_scope`.
+- `bijux-dna bench readiness render-vcf-undercovered-stages`
+  `render-vcf-undercovered-stages` writes `target/bench-readiness/vcf-undercovered-stages.tsv`
+  with one governed row per VCF stage that admits multiple registered tool backends but currently
+  benchmarks only one. Each row carries `stage_id`, `valid_tool_classes`, `registered_tools`,
+  `missing_tools`, and `decision`, and the detector fails closed unless every undercovered stage is
+  explicitly `future_not_benchmark_ready` or `limit_to_specialized_tool`.
 - `bijux-dna bench readiness render-missing-benchmark-pairs`
   `render-missing-benchmark-pairs` writes
   `target/bench-readiness/missing-benchmark-pairs.tsv` with one governed row per FASTQ or BAM
