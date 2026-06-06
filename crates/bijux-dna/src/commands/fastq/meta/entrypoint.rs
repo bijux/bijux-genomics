@@ -327,6 +327,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfBcftoolsAdapter(args) => {
+                        crate::commands::benchmark::readiness::vcf_bcftools_adapter::run_render_vcf_bcftools_adapter(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderMissingBenchmarkPairs(args) => {
                         crate::commands::benchmark::readiness::missing_benchmark_pairs::run_render_missing_benchmark_pairs(
                             args,
