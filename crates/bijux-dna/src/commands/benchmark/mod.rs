@@ -7,6 +7,7 @@ pub(crate) mod local_corpus_fixture;
 pub(crate) mod local_corpus_skip_report;
 pub(crate) mod local_corpus_stage_compatibility;
 pub(crate) mod local_dag_watchdog_simulation;
+pub(crate) mod local_essential_pipeline_fake_runs;
 pub(crate) mod local_hpc_submission_ready;
 pub(crate) mod local_pipeline_dag;
 pub(crate) mod local_slurm_dependency_check;
