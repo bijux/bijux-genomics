@@ -156,6 +156,7 @@ configs/pipelines/local/fastq-core-preprocess.toml
 configs/pipelines/local/fastq-edna-taxonomy.toml
 configs/pipelines/local/fastq-paired-merge.toml
 configs/pipelines/local/fastq-to-bam.toml
+configs/pipelines/local/reference-panel-imputation.toml
 configs/pipelines/local/fastq-umi.toml
 configs/runtime/asset_hydration.toml
 configs/runtime/asset_locks.toml
