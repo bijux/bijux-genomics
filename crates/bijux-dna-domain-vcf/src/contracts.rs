@@ -1,6 +1,7 @@
 mod comparable_metrics;
 mod invariants;
 mod panel_governance;
+mod parser_fixture_inventory;
 mod stage_delivery;
 mod stage_io;
 mod stage_metrics;
@@ -19,6 +20,10 @@ pub use invariants::{
 pub use panel_governance::{
     validate_reference_panel_governance, DefaultPanelSelectionPolicy, PanelSelectionContext,
     PanelSelectionPolicy, ReferencePanelGovernance,
+};
+pub use parser_fixture_inventory::{
+    find_vcf_parser_fixture_inventory_row, vcf_parser_fixture_inventory,
+    VcfParserFixtureInventoryRow,
 };
 pub use stage_delivery::{
     stage_artifact_contract, stage_failure_modes, DamageAwareGenotypeLogicContract,

@@ -30,8 +30,9 @@ pub use artifacts::{
     VCF_VALIDATION_SUMMARY_SCHEMA_VERSION,
 };
 pub use contracts::{
-    comparable_metric_stage_ids, stage_comparable_metric_specs, VcfComparableMetricDirection,
-    VcfComparableMetricSpec,
+    comparable_metric_stage_ids, find_vcf_parser_fixture_inventory_row,
+    stage_comparable_metric_specs, vcf_parser_fixture_inventory, VcfComparableMetricDirection,
+    VcfComparableMetricSpec, VcfParserFixtureInventoryRow,
 };
 pub use metrics::{VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStatsMetricsV1};
 pub use parsers::{
