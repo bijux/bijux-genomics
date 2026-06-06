@@ -17,6 +17,8 @@ use super::local_stage_result_manifest::{
 };
 use super::local_vcf_call_bam_smoke_support::parse_output_sample_count;
 use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
+use crate::commands::cli::parse;
+use crate::commands::cli::render;
 
 const DEFAULT_VCF_FILTER_SMOKE_ROOT: &str = "target/local-smoke/vcf.filter";
 const LOCAL_VCF_FILTER_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_filter_smoke.v1";
@@ -354,6 +356,17 @@ pub(crate) fn run_local_vcf_filter_smoke(
         gt_present: validation.gt_present,
         gl_present: validation.gl_present,
     })
+}
+
+pub(crate) fn run_vcf_filter_smoke(args: &parse::BenchLocalRunVcfFilterSmokeArgs) -> Result<()> {
+    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let report = run_local_vcf_filter_smoke(&repo_root, &args.tool_id)?;
+    if args.json {
+        render::json::print_pretty(&report)?;
+    } else {
+        println!("{}", report.output_vcf_path);
+    }
+    Ok(())
 }
 
 fn resolve_governed_vcf_filter_smoke_contract(
