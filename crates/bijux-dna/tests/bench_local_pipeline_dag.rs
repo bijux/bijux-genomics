@@ -732,6 +732,103 @@ fn bench_local_pipeline_dag_validates_adna_pseudohaploid_contract() {
 }
 
 #[test]
+fn bench_local_pipeline_dag_validates_adna_gl_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/adna-gl-fastq-bam-vcf.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/adna-gl-fastq-bam-vcf.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/adna-gl-fastq-bam-vcf.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("adna-gl-fastq-bam-vcf")
+    );
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-01-mini")
+    );
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(payload.get("edge_count").and_then(serde_json::Value::as_u64), Some(23));
+
+    let profiles = payload
+        .get("validation_profiles")
+        .and_then(serde_json::Value::as_array)
+        .expect("validation profiles");
+    assert!(
+        profiles.iter().any(|profile| {
+            profile.get("profile_id").and_then(serde_json::Value::as_str) == Some("ancient_dna_gl")
+                && profile.get("check_count").and_then(serde_json::Value::as_u64) == Some(8)
+        }),
+        "aDNA genotype-likelihood pipeline must emit the ancient_dna_gl validation profile"
+    );
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.call_gl")
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("damage_report_json"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("authenticity_report_json"))
+                    },
+                )
+        }),
+        "genotype-likelihood calling must consume BAM damage and authenticity evidence"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.gl_propagation")
+                && node
+                    .get("depends_on")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|deps| {
+                        deps.iter().any(|value| value.as_str() == Some("vcf.call_gl"))
+                    })
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("gl_sites_vcf"))
+                    },
+                )
+        }),
+        "GL propagation must stay downstream of likelihood calling and consume the explicit GL VCF handoff"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc")
+                && node
+                    .get("depends_on")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|deps| {
+                        deps.iter().any(|value| value.as_str() == Some("vcf.gl_propagation"))
+                    })
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("gl_propagated_vcf"))
+                            && inputs.iter().any(|value| {
+                                value.as_str() == Some("gl_propagation_report_json")
+                            })
+                    },
+                )
+        }),
+        "vcf.qc must stay downstream of propagated genotype-likelihood outputs rather than a hard-call branch"
+    );
+}
+
+#[test]
 fn bench_local_pipeline_dag_validates_bam_genotyping_contract() {
     let payload = run_cli_json(&[
         "bench",
