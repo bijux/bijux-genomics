@@ -17,20 +17,9 @@ pub(crate) fn run_impute_stage_inner(
         bail!("impute requires threads > 0");
     }
 
-    let panel = resolve_panel(
-        &params.species_id,
-        &params.build_id,
-        params.panel_id.as_deref(),
-    )?;
-    let map = if matches!(
-        params.backend,
-        ImputeBackend::Impute5 | ImputeBackend::Minimac4
-    ) {
-        Some(resolve_map(
-            &params.species_id,
-            &params.build_id,
-            params.map_id.as_deref(),
-        )?)
+    let panel = resolve_panel(&params.species_id, &params.build_id, params.panel_id.as_deref())?;
+    let map = if matches!(params.backend, ImputeBackend::Impute5 | ImputeBackend::Minimac4) {
+        Some(resolve_map(&params.species_id, &params.build_id, params.map_id.as_deref())?)
     } else {
         params
             .map_id
@@ -65,19 +54,13 @@ pub(crate) fn run_impute_stage_inner(
     let mut has_phased_gt = false;
     let mut has_sex_chr = false;
     let mut contig_seen = std::collections::BTreeSet::<String>::new();
-    let species_contigs = species_context
-        .contigs
-        .iter()
-        .map(|c| c.name.clone())
-        .collect::<Vec<_>>();
-    let species_contig_set = species_contigs
-        .iter()
-        .cloned()
-        .collect::<std::collections::BTreeSet<_>>();
+    let species_contigs =
+        species_context.contigs.iter().map(|c| c.name.clone()).collect::<Vec<_>>();
+    let species_contig_set =
+        species_contigs.iter().cloned().collect::<std::collections::BTreeSet<_>>();
     let mut allele_flip_like = 0u64;
     let mut ref_mismatch_like = 0u64;
     let mut gt_observed = 0u64;
-    let mut gt_missing = 0u64;
     let mut ct_ga_like = 0u64;
     let mut total_records = 0u64;
     for line in raw.lines() {
@@ -117,9 +100,6 @@ pub(crate) fn run_impute_stage_inner(
                 let parts = sample.split(':').collect::<Vec<_>>();
                 if let Some(gt) = parts.get(gt_pos) {
                     gt_observed += 1;
-                    if gt.contains('.') {
-                        gt_missing += 1;
-                    }
                     if gt.contains('|') {
                         has_phased_gt = true;
                     }
@@ -143,20 +123,13 @@ pub(crate) fn run_impute_stage_inner(
     let overlap_fraction = if contig_seen.is_empty() {
         0.0
     } else {
-        contig_seen
-            .iter()
-            .filter(|c| species_contig_set.contains(*c))
-            .count() as f64
+        contig_seen.iter().filter(|c| species_contig_set.contains(*c)).count() as f64
             / contig_seen.len() as f64
     };
     if overlap_fraction < overlap_threshold {
         bail!("panel/species overlap below threshold");
     }
-    if has_sex_chr
-        && species_context
-            .par_policy
-            .eq_ignore_ascii_case("unsupported")
-    {
+    if has_sex_chr && species_context.par_policy.eq_ignore_ascii_case("unsupported") {
         bail!("sex chromosome imputation requires explicit PAR policy in SpeciesContext");
     }
 
@@ -174,11 +147,7 @@ pub(crate) fn run_impute_stage_inner(
     if !matches!(effective_backend, ImputeBackend::Beagle) || params.map_id.is_some() {
         let map_for_compat = match &map {
             Some(m) => m.clone(),
-            None => resolve_map(
-                &params.species_id,
-                &params.build_id,
-                params.map_id.as_deref(),
-            )?,
+            None => resolve_map(&params.species_id, &params.build_id, params.map_id.as_deref())?,
         };
         validate_imputation_tool_compatibility(
             effective_backend.as_str(),
@@ -191,18 +160,11 @@ pub(crate) fn run_impute_stage_inner(
         .iter()
         .find(|line| line.starts_with("#CHROM\t"))
         .ok_or_else(|| anyhow!("missing #CHROM header in input VCF"))?;
-    let sample_ids = sample_header
-        .split('\t')
-        .skip(9)
-        .map(str::to_string)
-        .collect::<Vec<_>>();
+    let sample_ids = sample_header.split('\t').skip(9).map(str::to_string).collect::<Vec<_>>();
     if sample_ids.is_empty() {
         bail!("input VCF must contain at least one sample");
     }
-    if sample_ids
-        .windows(2)
-        .any(|w| w.first().is_some_and(|x| x.is_empty()) || w[0] == w[1])
-    {
+    if sample_ids.windows(2).any(|w| w.first().is_some_and(|x| x.is_empty()) || w[0] == w[1]) {
         bail!("sample order stability contract failed: duplicate/empty sample IDs");
     }
 
@@ -211,11 +173,7 @@ pub(crate) fn run_impute_stage_inner(
             if !has_gl_or_gp {
                 bail!("GLIMPSE requires GL/GP fields for lowcov GL flow");
             }
-            if !panel
-                .compatibility
-                .glimpse_reference_format
-                .to_ascii_lowercase()
-                .contains("sites")
+            if !panel.compatibility.glimpse_reference_format.to_ascii_lowercase().contains("sites")
             {
                 bail!("GLIMPSE requires panel compatibility with explicit sites representation");
             }
