@@ -343,6 +343,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfExpectedBenchmarkResults(args) => {
+                        crate::commands::benchmark::readiness::vcf_expected_benchmark_results::run_render_vcf_expected_benchmark_results(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfParserCoverage(args) => {
                         crate::commands::benchmark::readiness::vcf_parser_coverage::run_render_vcf_parser_coverage(
                             args,

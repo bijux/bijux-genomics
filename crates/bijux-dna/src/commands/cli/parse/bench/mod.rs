@@ -98,6 +98,7 @@ pub use self::readiness::{
     BenchReadinessRenderVcfImputationFamilyAdapterArgs,
     BenchReadinessRenderVcfMatrixRegistryConsistencyArgs,
     BenchReadinessRenderVcfNormalizedMetricsSchemaArgs, BenchReadinessRenderVcfOrphanToolsArgs,
+    BenchReadinessRenderVcfExpectedBenchmarkResultsArgs,
     BenchReadinessRenderVcfParserCoverageArgs, BenchReadinessRenderVcfParserFailureTestsArgs,
     BenchReadinessRenderVcfPlink2AdapterArgs, BenchReadinessRenderVcfPlinkAdapterArgs,
     BenchReadinessRenderVcfShapeit5AdapterArgs, BenchReadinessRenderVcfToolServingMapArgs,
