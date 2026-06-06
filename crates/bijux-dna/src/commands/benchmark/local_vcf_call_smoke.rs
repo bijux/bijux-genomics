@@ -3,23 +3,20 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{Context, Result};
 use bijux_dna_domain_vcf::params::VcfCallParams;
 use bijux_dna_stages_vcf::metrics::parse_vcf_call_summary;
 use bijux_dna_stages_vcf::pipeline::run_call_diploid_stage;
-use bijux_dna_stages_vcf::vcf_io::{read_vcf_text, vcf_validate_input, VcfFieldRequirement};
+use bijux_dna_stages_vcf::vcf_io::{vcf_validate_input, VcfFieldRequirement};
 use serde::Serialize;
 
-use super::local_corpus_fixture::bam::{
-    validate_bam_corpus_fixture_manifest_path, DEFAULT_CORPUS_01_BAM_MINI_MANIFEST_PATH,
+use super::local_stage_result_manifest::path_relative_to_repo;
+use super::local_stage_result_manifest::validate_stage_result_manifest;
+use super::local_vcf_call_bam_smoke_support::{
+    build_stage_result_manifest, materialize_reference_fasta, parse_output_sample_count,
+    resolve_governed_vcf_call_bam_smoke_contract, GovernedVcfCallBamSmokeContract,
+    DEFAULT_STAGE_RESULT_NAME,
 };
-use super::local_stage_result_manifest::{
-    path_relative_to_repo, validate_stage_result_manifest, BenchStageResultCommandV1,
-    BenchStageResultManifestV1, BenchStageResultOutputV1, BenchStageResultResourceMetricSource,
-    BenchStageResultResourceMetricsV1, BenchStageResultRuntimeV1, BenchStageResultStatus,
-    BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
-};
-use super::local_vcf_stage_matrix::{build_vcf_stage_matrix_rows, VcfStageMatrixRow};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -30,11 +27,8 @@ const LOCAL_VCF_CALL_SMOKE_METRICS_SCHEMA_VERSION: &str =
 const LOCAL_VCF_CALL_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-call-smoke";
 const GOVERNED_VCF_CALL_STAGE_ID: &str = "vcf.call";
 const GOVERNED_VCF_CALL_RESOLVED_STAGE_ID: &str = "vcf.call_diploid";
-const GOVERNED_VCF_CALL_TOOL_ID: &str = "bcftools";
-const GOVERNED_BAM_SAMPLE_ID: &str = "human_like_validation";
 const DEFAULT_OUTPUT_VCF_NAME: &str = "calls.vcf.gz";
 const DEFAULT_OUTPUT_METRICS_NAME: &str = "metrics.json";
-const DEFAULT_STAGE_RESULT_NAME: &str = "stage-result.json";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct GovernedVcfCallSmokeContract {
@@ -187,12 +181,35 @@ pub(crate) fn run_local_vcf_call_smoke(
     let elapsed_seconds = started.elapsed().as_secs_f64();
     let finished_at = timestamp_marker();
     let stage_result_manifest_path = output_root.join(DEFAULT_STAGE_RESULT_NAME);
+    let base_contract = GovernedVcfCallBamSmokeContract {
+        stage_id: contract.stage_id.clone(),
+        tool_id: contract.tool_id.clone(),
+        corpus_id: contract.corpus_id.clone(),
+        input_bam: contract.input_bam.clone(),
+        input_bam_index: contract.input_bam_index.clone(),
+        reference: contract.reference.clone(),
+        sample_id: contract.sample_id.clone(),
+        sample_name: contract.sample_name.clone(),
+    };
     let stage_result_manifest = build_stage_result_manifest(
         repo_root,
-        &contract,
-        &output_vcf,
-        &output_tbi,
-        &metrics_path,
+        &base_contract,
+        &format!("{LOCAL_VCF_CALL_SMOKE_COMMAND} --tool-id {}", contract.tool_id),
+        &[
+            ("called_vcf", DEFAULT_OUTPUT_VCF_NAME.to_string(), output_vcf.as_path(), "vcf_output"),
+            (
+                "vcf_index",
+                format!("{DEFAULT_OUTPUT_VCF_NAME}.tbi"),
+                output_tbi.as_path(),
+                "vcf_index",
+            ),
+            (
+                "metrics_json",
+                DEFAULT_OUTPUT_METRICS_NAME.to_string(),
+                metrics_path.as_path(),
+                "report_output",
+            ),
+        ],
         &started_at,
         &finished_at,
         elapsed_seconds,
@@ -237,174 +254,23 @@ fn resolve_governed_vcf_call_smoke_contract(
     repo_root: &Path,
     requested_tool_id: &str,
 ) -> Result<GovernedVcfCallSmokeContract> {
-    let matrix_row = resolve_vcf_call_matrix_row(requested_tool_id)?;
-    let fixture_report = validate_bam_corpus_fixture_manifest_path(
+    let base_contract = resolve_governed_vcf_call_bam_smoke_contract(
         repo_root,
-        &repo_root.join(DEFAULT_CORPUS_01_BAM_MINI_MANIFEST_PATH),
+        GOVERNED_VCF_CALL_STAGE_ID,
+        requested_tool_id,
+        "called_vcf",
     )?;
-    let sample = fixture_report
-        .samples
-        .iter()
-        .find(|sample| sample.sample_id == GOVERNED_BAM_SAMPLE_ID)
-        .ok_or_else(|| {
-            anyhow!(
-                "governed BAM fixture is missing required VCF call smoke sample `{GOVERNED_BAM_SAMPLE_ID}`"
-            )
-        })?;
-    let sample_name = sample.observed_header_sample_ids.first().cloned().ok_or_else(|| {
-        anyhow!("governed BAM fixture sample `{}` has no observed sample name", sample.sample_id)
-    })?;
-    if !sample.alignment_path.ends_with(".bam") {
-        bail!(
-            "governed VCF call smoke requires a real BAM input, found `{}`",
-            sample.alignment_path
-        );
-    }
-    if !sample.index_path.ends_with(".bam.bai") {
-        bail!(
-            "governed VCF call smoke requires a BAM index sidecar, found `{}`",
-            sample.index_path
-        );
-    }
-
     Ok(GovernedVcfCallSmokeContract {
-        stage_id: matrix_row.stage_id,
+        stage_id: base_contract.stage_id,
         resolved_stage_id: GOVERNED_VCF_CALL_RESOLVED_STAGE_ID.to_string(),
-        tool_id: matrix_row.tool_id,
-        corpus_id: matrix_row.corpus_id,
-        input_bam: sample.alignment_path.clone(),
-        input_bam_index: sample.index_path.clone(),
-        reference: fixture_report.reference_fasta,
-        sample_id: sample.sample_id.clone(),
-        sample_name,
+        tool_id: base_contract.tool_id,
+        corpus_id: base_contract.corpus_id,
+        input_bam: base_contract.input_bam,
+        input_bam_index: base_contract.input_bam_index,
+        reference: base_contract.reference,
+        sample_id: base_contract.sample_id,
+        sample_name: base_contract.sample_name,
     })
-}
-
-fn resolve_vcf_call_matrix_row(requested_tool_id: &str) -> Result<VcfStageMatrixRow> {
-    let matrix_row = build_vcf_stage_matrix_rows()?
-        .into_iter()
-        .find(|row| row.stage_id == GOVERNED_VCF_CALL_STAGE_ID)
-        .ok_or_else(|| anyhow!("VCF stage matrix is missing `{GOVERNED_VCF_CALL_STAGE_ID}`"))?;
-    if matrix_row.tool_id != GOVERNED_VCF_CALL_TOOL_ID {
-        bail!(
-            "VCF call smoke requires retained tool `{GOVERNED_VCF_CALL_TOOL_ID}`, found `{}` in the governed matrix",
-            matrix_row.tool_id
-        );
-    }
-    if requested_tool_id != matrix_row.tool_id {
-        bail!(
-            "VCF call smoke only retains tool `{}` for `{}`; requested `{requested_tool_id}`",
-            matrix_row.tool_id,
-            matrix_row.stage_id
-        );
-    }
-    if matrix_row.corpus_id != "vcf_production_regression" {
-        bail!(
-            "VCF call smoke requires corpus `vcf_production_regression`, found `{}`",
-            matrix_row.corpus_id
-        );
-    }
-    if matrix_row.asset_profile_id != "bam_bundle" {
-        bail!(
-            "VCF call smoke requires asset profile `bam_bundle`, found `{}`",
-            matrix_row.asset_profile_id
-        );
-    }
-    if matrix_row.expected_outputs != vec!["called_vcf".to_string()] {
-        bail!(
-            "VCF call smoke expected outputs drifted for `{}`: {:?}",
-            matrix_row.stage_id,
-            matrix_row.expected_outputs
-        );
-    }
-    Ok(matrix_row)
-}
-
-fn parse_output_sample_count(vcf_path: &Path) -> Result<u64> {
-    let raw = read_vcf_text(vcf_path)?;
-    let sample_header = raw
-        .lines()
-        .find(|line| line.starts_with("#CHROM\t"))
-        .ok_or_else(|| anyhow!("VCF output is missing the #CHROM header"))?;
-    let sample_count = sample_header.split('\t').skip(9).count();
-    u64::try_from(sample_count).map_err(|_| anyhow!("VCF output sample count overflowed u64"))
-}
-
-fn build_stage_result_manifest(
-    repo_root: &Path,
-    contract: &GovernedVcfCallSmokeContract,
-    output_vcf: &Path,
-    output_tbi: &Path,
-    metrics_path: &Path,
-    started_at: &str,
-    finished_at: &str,
-    elapsed_seconds: f64,
-) -> BenchStageResultManifestV1 {
-    BenchStageResultManifestV1 {
-        schema_version: BENCH_STAGE_RESULT_SCHEMA_VERSION.to_string(),
-        stage_id: contract.stage_id.clone(),
-        tool: BenchStageResultToolV1 { id: contract.tool_id.clone() },
-        command: BenchStageResultCommandV1 {
-            rendered: format!("{LOCAL_VCF_CALL_SMOKE_COMMAND} --tool-id {}", contract.tool_id),
-        },
-        runtime: BenchStageResultRuntimeV1 {
-            mode: "local_smoke".to_string(),
-            status: BenchStageResultStatus::Succeeded,
-            started_at: started_at.to_string(),
-            finished_at: finished_at.to_string(),
-            elapsed_seconds,
-            exit_code: 0,
-        },
-        resource_metrics: BenchStageResultResourceMetricsV1 {
-            source: BenchStageResultResourceMetricSource::NotAvailable,
-            memory_mb: None,
-            cpu_threads: None,
-        },
-        outputs: vec![
-            BenchStageResultOutputV1 {
-                artifact_id: "called_vcf".to_string(),
-                declared_path: DEFAULT_OUTPUT_VCF_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, output_vcf),
-                role: "vcf_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "vcf_index".to_string(),
-                declared_path: format!("{DEFAULT_OUTPUT_VCF_NAME}.tbi"),
-                realized_path: path_relative_to_repo(repo_root, output_tbi),
-                role: "vcf_index".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "metrics_json".to_string(),
-                declared_path: DEFAULT_OUTPUT_METRICS_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, metrics_path),
-                role: "report_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-        ],
-    }
-}
-
-fn materialize_reference_fasta(source_reference: &Path, artifacts_root: &Path) -> Result<PathBuf> {
-    let reference_root = artifacts_root.join("reference");
-    fs::create_dir_all(&reference_root)
-        .with_context(|| format!("create {}", reference_root.display()))?;
-    let file_name = source_reference.file_name().ok_or_else(|| {
-        anyhow!("reference FASTA has no file name: {}", source_reference.display())
-    })?;
-    let materialized_reference = reference_root.join(file_name);
-    fs::copy(source_reference, &materialized_reference).with_context(|| {
-        format!(
-            "copy governed reference {} to {}",
-            source_reference.display(),
-            materialized_reference.display()
-        )
-    })?;
-    Ok(materialized_reference)
 }
 
 fn timestamp_marker() -> String {
@@ -419,8 +285,9 @@ mod tests {
 
     use super::{
         parse_output_sample_count, resolve_governed_vcf_call_smoke_contract,
-        GOVERNED_VCF_CALL_STAGE_ID, GOVERNED_VCF_CALL_TOOL_ID,
+        GOVERNED_VCF_CALL_STAGE_ID,
     };
+    use crate::commands::benchmark::local_vcf_call_bam_smoke_support::GOVERNED_VCF_CALL_TOOL_ID;
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
