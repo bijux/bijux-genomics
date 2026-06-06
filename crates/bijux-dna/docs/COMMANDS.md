@@ -437,6 +437,11 @@ Visible aliases are part of the operator surface:
   deleting exactly one governed VCF manifest, and auditing the remaining rows. The report fails
   closed unless exactly one row is visible as `missing_result` instead of disappearing from the
   table.
+- `bijux-dna bench readiness render-vcf-report-map`
+  `render-vcf-report-map` writes `target/bench-readiness/vcf-report-map.tsv` with one row per
+  expected benchmark-ready VCF result. Each row keeps `stage_id`, `tool_id`, `section_id`,
+  `summary_table`, `metric_columns`, and `failure_columns`, and the command fails closed unless
+  every expected VCF result row maps to one governed report section and summary table.
 - `bijux-dna bench readiness render-vcf-parser-coverage`
   `render-vcf-parser-coverage` writes `target/bench-readiness/vcf-parser-coverage.tsv` with one
   row per benchmark-ready VCF stage-tool parser surface. Each row keeps `stage_id`, `tool_id`,
