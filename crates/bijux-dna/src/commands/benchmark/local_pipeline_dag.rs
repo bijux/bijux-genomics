@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::commands::benchmark::local_stage_inventory::{
     load_local_stage_inventory, BenchLocalDomain, LocalStageReadinessKind,
 };
+use crate::commands::benchmark::local_vcf_stage_matrix::LocalVcfStageMatrixConfig;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -22,6 +23,7 @@ const LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_VERSION: &str =
 enum LocalPipelineDagDomain {
     Fastq,
     Bam,
+    Vcf,
     Cross,
 }
 
@@ -30,6 +32,7 @@ impl LocalPipelineDagDomain {
         match self {
             Self::Fastq => "fastq",
             Self::Bam => "bam",
+            Self::Vcf => "vcf",
             Self::Cross => "cross",
         }
     }
@@ -332,6 +335,7 @@ fn load_pipeline_inventory_index(
     let inventory_domains = match domain {
         LocalPipelineDagDomain::Fastq => vec![BenchLocalDomain::Fastq],
         LocalPipelineDagDomain::Bam => vec![BenchLocalDomain::Bam],
+        LocalPipelineDagDomain::Vcf => Vec::new(),
         LocalPipelineDagDomain::Cross => vec![BenchLocalDomain::Fastq, BenchLocalDomain::Bam],
     };
 
@@ -342,6 +346,34 @@ fn load_pipeline_inventory_index(
         }
     }
 
+    if matches!(domain, LocalPipelineDagDomain::Vcf | LocalPipelineDagDomain::Cross) {
+        inventory_index.extend(load_local_vcf_pipeline_inventory_index(repo_root)?);
+    }
+
+    Ok(inventory_index)
+}
+
+fn load_local_vcf_pipeline_inventory_index(
+    repo_root: &Path,
+) -> Result<BTreeMap<String, LocalStageReadinessKind>> {
+    let matrix_path = repo_root.join("configs/bench/local/vcf-stage-matrix.toml");
+    let raw = fs::read_to_string(&matrix_path)
+        .with_context(|| format!("read {}", matrix_path.display()))?;
+    let matrix: LocalVcfStageMatrixConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", matrix_path.display()))?;
+
+    if matrix.schema_version != "bijux.bench.vcf.local_stage_matrix.v1" {
+        return Err(anyhow!(
+            "{} declares `{}` but `bijux.bench.vcf.local_stage_matrix.v1` is required for `vcf` local pipeline inventory",
+            matrix_path.display(),
+            matrix.schema_version
+        ));
+    }
+
+    let mut inventory_index = BTreeMap::new();
+    for row in matrix.rows {
+        inventory_index.entry(row.stage_id).or_insert(LocalStageReadinessKind::Smoke);
+    }
     Ok(inventory_index)
 }
 
@@ -466,6 +498,69 @@ outputs = ["align_bam", "align_bai", "align_metrics"]
     }
 
     #[test]
+    fn cross_pipeline_dag_can_mix_fastq_bam_and_vcf_inventory_nodes() {
+        let repo_root = repo_root();
+        let tempdir = tempfile::tempdir().expect("tempdir");
+        let config_path = tempdir.path().join("fastq-bam-vcf-cross.toml");
+        fs::write(
+            &config_path,
+            r#"
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "fastq-bam-vcf-cross"
+domain = "cross"
+summary = "Cross-domain proof that local pipeline validation can mix governed FASTQ, BAM, and VCF stages."
+default_corpus_id = "corpus-01-mini"
+
+[[nodes]]
+node_id = "fastq.validate_reads"
+stage_id = "fastq.validate_reads"
+readiness_kind = "smoke"
+summary = "Validate governed FASTQ inputs before downstream alignment."
+depends_on = []
+external_inputs = ["corpus.raw_fastq_reads"]
+upstream_inputs = []
+outputs = ["validated_reads_r1_path", "validated_reads_r2_path", "validation_report"]
+
+[[nodes]]
+node_id = "bam.align"
+stage_id = "bam.align"
+readiness_kind = "dry_or_smoke"
+summary = "Align governed FASTQ path outputs into BAM."
+depends_on = ["fastq.validate_reads"]
+external_inputs = [
+  "alignment_reference_fasta_contract",
+  "alignment_reference_index_contract",
+  "alignment_read_group_contract",
+]
+upstream_inputs = ["validated_reads_r1_path", "validated_reads_r2_path"]
+outputs = ["aligned_bam", "aligned_bai", "align_metrics"]
+
+[[nodes]]
+node_id = "vcf.call"
+stage_id = "vcf.call"
+readiness_kind = "smoke"
+summary = "Call variants from the governed aligned BAM handoff."
+depends_on = ["bam.align"]
+external_inputs = ["reference_fasta_contract", "reference_fai_contract"]
+upstream_inputs = ["aligned_bam", "aligned_bai"]
+outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
+"#,
+        )
+        .expect("write cross VCF config");
+
+        let output_path = tempdir.path().join("fastq-bam-vcf-cross.json");
+        let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect("validate cross local pipeline dag with VCF");
+
+        assert_eq!(report.pipeline_id, "fastq-bam-vcf-cross");
+        assert_eq!(report.domain, "cross");
+        assert_eq!(report.node_count, 3);
+        assert_eq!(report.edge_count, 2);
+        assert!(report.acyclic);
+        assert_eq!(report.topological_order, vec!["fastq.validate_reads", "bam.align", "vcf.call"]);
+    }
+
+    #[test]
     fn fastq_core_preprocess_pipeline_dag_is_acyclic_and_inventory_aligned() {
         let repo_root = repo_root();
         let config_path = repo_root.join(DEFAULT_FASTQ_CORE_PREPROCESS_PIPELINE_CONFIG_PATH);
@@ -559,11 +654,7 @@ outputs = ["align_bam", "align_bai", "align_metrics"]
                     && node.external_inputs
                         == vec!["taxonomy_database.root", "taxonomy_expected_truth_table"]
                     && node.outputs
-                        == vec![
-                            "taxonomy_classification",
-                            "unclassified_reads",
-                            "taxonomy_summary",
-                        ]
+                        == vec!["taxonomy_classification", "unclassified_reads", "taxonomy_summary"]
             }),
             "screen_taxonomy must carry governed taxonomy assets and explicit classified plus unclassified outputs"
         );
