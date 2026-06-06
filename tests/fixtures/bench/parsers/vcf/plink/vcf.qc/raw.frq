@@ -1,0 +1,5 @@
+CHR SNP A1 A2 MAF NCHROBS
+1 chr1:10:A:G G A 0.24 6
+1 chr1:20:C:T T C 0.16 6
+1 chr1:30:G:A A G 0.34 6
+1 chr1:40:T:G G T 0.06 6
