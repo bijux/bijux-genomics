@@ -288,6 +288,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderEssentialPipelineCommands(args) => {
+                        crate::commands::benchmark::readiness::essential_pipeline_rendered_commands::run_render_essential_pipeline_commands(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderParserFailureTests(args) => {
                         crate::commands::benchmark::readiness::parser_failure_tests::run_render_parser_failure_tests(
                             args,
