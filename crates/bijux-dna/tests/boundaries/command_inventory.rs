@@ -147,6 +147,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench local run-vcf-admixture-smoke",
     "bijux-dna bench local run-vcf-population-structure-smoke",
     "bijux-dna bench local run-vcf-ibd-smoke",
+    "bijux-dna bench local run-vcf-demography-smoke",
     "bijux-dna bench local run-vcf-roh-smoke",
     "bijux-dna bench local run-vcf-pca-smoke",
     "bijux-dna bench local run-vcf-stats-smoke",
