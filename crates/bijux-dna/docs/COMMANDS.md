@@ -424,6 +424,14 @@ Visible aliases are part of the operator surface:
   report enumerates each stage schema version, durable schema ID, stage file name, extension ID,
   and required normalized key count so parser-owned VCF metrics stay governed by one shared schema
   family instead of drifting into tool-private JSON shapes.
+- `bijux-dna bench readiness render-vcf-parser-failure-tests`
+  `render-vcf-parser-failure-tests` writes
+  `target/bench-readiness/vcf-parser-failure-tests.json` with seven governed malformed-output
+  probes across the retained VCF parser surfaces: empty output, malformed VCF, missing index,
+  missing sample column, malformed PCA table, malformed imputation quality JSON, and malformed
+  segment TSV. Each passing row must retain `parser_id`, `stage_id`, `tool_id`, and a structured
+  `failure_reason`, and the command fails closed if any parser panics or accepts malformed raw
+  output.
 - `bijux-dna bench readiness render-vcf-adapter-missing-input-tests`
   `render-vcf-adapter-missing-input-tests` writes
   `target/bench-readiness/vcf-adapter-missing-input-tests.json` with one governed missing-input
