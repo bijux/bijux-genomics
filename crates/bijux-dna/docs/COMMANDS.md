@@ -417,6 +417,12 @@ Visible aliases are part of the operator surface:
   `benchmark_status` from the owned VCF stage catalog and matrix. The report fails closed unless
   every matrix row appears exactly once and the supported-vs-planned split remains aligned with
   the canonical VCF stage contracts.
+- `bijux-dna bench readiness render-vcf-comparable-metrics`
+  `render-vcf-comparable-metrics` writes `target/bench-readiness/vcf-comparable-metrics.tsv`
+  with one governed row per shared normalized metric across the retained multi-tool VCF stage
+  slice. Each row keeps `stage_id`, `metric_id`, `metric_name`, `unit`, `direction`, `required`,
+  and `tools_covered`, and the command fails closed unless every retained multi-tool stage has at
+  least one governed normalized metric shared across all covered tools.
 - `bijux-dna bench readiness render-vcf-normalized-metrics-schema`
   `render-vcf-normalized-metrics-schema` writes
   `schemas/bench/vcf-normalized-metrics.v1.json` plus one stage-specific schema file under
