@@ -1,0 +1,107 @@
+{
+  "schema_version": "bijux.fixture.vcf_raw_parser.v1",
+  "stage_id": "vcf.roh",
+  "tool_id": "plink2",
+  "parser_id": "parse_plink2_roh_segment_metrics",
+  "normalized": {
+    "schema_version": "bijux.vcf.roh.v1",
+    "stage_id": "vcf.roh",
+    "tool_id": "plink2",
+    "status": "complete",
+    "sample_count": 4,
+    "segment_count": 8,
+    "total_length": 8,
+    "segments": [
+      {
+        "sample_id": "sample_a",
+        "contig": "chr1",
+        "start": 3,
+        "end": 3,
+        "length": 1,
+        "variant_count": 1
+      },
+      {
+        "sample_id": "sample_a",
+        "contig": "chr1",
+        "start": 8,
+        "end": 8,
+        "length": 1,
+        "variant_count": 1
+      },
+      {
+        "sample_id": "sample_b",
+        "contig": "chr1",
+        "start": 3,
+        "end": 3,
+        "length": 1,
+        "variant_count": 1
+      },
+      {
+        "sample_id": "sample_b",
+        "contig": "chr1",
+        "start": 8,
+        "end": 8,
+        "length": 1,
+        "variant_count": 1
+      },
+      {
+        "sample_id": "sample_c",
+        "contig": "chr1",
+        "start": 3,
+        "end": 3,
+        "length": 1,
+        "variant_count": 1
+      },
+      {
+        "sample_id": "sample_c",
+        "contig": "chr1",
+        "start": 8,
+        "end": 8,
+        "length": 1,
+        "variant_count": 1
+      },
+      {
+        "sample_id": "sample_d",
+        "contig": "chr1",
+        "start": 3,
+        "end": 3,
+        "length": 1,
+        "variant_count": 1
+      },
+      {
+        "sample_id": "sample_d",
+        "contig": "chr1",
+        "start": 8,
+        "end": 8,
+        "length": 1,
+        "variant_count": 1
+      }
+    ],
+    "per_sample_summary": [
+      {
+        "sample_id": "sample_a",
+        "segment_count": 2,
+        "total_length": 2,
+        "mean_length": 1.0
+      },
+      {
+        "sample_id": "sample_b",
+        "segment_count": 2,
+        "total_length": 2,
+        "mean_length": 1.0
+      },
+      {
+        "sample_id": "sample_c",
+        "segment_count": 2,
+        "total_length": 2,
+        "mean_length": 1.0
+      },
+      {
+        "sample_id": "sample_d",
+        "segment_count": 2,
+        "total_length": 2,
+        "mean_length": 1.0
+      }
+    ]
+  }
+}
