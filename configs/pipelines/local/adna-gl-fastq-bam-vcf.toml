@@ -1,0 +1,206 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for the local ancient-DNA genotype-likelihood FASTQ-to-BAM-to-VCF DAG.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-06
+
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "adna-gl-fastq-bam-vcf"
+domain = "cross"
+summary = "Ancient-DNA FASTQ-to-BAM-to-VCF DAG for terminal-damage-aware preprocessing, BAM damage and authenticity evidence, genotype-likelihood calling, explicit GL propagation, and downstream VCF QC."
+default_corpus_id = "corpus-01-mini"
+
+[[nodes]]
+node_id = "fastq.validate_reads"
+stage_id = "fastq.validate_reads"
+readiness_kind = "smoke"
+summary = "Validate governed aDNA-like FASTQ inputs before terminal-damage trimming and duplicate-aware preprocessing consume the read paths."
+depends_on = []
+external_inputs = ["corpus.raw_fastq_reads"]
+upstream_inputs = []
+outputs = ["validated_reads_r1_path", "validated_reads_r2_path", "validation_report"]
+
+[[nodes]]
+node_id = "fastq.trim_terminal_damage"
+stage_id = "fastq.trim_terminal_damage"
+readiness_kind = "smoke"
+summary = "Trim terminal damage from governed aDNA-like FASTQ inputs before duplicate-aware preprocessing rewrites the read pairs."
+depends_on = ["fastq.validate_reads"]
+external_inputs = ["terminal_damage_policy_contract"]
+upstream_inputs = ["validated_reads_r1_path", "validated_reads_r2_path"]
+outputs = [
+  "terminal_damage_trimmed_reads_r1_path",
+  "terminal_damage_trimmed_reads_r2_path",
+  "terminal_damage_trim_report_json",
+]
+
+[[nodes]]
+node_id = "fastq.remove_duplicates"
+stage_id = "fastq.remove_duplicates"
+readiness_kind = "smoke"
+summary = "Remove duplicate-like FASTQ pairs after terminal-damage trimming so the downstream BAM branch keeps duplicate handling explicit."
+depends_on = ["fastq.trim_terminal_damage"]
+external_inputs = []
+upstream_inputs = [
+  "terminal_damage_trimmed_reads_r1_path",
+  "terminal_damage_trimmed_reads_r2_path",
+]
+outputs = [
+  "deduplicated_reads_r1_path",
+  "deduplicated_reads_r2_path",
+  "duplicate_classes_tsv",
+  "duplicate_provenance_json",
+  "deduplication_report",
+]
+
+[[nodes]]
+node_id = "fastq.filter_reads"
+stage_id = "fastq.filter_reads"
+readiness_kind = "smoke"
+summary = "Filter the duplicate-aware aDNA-like FASTQ pairs into the final alignment-ready read handoff."
+depends_on = ["fastq.remove_duplicates"]
+external_inputs = []
+upstream_inputs = ["deduplicated_reads_r1_path", "deduplicated_reads_r2_path"]
+outputs = ["filtered_reads_r1_path", "filtered_reads_r2_path", "filter_metrics"]
+
+[[nodes]]
+node_id = "bam.align"
+stage_id = "bam.align"
+readiness_kind = "dry_or_smoke"
+summary = "Align the duplicate-aware filtered FASTQ pairs against the governed ancient-DNA alignment reference contracts."
+depends_on = ["fastq.filter_reads"]
+external_inputs = [
+  "adna_alignment_reference_fasta_contract",
+  "adna_alignment_reference_index_contract",
+  "alignment_read_group_contract",
+]
+upstream_inputs = ["filtered_reads_r1_path", "filtered_reads_r2_path"]
+outputs = ["aligned_bam", "aligned_bai", "align_metrics"]
+
+[[nodes]]
+node_id = "bam.validate"
+stage_id = "bam.validate"
+readiness_kind = "smoke"
+summary = "Validate the aligned BAM handoff before downstream BAM QC, damage evidence, and genotype-likelihood calling consume it."
+depends_on = ["bam.align"]
+external_inputs = ["adna_reference_fasta_contract"]
+upstream_inputs = ["aligned_bam", "aligned_bai", "align_metrics"]
+outputs = ["bam_validation_report"]
+
+[[nodes]]
+node_id = "bam.mapping_summary"
+stage_id = "bam.mapping_summary"
+readiness_kind = "smoke"
+summary = "Summarize mapping from the validated BAM before authenticity evidence interprets coverage and fragment behavior."
+depends_on = ["bam.align", "bam.validate"]
+external_inputs = []
+upstream_inputs = ["aligned_bam", "bam_validation_report"]
+outputs = ["mapping_summary_report_json", "mapping_summary_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.coverage"
+stage_id = "bam.coverage"
+readiness_kind = "smoke"
+summary = "Measure governed ancient-DNA coverage from the aligned BAM before genotype-likelihood calling and authenticity composition consume the depth context."
+depends_on = ["bam.align", "bam.mapping_summary"]
+external_inputs = ["adna_coverage_region_contract"]
+upstream_inputs = ["aligned_bam", "aligned_bai", "mapping_summary_report_json"]
+outputs = ["coverage_report_json", "coverage_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.damage"
+stage_id = "bam.damage"
+readiness_kind = "smoke"
+summary = "Quantify terminal damage from the aligned BAM using the governed ancient-DNA damage expectation contract."
+depends_on = ["bam.align"]
+external_inputs = ["adna_reference_fasta_contract", "expected_damage_contract"]
+upstream_inputs = ["aligned_bam", "aligned_bai"]
+outputs = ["damage_report_json", "damage_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.contamination"
+stage_id = "bam.contamination"
+readiness_kind = "dry_or_smoke"
+summary = "Estimate ancient-DNA contamination from the aligned BAM against the governed ancient-DNA reference and panel contracts."
+depends_on = ["bam.align"]
+external_inputs = ["adna_reference_fasta_contract", "adna_contamination_panel_contract"]
+upstream_inputs = ["aligned_bam", "aligned_bai"]
+outputs = ["contamination_report_json", "contamination_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.complexity"
+stage_id = "bam.complexity"
+readiness_kind = "smoke"
+summary = "Measure library complexity from the aligned BAM so authenticity composition can distinguish sparse support from broader molecule coverage."
+depends_on = ["bam.align"]
+external_inputs = []
+upstream_inputs = ["aligned_bam", "aligned_bai"]
+outputs = ["complexity_report_json", "complexity_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.authenticity"
+stage_id = "bam.authenticity"
+readiness_kind = "smoke"
+summary = "Compose governed authenticity evidence from mapping, coverage, damage, contamination, and complexity before genotype-likelihood calling consumes the advisory branch."
+depends_on = [
+  "bam.mapping_summary",
+  "bam.coverage",
+  "bam.damage",
+  "bam.contamination",
+  "bam.complexity",
+]
+external_inputs = ["adna_authenticity_policy_contract"]
+upstream_inputs = [
+  "mapping_summary_report_json",
+  "coverage_report_json",
+  "damage_report_json",
+  "contamination_report_json",
+  "complexity_report_json",
+]
+outputs = ["authenticity_report_json", "authenticity_stage_metrics"]
+
+[[nodes]]
+node_id = "vcf.call_gl"
+stage_id = "vcf.call_gl"
+readiness_kind = "smoke"
+summary = "Call a governed genotype-likelihood VCF from the aligned BAM while consuming explicit damage and authenticity evidence from the ancient-DNA BAM branch."
+depends_on = ["bam.align", "bam.coverage", "bam.damage", "bam.authenticity"]
+external_inputs = ["adna_reference_fasta_contract", "adna_reference_fai_contract"]
+upstream_inputs = [
+  "aligned_bam",
+  "aligned_bai",
+  "coverage_report_json",
+  "damage_report_json",
+  "authenticity_report_json",
+]
+outputs = ["gl_sites_vcf", "gl_sites_vcf_tbi", "call_stage_metrics"]
+
+[[nodes]]
+node_id = "vcf.gl_propagation"
+stage_id = "vcf.gl_propagation"
+readiness_kind = "smoke"
+summary = "Propagate genotype-likelihood fields without hard-call conversion before downstream QC consumes the governed VCF handoff."
+depends_on = ["vcf.call_gl"]
+external_inputs = []
+upstream_inputs = ["gl_sites_vcf", "gl_sites_vcf_tbi", "call_stage_metrics"]
+outputs = [
+  "gl_propagated_vcf",
+  "gl_propagated_vcf_tbi",
+  "gl_propagation_report_json",
+  "gl_propagation_stage_metrics",
+]
+
+[[nodes]]
+node_id = "vcf.qc"
+stage_id = "vcf.qc"
+readiness_kind = "smoke"
+summary = "Run governed VCF QC from the propagated genotype-likelihood VCF while keeping the GL propagation evidence explicit."
+depends_on = ["vcf.gl_propagation"]
+external_inputs = []
+upstream_inputs = [
+  "gl_propagated_vcf",
+  "gl_propagated_vcf_tbi",
+  "gl_propagation_report_json",
+]
+outputs = ["qc_report", "qc_stage_metrics"]
