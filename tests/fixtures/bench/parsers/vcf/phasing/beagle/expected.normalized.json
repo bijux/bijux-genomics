@@ -1,0 +1,22 @@
+{
+  "schema_version": "bijux.fixture.vcf_raw_parser.v1",
+  "stage_id": "vcf.phasing",
+  "tool_id": "beagle",
+  "parser_id": "parse_beagle_phasing_metrics",
+  "normalized": {
+    "schema_version": "bijux.vcf.phasing.v1",
+    "stage_id": "vcf.phasing",
+    "tool_id": "beagle",
+    "input_genotypes": 8,
+    "phased_genotypes": 8,
+    "unphased_genotypes": 0,
+    "phase_set_count": 4,
+    "sample_count": 2,
+    "sample_ids": [
+      "cohort_alpha",
+      "cohort_beta"
+    ],
+    "output_variant_count": 4,
+    "status": "complete"
+  }
+}

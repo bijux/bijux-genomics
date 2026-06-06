@@ -1,0 +1,9 @@
+{
+  "tool_id": "eagle",
+  "stage_id": "vcf.phasing",
+  "argv": [
+    "sh",
+    "-lc",
+    "eagle --vcfTarget input.vcf --vcfRef panel.vcf.gz --geneticMapFile map.tsv.gz --outPrefix phased --numThreads 8 > logs.txt 2>&1 && bcftools index -t phased.vcf.gz"
+  ]
+}
