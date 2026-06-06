@@ -457,6 +457,14 @@ Visible aliases are part of the operator surface:
   `fai_path`, `dict_path`, `contig_count`, `reference_contigs`, `vcf_contigs`, `missing_contigs`,
   `extra_contigs`, and per-variant-set contig slices explicit, and the command fails closed when
   any VCF contig drifts away from the governed reference contract.
+- `bijux-dna bench local validate-vcf-sample-compatibility`
+  `validate-vcf-sample-compatibility` writes
+  `target/local-ready/vcf/sample-compatibility.json`, deriving the governed cohort-sample
+  compatibility report from the owned `vcf-mini` fixture manifest, the multisample and phased VCF
+  views, the sample metadata manifest, and the population metadata labels. The report keeps
+  `vcf_samples`, `metadata_samples`, `missing_metadata`, `extra_metadata`, `population_labels`,
+  `sex_labels`, and explicit missing-label slices visible, and the command fails closed when the
+  population-analysis sample set would proceed without known metadata labels.
 - `bijux-dna bench local validate-hpc-submission-ready`
   `validate-hpc-submission-ready` writes `target/local-ready/HPC_SUBMISSION_READY.json` and
   reruns the governed local readiness proof slice end to end: stage matrices, numbered FASTQ and
