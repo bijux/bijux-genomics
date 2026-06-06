@@ -46,3 +46,4 @@ pub(crate) mod undercovered_stages;
 pub(crate) mod unregistered_benchmark_pairs;
 pub(crate) mod vcf_orphan_tools;
 pub(crate) mod vcf_tool_serving_map;
+pub(crate) mod vcf_undercovered_stages;

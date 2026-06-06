@@ -88,8 +88,8 @@ pub use self::readiness::{
     BenchReadinessRenderStageToolResourcesArgs, BenchReadinessRenderToolCentricReportArgs,
     BenchReadinessRenderToolIdNormalizationArgs, BenchReadinessRenderUndercoveredStagesArgs,
     BenchReadinessRenderUnregisteredBenchmarkPairsArgs, BenchReadinessRenderVcfOrphanToolsArgs,
-    BenchReadinessRenderVcfToolServingMapArgs, BenchReadinessValidateToolExecutionModesArgs,
-    BenchReadinessValidateToolFamiliesArgs,
+    BenchReadinessRenderVcfToolServingMapArgs, BenchReadinessRenderVcfUndercoveredStagesArgs,
+    BenchReadinessValidateToolExecutionModesArgs, BenchReadinessValidateToolFamiliesArgs,
 };
 pub use self::suite::BenchRunArgs;
 
