@@ -930,6 +930,7 @@ Visible aliases are part of the operator surface:
   `configs/pipelines/local/fastq-to-bam.toml` and
   `configs/pipelines/local/core-germline-fastq-bam-vcf.toml` and
   `configs/pipelines/local/fastq-paired-merge.toml` and
+  `configs/pipelines/local/edna-taxonomy-no-vcf.toml` and
   `configs/pipelines/local/fastq-edna-taxonomy.toml` and
   `configs/pipelines/local/fastq-amplicon.toml` and
   `configs/pipelines/local/fastq-umi.toml` and
@@ -978,6 +979,10 @@ Visible aliases are part of the operator surface:
   bridge pipeline config, writes `target/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json`,
   and fails closed unless `vcf.filter` consumes the exact `bam.genotyping` VCF handoff instead of
   a conceptual external cohort-VCF placeholder.
+  `plan validate --id edna-taxonomy-no-vcf --strict` resolves the governed eDNA taxonomy-only
+  pipeline config, writes `target/local-ready/pipeline-dag/edna-taxonomy-no-vcf.json`, and fails
+  closed unless taxonomy screening remains local to FASTQ filtering and reporting instead of
+  bridging into BAM or VCF germline stages.
 - `bijux-dna bench local simulate-dag-watchdog`
   `simulate-dag-watchdog` writes governed DAG scheduling simulations such as
   `target/local-ready/dag-sim/no-global-wait.json` and
