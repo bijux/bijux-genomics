@@ -76,6 +76,8 @@ pub enum BenchReadinessCommand {
     RenderVcfToolServingMap(BenchReadinessRenderVcfToolServingMapArgs),
     #[command(name = "render-vcf-angsd-adapter")]
     RenderVcfAngsdAdapter(BenchReadinessRenderVcfAngsdAdapterArgs),
+    #[command(name = "render-vcf-eigensoft-adapter")]
+    RenderVcfEigensoftAdapter(BenchReadinessRenderVcfEigensoftAdapterArgs),
     #[command(name = "render-vcf-plink-adapter")]
     RenderVcfPlinkAdapter(BenchReadinessRenderVcfPlinkAdapterArgs),
     #[command(name = "render-vcf-plink2-adapter")]
@@ -268,6 +270,14 @@ pub struct BenchReadinessRenderMissingResultReportArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfAngsdAdapterArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfEigensoftAdapterArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
