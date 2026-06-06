@@ -56,5 +56,6 @@ pub(crate) mod vcf_orphan_tools;
 pub(crate) mod vcf_phasing_family_adapter;
 pub(crate) mod vcf_plink_family_adapter;
 pub(crate) mod vcf_readiness_inputs;
+pub(crate) mod vcf_rendered_command_rows;
 pub(crate) mod vcf_tool_serving_map;
 pub(crate) mod vcf_undercovered_stages;
