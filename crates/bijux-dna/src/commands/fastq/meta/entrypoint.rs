@@ -410,6 +410,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateVcfStageCatalogReady(args) => {
+                        crate::commands::benchmark::local_vcf_stage_catalog_ready::run_validate_vcf_stage_catalog_ready(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateVcfReferenceCompatibility(args) => {
                         crate::commands::benchmark::local_vcf_reference_compatibility::run_validate_vcf_reference_compatibility(
                             &args,
