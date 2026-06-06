@@ -381,6 +381,9 @@ fn build_validation_profiles(
     {
         profiles.push(validate_bam_genotyping_vcf_downstream_profile(repo_root, config)?);
     }
+    if config.pipeline_id == "edna-taxonomy-no-vcf" {
+        profiles.push(validate_edna_taxonomy_no_vcf_profile(repo_root, config)?);
+    }
 
     Ok(profiles)
 }
@@ -2189,6 +2192,162 @@ fn validate_bam_genotyping_vcf_downstream_profile(
     })
 }
 
+fn validate_edna_taxonomy_no_vcf_profile(
+    repo_root: &Path,
+    config: &LocalPipelineDagConfig,
+) -> Result<LocalPipelineDagValidationProfileReport> {
+    const PROFILE_ID: &str = "edna_taxonomy_no_vcf";
+
+    if config
+        .nodes
+        .iter()
+        .any(|node| node.stage_id.starts_with("bam.") || node.stage_id.starts_with("vcf."))
+    {
+        return Err(anyhow!(
+            "{PROFILE_ID}: taxonomy-only pipeline must not admit BAM or VCF germline stages"
+        ));
+    }
+    if !matches!(config.domain, LocalPipelineDagDomain::Fastq) {
+        return Err(anyhow!(
+            "{PROFILE_ID} local pipeline DAG must stay in the governed `fastq` domain, found `{}`",
+            config.domain.as_str()
+        ));
+    }
+    if config.default_corpus_id != "corpus-02-edna-mini" {
+        return Err(anyhow!(
+            "{PROFILE_ID} local pipeline DAG must start from governed eDNA corpus `corpus-02-edna-mini`, found `{}`",
+            config.default_corpus_id
+        ));
+    }
+
+    let stage_index =
+        config.nodes.iter().map(|node| (node.stage_id.clone(), node)).collect::<BTreeMap<_, _>>();
+
+    let validate_reads = require_profile_stage(&stage_index, PROFILE_ID, "fastq.validate_reads")?;
+    let _filter_reads = require_profile_stage(&stage_index, PROFILE_ID, "fastq.filter_reads")?;
+    let screen_taxonomy = require_profile_stage(&stage_index, PROFILE_ID, "fastq.screen_taxonomy")?;
+    let report_qc = require_profile_stage(&stage_index, PROFILE_ID, "fastq.report_qc")?;
+
+    require_list_contains(
+        &validate_reads.external_inputs,
+        "corpus.raw_fastq_reads",
+        PROFILE_ID,
+        "fastq.validate_reads must declare the governed eDNA FASTQ corpus input",
+    )?;
+    require_list_contains(
+        &screen_taxonomy.depends_on,
+        "fastq.filter_reads",
+        PROFILE_ID,
+        "fastq.screen_taxonomy must remain downstream of FASTQ filtering",
+    )?;
+    require_list_contains(
+        &screen_taxonomy.upstream_inputs,
+        "filtered_reads",
+        PROFILE_ID,
+        "fastq.screen_taxonomy must consume the filtered FASTQ handoff",
+    )?;
+    require_list_contains(
+        &screen_taxonomy.external_inputs,
+        "taxonomy_database.root",
+        PROFILE_ID,
+        "fastq.screen_taxonomy must declare the governed taxonomy database root",
+    )?;
+    require_list_contains(
+        &screen_taxonomy.external_inputs,
+        "taxonomy_expected_truth_table",
+        PROFILE_ID,
+        "fastq.screen_taxonomy must declare the governed expected-taxa contract",
+    )?;
+    require_list_contains(
+        &screen_taxonomy.outputs,
+        "taxonomy_classification",
+        PROFILE_ID,
+        "fastq.screen_taxonomy must keep the classified taxonomy output explicit",
+    )?;
+    require_list_contains(
+        &screen_taxonomy.outputs,
+        "unclassified_reads",
+        PROFILE_ID,
+        "fastq.screen_taxonomy must keep the unclassified-read output explicit",
+    )?;
+    require_list_contains(
+        &screen_taxonomy.outputs,
+        "taxonomy_summary",
+        PROFILE_ID,
+        "fastq.screen_taxonomy must keep the taxonomy summary output explicit",
+    )?;
+    require_list_contains(
+        &report_qc.depends_on,
+        "fastq.screen_taxonomy",
+        PROFILE_ID,
+        "fastq.report_qc must remain downstream of taxonomy screening",
+    )?;
+    require_list_contains(
+        &report_qc.upstream_inputs,
+        "taxonomy_summary",
+        PROFILE_ID,
+        "fastq.report_qc must consume the taxonomy summary handoff",
+    )?;
+
+    if report_qc.upstream_inputs.iter().any(|value| value.contains("vcf") || value.contains("bam"))
+    {
+        return Err(anyhow!(
+            "{PROFILE_ID}: taxonomy reporting must not mix BAM or VCF germline outputs into the final report"
+        ));
+    }
+
+    for node in &config.nodes {
+        if node.stage_id.starts_with("bam.") || node.stage_id.starts_with("vcf.") {
+            if node.upstream_inputs.iter().any(|value| {
+                value == "taxonomy_classification"
+                    || value == "unclassified_reads"
+                    || value == "taxonomy_summary"
+            }) {
+                return Err(anyhow!(
+                    "{PROFILE_ID}: taxonomy outputs must not bridge into BAM or VCF germline stages"
+                ));
+            }
+        }
+    }
+
+    let compatibility_report = validate_corpus_stage_compatibility_path(
+        repo_root,
+        &repo_root.join(DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH),
+    )?;
+    let compatibility_index = compatibility_report
+        .stages
+        .iter()
+        .map(|entry| (entry.stage_id.as_str(), entry))
+        .collect::<BTreeMap<_, _>>();
+    require_compatibility_fixture(
+        &compatibility_index,
+        PROFILE_ID,
+        "fastq.screen_taxonomy",
+        "corpus-02",
+        "corpus-02-edna-mini",
+    )?;
+
+    let checks = vec![
+        "default corpus anchored to corpus-02-edna-mini for governed edna taxonomy inputs"
+            .to_string(),
+        "pipeline remains fastq-only and rejects bam or vcf germline stages".to_string(),
+        "fastq.validate_reads keeps the governed raw-fastq corpus handoff explicit".to_string(),
+        "fastq.screen_taxonomy stays fixture-backed by corpus-02-edna-mini".to_string(),
+        "fastq.screen_taxonomy remains downstream of filtered reads".to_string(),
+        "fastq.screen_taxonomy keeps taxonomy database and expected-truth contracts explicit"
+            .to_string(),
+        "fastq.screen_taxonomy keeps classification, unclassified, and summary outputs explicit"
+            .to_string(),
+        "fastq.report_qc consumes taxonomy summary without mixing bam or vcf germline outputs"
+            .to_string(),
+    ];
+    Ok(LocalPipelineDagValidationProfileReport {
+        profile_id: PROFILE_ID.to_string(),
+        check_count: checks.len(),
+        checks,
+    })
+}
+
 fn require_profile_stage<'a>(
     stage_index: &'a BTreeMap<String, &'a LocalPipelineDagNode>,
     profile_id: &str,
@@ -2609,6 +2768,135 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
                         == vec!["taxonomy_classification", "unclassified_reads", "taxonomy_summary"]
             }),
             "screen_taxonomy must carry governed taxonomy assets and explicit classified plus unclassified outputs"
+        );
+    }
+
+    #[test]
+    fn edna_taxonomy_no_vcf_pipeline_dag_keeps_taxonomy_reporting_local_to_fastq() {
+        let repo_root = repo_root();
+        let config_path = repo_root.join("configs/pipelines/local/edna-taxonomy-no-vcf.toml");
+        let output_path =
+            repo_root.join("target/local-ready/pipeline-dag/edna-taxonomy-no-vcf.json");
+        let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect("validate edna taxonomy no-vcf local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "edna-taxonomy-no-vcf");
+        assert_eq!(report.domain, "fastq");
+        assert_eq!(report.default_corpus_id, "corpus-02-edna-mini");
+        assert_eq!(report.node_count, 6);
+        assert_eq!(report.edge_count, 10);
+        assert!(report.acyclic);
+        assert!(
+            report
+                .validation_profiles
+                .iter()
+                .any(|profile| profile.profile_id == "edna_taxonomy_no_vcf"
+                    && profile.check_count == 8),
+            "edna taxonomy no-vcf pipeline must surface the governed separation profile"
+        );
+        assert!(
+            report.nodes.iter().all(|node| node.stage_id.starts_with("fastq.")),
+            "taxonomy-only pipeline must keep every declared stage in the fastq domain"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "fastq.screen_taxonomy"
+                    && node.external_inputs
+                        == vec!["taxonomy_database.root", "taxonomy_expected_truth_table"]
+                    && node.outputs
+                        == vec!["taxonomy_classification", "unclassified_reads", "taxonomy_summary"]
+            }),
+            "screen_taxonomy must keep the governed taxonomy assets and outputs explicit"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "fastq.report_qc"
+                    && node.depends_on
+                        == vec![
+                            "fastq.validate_reads",
+                            "fastq.detect_adapters",
+                            "fastq.trim_reads",
+                            "fastq.filter_reads",
+                            "fastq.screen_taxonomy",
+                        ]
+                    && node.upstream_inputs
+                        == vec![
+                            "validation_report",
+                            "adapter_report",
+                            "trim_metrics",
+                            "filter_metrics",
+                            "taxonomy_summary",
+                        ]
+            }),
+            "report_qc must stay downstream of taxonomy screening without any bam or vcf handoffs"
+        );
+    }
+
+    #[test]
+    fn edna_taxonomy_no_vcf_profile_rejects_vcf_bridge_from_taxonomy_outputs() {
+        let repo_root = repo_root();
+        let tempdir = tempfile::tempdir().expect("tempdir");
+        let config_path = tempdir.path().join("edna-taxonomy-no-vcf.toml");
+        fs::write(
+            &config_path,
+            r#"
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "edna-taxonomy-no-vcf"
+domain = "cross"
+summary = "Invalid proof that taxonomy outputs must not bridge into VCF stages."
+default_corpus_id = "corpus-02-edna-mini"
+
+[[nodes]]
+node_id = "fastq.validate_reads"
+stage_id = "fastq.validate_reads"
+readiness_kind = "smoke"
+summary = "Validate governed eDNA FASTQ inputs."
+depends_on = []
+external_inputs = ["corpus.raw_fastq_reads"]
+upstream_inputs = []
+outputs = ["validated_reads", "validation_report"]
+
+[[nodes]]
+node_id = "fastq.filter_reads"
+stage_id = "fastq.filter_reads"
+readiness_kind = "smoke"
+summary = "Filter validated reads."
+depends_on = ["fastq.validate_reads"]
+external_inputs = []
+upstream_inputs = ["validated_reads"]
+outputs = ["filtered_reads", "filter_metrics"]
+
+[[nodes]]
+node_id = "fastq.screen_taxonomy"
+stage_id = "fastq.screen_taxonomy"
+readiness_kind = "dry_or_smoke"
+summary = "Screen taxonomy from filtered reads."
+depends_on = ["fastq.filter_reads"]
+external_inputs = ["taxonomy_database.root", "taxonomy_expected_truth_table"]
+upstream_inputs = ["filtered_reads"]
+outputs = ["taxonomy_classification", "unclassified_reads", "taxonomy_summary"]
+
+[[nodes]]
+node_id = "vcf.call"
+stage_id = "vcf.call"
+readiness_kind = "smoke"
+summary = "Invalid germline bridge from taxonomy-only outputs."
+depends_on = ["fastq.screen_taxonomy"]
+external_inputs = ["reference_fasta_contract", "reference_fai_contract"]
+upstream_inputs = ["taxonomy_summary"]
+outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
+"#,
+        )
+        .expect("write invalid edna taxonomy config");
+
+        let output_path = tempdir.path().join("edna-taxonomy-no-vcf.json");
+        let error = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect_err("taxonomy-only profile must reject a vcf bridge");
+        assert!(
+            error
+                .to_string()
+                .contains("taxonomy-only pipeline must not admit BAM or VCF germline stages"),
+            "profile must fail closed when taxonomy outputs bridge into germline stages: {error:#}"
         );
     }
 
