@@ -336,3 +336,88 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::{
+        build_vcf_stage_catalog_ready_report, LocalVcfStageCatalogReadyGoalCheck,
+        DEFAULT_VCF_STAGE_CATALOG_READY_PATH, LOCAL_VCF_STAGE_CATALOG_READY_SCHEMA_VERSION,
+    };
+
+    fn repo_root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .expect("canonicalize repo root")
+    }
+
+    #[test]
+    fn vcf_stage_catalog_ready_report_marks_failed_goal_ids() {
+        let repo_root = repo_root();
+        let checks = vec![
+            LocalVcfStageCatalogReadyGoalCheck {
+                goal_id: 201,
+                surface: "vcf stage catalog".to_string(),
+                output_path: Some("configs/bench/local/vcf-stage-catalog.toml".to_string()),
+                ok: true,
+                detail: "ok".to_string(),
+            },
+            LocalVcfStageCatalogReadyGoalCheck {
+                goal_id: 209,
+                surface: "vcf no-empty-output gate".to_string(),
+                output_path: Some("target/local-ready/vcf/no-empty-output-check.json".to_string()),
+                ok: false,
+                detail: "zero-byte artifact detected".to_string(),
+            },
+        ];
+
+        let report = build_vcf_stage_catalog_ready_report(
+            &repo_root,
+            &repo_root.join(DEFAULT_VCF_STAGE_CATALOG_READY_PATH),
+            checks,
+        );
+
+        assert_eq!(report.schema_version, LOCAL_VCF_STAGE_CATALOG_READY_SCHEMA_VERSION);
+        assert_eq!(report.output_path, DEFAULT_VCF_STAGE_CATALOG_READY_PATH);
+        assert_eq!(report.checked_goal_count, 2);
+        assert_eq!(report.passed_goal_count, 1);
+        assert_eq!(report.failed_goal_count, 1);
+        assert_eq!(report.failing_goal_ids, vec![209]);
+        assert!(!report.ok);
+    }
+
+    #[test]
+    fn vcf_stage_catalog_ready_report_marks_clean_goal_slice() {
+        let repo_root = repo_root();
+        let checks = vec![
+            LocalVcfStageCatalogReadyGoalCheck {
+                goal_id: 201,
+                surface: "vcf stage catalog".to_string(),
+                output_path: Some("configs/bench/local/vcf-stage-catalog.toml".to_string()),
+                ok: true,
+                detail: "ok".to_string(),
+            },
+            LocalVcfStageCatalogReadyGoalCheck {
+                goal_id: 202,
+                surface: "vcf stage matrix".to_string(),
+                output_path: Some("configs/bench/local/vcf-stage-matrix.toml".to_string()),
+                ok: true,
+                detail: "ok".to_string(),
+            },
+        ];
+
+        let report = build_vcf_stage_catalog_ready_report(
+            &repo_root,
+            &repo_root.join(DEFAULT_VCF_STAGE_CATALOG_READY_PATH),
+            checks,
+        );
+
+        assert_eq!(report.checked_goal_count, 2);
+        assert_eq!(report.passed_goal_count, 2);
+        assert_eq!(report.failed_goal_count, 0);
+        assert!(report.failing_goal_ids.is_empty());
+        assert!(report.ok);
+    }
+}
