@@ -1,0 +1,29 @@
+{
+  "schema_version": "bijux.fixture.vcf_raw_parser.v1",
+  "stage_id": "vcf.ibd",
+  "tool_id": "ibdseq",
+  "parser_id": "parse_ibdseq_ibd_segment_metrics",
+  "normalized": {
+    "schema_version": "bijux.vcf.ibd.v1",
+    "stage_id": "vcf.ibd",
+    "tool_id": "ibdseq",
+    "status": "complete",
+    "insufficient_reason": null,
+    "pair_count": 1,
+    "rows": [
+      {
+        "sample_a": "sample_c",
+        "sample_b": "sample_d",
+        "segment_count": 1,
+        "total_length": 7.125,
+        "marker_count_total": 31,
+        "status": "complete"
+      }
+    ],
+    "insufficient_overlap_probe": {
+      "status": "not_run",
+      "insufficient_reason": null,
+      "filtered_segment_count": 0
+    }
+  }
+}

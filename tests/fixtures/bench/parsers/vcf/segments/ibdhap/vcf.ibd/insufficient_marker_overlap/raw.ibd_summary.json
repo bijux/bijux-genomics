@@ -1,0 +1,18 @@
+{
+  "schema_version": "bijux.vcf.ibd.summary.v1",
+  "segments_total": 1,
+  "segments_merged": 1,
+  "segments_filtered": 0,
+  "total_length_cm": 0.0,
+  "status": "insufficient_marker_overlap",
+  "insufficient_data_reason": "no_pairs_met_min_marker_or_length_threshold",
+  "postprocess": {
+    "min_segment_cm": 1.0,
+    "min_markers_per_segment": 12
+  },
+  "tool_attempts": {
+    "germline": false,
+    "ibdhap": false
+  },
+  "execution_mode": "fallback_proxy"
+}
