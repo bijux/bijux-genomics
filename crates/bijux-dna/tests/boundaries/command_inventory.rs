@@ -125,6 +125,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-vcf-shapeit5-adapter",
     "bijux-dna bench readiness render-vcf-eagle-adapter",
     "bijux-dna bench readiness render-vcf-beagle-adapter",
+    "bijux-dna bench readiness render-vcf-imputation-family-adapter",
     "bijux-dna bench readiness render-vcf-plink-adapter",
     "bijux-dna bench readiness render-vcf-plink2-adapter",
     "bijux-dna bench readiness render-vcf-bcftools-adapter",
