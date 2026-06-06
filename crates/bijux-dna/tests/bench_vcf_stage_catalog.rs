@@ -138,13 +138,31 @@ fn bench_vcf_stage_catalog_matches_code_catalog() {
             .map(|values| values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()),
         Some(vec!["json"])
     );
-    assert!(
-        population_structure
-            .get("required_assets")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|assets| {
-                assets.iter().any(|value| value.as_str() == Some("sample_metadata_manifest"))
-                    && assets.iter().any(|value| value.as_str() == Some("vcf_index"))
-            })
+    assert!(population_structure
+        .get("required_assets")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|assets| {
+            assets.iter().any(|value| value.as_str() == Some("sample_metadata_manifest"))
+                && assets.iter().any(|value| value.as_str() == Some("vcf_index"))
+        }));
+
+    let pca = rows
+        .iter()
+        .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.pca"))
+        .expect("pca row");
+    assert_eq!(
+        pca.get("metrics_schema_id").and_then(serde_json::Value::as_str),
+        Some("bijux.vcf.pca.v1")
+    );
+
+    let admixture = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.admixture")
+        })
+        .expect("admixture row");
+    assert_eq!(
+        admixture.get("metrics_schema_id").and_then(serde_json::Value::as_str),
+        Some("bijux.vcf.admixture.v1")
     );
 }

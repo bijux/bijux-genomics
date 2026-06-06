@@ -105,4 +105,22 @@ fn bench_vcf_stage_catalog_writes_governed_toml_file() {
         stats.get("benchmark_category").and_then(toml::Value::as_str),
         Some("quality_control")
     );
+
+    let pca = rows
+        .iter()
+        .find(|row| row.get("stage_id").and_then(toml::Value::as_str) == Some("vcf.pca"))
+        .expect("pca row");
+    assert_eq!(
+        pca.get("metrics_schema_id").and_then(toml::Value::as_str),
+        Some("bijux.vcf.pca.v1")
+    );
+
+    let admixture = rows
+        .iter()
+        .find(|row| row.get("stage_id").and_then(toml::Value::as_str) == Some("vcf.admixture"))
+        .expect("admixture row");
+    assert_eq!(
+        admixture.get("metrics_schema_id").and_then(toml::Value::as_str),
+        Some("bijux.vcf.admixture.v1")
+    );
 }
