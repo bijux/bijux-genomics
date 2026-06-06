@@ -415,6 +415,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RunVcfCallPseudohaploidSmoke(args) => {
+                        crate::commands::benchmark::local_vcf_call_pseudohaploid_smoke::run_vcf_call_pseudohaploid_smoke(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateVcfNoEmptyOutput(args) => {
                         crate::commands::benchmark::local_vcf_no_empty_output::run_validate_vcf_no_empty_output(
                             &args,
