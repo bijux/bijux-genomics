@@ -580,6 +580,14 @@ Visible aliases are part of the operator surface:
   `low_confidence_count`, `masked_truth_site_count`, `masked_truth_match_count`, and
   `unresolved_count`) so reviewer evidence proves a known masked genotype is either filled or
   surfaced with an explicit unresolved reason instead of being hidden by wrapper logic.
+- `bijux-dna bench local run-vcf-imputation-metrics-smoke`
+  `run-vcf-imputation-metrics-smoke` writes
+  `target/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json` from the governed
+  `vcf.impute` smoke outputs. The command reruns the real local `beagle` imputation smoke, copies
+  the persisted QC, metrics, and manifest artifacts into a dedicated reviewer-facing root, and
+  records exact quality evidence (`concordance`, `mean_info_score`, `r2_available`,
+  `low_confidence_sites`, and `masked_truth_sites`) so missing imputation-quality fields are kept
+  explicit in `missing_quality_fields` instead of silently disappearing from the report surface.
 - `bijux-dna bench local run-vcf-call-pseudohaploid-smoke`
   `run-vcf-call-pseudohaploid-smoke` writes
   `target/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz`,
