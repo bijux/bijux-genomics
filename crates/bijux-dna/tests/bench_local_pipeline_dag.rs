@@ -936,6 +936,151 @@ fn bench_local_pipeline_dag_validates_diploid_small_contract() {
 }
 
 #[test]
+fn bench_local_pipeline_dag_validates_reference_panel_imputation_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/reference-panel-imputation.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/reference-panel-imputation.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/reference-panel-imputation.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("reference-panel-imputation")
+    );
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("vcf_production_regression")
+    );
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(payload.get("edge_count").and_then(serde_json::Value::as_u64), Some(7));
+
+    let profiles = payload
+        .get("validation_profiles")
+        .and_then(serde_json::Value::as_array)
+        .expect("validation profiles");
+    assert!(
+        profiles.iter().any(|profile| {
+            profile.get("profile_id").and_then(serde_json::Value::as_str)
+                == Some("reference_panel_imputation")
+                && profile.get("check_count").and_then(serde_json::Value::as_u64) == Some(8)
+        }),
+        "reference-panel imputation pipeline must emit the reference_panel_imputation validation profile"
+    );
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.prepare_reference_panel")
+                && node.get("external_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("reference_panel_id_contract"))
+                            && inputs.iter().any(|value| {
+                                value.as_str() == Some("reference_panel_lock_contract")
+                            })
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("genetic_map_contract"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("reference_fasta_contract"))
+                    },
+                )
+                && node.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |outputs| {
+                        outputs.iter().any(|value| value.as_str() == Some("prepared_panel_vcf"))
+                            && outputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("prepared_panel_panel_id"))
+                    },
+                )
+        }),
+        "panel preparation must keep panel identity plus map and reference contracts explicit"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.impute")
+                && node
+                    .get("depends_on")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|deps| {
+                        deps.iter().any(|value| {
+                            value.as_str() == Some("vcf.prepare_reference_panel")
+                        }) && deps.iter().any(|value| value.as_str() == Some("vcf.qc"))
+                            && deps.iter().any(|value| value.as_str() == Some("vcf.phasing"))
+                    })
+                && node
+                    .get("external_inputs")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|inputs| {
+                        inputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("reference_panel_id_contract"))
+                            && inputs.iter().any(|value| {
+                                value.as_str() == Some("reference_panel_lock_contract")
+                            })
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("genetic_map_contract"))
+                    })
+                && node
+                    .get("upstream_inputs")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("qc_target_vcf"))
+                            && inputs.iter().any(|value| value.as_str() == Some("phased_vcf"))
+                            && inputs.iter().any(|value| {
+                                value.as_str() == Some("phasing_requirement_decision_json")
+                            })
+                            && inputs.iter().any(|value| {
+                                value.as_str() == Some("prepared_panel_panel_id")
+                            })
+                    })
+        }),
+        "imputation must keep both the qc-target fallback path and phased run path behind explicit panel identity"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation")
+                && node
+                    .get("depends_on")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|deps| {
+                        deps.iter().any(|value| {
+                            value.as_str() == Some("vcf.prepare_reference_panel")
+                        }) && deps.iter().any(|value| value.as_str() == Some("vcf.impute"))
+                    })
+                && node
+                    .get("upstream_inputs")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|inputs| {
+                        inputs.iter().any(|value| {
+                            value.as_str() == Some("prepared_panel_panel_id")
+                        }) && inputs.iter().any(|value| {
+                            value.as_str() == Some("imputation_manifest_json")
+                        }) && inputs.iter().any(|value| {
+                            value.as_str() == Some("imputation_qc_json")
+                        })
+                    })
+        }),
+        "imputation metrics must stay downstream of imputation execution with explicit panel and qc evidence"
+    );
+}
+
+#[test]
 fn bench_local_pipeline_dag_validates_bam_genotyping_contract() {
     let payload = run_cli_json(&[
         "bench",
