@@ -8,9 +8,10 @@ mod contracts {
     use bijux_dna_domain_vcf::{
         build_vcf_scientific_drift_report,
         contracts::{
-            refuse_unsupported_regime_transition, stage_artifact_class_contract,
-            stage_artifact_contract, stage_failure_modes, stage_io_contract,
-            stage_metrics_contract, validate_entry_vcf_invariants, validate_panel_map_invariants,
+            comparable_metric_stage_ids, refuse_unsupported_regime_transition,
+            stage_artifact_class_contract, stage_artifact_contract, stage_comparable_metric_specs,
+            stage_failure_modes, stage_io_contract, stage_metrics_contract,
+            validate_entry_vcf_invariants, validate_panel_map_invariants,
             validate_reference_panel_governance, validate_species_context, validate_vcf_invariants,
             vcf_calling_mode_contracts, vcf_cohort_analysis_boundary_contracts,
             vcf_likelihood_workflow_contracts, vcf_panel_boundary_contracts,
@@ -18,8 +19,8 @@ mod contracts {
             ContigSpec, DamageAwareGenotypeLogicContract, DefaultPanelSelectionPolicy,
             EntryVcfInvariantState, PanelMapInvariantState, PanelSelectionContext,
             PanelSelectionPolicy, ReferencePanelGovernance, SpeciesContext, VcfArtifactClass,
-            VcfInvariantState, DAMAGE_AWARE_GENOTYPE_LOGIC, OUTPUT_GUARANTEE,
-            VCF_COHORT_VALIDATION_CONTRACT, VCF_DAMAGE_FILTER_CONTRACT,
+            VcfComparableMetricDirection, VcfInvariantState, DAMAGE_AWARE_GENOTYPE_LOGIC,
+            OUTPUT_GUARANTEE, VCF_COHORT_VALIDATION_CONTRACT, VCF_DAMAGE_FILTER_CONTRACT,
             VCF_FILTER_EVIDENCE_CONTRACT, VCF_NORMALIZATION_CONTRACT,
             VCF_NORMALIZATION_POLICY_MATRIX_CONTRACT, VCF_PRODUCTION_CORPUS_CONTRACT,
             VCF_REFERENCE_CONTEXT_CONTRACT, VCF_REPORT_COVERAGE_CONTRACT,
@@ -175,6 +176,63 @@ mod contracts {
         assert_eq!(demography.metrics_schema_id, "bijux.vcf.demography.v1");
         assert!(demography.required_metrics.contains(&"time_bins"));
         assert!(demography.required_metrics.contains(&"insufficient_data_probe"));
+    }
+
+    #[test]
+    fn vcf_comparable_metric_contracts_cover_retained_multi_tool_stage_slice() {
+        let stage_ids = comparable_metric_stage_ids()
+            .into_iter()
+            .map(|stage| stage.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(
+            stage_ids,
+            vec![
+                "vcf.admixture",
+                "vcf.call_gl",
+                "vcf.call_pseudohaploid",
+                "vcf.damage_filter",
+                "vcf.gl_propagation",
+                "vcf.ibd",
+                "vcf.imputation",
+                "vcf.impute",
+                "vcf.pca",
+                "vcf.phasing",
+                "vcf.population_structure",
+                "vcf.qc",
+            ]
+        );
+
+        let call_gl = stage_comparable_metric_specs(VcfDomainStage::CallGl);
+        assert!(call_gl.iter().any(|metric| {
+            metric.metric_id == "sites_with_likelihoods"
+                && metric.unit == "sites"
+                && metric.direction == VcfComparableMetricDirection::HigherIsBetter
+                && metric.required
+        }));
+        assert!(call_gl.iter().any(|metric| {
+            metric.metric_id == "missing_likelihoods"
+                && metric.direction == VcfComparableMetricDirection::LowerIsBetter
+        }));
+
+        let qc = stage_comparable_metric_specs(VcfDomainStage::Qc);
+        assert!(qc.iter().any(|metric| {
+            metric.metric_id == "concordance"
+                && metric.unit == "fraction"
+                && metric.direction == VcfComparableMetricDirection::HigherIsBetter
+        }));
+
+        let phasing = stage_comparable_metric_specs(VcfDomainStage::Phasing);
+        assert!(phasing.iter().any(|metric| {
+            metric.metric_id == "phase_block_n50"
+                && metric.unit == "bases"
+                && metric.direction == VcfComparableMetricDirection::HigherIsBetter
+        }));
+
+        let impute = stage_comparable_metric_specs(VcfDomainStage::Impute);
+        assert!(impute.iter().any(|metric| {
+            metric.metric_id == "masked_truth_match_count"
+                && metric.direction == VcfComparableMetricDirection::HigherIsBetter
+        }));
     }
 
     #[test]
