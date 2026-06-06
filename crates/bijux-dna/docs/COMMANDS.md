@@ -534,6 +534,15 @@ Visible aliases are part of the operator surface:
   manifest visible, and records exact smoke evidence (`sample_id`, `K`, `cluster_1`, `cluster_2`,
   `status`, `execution_mode`, and any `insufficient_data_reason`) so ancestry proportions remain
   reviewer-visible whether the local run used a real tool path or the governed fallback proxy.
+- `bijux-dna bench local run-vcf-population-structure-smoke`
+  `run-vcf-population-structure-smoke` writes
+  `target/local-smoke/vcf.population_structure/plink2/population_structure.json` from the
+  governed `vcf.population_structure` matrix row. The command reruns the owned PCA and admixture
+  smoke commands first, fails if their persisted reports are missing, runs the retained population
+  structure stage on the governed cohort contract, keeps the source stage JSON, pruned variants,
+  logs, and consumed upstream reports visible, and records exact review evidence
+  (`consumed_pca`, `consumed_admixture`, `sample_groups`, `distance_summary`, and `status`) so
+  the final report is grounded in real upstream local-smoke outputs instead of an invented join.
 - `bijux-dna bench local run-vcf-pca-smoke`
   `run-vcf-pca-smoke` writes `target/local-smoke/vcf.pca/plink2/pca.tsv` and
   `target/local-smoke/vcf.pca/plink2/pca.json` from the governed `vcf.pca` matrix row. The
