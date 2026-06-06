@@ -76,6 +76,8 @@ pub enum BenchReadinessCommand {
     RenderVcfToolServingMap(BenchReadinessRenderVcfToolServingMapArgs),
     #[command(name = "render-vcf-angsd-adapter")]
     RenderVcfAngsdAdapter(BenchReadinessRenderVcfAngsdAdapterArgs),
+    #[command(name = "render-vcf-descent-family-adapter")]
+    RenderVcfDescentFamilyAdapter(BenchReadinessRenderVcfDescentFamilyAdapterArgs),
     #[command(name = "render-vcf-eigensoft-adapter")]
     RenderVcfEigensoftAdapter(BenchReadinessRenderVcfEigensoftAdapterArgs),
     #[command(name = "render-vcf-shapeit5-adapter")]
@@ -278,6 +280,14 @@ pub struct BenchReadinessRenderMissingResultReportArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfAngsdAdapterArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfDescentFamilyAdapterArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

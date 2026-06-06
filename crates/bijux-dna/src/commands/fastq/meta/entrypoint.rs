@@ -332,6 +332,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfDescentFamilyAdapter(args) => {
+                        crate::commands::benchmark::readiness::vcf_descent_family_adapter::run_render_vcf_descent_family_adapter(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfEigensoftAdapter(args) => {
                         crate::commands::benchmark::readiness::vcf_eigensoft_adapter::run_render_vcf_eigensoft_adapter(
                             args,
