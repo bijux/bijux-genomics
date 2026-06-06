@@ -1,14 +1,24 @@
 # bijux-dna-domain-vcf Tests
 
-The test suite locks VCF domain contracts, generated registry parity, guardrails, and crate layout.
+The test suite locks VCF domain contracts, generated registry parity, parser fixture banks,
+guardrails, and crate layout.
 
 ## Test Map
 
 | Surface | Test file or directory | Contract |
 | --- | --- | --- |
-| Contracts | `tests/contracts.rs` | Stage taxonomy, transitions, params, metrics, invariants, registry output, and committed config parity. |
+| Contracts | `tests/contracts.rs`, `tests/contracts/*` | Stage taxonomy, transitions, params, metrics, invariants, registry output, committed config parity, and parser fixture normalization. |
 | Guardrails | `tests/guardrails.rs` | Repository policy guardrails for the crate. |
 | Boundaries | `tests/boundaries.rs`, `tests/boundaries/*` | Docs layout, command-free surface, dependency graph, and source/test tree shape. |
+
+## Fixture Banks
+
+- `tests/fixtures/bench/parsers/vcf/bcftools/<stage>/` stores the governed raw artifact bank for
+  retained `bcftools` VCF stages.
+- Every stage directory must contain the raw parser inputs required by `src/parsers/bcftools.rs`
+  plus `expected.normalized.json`.
+- `tests/contracts/parsers/bcftools_fixture_bank.rs` is the SSOT that proves the checked-in raw
+  artifacts still normalize to the committed expected payloads.
 
 ## Commands
 
