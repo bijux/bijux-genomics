@@ -363,6 +363,8 @@ pub fn run_population_structure_stage(
             preprocessing: params.preprocessing.clone(),
         },
     )?;
+    let pca_manifest_raw = std::fs::read_to_string(&pca.pca_manifest_json)?;
+    let pca_manifest: serde_json::Value = serde_json::from_str(&pca_manifest_raw)?;
     let admixture = if params.run_admixture {
         Some(run_admixture_stage(
             input_vcf,
@@ -375,6 +377,13 @@ pub fn run_population_structure_stage(
     } else {
         None
     };
+    let admixture_manifest = admixture
+        .as_ref()
+        .map(|out| -> Result<serde_json::Value> {
+            let raw = std::fs::read_to_string(&out.k_selection_json)?;
+            Ok(serde_json::from_str(&raw)?)
+        })
+        .transpose()?;
     atomic_write_bytes(
         &plink_input_tsv,
         format!("variant_id\n{}\n", passing.join("\n")).as_bytes(),
@@ -398,6 +407,8 @@ pub fn run_population_structure_stage(
                 "max_missingness": params.preprocessing.max_missingness,
             },
             "variants_passing": passing.len(),
+            "status": "complete",
+            "sample_ids": samples,
             "sample_labels": {
                 "manifest": metadata_manifest,
                 "total_samples": labels.len(),
@@ -407,6 +418,10 @@ pub fn run_population_structure_stage(
                         *acc.entry(pop.clone()).or_insert(0) += 1;
                         acc
                     }),
+                "rows": labels.iter().map(|(sample_id, population_id)| serde_json::json!({
+                    "sample_id": sample_id,
+                    "population_id": population_id,
+                })).collect::<Vec<_>>(),
             },
             "metrics": {
                 "sample_count": labels.len(),
@@ -421,11 +436,33 @@ pub fn run_population_structure_stage(
             "pca": {
                 "eigenvec_tsv": pca.eigenvec_tsv,
                 "eigenval_tsv": pca.eigenval_tsv,
-                "manifest_json": pca.pca_manifest_json
+                "manifest_json": pca.pca_manifest_json,
+                "execution_mode": pca_manifest.get("execution_mode").and_then(serde_json::Value::as_str),
+                "tool_ok": pca_manifest.get("tool_attempts")
+                    .and_then(|row| row.get("pca"))
+                    .and_then(|row| row.get("ok"))
+                    .and_then(serde_json::Value::as_bool),
+                "sample_count": pca_manifest.get("sample_count").and_then(serde_json::Value::as_u64)
             },
             "admixture": admixture.as_ref().map(|out| serde_json::json!({
                 "q_matrix_tsv": out.q_matrix_tsv,
-                "k_selection_json": out.k_selection_json
+                "k_selection_json": out.k_selection_json,
+                "status": admixture_manifest
+                    .as_ref()
+                    .and_then(|row| row.get("status"))
+                    .and_then(serde_json::Value::as_str),
+                "execution_mode": admixture_manifest
+                    .as_ref()
+                    .and_then(|row| row.get("execution_mode"))
+                    .and_then(serde_json::Value::as_str),
+                "selected_k": admixture_manifest
+                    .as_ref()
+                    .and_then(|row| row.get("selected_k"))
+                    .and_then(serde_json::Value::as_u64),
+                "sample_count": admixture_manifest
+                    .as_ref()
+                    .and_then(|row| row.get("sample_count"))
+                    .and_then(serde_json::Value::as_u64)
             })),
             "outputs": {
                 "pruned_variants_tsv": pruned_variants_tsv,
