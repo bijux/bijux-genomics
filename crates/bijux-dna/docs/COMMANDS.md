@@ -666,6 +666,13 @@ Visible aliases are part of the operator surface:
   smoke-root, and no-empty-output surfaces, then records one explicit row per goal with
   `goal_id`, `surface`, `output_path`, `ok`, and `detail` so any drift stays visible in a single
   reviewer-facing local-ready report.
+- `bijux-dna bench local validate-vcf-smoke-suite-ready`
+  `validate-vcf-smoke-suite-ready` writes `target/local-smoke/VCF_SMOKE_SUITE_READY.json` and
+  fail-closes across the governed VCF Goal 211-229 slice. The gate reruns every owned VCF local
+  smoke surface in goal order, from `vcf.call` through `vcf.demography`, and records one explicit
+  row per goal with `goal_id`, `surface`, `output_path`, `ok`, and `detail` so missing outputs,
+  unparsable artifacts, or missing normalized evidence stay visible in a single reviewer-facing
+  smoke-suite report instead of being hidden in scattered command stderr.
 - `bijux-dna bench local validate-vcf-reference-compatibility`
   `validate-vcf-reference-compatibility` writes
   `target/local-ready/vcf/reference-compatibility.json`, deriving the governed VCF contig
