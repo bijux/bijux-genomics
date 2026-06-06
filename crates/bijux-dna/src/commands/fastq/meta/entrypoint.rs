@@ -338,6 +338,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfComparableMetrics(args) => {
+                        crate::commands::benchmark::readiness::vcf_comparable_metrics::run_render_vcf_comparable_metrics(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfNormalizedMetricsSchema(args) => {
                         crate::commands::benchmark::readiness::vcf_normalized_metrics_schema::run_render_vcf_normalized_metrics_schema(
                             args,
