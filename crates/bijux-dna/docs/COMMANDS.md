@@ -249,6 +249,12 @@ Visible aliases are part of the operator surface:
   `corpus_id`, derived `asset_profile_id`, symbolic input handoffs, symbolic output handoffs, and
   resolution status reviewer-visible so no essential pipeline node falls back to implicit global
   corpus or asset paths.
+- `bijux-dna bench readiness render-essential-pipeline-partial-resume`
+  `render-essential-pipeline-partial-resume` writes
+  `target/bench-readiness/essential-pipeline-partial-resume.json` and a governed simulation tree
+  under `target/bench-readiness/essential-pipeline-partial-resume-tree/`. It proves partial-resume
+  behavior against validated `stage-result.json` manifests, forcing the seeded
+  `relatedness-segments-vcf` IBD node to rerun while preserving the independent ROH branch.
 - `bijux-dna bench readiness render-essential-pipeline-commands`
   `render-essential-pipeline-commands` writes
   `target/bench-readiness/essential-pipelines-rendered-commands.sh` plus
