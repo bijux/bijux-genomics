@@ -95,11 +95,8 @@ fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
 
 #[test]
 fn vcf_planner_renders_executable_bcftools_stage_templates_for_retained_rows() {
-    for regime in [
-        CoverageRegime::Diploid,
-        CoverageRegime::LowCovGl,
-        CoverageRegime::Pseudohaploid,
-    ] {
+    for regime in [CoverageRegime::Diploid, CoverageRegime::LowCovGl, CoverageRegime::Pseudohaploid]
+    {
         let plans = plan_vcf_stage_plans(&base_inputs(regime))
             .unwrap_or_else(|err| panic!("stage plans for {regime:?}: {err}"));
         for plan in plans.iter().filter(|plan| plan.tool_id.to_string() == "bcftools") {
@@ -111,6 +108,33 @@ fn vcf_planner_renders_executable_bcftools_stage_templates_for_retained_rows() {
             assert!(
                 !plan.command.template.iter().any(|part| part == "--help"),
                 "bcftools stage {} must not fall back to --help placeholder rendering: {:?}",
+                plan.stage_id,
+                plan.command.template
+            );
+        }
+    }
+}
+
+#[test]
+fn vcf_planner_renders_executable_angsd_stage_templates_for_low_coverage_rows() {
+    for regime in [CoverageRegime::LowCovGl, CoverageRegime::Pseudohaploid] {
+        let plans = plan_vcf_stage_plans(&base_inputs(regime))
+            .unwrap_or_else(|err| panic!("stage plans for {regime:?}: {err}"));
+        for plan in plans.iter().filter(|plan| plan.tool_id.to_string() == "angsd") {
+            assert!(
+                !plan.command.template.is_empty(),
+                "angsd stage {} must keep a real command template",
+                plan.stage_id
+            );
+            assert_eq!(
+                plan.command.template.first().map(String::as_str),
+                Some("angsd"),
+                "angsd stage {} must start with the real angsd binary",
+                plan.stage_id
+            );
+            assert!(
+                !plan.command.template.iter().any(|part| part == "--help"),
+                "angsd stage {} must not fall back to --help placeholder rendering: {:?}",
                 plan.stage_id,
                 plan.command.template
             );
@@ -522,7 +546,9 @@ fn vcf_planner_keeps_bam_call_inputs_after_reference_panel_preparation() {
 
     assert_eq!(
         call_gl.io.inputs[0].path,
-        PathBuf::from("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam")
+        PathBuf::from(
+            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+        )
     );
 }
 

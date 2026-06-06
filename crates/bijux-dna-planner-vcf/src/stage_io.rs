@@ -112,6 +112,11 @@ pub(crate) fn stage_command(
             return Ok(CommandSpecV1 { template });
         }
     }
+    if tool == "angsd" {
+        if let Some(template) = angsd_stage_command(stage, inputs, outputs)? {
+            return Ok(CommandSpecV1 { template });
+        }
+    }
 
     let mut template = vec![tool.to_string()];
     match stage {
@@ -140,10 +145,7 @@ pub(crate) fn stage_command(
 
 fn require_path(field: &str, path: Option<&Path>, stage: VcfDomainStage) -> Result<PathBuf> {
     path.map(Path::to_path_buf).ok_or_else(|| {
-        anyhow!(
-            "planner refusal: {} requires `{field}` in VcfPipelineInputs",
-            stage.as_str()
-        )
+        anyhow!("planner refusal: {} requires `{field}` in VcfPipelineInputs", stage.as_str())
     })
 }
 
@@ -259,6 +261,79 @@ fn bcftools_stage_command(
     Ok(Some(template))
 }
 
+fn angsd_stage_command(
+    stage: VcfDomainStage,
+    inputs: &[ArtifactSpec],
+    outputs: &[ArtifactSpec],
+) -> Result<Option<Vec<String>>> {
+    let template = match stage {
+        VcfDomainStage::CallGl => vec![
+            "angsd".to_string(),
+            "-i".to_string(),
+            input_path(inputs, "input_bam")?.display().to_string(),
+            "-ref".to_string(),
+            input_path(inputs, "reference_fasta")?.display().to_string(),
+            "-GL".to_string(),
+            "2".to_string(),
+            "-doGlf".to_string(),
+            "2".to_string(),
+            "-doMajorMinor".to_string(),
+            "1".to_string(),
+            "-doMaf".to_string(),
+            "1".to_string(),
+            "-minMapQ".to_string(),
+            "20".to_string(),
+            "-minQ".to_string(),
+            "20".to_string(),
+            "-out".to_string(),
+            output_prefix_path(outputs, "gl_sites_vcf")?,
+        ],
+        VcfDomainStage::CallPseudohaploid => vec![
+            "angsd".to_string(),
+            "-i".to_string(),
+            input_path(inputs, "input_bam")?.display().to_string(),
+            "-ref".to_string(),
+            input_path(inputs, "reference_fasta")?.display().to_string(),
+            "-doHaploCall".to_string(),
+            "1".to_string(),
+            "-doCounts".to_string(),
+            "1".to_string(),
+            "-seed".to_string(),
+            "42".to_string(),
+            "-out".to_string(),
+            output_prefix_path(outputs, "pseudohaploid_vcf")?,
+        ],
+        VcfDomainStage::GlPropagation => vec![
+            "angsd".to_string(),
+            "-vcf-gl".to_string(),
+            input_path(inputs, "vcf")?.display().to_string(),
+            "-doMajorMinor".to_string(),
+            "1".to_string(),
+            "-doMaf".to_string(),
+            "1".to_string(),
+            "-doPost".to_string(),
+            "1".to_string(),
+            "-doVcf".to_string(),
+            "1".to_string(),
+            "-out".to_string(),
+            output_prefix_path(outputs, "gl_propagated_vcf")?,
+        ],
+        _ => return Ok(None),
+    };
+    Ok(Some(template))
+}
+
+fn output_prefix_path(outputs: &[ArtifactSpec], artifact_id: &str) -> Result<String> {
+    let output = output_path(outputs, artifact_id)?;
+    let rendered = output.display().to_string();
+    for suffix in [".vcf.gz", ".vcf", ".json"] {
+        if let Some(prefix) = rendered.strip_suffix(suffix) {
+            return Ok(prefix.to_string());
+        }
+    }
+    Ok(rendered)
+}
+
 fn shell_pipeline_command(
     template: &str,
     inputs: &[ArtifactSpec],
@@ -266,14 +341,8 @@ fn shell_pipeline_command(
     output_artifact_id: &str,
 ) -> Result<Vec<String>> {
     let command = template
-        .replace(
-            "{reference}",
-            &input_path(inputs, "reference_fasta")?.display().to_string(),
-        )
+        .replace("{reference}", &input_path(inputs, "reference_fasta")?.display().to_string())
         .replace("{bam}", &input_path(inputs, "input_bam")?.display().to_string())
-        .replace(
-            "{output}",
-            &output_path(outputs, output_artifact_id)?.display().to_string(),
-        );
+        .replace("{output}", &output_path(outputs, output_artifact_id)?.display().to_string());
     Ok(vec!["sh".to_string(), "-lc".to_string(), command])
 }
