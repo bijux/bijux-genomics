@@ -268,6 +268,12 @@ Visible aliases are part of the operator surface:
   essential-pipeline output symbol, keeping explicit `pipeline_id`, `stage_id`, `tool_id`,
   `output_metric`, `report_section`, and `failure_column`. It fails closed unless every declared
   FASTQ, BAM, and VCF pipeline output is collected into a stable report section.
+- `bijux-dna bench readiness render-essential-pipelines-ready`
+  `render-essential-pipelines-ready` writes
+  `target/bench-readiness/ESSENTIAL_PIPELINES_READY.json` and fail-closes across Goals 261–276. It
+  reruns the governed essential pipeline DAG, corpus/assets, command rendering, fake-run,
+  partial-resume, failure-isolation, and report-map surfaces, then cross-checks that the shared
+  node and output counts still agree.
 - `bijux-dna bench readiness render-essential-pipeline-commands`
   `render-essential-pipeline-commands` writes
   `target/bench-readiness/essential-pipelines-rendered-commands.sh` plus
