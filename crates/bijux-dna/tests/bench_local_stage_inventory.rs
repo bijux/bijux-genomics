@@ -96,6 +96,22 @@ fn bench_local_stage_inventory_bam_json_reports_governed_24_stage_slice() {
     );
 }
 
+#[test]
+fn bench_local_stage_inventory_vcf_json_reports_governed_20_stage_slice() {
+    let payload = run_cli_json(&["bench", "local", "list-stages", "--domain", "vcf", "--json"]);
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.local_stage_inventory.v1")
+    );
+    assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(
+        payload.get("stages").and_then(serde_json::Value::as_array).map(std::vec::Vec::len),
+        Some(20)
+    );
+}
+
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_stage_commands_json_reports_governed_51_command_slice() {
