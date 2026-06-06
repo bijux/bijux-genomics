@@ -125,6 +125,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-vcf-comparable-metrics",
     "bijux-dna bench readiness render-vcf-expected-benchmark-results",
     "bijux-dna bench readiness render-vcf-missing-result-report",
+    "bijux-dna bench readiness render-vcf-report-map",
     "bijux-dna bench readiness render-vcf-parser-coverage",
     "bijux-dna bench readiness render-vcf-normalized-metrics-schema",
     "bijux-dna bench readiness render-vcf-parser-failure-tests",
