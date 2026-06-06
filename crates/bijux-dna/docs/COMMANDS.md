@@ -403,6 +403,15 @@ Visible aliases are part of the operator surface:
   real missing-input probe result, so GL calling, pseudohaploid calling, damage-aware calling, and
   VCF-GL propagation cannot silently fall back to placeholders or drift away from the owned command
   contract.
+- `bijux-dna bench readiness render-vcf-descent-family-adapter`
+  `render-vcf-descent-family-adapter` writes
+  `target/bench-readiness/adapters/descent-family.vcf.json` with one governed row per retained VCF
+  descent binding across `plink2` for `vcf.roh`, `germline`, `ibdseq`, and `ibdhap` for `vcf.ibd`,
+  and `ibdne` for `vcf.demography`. Each row keeps the cohort VCF or materialized IBD-segment TSV
+  input, the normalized ROH, IBD, or demography output, the raw side outputs, the parser output
+  ids, the concrete argv, and a real missing-input probe result. The report stays honest about
+  benchmark status by keeping `plink2`, `germline`, and `ibdne` benchmark-ready while `ibdseq` and
+  `ibdhap` remain explicit retained rows that are still not benchmark-ready.
 - `bijux-dna bench readiness render-vcf-eigensoft-adapter`
   `render-vcf-eigensoft-adapter` writes `target/bench-readiness/adapters/eigensoft.vcf.json` with
   one governed row per admitted VCF `eigensoft` registry binding. Each row keeps the concrete
