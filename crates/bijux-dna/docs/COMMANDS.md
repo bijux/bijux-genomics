@@ -255,6 +255,13 @@ Visible aliases are part of the operator surface:
   under `target/bench-readiness/essential-pipeline-partial-resume-tree/`. It proves partial-resume
   behavior against validated `stage-result.json` manifests, forcing the seeded
   `relatedness-segments-vcf` IBD node to rerun while preserving the independent ROH branch.
+- `bijux-dna bench readiness render-essential-pipeline-failure-isolation`
+  `render-essential-pipeline-failure-isolation` writes
+  `target/bench-readiness/essential-pipeline-failure-isolation.json` and a governed simulation
+  tree under `target/bench-readiness/essential-pipeline-failure-isolation-tree/`. It injects a
+  real failed `stage-result.json` for the seeded `relatedness-segments-vcf` IBD node, then proves
+  that only the dependent demography descendant is blocked while the unrelated ROH branch remains
+  completed.
 - `bijux-dna bench readiness render-essential-pipeline-commands`
   `render-essential-pipeline-commands` writes
   `target/bench-readiness/essential-pipelines-rendered-commands.sh` plus
