@@ -127,6 +127,11 @@ pub(crate) fn stage_command(
             return Ok(CommandSpecV1 { template });
         }
     }
+    if matches!(tool, "shapeit5" | "eagle" | "beagle") {
+        if let Some(template) = phasing_stage_command(stage, tool, inputs, outputs)? {
+            return Ok(CommandSpecV1 { template });
+        }
+    }
 
     let mut template = vec![tool.to_string()];
     match stage {
@@ -425,6 +430,39 @@ fn plink_family_stage_command(
         _ => return Ok(None),
     };
     Ok(Some(template))
+}
+
+fn phasing_stage_command(
+    stage: VcfDomainStage,
+    tool: &str,
+    inputs: &[ArtifactSpec],
+    outputs: &[ArtifactSpec],
+) -> Result<Option<Vec<String>>> {
+    if stage != VcfDomainStage::Phasing {
+        return Ok(None);
+    }
+
+    let input_vcf = input_path(inputs, "vcf")?.display().to_string();
+    let panel_vcf = input_path(inputs, "reference_panel_vcf")?.display().to_string();
+    let genetic_map = input_path(inputs, "genetic_map_tsv")?.display().to_string();
+    let phased_vcf = output_path(outputs, "phased_vcf")?.display().to_string();
+    let output_prefix = output_prefix_path(outputs, "phased_vcf")?;
+    let log_path = format!("{output_prefix}.log");
+
+    let command = match tool {
+        "shapeit5" => format!(
+            "shapeit5 phase_common --input '{input_vcf}' --reference '{panel_vcf}' --map '{genetic_map}' --region 1:1-1000000 --thread 8 --seed 42 --output '{phased_vcf}' > '{log_path}' 2>&1 && bcftools index -t '{phased_vcf}'"
+        ),
+        "eagle" => format!(
+            "eagle --vcfTarget '{input_vcf}' --vcfRef '{panel_vcf}' --geneticMapFile '{genetic_map}' --outPrefix '{output_prefix}' --numThreads 8 > '{log_path}' 2>&1 && bcftools index -t '{phased_vcf}'"
+        ),
+        "beagle" => format!(
+            "beagle gt='{input_vcf}' ref='{panel_vcf}' map='{genetic_map}' out='{output_prefix}' nthreads=8 seed=42 > '{log_path}' 2>&1 && bcftools index -t '{phased_vcf}'"
+        ),
+        _ => return Ok(None),
+    };
+
+    Ok(Some(vec!["sh".to_string(), "-lc".to_string(), command]))
 }
 
 fn eigensoft_stage_command(

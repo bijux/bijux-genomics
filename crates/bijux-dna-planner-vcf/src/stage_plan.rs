@@ -1,8 +1,10 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_dna_core::ids::{StageId, StageVersion, ToolId};
-use bijux_dna_core::prelude::{StageIO, StageOperatingMode, ToolConstraints};
+use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
+use bijux_dna_core::prelude::{
+    ArtifactRole, ArtifactSpec, StageIO, StageOperatingMode, ToolConstraints,
+};
 use bijux_dna_db_ref::{MapCatalogEntry, ReferenceBundle};
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
@@ -60,7 +62,7 @@ pub fn build_stage_plan(
     selection_rule: &str,
 ) -> Result<StagePlanV1> {
     let stage_id = stage.as_str().to_string();
-    let io_inputs = stage_inputs_for(
+    let mut io_inputs = stage_inputs_for(
         stage,
         input_vcf,
         out_dir,
@@ -68,6 +70,15 @@ pub fn build_stage_plan(
         call_bam_index,
         reference_fasta,
         reference_panel_vcf,
+    )?;
+    append_panel_workflow_inputs(
+        &mut io_inputs,
+        stage,
+        reference_panel_vcf,
+        selected_panel,
+        map,
+        species_id,
+        build_id,
     )?;
     let io_outputs = stage_outputs_for(stage, out_dir);
     let params = attach_reference_provenance(
@@ -115,4 +126,57 @@ pub fn build_stage_plan(
             }),
         },
     })
+}
+
+fn append_panel_workflow_inputs(
+    io_inputs: &mut Vec<ArtifactSpec>,
+    stage: VcfDomainStage,
+    reference_panel_vcf: Option<&Path>,
+    selected_panel: Option<&VcfPanelLock>,
+    map: &MapCatalogEntry,
+    species_id: &str,
+    build_id: &str,
+) -> Result<()> {
+    if stage != VcfDomainStage::Phasing {
+        return Ok(());
+    }
+
+    let panel_vcf_path = match reference_panel_vcf {
+        Some(path) => path.to_path_buf(),
+        None => {
+            let panel_id =
+                selected_panel.map(|panel| panel.panel_id.as_str()).ok_or_else(|| {
+                    anyhow!("planner refusal: vcf.phasing requires resolved panel identity")
+                })?;
+            reference_asset_root(species_id, build_id)
+                .join("panels")
+                .join(panel_id)
+                .join("panel.vcf.gz")
+        }
+    };
+    let map_file =
+        map.files.iter().find(|file| file.required).or_else(|| map.files.first()).ok_or_else(
+            || anyhow!("planner refusal: genetic map {} has no catalog files", map.id),
+        )?;
+    let map_path =
+        reference_asset_root(species_id, build_id).join("maps").join(&map.id).join(&map_file.path);
+
+    io_inputs.push(ArtifactSpec::required(
+        ArtifactId::new("reference_panel_vcf"),
+        panel_vcf_path,
+        ArtifactRole::Variant,
+    ));
+    io_inputs.push(ArtifactSpec::required(
+        ArtifactId::new("genetic_map_tsv"),
+        map_path,
+        ArtifactRole::Reference,
+    ));
+    Ok(())
+}
+
+fn reference_asset_root(species_id: &str, build_id: &str) -> std::path::PathBuf {
+    std::path::PathBuf::from("artifacts/reference_assets")
+        .join(species_id)
+        .join(build_id)
+        .join("vcf-assets")
 }

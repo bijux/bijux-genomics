@@ -31,5 +31,5 @@ checksum_sha256 = "b26631ecbc03ac2ed72c6896f988b5039f0a53ca84a2162ce6c2608c155b9
 required = true
 
 [map.compatibility]
-tool_tags = ["bcftools", "shapeit5", "eagle", "impute5", "minimac4", "glimpse"]
+tool_tags = ["bcftools", "shapeit5", "eagle", "beagle", "impute5", "minimac4", "glimpse"]
 coordinate_system = "bp"
