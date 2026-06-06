@@ -533,20 +533,43 @@ pub fn run_admixture_stage(
         .collect::<std::collections::BTreeSet<_>>()
         .into_iter()
         .collect::<Vec<_>>();
-    let clusters = population_order.iter().take(selected_k.max(1)).cloned().collect::<Vec<_>>();
+    let cluster_headers =
+        (1..=selected_k.max(1)).map(|index| format!("cluster_{index}")).collect::<Vec<_>>();
+    let cluster_population_labels = (0..selected_k.max(1))
+        .map(|index| {
+            population_order
+                .get(index)
+                .cloned()
+                .map(|population_id| {
+                    serde_json::json!({
+                        "column": format!("cluster_{}", index + 1),
+                        "population_id": population_id,
+                    })
+                })
+                .unwrap_or_else(|| {
+                    serde_json::json!({
+                        "column": format!("cluster_{}", index + 1),
+                        "population_id": serde_json::Value::Null,
+                    })
+                })
+        })
+        .collect::<Vec<_>>();
+    let insufficient_data_reason = if population_order.len() < selected_k {
+        Some("population_label_count_below_selected_k")
+    } else {
+        None
+    };
+    let status = if insufficient_data_reason.is_some() { "insufficient_data" } else { "complete" };
     let mut execution_mode = "fallback_proxy";
     let mut q_tsv = String::new();
     if tool == "admixture" && tool_ok {
         let q_path = out_dir.join(format!("admixture_plink.{}.Q", selected_k));
         if let Ok(q_raw) = std::fs::read_to_string(&q_path) {
             execution_mode = "real_tool";
-            q_tsv = format!(
-                "sample\t{}\n",
-                (1..=selected_k).map(|k| format!("Q{k}")).collect::<Vec<_>>().join("\t")
-            );
+            q_tsv = format!("sample\t{}\n", cluster_headers.join("\t"));
             for (sample, row) in samples.iter().zip(q_raw.lines()) {
                 q_tsv.push_str(sample);
-                for value in row.split_whitespace() {
+                for value in row.split_whitespace().take(selected_k.max(1)) {
                     q_tsv.push('\t');
                     q_tsv.push_str(value);
                 }
@@ -555,14 +578,22 @@ pub fn run_admixture_stage(
         }
     }
     if q_tsv.is_empty() {
-        q_tsv = format!("sample\t{}\n", clusters.join("\t"));
+        q_tsv = format!("sample\t{}\n", cluster_headers.join("\t"));
         for sample in &samples {
             let label = labels.get(sample).ok_or_else(|| {
                 anyhow!("vcf.admixture refusal: missing label for sample `{sample}`")
             })?;
             q_tsv.push_str(sample);
-            for cluster in &clusters {
-                let score = if cluster == label { 1.0 } else { 0.0 };
+            for cluster in &cluster_population_labels {
+                let score = if cluster
+                    .get("population_id")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some_and(|population_id| population_id == label)
+                {
+                    1.0
+                } else {
+                    0.0
+                };
                 q_tsv.push_str(&format!("\t{score:.6}"));
             }
             q_tsv.push('\n');
@@ -577,13 +608,31 @@ pub fn run_admixture_stage(
             "execution_mode": execution_mode,
             "k_values": params.k_values,
             "selected_k": selected_k,
+            "status": status,
+            "insufficient_data_reason": insufficient_data_reason,
             "tool_ok": tool_ok,
+            "sample_count": samples.len(),
+            "sample_ids": samples,
+            "population_count": population_order.len(),
+            "population_ids": population_order,
+            "cluster_count": cluster_headers.len(),
+            "cluster_headers": cluster_headers,
+            "cluster_population_labels": cluster_population_labels,
             "sample_metadata_manifest": metadata_manifest,
+            "sample_population_labels": labels.iter().map(|(sample_id, population_id)| {
+                serde_json::json!({
+                    "sample_id": sample_id,
+                    "population_id": population_id,
+                })
+            }).collect::<Vec<_>>(),
         }),
     )?;
     atomic_write_bytes(
         &logs_txt,
-        format!("toolchain={tool}\nexecution_mode={execution_mode}\ntool_success={tool_ok}\nselected_k={selected_k}\n").as_bytes(),
+        format!(
+            "toolchain={tool}\nexecution_mode={execution_mode}\ntool_success={tool_ok}\nselected_k={selected_k}\nstatus={status}\n"
+        )
+        .as_bytes(),
     )?;
     Ok(AdmixtureStageOutputs { q_matrix_tsv, k_selection_json, logs_txt })
 }
