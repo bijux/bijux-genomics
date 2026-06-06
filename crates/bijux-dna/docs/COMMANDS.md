@@ -516,6 +516,16 @@ Visible aliases are part of the operator surface:
   and records exact smoke metrics (`input_variants`, `pass_variants`, `failed_variants`,
   `filter_ids`, `depth_threshold`, `quality_threshold`, and `missingness_threshold`) so reviewer
   evidence comes from the repo command instead of an implied threshold contract.
+- `bijux-dna bench local run-vcf-stats-smoke`
+  `run-vcf-stats-smoke` writes `target/local-smoke/vcf.stats/bcftools/stats.json`,
+  `target/local-smoke/vcf.stats/bcftools/bcftools_stats.txt`, and
+  `target/local-smoke/vcf.stats/bcftools/metrics.json` from the governed `vcf.stats` matrix row.
+  The command materializes a deterministic two-sample cohort VCF with a known 2:1
+  transition/transversion mix, runs the real retained `bcftools` stats stage, fails closed unless
+  the persisted `stats.json` stays normalized, and records exact smoke metrics (`variant_count`,
+  `snp_count`, `indel_count`, `transition_count`, `transversion_count`, `ti_tv`, and
+  `sample_count`) so the local smoke proves normalized benchmark facts instead of only surfacing
+  raw tool text.
 - `bijux-dna bench local run-vcf-gl-propagation-smoke`
   `run-vcf-gl-propagation-smoke` writes
   `target/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz`,
