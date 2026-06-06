@@ -1063,6 +1063,12 @@ Visible aliases are part of the operator surface:
   `command`, `tool`, `runtime`, `resource_metrics`, and `outputs` contract fields are present and
   valid. `resource_metrics.source` must be one of `measured`, `estimated`, or `not_available`.
 - `bijux-dna bench local materialize-stage`
+- `bijux-dna bench local fake-run-essential-pipelines`
+  `fake-run-essential-pipelines` writes one governed fake-run tree under
+  `target/local-fake-runs/pipelines/essential/` for every node in the essential ten-pipeline
+  slice. Each node keeps a real `command.sh`, `stdout.txt`, `stderr.txt`, `metrics.json`, and
+  `stage-result.json`, plus materialized fake outputs under `declared-outputs/`, so essential
+  pipeline validation does not stop at DAG structure or rendered commands.
 - `bijux-dna bench local fake-run-failures`
   `fake-run-failures` writes non-zero stage failure records under
   `target/local-fake-runs/failures/`, including `stderr.txt` and the declared outputs that stayed
