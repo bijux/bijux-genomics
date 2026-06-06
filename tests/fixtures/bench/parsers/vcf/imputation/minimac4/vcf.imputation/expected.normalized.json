@@ -1,0 +1,25 @@
+{
+  "schema_version": "bijux.fixture.vcf_raw_parser.v1",
+  "stage_id": "vcf.imputation",
+  "tool_id": "minimac4",
+  "parser_id": "parse_minimac4_imputation_metrics",
+  "normalized": {
+    "schema_version": "bijux.vcf.imputation.v1",
+    "stage_id": "vcf.imputation",
+    "tool_id": "minimac4",
+    "status": "complete",
+    "mean_info_score": 0.825,
+    "r2_available": true,
+    "low_confidence_sites": 1,
+    "masked_truth_sites": 1,
+    "missing_quality_fields": [],
+    "concordance": 1.0,
+    "dosage_r2": 0.775,
+    "variant_count": 2,
+    "sample_count": 2,
+    "sample_ids": [
+      "masked_sample",
+      "donor_sample"
+    ]
+  }
+}

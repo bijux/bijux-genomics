@@ -1,0 +1,9 @@
+{
+  "backend": "impute5",
+  "stage_id": "vcf.imputation",
+  "command_argv": [
+    "sh",
+    "-lc",
+    "impute5 --g 'target.vcf.gz' --h 'panel.vcf.gz' --m 'map.tsv.gz' --r '1:1-1000000' --o 'imputed.vcf.gz' --threads 8 --seed 42 > 'logs.txt' 2>&1"
+  ]
+}

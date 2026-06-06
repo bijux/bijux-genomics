@@ -1,0 +1,7 @@
+##fileformat=VCFv4.3
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=DS,Number=A,Type=Float,Description="Allele dosage">
+##FORMAT=<ID=GP,Number=G,Type=Float,Description="Genotype posterior probabilities">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	masked_sample	donor_sample
+chr1	10	.	A	G	60	PASS	INFO=0.82;R2=0.78	GT:DS:GP	0/1:1.00:0.05,0.90,0.05	0/1:1.00:0.05,0.90,0.05
+chr1	20	.	C	T	60	PASS	INFO=0.83;R2=0.77	GT:DS:GP	1/1:2.00:0.01,0.09,0.90	1/1:2.00:0.01,0.09,0.90
