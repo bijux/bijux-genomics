@@ -33,6 +33,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna corpus validate",
     "bijux-dna corpus list",
     "bijux-dna corpus diff",
+    "bijux-dna fixtures build",
     "bijux-dna fixtures validate",
     "bijux-dna fixtures validate-expected",
     "bijux-dna status",
