@@ -434,6 +434,16 @@ Visible aliases are part of the operator surface:
   and phasing manifest parser outputs, log output, concrete `beagle gt=... ref=... map=... out=...`
   argv, and a real missing-input probe result, so the retained phasing backend stays executable and
   parser-complete even when it is not the current benchmark binding.
+- `bijux-dna bench readiness render-vcf-imputation-family-adapter`
+  `render-vcf-imputation-family-adapter` writes
+  `target/bench-readiness/adapters/imputation-family.vcf.json` with one governed row per retained
+  VCF imputation binding across `beagle`, `glimpse`, `impute5`, and `minimac4` for both
+  `vcf.imputation` and `vcf.impute`. Each row keeps the target cohort VCF, owned reference panel
+  VCF and `panel.m3vcf.gz` when required, genetic map or region literal when required, the
+  imputed VCF and index outputs, quality and warning outputs, orchestration and imputation
+  manifests, log output, concrete argv, parser output ids, and a real missing-input probe result.
+  The report stays honest about benchmark status by keeping `beagle` as the only benchmark-ready
+  imputation backend while the other retained rows remain explicit and `not_benchmark_ready`.
 - `bijux-dna bench readiness render-vcf-plink-adapter`
   `render-vcf-plink-adapter` writes `target/bench-readiness/adapters/plink.vcf.json` with one
   governed row per admitted VCF `plink` registry binding. Each row keeps the concrete cohort
