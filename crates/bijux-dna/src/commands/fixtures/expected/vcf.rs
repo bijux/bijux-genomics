@@ -683,7 +683,17 @@ fn validate_pca_expected_truth(
         .iter()
         .map(|row| (row.sample_id.clone(), row.population_id.clone()))
         .collect::<BTreeMap<_, _>>();
-    if &truth_populations != sample_population_map {
+    let observed_populations = summary
+        .sample_ids
+        .iter()
+        .map(|sample_id| {
+            let population_id = sample_population_map.get(sample_id).cloned().ok_or_else(|| {
+                anyhow!("sample metadata is missing cohort sample `{sample_id}`")
+            })?;
+            Ok((sample_id.clone(), population_id))
+        })
+        .collect::<Result<BTreeMap<_, _>>>()?;
+    if truth_populations != observed_populations {
         return Err(anyhow!(
             "pca-expected truth sample population labels do not match sample metadata"
         ));
