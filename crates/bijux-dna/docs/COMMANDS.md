@@ -414,6 +414,12 @@ Visible aliases are part of the operator surface:
   `registered_tool_ids`, `missing_tool_ids`, and `reason` so single-backend benchmark gaps remain
   visible before HPC campaign hardening.
 - `bijux-dna bench local list-stages`
+- `bijux-dna bench local render-vcf-stage-catalog`
+  `render-vcf-stage-catalog` writes `configs/bench/local/vcf-stage-catalog.toml`, deriving the
+  governed VCF stage catalog from the domain downstream order, stage-spec metadata, and VCF IO
+  contracts. Each row keeps `stage_id`, `stage_name`, `support_status`, `default_tool_id`,
+  `metrics_schema_id`, `input_types`, `output_types`, `required_assets`, `benchmark_category`,
+  and `local_smoke_mode` explicit so the local VCF benchmark surface cannot drift from code.
 - `bijux-dna bench local validate-hpc-submission-ready`
   `validate-hpc-submission-ready` writes `target/local-ready/HPC_SUBMISSION_READY.json` and
   reruns the governed local readiness proof slice end to end: stage matrices, numbered FASTQ and
