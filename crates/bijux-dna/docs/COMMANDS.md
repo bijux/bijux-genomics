@@ -249,6 +249,13 @@ Visible aliases are part of the operator surface:
   `corpus_id`, derived `asset_profile_id`, symbolic input handoffs, symbolic output handoffs, and
   resolution status reviewer-visible so no essential pipeline node falls back to implicit global
   corpus or asset paths.
+- `bijux-dna bench readiness render-essential-pipeline-commands`
+  `render-essential-pipeline-commands` writes
+  `target/bench-readiness/essential-pipelines-rendered-commands.sh` plus
+  `target/bench-readiness/essential-pipelines-rendered-commands.argv.jsonl` with one governed row
+  per essential pipeline node, preserving real executable command steps for FASTQ, BAM, and VCF
+  nodes while keeping owned `bijux-dna` materialization fallbacks explicit for composed local
+  stages such as `fastq.report_qc` and feature-gated surfaces such as `bam.genotyping`.
 - `bijux-dna bench readiness render-commands`
   `render-commands` writes `target/bench-readiness/rendered-commands.sh` with one governed shell
   command per local benchmark stage command, preserving a parseable `bash` script that can be
