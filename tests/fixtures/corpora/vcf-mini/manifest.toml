@@ -4,6 +4,7 @@ reference_id = "vcf-mini-reference"
 description = "Tiny governed VCF corpus with single-sample, cohort, phased, and reference-panel variant views plus sample and population metadata for local contract checks."
 reference_fasta_path = "reference/vcf_mini_reference.fasta"
 reference_fasta_index_path = "reference/vcf_mini_reference.fasta.fai"
+reference_dict_path = "reference/vcf_mini_reference.dict"
 raw_vcf_path = "variants/vcf_mini_raw_single_sample.vcf"
 filtered_vcf_path = "variants/vcf_mini_filtered_single_sample.vcf"
 multisample_vcf_path = "variants/vcf_mini_multisample.vcf"
@@ -17,4 +18,3 @@ expected_filtered_sample_ids = ["sample_a"]
 expected_multisample_sample_ids = ["sample_a", "sample_b", "sample_c", "sample_d"]
 expected_phased_sample_ids = ["sample_a", "sample_b", "sample_c", "sample_d"]
 expected_panel_sample_ids = ["panel_ref_1", "panel_ref_2"]
-
