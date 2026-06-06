@@ -511,14 +511,21 @@ fn roh_stage_refuses_low_coverage_without_pseudohaploid_support() {
 #[test]
 fn ibd_stage_emits_segments_filtered_and_metrics() {
     let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+    let input = dir.path().join("ibd_success.vcf");
+    std::fs::write(
+        &input,
+        "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\ts2\nchr1\t100\t.\tA\tG\t60\tPASS\t.\tGT\t0/1\t0/0\nchr1\t200\t.\tC\tT\t60\tPASS\t.\tGT\t0/1\t0/1\nchr1\t300\t.\tG\tA\t60\tPASS\t.\tGT\t0/0\t0/1\n",
+    )
+    .unwrap_or_else(|err| panic!("write ibd success fixture: {err}"));
     let out = run_ibd_stage(
-        Path::new("tests/fixtures/vcf/default/input.vcf"),
+        &input,
         dir.path(),
         &IbdStageParams {
             min_variant_density_per_mb: 0.00001,
             max_missingness: 1.0,
             min_samples: 1,
             min_segment_cm: 1.0,
+            min_markers_per_segment: 1,
             ..IbdStageParams::default()
         },
     )
@@ -535,6 +542,7 @@ fn ibd_stage_emits_segments_filtered_and_metrics() {
     let ibd_summary_json: serde_json::Value = serde_json::from_str(&ibd_summary_raw)
         .unwrap_or_else(|err| panic!("parse ibd summary: {err}"));
     assert!(ibd_summary_json.get("execution_mode").is_some());
+    assert_eq!(ibd_summary_json.get("status").and_then(|value| value.as_str()), Some("complete"));
 }
 
 #[test]
@@ -553,6 +561,53 @@ fn ibd_stage_refuses_when_readiness_fails() {
     )
     .expect_err("ibd must refuse when readiness constraints fail");
     assert!(err.to_string().contains("refusal"));
+}
+
+#[test]
+fn ibd_stage_reports_insufficient_marker_overlap_without_abort() {
+    let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+    let input = dir.path().join("sparse_overlap.vcf");
+    std::fs::write(
+        &input,
+        "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\ts2\nchr1\t100\t.\tA\tG\t60\tPASS\t.\tGT\t0/1\t0/0\nchr1\t200\t.\tC\tT\t60\tPASS\t.\tGT\t0/1\t./.\nchr1\t300\t.\tG\tA\t60\tPASS\t.\tGT\t./.\t0/1\n",
+    )
+    .unwrap_or_else(|err| panic!("write sparse overlap fixture: {err}"));
+
+    let out = run_ibd_stage(
+        &input,
+        dir.path(),
+        &IbdStageParams {
+            min_variant_density_per_mb: 0.00001,
+            max_missingness: 1.0,
+            min_samples: 2,
+            min_segment_cm: 1.0,
+            min_markers_per_segment: 50,
+            ..IbdStageParams::default()
+        },
+    )
+    .unwrap_or_else(|err| panic!("run sparse ibd stage: {err}"));
+
+    let ibd_summary_raw = std::fs::read_to_string(&out.ibd_summary_json)
+        .unwrap_or_else(|err| panic!("read ibd summary: {err}"));
+    let ibd_summary_json: serde_json::Value = serde_json::from_str(&ibd_summary_raw)
+        .unwrap_or_else(|err| panic!("parse ibd summary: {err}"));
+    assert_eq!(
+        ibd_summary_json.get("status").and_then(|value| value.as_str()),
+        Some("insufficient_marker_overlap")
+    );
+    assert_eq!(
+        ibd_summary_json.get("insufficient_data_reason").and_then(|value| value.as_str()),
+        Some("no_pairs_met_min_marker_or_length_threshold")
+    );
+    assert_eq!(ibd_summary_json.get("segments_filtered").and_then(|value| value.as_u64()), Some(0));
+
+    let filtered = std::fs::read_to_string(&out.ibd_filtered_segments_tsv)
+        .unwrap_or_else(|err| panic!("read filtered segments: {err}"));
+    assert_eq!(
+        filtered.lines().filter(|line| !line.starts_with('#')).count(),
+        1,
+        "expected header only when overlap is insufficient"
+    );
 }
 
 #[test]
