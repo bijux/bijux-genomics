@@ -26,9 +26,11 @@ guardrails, and crate layout.
   artifact bank for the retained `eigensoft` population-analysis rows.
 - `tests/fixtures/bench/parsers/vcf/phasing/<tool_id>/` stores the governed raw artifact bank for
   the retained phasing backends.
+- `tests/fixtures/bench/parsers/vcf/imputation/<tool_id>/<stage_id>/` stores the governed raw
+  artifact bank for the retained imputation backends across `vcf.impute` and `vcf.imputation`.
 - Every stage directory must contain the raw parser inputs required by `src/parsers/bcftools.rs`
-  `src/parsers/angsd.rs`, `src/parsers/eigensoft.rs`, `src/parsers/phasing.rs`, or
-  `src/parsers/plink_family.rs` plus `expected.normalized.json`.
+  `src/parsers/angsd.rs`, `src/parsers/eigensoft.rs`, `src/parsers/imputation.rs`,
+  `src/parsers/phasing.rs`, or `src/parsers/plink_family.rs` plus `expected.normalized.json`.
 - `tests/contracts/parsers/bcftools_fixture_bank.rs` is the SSOT that proves the checked-in raw
   artifacts still normalize to the committed expected payloads.
 - `tests/contracts/parsers/angsd_fixture_bank.rs` is the SSOT for the retained ANGSD low-coverage
@@ -41,6 +43,8 @@ guardrails, and crate layout.
   PCA and population-structure parser bank.
 - `tests/contracts/parsers/phasing_fixture_bank.rs` is the SSOT for the retained phasing parser
   bank, including all-unphased rejection checks.
+- `tests/contracts/parsers/imputation_fixture_bank.rs` is the SSOT for the retained imputation
+  parser bank, including masked-truth drift rejection.
 
 ## Commands
 
