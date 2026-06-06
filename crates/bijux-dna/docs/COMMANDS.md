@@ -449,6 +449,14 @@ Visible aliases are part of the operator surface:
   keeps `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `adapter_id`, `parser_id`, and
   `expected_outputs` explicit so every catalog stage stays benchmark-addressable through a real
   local contract row.
+- `bijux-dna bench local validate-vcf-reference-compatibility`
+  `validate-vcf-reference-compatibility` writes
+  `target/local-ready/vcf/reference-compatibility.json`, deriving the governed VCF contig
+  compatibility report from the owned `vcf-mini` fixture manifest, FASTA, FAI, reference
+  dictionary, and all declared VCF variant views. The report keeps `reference_id`, `fasta_path`,
+  `fai_path`, `dict_path`, `contig_count`, `reference_contigs`, `vcf_contigs`, `missing_contigs`,
+  `extra_contigs`, and per-variant-set contig slices explicit, and the command fails closed when
+  any VCF contig drifts away from the governed reference contract.
 - `bijux-dna bench local validate-hpc-submission-ready`
   `validate-hpc-submission-ready` writes `target/local-ready/HPC_SUBMISSION_READY.json` and
   reruns the governed local readiness proof slice end to end: stage matrices, numbered FASTQ and
