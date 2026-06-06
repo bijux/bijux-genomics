@@ -1,9 +1,9 @@
 tool=beagle
 tool_version=pinned
-stage=vcf.impute
+stage=vcf.imputation
 domain=vcf
 fixture_kind=planned
 command=sh
 args=-lc "beagle gt=input.vcf ref=panel.vcf.gz map=map.tsv.gz out=imputed nthreads=8 seed=42 impute=true > logs.txt 2>&1 && bcftools index -t imputed.vcf.gz"
-expected_outputs=imputed_vcf,imputed_tbi,imputation_qc_json,imputation_qc_tsv,maf_bin_quality_tsv,info_hist_json,warnings_json,imputation_accept_json,overlap_stats_json,imputation_manifest_json,panel_mismatch_diagnostics_json,logs_txt
+expected_outputs=imputed_vcf,imputed_tbi,imputation_qc_json,imputation_accept_json,imputation_manifest_json,orchestration_manifest_json,logs_txt
 expected_stdout_patterns=beagle
