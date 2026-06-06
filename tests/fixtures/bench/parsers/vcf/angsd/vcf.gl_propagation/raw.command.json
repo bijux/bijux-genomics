@@ -1,0 +1,21 @@
+{
+  "tool_id": "angsd",
+  "stage_id": "vcf.gl_propagation",
+  "argv": [
+    "angsd",
+    "-vcf-gl",
+    "input.vcf",
+    "-sites",
+    "sites.vcf",
+    "-doMajorMinor",
+    "1",
+    "-doMaf",
+    "1",
+    "-doPost",
+    "1",
+    "-doVcf",
+    "1",
+    "-out",
+    "gl_propagation"
+  ]
+}
