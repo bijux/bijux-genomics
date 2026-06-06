@@ -1,0 +1,193 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for the local small-sample diploid FASTQ-to-BAM-to-VCF DAG.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-06
+
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "diploid-small-fastq-bam-vcf"
+domain = "cross"
+summary = "Small-sample diploid FASTQ-to-BAM-to-VCF DAG for governed preprocessing, BAM filtering, coverage-gated recalibration, diploid calling, VCF QC, and an optional downstream phasing branch."
+default_corpus_id = "corpus-01-mini"
+
+[[nodes]]
+node_id = "fastq.validate_reads"
+stage_id = "fastq.validate_reads"
+readiness_kind = "smoke"
+summary = "Validate governed small-sample FASTQ inputs before downstream profiling, trimming, and BAM alignment consume the read paths."
+depends_on = []
+external_inputs = ["corpus.raw_fastq_reads"]
+upstream_inputs = []
+outputs = ["validated_reads_r1_path", "validated_reads_r2_path", "validation_report"]
+
+[[nodes]]
+node_id = "fastq.profile_reads"
+stage_id = "fastq.profile_reads"
+readiness_kind = "smoke"
+summary = "Profile the governed validated reads before trimming changes sequence content and quality distribution."
+depends_on = ["fastq.validate_reads"]
+external_inputs = []
+upstream_inputs = ["validated_reads_r1_path", "validated_reads_r2_path"]
+outputs = ["validated_profile"]
+
+[[nodes]]
+node_id = "fastq.trim_reads"
+stage_id = "fastq.trim_reads"
+readiness_kind = "smoke"
+summary = "Trim governed validated reads into explicit R1 and R2 outputs for downstream filtering and alignment."
+depends_on = ["fastq.validate_reads"]
+external_inputs = []
+upstream_inputs = ["validated_reads_r1_path", "validated_reads_r2_path"]
+outputs = ["trimmed_reads_r1_path", "trimmed_reads_r2_path", "trim_metrics"]
+
+[[nodes]]
+node_id = "fastq.filter_reads"
+stage_id = "fastq.filter_reads"
+readiness_kind = "smoke"
+summary = "Filter the trimmed FASTQ handoff into governed alignment-ready read paths for the small-sample branch."
+depends_on = ["fastq.trim_reads"]
+external_inputs = []
+upstream_inputs = ["trimmed_reads_r1_path", "trimmed_reads_r2_path"]
+outputs = ["filtered_reads_r1_path", "filtered_reads_r2_path", "filter_metrics"]
+
+[[nodes]]
+node_id = "bam.align"
+stage_id = "bam.align"
+readiness_kind = "dry_or_smoke"
+summary = "Align the governed filtered FASTQ path outputs against the declared reference and read-group contracts."
+depends_on = ["fastq.filter_reads"]
+external_inputs = [
+  "alignment_reference_fasta_contract",
+  "alignment_reference_index_contract",
+  "alignment_read_group_contract",
+]
+upstream_inputs = ["filtered_reads_r1_path", "filtered_reads_r2_path"]
+outputs = ["aligned_bam", "aligned_bai", "align_metrics"]
+
+[[nodes]]
+node_id = "bam.validate"
+stage_id = "bam.validate"
+readiness_kind = "smoke"
+summary = "Validate the aligned BAM handoff before downstream BAM QC, filtering, and recalibration consume it."
+depends_on = ["bam.align"]
+external_inputs = ["reference_fasta_contract"]
+upstream_inputs = ["aligned_bam", "aligned_bai", "align_metrics"]
+outputs = ["bam_validation_report"]
+
+[[nodes]]
+node_id = "bam.qc_pre"
+stage_id = "bam.qc_pre"
+readiness_kind = "smoke"
+summary = "Collect governed pre-QC BAM metrics from the validated alignment handoff."
+depends_on = ["bam.align", "bam.validate"]
+external_inputs = []
+upstream_inputs = ["aligned_bam", "aligned_bai", "bam_validation_report"]
+outputs = ["qc_pre_flagstat", "qc_pre_idxstats", "qc_pre_stats", "qc_pre_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.mapping_summary"
+stage_id = "bam.mapping_summary"
+readiness_kind = "smoke"
+summary = "Derive the governed mapping summary after pre-QC metrics have established the BAM measurement context."
+depends_on = ["bam.align", "bam.qc_pre"]
+external_inputs = []
+upstream_inputs = ["aligned_bam", "qc_pre_flagstat", "qc_pre_idxstats", "qc_pre_stats"]
+outputs = ["mapping_summary_report_json", "mapping_summary_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.filter"
+stage_id = "bam.filter"
+readiness_kind = "dry_or_smoke"
+summary = "Filter the aligned BAM after pre-QC metrics have confirmed the small-sample aligned input state."
+depends_on = ["bam.align", "bam.qc_pre"]
+external_inputs = []
+upstream_inputs = ["aligned_bam", "aligned_bai", "qc_pre_flagstat", "qc_pre_idxstats", "qc_pre_stats"]
+outputs = ["filtered_bam", "filtered_bai", "bam_filter_report_json", "bam_filter_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.coverage"
+stage_id = "bam.coverage"
+readiness_kind = "smoke"
+summary = "Measure governed coverage from the filtered BAM while carrying forward the mapping context needed for the recalibration decision."
+depends_on = ["bam.mapping_summary", "bam.filter"]
+external_inputs = ["coverage_region_contract"]
+upstream_inputs = ["mapping_summary_report_json", "filtered_bam", "filtered_bai"]
+outputs = ["coverage_report_json", "coverage_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.recalibration"
+stage_id = "bam.recalibration"
+readiness_kind = "smoke"
+summary = "Apply known-sites recalibration policy against the filtered BAM and emit the summary that distinguishes the low-coverage skip path from the recalibrated run path."
+depends_on = ["bam.filter", "bam.coverage"]
+external_inputs = [
+  "recalibration_reference_contract",
+  "recalibration_known_sites_contract",
+  "recalibration_coverage_gate_contract",
+]
+upstream_inputs = ["filtered_bam", "coverage_report_json"]
+outputs = [
+  "recalibrated_bam",
+  "recalibrated_bai",
+  "recalibration_report_text",
+  "recalibration_summary_json",
+  "recalibration_stage_metrics",
+]
+
+[[nodes]]
+node_id = "vcf.call_diploid"
+stage_id = "vcf.call_diploid"
+readiness_kind = "smoke"
+summary = "Call a governed diploid VCF using the recalibration summary to distinguish the low-coverage filtered-BAM fallback from the recalibrated-BAM run path."
+depends_on = ["bam.filter", "bam.coverage", "bam.recalibration"]
+external_inputs = ["reference_fasta_contract", "reference_fai_contract"]
+upstream_inputs = [
+  "filtered_bam",
+  "filtered_bai",
+  "recalibrated_bam",
+  "recalibrated_bai",
+  "coverage_report_json",
+  "recalibration_summary_json",
+]
+outputs = ["diploid_vcf", "diploid_vcf_tbi", "call_stage_metrics"]
+
+[[nodes]]
+node_id = "vcf.filter"
+stage_id = "vcf.filter"
+readiness_kind = "smoke"
+summary = "Filter the governed diploid VCF before downstream summary statistics, QC, and optional phasing consume it."
+depends_on = ["vcf.call_diploid"]
+external_inputs = []
+upstream_inputs = ["diploid_vcf", "diploid_vcf_tbi", "call_stage_metrics"]
+outputs = ["filtered_vcf", "filtered_vcf_tbi", "filter_report_json", "filter_stage_metrics"]
+
+[[nodes]]
+node_id = "vcf.stats"
+stage_id = "vcf.stats"
+readiness_kind = "smoke"
+summary = "Derive governed VCF summary statistics from the filtered diploid VCF handoff."
+depends_on = ["vcf.filter"]
+external_inputs = []
+upstream_inputs = ["filtered_vcf", "filtered_vcf_tbi", "filter_report_json"]
+outputs = ["stats_json", "stats_stage_metrics"]
+
+[[nodes]]
+node_id = "vcf.qc"
+stage_id = "vcf.qc"
+readiness_kind = "smoke"
+summary = "Run governed cohort QC from the filtered diploid VCF while incorporating the explicit statistics handoff."
+depends_on = ["vcf.filter", "vcf.stats"]
+external_inputs = []
+upstream_inputs = ["filtered_vcf", "filtered_vcf_tbi", "stats_json"]
+outputs = ["qc_report", "qc_stage_metrics"]
+
+[[nodes]]
+node_id = "vcf.phasing"
+stage_id = "vcf.phasing"
+readiness_kind = "smoke"
+summary = "Run the optional downstream phasing branch only after filtered diploid VCF outputs and QC evidence have completed."
+depends_on = ["vcf.filter", "vcf.qc"]
+external_inputs = ["genetic_map_contract", "reference_panel_lock_contract"]
+upstream_inputs = ["filtered_vcf", "filtered_vcf_tbi", "qc_report"]
+outputs = ["phased_vcf", "phased_vcf_tbi", "phasing_stage_metrics"]
