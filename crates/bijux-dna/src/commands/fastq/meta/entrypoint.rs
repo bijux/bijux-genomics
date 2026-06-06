@@ -343,6 +343,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfParserFailureTests(args) => {
+                        crate::commands::benchmark::readiness::vcf_parser_failure_tests::run_render_vcf_parser_failure_tests(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfAdapterMissingInputTests(args) => {
                         crate::commands::benchmark::readiness::vcf_adapter_missing_input_tests::run_render_vcf_adapter_missing_input_tests(
                             args,

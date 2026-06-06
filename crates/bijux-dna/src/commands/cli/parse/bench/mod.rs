@@ -98,10 +98,10 @@ pub use self::readiness::{
     BenchReadinessRenderVcfImputationFamilyAdapterArgs,
     BenchReadinessRenderVcfMatrixRegistryConsistencyArgs,
     BenchReadinessRenderVcfNormalizedMetricsSchemaArgs, BenchReadinessRenderVcfOrphanToolsArgs,
-    BenchReadinessRenderVcfPlink2AdapterArgs, BenchReadinessRenderVcfPlinkAdapterArgs,
-    BenchReadinessRenderVcfShapeit5AdapterArgs, BenchReadinessRenderVcfToolServingMapArgs,
-    BenchReadinessRenderVcfUndercoveredStagesArgs, BenchReadinessValidateToolExecutionModesArgs,
-    BenchReadinessValidateToolFamiliesArgs,
+    BenchReadinessRenderVcfParserFailureTestsArgs, BenchReadinessRenderVcfPlink2AdapterArgs,
+    BenchReadinessRenderVcfPlinkAdapterArgs, BenchReadinessRenderVcfShapeit5AdapterArgs,
+    BenchReadinessRenderVcfToolServingMapArgs, BenchReadinessRenderVcfUndercoveredStagesArgs,
+    BenchReadinessValidateToolExecutionModesArgs, BenchReadinessValidateToolFamiliesArgs,
 };
 pub use self::schema_validation::{BenchSchemaDomainArg, BenchValidateSchemasArgs};
 pub use self::suite::BenchRunArgs;

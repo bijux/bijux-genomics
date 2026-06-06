@@ -76,6 +76,8 @@ pub enum BenchReadinessCommand {
     RenderVcfToolServingMap(BenchReadinessRenderVcfToolServingMapArgs),
     #[command(name = "render-vcf-normalized-metrics-schema")]
     RenderVcfNormalizedMetricsSchema(BenchReadinessRenderVcfNormalizedMetricsSchemaArgs),
+    #[command(name = "render-vcf-parser-failure-tests")]
+    RenderVcfParserFailureTests(BenchReadinessRenderVcfParserFailureTestsArgs),
     #[command(name = "render-vcf-adapter-missing-input-tests")]
     RenderVcfAdapterMissingInputTests(BenchReadinessRenderVcfAdapterMissingInputTestsArgs),
     #[command(name = "render-vcf-adapters-ready")]
@@ -262,6 +264,14 @@ pub struct BenchReadinessRenderVcfNormalizedMetricsSchemaArgs {
     pub output: Option<std::path::PathBuf>,
     #[arg(long)]
     pub stage_dir: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfParserFailureTestsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }
