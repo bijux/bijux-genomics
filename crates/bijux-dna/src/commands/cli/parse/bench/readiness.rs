@@ -78,6 +78,8 @@ pub enum BenchReadinessCommand {
     RenderVcfAdapterMissingInputTests(BenchReadinessRenderVcfAdapterMissingInputTestsArgs),
     #[command(name = "render-vcf-adapter-output-coverage")]
     RenderVcfAdapterOutputCoverage(BenchReadinessRenderVcfAdapterOutputCoverageArgs),
+    #[command(name = "render-vcf-commands")]
+    RenderVcfCommands(BenchReadinessRenderVcfCommandsArgs),
     #[command(name = "render-vcf-angsd-adapter")]
     RenderVcfAngsdAdapter(BenchReadinessRenderVcfAngsdAdapterArgs),
     #[command(name = "render-vcf-descent-family-adapter")]
@@ -276,6 +278,14 @@ pub struct BenchReadinessRenderExpectedBenchmarkResultsArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfAdapterOutputCoverageArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfCommandsArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
