@@ -1,0 +1,11 @@
+{
+  "schema_version": "bijux.vcf.phasing.v1",
+  "backend": "shapeit5",
+  "backend_selection": {
+    "requested": "shapeit5",
+    "resolved": "shapeit5"
+  },
+  "phase_block_n50": 2,
+  "switch_error_proxy": 0.125,
+  "warnings": []
+}
