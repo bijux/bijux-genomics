@@ -526,6 +526,14 @@ Visible aliases are part of the operator surface:
   smoke metrics (`sample_missingness`, `variant_missingness`, `maf_summary`, `heterozygosity`,
   `excluded_samples`, and `excluded_variants`) so reviewer evidence comes from the repo command
   instead of an implied parser contract.
+- `bijux-dna bench local run-vcf-admixture-smoke`
+  `run-vcf-admixture-smoke` writes `target/local-smoke/vcf.admixture/plink2/admixture.tsv` and
+  `target/local-smoke/vcf.admixture/plink2/admixture.json` from the governed `vcf.admixture`
+  matrix row. The command materializes the owned `vcf-mini` multisample cohort plus population
+  metadata contracts, runs the retained admixture stage, keeps the source Q-matrix and stage
+  manifest visible, and records exact smoke evidence (`sample_id`, `K`, `cluster_1`, `cluster_2`,
+  `status`, `execution_mode`, and any `insufficient_data_reason`) so ancestry proportions remain
+  reviewer-visible whether the local run used a real tool path or the governed fallback proxy.
 - `bijux-dna bench local run-vcf-pca-smoke`
   `run-vcf-pca-smoke` writes `target/local-smoke/vcf.pca/plink2/pca.tsv` and
   `target/local-smoke/vcf.pca/plink2/pca.json` from the governed `vcf.pca` matrix row. The
