@@ -33,6 +33,7 @@ pub(crate) mod local_vcf_call_smoke;
 pub(crate) mod local_vcf_damage_filter_smoke;
 pub(crate) mod local_vcf_filter_smoke;
 pub(crate) mod local_vcf_gl_propagation_smoke;
+pub(crate) mod local_vcf_impute_smoke;
 pub(crate) mod local_vcf_no_empty_output;
 pub(crate) mod local_vcf_panel_workflow_smoke_support;
 pub(crate) mod local_vcf_phasing_smoke;

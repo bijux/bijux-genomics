@@ -443,6 +443,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RunVcfImputeSmoke(args) => {
+                        crate::commands::benchmark::local_vcf_impute_smoke::run_vcf_impute_smoke(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RunVcfCallPseudohaploidSmoke(args) => {
                         crate::commands::benchmark::local_vcf_call_pseudohaploid_smoke::run_vcf_call_pseudohaploid_smoke(
                             &args,
