@@ -123,11 +123,37 @@ mod contracts {
     fn stats_and_qc_metric_contracts_cover_governed_summary_ids() {
         let stats = stage_metrics_contract(VcfDomainStage::Stats);
         assert!(stats.required_metrics.contains(&"sample_count"));
-        assert!(stats.required_metrics.contains(&"annotation_coverage"));
+        assert!(stats.required_metrics.contains(&"transition_count"));
 
         let qc = stage_metrics_contract(VcfDomainStage::Qc);
         assert!(qc.required_metrics.contains(&"sample_count"));
         assert!(qc.required_metrics.contains(&"missingness_post"));
+    }
+
+    #[test]
+    fn stage_metrics_contract_matches_governed_stage_schema_ids() {
+        let pca = stage_metrics_contract(VcfDomainStage::Pca);
+        assert_eq!(pca.metrics_schema_id, "bijux.vcf.pca.v1");
+        assert!(pca.required_metrics.contains(&"eigenvalues"));
+
+        let admixture = stage_metrics_contract(VcfDomainStage::Admixture);
+        assert_eq!(admixture.metrics_schema_id, "bijux.vcf.admixture.v1");
+        assert!(admixture.required_metrics.contains(&"selected_k"));
+
+        let impute = stage_metrics_contract(VcfDomainStage::Impute);
+        assert_eq!(impute.metrics_schema_id, "bijux.vcf.impute.v1");
+
+        let postprocess = stage_metrics_contract(VcfDomainStage::Postprocess);
+        assert_eq!(postprocess.metrics_schema_id, "bijux.vcf.postprocess.v1");
+        assert!(postprocess.required_metrics.contains(&"left_align_applied"));
+
+        let panel = stage_metrics_contract(VcfDomainStage::PrepareReferencePanel);
+        assert_eq!(panel.metrics_schema_id, "bijux.vcf.prepare_reference_panel.v1");
+        assert!(panel.required_metrics.contains(&"duplicate_sites_removed"));
+
+        let gl_propagation = stage_metrics_contract(VcfDomainStage::GlPropagation);
+        assert_eq!(gl_propagation.metrics_schema_id, "bijux.vcf.gl_propagation.v1");
+        assert!(gl_propagation.required_metrics.contains(&"input_likelihood_fields"));
     }
 
     #[test]
