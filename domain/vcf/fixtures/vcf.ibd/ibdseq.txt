@@ -1,0 +1,9 @@
+tool=ibdseq
+tool_version=planned
+stage=vcf.ibd
+domain=vcf
+fixture_kind=governed_contract
+command=sh
+args=-lc "ibdseq --vcf cohort.vcf.gz --out ibd_segments.segments.tsv > ibd_segments.log 2>&1"
+expected_outputs=ibd_segments,logs_txt
+expected_stdout_patterns=ibdseq,metrics_schema=bijux.vcf.ibd.v1

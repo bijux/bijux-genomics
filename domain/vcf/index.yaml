@@ -76,6 +76,7 @@ stage_tool_compatibility:
   - angsd
   vcf.ibd:
   - germline
+  - ibdseq
   - ibdhap
   vcf.imputation:
   - beagle
@@ -135,6 +136,7 @@ stage_tool_integration:
     bcftools: governed_contract
   vcf.ibd:
     germline: governed_contract
+    ibdseq: governed_contract
     ibdhap: governed_contract
   vcf.imputation:
     beagle: governed_contract

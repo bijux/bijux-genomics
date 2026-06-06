@@ -1,9 +1,9 @@
 tool=ibdhap
-tool_version=pinned
+tool_version=planned
 stage=vcf.ibd
 domain=vcf
-fixture_kind=parity
-command=ibdhap
-args=--vcf cohort.vcf.gz --out ibdhap_segments.tsv
-expected_outputs=ibd_segments,metrics.json
+fixture_kind=governed_contract
+command=sh
+args=-lc "ibdhap --vcf cohort.vcf.gz --out ibd_segments.segments.tsv > ibd_segments.log 2>&1"
+expected_outputs=ibd_segments,logs_txt
 expected_stdout_patterns=ibdhap,metrics_schema=bijux.vcf.ibd.v1
