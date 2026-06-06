@@ -88,6 +88,7 @@ pub use self::readiness::{
     BenchReadinessRenderStageToolResourcesArgs, BenchReadinessRenderToolCentricReportArgs,
     BenchReadinessRenderToolIdNormalizationArgs, BenchReadinessRenderUndercoveredStagesArgs,
     BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
+    BenchReadinessRenderVcfAdapterMissingInputTestsArgs,
     BenchReadinessRenderVcfAdapterOutputCoverageArgs, BenchReadinessRenderVcfAngsdAdapterArgs,
     BenchReadinessRenderVcfBcftoolsAdapterArgs, BenchReadinessRenderVcfBeagleAdapterArgs,
     BenchReadinessRenderVcfDescentFamilyAdapterArgs, BenchReadinessRenderVcfEagleAdapterArgs,
