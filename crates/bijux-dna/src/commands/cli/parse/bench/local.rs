@@ -24,6 +24,8 @@ pub enum BenchLocalCommand {
     RenderVcfStageMatrix(BenchLocalRenderVcfStageMatrixArgs),
     #[command(name = "render-vcf-smoke-root")]
     RenderVcfSmokeRoot(BenchLocalRenderVcfSmokeRootArgs),
+    #[command(name = "validate-vcf-no-empty-output")]
+    ValidateVcfNoEmptyOutput(BenchLocalValidateVcfNoEmptyOutputArgs),
     #[command(name = "validate-vcf-reference-compatibility")]
     ValidateVcfReferenceCompatibility(BenchLocalValidateVcfReferenceCompatibilityArgs),
     #[command(name = "validate-vcf-sample-compatibility")]
@@ -104,6 +106,16 @@ pub struct BenchLocalRenderVcfStageMatrixArgs {
 pub struct BenchLocalRenderVcfSmokeRootArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateVcfNoEmptyOutputArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub skip_refresh: bool,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

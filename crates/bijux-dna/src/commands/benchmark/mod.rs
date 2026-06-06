@@ -25,6 +25,7 @@ pub(crate) mod local_stage_runtime_metrics;
 pub(crate) mod local_taxonomy_database_fixture;
 pub(crate) mod local_taxonomy_output_judgment;
 pub(crate) mod local_tool_comparison_template;
+pub(crate) mod local_vcf_no_empty_output;
 pub(crate) mod local_vcf_reference_compatibility;
 pub(crate) mod local_vcf_sample_compatibility;
 pub(crate) mod local_vcf_smoke_root;
