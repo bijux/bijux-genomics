@@ -15,10 +15,14 @@ guardrails, and crate layout.
 
 - `tests/fixtures/bench/parsers/vcf/bcftools/<stage>/` stores the governed raw artifact bank for
   retained `bcftools` VCF stages.
+- `tests/fixtures/bench/parsers/vcf/angsd/<stage>/` stores the governed raw artifact bank for
+  retained `angsd` low-coverage VCF stages.
 - Every stage directory must contain the raw parser inputs required by `src/parsers/bcftools.rs`
-  plus `expected.normalized.json`.
+  or `src/parsers/angsd.rs` plus `expected.normalized.json`.
 - `tests/contracts/parsers/bcftools_fixture_bank.rs` is the SSOT that proves the checked-in raw
   artifacts still normalize to the committed expected payloads.
+- `tests/contracts/parsers/angsd_fixture_bank.rs` is the SSOT for the retained ANGSD low-coverage
+  parser bank.
 
 ## Commands
 
