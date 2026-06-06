@@ -210,6 +210,86 @@ fn bench_local_pipeline_dag_validates_fastq_edna_taxonomy_contract() {
 }
 
 #[test]
+fn bench_local_pipeline_dag_validates_edna_taxonomy_no_vcf_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/edna-taxonomy-no-vcf.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/edna-taxonomy-no-vcf.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/edna-taxonomy-no-vcf.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("edna-taxonomy-no-vcf")
+    );
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-02-edna-mini")
+    );
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().all(|node| {
+            node.get("stage_id")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|stage_id| stage_id.starts_with("fastq."))
+        }),
+        "taxonomy-only pipeline must keep all declared stages in the fastq domain"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.screen_taxonomy")
+                && node.get("external_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("taxonomy_database.root"))
+                            && inputs.iter().any(|value| {
+                                value.as_str() == Some("taxonomy_expected_truth_table")
+                            })
+                    },
+                )
+                && node.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |outputs| {
+                        outputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("taxonomy_classification"))
+                            && outputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("unclassified_reads"))
+                            && outputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("taxonomy_summary"))
+                    },
+                )
+        }),
+        "screen_taxonomy must keep the governed taxonomy assets and outputs explicit"
+    );
+
+    let profiles = payload
+        .get("validation_profiles")
+        .and_then(serde_json::Value::as_array)
+        .expect("validation profiles");
+    assert!(
+        profiles.iter().any(|profile| {
+            profile.get("profile_id").and_then(serde_json::Value::as_str)
+                == Some("edna_taxonomy_no_vcf")
+                && profile.get("check_count").and_then(serde_json::Value::as_u64) == Some(8)
+        }),
+        "validate-pipeline-dag must surface the governed no-vcf taxonomy separation checks"
+    );
+}
+
+#[test]
 fn bench_local_pipeline_dag_validates_fastq_amplicon_contract() {
     let payload = run_cli_json(&[
         "bench",
