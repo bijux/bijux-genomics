@@ -78,6 +78,7 @@ pub use self::readiness::{
     BenchReadinessRenderEssentialPipelineCorpusAssetsArgs,
     BenchReadinessRenderEssentialPipelineFailureIsolationArgs,
     BenchReadinessRenderEssentialPipelinePartialResumeArgs,
+    BenchReadinessRenderEssentialPipelineReportMapArgs,
     BenchReadinessRenderExpectedBenchmarkResultsArgs,
     BenchReadinessRenderFastqAdapterOutputContractArgs,
     BenchReadinessRenderFastqCommandAdapterCoverageArgs,
