@@ -433,6 +433,9 @@ pub(crate) fn handle_meta_commands(
                     cli::BenchLocalCommand::RunVcfQcSmoke(args) => {
                         crate::commands::benchmark::local_vcf_qc_smoke::run_vcf_qc_smoke(&args)?;
                     }
+                    cli::BenchLocalCommand::RunVcfPcaSmoke(args) => {
+                        crate::commands::benchmark::local_vcf_pca_smoke::run_vcf_pca_smoke(&args)?;
+                    }
                     cli::BenchLocalCommand::RunVcfStatsSmoke(args) => {
                         crate::commands::benchmark::local_vcf_stats_smoke::run_vcf_stats_smoke(
                             &args,
