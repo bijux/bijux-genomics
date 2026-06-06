@@ -14,7 +14,7 @@ pub(crate) const VCF_CORPUS_FIXTURE_SCHEMA_VERSION: &str = "bijux.bench.vcf_corp
 const VCF_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.vcf_corpus_fixture_validation.v1";
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct VcfCorpusFixtureManifest {
     pub(crate) schema_version: String,

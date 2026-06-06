@@ -24,6 +24,8 @@ const PHASING_STATUS_SCHEMA_VERSION: &str =
 const PCA_EXPECTED_SCHEMA_VERSION: &str = "bijux.bench.vcf_expected_truth.pca_expected.v1";
 const ROH_EXPECTED_SCHEMA_VERSION: &str = "bijux.bench.vcf_expected_truth.roh_expected.v1";
 const IBD_EXPECTED_SCHEMA_VERSION: &str = "bijux.bench.vcf_expected_truth.ibd_expected.v1";
+const VCF_EXPECTED_TRUTH_BUILD_SCHEMA_VERSION: &str =
+    "bijux.bench.vcf_expected_truth_build.v1";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct VcfExpectedTruthValidationReport {
@@ -37,7 +39,17 @@ pub(crate) struct VcfExpectedTruthValidationReport {
     pub(crate) checked_truth_files: Vec<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct VcfExpectedTruthBuildReport {
+    pub(crate) schema_version: &'static str,
+    pub(crate) corpus_id: String,
+    pub(crate) manifest_path: String,
+    pub(crate) expected_dir: String,
+    pub(crate) truth_file_count: usize,
+    pub(crate) checked_truth_files: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct VariantCountsTruth {
     schema_version: String,
@@ -45,7 +57,7 @@ struct VariantCountsTruth {
     variant_sets: Vec<VariantCountTruthRow>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct VariantCountTruthRow {
     variant_role: String,
@@ -54,7 +66,7 @@ struct VariantCountTruthRow {
     contigs: Vec<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct SampleMissingnessTruth {
     schema_version: String,
@@ -64,7 +76,7 @@ struct SampleMissingnessTruth {
     per_sample_missingness: BTreeMap<String, f64>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct GenotypeStatesTruth {
     schema_version: String,
@@ -72,14 +84,14 @@ struct GenotypeStatesTruth {
     variant_sets: Vec<GenotypeStatesVariantSetTruth>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct GenotypeStatesVariantSetTruth {
     variant_role: String,
     samples: Vec<GenotypeStateTruthRow>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct GenotypeStateTruthRow {
     sample_id: String,
@@ -91,7 +103,7 @@ struct GenotypeStateTruthRow {
     unphased_calls: u64,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct AlleleFrequencyTruth {
     schema_version: String,
@@ -99,14 +111,14 @@ struct AlleleFrequencyTruth {
     variant_sets: Vec<AlleleFrequencyVariantSetTruth>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct AlleleFrequencyVariantSetTruth {
     variant_role: String,
     variants: Vec<AlleleFrequencyTruthRow>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct AlleleFrequencyTruthRow {
     contig: String,
@@ -116,7 +128,7 @@ struct AlleleFrequencyTruthRow {
     alt_allele_frequency: f64,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct PhasingStatusTruth {
     schema_version: String,
@@ -129,7 +141,7 @@ struct PhasingStatusTruth {
     fully_phased_sample_ids: Vec<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct PcaExpectedTruth {
     schema_version: String,
@@ -139,14 +151,14 @@ struct PcaExpectedTruth {
     pairwise_squared_distances: Vec<PairwiseDistanceTruthRow>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct SamplePopulationTruthRow {
     sample_id: String,
     population_id: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct PairwiseDistanceTruthRow {
     left_sample_id: String,
@@ -154,7 +166,7 @@ struct PairwiseDistanceTruthRow {
     distance_sq: f64,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct RohExpectedTruth {
     schema_version: String,
@@ -163,7 +175,7 @@ struct RohExpectedTruth {
     samples: Vec<RohExpectedTruthRow>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct RohExpectedTruthRow {
     sample_id: String,
@@ -171,7 +183,7 @@ struct RohExpectedTruthRow {
     expected_roh_segment_count: u64,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct IbdExpectedTruth {
     schema_version: String,
@@ -180,7 +192,7 @@ struct IbdExpectedTruth {
     pairs: Vec<IbdExpectedTruthRow>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct IbdExpectedTruthRow {
     left_sample_id: String,
@@ -291,11 +303,18 @@ impl ParsedGenotype {
 
 pub(crate) fn validate_vcf_expected_truth(cwd: &Path) -> Result<VcfExpectedTruthValidationReport> {
     let manifest_path = cwd.join(DEFAULT_VCF_MINI_MANIFEST_PATH);
-    let manifest_report = validate_vcf_corpus_fixture_manifest_path(cwd, &manifest_path)?;
+    validate_vcf_expected_truth_manifest_path(cwd, &manifest_path)
+}
+
+pub(crate) fn validate_vcf_expected_truth_manifest_path(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> Result<VcfExpectedTruthValidationReport> {
+    let manifest_report = validate_vcf_corpus_fixture_manifest_path(repo_root, manifest_path)?;
     if !manifest_report.valid {
         return Err(anyhow!("VCF fixture manifest validation did not return a valid report"));
     }
-    let manifest = load_vcf_corpus_fixture_manifest_path(&manifest_path)?;
+    let manifest = load_vcf_corpus_fixture_manifest_path(manifest_path)?;
     let corpus_root = manifest_path.parent().ok_or_else(|| {
         anyhow!("fixture manifest has no parent directory: {}", manifest_path.display())
     })?;
@@ -377,22 +396,379 @@ pub(crate) fn validate_vcf_expected_truth(cwd: &Path) -> Result<VcfExpectedTruth
     Ok(VcfExpectedTruthValidationReport {
         schema_version: VCF_EXPECTED_TRUTH_VALIDATION_SCHEMA_VERSION,
         corpus_id: manifest.corpus_id,
-        expected_dir: path_relative_to_repo(cwd, &expected_dir),
+        expected_dir: path_relative_to_repo(repo_root, &expected_dir),
         truth_file_count: 8,
         cohort_sample_count: multisample_summary.sample_count,
         pair_count: pair_keys(&multisample_summary.sample_ids).len(),
         valid: true,
         checked_truth_files: vec![
-            path_relative_to_repo(cwd, &variant_counts_path),
-            path_relative_to_repo(cwd, &sample_missingness_path),
-            path_relative_to_repo(cwd, &genotype_states_path),
-            path_relative_to_repo(cwd, &allele_frequency_path),
-            path_relative_to_repo(cwd, &phasing_status_path),
-            path_relative_to_repo(cwd, &pca_expected_path),
-            path_relative_to_repo(cwd, &roh_expected_path),
-            path_relative_to_repo(cwd, &ibd_expected_path),
+            path_relative_to_repo(repo_root, &variant_counts_path),
+            path_relative_to_repo(repo_root, &sample_missingness_path),
+            path_relative_to_repo(repo_root, &genotype_states_path),
+            path_relative_to_repo(repo_root, &allele_frequency_path),
+            path_relative_to_repo(repo_root, &phasing_status_path),
+            path_relative_to_repo(repo_root, &pca_expected_path),
+            path_relative_to_repo(repo_root, &roh_expected_path),
+            path_relative_to_repo(repo_root, &ibd_expected_path),
         ],
     })
+}
+
+pub(crate) fn write_vcf_expected_truth_bundle(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> Result<VcfExpectedTruthBuildReport> {
+    let manifest_report = validate_vcf_corpus_fixture_manifest_path(repo_root, manifest_path)?;
+    if !manifest_report.valid {
+        return Err(anyhow!("VCF fixture manifest validation did not return a valid report"));
+    }
+
+    let manifest = load_vcf_corpus_fixture_manifest_path(manifest_path)?;
+    let corpus_root = manifest_path.parent().ok_or_else(|| {
+        anyhow!("fixture manifest has no parent directory: {}", manifest_path.display())
+    })?;
+    let expected_dir = corpus_root.join("expected");
+    fs::create_dir_all(&expected_dir)
+        .with_context(|| format!("create {}", expected_dir.display()))?;
+
+    let sample_population_map =
+        load_sample_population_map(corpus_root.join(&manifest.sample_metadata_path).as_path())?;
+    let raw_summary = summarize_vcf_variant_set(corpus_root.join(&manifest.raw_vcf_path).as_path())?;
+    let filtered_summary =
+        summarize_vcf_variant_set(corpus_root.join(&manifest.filtered_vcf_path).as_path())?;
+    let multisample_summary =
+        summarize_vcf_variant_set(corpus_root.join(&manifest.multisample_vcf_path).as_path())?;
+    let phased_summary =
+        summarize_vcf_variant_set(corpus_root.join(&manifest.phased_vcf_path).as_path())?;
+    let panel_summary =
+        summarize_vcf_variant_set(corpus_root.join(&manifest.panel_vcf_path).as_path())?;
+
+    let variant_counts = build_variant_counts_truth(
+        &manifest.corpus_id,
+        &[
+            ("raw", &raw_summary),
+            ("filtered", &filtered_summary),
+            ("multisample", &multisample_summary),
+            ("phased", &phased_summary),
+            ("panel", &panel_summary),
+        ],
+    );
+    let sample_missingness =
+        build_sample_missingness_truth(&manifest.corpus_id, &multisample_summary);
+    let genotype_states = build_genotype_states_truth(
+        &manifest.corpus_id,
+        &[
+            ("raw", &raw_summary),
+            ("filtered", &filtered_summary),
+            ("multisample", &multisample_summary),
+            ("phased", &phased_summary),
+            ("panel", &panel_summary),
+        ],
+    );
+    let allele_frequency = build_allele_frequency_truth(
+        &manifest.corpus_id,
+        &[("multisample", &multisample_summary), ("panel", &panel_summary)],
+    );
+    let phasing_status = build_phasing_status_truth(&manifest.corpus_id, &phased_summary);
+    let pca_expected = build_pca_expected_truth(
+        &manifest.corpus_id,
+        &sample_population_map,
+        &multisample_summary,
+    )?;
+    let roh_expected = build_roh_expected_truth(&manifest.corpus_id, &multisample_summary)?;
+    let ibd_expected = build_ibd_expected_truth(&manifest.corpus_id, &multisample_summary)?;
+
+    let variant_counts_path = expected_dir.join("variant_counts.json");
+    let sample_missingness_path = expected_dir.join("sample_missingness.json");
+    let genotype_states_path = expected_dir.join("genotype_states.json");
+    let allele_frequency_path = expected_dir.join("allele_frequency.json");
+    let phasing_status_path = expected_dir.join("phasing_status.json");
+    let pca_expected_path = expected_dir.join("pca_expected.json");
+    let roh_expected_path = expected_dir.join("roh_expected.json");
+    let ibd_expected_path = expected_dir.join("ibd_expected.json");
+
+    write_json_truth(&variant_counts_path, &variant_counts)?;
+    write_json_truth(&sample_missingness_path, &sample_missingness)?;
+    write_json_truth(&genotype_states_path, &genotype_states)?;
+    write_json_truth(&allele_frequency_path, &allele_frequency)?;
+    write_json_truth(&phasing_status_path, &phasing_status)?;
+    write_json_truth(&pca_expected_path, &pca_expected)?;
+    write_json_truth(&roh_expected_path, &roh_expected)?;
+    write_json_truth(&ibd_expected_path, &ibd_expected)?;
+
+    let validation = validate_vcf_expected_truth_manifest_path(repo_root, manifest_path)?;
+
+    Ok(VcfExpectedTruthBuildReport {
+        schema_version: VCF_EXPECTED_TRUTH_BUILD_SCHEMA_VERSION,
+        corpus_id: manifest.corpus_id,
+        manifest_path: path_relative_to_repo(repo_root, manifest_path),
+        expected_dir: validation.expected_dir,
+        truth_file_count: validation.truth_file_count,
+        checked_truth_files: validation.checked_truth_files,
+    })
+}
+
+fn build_variant_counts_truth(
+    corpus_id: &str,
+    summaries: &[(&str, &VcfVariantTruthSummary)],
+) -> VariantCountsTruth {
+    VariantCountsTruth {
+        schema_version: VARIANT_COUNTS_SCHEMA_VERSION.to_string(),
+        corpus_id: corpus_id.to_string(),
+        variant_sets: summaries
+            .iter()
+            .map(|(variant_role, summary)| VariantCountTruthRow {
+                variant_role: (*variant_role).to_string(),
+                sample_count: summary.sample_count,
+                variant_count: summary.variant_count,
+                contigs: summary.contigs.clone(),
+            })
+            .collect(),
+    }
+}
+
+fn build_sample_missingness_truth(
+    corpus_id: &str,
+    summary: &VcfVariantTruthSummary,
+) -> SampleMissingnessTruth {
+    let per_sample_missingness = summary
+        .sample_ids
+        .iter()
+        .map(|sample_id| {
+            let state = summary
+                .genotype_states
+                .get(sample_id)
+                .unwrap_or_else(|| panic!("missing genotype state for `{sample_id}`"));
+            let missingness = if summary.variant_count == 0 {
+                0.0
+            } else {
+                state.missing as f64 / summary.variant_count as f64
+            };
+            (sample_id.clone(), missingness)
+        })
+        .collect();
+    SampleMissingnessTruth {
+        schema_version: SAMPLE_MISSINGNESS_SCHEMA_VERSION.to_string(),
+        corpus_id: corpus_id.to_string(),
+        source_variant_role: "multisample".to_string(),
+        variant_count: summary.variant_count,
+        per_sample_missingness,
+    }
+}
+
+fn build_genotype_states_truth(
+    corpus_id: &str,
+    summaries: &[(&str, &VcfVariantTruthSummary)],
+) -> GenotypeStatesTruth {
+    GenotypeStatesTruth {
+        schema_version: GENOTYPE_STATES_SCHEMA_VERSION.to_string(),
+        corpus_id: corpus_id.to_string(),
+        variant_sets: summaries
+            .iter()
+            .map(|(variant_role, summary)| GenotypeStatesVariantSetTruth {
+                variant_role: (*variant_role).to_string(),
+                samples: summary
+                    .sample_ids
+                    .iter()
+                    .map(|sample_id| {
+                        let state = summary
+                            .genotype_states
+                            .get(sample_id)
+                            .unwrap_or_else(|| panic!("missing genotype state for `{sample_id}`"));
+                        GenotypeStateTruthRow {
+                            sample_id: sample_id.clone(),
+                            hom_ref: state.hom_ref,
+                            het: state.het,
+                            hom_alt: state.hom_alt,
+                            missing: state.missing,
+                            phased_calls: state.phased_calls,
+                            unphased_calls: state.unphased_calls,
+                        }
+                    })
+                    .collect(),
+            })
+            .collect(),
+    }
+}
+
+fn build_allele_frequency_truth(
+    corpus_id: &str,
+    summaries: &[(&str, &VcfVariantTruthSummary)],
+) -> AlleleFrequencyTruth {
+    AlleleFrequencyTruth {
+        schema_version: ALLELE_FREQUENCY_SCHEMA_VERSION.to_string(),
+        corpus_id: corpus_id.to_string(),
+        variant_sets: summaries
+            .iter()
+            .map(|(variant_role, summary)| AlleleFrequencyVariantSetTruth {
+                variant_role: (*variant_role).to_string(),
+                variants: summary
+                    .allele_frequencies
+                    .iter()
+                    .map(|((contig, position), observed)| AlleleFrequencyTruthRow {
+                        contig: contig.clone(),
+                        position: *position,
+                        alt_allele_count: observed.alt_allele_count,
+                        called_allele_count: observed.called_allele_count,
+                        alt_allele_frequency: observed.alt_allele_frequency,
+                    })
+                    .collect(),
+            })
+            .collect(),
+    }
+}
+
+fn build_phasing_status_truth(
+    corpus_id: &str,
+    summary: &VcfVariantTruthSummary,
+) -> PhasingStatusTruth {
+    let phased_call_count = summary
+        .sample_ids
+        .iter()
+        .map(|sample_id| {
+            summary
+                .genotype_states
+                .get(sample_id)
+                .unwrap_or_else(|| panic!("missing genotype state for `{sample_id}`"))
+                .phased_calls
+        })
+        .sum();
+    let unphased_call_count = summary
+        .sample_ids
+        .iter()
+        .map(|sample_id| {
+            summary
+                .genotype_states
+                .get(sample_id)
+                .unwrap_or_else(|| panic!("missing genotype state for `{sample_id}`"))
+                .unphased_calls
+        })
+        .sum();
+    let fully_phased_sample_ids = summary
+        .sample_ids
+        .iter()
+        .filter(|sample_id| {
+            summary
+                .genotype_states
+                .get(*sample_id)
+                .is_some_and(|state| state.unphased_calls == 0 && state.phased_calls > 0)
+        })
+        .cloned()
+        .collect();
+    PhasingStatusTruth {
+        schema_version: PHASING_STATUS_SCHEMA_VERSION.to_string(),
+        corpus_id: corpus_id.to_string(),
+        source_variant_role: "phased".to_string(),
+        sample_count: summary.sample_count,
+        variant_count: summary.variant_count,
+        phased_call_count,
+        unphased_call_count,
+        fully_phased_sample_ids,
+    }
+}
+
+fn build_pca_expected_truth(
+    corpus_id: &str,
+    sample_population_map: &BTreeMap<String, String>,
+    summary: &VcfVariantTruthSummary,
+) -> Result<PcaExpectedTruth> {
+    let sample_population_labels = summary
+        .sample_ids
+        .iter()
+        .map(|sample_id| {
+            let population_id = sample_population_map
+                .get(sample_id)
+                .ok_or_else(|| anyhow!("missing population id for `{sample_id}`"))?;
+            Ok(SamplePopulationTruthRow {
+                sample_id: sample_id.clone(),
+                population_id: population_id.clone(),
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let pairwise_squared_distances = pairwise_squared_distances(summary)?
+        .into_iter()
+        .map(|((left_sample_id, right_sample_id), distance_sq)| PairwiseDistanceTruthRow {
+            left_sample_id,
+            right_sample_id,
+            distance_sq,
+        })
+        .collect();
+    Ok(PcaExpectedTruth {
+        schema_version: PCA_EXPECTED_SCHEMA_VERSION.to_string(),
+        corpus_id: corpus_id.to_string(),
+        source_variant_role: "multisample".to_string(),
+        sample_population_labels,
+        pairwise_squared_distances,
+    })
+}
+
+fn build_roh_expected_truth(
+    corpus_id: &str,
+    summary: &VcfVariantTruthSummary,
+) -> Result<RohExpectedTruth> {
+    let samples = summary
+        .sample_ids
+        .iter()
+        .map(|sample_id| {
+            let state = summary
+                .genotype_states
+                .get(sample_id)
+                .ok_or_else(|| anyhow!("missing genotype state for `{sample_id}`"))?;
+            Ok(RohExpectedTruthRow {
+                sample_id: sample_id.clone(),
+                homozygous_variant_count: state.hom_ref + state.hom_alt,
+                expected_roh_segment_count: count_roh_segments(state),
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    Ok(RohExpectedTruth {
+        schema_version: ROH_EXPECTED_SCHEMA_VERSION.to_string(),
+        corpus_id: corpus_id.to_string(),
+        source_variant_role: "multisample".to_string(),
+        samples,
+    })
+}
+
+fn build_ibd_expected_truth(
+    corpus_id: &str,
+    summary: &VcfVariantTruthSummary,
+) -> Result<IbdExpectedTruth> {
+    let pairs = pair_keys(&summary.sample_ids)
+        .into_iter()
+        .map(|(left_sample_id, right_sample_id)| {
+            let left = summary
+                .genotype_states
+                .get(&left_sample_id)
+                .ok_or_else(|| anyhow!("missing genotype state for `{left_sample_id}`"))?;
+            let right = summary
+                .genotype_states
+                .get(&right_sample_id)
+                .ok_or_else(|| anyhow!("missing genotype state for `{right_sample_id}`"))?;
+            let shared_genotype_site_count = left
+                .dosages
+                .iter()
+                .zip(right.dosages.iter())
+                .filter(|(left_dosage, right_dosage)| left_dosage == right_dosage)
+                .count() as u64;
+            Ok(IbdExpectedTruthRow {
+                left_sample_id,
+                right_sample_id,
+                shared_genotype_site_count,
+                expected_ibd_segment_count: count_shared_dosage_segments(left, right),
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    Ok(IbdExpectedTruth {
+        schema_version: IBD_EXPECTED_SCHEMA_VERSION.to_string(),
+        corpus_id: corpus_id.to_string(),
+        source_variant_role: "multisample".to_string(),
+        pairs,
+    })
+}
+
+fn write_json_truth<T: Serialize>(path: &Path, payload: &T) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(path, payload)
+        .with_context(|| format!("write {}", path.display()))
 }
 
 fn validate_variant_counts_truth(
