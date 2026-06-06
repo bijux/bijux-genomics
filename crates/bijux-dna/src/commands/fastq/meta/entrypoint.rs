@@ -362,6 +362,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfOrphanTools(args) => {
+                        crate::commands::benchmark::readiness::vcf_orphan_tools::run_render_vcf_orphan_tools(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderUndercoveredStages(args) => {
                         crate::commands::benchmark::readiness::undercovered_stages::run_render_undercovered_stages(
                             args,

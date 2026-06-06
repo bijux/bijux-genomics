@@ -88,6 +88,8 @@ pub enum BenchReadinessCommand {
     RenderUnregisteredBenchmarkPairs(BenchReadinessRenderUnregisteredBenchmarkPairsArgs),
     #[command(name = "render-orphan-tools")]
     RenderOrphanTools(BenchReadinessRenderOrphanToolsArgs),
+    #[command(name = "render-vcf-orphan-tools")]
+    RenderVcfOrphanTools(BenchReadinessRenderVcfOrphanToolsArgs),
     #[command(name = "render-undercovered-stages")]
     RenderUndercoveredStages(BenchReadinessRenderUndercoveredStagesArgs),
 }
@@ -430,6 +432,14 @@ pub struct BenchReadinessRenderUnregisteredBenchmarkPairsArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderOrphanToolsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfOrphanToolsArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
