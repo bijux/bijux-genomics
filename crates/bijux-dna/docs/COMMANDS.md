@@ -494,6 +494,18 @@ Visible aliases are part of the operator surface:
   without GT dependence, and records explicit likelihood metrics (`likelihood_field`,
   `sites_with_likelihoods`, `samples_with_likelihoods`, `missing_likelihoods`, and `tool_id`) plus
   a `stage-result.json` manifest so GL-bearing local smoke evidence stays reviewer-visible.
+- `bijux-dna bench local run-vcf-damage-filter-smoke`
+  `run-vcf-damage-filter-smoke` writes
+  `target/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz`,
+  `target/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz.tbi`, and
+  `target/local-smoke/vcf.damage_filter/bcftools/metrics.json` from the governed
+  `vcf.damage_filter` matrix row. The command materializes a deterministic single-sample synthetic
+  VCF with PL-bearing genotype likelihoods plus explicit `CT_GA_DAMAGE_RATIO`, `DEAM5P`,
+  `DEAM3P`, and `PMD_SCORE` evidence, runs the real retained `bcftools` damage-filter stage,
+  copies out the stage summary/counts/warnings manifests, and records exact smoke metrics
+  (`input_variants`, `removed_variants`, `retained_variants`, `damage_context_rule`,
+  `terminal_context_count`) so the local smoke proves real damage filtering instead of a fixture
+  copy.
 - `bijux-dna bench local run-vcf-call-pseudohaploid-smoke`
   `run-vcf-call-pseudohaploid-smoke` writes
   `target/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz`,
