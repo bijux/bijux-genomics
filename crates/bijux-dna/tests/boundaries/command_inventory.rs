@@ -60,6 +60,8 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna plan list",
     "bijux-dna plan explain",
     "bijux-dna plan explain-profile",
+    "bijux-dna pipeline validate",
+    "bijux-dna plan validate",
     "bijux-dna plan validate-profile",
     "bijux-dna plan profile-diff",
     "bijux-dna plan audit",
