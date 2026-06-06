@@ -158,6 +158,7 @@ configs/pipelines/local/fastq-paired-merge.toml
 configs/pipelines/local/fastq-to-bam.toml
 configs/pipelines/local/reference-panel-imputation.toml
 configs/pipelines/local/fastq-umi.toml
+configs/pipelines/local/popgen-structure-vcf.toml
 configs/runtime/asset_hydration.toml
 configs/runtime/asset_locks.toml
 configs/runtime/cargo_build.toml
