@@ -366,6 +366,12 @@ fn build_validation_profiles(
     if stage_ids.contains("vcf.population_structure") && stage_ids.contains("vcf.admixture") {
         profiles.push(validate_population_structure_vcf_profile(repo_root, config)?);
     }
+    if stage_ids.contains("vcf.ibd")
+        && stage_ids.contains("vcf.roh")
+        && stage_ids.contains("vcf.demography")
+    {
+        profiles.push(validate_relatedness_segments_vcf_profile(repo_root, config)?);
+    }
 
     Ok(profiles)
 }
@@ -1547,6 +1553,243 @@ fn validate_population_structure_vcf_profile(
         "vcf.admixture stays downstream of pca with explicit pca evidence".to_string(),
         "vcf.pca and vcf.admixture both export sample-metadata join handoffs".to_string(),
         "vcf.population_structure consumes the pca and admixture metadata-join handoffs with mandatory labels".to_string(),
+    ];
+
+    Ok(LocalPipelineDagValidationProfileReport {
+        profile_id: PROFILE_ID.to_string(),
+        check_count: checks.len(),
+        checks,
+    })
+}
+
+fn validate_relatedness_segments_vcf_profile(
+    repo_root: &Path,
+    config: &LocalPipelineDagConfig,
+) -> Result<LocalPipelineDagValidationProfileReport> {
+    const PROFILE_ID: &str = "relatedness_segments_vcf";
+
+    if config.default_corpus_id != "vcf_production_regression" {
+        return Err(anyhow!(
+            "{PROFILE_ID} local pipeline DAG must start from governed VCF corpus `vcf_production_regression`, found `{}`",
+            config.default_corpus_id
+        ));
+    }
+
+    let stage_index =
+        config.nodes.iter().map(|node| (node.stage_id.clone(), node)).collect::<BTreeMap<_, _>>();
+
+    let vcf_qc = require_profile_stage(&stage_index, PROFILE_ID, "vcf.qc")?;
+    let vcf_ibd = require_profile_stage(&stage_index, PROFILE_ID, "vcf.ibd")?;
+    let vcf_roh = require_profile_stage(&stage_index, PROFILE_ID, "vcf.roh")?;
+    let vcf_demography = require_profile_stage(&stage_index, PROFILE_ID, "vcf.demography")?;
+
+    let matrix_index = load_local_vcf_stage_matrix_index(repo_root)?;
+    require_vcf_matrix_binding(
+        &matrix_index,
+        PROFILE_ID,
+        "vcf.qc",
+        "vcf_cohort",
+        "vcf_production_regression",
+    )?;
+    require_vcf_matrix_binding(
+        &matrix_index,
+        PROFILE_ID,
+        "vcf.ibd",
+        "vcf_cohort",
+        "vcf_production_regression",
+    )?;
+    require_vcf_matrix_binding(
+        &matrix_index,
+        PROFILE_ID,
+        "vcf.roh",
+        "vcf_cohort",
+        "vcf_production_regression",
+    )?;
+    require_vcf_matrix_binding(
+        &matrix_index,
+        PROFILE_ID,
+        "vcf.demography",
+        "json_ibd_segments",
+        "vcf_production_regression",
+    )?;
+
+    require_list_contains(
+        &vcf_qc.external_inputs,
+        "corpus.target_cohort_vcf",
+        PROFILE_ID,
+        "vcf.qc must declare the governed target-cohort VCF input",
+    )?;
+    require_list_contains(
+        &vcf_qc.external_inputs,
+        "corpus.target_cohort_vcf_tbi",
+        PROFILE_ID,
+        "vcf.qc must declare the governed target-cohort tabix input",
+    )?;
+    require_list_contains(
+        &vcf_qc.outputs,
+        "qc_cohort_vcf",
+        PROFILE_ID,
+        "vcf.qc must export the QC-qualified cohort VCF handoff",
+    )?;
+    require_list_contains(
+        &vcf_qc.outputs,
+        "qc_cohort_vcf_tbi",
+        PROFILE_ID,
+        "vcf.qc must export the QC-qualified cohort tabix handoff",
+    )?;
+    require_list_contains(
+        &vcf_qc.outputs,
+        "qc_report",
+        PROFILE_ID,
+        "vcf.qc must export explicit QC evidence for downstream segment analysis",
+    )?;
+    require_list_contains(
+        &vcf_qc.outputs,
+        "pruned_variants_tsv",
+        PROFILE_ID,
+        "vcf.qc must export the governed pruning and filtering handoff",
+    )?;
+
+    require_list_contains(
+        &vcf_ibd.depends_on,
+        "vcf.qc",
+        PROFILE_ID,
+        "vcf.ibd must remain downstream of cohort QC",
+    )?;
+    require_list_contains(
+        &vcf_ibd.upstream_inputs,
+        "qc_cohort_vcf",
+        PROFILE_ID,
+        "vcf.ibd must consume the QC-qualified cohort VCF handoff",
+    )?;
+    require_list_contains(
+        &vcf_ibd.upstream_inputs,
+        "qc_cohort_vcf_tbi",
+        PROFILE_ID,
+        "vcf.ibd must consume the QC-qualified cohort tabix handoff",
+    )?;
+    require_list_contains(
+        &vcf_ibd.upstream_inputs,
+        "pruned_variants_tsv",
+        PROFILE_ID,
+        "vcf.ibd must consume the governed pruning and filtering handoff",
+    )?;
+    require_list_contains(
+        &vcf_ibd.outputs,
+        "ibd_segments",
+        PROFILE_ID,
+        "vcf.ibd must export the normalized IBD segment handoff",
+    )?;
+    require_list_contains(
+        &vcf_ibd.outputs,
+        "ibd_report",
+        PROFILE_ID,
+        "vcf.ibd must export the normalized IBD report",
+    )?;
+    require_list_contains(
+        &vcf_ibd.outputs,
+        "ibd_insufficient_data_json",
+        PROFILE_ID,
+        "vcf.ibd must export explicit insufficiency evidence for downstream demography",
+    )?;
+
+    require_list_contains(
+        &vcf_roh.depends_on,
+        "vcf.qc",
+        PROFILE_ID,
+        "vcf.roh must remain downstream of cohort QC",
+    )?;
+    require_list_contains(
+        &vcf_roh.upstream_inputs,
+        "qc_cohort_vcf",
+        PROFILE_ID,
+        "vcf.roh must consume the QC-qualified cohort VCF handoff",
+    )?;
+    require_list_contains(
+        &vcf_roh.upstream_inputs,
+        "qc_cohort_vcf_tbi",
+        PROFILE_ID,
+        "vcf.roh must consume the QC-qualified cohort tabix handoff",
+    )?;
+    require_list_contains(
+        &vcf_roh.upstream_inputs,
+        "pruned_variants_tsv",
+        PROFILE_ID,
+        "vcf.roh must consume the governed pruning and filtering handoff",
+    )?;
+    require_list_contains(
+        &vcf_roh.outputs,
+        "roh_report",
+        PROFILE_ID,
+        "vcf.roh must export the normalized ROH report",
+    )?;
+    require_list_contains(
+        &vcf_roh.outputs,
+        "roh_segments_tsv",
+        PROFILE_ID,
+        "vcf.roh must export explicit ROH segment rows",
+    )?;
+    if vcf_roh.depends_on.iter().any(|value| value == "vcf.ibd")
+        || vcf_roh.upstream_inputs.iter().any(|value| value == "ibd_segments")
+    {
+        return Err(anyhow!(
+            "{PROFILE_ID}: vcf.roh must stay independent of the IBD insufficiency branch"
+        ));
+    }
+
+    require_list_contains(
+        &vcf_demography.depends_on,
+        "vcf.ibd",
+        PROFILE_ID,
+        "vcf.demography must remain downstream of IBD inference",
+    )?;
+    require_list_contains(
+        &vcf_demography.upstream_inputs,
+        "ibd_segments",
+        PROFILE_ID,
+        "vcf.demography must consume the normalized IBD segment handoff",
+    )?;
+    require_list_contains(
+        &vcf_demography.upstream_inputs,
+        "ibd_report",
+        PROFILE_ID,
+        "vcf.demography must consume explicit IBD report evidence",
+    )?;
+    require_list_contains(
+        &vcf_demography.upstream_inputs,
+        "ibd_insufficient_data_json",
+        PROFILE_ID,
+        "vcf.demography must consume explicit IBD insufficiency evidence",
+    )?;
+    require_list_contains(
+        &vcf_demography.outputs,
+        "demography_report",
+        PROFILE_ID,
+        "vcf.demography must export the normalized demography report",
+    )?;
+    require_list_contains(
+        &vcf_demography.outputs,
+        "demography_insufficient_data_json",
+        PROFILE_ID,
+        "vcf.demography must export explicit downstream insufficiency evidence",
+    )?;
+    if vcf_demography.depends_on.iter().any(|value| value == "vcf.roh")
+        || vcf_demography.upstream_inputs.iter().any(|value| value == "roh_report")
+    {
+        return Err(anyhow!(
+            "{PROFILE_ID}: vcf.demography must stay local to the IBD branch and must not consume ROH outputs"
+        ));
+    }
+
+    let checks = vec![
+        "default corpus anchored to vcf_production_regression for governed cohort-vcf relatedness inputs".to_string(),
+        "vcf.qc, vcf.ibd, and vcf.roh stay bound to the vcf_cohort asset profile".to_string(),
+        "vcf.demography stays bound to the json_ibd_segments asset profile".to_string(),
+        "vcf.qc exports the qc-qualified cohort and pruning handoffs for downstream segment analysis".to_string(),
+        "vcf.ibd stays downstream of qc with explicit insufficiency evidence".to_string(),
+        "vcf.roh stays downstream of qc without depending on ibd outputs".to_string(),
+        "vcf.demography stays downstream only of ibd with explicit insufficiency propagation".to_string(),
+        "ibd insufficiency remains local to demography and does not block roh or qc outputs".to_string(),
     ];
 
     Ok(LocalPipelineDagValidationProfileReport {
