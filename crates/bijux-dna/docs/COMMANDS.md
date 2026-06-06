@@ -547,6 +547,18 @@ Visible aliases are part of the operator surface:
   (`input_likelihood_fields`, `output_likelihood_fields`, `lost_fields`, `site_count_before`,
   `site_count_after`) so likelihood-field survival is proved by the repo command instead of
   inferred from policy files.
+- `bijux-dna bench local run-vcf-prepare-reference-panel-smoke`
+  `run-vcf-prepare-reference-panel-smoke` writes
+  `target/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz`,
+  `target/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz.tbi`, and
+  `target/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json` from the governed
+  `vcf.prepare_reference_panel` matrix row. The command materializes a deterministic single-sample
+  input VCF plus an unsorted duplicate-bearing raw panel fixture, runs the real retained
+  `bcftools` panel-preparation stage, keeps the overlap, chunk, and panel manifests visible, and
+  records exact smoke metrics (`input_variants`, `output_variants`, `sample_count`,
+  `duplicate_sites_removed`, `normalization_status`, and `index_path`) so reviewer evidence proves
+  the output panel is sorted, indexed, normalized, and sample-consistent instead of only copying a
+  panel fixture.
 - `bijux-dna bench local run-vcf-call-pseudohaploid-smoke`
   `run-vcf-call-pseudohaploid-smoke` writes
   `target/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz`,
