@@ -230,6 +230,7 @@ dependencies = [
  "bijux-dna-api",
  "bijux-dna-core",
  "bijux-dna-db-ena",
+ "bijux-dna-db-ref",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-compiler",
  "bijux-dna-domain-fastq",
