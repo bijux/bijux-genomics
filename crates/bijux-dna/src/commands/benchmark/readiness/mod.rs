@@ -55,6 +55,7 @@ pub(crate) mod vcf_eigensoft_adapter;
 pub(crate) mod vcf_expected_benchmark_results;
 pub(crate) mod vcf_imputation_family_adapter;
 pub(crate) mod vcf_matrix_registry_consistency;
+pub(crate) mod vcf_missing_result_report;
 pub(crate) mod vcf_normalized_metrics_schema;
 pub(crate) mod vcf_orphan_tools;
 pub(crate) mod vcf_parser_coverage;
