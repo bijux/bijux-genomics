@@ -443,6 +443,9 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RunVcfIbdSmoke(args) => {
+                        crate::commands::benchmark::local_vcf_ibd_smoke::run_vcf_ibd_smoke(&args)?;
+                    }
                     cli::BenchLocalCommand::RunVcfRohSmoke(args) => {
                         crate::commands::benchmark::local_vcf_roh_smoke::run_vcf_roh_smoke(&args)?;
                     }
