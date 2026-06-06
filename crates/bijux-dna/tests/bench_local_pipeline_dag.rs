@@ -1081,6 +1081,141 @@ fn bench_local_pipeline_dag_validates_reference_panel_imputation_contract() {
 }
 
 #[test]
+fn bench_local_pipeline_dag_validates_popgen_structure_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/popgen-structure-vcf.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/popgen-structure-vcf.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/popgen-structure-vcf.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("popgen-structure-vcf")
+    );
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("vcf_production_regression")
+    );
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("edge_count").and_then(serde_json::Value::as_u64), Some(6));
+
+    let profiles = payload
+        .get("validation_profiles")
+        .and_then(serde_json::Value::as_array)
+        .expect("validation profiles");
+    assert!(
+        profiles.iter().any(|profile| {
+            profile.get("profile_id").and_then(serde_json::Value::as_str)
+                == Some("population_structure_vcf")
+                && profile.get("check_count").and_then(serde_json::Value::as_u64) == Some(8)
+        }),
+        "population-structure pipeline must emit the population_structure_vcf validation profile"
+    );
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.pca")
+                && node.get("external_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| {
+                            value.as_str() == Some("sample_metadata_manifest_contract")
+                        }) && inputs.iter().any(|value| {
+                            value.as_str() == Some("population_metadata_manifest_contract")
+                        }) && inputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("population_labels_contract"))
+                    },
+                )
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("qc_cohort_vcf"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("pruned_variants_tsv"))
+                    },
+                )
+                && node.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |outputs| {
+                        outputs.iter().any(|value| value.as_str() == Some("pca_report"))
+                            && outputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("pca_metadata_join_tsv"))
+                    },
+                )
+        }),
+        "pca must require metadata inputs and emit a metadata-join handoff"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.admixture")
+                && node.get("depends_on").and_then(serde_json::Value::as_array).is_some_and(
+                    |deps| {
+                        deps.iter().any(|value| value.as_str() == Some("vcf.qc"))
+                            && deps.iter().any(|value| value.as_str() == Some("vcf.pca"))
+                    },
+                )
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("pruned_variants_tsv"))
+                            && inputs.iter().any(|value| value.as_str() == Some("pca_report"))
+                    },
+                )
+                && node.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |outputs| {
+                        outputs.iter().any(|value| value.as_str() == Some("admixture_report"))
+                            && outputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("admixture_metadata_join_tsv"))
+                    },
+                )
+        }),
+        "admixture must stay downstream of pca and emit a metadata-join handoff"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.population_structure")
+                && node.get("external_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| {
+                            value.as_str() == Some("sample_metadata_manifest_contract")
+                        }) && inputs.iter().any(|value| {
+                            value.as_str() == Some("population_metadata_manifest_contract")
+                        }) && inputs
+                            .iter()
+                            .any(|value| value.as_str() == Some("population_labels_contract"))
+                    },
+                )
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("pca_report"))
+                            && inputs.iter().any(|value| value.as_str() == Some("admixture_report"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("pca_metadata_join_tsv"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("admixture_metadata_join_tsv"))
+                    },
+                )
+        }),
+        "population-structure summary must consume pca and admixture metadata-join handoffs"
+    );
+}
+
+#[test]
 fn bench_local_pipeline_dag_validates_bam_genotyping_contract() {
     let payload = run_cli_json(&[
         "bench",
