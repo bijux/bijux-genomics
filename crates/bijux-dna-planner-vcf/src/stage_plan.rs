@@ -74,6 +74,7 @@ pub fn build_stage_plan(
     append_panel_workflow_inputs(
         &mut io_inputs,
         stage,
+        tool,
         reference_panel_vcf,
         selected_panel,
         map,
@@ -131,28 +132,29 @@ pub fn build_stage_plan(
 fn append_panel_workflow_inputs(
     io_inputs: &mut Vec<ArtifactSpec>,
     stage: VcfDomainStage,
+    tool: &str,
     reference_panel_vcf: Option<&Path>,
     selected_panel: Option<&VcfPanelLock>,
     map: &MapCatalogEntry,
     species_id: &str,
     build_id: &str,
 ) -> Result<()> {
-    if stage != VcfDomainStage::Phasing {
+    if !matches!(
+        stage,
+        VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute
+    ) {
         return Ok(());
     }
 
+    let panel_id = selected_panel.map(|panel| panel.panel_id.as_str()).ok_or_else(|| {
+        anyhow!("planner refusal: {} requires resolved panel identity", stage.as_str())
+    })?;
     let panel_vcf_path = match reference_panel_vcf {
         Some(path) => path.to_path_buf(),
-        None => {
-            let panel_id =
-                selected_panel.map(|panel| panel.panel_id.as_str()).ok_or_else(|| {
-                    anyhow!("planner refusal: vcf.phasing requires resolved panel identity")
-                })?;
-            reference_asset_root(species_id, build_id)
-                .join("panels")
-                .join(panel_id)
-                .join("panel.vcf.gz")
-        }
+        None => reference_asset_root(species_id, build_id)
+            .join("panels")
+            .join(panel_id)
+            .join("panel.vcf.gz"),
     };
     let map_file =
         map.files.iter().find(|file| file.required).or_else(|| map.files.first()).ok_or_else(
@@ -171,6 +173,17 @@ fn append_panel_workflow_inputs(
         map_path,
         ArtifactRole::Reference,
     ));
+    if tool == "minimac4" {
+        let panel_m3vcf_path = reference_asset_root(species_id, build_id)
+            .join("panels")
+            .join(panel_id)
+            .join("panel.m3vcf.gz");
+        io_inputs.push(ArtifactSpec::required(
+            ArtifactId::new("reference_panel_m3vcf"),
+            panel_m3vcf_path,
+            ArtifactRole::Variant,
+        ));
+    }
     Ok(())
 }
 

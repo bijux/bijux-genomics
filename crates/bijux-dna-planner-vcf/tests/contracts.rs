@@ -331,6 +331,90 @@ fn vcf_planner_renders_executable_phasing_stage_templates_for_retained_backends(
     }
 }
 
+#[test]
+fn vcf_planner_renders_executable_imputation_stage_templates_for_retained_backends() {
+    let cases = [
+        (CoverageRegime::Diploid, "vcf.imputation", "beagle"),
+        (CoverageRegime::LowCovGl, "vcf.imputation", "glimpse"),
+        (CoverageRegime::Diploid, "vcf.imputation", "impute5"),
+        (CoverageRegime::Diploid, "vcf.imputation", "minimac4"),
+        (CoverageRegime::Diploid, "vcf.impute", "beagle"),
+        (CoverageRegime::LowCovGl, "vcf.impute", "glimpse"),
+        (CoverageRegime::Diploid, "vcf.impute", "impute5"),
+        (CoverageRegime::Diploid, "vcf.impute", "minimac4"),
+    ];
+
+    for (regime, stage_id, tool_id) in cases {
+        let mut input = base_inputs(regime);
+        input.requested_stages = Some(vec![stage_id.to_string()]);
+        input.stage_tool_overrides.insert(stage_id.to_string(), tool_id.to_string());
+
+        let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| {
+            panic!("stage plans for imputation backend {tool_id} on {stage_id}: {err}")
+        });
+        let stage_plan = plans
+            .iter()
+            .find(|plan| plan.stage_id.as_str() == stage_id)
+            .unwrap_or_else(|| panic!("stage plan for {tool_id} on {stage_id}"));
+        let joined = stage_plan.command.template.join(" ");
+
+        assert!(
+            !joined.contains("--help") && !joined.contains(" impute --input vcf"),
+            "imputation backend {tool_id} on {stage_id} must not fall back to placeholder rendering: {:?}",
+            stage_plan.command.template
+        );
+        assert!(
+            joined.contains("vcf_mini_reference_panel.vcf")
+                || joined.contains("reference_panel_vcf")
+                || joined.contains("panel.m3vcf.gz"),
+            "imputation backend {tool_id} on {stage_id} must keep panel input wiring: {:?}",
+            stage_plan.command.template
+        );
+        if tool_id != "minimac4" {
+            assert!(
+                joined.contains("recombination_map.tsv.gz"),
+                "imputation backend {tool_id} on {stage_id} must keep map wiring: {:?}",
+                stage_plan.command.template
+            );
+        }
+        assert!(
+            joined.contains("bcftools index"),
+            "imputation backend {tool_id} on {stage_id} must keep indexed VCF output wiring: {:?}",
+            stage_plan.command.template
+        );
+
+        match tool_id {
+            "beagle" => {
+                assert!(joined.contains("beagle"));
+                assert!(joined.contains("gt='") || joined.contains("gt="));
+                assert!(joined.contains("ref='") || joined.contains("ref="));
+                assert!(joined.contains("map='") || joined.contains("map="));
+                assert!(joined.contains("impute=true"));
+            }
+            "glimpse" => {
+                assert!(joined.contains("GLIMPSE_phase"));
+                assert!(joined.contains("--reference"));
+                assert!(joined.contains("--input-region"));
+                assert!(joined.contains("--output-region"));
+            }
+            "impute5" => {
+                assert!(joined.contains("impute5"));
+                assert!(joined.contains("--g"));
+                assert!(joined.contains("--h"));
+                assert!(joined.contains("--m"));
+                assert!(joined.contains("--r"));
+            }
+            "minimac4" => {
+                assert!(joined.contains("minimac4"));
+                assert!(joined.contains("panel.m3vcf.gz"));
+                assert!(joined.contains("--refHaps"));
+                assert!(joined.contains("--prefix"));
+            }
+            other => panic!("unexpected imputation backend {other}"),
+        }
+    }
+}
+
 fn assert_snapshot_json(name: &str, kind: &str, value: &serde_json::Value) {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
