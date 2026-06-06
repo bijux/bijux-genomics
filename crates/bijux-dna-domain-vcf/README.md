@@ -8,6 +8,7 @@ reporting, and deterministic registry materialization helpers.
 
 - Expose canonical VCF call/filter/stats stage IDs and downstream VCF stage taxonomy.
 - Define typed VCF params and schema-versioned metrics.
+- Normalize governed retained raw VCF artifacts into shared stage metrics payloads.
 - Validate VCF invariants, species context, panel maps, and reference panel governance.
 - Render deterministic VCF param and required-tool registry TOML strings.
 - Report domain coverage for contract-only, domain-only, and execution-ready surfaces.
@@ -28,6 +29,7 @@ boundary.
 - `src/lib.rs` for public catalogs and exports.
 - `src/contracts/` for IO, metrics, delivery, panel, and invariant contracts.
 - `src/params/` and `src/metrics.rs` for typed payload contracts.
+- `src/parsers/` for retained raw artifact normalization into governed metrics payloads.
 - `src/taxonomy/` for downstream stage taxonomy and ordering.
 - `src/registry_emit.rs` for deterministic registry TOML rendering.
 
