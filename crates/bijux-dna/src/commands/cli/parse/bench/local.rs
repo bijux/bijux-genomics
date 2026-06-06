@@ -30,6 +30,8 @@ pub enum BenchLocalCommand {
     RunVcfCallDiploidSmoke(BenchLocalRunVcfCallDiploidSmokeArgs),
     #[command(name = "run-vcf-call-gl-smoke")]
     RunVcfCallGlSmoke(BenchLocalRunVcfCallGlSmokeArgs),
+    #[command(name = "run-vcf-damage-filter-smoke")]
+    RunVcfDamageFilterSmoke(BenchLocalRunVcfDamageFilterSmokeArgs),
     #[command(name = "run-vcf-call-pseudohaploid-smoke")]
     RunVcfCallPseudohaploidSmoke(BenchLocalRunVcfCallPseudohaploidSmokeArgs),
     #[command(name = "validate-vcf-no-empty-output")]
@@ -138,6 +140,14 @@ pub struct BenchLocalRunVcfCallDiploidSmokeArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalRunVcfCallGlSmokeArgs {
+    #[arg(long, default_value = "bcftools")]
+    pub tool_id: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunVcfDamageFilterSmokeArgs {
     #[arg(long, default_value = "bcftools")]
     pub tool_id: String,
     #[arg(long, default_value_t = false)]

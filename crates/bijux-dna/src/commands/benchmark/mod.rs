@@ -30,6 +30,7 @@ pub(crate) mod local_vcf_call_diploid_smoke;
 pub(crate) mod local_vcf_call_gl_smoke;
 pub(crate) mod local_vcf_call_pseudohaploid_smoke;
 pub(crate) mod local_vcf_call_smoke;
+pub(crate) mod local_vcf_damage_filter_smoke;
 pub(crate) mod local_vcf_no_empty_output;
 pub(crate) mod local_vcf_reference_compatibility;
 pub(crate) mod local_vcf_sample_compatibility;
