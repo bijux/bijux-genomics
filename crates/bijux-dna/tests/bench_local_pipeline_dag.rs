@@ -829,6 +829,113 @@ fn bench_local_pipeline_dag_validates_adna_gl_contract() {
 }
 
 #[test]
+fn bench_local_pipeline_dag_validates_diploid_small_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/diploid-small-fastq-bam-vcf.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/diploid-small-fastq-bam-vcf.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/diploid-small-fastq-bam-vcf.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("diploid-small-fastq-bam-vcf")
+    );
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("corpus-01-mini")
+    );
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(16));
+    assert_eq!(payload.get("edge_count").and_then(serde_json::Value::as_u64), Some(24));
+
+    let profiles = payload
+        .get("validation_profiles")
+        .and_then(serde_json::Value::as_array)
+        .expect("validation profiles");
+    assert!(
+        profiles.iter().any(|profile| {
+            profile.get("profile_id").and_then(serde_json::Value::as_str)
+                == Some("diploid_small_sample")
+                && profile.get("check_count").and_then(serde_json::Value::as_u64) == Some(8)
+        }),
+        "small-sample diploid pipeline must emit the diploid_small_sample validation profile"
+    );
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.call_diploid")
+                && node
+                    .get("upstream_inputs")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("filtered_bam"))
+                            && inputs.iter().any(|value| value.as_str() == Some("recalibrated_bam"))
+                            && inputs.iter().any(|value| {
+                                value.as_str() == Some("recalibration_summary_json")
+                            })
+                            && inputs.iter().any(|value| value.as_str() == Some("coverage_report_json"))
+                    })
+        }),
+        "diploid calling must expose both the filtered-BAM fallback path and recalibrated-BAM run path"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc")
+                && node
+                    .get("depends_on")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|deps| {
+                        deps.iter().any(|value| value.as_str() == Some("vcf.filter"))
+                            && deps.iter().any(|value| value.as_str() == Some("vcf.stats"))
+                            && !deps.iter().any(|value| value.as_str() == Some("vcf.phasing"))
+                    })
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("filtered_vcf"))
+                            && inputs.iter().any(|value| value.as_str() == Some("stats_json"))
+                    },
+                )
+        }),
+        "vcf.qc must remain independent of optional phasing and consume filtered VCF plus stats evidence"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.phasing")
+                && node
+                    .get("depends_on")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|deps| {
+                        deps.iter().any(|value| value.as_str() == Some("vcf.filter"))
+                            && deps.iter().any(|value| value.as_str() == Some("vcf.qc"))
+                    })
+                && node
+                    .get("external_inputs")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("genetic_map_contract"))
+                            && inputs.iter().any(|value| {
+                                value.as_str() == Some("reference_panel_lock_contract")
+                            })
+                    })
+        }),
+        "optional phasing must stay downstream of completed QC with explicit map and panel contracts"
+    );
+}
+
+#[test]
 fn bench_local_pipeline_dag_validates_bam_genotyping_contract() {
     let payload = run_cli_json(&[
         "bench",
