@@ -403,6 +403,14 @@ Visible aliases are part of the operator surface:
   real missing-input probe result, so GL calling, pseudohaploid calling, damage-aware calling, and
   VCF-GL propagation cannot silently fall back to placeholders or drift away from the owned command
   contract.
+- `bijux-dna bench readiness render-vcf-eigensoft-adapter`
+  `render-vcf-eigensoft-adapter` writes `target/bench-readiness/adapters/eigensoft.vcf.json` with
+  one governed row per admitted VCF `eigensoft` registry binding. Each row keeps the concrete
+  `convertf` par file, the declared `.geno`, `.snp`, and `.ind` conversion outputs, the
+  `smartpca` par file, the declared `.evec`, `.eval`, and `.smartpca.log` outputs, plus the
+  normalized mapping to `pca_report` or `population_structure_report`. The report fails closed
+  unless both governed EIGENSOFT rows retain real conversion and PCA command rendering instead of
+  drifting back to manual conversion or placeholder argv.
 - `bijux-dna bench readiness render-vcf-plink-adapter`
   `render-vcf-plink-adapter` writes `target/bench-readiness/adapters/plink.vcf.json` with one
   governed row per admitted VCF `plink` registry binding. Each row keeps the concrete cohort
