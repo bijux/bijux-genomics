@@ -5,6 +5,10 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
+use crate::commands::benchmark::local_corpus_stage_compatibility::{
+    validate_corpus_stage_compatibility_path, LocalCorpusStageCompatibilityEntryReport,
+    DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH,
+};
 use crate::commands::benchmark::local_stage_inventory::{
     load_local_stage_inventory, BenchLocalDomain, LocalStageReadinessKind,
 };
@@ -82,6 +86,13 @@ pub(crate) struct LocalPipelineDagValidationNodeReport {
 }
 
 #[derive(Debug, Clone, Serialize)]
+pub(crate) struct LocalPipelineDagValidationProfileReport {
+    pub(crate) profile_id: String,
+    pub(crate) check_count: usize,
+    pub(crate) checks: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
 pub(crate) struct LocalPipelineDagValidationReport {
     pub(crate) schema_version: &'static str,
     pub(crate) config_path: String,
@@ -95,6 +106,7 @@ pub(crate) struct LocalPipelineDagValidationReport {
     pub(crate) acyclic: bool,
     pub(crate) valid: bool,
     pub(crate) topological_order: Vec<String>,
+    pub(crate) validation_profiles: Vec<LocalPipelineDagValidationProfileReport>,
     pub(crate) nodes: Vec<LocalPipelineDagValidationNodeReport>,
 }
 
@@ -292,6 +304,8 @@ fn validate_pipeline_dag(
         return Err(anyhow!("local pipeline DAG `{}` contains a cycle", config.pipeline_id));
     }
 
+    let validation_profiles = build_validation_profiles(repo_root, config)?;
+
     let nodes = config
         .nodes
         .iter()
@@ -323,8 +337,245 @@ fn validate_pipeline_dag(
         acyclic: true,
         valid: true,
         topological_order,
+        validation_profiles,
         nodes,
     })
+}
+
+fn build_validation_profiles(
+    repo_root: &Path,
+    config: &LocalPipelineDagConfig,
+) -> Result<Vec<LocalPipelineDagValidationProfileReport>> {
+    let mut profiles = Vec::new();
+    let stage_ids = config.nodes.iter().map(|node| node.stage_id.as_str()).collect::<BTreeSet<_>>();
+
+    if stage_ids.contains("vcf.call_pseudohaploid") || stage_ids.contains("vcf.damage_filter") {
+        profiles.push(validate_ancient_dna_pseudohaploid_profile(repo_root, config)?);
+    }
+
+    Ok(profiles)
+}
+
+fn validate_ancient_dna_pseudohaploid_profile(
+    repo_root: &Path,
+    config: &LocalPipelineDagConfig,
+) -> Result<LocalPipelineDagValidationProfileReport> {
+    const PROFILE_ID: &str = "ancient_dna_pseudohaploid";
+
+    if config.default_corpus_id != "corpus-01-mini" {
+        return Err(anyhow!(
+            "{PROFILE_ID} local pipeline DAG must start from governed FASTQ corpus `corpus-01-mini`, found `{}`",
+            config.default_corpus_id
+        ));
+    }
+
+    let stage_index =
+        config.nodes.iter().map(|node| (node.stage_id.clone(), node)).collect::<BTreeMap<_, _>>();
+
+    let trim_terminal_damage =
+        require_profile_stage(&stage_index, PROFILE_ID, "fastq.trim_terminal_damage")?;
+    let remove_duplicates =
+        require_profile_stage(&stage_index, PROFILE_ID, "fastq.remove_duplicates")?;
+    let bam_align = require_profile_stage(&stage_index, PROFILE_ID, "bam.align")?;
+    let bam_damage = require_profile_stage(&stage_index, PROFILE_ID, "bam.damage")?;
+    let bam_contamination = require_profile_stage(&stage_index, PROFILE_ID, "bam.contamination")?;
+    let bam_authenticity = require_profile_stage(&stage_index, PROFILE_ID, "bam.authenticity")?;
+    let vcf_call = require_profile_stage(&stage_index, PROFILE_ID, "vcf.call_pseudohaploid")?;
+    let vcf_damage_filter = require_profile_stage(&stage_index, PROFILE_ID, "vcf.damage_filter")?;
+    let vcf_stats = require_profile_stage(&stage_index, PROFILE_ID, "vcf.stats")?;
+
+    require_list_contains(
+        &remove_duplicates.upstream_inputs,
+        "terminal_damage_trimmed_reads_r1_path",
+        PROFILE_ID,
+        "fastq.remove_duplicates must consume the terminal-damage-trimmed R1 handoff",
+    )?;
+    require_list_contains(
+        &remove_duplicates.upstream_inputs,
+        "terminal_damage_trimmed_reads_r2_path",
+        PROFILE_ID,
+        "fastq.remove_duplicates must consume the terminal-damage-trimmed R2 handoff",
+    )?;
+    require_list_contains(
+        &bam_align.depends_on,
+        "fastq.filter_reads",
+        PROFILE_ID,
+        "bam.align must remain downstream of the duplicate-aware FASTQ preprocessing branch",
+    )?;
+    require_list_contains(
+        &bam_damage.external_inputs,
+        "expected_damage_contract",
+        PROFILE_ID,
+        "bam.damage must declare the governed expected-damage asset contract",
+    )?;
+    require_list_contains(
+        &bam_contamination.external_inputs,
+        "adna_contamination_panel_contract",
+        PROFILE_ID,
+        "bam.contamination must declare the governed ancient-DNA contamination panel contract",
+    )?;
+    require_list_contains(
+        &bam_authenticity.external_inputs,
+        "adna_authenticity_policy_contract",
+        PROFILE_ID,
+        "bam.authenticity must declare the governed ancient-DNA authenticity policy contract",
+    )?;
+    require_list_contains(
+        &vcf_call.upstream_inputs,
+        "damage_report_json",
+        PROFILE_ID,
+        "vcf.call_pseudohaploid must consume the BAM damage evidence handoff",
+    )?;
+    require_list_contains(
+        &vcf_call.upstream_inputs,
+        "authenticity_report_json",
+        PROFILE_ID,
+        "vcf.call_pseudohaploid must consume the BAM authenticity evidence handoff",
+    )?;
+    require_list_contains(
+        &vcf_call.external_inputs,
+        "adna_reference_fasta_contract",
+        PROFILE_ID,
+        "vcf.call_pseudohaploid must declare the governed ancient-DNA reference FASTA contract",
+    )?;
+    require_list_contains(
+        &vcf_call.external_inputs,
+        "adna_reference_fai_contract",
+        PROFILE_ID,
+        "vcf.call_pseudohaploid must declare the governed ancient-DNA reference index contract",
+    )?;
+    require_list_contains(
+        &vcf_damage_filter.depends_on,
+        "bam.damage",
+        PROFILE_ID,
+        "vcf.damage_filter must remain downstream of BAM damage evidence",
+    )?;
+    require_list_contains(
+        &vcf_damage_filter.upstream_inputs,
+        "pseudohaploid_vcf",
+        PROFILE_ID,
+        "vcf.damage_filter must consume the pseudohaploid VCF handoff",
+    )?;
+    require_list_contains(
+        &vcf_damage_filter.upstream_inputs,
+        "damage_report_json",
+        PROFILE_ID,
+        "vcf.damage_filter must consume the BAM damage evidence handoff",
+    )?;
+    require_list_contains(
+        &vcf_damage_filter.external_inputs,
+        "damage_filter_policy_contract",
+        PROFILE_ID,
+        "vcf.damage_filter must declare the governed damage-filter policy contract",
+    )?;
+    require_list_contains(
+        &vcf_stats.depends_on,
+        "vcf.damage_filter",
+        PROFILE_ID,
+        "vcf.stats must remain downstream of damage-aware filtering",
+    )?;
+    require_list_contains(
+        &trim_terminal_damage.external_inputs,
+        "terminal_damage_policy_contract",
+        PROFILE_ID,
+        "fastq.trim_terminal_damage must declare the governed terminal-damage trimming policy contract",
+    )?;
+
+    let compatibility_report = validate_corpus_stage_compatibility_path(
+        repo_root,
+        &repo_root.join(DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH),
+    )?;
+    let compatibility_index = compatibility_report
+        .stages
+        .iter()
+        .map(|entry| (entry.stage_id.as_str(), entry))
+        .collect::<BTreeMap<_, _>>();
+    require_compatibility_fixture(
+        &compatibility_index,
+        PROFILE_ID,
+        "fastq.trim_terminal_damage",
+        "corpus-01",
+        "corpus-01-mini",
+    )?;
+    require_compatibility_fixture(
+        &compatibility_index,
+        PROFILE_ID,
+        "bam.damage",
+        "corpus-01-adna-bam",
+        "corpus-01-adna-damage-mini",
+    )?;
+    require_compatibility_fixture(
+        &compatibility_index,
+        PROFILE_ID,
+        "bam.authenticity",
+        "corpus-01-adna-bam",
+        "corpus-01-adna-damage-mini",
+    )?;
+
+    let checks = vec![
+        "default corpus anchored to corpus-01-mini for governed aDNA-like FASTQ inputs".to_string(),
+        "fastq.trim_terminal_damage is fixture-backed by corpus-01-mini".to_string(),
+        "fastq.remove_duplicates stays downstream of terminal-damage trimming".to_string(),
+        "bam.damage and bam.authenticity stay fixture-backed by corpus-01-adna-damage-mini".to_string(),
+        "bam.contamination declares the ancient-DNA contamination panel contract".to_string(),
+        "vcf.call_pseudohaploid consumes BAM damage and authenticity evidence with ancient-DNA reference contracts".to_string(),
+        "vcf.damage_filter stays downstream of BAM damage evidence and pseudohaploid calling".to_string(),
+        "vcf.stats stays downstream of damage-aware filtering".to_string(),
+    ];
+
+    Ok(LocalPipelineDagValidationProfileReport {
+        profile_id: PROFILE_ID.to_string(),
+        check_count: checks.len(),
+        checks,
+    })
+}
+
+fn require_profile_stage<'a>(
+    stage_index: &'a BTreeMap<String, &'a LocalPipelineDagNode>,
+    profile_id: &str,
+    stage_id: &str,
+) -> Result<&'a LocalPipelineDagNode> {
+    stage_index
+        .get(stage_id)
+        .copied()
+        .ok_or_else(|| anyhow!("{profile_id} local pipeline DAG must declare stage `{stage_id}`"))
+}
+
+fn require_list_contains(
+    values: &[String],
+    expected: &str,
+    profile_id: &str,
+    message: &str,
+) -> Result<()> {
+    if values.iter().any(|value| value == expected) {
+        Ok(())
+    } else {
+        Err(anyhow!("{profile_id}: {message}"))
+    }
+}
+
+fn require_compatibility_fixture(
+    compatibility_index: &BTreeMap<&str, &LocalCorpusStageCompatibilityEntryReport>,
+    profile_id: &str,
+    stage_id: &str,
+    expected_corpus_family_id: &str,
+    expected_fixture_id: &str,
+) -> Result<()> {
+    let Some(entry) = compatibility_index.get(stage_id).copied() else {
+        return Err(anyhow!(
+            "{profile_id} local pipeline DAG cannot confirm corpus compatibility for missing stage `{stage_id}`"
+        ));
+    };
+    if entry.corpus_family_id.as_deref() != Some(expected_corpus_family_id)
+        || entry.fixture_id.as_deref() != Some(expected_fixture_id)
+    {
+        return Err(anyhow!(
+            "{profile_id} local pipeline DAG expected `{stage_id}` to remain governed by `{expected_corpus_family_id}` / `{expected_fixture_id}`, found {:?} / {:?}",
+            entry.corpus_family_id,
+            entry.fixture_id
+        ));
+    }
+    Ok(())
 }
 
 fn load_pipeline_inventory_index(
