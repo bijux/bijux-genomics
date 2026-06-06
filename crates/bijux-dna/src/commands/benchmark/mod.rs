@@ -44,6 +44,7 @@ pub(crate) mod local_vcf_population_structure_smoke;
 pub(crate) mod local_vcf_prepare_reference_panel_smoke;
 pub(crate) mod local_vcf_qc_smoke;
 pub(crate) mod local_vcf_reference_compatibility;
+pub(crate) mod local_vcf_roh_smoke;
 pub(crate) mod local_vcf_sample_compatibility;
 pub(crate) mod local_vcf_smoke_root;
 pub(crate) mod local_vcf_stage_catalog;

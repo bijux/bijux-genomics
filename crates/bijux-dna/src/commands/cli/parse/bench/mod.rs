@@ -46,14 +46,14 @@ pub use self::local::{
     BenchLocalRunVcfImputeSmokeArgs, BenchLocalRunVcfPcaSmokeArgs,
     BenchLocalRunVcfPhasingSmokeArgs, BenchLocalRunVcfPopulationStructureSmokeArgs,
     BenchLocalRunVcfPrepareReferencePanelSmokeArgs, BenchLocalRunVcfQcSmokeArgs,
-    BenchLocalRunVcfStatsSmokeArgs, BenchLocalSimulateDagWatchdogArgs,
-    BenchLocalValidateCorpusFixtureArgs, BenchLocalValidateCorpusStageCompatibilityArgs,
-    BenchLocalValidateHpcSubmissionReadyArgs, BenchLocalValidatePipelineDagArgs,
-    BenchLocalValidateSlurmDependenciesArgs, BenchLocalValidateSlurmScriptBodiesArgs,
-    BenchLocalValidateSlurmShellSyntaxArgs, BenchLocalValidateStageResultArgs,
-    BenchLocalValidateTaxonomyDatabaseFixtureArgs, BenchLocalValidateVcfNoEmptyOutputArgs,
-    BenchLocalValidateVcfReferenceCompatibilityArgs, BenchLocalValidateVcfSampleCompatibilityArgs,
-    BenchLocalValidateVcfStageCatalogReadyArgs,
+    BenchLocalRunVcfRohSmokeArgs, BenchLocalRunVcfStatsSmokeArgs,
+    BenchLocalSimulateDagWatchdogArgs, BenchLocalValidateCorpusFixtureArgs,
+    BenchLocalValidateCorpusStageCompatibilityArgs, BenchLocalValidateHpcSubmissionReadyArgs,
+    BenchLocalValidatePipelineDagArgs, BenchLocalValidateSlurmDependenciesArgs,
+    BenchLocalValidateSlurmScriptBodiesArgs, BenchLocalValidateSlurmShellSyntaxArgs,
+    BenchLocalValidateStageResultArgs, BenchLocalValidateTaxonomyDatabaseFixtureArgs,
+    BenchLocalValidateVcfNoEmptyOutputArgs, BenchLocalValidateVcfReferenceCompatibilityArgs,
+    BenchLocalValidateVcfSampleCompatibilityArgs, BenchLocalValidateVcfStageCatalogReadyArgs,
 };
 pub use self::matrix::{BenchMatrixDomainArg, BenchValidateMatrixArgs};
 pub use self::publication::{
