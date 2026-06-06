@@ -188,7 +188,24 @@
       "command": {
         "template": [
           "angsd",
-          "--help"
+          "-i",
+          "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
+          "-ref",
+          "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+          "-GL",
+          "2",
+          "-doGlf",
+          "2",
+          "-doMajorMinor",
+          "1",
+          "-doMaf",
+          "1",
+          "-minMapQ",
+          "20",
+          "-minQ",
+          "20",
+          "-out",
+          "out/gl_sites_vcf"
         ]
       },
       "effective_params": {
@@ -2186,9 +2203,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "plink2",
-          "pca",
-          "--structure"
+          "sh",
+          "-lc",
+          "plink2 --vcf 'out/postprocess_vcf.vcf.gz' --double-id --allow-extra-chr --indep-pairwise 50 5 0.2 --out 'out/population_structure_report' && plink2 --vcf 'out/postprocess_vcf.vcf.gz' --double-id --allow-extra-chr --pca 10 --out 'out/population_structure_report.pca'"
         ]
       },
       "effective_params": {

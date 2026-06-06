@@ -1778,9 +1778,9 @@
       },
       "environment": {
         "command": [
-          "plink2",
-          "pca",
-          "--structure"
+          "sh",
+          "-lc",
+          "plink2 --vcf 'out/postprocess_vcf.vcf.gz' --double-id --allow-extra-chr --indep-pairwise 50 5 0.2 --out 'out/population_structure_report' && plink2 --vcf 'out/postprocess_vcf.vcf.gz' --double-id --allow-extra-chr --pca 10 --out 'out/population_structure_report.pca'"
         ],
         "image": "quay.io/biocontainers/plink2:2.00a3.7--h5ef6573_0",
         "out_dir": "out/vcf_population_structure",
@@ -1836,9 +1836,13 @@
       "environment": {
         "command": [
           "plink2",
-          "roh",
-          "--min-kb",
-          "500"
+          "--vcf",
+          "out/postprocess_vcf.vcf.gz",
+          "--double-id",
+          "--allow-extra-chr",
+          "--homozyg",
+          "--out",
+          "out/roh_report"
         ],
         "image": "quay.io/biocontainers/plink2:2.00a3.7--h5ef6573_0",
         "out_dir": "out/vcf_roh",
@@ -2184,7 +2188,7 @@
     }
   ],
   "pipeline_id": "vcf-to-vcf__downstream_diploid_sctx_0a9734ff9d35__v2",
-  "plan_fingerprint": "642c6fcfa2f667095271c61f4cca73fe69b9ab17183a9390d9a946b556b284fa",
+  "plan_fingerprint": "943fbd243bef06af4c39de66de4b975cdac1467dec3f4f72ec578fe09dbb9f10",
   "planner_version": "bijux-dna-planner-vcf.v2",
   "policy": "PreferAccuracy",
   "profile_id": "vcf-downstream",

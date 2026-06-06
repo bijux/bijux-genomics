@@ -3417,9 +3417,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "plink2",
-          "pca",
-          "--structure"
+          "sh",
+          "-lc",
+          "plink2 --vcf 'out/postprocess_vcf.vcf.gz' --double-id --allow-extra-chr --indep-pairwise 50 5 0.2 --out 'out/population_structure_report' && plink2 --vcf 'out/postprocess_vcf.vcf.gz' --double-id --allow-extra-chr --pca 10 --out 'out/population_structure_report.pca'"
         ]
       },
       "effective_params": {
@@ -3555,9 +3555,13 @@
       "command": {
         "template": [
           "plink2",
-          "roh",
-          "--min-kb",
-          "500"
+          "--vcf",
+          "out/postprocess_vcf.vcf.gz",
+          "--double-id",
+          "--allow-extra-chr",
+          "--homozyg",
+          "--out",
+          "out/roh_report"
         ]
       },
       "effective_params": {
