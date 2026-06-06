@@ -151,6 +151,7 @@ configs/pipelines/local/bam-core-qc.toml
 configs/pipelines/local/bam-genotyping.toml
 configs/pipelines/local/bam-kinship.toml
 configs/pipelines/local/core-germline-fastq-bam-vcf.toml
+configs/pipelines/local/edna-taxonomy-no-vcf.toml
 configs/pipelines/local/fastq-amplicon.toml
 configs/pipelines/local/fastq-core-preprocess.toml
 configs/pipelines/local/fastq-edna-taxonomy.toml

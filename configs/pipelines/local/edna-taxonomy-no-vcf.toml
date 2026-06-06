@@ -1,0 +1,84 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for the local eDNA taxonomy-only DAG.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-06
+
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "edna-taxonomy-no-vcf"
+domain = "fastq"
+summary = "eDNA taxonomy-only FASTQ DAG for corpus-02 validation, adapter-aware trimming, filtering, taxonomy screening, and taxonomy-local reporting without BAM or VCF germline branches."
+default_corpus_id = "corpus-02-edna-mini"
+
+[[nodes]]
+node_id = "fastq.validate_reads"
+stage_id = "fastq.validate_reads"
+readiness_kind = "smoke"
+summary = "Validate governed corpus-02 FASTQ inputs before eDNA-only taxonomy preprocessing."
+depends_on = []
+external_inputs = ["corpus.raw_fastq_reads"]
+upstream_inputs = []
+outputs = ["validated_reads", "validation_report"]
+
+[[nodes]]
+node_id = "fastq.detect_adapters"
+stage_id = "fastq.detect_adapters"
+readiness_kind = "smoke"
+summary = "Detect adapter signal on validated corpus-02 reads before trimming."
+depends_on = ["fastq.validate_reads"]
+external_inputs = []
+upstream_inputs = ["validated_reads"]
+outputs = ["adapter_report"]
+
+[[nodes]]
+node_id = "fastq.trim_reads"
+stage_id = "fastq.trim_reads"
+readiness_kind = "smoke"
+summary = "Trim validated reads with the governed adapter-detection evidence before taxonomy filtering."
+depends_on = ["fastq.validate_reads", "fastq.detect_adapters"]
+external_inputs = []
+upstream_inputs = ["validated_reads", "adapter_report"]
+outputs = ["trimmed_reads", "trim_metrics"]
+
+[[nodes]]
+node_id = "fastq.filter_reads"
+stage_id = "fastq.filter_reads"
+readiness_kind = "smoke"
+summary = "Filter trimmed reads before the taxonomy-only screening branch."
+depends_on = ["fastq.trim_reads"]
+external_inputs = []
+upstream_inputs = ["trimmed_reads"]
+outputs = ["filtered_reads", "filter_metrics"]
+
+[[nodes]]
+node_id = "fastq.screen_taxonomy"
+stage_id = "fastq.screen_taxonomy"
+readiness_kind = "dry_or_smoke"
+summary = "Screen filtered corpus-02 reads against the governed local taxonomy database fixture without any BAM or VCF germline bridge."
+depends_on = ["fastq.filter_reads"]
+external_inputs = ["taxonomy_database.root", "taxonomy_expected_truth_table"]
+upstream_inputs = ["filtered_reads"]
+outputs = ["taxonomy_classification", "unclassified_reads", "taxonomy_summary"]
+
+[[nodes]]
+node_id = "fastq.report_qc"
+stage_id = "fastq.report_qc"
+readiness_kind = "smoke"
+summary = "Collate validation, adapter, trim, filter, and taxonomy metrics into a taxonomy-local report bundle."
+depends_on = [
+  "fastq.validate_reads",
+  "fastq.detect_adapters",
+  "fastq.trim_reads",
+  "fastq.filter_reads",
+  "fastq.screen_taxonomy",
+]
+external_inputs = []
+upstream_inputs = [
+  "validation_report",
+  "adapter_report",
+  "trim_metrics",
+  "filter_metrics",
+  "taxonomy_summary",
+]
+outputs = ["qc_bundle"]
