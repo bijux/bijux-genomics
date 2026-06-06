@@ -1,3 +1,6 @@
+#[path = "contracts/parsers.rs"]
+mod parsers;
+
 mod contracts {
     use std::collections::BTreeMap;
     use std::path::PathBuf;
