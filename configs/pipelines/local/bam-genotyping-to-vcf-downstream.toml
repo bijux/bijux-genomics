@@ -1,0 +1,150 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for the local BAM-genotyping to VCF-downstream bridge DAG.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-06
+
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "bam-genotyping-to-vcf-downstream"
+domain = "cross"
+summary = "Cross-domain BAM-to-VCF DAG for governed BAM genotyping, exact VCF bridge handoff, downstream VCF filtering, summary statistics, cohort QC, and optional PCA and ROH branches."
+default_corpus_id = "corpus-01-bam-mini"
+
+[[nodes]]
+node_id = "bam.filter"
+stage_id = "bam.filter"
+readiness_kind = "dry_or_smoke"
+summary = "Filter the governed BAM so downstream coverage, recalibration, and genotyping operate on the curated aligned input."
+depends_on = []
+external_inputs = ["corpus.aligned_bam"]
+upstream_inputs = []
+outputs = ["filtered_bam", "filtered_bai", "bam_filter_report_json", "bam_filter_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.coverage"
+stage_id = "bam.coverage"
+readiness_kind = "smoke"
+summary = "Measure governed coverage from the filtered BAM so recalibration can make an explicit low-coverage skip-versus-run decision."
+depends_on = ["bam.filter"]
+external_inputs = ["coverage_region_contract"]
+upstream_inputs = ["filtered_bam", "filtered_bai"]
+outputs = ["coverage_report_json", "coverage_stage_metrics"]
+
+[[nodes]]
+node_id = "bam.recalibration"
+stage_id = "bam.recalibration"
+readiness_kind = "smoke"
+summary = "Apply governed known-sites recalibration against the filtered BAM and emit the summary that tells downstream genotyping whether recalibration ran or was skipped."
+depends_on = ["bam.filter", "bam.coverage"]
+external_inputs = [
+  "recalibration_reference_contract",
+  "recalibration_known_sites_contract",
+  "recalibration_coverage_gate_contract",
+]
+upstream_inputs = ["filtered_bam", "coverage_report_json"]
+outputs = [
+  "recalibrated_bam",
+  "recalibrated_bai",
+  "recalibration_report_text",
+  "recalibration_summary_json",
+  "recalibration_stage_metrics",
+]
+
+[[nodes]]
+node_id = "bam.genotyping"
+stage_id = "bam.genotyping"
+readiness_kind = "dry_or_smoke"
+summary = "Call genotypes using the recalibration summary to distinguish the low-coverage filtered-BAM fallback from the recalibrated-BAM run path, while exporting the exact VCF bridge handoff for downstream VCF stages."
+depends_on = ["bam.filter", "bam.recalibration"]
+external_inputs = [
+  "genotyping_reference_contract",
+  "candidate_sites_vcf_contract",
+  "target_regions_contract",
+]
+upstream_inputs = [
+  "filtered_bam",
+  "filtered_bai",
+  "recalibrated_bam",
+  "recalibrated_bai",
+  "recalibration_summary_json",
+]
+outputs = [
+  "genotyping_bcf",
+  "genotyping_vcf_gz",
+  "genotyping_vcf_tbi",
+  "genotyping_gl_json",
+  "genotyping_report_json",
+  "genotyping_stage_metrics",
+]
+
+[[nodes]]
+node_id = "vcf.filter"
+stage_id = "vcf.filter"
+readiness_kind = "smoke"
+summary = "Filter the exact bam.genotyping VCF bridge handoff before downstream summary statistics and cohort QC consume it."
+depends_on = ["bam.genotyping"]
+external_inputs = []
+upstream_inputs = ["genotyping_vcf_gz", "genotyping_vcf_tbi", "genotyping_report_json"]
+outputs = ["filtered_vcf", "filtered_vcf_tbi", "filter_report_json", "filter_stage_metrics"]
+
+[[nodes]]
+node_id = "vcf.stats"
+stage_id = "vcf.stats"
+readiness_kind = "smoke"
+summary = "Derive governed VCF summary statistics from the filtered BAM-to-VCF bridge handoff."
+depends_on = ["vcf.filter"]
+external_inputs = []
+upstream_inputs = ["filtered_vcf", "filtered_vcf_tbi", "filter_report_json"]
+outputs = ["stats_json", "stats_stage_metrics"]
+
+[[nodes]]
+node_id = "vcf.qc"
+stage_id = "vcf.qc"
+readiness_kind = "smoke"
+summary = "Run governed cohort QC from the filtered BAM-to-VCF bridge while incorporating the explicit statistics handoff."
+depends_on = ["vcf.filter", "vcf.stats"]
+external_inputs = []
+upstream_inputs = ["filtered_vcf", "filtered_vcf_tbi", "stats_json"]
+outputs = [
+  "qc_cohort_vcf",
+  "qc_cohort_vcf_tbi",
+  "qc_report",
+  "sample_qc_report_tsv",
+  "variant_qc_report_tsv",
+  "pruned_variants_tsv",
+]
+
+[[nodes]]
+node_id = "vcf.pca"
+stage_id = "vcf.pca"
+readiness_kind = "smoke"
+summary = "Run the optional downstream PCA branch from the qc-qualified cohort VCF with mandatory sample metadata and population labels."
+depends_on = ["vcf.qc"]
+external_inputs = [
+  "sample_metadata_manifest_contract",
+  "population_metadata_manifest_contract",
+  "population_labels_contract",
+]
+upstream_inputs = [
+  "qc_cohort_vcf",
+  "qc_cohort_vcf_tbi",
+  "pruned_variants_tsv",
+  "qc_report",
+]
+outputs = ["pca_report", "pca_projection_tsv", "pca_metadata_join_tsv"]
+
+[[nodes]]
+node_id = "vcf.roh"
+stage_id = "vcf.roh"
+readiness_kind = "smoke"
+summary = "Run the optional downstream ROH branch from the same qc-qualified cohort VCF handoff used by PCA."
+depends_on = ["vcf.qc"]
+external_inputs = []
+upstream_inputs = [
+  "qc_cohort_vcf",
+  "qc_cohort_vcf_tbi",
+  "pruned_variants_tsv",
+  "qc_report",
+]
+outputs = ["roh_report", "roh_segments_tsv", "roh_summary_json"]
