@@ -430,6 +430,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RunVcfStatsSmoke(args) => {
+                        crate::commands::benchmark::local_vcf_stats_smoke::run_vcf_stats_smoke(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RunVcfGlPropagationSmoke(args) => {
                         crate::commands::benchmark::local_vcf_gl_propagation_smoke::run_vcf_gl_propagation_smoke(
                             &args,

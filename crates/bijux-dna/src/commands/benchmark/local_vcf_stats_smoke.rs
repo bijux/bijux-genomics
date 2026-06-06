@@ -16,6 +16,8 @@ use super::local_stage_result_manifest::{
     BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
 use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
+use crate::commands::cli::parse;
+use crate::commands::cli::render;
 
 const DEFAULT_VCF_STATS_SMOKE_ROOT: &str = "target/local-smoke/vcf.stats";
 const LOCAL_VCF_STATS_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_stats_smoke.v1";
@@ -225,6 +227,17 @@ pub(crate) fn run_local_vcf_stats_smoke(
         ti_tv: metrics.ti_tv,
         sample_count: metrics.sample_count,
     })
+}
+
+pub(crate) fn run_vcf_stats_smoke(args: &parse::BenchLocalRunVcfStatsSmokeArgs) -> Result<()> {
+    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let report = run_local_vcf_stats_smoke(&repo_root, &args.tool_id)?;
+    if args.json {
+        render::json::print_pretty(&report)?;
+    } else {
+        println!("{}", report.stats_json_path);
+    }
+    Ok(())
 }
 
 fn resolve_governed_vcf_stats_smoke_contract(
