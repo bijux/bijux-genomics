@@ -1216,6 +1216,126 @@ fn bench_local_pipeline_dag_validates_popgen_structure_contract() {
 }
 
 #[test]
+fn bench_local_pipeline_dag_validates_relatedness_segments_contract() {
+    let payload = run_cli_json(&[
+        "bench",
+        "local",
+        "validate-pipeline-dag",
+        "--config",
+        "configs/pipelines/local/relatedness-segments-vcf.toml",
+        "--json",
+    ]);
+
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("configs/pipelines/local/relatedness-segments-vcf.toml")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("target/local-ready/pipeline-dag/relatedness-segments-vcf.json")
+    );
+    assert_eq!(
+        payload.get("pipeline_id").and_then(serde_json::Value::as_str),
+        Some("relatedness-segments-vcf")
+    );
+    assert_eq!(
+        payload.get("default_corpus_id").and_then(serde_json::Value::as_str),
+        Some("vcf_production_regression")
+    );
+    assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("edge_count").and_then(serde_json::Value::as_u64), Some(3));
+
+    let profiles = payload
+        .get("validation_profiles")
+        .and_then(serde_json::Value::as_array)
+        .expect("validation profiles");
+    assert!(
+        profiles.iter().any(|profile| {
+            profile.get("profile_id").and_then(serde_json::Value::as_str)
+                == Some("relatedness_segments_vcf")
+                && profile.get("check_count").and_then(serde_json::Value::as_u64) == Some(8)
+        }),
+        "relatedness and segment pipeline must emit the relatedness_segments_vcf validation profile"
+    );
+
+    let nodes = payload.get("nodes").and_then(serde_json::Value::as_array).expect("nodes array");
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.ibd")
+                && node
+                    .get("depends_on")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|deps| deps.iter().any(|value| value.as_str() == Some("vcf.qc")))
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("qc_cohort_vcf"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("pruned_variants_tsv"))
+                    },
+                )
+                && node.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |outputs| {
+                        outputs.iter().any(|value| value.as_str() == Some("ibd_segments"))
+                            && outputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("ibd_insufficient_data_json"))
+                    },
+                )
+        }),
+        "ibd must stay downstream of qc and export explicit insufficiency evidence"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.roh")
+                && node.get("depends_on").and_then(serde_json::Value::as_array).is_some_and(
+                    |deps| {
+                        deps.iter().any(|value| value.as_str() == Some("vcf.qc"))
+                            && !deps.iter().any(|value| value.as_str() == Some("vcf.ibd"))
+                    },
+                )
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("qc_cohort_vcf"))
+                            && !inputs.iter().any(|value| value.as_str() == Some("ibd_segments"))
+                    },
+                )
+                && node.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |outputs| {
+                        outputs.iter().any(|value| value.as_str() == Some("roh_report"))
+                            && outputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("roh_segments_tsv"))
+                    },
+                )
+        }),
+        "roh must remain downstream of qc without consuming ibd outputs"
+    );
+    assert!(
+        nodes.iter().any(|node| {
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.demography")
+                && node.get("depends_on").and_then(serde_json::Value::as_array).is_some_and(
+                    |deps| {
+                        deps.iter().any(|value| value.as_str() == Some("vcf.ibd"))
+                            && !deps.iter().any(|value| value.as_str() == Some("vcf.roh"))
+                    },
+                )
+                && node.get("upstream_inputs").and_then(serde_json::Value::as_array).is_some_and(
+                    |inputs| {
+                        inputs.iter().any(|value| value.as_str() == Some("ibd_segments"))
+                            && inputs
+                                .iter()
+                                .any(|value| value.as_str() == Some("ibd_insufficient_data_json"))
+                            && !inputs.iter().any(|value| value.as_str() == Some("roh_report"))
+                    },
+                )
+        }),
+        "demography must remain local to the ibd branch and consume explicit insufficiency evidence"
+    );
+}
+
+#[test]
 fn bench_local_pipeline_dag_validates_bam_genotyping_contract() {
     let payload = run_cli_json(&[
         "bench",
