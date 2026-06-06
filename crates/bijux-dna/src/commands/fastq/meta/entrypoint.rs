@@ -367,6 +367,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfMatrixRegistryConsistency(args) => {
+                        crate::commands::benchmark::readiness::vcf_matrix_registry_consistency::run_render_vcf_matrix_registry_consistency(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfUndercoveredStages(args) => {
                         crate::commands::benchmark::readiness::vcf_undercovered_stages::run_render_vcf_undercovered_stages(
                             args,
