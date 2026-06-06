@@ -69,14 +69,25 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
     ];
     const PHASING_METRICS: &[&str] = &["switch_error_proxy", "phase_block_n50"];
     const IMPUTATION_METRICS: &[&str] = &[
-        "imputed_variant_count",
-        "imputation_info_mean",
-        "rsq_mean",
-        "missingness_pre",
-        "missingness_post",
-        "shared_variants_count",
-        "per_chr_overlap",
-        "readiness_for_ibd_roh",
+        "status",
+        "mean_info_score",
+        "r2_available",
+        "low_confidence_sites",
+        "masked_truth_sites",
+        "missing_quality_fields",
+    ];
+    const IMPUTE_METRICS: &[&str] = &[
+        "variant_count",
+        "missing_before",
+        "missing_after",
+        "imputed_genotypes",
+        "low_confidence_count",
+        "masked_truth_site_count",
+        "masked_truth_match_count",
+        "unresolved_count",
+        "not_imputable_reasons",
+        "sample_count",
+        "sample_ids",
     ];
     const POPULATION_STRUCTURE_METRICS: &[&str] = &[
         "sample_count",
@@ -174,7 +185,7 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
         VcfDomainStage::Impute => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.impute.v1",
-            required_metrics: IMPUTATION_METRICS,
+            required_metrics: IMPUTE_METRICS,
         },
         VcfDomainStage::PopulationStructure => StageMetricsContract {
             stage,

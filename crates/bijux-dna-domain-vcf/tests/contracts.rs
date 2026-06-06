@@ -116,7 +116,8 @@ mod contracts {
 
         let metrics = stage_metrics_contract(VcfDomainStage::Imputation);
         assert_eq!(metrics.metrics_schema_id, "bijux.vcf.imputation.v1");
-        assert!(metrics.required_metrics.contains(&"rsq_mean"));
+        assert!(metrics.required_metrics.contains(&"mean_info_score"));
+        assert!(metrics.required_metrics.contains(&"masked_truth_sites"));
 
         let failure_modes = stage_failure_modes(VcfDomainStage::Phasing);
         assert!(failure_modes.iter().any(|m| m.code == "insufficient_markers"));
@@ -145,6 +146,8 @@ mod contracts {
 
         let impute = stage_metrics_contract(VcfDomainStage::Impute);
         assert_eq!(impute.metrics_schema_id, "bijux.vcf.impute.v1");
+        assert!(impute.required_metrics.contains(&"masked_truth_match_count"));
+        assert!(impute.required_metrics.contains(&"sample_ids"));
 
         let postprocess = stage_metrics_contract(VcfDomainStage::Postprocess);
         assert_eq!(postprocess.metrics_schema_id, "bijux.vcf.postprocess.v1");
