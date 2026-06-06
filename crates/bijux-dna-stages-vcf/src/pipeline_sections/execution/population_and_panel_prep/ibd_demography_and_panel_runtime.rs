@@ -443,7 +443,32 @@ pub fn run_prepare_reference_panel_stage(
             .then(ka.1.cmp(&kb.1))
             .then(ka.2.cmp(&kb.2))
     });
-    let normalized_payload = format!("{}\n{}\n", header_lines.join("\n"), record_lines.join("\n"));
+    let input_variant_count = u64::try_from(record_lines.len()).unwrap_or(u64::MAX);
+    let mut seen_variant_keys = std::collections::BTreeSet::<String>::new();
+    let mut deduplicated_records = Vec::<String>::with_capacity(record_lines.len());
+    for record in record_lines {
+        let key = parse_variant_key(&record).ok_or_else(|| {
+            anyhow!("panel normalization refusal: could not parse panel record `{record}`")
+        })?;
+        if seen_variant_keys.insert(key.2) {
+            deduplicated_records.push(record);
+        }
+    }
+    let output_variant_count = u64::try_from(deduplicated_records.len()).unwrap_or(u64::MAX);
+    let duplicate_sites_removed = input_variant_count.saturating_sub(output_variant_count);
+    let normalization_status = if duplicate_sites_removed > 0 {
+        "sorted_indexed_deduplicated"
+    } else {
+        "sorted_indexed"
+    };
+    let sample_ids = header_lines
+        .iter()
+        .find(|line| line.starts_with("#CHROM\t"))
+        .map(|line| line.split('\t').skip(9).map(str::to_string).collect::<Vec<_>>())
+        .unwrap_or_default();
+    let sample_count = u64::try_from(sample_ids.len()).unwrap_or(u64::MAX);
+    let normalized_payload =
+        format!("{}\n{}\n", header_lines.join("\n"), deduplicated_records.join("\n"));
     let prepared_panel_tbi = write_bgzip_with_best_effort_index(
         &prepared_panel_vcf,
         &normalized_payload,
@@ -453,7 +478,7 @@ pub fn run_prepare_reference_panel_stage(
 
     let site_list = local_derived.join("panel_sites.tsv");
     let mut site_rows = String::from("contig\tpos\tref\talt\n");
-    for rec in &record_lines {
+    for rec in &deduplicated_records {
         if let Some(fields) = parse_record_fields(rec) {
             site_rows.push_str(&format!(
                 "{}\t{}\t{}\t{}\n",
@@ -485,6 +510,14 @@ pub fn run_prepare_reference_panel_stage(
         "source_panel_root": source_panel_root,
         "lock_hash": lock_hash,
         "license_pointer": format!("configs/vcf/panels/panels.toml#panel.{}.license", panel.id),
+        "normalization": {
+            "status": normalization_status,
+            "input_variant_count": input_variant_count,
+            "output_variant_count": output_variant_count,
+            "duplicate_sites_removed": duplicate_sites_removed,
+            "sample_count": sample_count,
+            "sample_ids": sample_ids,
+        },
         "checksums": panel_checksums,
         "panel": {
             "id": panel.id,
