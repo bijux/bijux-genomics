@@ -47,6 +47,14 @@ Commands listed here are owned by this crate even when their durable behavior is
 - `bijux-dna corpus list`
 - `bijux-dna corpus diff`
 
+### Fixtures
+- `bijux-dna fixtures validate`
+  `fixtures validate --corpus vcf-mini` validates the governed
+  `tests/fixtures/corpora/vcf-mini/manifest.toml` contract against the owned reference FASTA and
+  FAI, single-sample/cohort/phased/panel VCF assets, target-sites BED, and sample/population
+  metadata. It fails closed when any declared file is missing, when the reference and FAI drift,
+  or when VCF sample ids fall out of sync with the metadata tables.
+
 ### Status
 - `bijux-dna status`
 
