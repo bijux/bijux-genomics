@@ -1,0 +1,6 @@
+population_id	population_label	super_population	role
+cohort_alpha	Cohort Alpha	study	study_cohort
+cohort_beta	Cohort Beta	study	study_cohort
+ref_panel_north	Reference North	panel	reference_panel
+ref_panel_south	Reference South	panel	reference_panel
+
