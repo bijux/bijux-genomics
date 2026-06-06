@@ -26,6 +26,7 @@ pub(crate) mod local_taxonomy_database_fixture;
 pub(crate) mod local_taxonomy_output_judgment;
 pub(crate) mod local_tool_comparison_template;
 pub(crate) mod local_vcf_stage_catalog;
+pub(crate) mod local_vcf_stage_matrix;
 pub(crate) mod publication;
 pub(crate) mod readiness;
 pub(crate) mod repo_checks;

@@ -2,10 +2,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use bijux_dna_domain_vcf::contracts::stage_io_contract;
-use bijux_dna_domain_vcf::{DomainSupportStatus, VCF_STAGE_ORDER_DOWNSTREAM, VcfDomainStage};
-use bijux_dna_stages_vcf::stage_specs::{VcfStageSpec, vcf_stage_catalog};
+use bijux_dna_domain_vcf::{DomainSupportStatus, VcfDomainStage, VCF_STAGE_ORDER_DOWNSTREAM};
+use bijux_dna_stages_vcf::stage_specs::{vcf_stage_catalog, VcfStageSpec};
 use serde::{Deserialize, Serialize};
 
 use crate::commands::cli::parse;
@@ -96,7 +96,7 @@ pub(crate) fn render_vcf_stage_catalog(
     })
 }
 
-fn build_vcf_stage_catalog_rows() -> Result<Vec<VcfStageCatalogRow>> {
+pub(crate) fn build_vcf_stage_catalog_rows() -> Result<Vec<VcfStageCatalogRow>> {
     let spec_by_stage_id =
         vcf_stage_catalog().iter().map(|spec| (spec.stage_id, spec)).collect::<BTreeMap<_, _>>();
 
@@ -288,7 +288,11 @@ fn ensure_stage_set_parity(
 }
 
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
-    if candidate.is_absolute() { candidate.to_path_buf() } else { repo_root.join(candidate) }
+    if candidate.is_absolute() {
+        candidate.to_path_buf()
+    } else {
+        repo_root.join(candidate)
+    }
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
@@ -300,8 +304,8 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        DEFAULT_VCF_STAGE_CATALOG_PATH, LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_VERSION,
-        build_vcf_stage_catalog_rows, render_vcf_stage_catalog,
+        build_vcf_stage_catalog_rows, render_vcf_stage_catalog, DEFAULT_VCF_STAGE_CATALOG_PATH,
+        LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_VERSION,
     };
 
     fn repo_root() -> PathBuf {
