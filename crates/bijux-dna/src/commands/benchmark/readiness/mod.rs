@@ -44,3 +44,4 @@ pub(crate) mod tool_id_normalization;
 pub(crate) mod tool_serving_map;
 pub(crate) mod undercovered_stages;
 pub(crate) mod unregistered_benchmark_pairs;
+pub(crate) mod vcf_tool_serving_map;
