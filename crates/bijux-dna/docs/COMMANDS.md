@@ -411,6 +411,29 @@ Visible aliases are part of the operator surface:
   normalized mapping to `pca_report` or `population_structure_report`. The report fails closed
   unless both governed EIGENSOFT rows retain real conversion and PCA command rendering instead of
   drifting back to manual conversion or placeholder argv.
+- `bijux-dna bench readiness render-vcf-shapeit5-adapter`
+  `render-vcf-shapeit5-adapter` writes `target/bench-readiness/adapters/shapeit5.vcf.json` with
+  the governed benchmark-ready `vcf.phasing` row for `shapeit5`. The report materializes the owned
+  reference panel and genetic map, keeps the input cohort VCF, phased output VCF, index output,
+  phase-block and switch-proxy reports, parser-visible phasing QC and phasing manifest outputs,
+  log output, concrete `shapeit5 phase_common` argv, and a real missing-input probe result, so the
+  retained benchmark phasing backend cannot drift back to placeholders or implicit panel/map
+  wiring.
+- `bijux-dna bench readiness render-vcf-eagle-adapter`
+  `render-vcf-eagle-adapter` writes `target/bench-readiness/adapters/eagle.vcf.json` with the
+  retained-but-not-benchmark-ready `vcf.phasing` row for `eagle`. The report keeps the governed
+  input cohort VCF, owned reference panel and genetic map, phased VCF, index output, phasing QC
+  and phasing manifest parser outputs, log output, concrete `eagle --vcfTarget ... --vcfRef ...
+  --geneticMapFile ... --outPrefix ...` argv, and a real missing-input probe result, so retained
+  phasing coverage stays reviewer-visible instead of hiding behind the matrix’s single benchmark
+  row.
+- `bijux-dna bench readiness render-vcf-beagle-adapter`
+  `render-vcf-beagle-adapter` writes `target/bench-readiness/adapters/beagle.vcf.json` with the
+  retained-but-not-benchmark-ready `vcf.phasing` row for `beagle`. The report keeps the governed
+  input cohort VCF, owned reference panel and genetic map, phased VCF, index output, phasing QC
+  and phasing manifest parser outputs, log output, concrete `beagle gt=... ref=... map=... out=...`
+  argv, and a real missing-input probe result, so the retained phasing backend stays executable and
+  parser-complete even when it is not the current benchmark binding.
 - `bijux-dna bench readiness render-vcf-plink-adapter`
   `render-vcf-plink-adapter` writes `target/bench-readiness/adapters/plink.vcf.json` with one
   governed row per admitted VCF `plink` registry binding. Each row keeps the concrete cohort
