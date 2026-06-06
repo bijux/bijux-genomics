@@ -682,6 +682,11 @@ Visible aliases are part of the operator surface:
   `registered_tool_ids`, `missing_tool_ids`, and `reason` so single-backend benchmark gaps remain
   visible before HPC campaign hardening.
 - `bijux-dna bench local list-stages`
+  `list-stages` keeps the governed local stage inventory visible by domain. Single-domain JSON
+  requests such as `--domain fastq`, `--domain bam`, or `--domain vcf` return the domain-local
+  stage inventory directly. Multi-domain requests such as `--domain fastq,bam,vcf` write
+  `target/bench-readiness/all-domain-stage-list.json` and report separate `domain_counts` plus
+  the unified `total_stage_count` so FASTQ, BAM, and VCF coverage cannot silently drift together.
 - `bijux-dna bench local render-vcf-stage-catalog`
   `render-vcf-stage-catalog` writes `configs/bench/local/vcf-stage-catalog.toml`, deriving the
   governed VCF stage catalog from the domain downstream order, stage-spec metadata, and VCF IO
