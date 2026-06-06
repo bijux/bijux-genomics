@@ -525,6 +525,8 @@ fn enrich_stats_metrics_from_vcf(input_vcf: &Path, metrics: &mut VcfStatsMetrics
     let mut missing = 0_u64;
     let mut het_total = 0_u64;
     let mut hom_alt_total = 0_u64;
+    let mut ti_count = 0_u64;
+    let mut tv_count = 0_u64;
 
     for line in raw.lines() {
         if line.starts_with("#CHROM\t") {
@@ -534,6 +536,13 @@ fn enrich_stats_metrics_from_vcf(input_vcf: &Path, metrics: &mut VcfStatsMetrics
         let Some(fields) = parse_record_fields(line) else {
             continue;
         };
+        if fields[3].len() == 1 && fields[4].len() == 1 {
+            if is_transition(fields[3], fields[4]) {
+                ti_count += 1;
+            } else {
+                tv_count += 1;
+            }
+        }
         if fields[7] != "." && !fields[7].trim().is_empty() {
             annotated_records += 1;
         }
@@ -570,6 +579,9 @@ fn enrich_stats_metrics_from_vcf(input_vcf: &Path, metrics: &mut VcfStatsMetrics
     if metrics.variants_total > 0 {
         metrics.annotation_coverage =
             Some(annotated_records as f64 / metrics.variants_total as f64);
+    }
+    if metrics.ti_tv.is_none() && tv_count > 0 {
+        metrics.ti_tv = Some(ti_count as f64 / tv_count as f64);
     }
     Ok(())
 }

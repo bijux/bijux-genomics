@@ -125,6 +125,39 @@
     }
 
     #[test]
+    fn stats_stage_enriches_ti_tv_from_plain_vcf() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("stats_input.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n\
+##contig=<ID=chr1,length=24>\n\
+##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Read depth\">\n\
+##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n\
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\ts2\n\
+chr1\t3\t.\tA\tG\t60\tPASS\tDP=12\tGT\t0/1\t0/0\n\
+chr1\t5\t.\tC\tT\t62\tPASS\tDP=14\tGT\t1/1\t0/1\n\
+chr1\t7\t.\tA\tT\t64\tPASS\tDP=16\tGT\t0/1\t1/1\n\
+chr1\t9\t.\tAT\tA\t58\tPASS\tDP=18\tGT\t0/1\t0/0\n",
+        )
+        .unwrap_or_else(|err| panic!("write input fixture: {err}"));
+        let out = run_stats_stage_real(
+            &input,
+            dir.path(),
+            &bijux_dna_domain_vcf::params::VcfStatsParams {
+                sample_name: "cohort_stats".to_string(),
+                ..bijux_dna_domain_vcf::params::VcfStatsParams::default()
+            },
+        )
+        .unwrap_or_else(|err| panic!("run stats stage for ti/tv fallback: {err}"));
+        assert_eq!(out.metrics.sample_count, 2);
+        assert_eq!(out.metrics.variants_total, 4);
+        assert_eq!(out.metrics.snps, 3);
+        assert_eq!(out.metrics.indels, 1);
+        assert_eq!(out.metrics.ti_tv, Some(2.0));
+    }
+
+    #[test]
     fn vcf_pipeline_runs_qc_stage() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
