@@ -405,6 +405,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateVcfNoEmptyOutput(args) => {
+                        crate::commands::benchmark::local_vcf_no_empty_output::run_validate_vcf_no_empty_output(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateVcfReferenceCompatibility(args) => {
                         crate::commands::benchmark::local_vcf_reference_compatibility::run_validate_vcf_reference_compatibility(
                             &args,
