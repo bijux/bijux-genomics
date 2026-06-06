@@ -471,6 +471,13 @@ Visible aliases are part of the operator surface:
   `output_id`, `output_kind`, `output_path`, `bytes`, `status`, and `allow_empty_reason`, and the
   optional `--skip-refresh` mode lets reviewers prove that a zero-byte artifact is rejected
   instead of being silently regenerated.
+- `bijux-dna bench local validate-vcf-stage-catalog-ready`
+  `validate-vcf-stage-catalog-ready` writes `target/local-ready/VCF_STAGE_CATALOG_READY.json` and
+  fail-closes across the governed VCF Goal 201-209 slice. The gate reruns the owned stage-catalog,
+  matrix, corpus-fixture, expected-truth, regeneration, reference-compatibility, sample-compatibility,
+  smoke-root, and no-empty-output surfaces, then records one explicit row per goal with
+  `goal_id`, `surface`, `output_path`, `ok`, and `detail` so any drift stays visible in a single
+  reviewer-facing local-ready report.
 - `bijux-dna bench local validate-vcf-reference-compatibility`
   `validate-vcf-reference-compatibility` writes
   `target/local-ready/vcf/reference-compatibility.json`, deriving the governed VCF contig
