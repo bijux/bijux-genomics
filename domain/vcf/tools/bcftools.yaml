@@ -14,6 +14,8 @@ planned_stage_ids:
   - "vcf.imputation"
   - "vcf.pca"
   - "vcf.phasing"
+  - "vcf.postprocess"
+  - "vcf.prepare_reference_panel"
   - "vcf.qc"
 role: "analysis"
 authoritative: true

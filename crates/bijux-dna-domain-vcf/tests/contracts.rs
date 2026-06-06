@@ -567,4 +567,20 @@ mod contracts {
             "VCF required tools registry must not embed a stale static source commit"
         );
     }
+
+    #[test]
+    fn generated_vcf_registry_keeps_bcftools_planned_stage_bindings() {
+        let registry_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../configs/ci/registry/tool_registry_vcf.toml");
+        let committed = std::fs::read_to_string(&registry_path)
+            .unwrap_or_else(|err| panic!("read {}: {err}", registry_path.display()));
+        assert!(
+            committed.contains("\"vcf.postprocess\""),
+            "bcftools registry row must retain vcf.postprocess"
+        );
+        assert!(
+            committed.contains("\"vcf.prepare_reference_panel\""),
+            "bcftools registry row must retain vcf.prepare_reference_panel"
+        );
+    }
 }

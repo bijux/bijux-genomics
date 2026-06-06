@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: f0b600318fd047ad9a102722933e9c31c7716b31
+# source_commit: d104a1d20885b684d1dd0da4760a0f8ddd33cf1a
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -45,7 +45,7 @@ id = "bcftools"
 tool_id = "bcftools"
 domain = "vcf"
 status = "production"
-stage_ids = ["vcf.call", "vcf.call_gl", "vcf.call_diploid", "vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.gl_propagation", "vcf.filter", "vcf.stats", "vcf.admixture", "vcf.imputation", "vcf.pca", "vcf.phasing", "vcf.qc"]
+stage_ids = ["vcf.call", "vcf.call_gl", "vcf.call_diploid", "vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.gl_propagation", "vcf.filter", "vcf.stats", "vcf.admixture", "vcf.imputation", "vcf.pca", "vcf.phasing", "vcf.postprocess", "vcf.prepare_reference_panel", "vcf.qc"]
 version = "1.20"
 default_version = "1.20"
 upstream = "https://github.com/samtools/bcftools"
