@@ -760,6 +760,17 @@ pub enum PipelinesCommand {
     ValidateProfile {
         id: String,
     },
+    #[command(about = "Validate a governed local pipeline DAG by pipeline id.")]
+    Validate {
+        #[arg(long)]
+        id: String,
+        #[arg(long, default_value_t = false)]
+        strict: bool,
+        #[arg(long)]
+        output: Option<PathBuf>,
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
     #[command(about = "Diff two pipeline profiles (tools, params, invariants).")]
     #[command(name = "profile-diff")]
     ProfileDiff {

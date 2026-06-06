@@ -97,7 +97,7 @@ pub enum DnaCommand {
     Bam(BamRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
     Vcf(VcfRootArgs),
-    #[command(name = "plan")]
+    #[command(name = "plan", alias = "pipeline")]
     Pipelines(PipelinesRootArgs),
     Analyze(AnalyzeRootArgs),
     Explain(AnalyzeRootArgs),

@@ -2,6 +2,7 @@ use crate::commands::fastq::api_bridge::resolve_profile_alias;
 use crate::commands::support::prelude::{
     anyhow, cli, load_manifests, render, PipelinesCommand, Result,
 };
+use std::path::{Path, PathBuf};
 
 #[allow(clippy::too_many_lines)]
 pub(crate) fn handle_pipelines_command(
@@ -76,6 +77,44 @@ pub(crate) fn handle_pipelines_command(
             render::json::print_pretty(&bijux_dna_api::v1::api::plan::validate_pipeline_profile(
                 resolved_id,
             )?)?;
+            Ok(true)
+        }
+        PipelinesCommand::Validate { id, strict, output, json } => {
+            let repo_root = std::env::current_dir()?;
+            let config_path = local_pipeline_config_path(&repo_root, id)?;
+            let output_path = output.clone().unwrap_or_else(|| {
+                PathBuf::from("target/local-ready/pipeline-dag").join(format!("{id}.json"))
+            });
+            let report =
+                crate::commands::benchmark::local_pipeline_dag::validate_pipeline_dag_path(
+                    &repo_root,
+                    &config_path,
+                    &absolute_or_repo_relative(&repo_root, &output_path),
+                )?;
+
+            if *strict {
+                if report.pipeline_id != *id {
+                    return Err(anyhow!(
+                        "governed local pipeline `{}` resolved config `{}` with pipeline_id `{}`",
+                        id,
+                        config_path.display(),
+                        report.pipeline_id
+                    ));
+                }
+                let expected_config_path = format!("configs/pipelines/local/{id}.toml");
+                if report.config_path != expected_config_path {
+                    return Err(anyhow!(
+                        "strict local pipeline validation expected config `{expected_config_path}` but validator resolved `{}`",
+                        report.config_path
+                    ));
+                }
+            }
+
+            if *json {
+                render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.output_path);
+            }
             Ok(true)
         }
         PipelinesCommand::ProfileDiff { left, right } => {
@@ -189,4 +228,24 @@ pub(crate) fn handle_pipelines_command(
             Ok(true)
         }
     }
+}
+
+fn absolute_or_repo_relative(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn local_pipeline_config_path(repo_root: &Path, pipeline_id: &str) -> Result<PathBuf> {
+    if pipeline_id.trim().is_empty() {
+        return Err(anyhow!("pipeline id must be non-empty"));
+    }
+    if pipeline_id.contains('/') || pipeline_id.contains('\\') {
+        return Err(anyhow!(
+            "pipeline id `{pipeline_id}` must be a governed local pipeline id, not a path"
+        ));
+    }
+    Ok(repo_root.join("configs/pipelines/local").join(format!("{pipeline_id}.toml")))
 }
