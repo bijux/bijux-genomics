@@ -463,6 +463,15 @@ Visible aliases are part of the operator surface:
   `stage_count`, `tool_pair_count`, and one explicit row per stage-tool pair with deterministic
   `pair_root`, `artifacts_root`, and `result_manifest_path` values so repeated local smoke runs
   cannot drift onto random temp paths.
+- `bijux-dna bench local run-vcf-call-smoke`
+  `run-vcf-call-smoke` writes `target/local-smoke/vcf.call/bcftools/calls.vcf.gz`,
+  `target/local-smoke/vcf.call/bcftools/calls.vcf.gz.tbi`, and
+  `target/local-smoke/vcf.call/bcftools/metrics.json` from the governed `vcf.call` matrix row and
+  the real `human_like_validation` BAM fixture in `corpus-01-bam-mini`. The command uses the
+  retained `bcftools` caller, resolves the alias onto the diploid BAM calling flow, and writes a
+  `stage-result.json` manifest beside the outputs so reviewers can trace the exact input BAM,
+  reference FASTA, sample identity, variant counts, and parseability checks for the real local
+  smoke instead of a synthetic plan artifact.
 - `bijux-dna bench local validate-vcf-no-empty-output`
   `validate-vcf-no-empty-output` writes `target/local-ready/vcf/no-empty-output-check.json`,
   refreshes the governed VCF smoke-output fixture tree under `target/local-smoke/vcf`, and fails
