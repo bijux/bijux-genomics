@@ -413,6 +413,12 @@ Visible aliases are part of the operator surface:
   benchmarks only one. Each row carries `stage_id`, `valid_tool_classes`, `registered_tools`,
   `missing_tools`, and `decision`, and the detector fails closed unless every undercovered stage is
   explicitly `future_not_benchmark_ready` or `limit_to_specialized_tool`.
+- `bijux-dna bench readiness render-vcf-matrix-registry-consistency`
+  `render-vcf-matrix-registry-consistency` writes
+  `target/bench-readiness/vcf-matrix-registry-consistency.json` and fails closed unless every VCF
+  matrix row is admitted by the VCF registry and every benchmark-ready VCF registry pair is present
+  in the matrix. The report keeps `matrix_row_unregistered` and
+  `benchmark_ready_registry_pair_missing_from_matrix` drift rows explicit when disagreement returns.
 - `bijux-dna bench readiness render-missing-benchmark-pairs`
   `render-missing-benchmark-pairs` writes
   `target/bench-readiness/missing-benchmark-pairs.tsv` with one governed row per FASTQ or BAM
