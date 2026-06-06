@@ -12,6 +12,7 @@ pub(crate) mod bam;
 pub(crate) mod damage;
 pub(crate) mod edna;
 pub(crate) mod fastq;
+pub(crate) mod vcf;
 
 #[derive(Debug, Deserialize)]
 struct ManifestSchemaProbe {
