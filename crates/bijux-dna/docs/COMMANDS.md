@@ -109,6 +109,13 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench config-json`
 - `bijux-dna bench repo-checks`
 - `bijux-dna bench write-screen-taxonomy-database-lineage`
+- `bijux-dna bench validate-matrix`
+  `validate-matrix --domain vcf --strict` checks
+  `configs/bench/local/vcf-stage-matrix.toml` against the governed VCF stage catalog, the
+  production-regression VCF benchmark corpus contract, the VCF required-tool and registry files,
+  and the owned adapter, parser, and expected-output contracts. It fails closed when any VCF
+  catalog stage is missing, any row drifts from the owned contract set, or any row references a
+  tool that is not declared in the VCF benchmark tool inventories.
 - `bijux-dna bench publication-targets`
 - `bijux-dna bench corpus-fastq`
 - `bijux-dna bench normalize-workspace-layout`
@@ -420,6 +427,13 @@ Visible aliases are part of the operator surface:
   contracts. Each row keeps `stage_id`, `stage_name`, `support_status`, `default_tool_id`,
   `metrics_schema_id`, `input_types`, `output_types`, `required_assets`, `benchmark_category`,
   and `local_smoke_mode` explicit so the local VCF benchmark surface cannot drift from code.
+- `bijux-dna bench local render-vcf-stage-matrix`
+  `render-vcf-stage-matrix` writes `configs/bench/local/vcf-stage-matrix.toml`, deriving the
+  governed VCF benchmark matrix from the checked-in VCF stage catalog, the production-regression
+  VCF corpus contract, and the owned VCF adapter, parser, and expected-output contracts. Each row
+  keeps `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `adapter_id`, `parser_id`, and
+  `expected_outputs` explicit so every catalog stage stays benchmark-addressable through a real
+  local contract row.
 - `bijux-dna bench local validate-hpc-submission-ready`
   `validate-hpc-submission-ready` writes `target/local-ready/HPC_SUBMISSION_READY.json` and
   reruns the governed local readiness proof slice end to end: stage matrices, numbered FASTQ and
