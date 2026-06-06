@@ -26,6 +26,7 @@ pub(crate) mod local_taxonomy_database_fixture;
 pub(crate) mod local_taxonomy_output_judgment;
 pub(crate) mod local_tool_comparison_template;
 pub(crate) mod local_vcf_call_bam_smoke_support;
+pub(crate) mod local_vcf_call_diploid_smoke;
 pub(crate) mod local_vcf_call_smoke;
 pub(crate) mod local_vcf_no_empty_output;
 pub(crate) mod local_vcf_reference_compatibility;
