@@ -923,6 +923,7 @@ Visible aliases are part of the operator surface:
   `configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml` and
   `configs/pipelines/local/diploid-small-fastq-bam-vcf.toml` and
   `configs/pipelines/local/popgen-structure-vcf.toml` and
+  `configs/pipelines/local/relatedness-segments-vcf.toml` and
   `configs/pipelines/local/reference-panel-imputation.toml` and
   `configs/pipelines/local/fastq-core-preprocess.toml` and
   `configs/pipelines/local/fastq-to-bam.toml` and
@@ -968,6 +969,10 @@ Visible aliases are part of the operator surface:
   pipeline config, writes `target/local-ready/pipeline-dag/popgen-structure-vcf.json`, and fails
   closed unless PCA, admixture, and population-structure summary all keep sample metadata and
   population labels as mandatory inputs with explicit metadata-join handoffs.
+  `plan validate --id relatedness-segments-vcf --strict` resolves the governed VCF relatedness and
+  segment pipeline config, writes `target/local-ready/pipeline-dag/relatedness-segments-vcf.json`,
+  and fails closed unless IBD insufficiency remains local to demography instead of blocking ROH or
+  QC outputs.
 - `bijux-dna bench local simulate-dag-watchdog`
   `simulate-dag-watchdog` writes governed DAG scheduling simulations such as
   `target/local-ready/dag-sim/no-global-wait.json` and
