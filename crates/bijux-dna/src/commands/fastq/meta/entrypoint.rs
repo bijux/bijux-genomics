@@ -425,6 +425,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RunVcfGlPropagationSmoke(args) => {
+                        crate::commands::benchmark::local_vcf_gl_propagation_smoke::run_vcf_gl_propagation_smoke(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RunVcfCallPseudohaploidSmoke(args) => {
                         crate::commands::benchmark::local_vcf_call_pseudohaploid_smoke::run_vcf_call_pseudohaploid_smoke(
                             &args,
