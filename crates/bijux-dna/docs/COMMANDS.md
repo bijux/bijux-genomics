@@ -484,6 +484,17 @@ Visible aliases are part of the operator surface:
   (`ploidy`, `called_genotypes`, `heterozygous_count`, `homozygous_ref_count`,
   `homozygous_alt_count`, and `missing_count`) so diploid genotype representation is proved by a
   real local smoke instead of inferred from the generic calling alias.
+- `bijux-dna bench local run-vcf-call-pseudohaploid-smoke`
+  `run-vcf-call-pseudohaploid-smoke` writes
+  `target/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz`,
+  `target/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz.tbi`, and
+  `target/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json` from the governed
+  `vcf.call_pseudohaploid` matrix row and the real `human_like_validation` BAM fixture in
+  `corpus-01-bam-mini`. The command records explicit pseudohaploid site metrics
+  (`target_sites`, `covered_sites`, `called_sites`, `missing_sites`), the governed sampling
+  policy, and a declared control seed, then proves deterministic behavior by replaying the real
+  stage and comparing a canonicalized VCF payload that strips volatile `bcftools` command-path
+  headers while still surfacing the raw header drift.
 - `bijux-dna bench local validate-vcf-no-empty-output`
   `validate-vcf-no-empty-output` writes `target/local-ready/vcf/no-empty-output-check.json`,
   refreshes the governed VCF smoke-output fixture tree under `target/local-smoke/vcf`, and fails
