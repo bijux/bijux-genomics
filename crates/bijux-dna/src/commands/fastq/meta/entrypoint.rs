@@ -448,6 +448,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RunVcfPhasingSmoke(args) => {
+                        crate::commands::benchmark::local_vcf_phasing_smoke::run_vcf_phasing_smoke(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RunVcfPrepareReferencePanelSmoke(args) => {
                         crate::commands::benchmark::local_vcf_prepare_reference_panel_smoke::run_vcf_prepare_reference_panel_smoke(
                             &args,

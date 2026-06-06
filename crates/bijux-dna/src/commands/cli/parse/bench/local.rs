@@ -42,6 +42,8 @@ pub enum BenchLocalCommand {
     RunVcfGlPropagationSmoke(BenchLocalRunVcfGlPropagationSmokeArgs),
     #[command(name = "run-vcf-call-pseudohaploid-smoke")]
     RunVcfCallPseudohaploidSmoke(BenchLocalRunVcfCallPseudohaploidSmokeArgs),
+    #[command(name = "run-vcf-phasing-smoke")]
+    RunVcfPhasingSmoke(BenchLocalRunVcfPhasingSmokeArgs),
     #[command(name = "run-vcf-prepare-reference-panel-smoke")]
     RunVcfPrepareReferencePanelSmoke(BenchLocalRunVcfPrepareReferencePanelSmokeArgs),
     #[command(name = "validate-vcf-no-empty-output")]
@@ -199,6 +201,14 @@ pub struct BenchLocalRunVcfGlPropagationSmokeArgs {
 #[derive(Debug, Args)]
 pub struct BenchLocalRunVcfCallPseudohaploidSmokeArgs {
     #[arg(long, default_value = "bcftools")]
+    pub tool_id: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunVcfPhasingSmokeArgs {
+    #[arg(long, default_value = "shapeit5")]
     pub tool_id: String,
     #[arg(long, default_value_t = false)]
     pub json: bool,

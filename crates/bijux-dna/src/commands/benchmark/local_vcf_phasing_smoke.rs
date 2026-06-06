@@ -16,6 +16,8 @@ use super::local_vcf_panel_workflow_smoke_support::{
     materialize_governed_vcf_panel_assets, resolve_governed_vcf_panel_workflow_smoke_contract,
     DEFAULT_STAGE_RESULT_NAME,
 };
+use crate::commands::cli::parse;
+use crate::commands::cli::render;
 
 const DEFAULT_VCF_PHASING_SMOKE_ROOT: &str = "target/local-smoke/vcf.phasing";
 const LOCAL_VCF_PHASING_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_phasing_smoke.v1";
@@ -106,6 +108,17 @@ struct PhaseSummary {
     unphased_genotypes: u64,
     phase_set_count: u64,
     sample_ids: Vec<String>,
+}
+
+pub(crate) fn run_vcf_phasing_smoke(args: &parse::BenchLocalRunVcfPhasingSmokeArgs) -> Result<()> {
+    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let report = run_local_vcf_phasing_smoke(&repo_root, &args.tool_id)?;
+    if args.json {
+        render::json::print_pretty(&report)?;
+    } else {
+        println!("{}", report.output_vcf_path);
+    }
+    Ok(())
 }
 
 pub(crate) fn run_local_vcf_phasing_smoke(
