@@ -334,10 +334,10 @@ fn vcf_planner_renders_executable_phasing_stage_templates_for_retained_backends(
 #[test]
 fn vcf_planner_renders_executable_imputation_stage_templates_for_retained_backends() {
     let cases = [
-        (CoverageRegime::Diploid, "vcf.imputation", "beagle"),
-        (CoverageRegime::LowCovGl, "vcf.imputation", "glimpse"),
-        (CoverageRegime::Diploid, "vcf.imputation", "impute5"),
-        (CoverageRegime::Diploid, "vcf.imputation", "minimac4"),
+        (CoverageRegime::Diploid, "vcf.imputation_metrics", "beagle"),
+        (CoverageRegime::LowCovGl, "vcf.imputation_metrics", "glimpse"),
+        (CoverageRegime::Diploid, "vcf.imputation_metrics", "impute5"),
+        (CoverageRegime::Diploid, "vcf.imputation_metrics", "minimac4"),
         (CoverageRegime::Diploid, "vcf.impute", "beagle"),
         (CoverageRegime::LowCovGl, "vcf.impute", "glimpse"),
         (CoverageRegime::Diploid, "vcf.impute", "impute5"),
@@ -366,17 +366,31 @@ fn vcf_planner_renders_executable_imputation_stage_templates_for_retained_backen
         assert!(
             joined.contains("vcf_mini_reference_panel.vcf")
                 || joined.contains("reference_panel_vcf")
-                || joined.contains("panel.m3vcf.gz"),
+                || (stage_id == "vcf.impute" && joined.contains("panel.m3vcf.gz")),
             "imputation backend {tool_id} on {stage_id} must keep panel input wiring: {:?}",
             stage_plan.command.template
         );
-        if tool_id != "minimac4" {
+        if tool_id != "minimac4" || stage_id == "vcf.imputation_metrics" {
             assert!(
                 joined.contains("recombination_map.tsv.gz"),
                 "imputation backend {tool_id} on {stage_id} must keep map wiring: {:?}",
                 stage_plan.command.template
             );
         }
+
+        if stage_id == "vcf.imputation_metrics" {
+            assert!(
+                joined.contains("printf")
+                    && joined.contains("bijux.vcf.imputation_metrics.v1")
+                    && joined.contains("\"stage_id\":\"vcf.imputation_metrics\"")
+                    && joined.contains(&format!("\"tool_id\":\"{tool_id}\""))
+                    && joined.contains("imputation_metrics.json"),
+                "imputation metrics stage for {tool_id} must render a governed report command: {:?}",
+                stage_plan.command.template
+            );
+            continue;
+        }
+
         assert!(
             joined.contains("bcftools index"),
             "imputation backend {tool_id} on {stage_id} must keep indexed VCF output wiring: {:?}",

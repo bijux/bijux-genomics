@@ -97,7 +97,9 @@ fn read_expected_json(case: &VcfEigensoftFixtureCase) -> Result<serde_json::Valu
 }
 
 fn fixture_dir(case: &VcfEigensoftFixtureCase) -> PathBuf {
-    repo_root().join("benchmarks/tests/fixtures/bench/parsers/vcf/eigensoft").join(case.fixture_dir_name)
+    repo_root()
+        .join("benchmarks/tests/fixtures/bench/parsers/vcf/eigensoft")
+        .join(case.fixture_dir_name)
 }
 
 fn repo_root() -> PathBuf {

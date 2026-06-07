@@ -510,10 +510,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "shapeit5",
-          "phase",
-          "--input",
-          "vcf"
+          "sh",
+          "-lc",
+          "shapeit5 phase_common --input 'out/filtered_vcf.vcf.gz' --reference 'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf' --map 'artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' --region 1:1-1000000 --thread 8 --seed 42 --output 'out/phased_vcf.vcf.gz' > 'out/phased_vcf.log' 2>&1 && bcftools index -t 'out/phased_vcf.vcf.gz'"
         ]
       },
       "effective_params": {
@@ -1196,6 +1195,18 @@
             "optional": false,
             "path": "out/filtered_vcf.vcf.gz",
             "role": "variant"
+          },
+          {
+            "name": "reference_panel_vcf",
+            "optional": false,
+            "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+            "role": "variant"
+          },
+          {
+            "name": "genetic_map_tsv",
+            "optional": false,
+            "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+            "role": "reference"
           }
         ],
         "outputs": [
@@ -1904,10 +1915,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "beagle",
-          "impute",
-          "--input",
-          "vcf"
+          "sh",
+          "-lc",
+          "beagle gt='out/phased_vcf.vcf.gz' ref='benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf' map='artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' out='out/imputed_vcf' impute=true nthreads=8 seed=42 > 'out/imputed_vcf.log' 2>&1 && bcftools index -t 'out/imputed_vcf.vcf.gz'"
         ]
       },
       "effective_params": {
@@ -2589,6 +2599,18 @@
             "optional": false,
             "path": "out/phased_vcf.vcf.gz",
             "role": "variant"
+          },
+          {
+            "name": "reference_panel_vcf",
+            "optional": false,
+            "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+            "role": "variant"
+          },
+          {
+            "name": "genetic_map_tsv",
+            "optional": false,
+            "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+            "role": "reference"
           }
         ],
         "outputs": [
@@ -3664,10 +3686,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "germline",
-          "ibd",
-          "--min-seg",
-          "3.0"
+          "sh",
+          "-lc",
+          "plink2 --vcf 'out/postprocess_vcf.vcf.gz' --double-id --allow-extra-chr --make-bed --out 'out/ibd_segments.cohort' >/dev/null 2>&1 && germline -input 'out/ibd_segments.cohort' -bits 128 -min_m 3 -err_hom 2 -err_het 1 -output 'out/ibd_segments' > 'out/ibd_segments.log' 2>&1"
         ]
       },
       "effective_params": {
@@ -3715,8 +3736,8 @@
           {
             "name": "ibd_segments",
             "optional": false,
-            "path": "out/ibd_segments.json",
-            "role": "metrics_json"
+            "path": "out/ibd_segments.tsv",
+            "role": "summary_tsv"
           }
         ]
       },
@@ -3776,9 +3797,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "ibdne",
-          "estimate-ne",
-          "--from-ibd"
+          "sh",
+          "-lc",
+          "ibdne --ibd 'out/ibd_segments.tsv' --out 'out/demography_report' > 'out/demography_report.log' 2>&1"
         ]
       },
       "effective_params": {
@@ -3814,8 +3835,8 @@
           {
             "name": "ibd_segments",
             "optional": false,
-            "path": "out/ibd_segments.json",
-            "role": "metrics_json"
+            "path": "out/ibd_segments.tsv",
+            "role": "summary_tsv"
           }
         ],
         "outputs": [

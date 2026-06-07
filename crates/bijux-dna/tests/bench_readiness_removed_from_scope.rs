@@ -108,7 +108,8 @@ fn bench_readiness_removed_from_scope_reports_only_non_active_bindings() {
     }));
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
-            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation")
+            && row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.imputation_metrics")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
             && row.get("status").and_then(serde_json::Value::as_str) == Some("planned")
             && row.get("adapter_status").and_then(serde_json::Value::as_str)

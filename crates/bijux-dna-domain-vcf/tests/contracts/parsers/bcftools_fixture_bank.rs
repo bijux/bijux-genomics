@@ -147,7 +147,9 @@ fn read_expected_json(case: &VcfBcftoolsFixtureCase) -> Result<serde_json::Value
 }
 
 fn fixture_dir(case: &VcfBcftoolsFixtureCase) -> PathBuf {
-    repo_root().join("benchmarks/tests/fixtures/bench/parsers/vcf/bcftools").join(case.stage.as_str())
+    repo_root()
+        .join("benchmarks/tests/fixtures/bench/parsers/vcf/bcftools")
+        .join(case.stage.as_str())
 }
 
 fn repo_root() -> PathBuf {

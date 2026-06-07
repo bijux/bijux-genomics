@@ -103,6 +103,28 @@ fn bench_vcf_stage_matrix_writes_governed_toml_file() {
         Some(vec!["prepared_panel", "chunks_json"])
     );
 
+    let imputation_metrics = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(toml::Value::as_str) == Some("vcf.imputation_metrics")
+        })
+        .expect("imputation metrics row");
+    assert_eq!(
+        imputation_metrics.get("adapter_id").and_then(toml::Value::as_str),
+        Some("vcf.adapter.panel_workflow")
+    );
+    assert_eq!(
+        imputation_metrics.get("parser_id").and_then(toml::Value::as_str),
+        Some("vcf.parser.report_json")
+    );
+    assert_eq!(
+        imputation_metrics
+            .get("expected_outputs")
+            .and_then(toml::Value::as_array)
+            .map(|values| values.iter().filter_map(toml::Value::as_str).collect::<Vec<_>>()),
+        Some(vec!["imputation_metrics_json"])
+    );
+
     let stats = rows
         .iter()
         .find(|row| row.get("stage_id").and_then(toml::Value::as_str) == Some("vcf.stats"))

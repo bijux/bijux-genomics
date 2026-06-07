@@ -63,13 +63,13 @@ fn bench_readiness_vcf_imputation_family_adapter_reports_governed_rows() {
     assert_eq!(rows.len(), 8);
 
     for (tool_id, stage_id, benchmark_status) in [
-        ("beagle", "vcf.imputation", "benchmark_ready"),
+        ("beagle", "vcf.imputation_metrics", "benchmark_ready"),
         ("beagle", "vcf.impute", "benchmark_ready"),
-        ("glimpse", "vcf.imputation", "not_benchmark_ready"),
+        ("glimpse", "vcf.imputation_metrics", "not_benchmark_ready"),
         ("glimpse", "vcf.impute", "not_benchmark_ready"),
-        ("impute5", "vcf.imputation", "not_benchmark_ready"),
+        ("impute5", "vcf.imputation_metrics", "not_benchmark_ready"),
         ("impute5", "vcf.impute", "not_benchmark_ready"),
-        ("minimac4", "vcf.imputation", "not_benchmark_ready"),
+        ("minimac4", "vcf.imputation_metrics", "not_benchmark_ready"),
         ("minimac4", "vcf.impute", "not_benchmark_ready"),
     ] {
         assert!(
@@ -91,7 +91,8 @@ fn bench_readiness_vcf_imputation_family_adapter_reports_governed_rows() {
         .iter()
         .find(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("vcf.imputation_metrics")
         })
         .expect("beagle imputation row");
     assert!(
@@ -100,21 +101,42 @@ fn bench_readiness_vcf_imputation_family_adapter_reports_governed_rows() {
             .and_then(serde_json::Value::as_str)
             .is_some_and(|path| {
                 path.ends_with(
-                    "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation/artifacts/input/vcf_imputation.vcf.gz",
+                    "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz",
                 )
             }),
         "beagle imputation row must retain the materialized indexed target VCF path"
     );
     assert_eq!(
+        beagle_imputation.get("parser_id").and_then(serde_json::Value::as_str),
+        Some("vcf.parser.report_json")
+    );
+    assert_eq!(
         beagle_imputation.get("quality_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/adapters/imputation/beagle/vcf.imputation/imputation_qc.json")
+        Some(
+            "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_metrics.json"
+        )
     );
     assert_eq!(
         beagle_imputation
             .get("parser_output_ids")
             .and_then(serde_json::Value::as_array)
             .map(|items| items.len()),
-        Some(4)
+        Some(5)
+    );
+    assert!(
+        beagle_imputation
+            .get("declared_outputs")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|items| {
+                items.iter().any(|item| {
+                    item.get("artifact_id").and_then(serde_json::Value::as_str)
+                        == Some("imputation_metrics_json")
+                }) && items.iter().any(|item| {
+                    item.get("artifact_id").and_then(serde_json::Value::as_str)
+                        == Some("orchestration_manifest_json")
+                })
+            }),
+        "vcf.imputation_metrics rows must declare metrics and orchestration artifacts"
     );
 
     let glimpse_impute = rows

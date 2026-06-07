@@ -59,7 +59,8 @@ fn bench_readiness_vcf_imputation_family_adapter_writes_governed_json_file() {
         .iter()
         .find(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("minimac4")
-                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("vcf.imputation_metrics")
         })
         .expect("minimac4 imputation row");
     let panel_m3vcf = minimac_row
@@ -88,5 +89,35 @@ fn bench_readiness_vcf_imputation_family_adapter_writes_governed_json_file() {
             }
         ),
         "vcf.impute rows must retain heavy-stage diagnostics and TSV quality outputs"
+    );
+
+    let beagle_metrics = rows
+        .iter()
+        .find(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("vcf.imputation_metrics")
+        })
+        .expect("beagle metrics row");
+    assert_eq!(
+        beagle_metrics.get("quality_output_path").and_then(serde_json::Value::as_str),
+        Some(
+            "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_metrics.json"
+        )
+    );
+    assert!(
+        beagle_metrics
+            .get("declared_outputs")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|items| {
+                items.iter().any(|item| {
+                    item.get("artifact_id").and_then(serde_json::Value::as_str)
+                        == Some("imputation_metrics_json")
+                }) && items.iter().all(|item| {
+                    item.get("artifact_id").and_then(serde_json::Value::as_str)
+                        != Some("imputation_qc_tsv")
+                })
+            }),
+        "vcf.imputation_metrics rows must declare metrics json without inheriting impute-only TSV outputs"
     );
 }

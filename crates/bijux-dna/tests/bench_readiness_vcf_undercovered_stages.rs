@@ -106,7 +106,7 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
         "future_not_benchmark_ready",
     ));
     assert!(has_row(
-        "vcf.imputation",
+        "vcf.imputation_metrics",
         &["imputation", "phasing", "variant_processing"],
         &["beagle"],
         &["bcftools", "beagle-imputation", "glimpse", "impute5", "minimac4"],

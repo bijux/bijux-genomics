@@ -77,7 +77,7 @@ mod contracts {
                 "vcf.filter",
                 "vcf.gl_propagation",
                 "vcf.ibd",
-                "vcf.imputation",
+                "vcf.imputation_metrics",
                 "vcf.impute",
                 "vcf.pca",
                 "vcf.phasing",
@@ -99,8 +99,11 @@ mod contracts {
         assert!(
             validate_downstream_transition(VcfDomainStage::Filter, VcfDomainStage::Filter).is_err()
         );
-        assert!(validate_downstream_transition(VcfDomainStage::Imputation, VcfDomainStage::Call)
-            .is_err());
+        assert!(validate_downstream_transition(
+            VcfDomainStage::ImputationMetrics,
+            VcfDomainStage::Call,
+        )
+        .is_err());
         assert_eq!(
             VCF_STAGE_ORDER_DOWNSTREAM.first().map(|s| s.as_str()),
             Some("vcf.prepare_reference_panel")
@@ -109,14 +112,15 @@ mod contracts {
 
     #[test]
     fn vcf_stage_contracts_expose_io_metrics_and_failure_modes() {
-        let Some(io) = stage_io_contract(VcfDomainStage::Imputation) else {
+        let Some(io) = stage_io_contract(VcfDomainStage::ImputationMetrics) else {
             panic!("missing stage IO contract for imputation");
         };
         assert!(io.required_inputs.contains(&"vcf"));
         assert!(io.required_indices.contains(&"vcf.tbi"));
+        assert_eq!(io.required_outputs, vec!["imputation_metrics_json"]);
 
-        let metrics = stage_metrics_contract(VcfDomainStage::Imputation);
-        assert_eq!(metrics.metrics_schema_id, "bijux.vcf.imputation.v1");
+        let metrics = stage_metrics_contract(VcfDomainStage::ImputationMetrics);
+        assert_eq!(metrics.metrics_schema_id, "bijux.vcf.imputation_metrics.v1");
         assert!(metrics.required_metrics.contains(&"mean_info_score"));
         assert!(metrics.required_metrics.contains(&"masked_truth_sites"));
 
@@ -193,7 +197,7 @@ mod contracts {
                 "vcf.damage_filter",
                 "vcf.gl_propagation",
                 "vcf.ibd",
-                "vcf.imputation",
+                "vcf.imputation_metrics",
                 "vcf.impute",
                 "vcf.pca",
                 "vcf.phasing",
@@ -250,7 +254,8 @@ mod contracts {
             row.tool_id == "bcftools"
                 && row.stage == VcfDomainStage::Call
                 && row.parser_id == "parse_bcftools_call_metrics"
-                && row.fixture_path == "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call"
+                && row.fixture_path
+                    == "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call"
         }));
         assert!(rows.iter().any(|row| {
             row.tool_id == "bcftools"
@@ -264,7 +269,7 @@ mod contracts {
         }));
         assert!(rows.iter().any(|row| {
             row.tool_id == "beagle"
-                && row.stage == VcfDomainStage::Imputation
+                && row.stage == VcfDomainStage::ImputationMetrics
                 && row.parser_id == "parse_beagle_imputation_metrics"
         }));
         assert!(rows.iter().all(|row| !row.fixture_path.is_empty()));
@@ -634,7 +639,7 @@ mod contracts {
         assert!(report
             .stages
             .iter()
-            .any(|row| row.stage_id == "vcf.imputation" && row.domain_only));
+            .any(|row| row.stage_id == "vcf.imputation_metrics" && row.domain_only));
         assert!(report.tools.iter().any(|row| row.tool_id == "bcftools"));
     }
 

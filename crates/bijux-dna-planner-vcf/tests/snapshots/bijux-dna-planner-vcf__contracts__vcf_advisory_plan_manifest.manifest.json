@@ -1,6 +1,6 @@
 {
   "domain": "vcf",
-  "graph_hash": "46d1e103c2e49b365d81808f61bbbdd47859105270cd5f4efbd96e5999ee5a65",
+  "graph_hash": "1d240b2498ee5a44556622438f0737ebc63e73ec27c261fa9231e858bc59f03e",
   "ordered_steps": [
     {
       "advisory": false,
@@ -18,7 +18,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "f745764e5afad193f49f9ef3b3b66ebb0cacf669b0cdfe30cf8e1c885fce554c",
+      "cache_key": "7063afb60038f23ff7703fde1c61b4e5a570f2effc8867766aa26fb7dd960658",
       "effective_parameters_json": {
         "license_policy": "panel_license_must_match_operator_constraints",
         "map_coordinate_system": "bp",
@@ -91,7 +91,7 @@
           "role": "variant"
         }
       ],
-      "cache_key": "dcfdfa6e74f364c0e0e8a2f9d9188592e93957d41f16ab8245aae3863d97fbc8",
+      "cache_key": "3aaef4e27265076eab8a1271d402e3fb855b22f0b36406d2f0ac55fa85352df1",
       "dependencies": [
         "vcf.prepare_reference_panel"
       ],
@@ -260,7 +260,7 @@
           "role": "variant"
         }
       ],
-      "cache_key": "99d52484a7310be65a225f3d73643d06e9e112be69fc5c1883cd06a8129120f4",
+      "cache_key": "3b0eb62c7355b49a14a4e1c94e9c8a61e748d16cc412424ef2bf0139206622e4",
       "dependencies": [
         "vcf.filter"
       ],
@@ -935,10 +935,9 @@
       },
       "environment": {
         "command": [
-          "shapeit5",
-          "phase",
-          "--input",
-          "vcf"
+          "sh",
+          "-lc",
+          "shapeit5 phase_common --input 'out/filtered_vcf.vcf.gz' --reference 'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf' --map 'artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' --region 1:1-1000000 --thread 8 --seed 42 --output 'out/phased_vcf.vcf.gz' > 'out/phased_vcf.log' 2>&1 && bcftools index -t 'out/phased_vcf.vcf.gz'"
         ],
         "image": "quay.io/biocontainers/shapeit5:5.1.1--h9948957_0",
         "out_dir": "out/vcf_phasing",
@@ -962,7 +961,7 @@
           "role": "variant"
         }
       ],
-      "cache_key": "8a26c44b8b53e9f00011c62bbe5e3aa504e1d7c3da2327678ae6f9a116f90d26",
+      "cache_key": "44cf4b341d1f2a801581c388bfa5a398b0b4fce2587cfb8e562eb87a7cd52801",
       "dependencies": [
         "vcf.phasing"
       ],
@@ -1636,10 +1635,9 @@
       },
       "environment": {
         "command": [
-          "beagle",
-          "impute",
-          "--input",
-          "vcf"
+          "sh",
+          "-lc",
+          "beagle gt='out/phased_vcf.vcf.gz' ref='benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf' map='artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' out='out/imputed_vcf' impute=true nthreads=8 seed=42 > 'out/imputed_vcf.log' 2>&1 && bcftools index -t 'out/imputed_vcf.vcf.gz'"
         ],
         "image": "quay.io/biocontainers/beagle:5.4--hdfd78af_0",
         "out_dir": "out/vcf_impute",
@@ -1862,11 +1860,11 @@
         {
           "artifact_id": "ibd_segments",
           "optional": false,
-          "path": "out/ibd_segments.json",
-          "role": "metrics_json"
+          "path": "out/ibd_segments.tsv",
+          "role": "summary_tsv"
         }
       ],
-      "cache_key": "9a589e5d0eabe76e17f0fac5f70a781b60ea0e3adefc1b4ce71764ca723a352b",
+      "cache_key": "4014ddc26713a2e70a35234835cbfc25763008fb4d5582012482e74a5e36b24b",
       "dependencies": [
         "vcf.roh"
       ],
@@ -1900,10 +1898,9 @@
       },
       "environment": {
         "command": [
-          "germline",
-          "ibd",
-          "--min-seg",
-          "3.0"
+          "sh",
+          "-lc",
+          "plink2 --vcf 'out/postprocess_vcf.vcf.gz' --double-id --allow-extra-chr --make-bed --out 'out/ibd_segments.cohort' >/dev/null 2>&1 && germline -input 'out/ibd_segments.cohort' -bits 128 -min_m 3 -err_hom 2 -err_het 1 -output 'out/ibd_segments' > 'out/ibd_segments.log' 2>&1"
         ],
         "image": "quay.io/biocontainers/germline:1.5.3--hdfd78af_0",
         "out_dir": "out/vcf_ibd",
@@ -1927,7 +1924,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "d65360071f5f58e68e9809593970a1d69caede773d6b784c1b0005876beb47fa",
+      "cache_key": "d62f0b672931f6956ea5c809a9439dfd9bb176c5d5b3b1fec6b24b273a05d760",
       "dependencies": [
         "vcf.ibd"
       ],
@@ -1957,9 +1954,9 @@
       },
       "environment": {
         "command": [
-          "ibdne",
-          "estimate-ne",
-          "--from-ibd"
+          "sh",
+          "-lc",
+          "ibdne --ibd 'out/ibd_segments.tsv' --out 'out/demography_report' > 'out/demography_report.log' 2>&1"
         ],
         "image": "quay.io/biocontainers/ibdne:23.05.23.ae9f5b3--hdfd78af_0",
         "out_dir": "out/vcf_demography",
@@ -2188,7 +2185,7 @@
     }
   ],
   "pipeline_id": "vcf-to-vcf__downstream_diploid_sctx_0a9734ff9d35__v2",
-  "plan_fingerprint": "943fbd243bef06af4c39de66de4b975cdac1467dec3f4f72ec578fe09dbb9f10",
+  "plan_fingerprint": "0437b02762e4e61dfa3cde4acce4f2be42dd843befb4b995a5c54384de058580",
   "planner_version": "bijux-dna-planner-vcf.v2",
   "policy": "PreferAccuracy",
   "profile_id": "vcf-downstream",

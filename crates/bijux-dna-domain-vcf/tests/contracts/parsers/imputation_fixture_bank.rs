@@ -45,7 +45,7 @@ const VCF_IMPUTATION_FIXTURE_CASES: &[VcfImputationFixtureCase] = &[
     },
     VcfImputationFixtureCase {
         tool_id: "beagle",
-        stage: VcfDomainStage::Imputation,
+        stage: VcfDomainStage::ImputationMetrics,
         parser_id: "parse_beagle_imputation_metrics",
         required_files: IMPUTATION_REQUIRED_FILES,
     },
@@ -57,7 +57,7 @@ const VCF_IMPUTATION_FIXTURE_CASES: &[VcfImputationFixtureCase] = &[
     },
     VcfImputationFixtureCase {
         tool_id: "glimpse",
-        stage: VcfDomainStage::Imputation,
+        stage: VcfDomainStage::ImputationMetrics,
         parser_id: "parse_glimpse_imputation_metrics",
         required_files: IMPUTATION_REQUIRED_FILES,
     },
@@ -69,7 +69,7 @@ const VCF_IMPUTATION_FIXTURE_CASES: &[VcfImputationFixtureCase] = &[
     },
     VcfImputationFixtureCase {
         tool_id: "impute5",
-        stage: VcfDomainStage::Imputation,
+        stage: VcfDomainStage::ImputationMetrics,
         parser_id: "parse_impute5_imputation_metrics",
         required_files: IMPUTATION_REQUIRED_FILES,
     },
@@ -81,7 +81,7 @@ const VCF_IMPUTATION_FIXTURE_CASES: &[VcfImputationFixtureCase] = &[
     },
     VcfImputationFixtureCase {
         tool_id: "minimac4",
-        stage: VcfDomainStage::Imputation,
+        stage: VcfDomainStage::ImputationMetrics,
         parser_id: "parse_minimac4_imputation_metrics",
         required_files: IMPUTATION_REQUIRED_FILES,
     },
@@ -97,13 +97,13 @@ fn vcf_imputation_fixture_bank_covers_governed_tool_stage_rows() {
         governed_rows,
         vec![
             "beagle:vcf.impute",
-            "beagle:vcf.imputation",
+            "beagle:vcf.imputation_metrics",
             "glimpse:vcf.impute",
-            "glimpse:vcf.imputation",
+            "glimpse:vcf.imputation_metrics",
             "impute5:vcf.impute",
-            "impute5:vcf.imputation",
+            "impute5:vcf.imputation_metrics",
             "minimac4:vcf.impute",
-            "minimac4:vcf.imputation",
+            "minimac4:vcf.imputation_metrics",
         ]
     );
     for case in VCF_IMPUTATION_FIXTURE_CASES {

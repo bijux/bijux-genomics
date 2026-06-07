@@ -113,6 +113,33 @@ fn bench_vcf_stage_matrix_matches_owned_vcf_contracts() {
         Some(vec!["phased_vcf"])
     );
 
+    let imputation_metrics = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.imputation_metrics")
+        })
+        .expect("imputation metrics row");
+    assert_eq!(
+        imputation_metrics.get("tool_id").and_then(serde_json::Value::as_str),
+        Some("beagle")
+    );
+    assert_eq!(
+        imputation_metrics.get("adapter_id").and_then(serde_json::Value::as_str),
+        Some("vcf.adapter.panel_workflow")
+    );
+    assert_eq!(
+        imputation_metrics.get("parser_id").and_then(serde_json::Value::as_str),
+        Some("vcf.parser.report_json")
+    );
+    assert_eq!(
+        imputation_metrics
+            .get("expected_outputs")
+            .and_then(serde_json::Value::as_array)
+            .map(|values| values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()),
+        Some(vec!["imputation_metrics_json"])
+    );
+
     let stats = rows
         .iter()
         .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.stats"))

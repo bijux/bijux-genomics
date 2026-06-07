@@ -1210,7 +1210,8 @@ fn bench_local_pipeline_dag_validates_reference_panel_imputation_contract() {
     );
     assert!(
         nodes.iter().any(|node| {
-            node.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation")
+            node.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.imputation_metrics")
                 && node
                     .get("depends_on")
                     .and_then(serde_json::Value::as_array)

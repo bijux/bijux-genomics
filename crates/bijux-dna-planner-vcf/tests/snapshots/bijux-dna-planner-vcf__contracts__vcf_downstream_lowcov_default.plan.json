@@ -688,10 +688,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "glimpse",
-          "impute",
-          "--input",
-          "vcf"
+          "sh",
+          "-lc",
+          "GLIMPSE_phase --input 'out/gl_propagated_vcf.vcf.gz' --reference 'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf' --map 'artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' --input-region '1:1-1000000' --output-region '1:1-1000000' --threads 8 --seed 42 --output 'out/imputed_vcf.vcf.gz' > 'out/imputed_vcf.log' 2>&1 && bcftools index -t 'out/imputed_vcf.vcf.gz'"
         ]
       },
       "effective_params": {
@@ -1374,6 +1373,18 @@
             "optional": false,
             "path": "out/gl_propagated_vcf.vcf.gz",
             "role": "variant"
+          },
+          {
+            "name": "reference_panel_vcf",
+            "optional": false,
+            "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+            "role": "variant"
+          },
+          {
+            "name": "genetic_map_tsv",
+            "optional": false,
+            "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+            "role": "reference"
           }
         ],
         "outputs": [

@@ -510,10 +510,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "eagle",
-          "phase",
-          "--input",
-          "vcf"
+          "sh",
+          "-lc",
+          "eagle --vcfTarget 'out/filtered_vcf.vcf.gz' --vcfRef 'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf' --geneticMapFile 'artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' --outPrefix 'out/phased_vcf' --numThreads 8 > 'out/phased_vcf.log' 2>&1 && bcftools index -t 'out/phased_vcf.vcf.gz'"
         ]
       },
       "effective_params": {
@@ -1196,6 +1195,18 @@
             "optional": false,
             "path": "out/filtered_vcf.vcf.gz",
             "role": "variant"
+          },
+          {
+            "name": "reference_panel_vcf",
+            "optional": false,
+            "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+            "role": "variant"
+          },
+          {
+            "name": "genetic_map_tsv",
+            "optional": false,
+            "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+            "role": "reference"
           }
         ],
         "outputs": [
@@ -1904,10 +1915,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "minimac4",
-          "impute",
-          "--input",
-          "vcf"
+          "sh",
+          "-lc",
+          "minimac4 --refHaps 'artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/panels/1000g_phase3/panel.m3vcf.gz' --haps 'out/phased_vcf.vcf.gz' --prefix 'out/imputed_vcf' --cpus 8 > 'out/imputed_vcf.log' 2>&1 && mv 'out/imputed_vcf.dose.vcf.gz' 'out/imputed_vcf.vcf.gz' && bcftools index -t 'out/imputed_vcf.vcf.gz'"
         ]
       },
       "effective_params": {
@@ -2589,6 +2599,24 @@
             "name": "vcf",
             "optional": false,
             "path": "out/phased_vcf.vcf.gz",
+            "role": "variant"
+          },
+          {
+            "name": "reference_panel_vcf",
+            "optional": false,
+            "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+            "role": "variant"
+          },
+          {
+            "name": "genetic_map_tsv",
+            "optional": false,
+            "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+            "role": "reference"
+          },
+          {
+            "name": "reference_panel_m3vcf",
+            "optional": false,
+            "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/panels/1000g_phase3/panel.m3vcf.gz",
             "role": "variant"
           }
         ],
@@ -3666,10 +3694,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "germline",
-          "ibd",
-          "--min-seg",
-          "3.0"
+          "sh",
+          "-lc",
+          "plink2 --vcf 'out/postprocess_vcf.vcf.gz' --double-id --allow-extra-chr --make-bed --out 'out/ibd_segments.cohort' >/dev/null 2>&1 && germline -input 'out/ibd_segments.cohort' -bits 128 -min_m 3 -err_hom 2 -err_het 1 -output 'out/ibd_segments' > 'out/ibd_segments.log' 2>&1"
         ]
       },
       "effective_params": {
@@ -3717,8 +3744,8 @@
           {
             "name": "ibd_segments",
             "optional": false,
-            "path": "out/ibd_segments.json",
-            "role": "metrics_json"
+            "path": "out/ibd_segments.tsv",
+            "role": "summary_tsv"
           }
         ]
       },
@@ -3778,9 +3805,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "ibdne",
-          "estimate-ne",
-          "--from-ibd"
+          "sh",
+          "-lc",
+          "ibdne --ibd 'out/ibd_segments.tsv' --out 'out/demography_report' > 'out/demography_report.log' 2>&1"
         ]
       },
       "effective_params": {
@@ -3816,8 +3843,8 @@
           {
             "name": "ibd_segments",
             "optional": false,
-            "path": "out/ibd_segments.json",
-            "role": "metrics_json"
+            "path": "out/ibd_segments.tsv",
+            "role": "summary_tsv"
           }
         ],
         "outputs": [
