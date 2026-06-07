@@ -45,7 +45,7 @@ fn bench_readiness_bam_normalized_metrics_schema_reports_governed_stage_extensio
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("schemas/bench/bam-normalized-metrics.v1.json")
+        Some("benchmarks/schemas/bam-normalized-metrics.v1.json")
     );
     assert_eq!(
         payload.get("schema_id").and_then(serde_json::Value::as_str),

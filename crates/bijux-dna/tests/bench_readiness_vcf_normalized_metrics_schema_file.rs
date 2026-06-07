@@ -32,7 +32,7 @@ fn bench_readiness_vcf_normalized_metrics_schema_writes_governed_schema_files() 
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "schemas/bench/vcf-normalized-metrics.v1.json");
+    assert_eq!(rendered_path.trim(), "benchmarks/schemas/vcf-normalized-metrics.v1.json");
 
     let schema_path = repo_root.join(rendered_path.trim());
     let schema = std::fs::read_to_string(&schema_path).expect("read shared schema");
@@ -61,7 +61,7 @@ fn bench_readiness_vcf_normalized_metrics_schema_writes_governed_schema_files() 
         .and_then(serde_json::Value::as_str);
     assert_eq!(pca, Some("vcf_pca_normalized_v1"));
 
-    let stage_dir = repo_root.join("schemas/bench/vcf-normalized-metrics");
+    let stage_dir = repo_root.join("benchmarks/schemas/vcf-normalized-metrics");
     let pca_schema: serde_json::Value = serde_json::from_str(
         &std::fs::read_to_string(stage_dir.join("pca.v1.json")).expect("read pca schema"),
     )

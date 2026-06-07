@@ -32,7 +32,7 @@ fn bench_readiness_bam_normalized_metrics_schema_writes_governed_schema_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "schemas/bench/bam-normalized-metrics.v1.json");
+    assert_eq!(rendered_path.trim(), "benchmarks/schemas/bam-normalized-metrics.v1.json");
 
     let schema_path = repo_root.join(rendered_path.trim());
     let schema = std::fs::read_to_string(&schema_path).expect("read schema");
