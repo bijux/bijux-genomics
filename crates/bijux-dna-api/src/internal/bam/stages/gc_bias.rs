@@ -8,7 +8,7 @@ const LOCAL_GC_BIAS_SMOKE_METRICS_SCHEMA_VERSION: &str = "bijux.bam.gc_bias.loca
 
 /// Materialize the governed local-smoke `bam.gc_bias` artifacts and TSV summary.
 ///
-/// The written summary artifact lives at `target/local-smoke/bam.gc_bias/gc_bias.tsv`
+/// The written summary artifact lives at `runs/bench/local-smoke/bam.gc_bias/gc_bias.tsv`
 /// under the active repository root.
 ///
 /// # Errors
@@ -17,7 +17,7 @@ const LOCAL_GC_BIAS_SMOKE_METRICS_SCHEMA_VERSION: &str = "bijux.bam.gc_bias.loca
 pub fn write_local_gc_bias_smoke_summary() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases = bijux_dna_planner_bam::stage_api::local_gc_bias_smoke_plans(&repo_root)?;
-    let output_root = repo_root.join("target/local-smoke/bam.gc_bias");
+    let output_root = repo_root.join("runs/bench/local-smoke/bam.gc_bias");
     bijux_dna_infra::ensure_dir(&output_root)?;
 
     let mut body = String::from(

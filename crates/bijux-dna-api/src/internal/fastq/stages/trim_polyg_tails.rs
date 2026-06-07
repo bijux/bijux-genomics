@@ -185,7 +185,7 @@ fn admitted_stage_tools() -> Vec<String> {
 
 /// Materialize the governed local-smoke `fastq.trim_polyg_tails` artifacts.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.trim_polyg_tails/metrics.json`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.trim_polyg_tails/metrics.json`
 /// under the active repository root, alongside the top-level `trimmed.fastq.gz`.
 ///
 /// # Errors
@@ -201,7 +201,7 @@ pub fn write_local_trim_polyg_tails_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/fastq.trim_polyg_tails");
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.trim_polyg_tails");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let metrics = materialize_local_trim_polyg_tails_smoke_case(&repo_root, case, &output_root)?;
     let metrics_path = output_root.join("metrics.json");

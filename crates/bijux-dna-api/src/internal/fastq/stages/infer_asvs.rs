@@ -542,7 +542,7 @@ pub fn write_local_infer_asvs_smoke_report() -> Result<PathBuf> {
         return Err(anyhow!("governed fastq.infer_asvs local smoke must resolve exactly one case"));
     };
 
-    let output_root = repo_root.join("target/local-smoke/fastq.infer_asvs");
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.infer_asvs");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let summary = materialize_local_infer_asvs_smoke_case(&repo_root, case, &output_root)?;
     let report_path = output_root.join("report.json");

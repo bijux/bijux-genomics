@@ -31,7 +31,7 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_detect_adapters_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/fastq.detect_adapters");
+    let output_dir = repo_root.join("runs/bench/local-smoke/fastq.detect_adapters");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -39,7 +39,7 @@ fn write_local_detect_adapters_smoke_report_materializes_governed_outputs() -> R
     let report_path = bijux_dna_api::v1::api::fastq::write_local_detect_adapters_smoke_report()?;
     assert_eq!(
         report_path,
-        repo_root.join("target/local-smoke/fastq.detect_adapters/adapters.json")
+        repo_root.join("runs/bench/local-smoke/fastq.detect_adapters/adapters.json")
     );
     assert!(report_path.is_file(), "local-smoke adapter report must exist");
 

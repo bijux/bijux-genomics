@@ -33,7 +33,7 @@ struct LocalSexSmokeReport {
 
 /// Materialize the governed local-smoke `bam.sex` artifacts and top-level report.
 ///
-/// The written report lives at `target/local-smoke/bam.sex/sex.json`
+/// The written report lives at `runs/bench/local-smoke/bam.sex/sex.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -49,7 +49,7 @@ pub fn write_local_sex_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/bam.sex");
+    let output_root = repo_root.join("runs/bench/local-smoke/bam.sex");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let report = materialize_local_sex_smoke_case(&repo_root, case)?;
     let report_path = output_root.join("sex.json");

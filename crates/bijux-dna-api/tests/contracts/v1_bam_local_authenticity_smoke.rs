@@ -31,7 +31,7 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/bam.authenticity");
+    let output_dir = repo_root.join("runs/bench/local-smoke/bam.authenticity");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -39,7 +39,7 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
     let report_path = bijux_dna_api::v1::api::bam::write_local_authenticity_smoke_report()?;
     assert_eq!(
         report_path,
-        repo_root.join("target/local-smoke/bam.authenticity/authenticity.json")
+        repo_root.join("runs/bench/local-smoke/bam.authenticity/authenticity.json")
     );
     assert!(report_path.is_file(), "local-smoke BAM authenticity report must exist");
 
@@ -216,17 +216,17 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
         );
     }
     assert!(damage_path.ends_with(
-        "target/local-smoke/bam.authenticity/adna_damage_non_udg/damage/damage.unified_metrics.json"
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/damage/damage.unified_metrics.json"
     ));
-    assert!(contamination_path.ends_with("target/local-smoke/bam.authenticity/adna_damage_non_udg/contamination/contamination.summary.json"));
+    assert!(contamination_path.ends_with("runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/contamination/contamination.summary.json"));
     assert!(complexity_path.ends_with(
-        "target/local-smoke/bam.authenticity/adna_damage_non_udg/complexity/complexity.summary.json"
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/complexity/complexity.summary.json"
     ));
     assert!(coverage_path.ends_with(
-        "target/local-smoke/bam.authenticity/adna_damage_non_udg/coverage/coverage.regime.json"
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/coverage/coverage.regime.json"
     ));
     assert!(mapping_path.ends_with(
-        "target/local-smoke/bam.authenticity/adna_damage_non_udg/mapping_summary/mapping_summary.json"
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/mapping_summary/mapping_summary.json"
     ));
 
     let report_json: serde_json::Value =

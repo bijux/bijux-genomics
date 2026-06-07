@@ -129,7 +129,7 @@ pub fn write_local_screen_taxonomy_plan() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `fastq.correct_errors` dry-run plan.
 ///
-/// The written artifact lives at `target/local-smoke/fastq.correct_errors/plan.json` under the
+/// The written artifact lives at `runs/bench/local-smoke/fastq.correct_errors/plan.json` under the
 /// active repository root.
 ///
 /// # Errors
@@ -145,7 +145,7 @@ pub fn write_local_correct_errors_smoke_plan() -> Result<PathBuf> {
         ));
     };
 
-    let plan_dir = repo_root.join("target/local-smoke/fastq.correct_errors");
+    let plan_dir = repo_root.join("runs/bench/local-smoke/fastq.correct_errors");
     bijux_dna_infra::ensure_dir(&plan_dir)?;
     let plan_path = plan_dir.join("plan.json");
     bijux_dna_infra::atomic_write_json(&plan_path, &case.plan)?;
@@ -154,7 +154,7 @@ pub fn write_local_correct_errors_smoke_plan() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `fastq.extract_umis` artifacts.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.extract_umis/report.json`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.extract_umis/report.json`
 /// under the active repository root, alongside the top-level `umi_extracted.fastq.gz`.
 ///
 /// # Errors
@@ -166,7 +166,7 @@ pub fn write_local_extract_umis_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `fastq.validate_reads` report bundle.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.validate_reads/report.json`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.validate_reads/report.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -178,7 +178,7 @@ pub fn write_local_validate_reads_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `fastq.profile_read_lengths` summary TSV.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.profile_read_lengths/read_lengths.tsv`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.profile_read_lengths/read_lengths.tsv`
 /// under the active repository root.
 ///
 /// # Errors
@@ -190,7 +190,7 @@ pub fn write_local_profile_read_lengths_smoke_summary() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `fastq.profile_reads` report bundle.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.profile_reads/profile.json`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.profile_reads/profile.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -203,7 +203,7 @@ pub fn write_local_profile_reads_smoke_report() -> Result<PathBuf> {
 /// Materialize the governed local-smoke `fastq.profile_overrepresented_sequences` summary TSV.
 ///
 /// The written summary artifact lives at
-/// `target/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv`
+/// `runs/bench/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv`
 /// under the active repository root.
 ///
 /// # Errors
@@ -215,7 +215,7 @@ pub fn write_local_profile_overrepresented_sequences_smoke_summary() -> Result<P
 
 /// Materialize the governed local-smoke `fastq.detect_adapters` report bundle.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.detect_adapters/adapters.json`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.detect_adapters/adapters.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -227,7 +227,7 @@ pub fn write_local_detect_adapters_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `fastq.filter_reads` artifacts.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.filter_reads/report.json`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.filter_reads/report.json`
 /// under the active repository root, alongside the top-level `filtered.fastq.gz`.
 ///
 /// # Errors
@@ -240,7 +240,7 @@ pub fn write_local_filter_reads_smoke_report() -> Result<PathBuf> {
 /// Materialize the governed local-smoke `fastq.filter_low_complexity` artifacts.
 ///
 /// The written summary artifact lives at
-/// `target/local-smoke/fastq.filter_low_complexity/report.json` under the active repository root,
+/// `runs/bench/local-smoke/fastq.filter_low_complexity/report.json` under the active repository root,
 /// alongside the top-level `filtered.fastq.gz`.
 ///
 /// # Errors
@@ -253,7 +253,7 @@ pub fn write_local_filter_low_complexity_smoke_report() -> Result<PathBuf> {
 /// Materialize the governed local-smoke `fastq.normalize_abundance` artifacts.
 ///
 /// The written summary artifact lives at
-/// `target/local-smoke/fastq.normalize_abundance/report.json` under the active repository root,
+/// `runs/bench/local-smoke/fastq.normalize_abundance/report.json` under the active repository root,
 /// alongside the top-level `normalized_abundance.tsv`.
 ///
 /// # Errors
@@ -265,7 +265,7 @@ pub fn write_local_normalize_abundance_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `fastq.merge_pairs` artifacts.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.merge_pairs/report.json`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.merge_pairs/report.json`
 /// under the active repository root, alongside top-level `merged.fastq.gz` and `unmerged/`
 /// outputs.
 ///
@@ -278,7 +278,7 @@ pub fn write_local_merge_pairs_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `fastq.remove_duplicates` artifacts.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.remove_duplicates/report.json`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.remove_duplicates/report.json`
 /// under the active repository root, alongside the top-level `dedup.fastq.gz`.
 ///
 /// # Errors
@@ -290,7 +290,7 @@ pub fn write_local_remove_duplicates_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `fastq.remove_chimeras` artifacts.
 ///
-/// The written primary artifact lives at `target/local-smoke/fastq.remove_chimeras/non_chimeric.fasta`
+/// The written primary artifact lives at `runs/bench/local-smoke/fastq.remove_chimeras/non_chimeric.fasta`
 /// under the active repository root, alongside the top-level `chimeras.tsv` and `report.json`.
 ///
 /// # Errors
@@ -302,7 +302,7 @@ pub fn write_local_remove_chimeras_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `fastq.infer_asvs` artifacts.
 ///
-/// The written primary artifact lives at `target/local-smoke/fastq.infer_asvs/asv_table.tsv`
+/// The written primary artifact lives at `runs/bench/local-smoke/fastq.infer_asvs/asv_table.tsv`
 /// under the active repository root, alongside the top-level `representatives.fasta` and
 /// `report.json`.
 ///
@@ -315,7 +315,7 @@ pub fn write_local_infer_asvs_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `fastq.cluster_otus` artifacts.
 ///
-/// The written primary artifact lives at `target/local-smoke/fastq.cluster_otus/otu_table.tsv`
+/// The written primary artifact lives at `runs/bench/local-smoke/fastq.cluster_otus/otu_table.tsv`
 /// under the active repository root, alongside the top-level `otu_representatives.fasta` and
 /// `report.json`.
 ///
@@ -328,7 +328,7 @@ pub fn write_local_cluster_otus_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `fastq.trim_reads` report bundle.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.trim_reads/report.json`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.trim_reads/report.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -341,7 +341,7 @@ pub fn write_local_trim_reads_smoke_report() -> Result<PathBuf> {
 /// Materialize the governed local-smoke `fastq.detect_duplicates_premerge` report bundle.
 ///
 /// The written summary artifact lives at
-/// `target/local-smoke/fastq.detect_duplicates_premerge/duplicates.json` under the active
+/// `runs/bench/local-smoke/fastq.detect_duplicates_premerge/duplicates.json` under the active
 /// repository root.
 ///
 /// # Errors
@@ -355,7 +355,7 @@ pub fn write_local_detect_duplicates_premerge_smoke_report() -> Result<PathBuf> 
 /// `fastq.estimate_library_complexity_prealign` report bundle.
 ///
 /// The written summary artifact lives at
-/// `target/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json` under the
+/// `runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json` under the
 /// active repository root.
 ///
 /// # Errors
@@ -367,7 +367,7 @@ pub fn write_local_estimate_library_complexity_prealign_smoke_report() -> Result
 
 /// Materialize the governed local-smoke `fastq.normalize_primers` artifacts.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.normalize_primers/report.json`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.normalize_primers/report.json`
 /// under the active repository root, alongside the top-level `normalized.fastq.gz`.
 ///
 /// # Errors
@@ -379,7 +379,7 @@ pub fn write_local_normalize_primers_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `fastq.trim_terminal_damage` artifacts.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.trim_terminal_damage/metrics.json`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.trim_terminal_damage/metrics.json`
 /// under the active repository root, alongside the top-level `trimmed.fastq.gz`.
 ///
 /// # Errors
@@ -391,7 +391,7 @@ pub fn write_local_trim_terminal_damage_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `fastq.trim_polyg_tails` artifacts.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.trim_polyg_tails/metrics.json`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.trim_polyg_tails/metrics.json`
 /// under the active repository root, alongside the top-level `trimmed.fastq.gz`.
 ///
 /// # Errors

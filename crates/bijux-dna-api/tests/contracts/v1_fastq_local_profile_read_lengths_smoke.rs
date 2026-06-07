@@ -32,7 +32,7 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_profile_read_lengths_smoke_summary_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/fastq.profile_read_lengths");
+    let output_dir = repo_root.join("runs/bench/local-smoke/fastq.profile_read_lengths");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -41,7 +41,7 @@ fn write_local_profile_read_lengths_smoke_summary_materializes_governed_outputs(
         bijux_dna_api::v1::api::fastq::write_local_profile_read_lengths_smoke_summary()?;
     assert_eq!(
         summary_path,
-        repo_root.join("target/local-smoke/fastq.profile_read_lengths/read_lengths.tsv")
+        repo_root.join("runs/bench/local-smoke/fastq.profile_read_lengths/read_lengths.tsv")
     );
     assert!(summary_path.is_file(), "local-smoke read-length summary must exist");
 

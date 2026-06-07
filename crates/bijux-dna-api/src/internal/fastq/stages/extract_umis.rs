@@ -949,7 +949,7 @@ fn required_output_path<'a>(plan: &'a StagePlanV1, artifact_name: &str) -> Resul
 
 /// Materialize the governed local-smoke `fastq.extract_umis` artifacts.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.extract_umis/report.json`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.extract_umis/report.json`
 /// under the active repository root, alongside top-level UMI-tagged FASTQ outputs.
 ///
 /// # Errors
@@ -964,7 +964,7 @@ pub fn write_local_extract_umis_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/fastq.extract_umis");
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.extract_umis");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let summary = materialize_local_extract_umis_smoke_case(&repo_root, case, &output_root)?;
     let report_path = output_root.join("report.json");

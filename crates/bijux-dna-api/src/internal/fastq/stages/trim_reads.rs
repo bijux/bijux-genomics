@@ -120,7 +120,7 @@ fn write_governed_trim_report(
 
 /// Materialize the governed local-smoke `fastq.trim_reads` report bundle.
 ///
-/// The written summary artifact lives at `target/local-smoke/fastq.trim_reads/report.json`
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.trim_reads/report.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -129,7 +129,7 @@ fn write_governed_trim_report(
 pub fn write_local_trim_reads_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases = bijux_dna_planner_fastq::stage_api::local_trim_reads_smoke_plans(&repo_root)?;
-    let output_root = repo_root.join("target/local-smoke/fastq.trim_reads");
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.trim_reads");
     bijux_dna_infra::ensure_dir(&output_root)?;
 
     let case_reports = cases

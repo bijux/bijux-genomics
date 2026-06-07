@@ -31,7 +31,7 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_cluster_otus_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/fastq.cluster_otus");
+    let output_dir = repo_root.join("runs/bench/local-smoke/fastq.cluster_otus");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -39,15 +39,15 @@ fn write_local_cluster_otus_smoke_report_materializes_governed_outputs() -> Resu
     let primary_artifact = bijux_dna_api::v1::api::fastq::write_local_cluster_otus_smoke_report()?;
     assert_eq!(
         primary_artifact,
-        repo_root.join("target/local-smoke/fastq.cluster_otus/otu_table.tsv")
+        repo_root.join("runs/bench/local-smoke/fastq.cluster_otus/otu_table.tsv")
     );
     assert!(primary_artifact.is_file(), "top-level OTU table must exist");
 
     let table = std::fs::read_to_string(&primary_artifact)?;
     assert!(table.contains("sample_id\totu_id\tabundance\trepresentative_id\trepresentative_fasta"));
-    assert!(table.contains("sample_1\tOTU00001\t1\tOTU00001\ttarget/local-smoke/fastq.cluster_otus/otu_representatives.fasta"));
-    assert!(table.contains("sample_1\tOTU00002\t1\tOTU00002\ttarget/local-smoke/fastq.cluster_otus/otu_representatives.fasta"));
-    assert!(table.contains("sample_1\tOTU00003\t1\tOTU00003\ttarget/local-smoke/fastq.cluster_otus/otu_representatives.fasta"));
+    assert!(table.contains("sample_1\tOTU00001\t1\tOTU00001\truns/bench/local-smoke/fastq.cluster_otus/otu_representatives.fasta"));
+    assert!(table.contains("sample_1\tOTU00002\t1\tOTU00002\truns/bench/local-smoke/fastq.cluster_otus/otu_representatives.fasta"));
+    assert!(table.contains("sample_1\tOTU00003\t1\tOTU00003\truns/bench/local-smoke/fastq.cluster_otus/otu_representatives.fasta"));
 
     let representatives = output_dir.join("otu_representatives.fasta");
     assert!(representatives.is_file(), "top-level OTU representative FASTA must exist");
@@ -69,11 +69,11 @@ fn write_local_cluster_otus_smoke_report_materializes_governed_outputs() -> Resu
     assert_eq!(payload["representative_sequence_count"], serde_json::json!(3));
     assert_eq!(
         payload["otu_table_tsv"],
-        serde_json::json!("target/local-smoke/fastq.cluster_otus/otu_table.tsv")
+        serde_json::json!("runs/bench/local-smoke/fastq.cluster_otus/otu_table.tsv")
     );
     assert_eq!(
         payload["representative_sequences_fasta"],
-        serde_json::json!("target/local-smoke/fastq.cluster_otus/otu_representatives.fasta")
+        serde_json::json!("runs/bench/local-smoke/fastq.cluster_otus/otu_representatives.fasta")
     );
 
     let case_report_path = repo_root.join(

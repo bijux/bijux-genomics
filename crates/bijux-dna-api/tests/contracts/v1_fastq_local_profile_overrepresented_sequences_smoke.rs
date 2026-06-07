@@ -32,7 +32,8 @@ fn write_local_profile_overrepresented_sequences_smoke_summary_materializes_gove
 ) -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/fastq.profile_overrepresented_sequences");
+    let output_dir =
+        repo_root.join("runs/bench/local-smoke/fastq.profile_overrepresented_sequences");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -42,8 +43,9 @@ fn write_local_profile_overrepresented_sequences_smoke_summary_materializes_gove
         )?;
     assert_eq!(
         summary_path,
-        repo_root
-            .join("target/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv")
+        repo_root.join(
+            "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv"
+        )
     );
     assert!(summary_path.is_file(), "top-level overrepresented TSV must exist");
 

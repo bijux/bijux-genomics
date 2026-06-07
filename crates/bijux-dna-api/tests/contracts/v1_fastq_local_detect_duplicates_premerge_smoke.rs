@@ -32,7 +32,7 @@ fn write_local_detect_duplicates_premerge_smoke_report_materializes_governed_out
 {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/fastq.detect_duplicates_premerge");
+    let output_dir = repo_root.join("runs/bench/local-smoke/fastq.detect_duplicates_premerge");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -41,7 +41,7 @@ fn write_local_detect_duplicates_premerge_smoke_report_materializes_governed_out
         bijux_dna_api::v1::api::fastq::write_local_detect_duplicates_premerge_smoke_report()?;
     assert_eq!(
         report_path,
-        repo_root.join("target/local-smoke/fastq.detect_duplicates_premerge/duplicates.json")
+        repo_root.join("runs/bench/local-smoke/fastq.detect_duplicates_premerge/duplicates.json")
     );
     assert!(report_path.is_file(), "local-smoke duplicate summary must exist");
 

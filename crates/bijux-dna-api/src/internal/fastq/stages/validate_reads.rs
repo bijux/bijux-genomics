@@ -97,7 +97,7 @@ struct LocalValidateReadsSmokeReport {
 pub fn write_local_validate_reads_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases = bijux_dna_planner_fastq::stage_api::local_validate_reads_smoke_plans(&repo_root)?;
-    let output_root = repo_root.join("target/local-smoke/fastq.validate_reads");
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.validate_reads");
     bijux_dna_infra::ensure_dir(&output_root)?;
 
     let case_reports = cases

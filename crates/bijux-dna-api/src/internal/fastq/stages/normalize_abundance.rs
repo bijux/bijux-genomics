@@ -627,7 +627,7 @@ pub fn write_local_normalize_abundance_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/fastq.normalize_abundance");
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.normalize_abundance");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let summary = materialize_local_normalize_abundance_smoke_case(&repo_root, case, &output_root)?;
     let report_path = output_root.join("report.json");

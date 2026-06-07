@@ -42,13 +42,13 @@ fn case_by_sample_id<'a>(payload: &'a serde_json::Value, sample_id: &str) -> &'a
 fn write_local_kinship_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/bam.kinship");
+    let output_dir = repo_root.join("runs/bench/local-smoke/bam.kinship");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
 
     let report_path = bijux_dna_api::v1::api::bam::write_local_kinship_smoke_report()?;
-    assert_eq!(report_path, repo_root.join("target/local-smoke/bam.kinship/kinship.json"));
+    assert_eq!(report_path, repo_root.join("runs/bench/local-smoke/bam.kinship/kinship.json"));
     assert!(report_path.is_file(), "local-smoke BAM kinship report must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
@@ -176,7 +176,7 @@ fn write_local_kinship_smoke_report_materializes_governed_outputs() -> Result<()
 fn write_local_kinship_smoke_report_writes_governed_tool_reports() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/bam.kinship");
+    let output_dir = repo_root.join("runs/bench/local-smoke/bam.kinship");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -226,7 +226,7 @@ fn write_local_kinship_smoke_report_writes_governed_tool_reports() -> Result<()>
 fn write_local_kinship_smoke_report_writes_governed_stage_metrics() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/bam.kinship");
+    let output_dir = repo_root.join("runs/bench/local-smoke/bam.kinship");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }

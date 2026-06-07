@@ -31,7 +31,7 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_normalize_abundance_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/fastq.normalize_abundance");
+    let output_dir = repo_root.join("runs/bench/local-smoke/fastq.normalize_abundance");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -40,7 +40,7 @@ fn write_local_normalize_abundance_smoke_report_materializes_governed_outputs() 
         bijux_dna_api::v1::api::fastq::write_local_normalize_abundance_smoke_report()?;
     assert_eq!(
         primary_artifact,
-        repo_root.join("target/local-smoke/fastq.normalize_abundance/normalized_abundance.tsv")
+        repo_root.join("runs/bench/local-smoke/fastq.normalize_abundance/normalized_abundance.tsv")
     );
     assert!(primary_artifact.is_file(), "top-level normalized abundance table must exist");
 
@@ -88,7 +88,7 @@ fn write_local_normalize_abundance_smoke_report_materializes_governed_outputs() 
     assert_eq!(
         case_report["normalized_abundance_tsv"],
         serde_json::json!(
-            "target/local-smoke/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit/abundance_normalized.tsv"
+            "runs/bench/local-smoke/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit/abundance_normalized.tsv"
         )
     );
 

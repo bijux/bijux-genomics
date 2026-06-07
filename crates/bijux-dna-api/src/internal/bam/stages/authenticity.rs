@@ -41,7 +41,7 @@ struct LocalAuthenticitySmokeReport {
 
 /// Materialize the governed local-smoke `bam.authenticity` artifacts and top-level report.
 ///
-/// The written report lives at `target/local-smoke/bam.authenticity/authenticity.json`
+/// The written report lives at `runs/bench/local-smoke/bam.authenticity/authenticity.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -57,7 +57,7 @@ pub fn write_local_authenticity_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/bam.authenticity");
+    let output_root = repo_root.join("runs/bench/local-smoke/bam.authenticity");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let report = materialize_local_authenticity_smoke_case(&repo_root, case)?;
     let report_path = output_root.join("authenticity.json");

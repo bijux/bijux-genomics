@@ -31,7 +31,7 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_infer_asvs_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/fastq.infer_asvs");
+    let output_dir = repo_root.join("runs/bench/local-smoke/fastq.infer_asvs");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -39,7 +39,7 @@ fn write_local_infer_asvs_smoke_report_materializes_governed_outputs() -> Result
     let primary_artifact = bijux_dna_api::v1::api::fastq::write_local_infer_asvs_smoke_report()?;
     assert_eq!(
         primary_artifact,
-        repo_root.join("target/local-smoke/fastq.infer_asvs/asv_table.tsv")
+        repo_root.join("runs/bench/local-smoke/fastq.infer_asvs/asv_table.tsv")
     );
     assert!(primary_artifact.is_file(), "top-level ASV table must exist");
 

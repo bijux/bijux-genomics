@@ -39,7 +39,7 @@ fn write_local_estimate_library_complexity_prealign_smoke_report_materializes_go
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
     let output_dir =
-        repo_root.join("target/local-smoke/fastq.estimate_library_complexity_prealign");
+        repo_root.join("runs/bench/local-smoke/fastq.estimate_library_complexity_prealign");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -47,8 +47,9 @@ fn write_local_estimate_library_complexity_prealign_smoke_report_materializes_go
     let report_path = bijux_dna_api::v1::api::fastq::write_local_estimate_library_complexity_prealign_smoke_report()?;
     assert_eq!(
         report_path,
-        repo_root
-            .join("target/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json")
+        repo_root.join(
+            "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json"
+        )
     );
     assert!(report_path.is_file(), "local-smoke complexity summary must exist");
 

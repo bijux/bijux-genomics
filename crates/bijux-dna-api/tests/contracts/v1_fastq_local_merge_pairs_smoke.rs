@@ -34,13 +34,13 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_merge_pairs_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/fastq.merge_pairs");
+    let output_dir = repo_root.join("runs/bench/local-smoke/fastq.merge_pairs");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
 
     let report_path = bijux_dna_api::v1::api::fastq::write_local_merge_pairs_smoke_report()?;
-    assert_eq!(report_path, repo_root.join("target/local-smoke/fastq.merge_pairs/report.json"));
+    assert_eq!(report_path, repo_root.join("runs/bench/local-smoke/fastq.merge_pairs/report.json"));
     assert!(report_path.is_file(), "local merge summary must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;

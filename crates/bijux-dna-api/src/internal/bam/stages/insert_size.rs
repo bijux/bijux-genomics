@@ -31,7 +31,7 @@ struct LocalInsertSizeSmokeReport {
 
 /// Materialize the governed local-smoke `bam.insert_size` artifacts and top-level report.
 ///
-/// The written report lives at `target/local-smoke/bam.insert_size/insert_size.json`
+/// The written report lives at `runs/bench/local-smoke/bam.insert_size/insert_size.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -47,7 +47,7 @@ pub fn write_local_insert_size_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/bam.insert_size");
+    let output_root = repo_root.join("runs/bench/local-smoke/bam.insert_size");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let report = materialize_local_insert_size_smoke_case(&repo_root, case)?;
     let report_path = output_root.join("insert_size.json");

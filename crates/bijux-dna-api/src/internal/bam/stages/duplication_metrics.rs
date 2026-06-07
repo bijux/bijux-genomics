@@ -50,7 +50,7 @@ struct LocalDuplicationMetricsObservation {
 
 /// Materialize the governed local-smoke `bam.duplication_metrics` artifacts and top-level report.
 ///
-/// The written report lives at `target/local-smoke/bam.duplication_metrics/duplication_metrics.json`
+/// The written report lives at `runs/bench/local-smoke/bam.duplication_metrics/duplication_metrics.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -67,7 +67,7 @@ pub fn write_local_duplication_metrics_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/bam.duplication_metrics");
+    let output_root = repo_root.join("runs/bench/local-smoke/bam.duplication_metrics");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let report = materialize_local_duplication_metrics_smoke_case(&repo_root, case)?;
     let report_path = output_root.join("duplication_metrics.json");

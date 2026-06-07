@@ -31,13 +31,13 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_markdup_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/bam.markdup");
+    let output_dir = repo_root.join("runs/bench/local-smoke/bam.markdup");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
 
     let report_path = bijux_dna_api::v1::api::bam::write_local_markdup_smoke_report()?;
-    assert_eq!(report_path, repo_root.join("target/local-smoke/bam.markdup/duplicates.json"));
+    assert_eq!(report_path, repo_root.join("runs/bench/local-smoke/bam.markdup/duplicates.json"));
     assert!(report_path.is_file(), "local-smoke BAM markdup report must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;

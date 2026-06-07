@@ -31,7 +31,7 @@ struct LocalEndogenousContentSmokeReport {
 /// Materialize the governed local-smoke `bam.endogenous_content` artifacts and top-level report.
 ///
 /// The written report lives at
-/// `target/local-smoke/bam.endogenous_content/endogenous_content.json`
+/// `runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -47,7 +47,7 @@ pub fn write_local_endogenous_content_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/bam.endogenous_content");
+    let output_root = repo_root.join("runs/bench/local-smoke/bam.endogenous_content");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let report = materialize_local_endogenous_content_smoke_case(&repo_root, case)?;
     let report_path = output_root.join("endogenous_content.json");

@@ -56,13 +56,16 @@ fn read_gz_fastq_sequences(path: &Path) -> Result<Vec<String>> {
 fn write_local_filter_reads_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/fastq.filter_reads");
+    let output_dir = repo_root.join("runs/bench/local-smoke/fastq.filter_reads");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
 
     let report_path = bijux_dna_api::v1::api::fastq::write_local_filter_reads_smoke_report()?;
-    assert_eq!(report_path, repo_root.join("target/local-smoke/fastq.filter_reads/report.json"));
+    assert_eq!(
+        report_path,
+        repo_root.join("runs/bench/local-smoke/fastq.filter_reads/report.json")
+    );
     assert!(report_path.is_file(), "local filter report must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;

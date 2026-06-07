@@ -56,7 +56,7 @@ fn read_gz_fastq_sequences(path: &Path) -> Result<Vec<String>> {
 fn write_local_trim_polyg_tails_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/fastq.trim_polyg_tails");
+    let output_dir = repo_root.join("runs/bench/local-smoke/fastq.trim_polyg_tails");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -64,7 +64,7 @@ fn write_local_trim_polyg_tails_smoke_report_materializes_governed_outputs() -> 
     let metrics_path = bijux_dna_api::v1::api::fastq::write_local_trim_polyg_tails_smoke_report()?;
     assert_eq!(
         metrics_path,
-        repo_root.join("target/local-smoke/fastq.trim_polyg_tails/metrics.json")
+        repo_root.join("runs/bench/local-smoke/fastq.trim_polyg_tails/metrics.json")
     );
     assert!(metrics_path.is_file(), "local trim-polyG metrics must exist");
 

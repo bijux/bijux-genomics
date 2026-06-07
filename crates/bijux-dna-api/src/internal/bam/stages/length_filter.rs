@@ -33,7 +33,7 @@ struct LocalLengthFilterSmokeReport {
 
 /// Materialize the governed local-smoke `bam.length_filter` artifacts and top-level report.
 ///
-/// The written report lives at `target/local-smoke/bam.length_filter/length_filter.json`
+/// The written report lives at `runs/bench/local-smoke/bam.length_filter/length_filter.json`
 /// under the active repository root, alongside the curated top-level `length_filtered.bam`.
 ///
 /// # Errors
@@ -49,7 +49,7 @@ pub fn write_local_length_filter_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/bam.length_filter");
+    let output_root = repo_root.join("runs/bench/local-smoke/bam.length_filter");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let report = materialize_local_length_filter_smoke_case(&repo_root, case, &output_root)?;
     let report_path = output_root.join("length_filter.json");

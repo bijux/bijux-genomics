@@ -35,7 +35,7 @@ struct LocalOverlapCorrectionSmokeReport {
 /// Materialize the governed local-smoke `bam.overlap_correction` artifacts and top-level report.
 ///
 /// The written report lives at
-/// `target/local-smoke/bam.overlap_correction/overlap_correction.json`
+/// `runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json`
 /// under the active repository root, alongside the curated top-level
 /// `overlap_corrected.bam`.
 ///
@@ -52,7 +52,7 @@ pub fn write_local_overlap_correction_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/bam.overlap_correction");
+    let output_root = repo_root.join("runs/bench/local-smoke/bam.overlap_correction");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let report = materialize_local_overlap_correction_smoke_case(&repo_root, case, &output_root)?;
     let report_path = output_root.join("overlap_correction.json");

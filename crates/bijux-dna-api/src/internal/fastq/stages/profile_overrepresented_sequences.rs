@@ -141,7 +141,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
 /// Materialize the governed local-smoke `fastq.profile_overrepresented_sequences` summary TSV.
 ///
 /// The written top-level artifact lives at
-/// `target/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv`
+/// `runs/bench/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv`
 /// under the active repository root.
 ///
 /// # Errors
@@ -159,7 +159,8 @@ pub fn write_local_profile_overrepresented_sequences_smoke_summary() -> Result<P
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/fastq.profile_overrepresented_sequences");
+    let output_root =
+        repo_root.join("runs/bench/local-smoke/fastq.profile_overrepresented_sequences");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let summary = materialize_local_profile_overrepresented_sequences_smoke_case(
         &repo_root,

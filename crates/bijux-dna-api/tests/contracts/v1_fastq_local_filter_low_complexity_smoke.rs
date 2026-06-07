@@ -56,7 +56,7 @@ fn read_gz_fastq_sequences(path: &Path) -> Result<Vec<String>> {
 fn write_local_filter_low_complexity_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/fastq.filter_low_complexity");
+    let output_dir = repo_root.join("runs/bench/local-smoke/fastq.filter_low_complexity");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -65,7 +65,7 @@ fn write_local_filter_low_complexity_smoke_report_materializes_governed_outputs(
         bijux_dna_api::v1::api::fastq::write_local_filter_low_complexity_smoke_report()?;
     assert_eq!(
         report_path,
-        repo_root.join("target/local-smoke/fastq.filter_low_complexity/report.json")
+        repo_root.join("runs/bench/local-smoke/fastq.filter_low_complexity/report.json")
     );
     assert!(report_path.is_file(), "local filter-low-complexity summary must exist");
 

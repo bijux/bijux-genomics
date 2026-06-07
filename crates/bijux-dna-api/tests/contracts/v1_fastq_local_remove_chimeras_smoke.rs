@@ -31,7 +31,7 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_remove_chimeras_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/fastq.remove_chimeras");
+    let output_dir = repo_root.join("runs/bench/local-smoke/fastq.remove_chimeras");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -40,7 +40,7 @@ fn write_local_remove_chimeras_smoke_report_materializes_governed_outputs() -> R
         bijux_dna_api::v1::api::fastq::write_local_remove_chimeras_smoke_report()?;
     assert_eq!(
         primary_artifact,
-        repo_root.join("target/local-smoke/fastq.remove_chimeras/non_chimeric.fasta")
+        repo_root.join("runs/bench/local-smoke/fastq.remove_chimeras/non_chimeric.fasta")
     );
     assert!(primary_artifact.is_file(), "top-level non-chimeric FASTA must exist");
 
@@ -63,11 +63,11 @@ fn write_local_remove_chimeras_smoke_report_materializes_governed_outputs() -> R
     assert_eq!(payload["non_chimera_count"], serde_json::json!(2));
     assert_eq!(
         payload["filtered_representative_sequences"],
-        serde_json::json!("target/local-smoke/fastq.remove_chimeras/non_chimeric.fasta")
+        serde_json::json!("runs/bench/local-smoke/fastq.remove_chimeras/non_chimeric.fasta")
     );
     assert_eq!(
         payload["non_chimeric_fasta"],
-        serde_json::json!("target/local-smoke/fastq.remove_chimeras/non_chimeric.fasta")
+        serde_json::json!("runs/bench/local-smoke/fastq.remove_chimeras/non_chimeric.fasta")
     );
 
     let chimera_tsv = repo_root
@@ -88,7 +88,7 @@ fn write_local_remove_chimeras_smoke_report_materializes_governed_outputs() -> R
     assert_eq!(
         case_report["output_reads"],
         serde_json::json!(
-            "target/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/nonchimeras.fastq.gz"
+            "runs/bench/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/nonchimeras.fastq.gz"
         )
     );
     assert_eq!(case_report["reads_in"], serde_json::json!(3));

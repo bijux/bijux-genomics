@@ -56,7 +56,7 @@ struct BiasMitigationToolReportV1 {
 
 /// Materialize the governed local-smoke `bam.bias_mitigation` artifacts and top-level report.
 ///
-/// The written report lives at `target/local-smoke/bam.bias_mitigation/bias_mitigation.json`
+/// The written report lives at `runs/bench/local-smoke/bam.bias_mitigation/bias_mitigation.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -73,7 +73,7 @@ pub fn write_local_bias_mitigation_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/bam.bias_mitigation");
+    let output_root = repo_root.join("runs/bench/local-smoke/bam.bias_mitigation");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let report = materialize_local_bias_mitigation_smoke_case(&repo_root, case)?;
     let report_path = output_root.join("bias_mitigation.json");

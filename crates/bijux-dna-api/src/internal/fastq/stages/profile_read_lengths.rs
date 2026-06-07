@@ -240,7 +240,7 @@ pub fn write_local_profile_read_lengths_smoke_summary() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases =
         bijux_dna_planner_fastq::stage_api::local_profile_read_lengths_smoke_plans(&repo_root)?;
-    let output_root = repo_root.join("target/local-smoke/fastq.profile_read_lengths");
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.profile_read_lengths");
     bijux_dna_infra::ensure_dir(&output_root)?;
 
     let summaries = cases

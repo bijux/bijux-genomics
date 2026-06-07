@@ -520,7 +520,7 @@ pub fn write_local_cluster_otus_smoke_report() -> Result<std::path::PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/fastq.cluster_otus");
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.cluster_otus");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let summary = materialize_local_cluster_otus_smoke_case(&repo_root, case, &output_root)?;
     let report_path = output_root.join("report.json");

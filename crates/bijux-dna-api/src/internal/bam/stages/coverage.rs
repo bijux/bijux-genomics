@@ -9,7 +9,7 @@ const LOCAL_COVERAGE_SMOKE_METRICS_SCHEMA_VERSION: &str =
 
 /// Materialize the governed local-smoke `bam.coverage` artifacts and TSV summary.
 ///
-/// The written summary artifact lives at `target/local-smoke/bam.coverage/coverage.tsv`
+/// The written summary artifact lives at `runs/bench/local-smoke/bam.coverage/coverage.tsv`
 /// under the active repository root.
 ///
 /// # Errors
@@ -18,7 +18,7 @@ const LOCAL_COVERAGE_SMOKE_METRICS_SCHEMA_VERSION: &str =
 pub fn write_local_coverage_smoke_summary() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases = bijux_dna_planner_bam::stage_api::local_coverage_smoke_plans(&repo_root)?;
-    let output_root = repo_root.join("target/local-smoke/bam.coverage");
+    let output_root = repo_root.join("runs/bench/local-smoke/bam.coverage");
     bijux_dna_infra::ensure_dir(&output_root)?;
 
     let mut body = String::from(

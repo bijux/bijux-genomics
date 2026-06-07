@@ -38,7 +38,7 @@ struct LocalMarkdupSmokeReport {
 
 /// Materialize the governed local-smoke `bam.markdup` artifacts and top-level report.
 ///
-/// The written report lives at `target/local-smoke/bam.markdup/duplicates.json`
+/// The written report lives at `runs/bench/local-smoke/bam.markdup/duplicates.json`
 /// under the active repository root, alongside the curated top-level `marked.bam`.
 ///
 /// # Errors
@@ -54,7 +54,7 @@ pub fn write_local_markdup_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/bam.markdup");
+    let output_root = repo_root.join("runs/bench/local-smoke/bam.markdup");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let report = materialize_local_markdup_smoke_case(&repo_root, case, &output_root)?;
     let report_path = output_root.join("duplicates.json");

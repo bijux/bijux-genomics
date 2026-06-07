@@ -50,7 +50,7 @@ struct LocalKinshipSmokeReport {
 
 /// Materialize the governed local-smoke `bam.kinship` artifacts and top-level report.
 ///
-/// The written report lives at `target/local-smoke/bam.kinship/kinship.json`
+/// The written report lives at `runs/bench/local-smoke/bam.kinship/kinship.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -60,7 +60,7 @@ struct LocalKinshipSmokeReport {
 pub fn write_local_kinship_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases = bijux_dna_planner_bam::stage_api::local_kinship_smoke_plans(&repo_root)?;
-    let output_root = repo_root.join("target/local-smoke/bam.kinship");
+    let output_root = repo_root.join("runs/bench/local-smoke/bam.kinship");
     bijux_dna_infra::ensure_dir(&output_root)?;
 
     let case_reports = cases

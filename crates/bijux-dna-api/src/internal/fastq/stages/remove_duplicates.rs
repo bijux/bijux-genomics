@@ -432,7 +432,7 @@ pub fn write_local_remove_duplicates_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/fastq.remove_duplicates");
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.remove_duplicates");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let summary = materialize_local_remove_duplicates_smoke_case(&repo_root, case, &output_root)?;
     let report_path = output_root.join("report.json");

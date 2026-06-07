@@ -28,7 +28,7 @@ struct LocalFilterSmokeMetrics {
 
 /// Materialize the governed local-smoke `bam.filter` artifacts and top-level metrics report.
 ///
-/// The written metrics artifact lives at `target/local-smoke/bam.filter/filter_metrics.json`
+/// The written metrics artifact lives at `runs/bench/local-smoke/bam.filter/filter_metrics.json`
 /// under the active repository root, alongside the curated top-level `filtered.bam`.
 ///
 /// # Errors
@@ -44,7 +44,7 @@ pub fn write_local_filter_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("target/local-smoke/bam.filter");
+    let output_root = repo_root.join("runs/bench/local-smoke/bam.filter");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let metrics = materialize_local_filter_smoke_case(&repo_root, case, &output_root)?;
     let metrics_path = output_root.join("filter_metrics.json");

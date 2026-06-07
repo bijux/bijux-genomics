@@ -34,13 +34,13 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_coverage_smoke_summary_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/bam.coverage");
+    let output_dir = repo_root.join("runs/bench/local-smoke/bam.coverage");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
 
     let summary_path = bijux_dna_api::v1::api::bam::write_local_coverage_smoke_summary()?;
-    assert_eq!(summary_path, repo_root.join("target/local-smoke/bam.coverage/coverage.tsv"));
+    assert_eq!(summary_path, repo_root.join("runs/bench/local-smoke/bam.coverage/coverage.tsv"));
     assert!(summary_path.is_file(), "local-smoke BAM coverage TSV must exist");
 
     let body = std::fs::read_to_string(&summary_path)?;

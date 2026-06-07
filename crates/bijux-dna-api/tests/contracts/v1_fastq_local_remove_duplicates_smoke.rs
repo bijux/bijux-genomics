@@ -56,7 +56,7 @@ fn read_gz_fastq_sequences(path: &Path) -> Result<Vec<String>> {
 fn write_local_remove_duplicates_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-smoke/fastq.remove_duplicates");
+    let output_dir = repo_root.join("runs/bench/local-smoke/fastq.remove_duplicates");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -64,7 +64,7 @@ fn write_local_remove_duplicates_smoke_report_materializes_governed_outputs() ->
     let report_path = bijux_dna_api::v1::api::fastq::write_local_remove_duplicates_smoke_report()?;
     assert_eq!(
         report_path,
-        repo_root.join("target/local-smoke/fastq.remove_duplicates/report.json")
+        repo_root.join("runs/bench/local-smoke/fastq.remove_duplicates/report.json")
     );
     assert!(report_path.is_file(), "local remove-duplicates summary must exist");
 
