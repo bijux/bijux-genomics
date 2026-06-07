@@ -46,9 +46,10 @@ fn bench_readiness_vcf_parser_failure_tests_writes_governed_json_file() {
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert!(rows.iter().any(|row| {
         row.get("failure_reason").and_then(serde_json::Value::as_str) == Some("malformed_pca_table")
-            && row.get("probe_artifact_path").and_then(serde_json::Value::as_str).is_some_and(
-                |path| path.contains("artifacts/bench-readiness/vcf-parser-failure-tests"),
-            )
+            && row.get("probe_artifact_path").and_then(serde_json::Value::as_str)
+                == Some(
+                    "artifacts/bench-readiness/vcf-parser-failure-tests/malformed-pca-table/fixture/raw.evec",
+                )
             && row.get("expected_error_fragment").and_then(serde_json::Value::as_str)
                 == Some("does not contain any numeric components")
     }));

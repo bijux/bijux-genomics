@@ -81,6 +81,10 @@ fn bench_readiness_vcf_parser_failure_tests_report_governed_failure_rows() {
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
             && row.get("parser_id").and_then(serde_json::Value::as_str)
                 == Some("parse_bcftools_postprocess_metrics")
+            && row.get("probe_artifact_path").and_then(serde_json::Value::as_str)
+                == Some(
+                    "artifacts/bench-readiness/vcf-parser-failure-tests/missing-index/fixture/raw.postprocess.vcf.tbi",
+                )
             && row.get("observed_error").and_then(serde_json::Value::as_str).is_some_and(|value| {
                 value.contains("required tabix index for postprocess output is missing")
             })

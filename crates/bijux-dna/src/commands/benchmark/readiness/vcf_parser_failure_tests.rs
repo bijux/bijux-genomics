@@ -219,11 +219,13 @@ fn evaluate_case(
     scratch_root: &Path,
     case: &VcfParserFailureCase,
 ) -> Result<VcfParserFailureTestRow> {
-    let temp = bijux_dna_infra::temp_dir_in(scratch_root, "vcf-parser-failure-")
-        .map_err(anyhow::Error::from)
-        .context("create VCF parser failure probe root")?;
     let fixture_source = repo_root.join(case.fixture_dir);
-    let probe_root = temp.path().join("fixture");
+    let case_root = scratch_root.join(case.case_id);
+    if case_root.exists() {
+        fs::remove_dir_all(&case_root)
+            .with_context(|| format!("remove {}", case_root.display()))?;
+    }
+    let probe_root = case_root.join("fixture");
     copy_fixture_dir(&fixture_source, &probe_root)?;
     let probe_artifact_path = materialize_failure_probe(&probe_root, case)?;
     let observed = parse_case(case, &probe_root);
