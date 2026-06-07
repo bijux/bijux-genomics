@@ -147,6 +147,12 @@ Visible aliases are part of the operator surface:
   and pipeline consumers resolve that root through the shared benchmark path contract, with
   explicit `--benchmark-root` taking precedence over `BIJUX_BENCHMARK_ROOT`, and the repo default
   falling back to `benchmarks/`.
+- `bijux-dna bench paths prove-disposable-root-cleanup`
+  `paths prove-disposable-root-cleanup` deletes the disposable repository roots `target/`,
+  `artifacts/`, and `runs/`, reruns strict benchmark path validation, and writes
+  `benchmarks/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json`. The proof fails closed if
+  any disposable root survives the cleanup step or if tracked benchmark truth depends on files
+  outside `benchmarks/`.
 - `bijux-dna bench run`
 - `bijux-dna bench status`
 - `bijux-dna bench workspace-value`
