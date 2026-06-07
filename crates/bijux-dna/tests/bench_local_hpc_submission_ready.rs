@@ -123,22 +123,26 @@ fn bench_local_validate_hpc_submission_ready_reports_clean_repo_gate() {
     assert!(
         checks.iter().any(|check| {
             check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(91)
+                && check.get("output_path").and_then(serde_json::Value::as_str)
+                    == Some("benchmarks/configs/hpc/campaign/cross-mini.toml")
                 && check
                     .get("detail")
                     .and_then(serde_json::Value::as_str)
                     .is_some_and(|detail| detail.contains("cross-hpc-mini"))
         }),
-        "goal 91 must report the validated HPC campaign profile ids"
+        "goal 91 must report the benchmark-owned HPC campaign config root"
     );
     assert!(
         checks.iter().any(|check| {
             check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(99)
+                && check.get("output_path").and_then(serde_json::Value::as_str)
+                    == Some("benchmarks/configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml")
                 && check
                     .get("detail")
                     .and_then(serde_json::Value::as_str)
                     .is_some_and(|detail| detail.contains("planned 4 jobs"))
         }),
-        "goal 99 must report the governed LUNARC local-ready dry-run summary"
+        "goal 99 must report the benchmark-owned LUNARC local-ready profile"
     );
 }
 

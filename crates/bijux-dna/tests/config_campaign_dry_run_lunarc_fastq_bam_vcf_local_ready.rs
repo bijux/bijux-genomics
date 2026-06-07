@@ -22,7 +22,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
         .arg("config")
         .arg("campaign-dry-run")
         .arg("--config")
-        .arg("configs/hpc/campaign/lunarc-fastq-bam-vcf-local-ready.toml")
+        .arg("benchmarks/configs/hpc/campaign/lunarc-fastq-bam-vcf-local-ready.toml")
         .arg("--env-file")
         .arg(&env_file)
         .arg("--user-policies")
@@ -50,6 +50,10 @@ fn config_campaign_dry_run_lunarc_fastq_bam_vcf_local_ready_reports_prepared_cro
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.hpc.campaign.v1")
+    );
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("benchmarks/configs/hpc/campaign/lunarc-fastq-bam-vcf-local-ready.toml")
     );
     assert_eq!(
         payload.get("campaign_id").and_then(serde_json::Value::as_str),
