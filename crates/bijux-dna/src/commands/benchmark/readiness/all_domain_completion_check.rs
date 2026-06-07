@@ -18,6 +18,7 @@ use crate::commands::benchmark::local_stage_fake_runs::path_relative_to_repo;
 use crate::commands::benchmark::local_stage_result_manifest::{
     load_validated_stage_result_manifest_path, BenchStageResultManifestV1, BenchStageResultStatus,
 };
+use crate::commands::benchmark::path_resolution::BenchmarkPathResolver;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -115,11 +116,12 @@ pub(crate) fn run_render_all_domain_completion_check(
     args: &parse::BenchReadinessRenderAllDomainCompletionCheckArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
     let report = render_all_domain_completion_check(
         &repo_root,
-        args.output
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_PATH)),
+        args.output.clone().unwrap_or_else(|| {
+            benchmark_paths.benchmark_readiness_root().join("completion-check-all-domains.json")
+        }),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -133,13 +135,14 @@ pub(crate) fn render_all_domain_completion_check(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<AllDomainCompletionCheckReport> {
+    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
 
     let fixture_root =
-        repo_relative_path(repo_root, Path::new(DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_FIXTURE_ROOT));
+        benchmark_paths.benchmark_readiness_root().join("completion-check-all-domains-fixture");
     if fixture_root.exists() {
         fs::remove_dir_all(&fixture_root)
             .with_context(|| format!("remove {}", fixture_root.display()))?;

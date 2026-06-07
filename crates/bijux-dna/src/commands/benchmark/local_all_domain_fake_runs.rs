@@ -12,6 +12,7 @@ use super::local_stage_result_manifest::{
     BenchStageResultResourceMetricsV1, BenchStageResultRuntimeV1, BenchStageResultStatus,
     BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
+use super::path_resolution::BenchmarkPathResolver;
 use super::readiness::all_domain_expected_benchmark_results::{
     collect_all_domain_expected_benchmark_result_rows, AllDomainExpectedBenchmarkResultRow,
 };
@@ -100,9 +101,12 @@ pub(crate) fn run_fake_run_all_domains(
     args: &parse::BenchLocalFakeRunAllDomainsArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
     let manifest = fake_run_all_domain_benchmark_results(
         &repo_root,
-        args.output_root.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT)),
+        args.output_root
+            .clone()
+            .unwrap_or_else(|| benchmark_paths.benchmark_local_fake_run_root().join("all-domains")),
     )?;
     if args.json {
         render::json::print_pretty(&manifest)?;
