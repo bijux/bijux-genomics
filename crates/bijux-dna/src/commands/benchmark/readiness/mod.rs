@@ -54,6 +54,7 @@ pub(crate) mod orphan_tools;
 pub(crate) mod pair_readiness;
 pub(crate) mod parser_completeness_gate;
 pub(crate) mod parser_failure_tests;
+pub(crate) mod removed_from_scope;
 pub(crate) mod rendered_command_argv;
 pub(crate) mod rendered_commands;
 pub(crate) mod stage_centric_report;
