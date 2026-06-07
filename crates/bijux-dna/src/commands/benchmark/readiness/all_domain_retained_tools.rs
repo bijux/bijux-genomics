@@ -5,8 +5,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
-use super::all_domain_stage_tool_table::{
-    collect_all_domain_stage_tool_table_rows, AllDomainStageToolTableRow,
+use super::all_domain_active_stage_tool_matrix::{
+    collect_all_domain_active_stage_tool_matrix_rows, AllDomainActiveStageToolMatrixRow,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -77,7 +77,7 @@ pub(crate) fn render_all_domain_retained_tools(
     output_path: PathBuf,
 ) -> Result<AllDomainRetainedToolsReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
-    let source_rows = collect_all_domain_stage_tool_table_rows(repo_root)?;
+    let source_rows = collect_all_domain_active_stage_tool_matrix_rows(repo_root)?;
     let rows = collect_all_domain_retained_tool_rows(&source_rows)?;
 
     if let Some(parent) = output_path.parent() {
@@ -114,16 +114,16 @@ pub(crate) fn render_all_domain_retained_tools(
 }
 
 fn collect_all_domain_retained_tool_rows(
-    source_rows: &[AllDomainStageToolTableRow],
+    source_rows: &[AllDomainActiveStageToolMatrixRow],
 ) -> Result<Vec<AllDomainRetainedToolRow>> {
     let mut by_tool = BTreeMap::<String, ToolAccumulator>::new();
     for row in source_rows {
         let entry = by_tool.entry(row.tool_id.clone()).or_default();
         entry.domains.insert(row.domain.clone());
-        entry.benchmark_statuses.insert(row.benchmark_status.clone());
+        entry.benchmark_statuses.insert(row.status.clone());
         entry.active_stage_ids.insert(row.stage_id.clone());
         entry.active_binding_count += 1;
-        if row.benchmark_status == BENCHMARK_READY_STATUS {
+        if row.status == BENCHMARK_READY_STATUS {
             entry.benchmark_ready_stage_ids.insert(row.stage_id.clone());
             entry.benchmark_ready_binding_count += 1;
         }
@@ -149,7 +149,7 @@ fn collect_all_domain_retained_tool_rows(
 }
 
 fn ensure_all_domain_retained_tool_contract(
-    source_rows: &[AllDomainStageToolTableRow],
+    source_rows: &[AllDomainActiveStageToolMatrixRow],
     rows: &[AllDomainRetainedToolRow],
 ) -> Result<()> {
     let inventory_tool_ids = rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>();

@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
-use super::all_domain_stage_tool_table::collect_all_domain_stage_tool_table_rows;
+use super::all_domain_active_stage_tool_matrix::collect_all_domain_active_stage_tool_matrix_rows;
 use super::bam_normalized_metrics_schema::collect_bam_normalized_metrics_schema_report_rows;
 use super::bam_parser_coverage::collect_bam_parser_coverage_rows;
 use super::bam_report_map::collect_bam_report_map_rows;
@@ -132,47 +132,58 @@ pub(crate) fn render_all_domain_active_stage_catalog(
 pub(crate) fn collect_all_domain_active_stage_catalog_rows(
     repo_root: &Path,
 ) -> Result<Vec<AllDomainActiveStageCatalogRow>> {
-    let inventory_rows = collect_inventory_stage_rows(repo_root)?;
-    let stage_tool_rows = collect_all_domain_stage_tool_table_rows(repo_root)?;
+    let inventory_readiness_by_stage = collect_inventory_readiness_by_stage(repo_root)?;
+    let stage_tool_rows = collect_all_domain_active_stage_tool_matrix_rows(repo_root)?;
     let parser_stage_rows = collect_parser_stage_rows(repo_root)?;
     let schema_stage_rows = collect_schema_stage_rows()?;
     let report_stage_rows = collect_report_stage_rows(repo_root)?;
 
     let mut by_stage = BTreeMap::<(String, String), StageAccumulator>::new();
-    for inventory_row in inventory_rows {
-        by_stage
-            .entry((inventory_row.domain.clone(), inventory_row.stage_id.clone()))
-            .or_default()
-            .readiness_kind = Some(inventory_row.readiness_kind);
-    }
-
     for row in stage_tool_rows {
         let entry = by_stage.entry((row.domain.clone(), row.stage_id.clone())).or_default();
+        entry.readiness_kind = Some(
+            inventory_readiness_by_stage
+                .get(&(row.domain.clone(), row.stage_id.clone()))
+                .cloned()
+                .ok_or_else(|| {
+                    anyhow!(
+                        "all-domain active stage catalog is missing config-backed readiness kind for `{}` / `{}`",
+                        row.domain,
+                        row.stage_id
+                    )
+                })?,
+        );
         entry.active_tool_ids.insert(row.tool_id.clone());
-        entry.benchmark_statuses.insert(row.benchmark_status.clone());
-        if row.benchmark_status == "benchmark_ready" {
+        entry.benchmark_statuses.insert(row.status.clone());
+        if row.status == "benchmark_ready" {
             entry.benchmark_ready_tool_ids.insert(row.tool_id);
         }
     }
 
     for parser_row in &parser_stage_rows {
-        let entry =
-            by_stage.entry((parser_row.domain.clone(), parser_row.stage_id.clone())).or_default();
-        entry.parser_row_count += 1;
-        if parser_row.covered {
-            entry.parser_covered_row_count += 1;
+        if let Some(entry) =
+            by_stage.get_mut(&(parser_row.domain.clone(), parser_row.stage_id.clone()))
+        {
+            entry.parser_row_count += 1;
+            if parser_row.covered {
+                entry.parser_covered_row_count += 1;
+            }
         }
     }
 
     for (domain, stage_id) in &schema_stage_rows {
-        by_stage.entry((domain.clone(), stage_id.clone())).or_default().schema_present = true;
+        if let Some(entry) = by_stage.get_mut(&(domain.clone(), stage_id.clone())) {
+            entry.schema_present = true;
+        }
     }
 
     for report_row in &report_stage_rows {
-        let entry =
-            by_stage.entry((report_row.domain.clone(), report_row.stage_id.clone())).or_default();
-        entry.report_row_count += 1;
-        entry.report_section_ids.insert(report_row.report_section_id.clone());
+        if let Some(entry) =
+            by_stage.get_mut(&(report_row.domain.clone(), report_row.stage_id.clone()))
+        {
+            entry.report_row_count += 1;
+            entry.report_section_ids.insert(report_row.report_section_id.clone());
+        }
     }
 
     let rows = by_stage
@@ -213,16 +224,17 @@ pub(crate) fn collect_all_domain_active_stage_catalog_rows(
     Ok(rows)
 }
 
-fn collect_inventory_stage_rows(repo_root: &Path) -> Result<Vec<InventoryStageRow>> {
-    let mut rows = Vec::new();
+fn collect_inventory_readiness_by_stage(
+    repo_root: &Path,
+) -> Result<BTreeMap<(String, String), String>> {
+    let mut rows = BTreeMap::new();
     for domain in [BenchLocalDomain::Fastq, BenchLocalDomain::Bam, BenchLocalDomain::Vcf] {
         let inventory = load_local_stage_inventory(repo_root, domain)?;
         for stage in inventory.stages {
-            rows.push(InventoryStageRow {
-                domain: inventory.domain.to_string(),
-                stage_id: stage.stage_id,
-                readiness_kind: stage.readiness_kind.as_str().to_string(),
-            });
+            rows.insert(
+                (inventory.domain.to_string(), stage.stage_id),
+                stage.readiness_kind.as_str().to_string(),
+            );
         }
     }
     Ok(rows)
@@ -304,33 +316,16 @@ fn ensure_all_domain_active_stage_catalog_contract(
         ));
     }
 
-    let inventory_keys = [BenchLocalDomain::Fastq, BenchLocalDomain::Bam, BenchLocalDomain::Vcf]
-        .into_iter()
-        .map(|domain| load_local_stage_inventory(repo_root, domain))
-        .collect::<Result<Vec<_>>>()?
-        .into_iter()
-        .flat_map(|inventory| {
-            inventory
-                .stages
-                .into_iter()
-                .map(move |stage| (inventory.domain.to_string(), stage.stage_id))
-        })
-        .collect::<BTreeSet<_>>();
-    let stage_tool_keys = collect_all_domain_stage_tool_table_rows(repo_root)?
+    let stage_tool_keys = collect_all_domain_active_stage_tool_matrix_rows(repo_root)?
         .into_iter()
         .map(|row| (row.domain, row.stage_id))
         .collect::<BTreeSet<_>>();
     let row_key_strings =
         row_keys.iter().map(|(d, s)| ((*d).to_string(), (*s).to_string())).collect::<BTreeSet<_>>();
 
-    if row_key_strings != inventory_keys {
-        return Err(anyhow!(
-            "all-domain active stage catalog drifted from the governed config-backed active stage inventory"
-        ));
-    }
     if row_key_strings != stage_tool_keys {
         return Err(anyhow!(
-            "all-domain active stage catalog drifted from the governed unified stage-tool surface"
+            "all-domain active stage catalog drifted from the governed active-scope stage-tool surface"
         ));
     }
 
@@ -338,25 +333,10 @@ fn ensure_all_domain_active_stage_catalog_contract(
         .iter()
         .map(|row| (row.domain.clone(), row.stage_id.clone()))
         .collect::<BTreeSet<_>>();
-    if !parser_keys.is_subset(&row_key_strings) {
-        return Err(anyhow!(
-            "all-domain active stage catalog is missing a parser-backed stage from the governed parser coverage surface"
-        ));
-    }
-    if !schema_stage_rows.is_subset(&row_key_strings) {
-        return Err(anyhow!(
-            "all-domain active stage catalog is missing a schema-backed stage from the governed normalized metrics surface"
-        ));
-    }
     let report_keys = report_stage_rows
         .iter()
         .map(|row| (row.domain.clone(), row.stage_id.clone()))
         .collect::<BTreeSet<_>>();
-    if !report_keys.is_subset(&row_key_strings) {
-        return Err(anyhow!(
-            "all-domain active stage catalog is missing a report-backed stage from the governed report-map surface"
-        ));
-    }
 
     for row in rows {
         if row.readiness_kind.trim().is_empty()
@@ -384,6 +364,28 @@ fn ensure_all_domain_active_stage_catalog_contract(
         {
             return Err(anyhow!(
                 "all-domain active stage catalog row `{}` / `{}` overcounts benchmark-ready or parser-covered scope",
+                row.domain,
+                row.stage_id
+            ));
+        }
+        let row_key = (row.domain.clone(), row.stage_id.clone());
+        if row.parser_row_count > 0 && !parser_keys.contains(&row_key) {
+            return Err(anyhow!(
+                "all-domain active stage catalog row `{}` / `{}` drifted from the governed parser coverage surface",
+                row.domain,
+                row.stage_id
+            ));
+        }
+        if row.schema_present && !schema_stage_rows.contains(&row_key) {
+            return Err(anyhow!(
+                "all-domain active stage catalog row `{}` / `{}` drifted from the governed normalized metrics surface",
+                row.domain,
+                row.stage_id
+            ));
+        }
+        if row.report_row_count > 0 && !report_keys.contains(&row_key) {
+            return Err(anyhow!(
+                "all-domain active stage catalog row `{}` / `{}` drifted from the governed report-map surface",
                 row.domain,
                 row.stage_id
             ));
@@ -436,12 +438,6 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
-}
-
-struct InventoryStageRow {
-    domain: String,
-    stage_id: String,
-    readiness_kind: String,
 }
 
 struct ParserStageRow {
