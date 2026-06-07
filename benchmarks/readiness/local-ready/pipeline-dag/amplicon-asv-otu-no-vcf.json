@@ -1,0 +1,193 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+  "config_path": "benchmarks/configs/pipelines/local/amplicon-asv-otu-no-vcf.toml",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/amplicon-asv-otu-no-vcf.json",
+  "pipeline_id": "amplicon-asv-otu-no-vcf",
+  "domain": "fastq",
+  "default_corpus_id": "corpus-03-amplicon-mini",
+  "summary": "Amplicon-only FASTQ DAG for corpus-03 validation, primer normalization, ASV inference, chimera removal, OTU clustering, abundance normalization, and local reporting without BAM or VCF germline branches.",
+  "node_count": 7,
+  "edge_count": 12,
+  "acyclic": true,
+  "valid": true,
+  "topological_order": [
+    "fastq.validate_reads",
+    "fastq.normalize_primers",
+    "fastq.infer_asvs",
+    "fastq.remove_chimeras",
+    "fastq.cluster_otus",
+    "fastq.normalize_abundance",
+    "fastq.report_qc"
+  ],
+  "validation_profiles": [
+    {
+      "profile_id": "amplicon_asv_otu_no_vcf",
+      "check_count": 8,
+      "checks": [
+        "default corpus anchored to corpus-03-amplicon-mini for governed amplicon inputs",
+        "pipeline remains fastq-only and rejects bam or vcf germline stages",
+        "fastq.normalize_primers, fastq.infer_asvs, fastq.cluster_otus, and fastq.normalize_abundance stay fixture-backed by corpus-03-amplicon-mini",
+        "fastq.normalize_primers keeps the governed primer contract explicit",
+        "fastq.infer_asvs and fastq.remove_chimeras keep ASV and chimera handoffs explicit",
+        "fastq.cluster_otus consumes normalized reads plus non-chimeric representatives",
+        "fastq.normalize_abundance stays downstream of OTU clustering with an explicit abundance table output",
+        "fastq.report_qc consumes ASV, OTU, and abundance evidence without mixing bam or vcf germline outputs"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 0,
+      "external_input_count": 1,
+      "upstream_input_count": 0,
+      "output_count": 2,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.raw_amplicon_fastq_reads"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "validated_amplicon_reads",
+        "validation_report"
+      ]
+    },
+    {
+      "node_id": "fastq.normalize_primers",
+      "stage_id": "fastq.normalize_primers",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 1,
+      "upstream_input_count": 1,
+      "output_count": 2,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "external_inputs": [
+        "amplicon_primer_contract"
+      ],
+      "upstream_inputs": [
+        "validated_amplicon_reads"
+      ],
+      "outputs": [
+        "normalized_amplicon_reads",
+        "primer_normalization_metrics"
+      ]
+    },
+    {
+      "node_id": "fastq.infer_asvs",
+      "stage_id": "fastq.infer_asvs",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 1,
+      "output_count": 3,
+      "depends_on": [
+        "fastq.normalize_primers"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "normalized_amplicon_reads"
+      ],
+      "outputs": [
+        "asv_table",
+        "asv_representatives",
+        "asv_metrics"
+      ]
+    },
+    {
+      "node_id": "fastq.remove_chimeras",
+      "stage_id": "fastq.remove_chimeras",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 1,
+      "upstream_input_count": 1,
+      "output_count": 2,
+      "depends_on": [
+        "fastq.infer_asvs"
+      ],
+      "external_inputs": [
+        "chimera_control_contract"
+      ],
+      "upstream_inputs": [
+        "asv_representatives"
+      ],
+      "outputs": [
+        "non_chimeric_representatives",
+        "chimera_report"
+      ]
+    },
+    {
+      "node_id": "fastq.cluster_otus",
+      "stage_id": "fastq.cluster_otus",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 2,
+      "depends_on": [
+        "fastq.normalize_primers",
+        "fastq.remove_chimeras"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "normalized_amplicon_reads",
+        "non_chimeric_representatives"
+      ],
+      "outputs": [
+        "otu_table",
+        "otu_representatives"
+      ]
+    },
+    {
+      "node_id": "fastq.normalize_abundance",
+      "stage_id": "fastq.normalize_abundance",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 1,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.cluster_otus"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "otu_table"
+      ],
+      "outputs": [
+        "normalized_abundance_table"
+      ]
+    },
+    {
+      "node_id": "fastq.report_qc",
+      "stage_id": "fastq.report_qc",
+      "readiness_kind": "smoke",
+      "dependency_count": 6,
+      "external_input_count": 0,
+      "upstream_input_count": 6,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.validate_reads",
+        "fastq.normalize_primers",
+        "fastq.infer_asvs",
+        "fastq.remove_chimeras",
+        "fastq.cluster_otus",
+        "fastq.normalize_abundance"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validation_report",
+        "primer_normalization_metrics",
+        "asv_metrics",
+        "chimera_report",
+        "otu_table",
+        "normalized_abundance_table"
+      ],
+      "outputs": [
+        "qc_bundle"
+      ]
+    }
+  ]
+}

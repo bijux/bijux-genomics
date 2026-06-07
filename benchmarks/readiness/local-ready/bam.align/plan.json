@@ -1,0 +1,167 @@
+{
+  "stage_id": "bam.align",
+  "stage_version": 1,
+  "tool_id": "bowtie2",
+  "tool_version": "2.5.4",
+  "image": {
+    "image": "bijuxdna/bowtie2",
+    "digest": null
+  },
+  "command": {
+    "template": [
+      "/bin/sh",
+      "-c",
+      "bowtie2 -x assets/reference/host/references/toy_host_reference -1 assets/toy/core-v1/fastq/reads_1.fastq -2 assets/toy/core-v1/fastq/reads_2.fastq --very-sensitive --rg '@RG\\tID:core-v1-align.rg1\\tSM:core-v1-align\\tPL:ILLUMINA\\tLB:lib1\\tPU:core-v1-align.pu1' --rg-id core-v1-align.rg1 -p 4 | samtools sort -o benchmarks/readiness/local-ready/bam.align/align.bam && samtools index benchmarks/readiness/local-ready/bam.align/align.bam && samtools flagstat benchmarks/readiness/local-ready/bam.align/align.bam > benchmarks/readiness/local-ready/bam.align/flagstat.txt && samtools idxstats benchmarks/readiness/local-ready/bam.align/align.bam > benchmarks/readiness/local-ready/bam.align/idxstats.txt && samtools stats benchmarks/readiness/local-ready/bam.align/align.bam > benchmarks/readiness/local-ready/bam.align/samtools_stats.txt && python - <<'PY' > benchmarks/readiness/local-ready/bam.align/align.metrics.json\nimport json\npayload={\"tool\":\"bowtie2\",\"preset\":\"default\",\"sensitivity_profile\":\"default\",\"seed_length\":null,\"reference\":\"assets/reference/host/references/toy_host_reference.fasta\",\"reference_index\":\"assets/reference/host/references/toy_host_reference\",\"bam\":\"benchmarks/readiness/local-ready/bam.align/align.bam\",\"read_group\":\"@RG\\tID:core-v1-align.rg1\\tSM:core-v1-align\\tPL:ILLUMINA\\tLB:lib1\\tPU:core-v1-align.pu1\"}\nprint(json.dumps(payload, indent=2))\nPY"
+    ]
+  },
+  "resources": {
+    "runtime": "local",
+    "mem_gb": 8,
+    "tmp_gb": 8,
+    "threads": 4
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "fastq_r1",
+        "path": "assets/toy/core-v1/fastq/reads_1.fastq",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "reference",
+        "path": "assets/reference/host/references/toy_host_reference.fasta",
+        "role": "reference",
+        "optional": false
+      },
+      {
+        "name": "fastq_r2",
+        "path": "assets/toy/core-v1/fastq/reads_2.fastq",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "reference_index",
+        "path": "assets/reference/host/references/toy_host_reference",
+        "role": "index",
+        "optional": false
+      },
+      {
+        "name": "reference_fai",
+        "path": "assets/reference/host/references/toy_host_reference.fasta.fai",
+        "role": "index",
+        "optional": false
+      },
+      {
+        "name": "reference_dict",
+        "path": "assets/reference/host/references/toy_host_reference.dict",
+        "role": "index",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "align_bam",
+        "path": "benchmarks/readiness/local-ready/bam.align/align.bam",
+        "role": "bam",
+        "optional": false
+      },
+      {
+        "name": "align_bai",
+        "path": "benchmarks/readiness/local-ready/bam.align/align.bam.bai",
+        "role": "index",
+        "optional": false
+      },
+      {
+        "name": "flagstat",
+        "path": "benchmarks/readiness/local-ready/bam.align/flagstat.txt",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "idxstats",
+        "path": "benchmarks/readiness/local-ready/bam.align/idxstats.txt",
+        "role": "unknown",
+        "optional": false
+      },
+      {
+        "name": "stats",
+        "path": "benchmarks/readiness/local-ready/bam.align/samtools_stats.txt",
+        "role": "unknown",
+        "optional": false
+      },
+      {
+        "name": "align_metrics",
+        "path": "benchmarks/readiness/local-ready/bam.align/align.metrics.json",
+        "role": "metrics_json",
+        "optional": false
+      },
+      {
+        "name": "stage_metrics",
+        "path": "benchmarks/readiness/local-ready/bam.align/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "benchmarks/readiness/local-ready/bam.align",
+  "params": {
+    "aligner": "bowtie2",
+    "build_indices": false,
+    "mode": "local",
+    "preset": "default",
+    "r1": "assets/toy/core-v1/fastq/reads_1.fastq",
+    "r2": "assets/toy/core-v1/fastq/reads_2.fastq",
+    "read_group": {
+      "id": "core-v1-align.rg1",
+      "lane_id": "L001",
+      "library": "lib1",
+      "platform": "ILLUMINA",
+      "platform_unit": "core-v1-align.pu1",
+      "run_id": null,
+      "sample": "core-v1-align"
+    },
+    "reference": "assets/reference/host/references/toy_host_reference.fasta",
+    "reference_dict": "assets/reference/host/references/toy_host_reference.dict",
+    "reference_fai": "assets/reference/host/references/toy_host_reference.fasta.fai",
+    "reference_index": "assets/reference/host/references/toy_host_reference",
+    "sample_id": "core-v1-align",
+    "seed_length": null,
+    "sensitivity_profile": "default",
+    "strategy_id": "bowtie2_very_sensitive_local",
+    "threads": 4,
+    "tool": "bowtie2"
+  },
+  "effective_params": {
+    "aligner": "bowtie2",
+    "build_indices": false,
+    "emit_stats": true,
+    "mode": "local",
+    "preset": "default",
+    "read_group": {
+      "id": "core-v1-align.rg1",
+      "lane_id": "L001",
+      "library": "lib1",
+      "platform": "ILLUMINA",
+      "platform_unit": "core-v1-align.pu1",
+      "run_id": null,
+      "sample": "core-v1-align"
+    },
+    "reference": "assets/reference/host/references/toy_host_reference",
+    "reference_digest": "unknown",
+    "rg_policy": "regenerate",
+    "seed_length": null,
+    "sensitivity_profile": "default",
+    "strategy_id": "bowtie2_very_sensitive_local",
+    "threads": 4
+  },
+  "operating_mode": "enforced",
+  "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+  "config_path": "benchmarks/configs/pipelines/local/bam-kinship.toml",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/bam-kinship.json",
+  "pipeline_id": "bam-kinship",
+  "domain": "bam",
+  "default_corpus_id": "corpus-01-bam-mini",
+  "summary": "BAM kinship DAG for explicit filtered-BAM, overlap-sufficiency, genotyping-readiness, and pairwise relatedness handoffs.",
+  "node_count": 4,
+  "edge_count": 4,
+  "acyclic": true,
+  "valid": true,
+  "topological_order": [
+    "bam.filter",
+    "bam.overlap_correction",
+    "bam.genotyping",
+    "bam.kinship"
+  ],
+  "validation_profiles": [],
+  "nodes": [
+    {
+      "node_id": "bam.filter",
+      "stage_id": "bam.filter",
+      "readiness_kind": "dry_or_smoke",
+      "dependency_count": 0,
+      "external_input_count": 1,
+      "upstream_input_count": 0,
+      "output_count": 4,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.aligned_bam"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "filtered_bam",
+        "filtered_bai",
+        "filter_report_json",
+        "filter_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.overlap_correction",
+      "stage_id": "bam.overlap_correction",
+      "readiness_kind": "dry_or_smoke",
+      "dependency_count": 1,
+      "external_input_count": 1,
+      "upstream_input_count": 2,
+      "output_count": 4,
+      "depends_on": [
+        "bam.filter"
+      ],
+      "external_inputs": [
+        "overlap_pairing_contract"
+      ],
+      "upstream_inputs": [
+        "filtered_bam",
+        "filtered_bai"
+      ],
+      "outputs": [
+        "overlap_corrected_bam",
+        "overlap_corrected_bai",
+        "overlap_correction_summary_json",
+        "overlap_correction_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.genotyping",
+      "stage_id": "bam.genotyping",
+      "readiness_kind": "dry_or_smoke",
+      "dependency_count": 1,
+      "external_input_count": 3,
+      "upstream_input_count": 2,
+      "output_count": 6,
+      "depends_on": [
+        "bam.filter"
+      ],
+      "external_inputs": [
+        "genotyping_reference_contract",
+        "candidate_sites_vcf_contract",
+        "target_regions_contract"
+      ],
+      "upstream_inputs": [
+        "filtered_bam",
+        "filtered_bai"
+      ],
+      "outputs": [
+        "genotyping_bcf",
+        "genotyping_vcf_gz",
+        "genotyping_vcf_tbi",
+        "genotyping_gl_json",
+        "genotyping_report_json",
+        "genotyping_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.kinship",
+      "stage_id": "bam.kinship",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 3,
+      "upstream_input_count": 4,
+      "output_count": 4,
+      "depends_on": [
+        "bam.overlap_correction",
+        "bam.genotyping"
+      ],
+      "external_inputs": [
+        "kinship_reference_panel_contract",
+        "kinship_population_scope_contract",
+        "kinship_pairing_contract"
+      ],
+      "upstream_inputs": [
+        "overlap_corrected_bam",
+        "overlap_corrected_bai",
+        "overlap_correction_summary_json",
+        "genotyping_report_json"
+      ],
+      "outputs": [
+        "kinship_report_json",
+        "kinship_segments_tsv",
+        "kinship_summary_json",
+        "kinship_stage_metrics"
+      ]
+    }
+  ]
+}

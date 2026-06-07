@@ -1,0 +1,104 @@
+{
+  "stage_id": "bam.haplogroups",
+  "stage_version": 1,
+  "tool_id": "yleaf",
+  "tool_version": "latest-pinned",
+  "image": {
+    "image": "bijuxdna/yleaf",
+    "digest": null
+  },
+  "command": {
+    "template": [
+      "/bin/sh",
+      "-c",
+      "test -f benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai && test -f benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv && yleaf -bam benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam -o benchmarks/readiness/local-ready/bam.haplogroups/haplogroups --reference_genome hg38 && python - <<'PY' > benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.summary.json\nimport json\nprint(json.dumps(json.loads({\"method\":\"yleaf\",\"min_coverage\":2.0,\"population_scope\":\"adna_y_haplogroup_panel\",\"reference_build\":\"hg38\",\"reference_panel\":\"benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv\",\"refuse_without_population_context\":true}), indent=2))\nPY && python - <<'PY' > benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.json\nimport json\nprint(json.dumps(json.loads({\"assignment_output_prefix\":\"benchmarks/readiness/local-ready/bam.haplogroups/haplogroups\",\"classification_scope\":\"y_haplogroup_inference\",\"coverage_gate\":{\"min_coverage\":2.0},\"population_scope\":\"adna_y_haplogroup_panel\",\"reference_build\":\"hg38\",\"reference_panel\":\"benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv\",\"refuse_without_population_context\":true,\"schema_version\":\"bijux.bam.haplogroups.v1\",\"summary_output\":\"benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.summary.json\",\"tool\":\"yleaf\"}), indent=2))\nPY"
+    ]
+  },
+  "resources": {
+    "runtime": "local",
+    "mem_gb": 8,
+    "tmp_gb": 8,
+    "threads": 2
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam",
+        "role": "bam",
+        "optional": false
+      },
+      {
+        "name": "bam_bai",
+        "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai",
+        "role": "index",
+        "optional": false
+      },
+      {
+        "name": "reference",
+        "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+        "role": "reference",
+        "optional": false
+      },
+      {
+        "name": "reference_panel",
+        "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv",
+        "role": "reference",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "haplogroups",
+        "path": "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.json",
+        "role": "unknown",
+        "optional": false
+      },
+      {
+        "name": "summary",
+        "path": "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.summary.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "stage_metrics",
+        "path": "benchmarks/readiness/local-ready/bam.haplogroups/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "benchmarks/readiness/local-ready/bam.haplogroups",
+  "params": {
+    "bai": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai",
+    "bam": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam",
+    "coverage_gate": {
+      "min_coverage": 2.0
+    },
+    "min_coverage": 2.0,
+    "population_scope": "adna_y_haplogroup_panel",
+    "reference_build": "hg38",
+    "reference_fasta": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+    "reference_panel": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv",
+    "reference_panel_id": "adna-y-hg38-mini",
+    "refuse_without_population_context": true,
+    "sample_id": "adna_y_haplogroup_panel",
+    "tool": "yleaf"
+  },
+  "effective_params": {
+    "min_coverage": 2.0,
+    "population_scope": "adna_y_haplogroup_panel",
+    "reference_build": "hg38",
+    "reference_panel": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv",
+    "refuse_without_population_context": true
+  },
+  "operating_mode": "enforced",
+  "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
+  }
+}

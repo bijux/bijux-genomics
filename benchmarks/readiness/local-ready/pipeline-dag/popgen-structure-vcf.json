@@ -1,0 +1,148 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+  "config_path": "benchmarks/configs/pipelines/local/popgen-structure-vcf.toml",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/popgen-structure-vcf.json",
+  "pipeline_id": "popgen-structure-vcf",
+  "domain": "vcf",
+  "default_corpus_id": "vcf_production_regression",
+  "summary": "Cohort VCF DAG for governed QC, pruning and filtering, PCA, admixture, and population-structure summary with mandatory sample metadata and population labels.",
+  "node_count": 4,
+  "edge_count": 6,
+  "acyclic": true,
+  "valid": true,
+  "topological_order": [
+    "vcf.qc",
+    "vcf.pca",
+    "vcf.admixture",
+    "vcf.population_structure"
+  ],
+  "validation_profiles": [
+    {
+      "profile_id": "population_structure_vcf",
+      "check_count": 8,
+      "checks": [
+        "default corpus anchored to vcf_production_regression for governed cohort-vcf population-structure inputs",
+        "vcf.qc, vcf.pca, vcf.admixture, and vcf.population_structure stay bound to the vcf_cohort asset profile",
+        "vcf.qc exports the governed pruning/filtering handoff for downstream cohort analysis",
+        "vcf.pca requires sample metadata, population metadata, and population labels as explicit inputs",
+        "vcf.admixture requires sample metadata, population metadata, and population labels as explicit inputs",
+        "vcf.admixture stays downstream of pca with explicit pca evidence",
+        "vcf.pca and vcf.admixture both export sample-metadata join handoffs",
+        "vcf.population_structure consumes the pca and admixture metadata-join handoffs with mandatory labels"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "vcf.qc",
+      "stage_id": "vcf.qc",
+      "readiness_kind": "smoke",
+      "dependency_count": 0,
+      "external_input_count": 2,
+      "upstream_input_count": 0,
+      "output_count": 6,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.target_cohort_vcf",
+        "corpus.target_cohort_vcf_tbi"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "qc_cohort_vcf",
+        "qc_cohort_vcf_tbi",
+        "qc_report",
+        "sample_qc_report_tsv",
+        "variant_qc_report_tsv",
+        "pruned_variants_tsv"
+      ]
+    },
+    {
+      "node_id": "vcf.pca",
+      "stage_id": "vcf.pca",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 3,
+      "upstream_input_count": 4,
+      "output_count": 3,
+      "depends_on": [
+        "vcf.qc"
+      ],
+      "external_inputs": [
+        "sample_metadata_manifest_contract",
+        "population_metadata_manifest_contract",
+        "population_labels_contract"
+      ],
+      "upstream_inputs": [
+        "qc_cohort_vcf",
+        "qc_cohort_vcf_tbi",
+        "pruned_variants_tsv",
+        "qc_report"
+      ],
+      "outputs": [
+        "pca_report",
+        "pca_projection_tsv",
+        "pca_metadata_join_tsv"
+      ]
+    },
+    {
+      "node_id": "vcf.admixture",
+      "stage_id": "vcf.admixture",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 3,
+      "upstream_input_count": 5,
+      "output_count": 3,
+      "depends_on": [
+        "vcf.qc",
+        "vcf.pca"
+      ],
+      "external_inputs": [
+        "sample_metadata_manifest_contract",
+        "population_metadata_manifest_contract",
+        "population_labels_contract"
+      ],
+      "upstream_inputs": [
+        "qc_cohort_vcf",
+        "qc_cohort_vcf_tbi",
+        "pruned_variants_tsv",
+        "pca_report",
+        "pca_projection_tsv"
+      ],
+      "outputs": [
+        "admixture_report",
+        "admixture_q_matrix_tsv",
+        "admixture_metadata_join_tsv"
+      ]
+    },
+    {
+      "node_id": "vcf.population_structure",
+      "stage_id": "vcf.population_structure",
+      "readiness_kind": "smoke",
+      "dependency_count": 3,
+      "external_input_count": 3,
+      "upstream_input_count": 5,
+      "output_count": 2,
+      "depends_on": [
+        "vcf.qc",
+        "vcf.pca",
+        "vcf.admixture"
+      ],
+      "external_inputs": [
+        "sample_metadata_manifest_contract",
+        "population_metadata_manifest_contract",
+        "population_labels_contract"
+      ],
+      "upstream_inputs": [
+        "qc_report",
+        "pca_report",
+        "admixture_report",
+        "pca_metadata_join_tsv",
+        "admixture_metadata_join_tsv"
+      ],
+      "outputs": [
+        "population_structure_report",
+        "population_structure_table_tsv"
+      ]
+    }
+  ]
+}

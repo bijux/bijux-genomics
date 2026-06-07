@@ -1,0 +1,127 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+  "config_path": "benchmarks/configs/pipelines/local/bam-genotyping.toml",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping.json",
+  "pipeline_id": "bam-genotyping",
+  "domain": "bam",
+  "default_corpus_id": "corpus-01-bam-mini",
+  "summary": "BAM genotyping DAG for explicit filtered-BAM, coverage-gated recalibration, and downstream genotype-calling handoffs.",
+  "node_count": 4,
+  "edge_count": 5,
+  "acyclic": true,
+  "valid": true,
+  "topological_order": [
+    "bam.filter",
+    "bam.coverage",
+    "bam.recalibration",
+    "bam.genotyping"
+  ],
+  "validation_profiles": [],
+  "nodes": [
+    {
+      "node_id": "bam.filter",
+      "stage_id": "bam.filter",
+      "readiness_kind": "dry_or_smoke",
+      "dependency_count": 0,
+      "external_input_count": 1,
+      "upstream_input_count": 0,
+      "output_count": 4,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.aligned_bam"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "filtered_bam",
+        "filtered_bai",
+        "filter_report_json",
+        "filter_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.coverage",
+      "stage_id": "bam.coverage",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 1,
+      "upstream_input_count": 2,
+      "output_count": 2,
+      "depends_on": [
+        "bam.filter"
+      ],
+      "external_inputs": [
+        "coverage_region_contract"
+      ],
+      "upstream_inputs": [
+        "filtered_bam",
+        "filtered_bai"
+      ],
+      "outputs": [
+        "coverage_report_json",
+        "coverage_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.recalibration",
+      "stage_id": "bam.recalibration",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 3,
+      "upstream_input_count": 2,
+      "output_count": 5,
+      "depends_on": [
+        "bam.filter",
+        "bam.coverage"
+      ],
+      "external_inputs": [
+        "recalibration_reference_contract",
+        "recalibration_known_sites_contract",
+        "recalibration_coverage_gate_contract"
+      ],
+      "upstream_inputs": [
+        "filtered_bam",
+        "coverage_report_json"
+      ],
+      "outputs": [
+        "recalibrated_bam",
+        "recalibrated_bai",
+        "recalibration_report_text",
+        "recalibration_summary_json",
+        "recalibration_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.genotyping",
+      "stage_id": "bam.genotyping",
+      "readiness_kind": "dry_or_smoke",
+      "dependency_count": 2,
+      "external_input_count": 3,
+      "upstream_input_count": 5,
+      "output_count": 6,
+      "depends_on": [
+        "bam.filter",
+        "bam.recalibration"
+      ],
+      "external_inputs": [
+        "genotyping_reference_contract",
+        "candidate_sites_vcf_contract",
+        "target_regions_contract"
+      ],
+      "upstream_inputs": [
+        "filtered_bam",
+        "filtered_bai",
+        "recalibrated_bam",
+        "recalibrated_bai",
+        "recalibration_summary_json"
+      ],
+      "outputs": [
+        "genotyping_bcf",
+        "genotyping_vcf_gz",
+        "genotyping_vcf_tbi",
+        "genotyping_gl_json",
+        "genotyping_report_json",
+        "genotyping_stage_metrics"
+      ]
+    }
+  ]
+}

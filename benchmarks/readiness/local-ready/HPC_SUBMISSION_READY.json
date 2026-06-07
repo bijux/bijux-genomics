@@ -1,0 +1,808 @@
+{
+  "schema_version": "bijux.bench.local_hpc_submission_ready.v1",
+  "output_path": "benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json",
+  "checked_goal_count": 99,
+  "passed_goal_count": 95,
+  "failed_goal_count": 4,
+  "failing_goal_ids": [
+    65,
+    66,
+    94,
+    95
+  ],
+  "ok": false,
+  "checks": [
+    {
+      "goal_id": 1,
+      "category": "stage_matrices",
+      "surface": "FASTQ stage matrix covers the governed local inventory",
+      "output_path": "benchmarks/configs/local/fastq-stage-matrix.toml",
+      "ok": true,
+      "detail": "FASTQ inventory contains 27 stages"
+    },
+    {
+      "goal_id": 28,
+      "category": "stage_matrices",
+      "surface": "BAM stage matrix covers the governed local inventory",
+      "output_path": "benchmarks/configs/local/bam-stage-matrix.toml",
+      "ok": true,
+      "detail": "BAM inventory contains 24 stages"
+    },
+    {
+      "goal_id": 2,
+      "category": "local_smokes",
+      "surface": "fastq.index_reference local artifact materializes under governed target",
+      "output_path": "benchmarks/readiness/local-ready/fastq.index_reference/plan.json",
+      "ok": true,
+      "detail": "materialized `benchmarks/readiness/local-ready/fastq.index_reference/plan.json` under `benchmarks/readiness/local-ready/fastq.index_reference`"
+    },
+    {
+      "goal_id": 3,
+      "category": "local_smokes",
+      "surface": "fastq.validate_reads local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.validate_reads/report.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.validate_reads/report.json` under `target/local-smoke/fastq.validate_reads`"
+    },
+    {
+      "goal_id": 4,
+      "category": "local_smokes",
+      "surface": "fastq.profile_read_lengths local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.profile_read_lengths/read_lengths.tsv",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.profile_read_lengths/read_lengths.tsv` under `target/local-smoke/fastq.profile_read_lengths`"
+    },
+    {
+      "goal_id": 5,
+      "category": "local_smokes",
+      "surface": "fastq.detect_adapters local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.detect_adapters/adapters.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.detect_adapters/adapters.json` under `target/local-smoke/fastq.detect_adapters`"
+    },
+    {
+      "goal_id": 6,
+      "category": "local_smokes",
+      "surface": "fastq.detect_duplicates_premerge local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.detect_duplicates_premerge/duplicates.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.detect_duplicates_premerge/duplicates.json` under `target/local-smoke/fastq.detect_duplicates_premerge`"
+    },
+    {
+      "goal_id": 7,
+      "category": "local_smokes",
+      "surface": "fastq.estimate_library_complexity_prealign local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json` under `target/local-smoke/fastq.estimate_library_complexity_prealign`"
+    },
+    {
+      "goal_id": 8,
+      "category": "local_smokes",
+      "surface": "fastq.trim_terminal_damage local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.trim_terminal_damage/metrics.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.trim_terminal_damage/metrics.json` under `target/local-smoke/fastq.trim_terminal_damage`"
+    },
+    {
+      "goal_id": 9,
+      "category": "local_smokes",
+      "surface": "fastq.normalize_primers local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.normalize_primers/report.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.normalize_primers/report.json` under `target/local-smoke/fastq.normalize_primers`"
+    },
+    {
+      "goal_id": 10,
+      "category": "local_smokes",
+      "surface": "fastq.trim_polyg_tails local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.trim_polyg_tails/metrics.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.trim_polyg_tails/metrics.json` under `target/local-smoke/fastq.trim_polyg_tails`"
+    },
+    {
+      "goal_id": 11,
+      "category": "local_smokes",
+      "surface": "fastq.trim_reads local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.trim_reads/report.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.trim_reads/report.json` under `target/local-smoke/fastq.trim_reads`"
+    },
+    {
+      "goal_id": 12,
+      "category": "local_smokes",
+      "surface": "fastq.filter_reads local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.filter_reads/report.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.filter_reads/report.json` under `target/local-smoke/fastq.filter_reads`"
+    },
+    {
+      "goal_id": 13,
+      "category": "local_smokes",
+      "surface": "fastq.profile_reads local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.profile_reads/profile.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.profile_reads/profile.json` under `target/local-smoke/fastq.profile_reads`"
+    },
+    {
+      "goal_id": 14,
+      "category": "local_smokes",
+      "surface": "fastq.deplete_rrna local artifact materializes under governed target",
+      "output_path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/plan.json",
+      "ok": true,
+      "detail": "materialized `benchmarks/readiness/local-ready/fastq.deplete_rrna/plan.json` under `benchmarks/readiness/local-ready/fastq.deplete_rrna`"
+    },
+    {
+      "goal_id": 15,
+      "category": "local_smokes",
+      "surface": "fastq.merge_pairs local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.merge_pairs/report.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.merge_pairs/report.json` under `target/local-smoke/fastq.merge_pairs`"
+    },
+    {
+      "goal_id": 16,
+      "category": "local_smokes",
+      "surface": "fastq.remove_duplicates local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.remove_duplicates/report.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.remove_duplicates/report.json` under `target/local-smoke/fastq.remove_duplicates`"
+    },
+    {
+      "goal_id": 17,
+      "category": "local_smokes",
+      "surface": "fastq.filter_low_complexity local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.filter_low_complexity/report.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.filter_low_complexity/report.json` under `target/local-smoke/fastq.filter_low_complexity`"
+    },
+    {
+      "goal_id": 18,
+      "category": "local_smokes",
+      "surface": "fastq.deplete_host local artifact materializes under governed target",
+      "output_path": "benchmarks/readiness/local-ready/fastq.deplete_host/plan.json",
+      "ok": true,
+      "detail": "materialized `benchmarks/readiness/local-ready/fastq.deplete_host/plan.json` under `benchmarks/readiness/local-ready/fastq.deplete_host`"
+    },
+    {
+      "goal_id": 19,
+      "category": "local_smokes",
+      "surface": "fastq.deplete_reference_contaminants local artifact materializes under governed target",
+      "output_path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/plan.json",
+      "ok": true,
+      "detail": "materialized `benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/plan.json` under `benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants`"
+    },
+    {
+      "goal_id": 20,
+      "category": "local_smokes",
+      "surface": "fastq.correct_errors local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.correct_errors/plan.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.correct_errors/plan.json` under `target/local-smoke/fastq.correct_errors`"
+    },
+    {
+      "goal_id": 21,
+      "category": "local_smokes",
+      "surface": "fastq.extract_umis local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.extract_umis/report.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.extract_umis/report.json` under `target/local-smoke/fastq.extract_umis`"
+    },
+    {
+      "goal_id": 22,
+      "category": "local_smokes",
+      "surface": "fastq.profile_overrepresented_sequences local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv` under `target/local-smoke/fastq.profile_overrepresented_sequences`"
+    },
+    {
+      "goal_id": 23,
+      "category": "local_smokes",
+      "surface": "fastq.remove_chimeras local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.remove_chimeras/non_chimeric.fasta",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.remove_chimeras/non_chimeric.fasta` under `target/local-smoke/fastq.remove_chimeras`"
+    },
+    {
+      "goal_id": 24,
+      "category": "local_smokes",
+      "surface": "fastq.infer_asvs local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.infer_asvs/asv_table.tsv",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.infer_asvs/asv_table.tsv` under `target/local-smoke/fastq.infer_asvs`"
+    },
+    {
+      "goal_id": 25,
+      "category": "local_smokes",
+      "surface": "fastq.cluster_otus local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.cluster_otus/otu_table.tsv",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.cluster_otus/otu_table.tsv` under `target/local-smoke/fastq.cluster_otus`"
+    },
+    {
+      "goal_id": 26,
+      "category": "local_smokes",
+      "surface": "fastq.normalize_abundance local artifact materializes under governed target",
+      "output_path": "target/local-smoke/fastq.normalize_abundance/normalized_abundance.tsv",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/fastq.normalize_abundance/normalized_abundance.tsv` under `target/local-smoke/fastq.normalize_abundance`"
+    },
+    {
+      "goal_id": 27,
+      "category": "local_smokes",
+      "surface": "fastq.screen_taxonomy local artifact materializes under governed target",
+      "output_path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/plan.json",
+      "ok": true,
+      "detail": "materialized `benchmarks/readiness/local-ready/fastq.screen_taxonomy/plan.json` under `benchmarks/readiness/local-ready/fastq.screen_taxonomy`"
+    },
+    {
+      "goal_id": 29,
+      "category": "local_smokes",
+      "surface": "bam.align local artifact materializes under governed target",
+      "output_path": "benchmarks/readiness/local-ready/bam.align/plan.json",
+      "ok": true,
+      "detail": "materialized `benchmarks/readiness/local-ready/bam.align/plan.json` under `benchmarks/readiness/local-ready/bam.align`"
+    },
+    {
+      "goal_id": 30,
+      "category": "local_smokes",
+      "surface": "bam.validate local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.validate/validation.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.validate/validation.json` under `target/local-smoke/bam.validate`"
+    },
+    {
+      "goal_id": 31,
+      "category": "local_smokes",
+      "surface": "bam.qc_pre local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.qc_pre/qc_pre.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.qc_pre/qc_pre.json` under `target/local-smoke/bam.qc_pre`"
+    },
+    {
+      "goal_id": 32,
+      "category": "local_smokes",
+      "surface": "bam.mapping_summary local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.mapping_summary/mapping_summary.tsv",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.mapping_summary/mapping_summary.tsv` under `target/local-smoke/bam.mapping_summary`"
+    },
+    {
+      "goal_id": 33,
+      "category": "local_smokes",
+      "surface": "bam.filter local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.filter/filter_metrics.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.filter/filter_metrics.json` under `target/local-smoke/bam.filter`"
+    },
+    {
+      "goal_id": 34,
+      "category": "local_smokes",
+      "surface": "bam.mapq_filter local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.mapq_filter/mapq_filter.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.mapq_filter/mapq_filter.json` under `target/local-smoke/bam.mapq_filter`"
+    },
+    {
+      "goal_id": 35,
+      "category": "local_smokes",
+      "surface": "bam.length_filter local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.length_filter/length_filter.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.length_filter/length_filter.json` under `target/local-smoke/bam.length_filter`"
+    },
+    {
+      "goal_id": 36,
+      "category": "local_smokes",
+      "surface": "bam.markdup local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.markdup/duplicates.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.markdup/duplicates.json` under `target/local-smoke/bam.markdup`"
+    },
+    {
+      "goal_id": 37,
+      "category": "local_smokes",
+      "surface": "bam.duplication_metrics local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.duplication_metrics/duplication_metrics.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.duplication_metrics/duplication_metrics.json` under `target/local-smoke/bam.duplication_metrics`"
+    },
+    {
+      "goal_id": 38,
+      "category": "local_smokes",
+      "surface": "bam.complexity local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.complexity/complexity.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.complexity/complexity.json` under `target/local-smoke/bam.complexity`"
+    },
+    {
+      "goal_id": 39,
+      "category": "local_smokes",
+      "surface": "bam.coverage local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.coverage/coverage.tsv",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.coverage/coverage.tsv` under `target/local-smoke/bam.coverage`"
+    },
+    {
+      "goal_id": 40,
+      "category": "local_smokes",
+      "surface": "bam.insert_size local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.insert_size/insert_size.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.insert_size/insert_size.json` under `target/local-smoke/bam.insert_size`"
+    },
+    {
+      "goal_id": 41,
+      "category": "local_smokes",
+      "surface": "bam.gc_bias local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.gc_bias/gc_bias.tsv",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.gc_bias/gc_bias.tsv` under `target/local-smoke/bam.gc_bias`"
+    },
+    {
+      "goal_id": 42,
+      "category": "local_smokes",
+      "surface": "bam.endogenous_content local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.endogenous_content/endogenous_content.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.endogenous_content/endogenous_content.json` under `target/local-smoke/bam.endogenous_content`"
+    },
+    {
+      "goal_id": 43,
+      "category": "local_smokes",
+      "surface": "bam.overlap_correction local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.overlap_correction/overlap_correction.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.overlap_correction/overlap_correction.json` under `target/local-smoke/bam.overlap_correction`"
+    },
+    {
+      "goal_id": 44,
+      "category": "local_smokes",
+      "surface": "bam.damage local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.damage/damage.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.damage/damage.json` under `target/local-smoke/bam.damage`"
+    },
+    {
+      "goal_id": 45,
+      "category": "local_smokes",
+      "surface": "bam.authenticity local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.authenticity/authenticity.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.authenticity/authenticity.json` under `target/local-smoke/bam.authenticity`"
+    },
+    {
+      "goal_id": 46,
+      "category": "local_smokes",
+      "surface": "bam.contamination local artifact materializes under governed target",
+      "output_path": "benchmarks/readiness/local-ready/bam.contamination/plan.json",
+      "ok": true,
+      "detail": "materialized `benchmarks/readiness/local-ready/bam.contamination/plan.json` under `benchmarks/readiness/local-ready/bam.contamination`"
+    },
+    {
+      "goal_id": 47,
+      "category": "local_smokes",
+      "surface": "bam.sex local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.sex/sex.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.sex/sex.json` under `target/local-smoke/bam.sex`"
+    },
+    {
+      "goal_id": 48,
+      "category": "local_smokes",
+      "surface": "bam.bias_mitigation local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.bias_mitigation/bias_mitigation.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.bias_mitigation/bias_mitigation.json` under `target/local-smoke/bam.bias_mitigation`"
+    },
+    {
+      "goal_id": 49,
+      "category": "local_smokes",
+      "surface": "bam.recalibration local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.recalibration/recalibration.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.recalibration/recalibration.json` under `target/local-smoke/bam.recalibration`"
+    },
+    {
+      "goal_id": 50,
+      "category": "local_smokes",
+      "surface": "bam.haplogroups local artifact materializes under governed target",
+      "output_path": "benchmarks/readiness/local-ready/bam.haplogroups/plan.json",
+      "ok": true,
+      "detail": "materialized `benchmarks/readiness/local-ready/bam.haplogroups/plan.json` under `benchmarks/readiness/local-ready/bam.haplogroups`"
+    },
+    {
+      "goal_id": 51,
+      "category": "local_smokes",
+      "surface": "bam.genotyping local artifact materializes under governed target",
+      "output_path": "benchmarks/readiness/local-ready/bam.genotyping/plan.json",
+      "ok": true,
+      "detail": "materialized `benchmarks/readiness/local-ready/bam.genotyping/plan.json` under `benchmarks/readiness/local-ready/bam.genotyping`"
+    },
+    {
+      "goal_id": 52,
+      "category": "local_smokes",
+      "surface": "bam.kinship local artifact materializes under governed target",
+      "output_path": "target/local-smoke/bam.kinship/kinship.json",
+      "ok": true,
+      "detail": "materialized `target/local-smoke/bam.kinship/kinship.json` under `target/local-smoke/bam.kinship`"
+    },
+    {
+      "goal_id": 53,
+      "category": "benchmark_harness",
+      "surface": "local stage listing covers the governed FASTQ and BAM slices",
+      "output_path": null,
+      "ok": true,
+      "detail": "list-stages surface resolves 27 FASTQ stages and 24 BAM stages"
+    },
+    {
+      "goal_id": 54,
+      "category": "benchmark_harness",
+      "surface": "local stage commands render into one governed shell script",
+      "output_path": "benchmarks/readiness/local-ready/rendered-stage-commands.sh",
+      "ok": true,
+      "detail": "rendered 51 stage commands"
+    },
+    {
+      "goal_id": 55,
+      "category": "benchmark_harness",
+      "surface": "rendered stage command manifest carries declared fields for every stage",
+      "output_path": "benchmarks/readiness/local-ready/rendered-stage-commands.json",
+      "ok": true,
+      "detail": "all 51 rendered stage command rows carry stage, tool, resource, and command fields"
+    },
+    {
+      "goal_id": 56,
+      "category": "benchmark_harness",
+      "surface": "fake-run stage harness materializes every governed stage output and manifest",
+      "output_path": "target/local-fake-runs/stages",
+      "ok": true,
+      "detail": "fake-run manifest covers 51 stages"
+    },
+    {
+      "goal_id": 57,
+      "category": "benchmark_harness",
+      "surface": "fake-run failure harness records structured stage failures",
+      "output_path": "target/local-fake-runs/failures",
+      "ok": true,
+      "detail": "fake-run failure manifest covers 51 stages"
+    },
+    {
+      "goal_id": 58,
+      "category": "benchmark_harness",
+      "surface": "output completion requires every declared stage output",
+      "output_path": "benchmarks/readiness/local-ready/output-completion-report.json",
+      "ok": true,
+      "detail": "output completion marks all 51 governed stages complete"
+    },
+    {
+      "goal_id": 59,
+      "category": "benchmark_harness",
+      "surface": "manifest completion requires every stage-result manifest",
+      "output_path": "benchmarks/readiness/local-ready/manifest-completion-report.json",
+      "ok": true,
+      "detail": "manifest completion marks all 51 governed stages complete"
+    },
+    {
+      "goal_id": 60,
+      "category": "benchmark_harness",
+      "surface": "stage-result manifests validate the governed runtime contract",
+      "output_path": "target/local-fake-runs/stages/*/stage-result.json",
+      "ok": true,
+      "detail": "validated 51 governed stage-result manifests"
+    },
+    {
+      "goal_id": 61,
+      "category": "benchmark_harness",
+      "surface": "runtime metrics extract validated start, finish, elapsed, exit, and status fields",
+      "output_path": "benchmarks/readiness/local-ready/runtime-metrics.json",
+      "ok": true,
+      "detail": "runtime metrics report covers 51 stages"
+    },
+    {
+      "goal_id": 62,
+      "category": "benchmark_harness",
+      "surface": "stage-result manifests carry explicit resource metric provenance",
+      "output_path": "target/local-fake-runs/stages/*/stage-result.json",
+      "ok": true,
+      "detail": "resource_metrics.source is explicit for 51 governed stage results"
+    },
+    {
+      "goal_id": 63,
+      "category": "benchmark_harness",
+      "surface": "tool comparison template renders one governed row per benchmark stage",
+      "output_path": "benchmarks/readiness/local-ready/tool-comparison-template.tsv",
+      "ok": true,
+      "detail": "tool comparison template contains 51 rows"
+    },
+    {
+      "goal_id": 64,
+      "category": "benchmark_harness",
+      "surface": "benchmark summary renders governed JSON and Markdown surfaces",
+      "output_path": "benchmarks/readiness/local-ready/benchmark-summary.json",
+      "ok": true,
+      "detail": "benchmark summary renders 51 ready stages with governed Markdown companion"
+    },
+    {
+      "goal_id": 65,
+      "category": "corpora",
+      "surface": "corpus-01 mini FASTQ fixture validates sample identity and read counts",
+      "output_path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/manifest.toml",
+      "ok": false,
+      "detail": "expected 4 FASTQ samples and valid fixture but found sample_count=10 valid=true"
+    },
+    {
+      "goal_id": 66,
+      "category": "corpora",
+      "surface": "corpus-01 mini BAM fixture validates aligned sample contracts",
+      "output_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml",
+      "ok": false,
+      "detail": "expected 2 BAM samples and valid fixture but found sample_count=21 valid=true"
+    },
+    {
+      "goal_id": 67,
+      "category": "corpora",
+      "surface": "corpus-01 damage fixture validates expected aDNA limitations and evidence",
+      "output_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml",
+      "ok": true,
+      "detail": "damage fixture validates expected evidence at benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/expected_damage.json"
+    },
+    {
+      "goal_id": 68,
+      "category": "corpora",
+      "surface": "corpus-02 eDNA fixture validates mock-community FASTQ inputs",
+      "output_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml",
+      "ok": true,
+      "detail": "corpus-02 eDNA fixture validates 2 samples"
+    },
+    {
+      "goal_id": 70,
+      "category": "corpora",
+      "surface": "corpus-02 expected taxonomy output validates sample-taxon truth rows",
+      "output_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv",
+      "ok": true,
+      "detail": "expected taxonomy contract carries 3 taxa across 6 rows"
+    },
+    {
+      "goal_id": 69,
+      "category": "corpora",
+      "surface": "taxonomy-mini fixture validates lineage, index, and backend bundle ownership",
+      "output_path": "benchmarks/tests/fixtures/databases/taxonomy-mini/manifest.toml",
+      "ok": true,
+      "detail": "taxonomy-mini fixture validates 3 taxa with 3 source records"
+    },
+    {
+      "goal_id": 71,
+      "category": "corpora",
+      "surface": "corpus-03 amplicon fixture validates FASTQ sample and control ownership",
+      "output_path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml",
+      "ok": true,
+      "detail": "amplicon fixture validates 4 samples and 1 controls"
+    },
+    {
+      "goal_id": 72,
+      "category": "corpora",
+      "surface": "corpus-03 primer metadata validates governed primer normalization inputs",
+      "output_path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv",
+      "ok": true,
+      "detail": "primer metadata table contains 1 rows"
+    },
+    {
+      "goal_id": 73,
+      "category": "corpora",
+      "surface": "corpus-03 expected ASV table validates sample-aware amplicon truth rows",
+      "output_path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/expected_asvs.tsv",
+      "ok": true,
+      "detail": "expected ASV table contains 3 rows"
+    },
+    {
+      "goal_id": 74,
+      "category": "corpora",
+      "surface": "corpus-03 chimera controls validate governed positive-control expectations",
+      "output_path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv",
+      "ok": true,
+      "detail": "chimera expectations contain 1 rows"
+    },
+    {
+      "goal_id": 75,
+      "category": "corpora",
+      "surface": "corpus-stage compatibility matrix validates all 51 governed stages",
+      "output_path": "benchmarks/configs/local/corpus-stage-compatibility.toml",
+      "ok": true,
+      "detail": "compatibility matrix validates 51 stages across 8 fixtures"
+    },
+    {
+      "goal_id": 76,
+      "category": "corpora",
+      "surface": "corpus skip report keeps incompatible fixtures and planner-only stages explicit",
+      "output_path": "benchmarks/readiness/local-ready/corpus-skip-report.json",
+      "ok": true,
+      "detail": "skip report records 336 fixture skips and 3 planner-only stages"
+    },
+    {
+      "goal_id": 77,
+      "category": "pipeline_dags",
+      "surface": "fastq-core-preprocess validates as an acyclic governed local DAG",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-core-preprocess.json",
+      "ok": true,
+      "detail": "pipeline `fastq-core-preprocess` validates 7 nodes and 12 edges"
+    },
+    {
+      "goal_id": 78,
+      "category": "pipeline_dags",
+      "surface": "fastq-paired-merge validates as an acyclic governed local DAG",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-paired-merge.json",
+      "ok": true,
+      "detail": "pipeline `fastq-paired-merge` validates 7 nodes and 12 edges"
+    },
+    {
+      "goal_id": 79,
+      "category": "pipeline_dags",
+      "surface": "fastq-edna-taxonomy validates as an acyclic governed local DAG",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-edna-taxonomy.json",
+      "ok": true,
+      "detail": "pipeline `fastq-edna-taxonomy` validates 7 nodes and 12 edges"
+    },
+    {
+      "goal_id": 80,
+      "category": "pipeline_dags",
+      "surface": "fastq-amplicon validates as an acyclic governed local DAG",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-amplicon.json",
+      "ok": true,
+      "detail": "pipeline `fastq-amplicon` validates 7 nodes and 12 edges"
+    },
+    {
+      "goal_id": 81,
+      "category": "pipeline_dags",
+      "surface": "fastq-umi validates as an acyclic governed local DAG",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-umi.json",
+      "ok": true,
+      "detail": "pipeline `fastq-umi` validates 8 nodes and 13 edges"
+    },
+    {
+      "goal_id": 82,
+      "category": "pipeline_dags",
+      "surface": "bam-core-qc validates as an acyclic governed local DAG",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/bam-core-qc.json",
+      "ok": true,
+      "detail": "pipeline `bam-core-qc` validates 5 nodes and 5 edges"
+    },
+    {
+      "goal_id": 83,
+      "category": "pipeline_dags",
+      "surface": "bam-authenticity validates as an acyclic governed local DAG",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/bam-authenticity.json",
+      "ok": true,
+      "detail": "pipeline `bam-authenticity` validates 7 nodes and 7 edges"
+    },
+    {
+      "goal_id": 84,
+      "category": "pipeline_dags",
+      "surface": "bam-genotyping validates as an acyclic governed local DAG",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping.json",
+      "ok": true,
+      "detail": "pipeline `bam-genotyping` validates 4 nodes and 5 edges"
+    },
+    {
+      "goal_id": 85,
+      "category": "pipeline_dags",
+      "surface": "bam-kinship validates as an acyclic governed local DAG",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/bam-kinship.json",
+      "ok": true,
+      "detail": "pipeline `bam-kinship` validates 4 nodes and 4 edges"
+    },
+    {
+      "goal_id": 86,
+      "category": "pipeline_dags",
+      "surface": "fastq-to-bam validates as an acyclic governed local DAG",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-to-bam.json",
+      "ok": true,
+      "detail": "pipeline `fastq-to-bam` validates 6 nodes and 7 edges"
+    },
+    {
+      "goal_id": 87,
+      "category": "pipeline_dags",
+      "surface": "no-global-wait watchdog simulation keeps ready work moving while an unrelated branch is slow",
+      "output_path": "benchmarks/readiness/local-ready/dag-sim/no-global-wait.json",
+      "ok": true,
+      "detail": "watchdog scenario `no_global_wait` produced a governed proof report"
+    },
+    {
+      "goal_id": 88,
+      "category": "pipeline_dags",
+      "surface": "failure-isolation watchdog simulation blocks only dependent work for the failed sample",
+      "output_path": "benchmarks/readiness/local-ready/dag-sim/failure-isolation.json",
+      "ok": true,
+      "detail": "watchdog scenario `failure_isolation` produced a governed proof report"
+    },
+    {
+      "goal_id": 89,
+      "category": "pipeline_dags",
+      "surface": "partial-resume watchdog simulation reuses valid nodes and replans only invalid or missing work",
+      "output_path": "benchmarks/readiness/local-ready/dag-sim/partial-resume.json",
+      "ok": true,
+      "detail": "watchdog scenario `partial_resume` produced a governed proof report"
+    },
+    {
+      "goal_id": 90,
+      "category": "pipeline_dags",
+      "surface": "completion-rules watchdog simulation requires zero exit, outputs, and result manifest together",
+      "output_path": "benchmarks/readiness/local-ready/dag-sim/completion-rules.json",
+      "ok": true,
+      "detail": "watchdog scenario `completion_rules` produced a governed proof report"
+    },
+    {
+      "goal_id": 91,
+      "category": "slurm_dry_run",
+      "surface": "HPC campaign configs reference only real governed stage IDs",
+      "output_path": "benchmarks/configs/hpc/campaign/cross-mini.toml",
+      "ok": true,
+      "detail": "campaign stage validation passes for `cross-hpc-mini` and `vcf-hpc-mini`"
+    },
+    {
+      "goal_id": 99,
+      "category": "slurm_dry_run",
+      "surface": "LUNARC local-ready profile dry-runs against prepared roots and prepared lock contracts",
+      "output_path": "benchmarks/configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml",
+      "ok": true,
+      "detail": "LUNARC profile dry-run planned 4 jobs and mock submission wrote 4 scripts"
+    },
+    {
+      "goal_id": 92,
+      "category": "slurm_dry_run",
+      "surface": "FASTQ local benchmark stages render governed SLURM dry-run scripts",
+      "output_path": "target/slurm-dry-run/fastq",
+      "ok": true,
+      "detail": "FASTQ SLURM dry-run rendered 27 scripts"
+    },
+    {
+      "goal_id": 93,
+      "category": "slurm_dry_run",
+      "surface": "BAM local benchmark stages render governed SLURM dry-run scripts",
+      "output_path": "target/slurm-dry-run/bam",
+      "ok": true,
+      "detail": "BAM SLURM dry-run rendered 24 scripts"
+    },
+    {
+      "goal_id": 94,
+      "category": "slurm_dry_run",
+      "surface": "generated SLURM script bodies call real repo commands and contain no placeholders",
+      "output_path": "target/slurm-dry-run/no-placeholder-report.json",
+      "ok": false,
+      "detail": "ok=true script_count=51 findings_count=0"
+    },
+    {
+      "goal_id": 95,
+      "category": "slurm_dry_run",
+      "surface": "generated SLURM scripts pass bash syntax validation",
+      "output_path": "target/slurm-dry-run/bash-n-report.json",
+      "ok": false,
+      "detail": "ok=true script_count=51 findings_count=0"
+    },
+    {
+      "goal_id": 96,
+      "category": "slurm_dry_run",
+      "surface": "SLURM dry-run submit manifest records complete job metadata",
+      "output_path": "target/slurm-dry-run/submit-manifest.json",
+      "ok": true,
+      "detail": "submit manifest records 51 jobs"
+    },
+    {
+      "goal_id": 97,
+      "category": "slurm_dry_run",
+      "surface": "SLURM dependencies stay in exactly one source of truth",
+      "output_path": "target/slurm-dry-run/dependency-check.json",
+      "ok": true,
+      "detail": "dependency ownership is clean across 51 dry-run jobs"
+    },
+    {
+      "goal_id": 98,
+      "category": "slurm_dry_run",
+      "surface": "SLURM dry-run scripts resolve predictable log and result paths",
+      "output_path": "target/slurm-dry-run/runs/local-benchmark-dry-run",
+      "ok": true,
+      "detail": "SLURM dry-run scripts and submit manifest both carry governed run-path fields"
+    }
+  ]
+}

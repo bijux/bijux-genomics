@@ -1,0 +1,63 @@
+{
+  "schema_version": "bijux.bench.local_vcf_reference_compatibility.v1",
+  "manifest_path": "benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml",
+  "output_path": "benchmarks/readiness/local-ready/vcf/reference-compatibility.json",
+  "corpus_id": "vcf-mini",
+  "reference_id": "vcf-mini-reference",
+  "fasta_path": "benchmarks/tests/fixtures/corpora/vcf-mini/reference/vcf_mini_reference.fasta",
+  "fai_path": "benchmarks/tests/fixtures/corpora/vcf-mini/reference/vcf_mini_reference.fasta.fai",
+  "dict_path": "benchmarks/tests/fixtures/corpora/vcf-mini/reference/vcf_mini_reference.dict",
+  "contig_count": 2,
+  "reference_contigs": [
+    "chr1",
+    "chr2"
+  ],
+  "vcf_contigs": [
+    "chr1",
+    "chr2"
+  ],
+  "missing_contigs": [],
+  "extra_contigs": [],
+  "status": "compatible",
+  "variant_sets": [
+    {
+      "variant_role": "raw",
+      "vcf_path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf",
+      "contigs": [
+        "chr1",
+        "chr2"
+      ]
+    },
+    {
+      "variant_role": "filtered",
+      "vcf_path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_filtered_single_sample.vcf",
+      "contigs": [
+        "chr1"
+      ]
+    },
+    {
+      "variant_role": "multisample",
+      "vcf_path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf",
+      "contigs": [
+        "chr1",
+        "chr2"
+      ]
+    },
+    {
+      "variant_role": "phased",
+      "vcf_path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_phased.vcf",
+      "contigs": [
+        "chr1",
+        "chr2"
+      ]
+    },
+    {
+      "variant_role": "panel",
+      "vcf_path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+      "contigs": [
+        "chr1",
+        "chr2"
+      ]
+    }
+  ]
+}

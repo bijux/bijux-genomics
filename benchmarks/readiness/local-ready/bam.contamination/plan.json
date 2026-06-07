@@ -1,0 +1,113 @@
+{
+  "stage_id": "bam.contamination",
+  "stage_version": 1,
+  "tool_id": "verifybamid2",
+  "tool_version": "2.0.1",
+  "image": {
+    "image": "bijuxdna/verifybamid2",
+    "digest": null
+  },
+  "command": {
+    "template": [
+      "/bin/sh",
+      "-c",
+      "test -f benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai && verifybamid2 --BamFile benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam --Reference benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta --SVDPrefix benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat --Output benchmarks/readiness/local-ready/bam.contamination/contamination && if [ -f benchmarks/readiness/local-ready/bam.contamination/contamination.selfSM ]; then cp benchmarks/readiness/local-ready/bam.contamination/contamination.selfSM benchmarks/readiness/local-ready/bam.contamination/contamination.json; else : > benchmarks/readiness/local-ready/bam.contamination/contamination.json; fi && python - <<'PY' > benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json\nimport json\nprint(json.dumps(json.loads(\"{\\n  \\\"assumptions\\\": \\\"governed aDNA BAM corpus contamination panel with shared non-UDG reference for local contamination planning\\\",\\n  \\\"emit_confidence_caveats\\\": true,\\n  \\\"method\\\": \\\"verifybamid2\\\",\\n  \\\"minimum_mean_coverage\\\": 0.5,\\n  \\\"reference\\\": \\\"benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta\\\",\\n  \\\"reference_panels\\\": [\\n    \\\"benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat\\\"\\n  ],\\n  \\\"scope\\\": \\\"nuclear\\\",\\n  \\\"tool_scope\\\": \\\"nuclear\\\"\\n}\"), indent=2))\nPY"
+    ]
+  },
+  "resources": {
+    "runtime": "local",
+    "mem_gb": 8,
+    "tmp_gb": 8,
+    "threads": 2
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam",
+        "role": "bam",
+        "optional": false
+      },
+      {
+        "name": "bam_bai",
+        "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai",
+        "role": "index",
+        "optional": false
+      },
+      {
+        "name": "reference",
+        "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+        "role": "reference",
+        "optional": false
+      },
+      {
+        "name": "reference_panel",
+        "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat",
+        "role": "reference",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "contamination_report",
+        "path": "benchmarks/readiness/local-ready/bam.contamination/contamination.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "summary",
+        "path": "benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "stage_metrics",
+        "path": "benchmarks/readiness/local-ready/bam.contamination/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "benchmarks/readiness/local-ready/bam.contamination",
+  "params": {
+    "assumptions": "governed aDNA BAM corpus contamination panel with shared non-UDG reference for local contamination planning",
+    "bai": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai",
+    "bam": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam",
+    "chromosome_system": "xy",
+    "emit_confidence_caveats": true,
+    "minimum_mean_coverage": 0.5,
+    "prior": 0.02,
+    "reference": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+    "reference_panels": [
+      "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
+    ],
+    "required_reference_digest": "ade9a8686ba2679e772a4ce5cf74fb805460070be21bfdbed523bc6d8e566b1c",
+    "sample_id": "adna_contamination_panel_screen",
+    "scope": "nuclear",
+    "sex_specific": false,
+    "tool": "verifybamid2",
+    "tool_scope": "nuclear"
+  },
+  "effective_params": {
+    "assumptions": "governed aDNA BAM corpus contamination panel with shared non-UDG reference for local contamination planning",
+    "chromosome_system": "xy",
+    "emit_confidence_caveats": true,
+    "minimum_mean_coverage": 0.5,
+    "prior": 0.02,
+    "reference_panels": [
+      "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
+    ],
+    "required_reference_digest": "ade9a8686ba2679e772a4ce5cf74fb805460070be21bfdbed523bc6d8e566b1c",
+    "scope": "nuclear",
+    "sex_specific": false
+  },
+  "operating_mode": "enforced",
+  "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
+  }
+}

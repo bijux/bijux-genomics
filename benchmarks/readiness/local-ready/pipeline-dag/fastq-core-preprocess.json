@@ -1,0 +1,171 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+  "config_path": "benchmarks/configs/pipelines/local/fastq-core-preprocess.toml",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-core-preprocess.json",
+  "pipeline_id": "fastq-core-preprocess",
+  "domain": "fastq",
+  "default_corpus_id": "corpus-01-mini",
+  "summary": "Core FASTQ preprocessing DAG for corpus-01 validation, read-length profiling, adapter detection, trimming, filtering, and terminal QC collation.",
+  "node_count": 7,
+  "edge_count": 12,
+  "acyclic": true,
+  "valid": true,
+  "topological_order": [
+    "fastq.validate_reads",
+    "fastq.profile_read_lengths",
+    "fastq.detect_adapters",
+    "fastq.trim_reads",
+    "fastq.filter_reads",
+    "fastq.profile_reads",
+    "fastq.report_qc"
+  ],
+  "validation_profiles": [],
+  "nodes": [
+    {
+      "node_id": "fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 0,
+      "external_input_count": 1,
+      "upstream_input_count": 0,
+      "output_count": 2,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.raw_fastq_reads"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "validated_reads",
+        "validation_report"
+      ]
+    },
+    {
+      "node_id": "fastq.profile_read_lengths",
+      "stage_id": "fastq.profile_read_lengths",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 1,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validated_reads"
+      ],
+      "outputs": [
+        "read_length_metrics"
+      ]
+    },
+    {
+      "node_id": "fastq.detect_adapters",
+      "stage_id": "fastq.detect_adapters",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 1,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validated_reads"
+      ],
+      "outputs": [
+        "adapter_report"
+      ]
+    },
+    {
+      "node_id": "fastq.trim_reads",
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 2,
+      "depends_on": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validated_reads",
+        "adapter_report"
+      ],
+      "outputs": [
+        "trimmed_reads",
+        "trim_metrics"
+      ]
+    },
+    {
+      "node_id": "fastq.filter_reads",
+      "stage_id": "fastq.filter_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 1,
+      "output_count": 2,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "trimmed_reads"
+      ],
+      "outputs": [
+        "filtered_reads",
+        "filter_metrics"
+      ]
+    },
+    {
+      "node_id": "fastq.profile_reads",
+      "stage_id": "fastq.profile_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 1,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.filter_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "filtered_reads"
+      ],
+      "outputs": [
+        "filtered_profile"
+      ]
+    },
+    {
+      "node_id": "fastq.report_qc",
+      "stage_id": "fastq.report_qc",
+      "readiness_kind": "smoke",
+      "dependency_count": 6,
+      "external_input_count": 0,
+      "upstream_input_count": 6,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.validate_reads",
+        "fastq.profile_read_lengths",
+        "fastq.detect_adapters",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.profile_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validation_report",
+        "read_length_metrics",
+        "adapter_report",
+        "trim_metrics",
+        "filter_metrics",
+        "filtered_profile"
+      ],
+      "outputs": [
+        "qc_bundle"
+      ]
+    }
+  ]
+}

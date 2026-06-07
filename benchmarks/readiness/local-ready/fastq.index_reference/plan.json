@@ -1,0 +1,74 @@
+{
+  "stage_id": "fastq.index_reference",
+  "stage_instance_id": "fastq.index_reference.tool.bowtie2_build",
+  "stage_version": 1,
+  "tool_id": "bowtie2_build",
+  "tool_version": "2.5.4",
+  "image": {
+    "image": "bijuxdna/bowtie2_build",
+    "digest": null
+  },
+  "command": {
+    "template": [
+      "sh",
+      "-lc",
+      "set -eu\nmkdir -p 'benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2'\nbowtie2-build --threads 4 'assets/reference/contaminants/references/phix174.fasta' 'benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference'"
+    ]
+  },
+  "resources": {
+    "runtime": "local",
+    "mem_gb": 8,
+    "tmp_gb": 8,
+    "threads": 4
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "reference_fasta",
+        "path": "assets/reference/contaminants/references/phix174.fasta",
+        "role": "reference",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "reference_index",
+        "path": "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference",
+        "role": "index",
+        "optional": false
+      },
+      {
+        "name": "report_json",
+        "path": "benchmarks/readiness/local-ready/fastq.index_reference/index_reference_report.json",
+        "role": "report_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "benchmarks/readiness/local-ready/fastq.index_reference",
+  "params": {
+    "out_dir": "benchmarks/readiness/local-ready/fastq.index_reference",
+    "reference_fasta": "assets/reference/contaminants/references/phix174.fasta",
+    "reference_index": "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference",
+    "report_json": "benchmarks/readiness/local-ready/fastq.index_reference/index_reference_report.json",
+    "threads": 4,
+    "tool": "bowtie2_build"
+  },
+  "effective_params": {
+    "index_format": "bowtie2_build",
+    "index_prefix": "reference",
+    "output_artifact": "reference_index",
+    "report_artifact": "report_json",
+    "schema_version": "bijux.fastq.params.index_reference.v1",
+    "threads": 4
+  },
+  "operating_mode": "enforced",
+  "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
+  }
+}

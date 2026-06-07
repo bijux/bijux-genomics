@@ -1,0 +1,308 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+  "config_path": "benchmarks/configs/pipelines/local/core-germline-fastq-bam-vcf.toml",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json",
+  "pipeline_id": "core-germline-fastq-bam-vcf",
+  "domain": "cross",
+  "default_corpus_id": "corpus-01-mini",
+  "summary": "Core germline FASTQ-to-BAM-to-VCF DAG for governed read validation, read profiling, trimming, alignment, BAM QC, coverage, variant calling, filtering, summary statistics, and cohort QC handoffs.",
+  "node_count": 12,
+  "edge_count": 15,
+  "acyclic": true,
+  "valid": true,
+  "topological_order": [
+    "fastq.validate_reads",
+    "fastq.profile_reads",
+    "fastq.trim_reads",
+    "fastq.filter_reads",
+    "bam.align",
+    "bam.validate",
+    "bam.qc_pre",
+    "bam.coverage",
+    "vcf.call",
+    "vcf.filter",
+    "vcf.stats",
+    "vcf.qc"
+  ],
+  "validation_profiles": [],
+  "nodes": [
+    {
+      "node_id": "fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 0,
+      "external_input_count": 1,
+      "upstream_input_count": 0,
+      "output_count": 3,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.raw_fastq_reads"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "validated_reads_r1_path",
+        "validated_reads_r2_path",
+        "validation_report"
+      ]
+    },
+    {
+      "node_id": "fastq.profile_reads",
+      "stage_id": "fastq.profile_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validated_reads_r1_path",
+        "validated_reads_r2_path"
+      ],
+      "outputs": [
+        "validated_profile"
+      ]
+    },
+    {
+      "node_id": "fastq.trim_reads",
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 3,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validated_reads_r1_path",
+        "validated_reads_r2_path"
+      ],
+      "outputs": [
+        "trimmed_reads_r1_path",
+        "trimmed_reads_r2_path",
+        "trim_metrics"
+      ]
+    },
+    {
+      "node_id": "fastq.filter_reads",
+      "stage_id": "fastq.filter_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 3,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "trimmed_reads_r1_path",
+        "trimmed_reads_r2_path"
+      ],
+      "outputs": [
+        "filtered_reads_r1_path",
+        "filtered_reads_r2_path",
+        "filter_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.align",
+      "stage_id": "bam.align",
+      "readiness_kind": "dry_or_smoke",
+      "dependency_count": 1,
+      "external_input_count": 3,
+      "upstream_input_count": 2,
+      "output_count": 3,
+      "depends_on": [
+        "fastq.filter_reads"
+      ],
+      "external_inputs": [
+        "alignment_reference_fasta_contract",
+        "alignment_reference_index_contract",
+        "alignment_read_group_contract"
+      ],
+      "upstream_inputs": [
+        "filtered_reads_r1_path",
+        "filtered_reads_r2_path"
+      ],
+      "outputs": [
+        "aligned_bam",
+        "aligned_bai",
+        "align_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.validate",
+      "stage_id": "bam.validate",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 1,
+      "upstream_input_count": 3,
+      "output_count": 1,
+      "depends_on": [
+        "bam.align"
+      ],
+      "external_inputs": [
+        "reference_fasta_contract"
+      ],
+      "upstream_inputs": [
+        "aligned_bam",
+        "aligned_bai",
+        "align_metrics"
+      ],
+      "outputs": [
+        "bam_validation_report"
+      ]
+    },
+    {
+      "node_id": "bam.qc_pre",
+      "stage_id": "bam.qc_pre",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 4,
+      "depends_on": [
+        "bam.align",
+        "bam.validate"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "aligned_bam",
+        "aligned_bai",
+        "bam_validation_report"
+      ],
+      "outputs": [
+        "qc_pre_flagstat",
+        "qc_pre_idxstats",
+        "qc_pre_stats",
+        "qc_pre_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.coverage",
+      "stage_id": "bam.coverage",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 1,
+      "upstream_input_count": 3,
+      "output_count": 2,
+      "depends_on": [
+        "bam.align",
+        "bam.qc_pre"
+      ],
+      "external_inputs": [
+        "coverage_region_contract"
+      ],
+      "upstream_inputs": [
+        "aligned_bam",
+        "aligned_bai",
+        "qc_pre_stage_metrics"
+      ],
+      "outputs": [
+        "coverage_report_json",
+        "coverage_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "vcf.call",
+      "stage_id": "vcf.call",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 2,
+      "upstream_input_count": 3,
+      "output_count": 3,
+      "depends_on": [
+        "bam.align",
+        "bam.coverage"
+      ],
+      "external_inputs": [
+        "reference_fasta_contract",
+        "reference_fai_contract"
+      ],
+      "upstream_inputs": [
+        "aligned_bam",
+        "aligned_bai",
+        "coverage_report_json"
+      ],
+      "outputs": [
+        "called_vcf",
+        "called_vcf_tbi",
+        "call_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "vcf.filter",
+      "stage_id": "vcf.filter",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 4,
+      "depends_on": [
+        "vcf.call"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "called_vcf",
+        "called_vcf_tbi",
+        "call_stage_metrics"
+      ],
+      "outputs": [
+        "filtered_vcf",
+        "filtered_vcf_tbi",
+        "filter_report_json",
+        "filter_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "vcf.stats",
+      "stage_id": "vcf.stats",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 2,
+      "depends_on": [
+        "vcf.filter"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "filtered_vcf",
+        "filtered_vcf_tbi",
+        "filter_report_json"
+      ],
+      "outputs": [
+        "stats_json",
+        "stats_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "vcf.qc",
+      "stage_id": "vcf.qc",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 2,
+      "depends_on": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "filtered_vcf",
+        "filtered_vcf_tbi",
+        "stats_json"
+      ],
+      "outputs": [
+        "qc_report",
+        "qc_stage_metrics"
+      ]
+    }
+  ]
+}

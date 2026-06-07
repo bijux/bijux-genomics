@@ -1,0 +1,142 @@
+{
+  "schema_version": "bijux.bench.local_dag_watchdog_simulation.v1",
+  "scenario": "completion_rules",
+  "config_path": "benchmarks/configs/pipelines/local/fastq-core-preprocess.toml",
+  "dag_report_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-core-preprocess.json",
+  "output_path": "benchmarks/readiness/local-ready/dag-sim/completion-rules.json",
+  "pipeline_id": "fastq-core-preprocess",
+  "node_count": 5,
+  "sample_count": 1,
+  "simulated_makespan_seconds": 5,
+  "slow_branch_stage_id": "",
+  "slow_branch_finish_second": 0,
+  "ready_while_slow_branch_running_stage_ids": [],
+  "no_global_wait_proven": false,
+  "failed_sample_id": null,
+  "failed_stage_id": null,
+  "failure_second": null,
+  "continued_unrelated_node_ids": [],
+  "blocked_node_ids": [],
+  "failure_isolation_proven": false,
+  "reused_valid_node_ids": [],
+  "invalid_node_ids": [],
+  "missing_node_ids": [],
+  "planned_node_ids": [],
+  "partial_resume_proven": false,
+  "completion_check_stage_id": "fastq.filter_reads",
+  "completion_checks": [
+    {
+      "case_id": "zero_exit_missing_outputs_and_manifest",
+      "node_id": "sample_primary::fastq.filter_reads::zero_exit_missing_outputs_and_manifest",
+      "stage_id": "fastq.filter_reads",
+      "exit_code": 0,
+      "declared_outputs_exist": false,
+      "result_manifest_exists": false,
+      "complete": false
+    },
+    {
+      "case_id": "zero_exit_outputs_only",
+      "node_id": "sample_primary::fastq.filter_reads::zero_exit_outputs_only",
+      "stage_id": "fastq.filter_reads",
+      "exit_code": 0,
+      "declared_outputs_exist": true,
+      "result_manifest_exists": false,
+      "complete": false
+    },
+    {
+      "case_id": "zero_exit_manifest_only",
+      "node_id": "sample_primary::fastq.filter_reads::zero_exit_manifest_only",
+      "stage_id": "fastq.filter_reads",
+      "exit_code": 0,
+      "declared_outputs_exist": false,
+      "result_manifest_exists": true,
+      "complete": false
+    },
+    {
+      "case_id": "nonzero_exit_with_outputs_and_manifest",
+      "node_id": "sample_primary::fastq.filter_reads::nonzero_exit_with_outputs_and_manifest",
+      "stage_id": "fastq.filter_reads",
+      "exit_code": 17,
+      "declared_outputs_exist": true,
+      "result_manifest_exists": true,
+      "complete": false
+    },
+    {
+      "case_id": "zero_exit_outputs_and_manifest",
+      "node_id": "sample_primary::fastq.filter_reads::zero_exit_outputs_and_manifest",
+      "stage_id": "fastq.filter_reads",
+      "exit_code": 0,
+      "declared_outputs_exist": true,
+      "result_manifest_exists": true,
+      "complete": true
+    }
+  ],
+  "completion_rules_proven": true,
+  "nodes": [
+    {
+      "node_id": "sample_primary::fastq.filter_reads::zero_exit_missing_outputs_and_manifest",
+      "sample_id": "sample_primary",
+      "stage_id": "fastq.filter_reads",
+      "status": "incomplete",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "start_second": 0,
+      "finish_second": 1,
+      "duration_seconds": 1
+    },
+    {
+      "node_id": "sample_primary::fastq.filter_reads::zero_exit_outputs_only",
+      "sample_id": "sample_primary",
+      "stage_id": "fastq.filter_reads",
+      "status": "incomplete",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "start_second": 1,
+      "finish_second": 2,
+      "duration_seconds": 1
+    },
+    {
+      "node_id": "sample_primary::fastq.filter_reads::zero_exit_manifest_only",
+      "sample_id": "sample_primary",
+      "stage_id": "fastq.filter_reads",
+      "status": "incomplete",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "start_second": 2,
+      "finish_second": 3,
+      "duration_seconds": 1
+    },
+    {
+      "node_id": "sample_primary::fastq.filter_reads::nonzero_exit_with_outputs_and_manifest",
+      "sample_id": "sample_primary",
+      "stage_id": "fastq.filter_reads",
+      "status": "failed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "start_second": 3,
+      "finish_second": 4,
+      "duration_seconds": 1
+    },
+    {
+      "node_id": "sample_primary::fastq.filter_reads::zero_exit_outputs_and_manifest",
+      "sample_id": "sample_primary",
+      "stage_id": "fastq.filter_reads",
+      "status": "completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "start_second": 4,
+      "finish_second": 5,
+      "duration_seconds": 1
+    }
+  ]
+}

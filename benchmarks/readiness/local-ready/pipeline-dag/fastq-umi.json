@@ -1,0 +1,206 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+  "config_path": "benchmarks/configs/pipelines/local/fastq-umi.toml",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-umi.json",
+  "pipeline_id": "fastq-umi",
+  "domain": "fastq",
+  "default_corpus_id": "corpus-01-mini",
+  "summary": "FASTQ UMI DAG for governed validation, UMI extraction, duplicate-aware preprocessing, and QC collation.",
+  "node_count": 8,
+  "edge_count": 13,
+  "acyclic": true,
+  "valid": true,
+  "topological_order": [
+    "fastq.validate_reads",
+    "fastq.extract_umis",
+    "fastq.detect_duplicates_premerge",
+    "fastq.trim_reads",
+    "fastq.filter_reads",
+    "fastq.remove_duplicates",
+    "fastq.profile_reads",
+    "fastq.report_qc"
+  ],
+  "validation_profiles": [],
+  "nodes": [
+    {
+      "node_id": "fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 0,
+      "external_input_count": 1,
+      "upstream_input_count": 0,
+      "output_count": 2,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.raw_fastq_reads"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "validated_reads",
+        "validation_report"
+      ]
+    },
+    {
+      "node_id": "fastq.extract_umis",
+      "stage_id": "fastq.extract_umis",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 1,
+      "upstream_input_count": 1,
+      "output_count": 3,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "external_inputs": [
+        "umi_pattern_contract"
+      ],
+      "upstream_inputs": [
+        "validated_reads"
+      ],
+      "outputs": [
+        "umi_tagged_reads_r1",
+        "umi_tagged_reads_r2",
+        "umi_extraction_report"
+      ]
+    },
+    {
+      "node_id": "fastq.detect_duplicates_premerge",
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.extract_umis"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "umi_tagged_reads_r1",
+        "umi_tagged_reads_r2"
+      ],
+      "outputs": [
+        "duplicate_signal_report"
+      ]
+    },
+    {
+      "node_id": "fastq.trim_reads",
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 3,
+      "depends_on": [
+        "fastq.extract_umis"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "umi_tagged_reads_r1",
+        "umi_tagged_reads_r2"
+      ],
+      "outputs": [
+        "trimmed_umi_reads_r1",
+        "trimmed_umi_reads_r2",
+        "trim_metrics"
+      ]
+    },
+    {
+      "node_id": "fastq.filter_reads",
+      "stage_id": "fastq.filter_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 3,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "trimmed_umi_reads_r1",
+        "trimmed_umi_reads_r2"
+      ],
+      "outputs": [
+        "filtered_umi_reads_r1",
+        "filtered_umi_reads_r2",
+        "filter_metrics"
+      ]
+    },
+    {
+      "node_id": "fastq.remove_duplicates",
+      "stage_id": "fastq.remove_duplicates",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 5,
+      "depends_on": [
+        "fastq.filter_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "filtered_umi_reads_r1",
+        "filtered_umi_reads_r2"
+      ],
+      "outputs": [
+        "deduplicated_umi_reads_r1",
+        "deduplicated_umi_reads_r2",
+        "duplicate_classes_tsv",
+        "duplicate_provenance_json",
+        "deduplication_report"
+      ]
+    },
+    {
+      "node_id": "fastq.profile_reads",
+      "stage_id": "fastq.profile_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.remove_duplicates"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "deduplicated_umi_reads_r1",
+        "deduplicated_umi_reads_r2"
+      ],
+      "outputs": [
+        "deduplicated_profile"
+      ]
+    },
+    {
+      "node_id": "fastq.report_qc",
+      "stage_id": "fastq.report_qc",
+      "readiness_kind": "smoke",
+      "dependency_count": 7,
+      "external_input_count": 0,
+      "upstream_input_count": 7,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.validate_reads",
+        "fastq.extract_umis",
+        "fastq.detect_duplicates_premerge",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.remove_duplicates",
+        "fastq.profile_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validation_report",
+        "umi_extraction_report",
+        "duplicate_signal_report",
+        "trim_metrics",
+        "filter_metrics",
+        "deduplication_report",
+        "deduplicated_profile"
+      ],
+      "outputs": [
+        "qc_bundle"
+      ]
+    }
+  ]
+}

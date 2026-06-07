@@ -49,10 +49,10 @@ Commands listed here are owned by this crate even when their durable behavior is
 
 ### Fixtures
 - `bijux-dna fixtures build`
-  `fixtures build --corpus vcf-mini --out target/local-ready/vcf-mini-regeneration` regenerates
+  `fixtures build --corpus vcf-mini --out artifacts/fixtures/vcf-mini-regeneration` regenerates
   the owned `vcf-mini` corpus from the repo-side reference, metadata, interval, and variant
   contract, writes the expected-truth bundle and `CHECKSUMS.sha256`, then emits
-  `target/local-ready/vcf-mini-regeneration/manifest.json`. It fails closed if the regenerated
+  `artifacts/fixtures/vcf-mini-regeneration/manifest.json`. It fails closed if the regenerated
   fixture or truth bundle does not validate or if the regenerated sample, population, interval,
   variant, or cohort-pair counts drift from the governed fixture.
 - `bijux-dna fixtures validate`
@@ -1019,7 +1019,7 @@ Visible aliases are part of the operator surface:
   stage and comparing a canonicalized VCF payload that strips volatile `bcftools` command-path
   headers while still surfacing the raw header drift.
 - `bijux-dna bench local validate-vcf-no-empty-output`
-  `validate-vcf-no-empty-output` writes `target/local-ready/vcf/no-empty-output-check.json`,
+  `validate-vcf-no-empty-output` writes `benchmarks/readiness/local-ready/vcf/no-empty-output-check.json`,
   refreshes the governed VCF smoke-output fixture tree under `target/local-smoke/vcf`, and fails
   closed unless every declared `.vcf.gz`, `.json`, `.tsv`, and `.log` artifact remains present
   and non-empty. The report keeps one explicit row per checked output with `stage_id`, `tool_id`,
@@ -1027,7 +1027,7 @@ Visible aliases are part of the operator surface:
   optional `--skip-refresh` mode lets reviewers prove that a zero-byte artifact is rejected
   instead of being silently regenerated.
 - `bijux-dna bench local validate-vcf-stage-catalog-ready`
-  `validate-vcf-stage-catalog-ready` writes `target/local-ready/VCF_STAGE_CATALOG_READY.json` and
+  `validate-vcf-stage-catalog-ready` writes `benchmarks/readiness/local-ready/VCF_STAGE_CATALOG_READY.json` and
   fail-closes across the governed VCF Goal 201-209 slice. The gate reruns the owned stage-catalog,
   matrix, corpus-fixture, expected-truth, regeneration, reference-compatibility, sample-compatibility,
   smoke-root, and no-empty-output surfaces, then records one explicit row per goal with
@@ -1042,7 +1042,7 @@ Visible aliases are part of the operator surface:
   smoke-suite report instead of being hidden in scattered command stderr.
 - `bijux-dna bench local validate-vcf-reference-compatibility`
   `validate-vcf-reference-compatibility` writes
-  `target/local-ready/vcf/reference-compatibility.json`, deriving the governed VCF contig
+  `benchmarks/readiness/local-ready/vcf/reference-compatibility.json`, deriving the governed VCF contig
   compatibility report from the owned `vcf-mini` fixture manifest, FASTA, FAI, reference
   dictionary, and all declared VCF variant views. The report keeps `reference_id`, `fasta_path`,
   `fai_path`, `dict_path`, `contig_count`, `reference_contigs`, `vcf_contigs`, `missing_contigs`,
@@ -1050,14 +1050,14 @@ Visible aliases are part of the operator surface:
   any VCF contig drifts away from the governed reference contract.
 - `bijux-dna bench local validate-vcf-sample-compatibility`
   `validate-vcf-sample-compatibility` writes
-  `target/local-ready/vcf/sample-compatibility.json`, deriving the governed cohort-sample
+  `benchmarks/readiness/local-ready/vcf/sample-compatibility.json`, deriving the governed cohort-sample
   compatibility report from the owned `vcf-mini` fixture manifest, the multisample and phased VCF
   views, the sample metadata manifest, and the population metadata labels. The report keeps
   `vcf_samples`, `metadata_samples`, `missing_metadata`, `extra_metadata`, `population_labels`,
   `sex_labels`, and explicit missing-label slices visible, and the command fails closed when the
   population-analysis sample set would proceed without known metadata labels.
 - `bijux-dna bench local validate-hpc-submission-ready`
-  `validate-hpc-submission-ready` writes `target/local-ready/HPC_SUBMISSION_READY.json` and
+  `validate-hpc-submission-ready` writes `benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json` and
   reruns the governed local readiness proof slice end to end: stage matrices, numbered FASTQ and
   BAM local smoke or plan artifacts, benchmark harness fake-run checks, mini corpus fixtures,
   pipeline DAG validations, watchdog simulations, HPC campaign profile dry-runs, and SLURM dry-run
@@ -1076,7 +1076,7 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local judge-taxonomy-output`
   `judge-taxonomy-output` compares governed eDNA taxonomy reports against
   `benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv`, writes
-  `target/local-ready/corpus-02-edna-taxonomy-judgment.json` by default, and fails when any
+  `benchmarks/readiness/local-ready/corpus-02-edna-taxonomy-judgment.json` by default, and fails when any
   declared sample is missing an observed report or any expected present or absent taxon does not
   match the observed classifier summary.
 - `bijux-dna bench local validate-corpus-stage-compatibility`
@@ -1106,72 +1106,72 @@ Visible aliases are part of the operator surface:
   `benchmarks/configs/pipelines/local/bam-authenticity.toml` and
   `benchmarks/configs/pipelines/local/bam-genotyping.toml` and
   `benchmarks/configs/pipelines/local/bam-kinship.toml`, writes a validation report under
-  `target/local-ready/pipeline-dag/`, proves the DAG is acyclic, and verifies that every node is
+  `benchmarks/readiness/local-ready/pipeline-dag/`, proves the DAG is acyclic, and verifies that every node is
   inventory-aligned with declared inputs, outputs, and dependency handoffs, including governed
   mixed FASTQ-to-BAM-to-VCF path handoffs for cross-domain DAGs.
 - `bijux-dna plan validate`
   `plan validate --id core-germline-fastq-bam-vcf --strict` resolves the governed local pipeline
   config at `benchmarks/configs/pipelines/local/core-germline-fastq-bam-vcf.toml`, writes
-  `target/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json`, and fails closed unless the
+  `benchmarks/readiness/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json`, and fails closed unless the
   requested id matches the config identity and the DAG validates with explicit FASTQ, BAM, and VCF
   handoff coverage.
   `plan validate --benchmark-root benchmarks --all --strict` scans every governed local benchmark
   pipeline config under `benchmarks/configs/pipelines/local/`, writes
-  `target/local-ready/pipeline-dag/all-benchmark-pipelines.json`, and fails closed unless every
+  `benchmarks/readiness/local-ready/pipeline-dag/all-benchmark-pipelines.json`, and fails closed unless every
   config stem matches the resolved pipeline identity and every DAG validates from the benchmark
   pipeline root.
   `plan validate --id adna-pseudohaploid-fastq-bam-vcf --strict` resolves the governed ancient-DNA
   pseudohaploid pipeline config, writes
-  `target/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json`, and fails closed unless
+  `benchmarks/readiness/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json`, and fails closed unless
   the validator confirms the terminal-damage trim, BAM damage and authenticity branch, and
   pseudohaploid plus damage-filter VCF path stay explicit.
   `plan validate --id adna-gl-fastq-bam-vcf --strict` resolves the governed ancient-DNA
   genotype-likelihood pipeline config, writes
-  `target/local-ready/pipeline-dag/adna-gl-fastq-bam-vcf.json`, and fails closed unless the
+  `benchmarks/readiness/local-ready/pipeline-dag/adna-gl-fastq-bam-vcf.json`, and fails closed unless the
   validator confirms the terminal-damage trim, genotype-likelihood call, GL propagation, and VCF QC
   path stay explicitly likelihood-bearing end to end.
   `plan validate --id diploid-small-fastq-bam-vcf --strict` resolves the governed small-sample
   diploid pipeline config, writes
-  `target/local-ready/pipeline-dag/diploid-small-fastq-bam-vcf.json`, and fails closed unless the
+  `benchmarks/readiness/local-ready/pipeline-dag/diploid-small-fastq-bam-vcf.json`, and fails closed unless the
   validator confirms both the filtered-BAM fallback path and recalibrated-BAM run path remain
   explicit while VCF QC stays independent of optional phasing.
   `plan validate --id reference-panel-imputation --strict` resolves the governed VCF panel-backed
   imputation pipeline config, writes
-  `target/local-ready/pipeline-dag/reference-panel-imputation.json`, and fails closed unless panel
+  `benchmarks/readiness/local-ready/pipeline-dag/reference-panel-imputation.json`, and fails closed unless panel
   preparation, target QC, optional prephasing, imputation, and downstream imputation metrics keep
   explicit panel identity plus map and reference contracts.
   `plan validate --id popgen-structure-vcf --strict` resolves the governed VCF population-structure
-  pipeline config, writes `target/local-ready/pipeline-dag/popgen-structure-vcf.json`, and fails
+  pipeline config, writes `benchmarks/readiness/local-ready/pipeline-dag/popgen-structure-vcf.json`, and fails
   closed unless PCA, admixture, and population-structure summary all keep sample metadata and
   population labels as mandatory inputs with explicit metadata-join handoffs.
   `plan validate --id relatedness-segments-vcf --strict` resolves the governed VCF relatedness and
-  segment pipeline config, writes `target/local-ready/pipeline-dag/relatedness-segments-vcf.json`,
+  segment pipeline config, writes `benchmarks/readiness/local-ready/pipeline-dag/relatedness-segments-vcf.json`,
   and fails closed unless IBD insufficiency remains local to demography instead of blocking ROH or
   QC outputs.
   `plan validate --id bam-genotyping-to-vcf-downstream --strict` resolves the governed BAM-to-VCF
-  bridge pipeline config, writes `target/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json`,
+  bridge pipeline config, writes `benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json`,
   and fails closed unless `vcf.filter` consumes the exact `bam.genotyping` VCF handoff instead of
   a conceptual external cohort-VCF placeholder.
   `plan validate --id edna-taxonomy-no-vcf --strict` resolves the governed eDNA taxonomy-only
-  pipeline config, writes `target/local-ready/pipeline-dag/edna-taxonomy-no-vcf.json`, and fails
+  pipeline config, writes `benchmarks/readiness/local-ready/pipeline-dag/edna-taxonomy-no-vcf.json`, and fails
   closed unless taxonomy screening remains local to FASTQ filtering and reporting instead of
   bridging into BAM or VCF germline stages.
   `plan validate --id amplicon-asv-otu-no-vcf --strict` resolves the governed amplicon-only
-  pipeline config, writes `target/local-ready/pipeline-dag/amplicon-asv-otu-no-vcf.json`, and
+  pipeline config, writes `benchmarks/readiness/local-ready/pipeline-dag/amplicon-asv-otu-no-vcf.json`, and
   fails closed unless ASV, OTU, and abundance outputs remain local to FASTQ reporting instead of
   bridging into BAM or VCF germline stages.
 - `bijux-dna bench local simulate-dag-watchdog`
   `simulate-dag-watchdog` writes governed DAG scheduling simulations such as
-  `target/local-ready/dag-sim/no-global-wait.json` and
-  `target/local-ready/dag-sim/failure-isolation.json` and
-  `target/local-ready/dag-sim/partial-resume.json` and
-  `target/local-ready/dag-sim/completion-rules.json`, proving that dependency-ready nodes can
+  `benchmarks/readiness/local-ready/dag-sim/no-global-wait.json` and
+  `benchmarks/readiness/local-ready/dag-sim/failure-isolation.json` and
+  `benchmarks/readiness/local-ready/dag-sim/partial-resume.json` and
+  `benchmarks/readiness/local-ready/dag-sim/completion-rules.json`, proving that dependency-ready nodes can
   start without a global branch barrier, that one failed sample-stage does not block unrelated
   sample work, that valid completed nodes are reused while only missing or invalid work is
   replanned, and that zero exit status alone does not mark a node complete unless declared outputs
   and the result manifest also exist.
 - `bijux-dna bench local render-corpus-skip-report`
-  `render-corpus-skip-report` writes `target/local-ready/corpus-skip-report.json`, enumerating
+  `render-corpus-skip-report` writes `benchmarks/readiness/local-ready/corpus-skip-report.json`, enumerating
   every incompatible corpus-fixture skip with its replacement corpus and keeping planner-only
   stages explicit so no local stage disappears silently.
 - `bijux-dna bench local validate-taxonomy-database-fixture`
@@ -1211,24 +1211,24 @@ Visible aliases are part of the operator surface:
   resource ceilings. The command fails closed if any dependency points at a non-existent local job
   id or if a generated script leaks dependency ordering into `#SBATCH --dependency` headers.
 - `bijux-dna bench local render-benchmark-summary`
-  `render-benchmark-summary` writes both `target/local-ready/benchmark-summary.json` and
-  `target/local-ready/benchmark-summary.md`, summarizing governed fake-run readiness across all 51
+  `render-benchmark-summary` writes both `benchmarks/readiness/local-ready/benchmark-summary.json` and
+  `benchmarks/readiness/local-ready/benchmark-summary.md`, summarizing governed fake-run readiness across all 51
   local FASTQ and BAM benchmark stages.
 - `bijux-dna bench local check-manifest-completion`
-  `check-manifest-completion` writes `target/local-ready/manifest-completion-report.json` and
+  `check-manifest-completion` writes `benchmarks/readiness/local-ready/manifest-completion-report.json` and
   marks a stage complete only when its fake-run `stage-result.json` exists under the selected
   `target/local-fake-runs/stages/` tree.
 - `bijux-dna bench local check-output-completion`
-  `check-output-completion` writes `target/local-ready/output-completion-report.json` and marks a
+  `check-output-completion` writes `benchmarks/readiness/local-ready/output-completion-report.json` and marks a
   stage complete only when every declared fake-run output exists under the selected
   `target/local-fake-runs/stages/` tree.
 - `bijux-dna bench local collect-runtime-metrics`
-  `collect-runtime-metrics` writes `target/local-ready/runtime-metrics.json` by reading validated
+  `collect-runtime-metrics` writes `benchmarks/readiness/local-ready/runtime-metrics.json` by reading validated
   fake-run `stage-result.json` manifests and extracting per-stage start, end, elapsed, exit, and
   status fields.
 - `bijux-dna bench local render-tool-comparison-template`
   `render-tool-comparison-template` writes
-  `target/local-ready/tool-comparison-template.tsv` with one governed row per local benchmark
+  `benchmarks/readiness/local-ready/tool-comparison-template.tsv` with one governed row per local benchmark
   stage/tool, carrying runtime, memory, output-metric placeholder, status, and failure-reason
   columns.
 - `bijux-dna bench local validate-stage-result`
@@ -1317,9 +1317,9 @@ Visible aliases are part of the operator surface:
   Rendering the BAM slice requires `cargo run -p bijux-dna --features bam_downstream -- bench local
   render-slurm-scripts --domain bam`.
 - `bijux-dna bench local render-stage-commands`
-  `render-stage-commands` writes both `target/local-ready/rendered-stage-commands.sh` and the
-  machine-readable companions `target/local-ready/rendered-stage-commands.json` and
-  `target/local-ready/rendered-stage-commands.argv.jsonl`.
+  `render-stage-commands` writes both `benchmarks/readiness/local-ready/rendered-stage-commands.sh` and the
+  machine-readable companions `benchmarks/readiness/local-ready/rendered-stage-commands.json` and
+  `benchmarks/readiness/local-ready/rendered-stage-commands.argv.jsonl`.
 - `bijux-dna bench schema`
 - `bijux-dna bench fastq trim-reads`
 - `bijux-dna bench fastq trim-polyg-tails`

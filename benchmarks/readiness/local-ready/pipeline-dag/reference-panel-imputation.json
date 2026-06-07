@@ -1,0 +1,194 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+  "config_path": "benchmarks/configs/pipelines/local/reference-panel-imputation.toml",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/reference-panel-imputation.json",
+  "pipeline_id": "reference-panel-imputation",
+  "domain": "vcf",
+  "default_corpus_id": "vcf_production_regression",
+  "summary": "Target-cohort VCF DAG for governed reference-panel preparation, target QC, optional prephasing, imputation, and downstream imputation metrics with explicit panel identity and asset-profile provenance.",
+  "node_count": 5,
+  "edge_count": 7,
+  "acyclic": true,
+  "valid": true,
+  "topological_order": [
+    "vcf.prepare_reference_panel",
+    "vcf.qc",
+    "vcf.phasing",
+    "vcf.impute",
+    "vcf.imputation"
+  ],
+  "validation_profiles": [
+    {
+      "profile_id": "reference_panel_imputation",
+      "check_count": 8,
+      "checks": [
+        "default corpus anchored to vcf_production_regression for governed target-cohort VCF inputs",
+        "vcf.prepare_reference_panel stays bound to the vcf_reference_panel asset profile",
+        "vcf.qc stays bound to the vcf_cohort asset profile",
+        "vcf.phasing, vcf.impute, and vcf.imputation stay bound to the vcf_cohort_with_panel asset profile",
+        "vcf.prepare_reference_panel keeps panel, map, and reference contracts explicit",
+        "vcf.phasing consumes the qc-qualified target VCF plus prepared-panel identity for the optional prephasing branch",
+        "vcf.impute consumes both the qc-target fallback path and phased run path with explicit panel identity",
+        "vcf.imputation stays downstream of imputation execution with panel-provenance and imputation-qc evidence"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "vcf.prepare_reference_panel",
+      "stage_id": "vcf.prepare_reference_panel",
+      "readiness_kind": "smoke",
+      "dependency_count": 0,
+      "external_input_count": 8,
+      "upstream_input_count": 0,
+      "output_count": 5,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.reference_panel_vcf",
+        "corpus.reference_panel_vcf_tbi",
+        "reference_panel_id_contract",
+        "reference_panel_lock_contract",
+        "genetic_map_contract",
+        "reference_fasta_contract",
+        "reference_fai_contract",
+        "reference_dict_contract"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "prepared_panel_vcf",
+        "prepared_panel_vcf_tbi",
+        "prepared_panel_chunks_json",
+        "prepared_panel_manifest_json",
+        "prepared_panel_panel_id"
+      ]
+    },
+    {
+      "node_id": "vcf.qc",
+      "stage_id": "vcf.qc",
+      "readiness_kind": "smoke",
+      "dependency_count": 0,
+      "external_input_count": 2,
+      "upstream_input_count": 0,
+      "output_count": 5,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.target_cohort_vcf",
+        "corpus.target_cohort_vcf_tbi"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "qc_target_vcf",
+        "qc_target_vcf_tbi",
+        "qc_report",
+        "target_qc_report_tsv",
+        "phasing_requirement_decision_json"
+      ]
+    },
+    {
+      "node_id": "vcf.phasing",
+      "stage_id": "vcf.phasing",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 3,
+      "upstream_input_count": 7,
+      "output_count": 4,
+      "depends_on": [
+        "vcf.prepare_reference_panel",
+        "vcf.qc"
+      ],
+      "external_inputs": [
+        "reference_panel_id_contract",
+        "reference_panel_lock_contract",
+        "genetic_map_contract"
+      ],
+      "upstream_inputs": [
+        "prepared_panel_vcf",
+        "prepared_panel_vcf_tbi",
+        "prepared_panel_panel_id",
+        "qc_target_vcf",
+        "qc_target_vcf_tbi",
+        "qc_report",
+        "phasing_requirement_decision_json"
+      ],
+      "outputs": [
+        "phased_vcf",
+        "phased_vcf_tbi",
+        "phasing_manifest_json",
+        "phasing_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "vcf.impute",
+      "stage_id": "vcf.impute",
+      "readiness_kind": "smoke",
+      "dependency_count": 3,
+      "external_input_count": 5,
+      "upstream_input_count": 11,
+      "output_count": 6,
+      "depends_on": [
+        "vcf.prepare_reference_panel",
+        "vcf.qc",
+        "vcf.phasing"
+      ],
+      "external_inputs": [
+        "reference_panel_id_contract",
+        "reference_panel_lock_contract",
+        "genetic_map_contract",
+        "reference_fasta_contract",
+        "reference_fai_contract"
+      ],
+      "upstream_inputs": [
+        "prepared_panel_vcf",
+        "prepared_panel_vcf_tbi",
+        "prepared_panel_chunks_json",
+        "prepared_panel_panel_id",
+        "qc_target_vcf",
+        "qc_target_vcf_tbi",
+        "target_qc_report_tsv",
+        "phasing_requirement_decision_json",
+        "phased_vcf",
+        "phased_vcf_tbi",
+        "phasing_manifest_json"
+      ],
+      "outputs": [
+        "imputed_vcf",
+        "imputed_vcf_tbi",
+        "imputation_qc_json",
+        "imputation_qc_tsv",
+        "imputation_manifest_json",
+        "imputation_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "vcf.imputation",
+      "stage_id": "vcf.imputation",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 3,
+      "upstream_input_count": 6,
+      "output_count": 3,
+      "depends_on": [
+        "vcf.prepare_reference_panel",
+        "vcf.impute"
+      ],
+      "external_inputs": [
+        "reference_panel_id_contract",
+        "reference_panel_lock_contract",
+        "genetic_map_contract"
+      ],
+      "upstream_inputs": [
+        "prepared_panel_panel_id",
+        "imputed_vcf",
+        "imputed_vcf_tbi",
+        "imputation_qc_json",
+        "imputation_qc_tsv",
+        "imputation_manifest_json"
+      ],
+      "outputs": [
+        "imputation_metrics_json",
+        "imputation_metrics_tsv",
+        "imputation_summary_json"
+      ]
+    }
+  ]
+}

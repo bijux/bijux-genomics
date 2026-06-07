@@ -1,0 +1,272 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+  "config_path": "benchmarks/configs/pipelines/local/bam-genotyping-to-vcf-downstream.toml",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json",
+  "pipeline_id": "bam-genotyping-to-vcf-downstream",
+  "domain": "cross",
+  "default_corpus_id": "corpus-01-bam-mini",
+  "summary": "Cross-domain BAM-to-VCF DAG for governed BAM genotyping, exact VCF bridge handoff, downstream VCF filtering, summary statistics, cohort QC, and optional PCA and ROH branches.",
+  "node_count": 9,
+  "edge_count": 11,
+  "acyclic": true,
+  "valid": true,
+  "topological_order": [
+    "bam.filter",
+    "bam.coverage",
+    "bam.recalibration",
+    "bam.genotyping",
+    "vcf.filter",
+    "vcf.stats",
+    "vcf.qc",
+    "vcf.pca",
+    "vcf.roh"
+  ],
+  "validation_profiles": [
+    {
+      "profile_id": "bam_genotyping_vcf_downstream",
+      "check_count": 8,
+      "checks": [
+        "default corpus anchored to corpus-01-bam-mini for governed bam-genotyping bridge inputs",
+        "bam.filter, bam.coverage, and bam.recalibration stay fixture-backed by corpus-01-bam-mini while bam.genotyping stays fixture-backed by corpus-01-genotyping-mini",
+        "bam.genotyping keeps the filtered fallback path, recalibrated run path, and governed genotyping contracts explicit",
+        "vcf.filter consumes exact bam.genotyping vcf handoffs instead of a conceptual cohort-vcf placeholder",
+        "vcf.stats stays downstream of the filtered vcf bridge",
+        "vcf.qc stays downstream of filtered vcf and stats while exporting qc-qualified cohort outputs",
+        "optional vcf.pca stays downstream of qc with metadata contracts and pruned cohort handoffs",
+        "optional vcf.roh stays downstream of qc with the same qc-qualified cohort handoff"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "bam.filter",
+      "stage_id": "bam.filter",
+      "readiness_kind": "dry_or_smoke",
+      "dependency_count": 0,
+      "external_input_count": 1,
+      "upstream_input_count": 0,
+      "output_count": 4,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.aligned_bam"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "filtered_bam",
+        "filtered_bai",
+        "bam_filter_report_json",
+        "bam_filter_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.coverage",
+      "stage_id": "bam.coverage",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 1,
+      "upstream_input_count": 2,
+      "output_count": 2,
+      "depends_on": [
+        "bam.filter"
+      ],
+      "external_inputs": [
+        "coverage_region_contract"
+      ],
+      "upstream_inputs": [
+        "filtered_bam",
+        "filtered_bai"
+      ],
+      "outputs": [
+        "coverage_report_json",
+        "coverage_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.recalibration",
+      "stage_id": "bam.recalibration",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 3,
+      "upstream_input_count": 2,
+      "output_count": 5,
+      "depends_on": [
+        "bam.filter",
+        "bam.coverage"
+      ],
+      "external_inputs": [
+        "recalibration_reference_contract",
+        "recalibration_known_sites_contract",
+        "recalibration_coverage_gate_contract"
+      ],
+      "upstream_inputs": [
+        "filtered_bam",
+        "coverage_report_json"
+      ],
+      "outputs": [
+        "recalibrated_bam",
+        "recalibrated_bai",
+        "recalibration_report_text",
+        "recalibration_summary_json",
+        "recalibration_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.genotyping",
+      "stage_id": "bam.genotyping",
+      "readiness_kind": "dry_or_smoke",
+      "dependency_count": 2,
+      "external_input_count": 3,
+      "upstream_input_count": 5,
+      "output_count": 6,
+      "depends_on": [
+        "bam.filter",
+        "bam.recalibration"
+      ],
+      "external_inputs": [
+        "genotyping_reference_contract",
+        "candidate_sites_vcf_contract",
+        "target_regions_contract"
+      ],
+      "upstream_inputs": [
+        "filtered_bam",
+        "filtered_bai",
+        "recalibrated_bam",
+        "recalibrated_bai",
+        "recalibration_summary_json"
+      ],
+      "outputs": [
+        "genotyping_bcf",
+        "genotyping_vcf_gz",
+        "genotyping_vcf_tbi",
+        "genotyping_gl_json",
+        "genotyping_report_json",
+        "genotyping_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "vcf.filter",
+      "stage_id": "vcf.filter",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 4,
+      "depends_on": [
+        "bam.genotyping"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "genotyping_vcf_gz",
+        "genotyping_vcf_tbi",
+        "genotyping_report_json"
+      ],
+      "outputs": [
+        "filtered_vcf",
+        "filtered_vcf_tbi",
+        "filter_report_json",
+        "filter_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "vcf.stats",
+      "stage_id": "vcf.stats",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 2,
+      "depends_on": [
+        "vcf.filter"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "filtered_vcf",
+        "filtered_vcf_tbi",
+        "filter_report_json"
+      ],
+      "outputs": [
+        "stats_json",
+        "stats_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "vcf.qc",
+      "stage_id": "vcf.qc",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 6,
+      "depends_on": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "filtered_vcf",
+        "filtered_vcf_tbi",
+        "stats_json"
+      ],
+      "outputs": [
+        "qc_cohort_vcf",
+        "qc_cohort_vcf_tbi",
+        "qc_report",
+        "sample_qc_report_tsv",
+        "variant_qc_report_tsv",
+        "pruned_variants_tsv"
+      ]
+    },
+    {
+      "node_id": "vcf.pca",
+      "stage_id": "vcf.pca",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 3,
+      "upstream_input_count": 4,
+      "output_count": 3,
+      "depends_on": [
+        "vcf.qc"
+      ],
+      "external_inputs": [
+        "sample_metadata_manifest_contract",
+        "population_metadata_manifest_contract",
+        "population_labels_contract"
+      ],
+      "upstream_inputs": [
+        "qc_cohort_vcf",
+        "qc_cohort_vcf_tbi",
+        "pruned_variants_tsv",
+        "qc_report"
+      ],
+      "outputs": [
+        "pca_report",
+        "pca_projection_tsv",
+        "pca_metadata_join_tsv"
+      ]
+    },
+    {
+      "node_id": "vcf.roh",
+      "stage_id": "vcf.roh",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 4,
+      "output_count": 3,
+      "depends_on": [
+        "vcf.qc"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "qc_cohort_vcf",
+        "qc_cohort_vcf_tbi",
+        "pruned_variants_tsv",
+        "qc_report"
+      ],
+      "outputs": [
+        "roh_report",
+        "roh_segments_tsv",
+        "roh_summary_json"
+      ]
+    }
+  ]
+}

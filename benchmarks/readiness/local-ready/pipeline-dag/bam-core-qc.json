@@ -1,0 +1,141 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+  "config_path": "benchmarks/configs/pipelines/local/bam-core-qc.toml",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/bam-core-qc.json",
+  "pipeline_id": "bam-core-qc",
+  "domain": "bam",
+  "default_corpus_id": "corpus-01-bam-mini",
+  "summary": "Core BAM QC DAG for governed validation, pre-QC metrics, mapping summary, filtering, and coverage collation.",
+  "node_count": 5,
+  "edge_count": 5,
+  "acyclic": true,
+  "valid": true,
+  "topological_order": [
+    "bam.validate",
+    "bam.qc_pre",
+    "bam.mapping_summary",
+    "bam.filter",
+    "bam.coverage"
+  ],
+  "validation_profiles": [],
+  "nodes": [
+    {
+      "node_id": "bam.validate",
+      "stage_id": "bam.validate",
+      "readiness_kind": "smoke",
+      "dependency_count": 0,
+      "external_input_count": 3,
+      "upstream_input_count": 0,
+      "output_count": 1,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.aligned_bam",
+        "corpus.aligned_bai",
+        "corpus.reference_fasta"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "validation_report"
+      ]
+    },
+    {
+      "node_id": "bam.qc_pre",
+      "stage_id": "bam.qc_pre",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 1,
+      "upstream_input_count": 1,
+      "output_count": 4,
+      "depends_on": [
+        "bam.validate"
+      ],
+      "external_inputs": [
+        "corpus.aligned_bam"
+      ],
+      "upstream_inputs": [
+        "validation_report"
+      ],
+      "outputs": [
+        "qc_pre_flagstat",
+        "qc_pre_idxstats",
+        "qc_pre_stats",
+        "qc_pre_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.mapping_summary",
+      "stage_id": "bam.mapping_summary",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 1,
+      "upstream_input_count": 3,
+      "output_count": 2,
+      "depends_on": [
+        "bam.qc_pre"
+      ],
+      "external_inputs": [
+        "corpus.aligned_bam"
+      ],
+      "upstream_inputs": [
+        "qc_pre_flagstat",
+        "qc_pre_idxstats",
+        "qc_pre_stats"
+      ],
+      "outputs": [
+        "mapping_summary_report_json",
+        "mapping_summary_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.filter",
+      "stage_id": "bam.filter",
+      "readiness_kind": "dry_or_smoke",
+      "dependency_count": 1,
+      "external_input_count": 1,
+      "upstream_input_count": 3,
+      "output_count": 4,
+      "depends_on": [
+        "bam.qc_pre"
+      ],
+      "external_inputs": [
+        "corpus.aligned_bam"
+      ],
+      "upstream_inputs": [
+        "qc_pre_flagstat",
+        "qc_pre_idxstats",
+        "qc_pre_stats"
+      ],
+      "outputs": [
+        "filtered_bam",
+        "filtered_bai",
+        "filter_report_json",
+        "filter_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.coverage",
+      "stage_id": "bam.coverage",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 1,
+      "upstream_input_count": 3,
+      "output_count": 2,
+      "depends_on": [
+        "bam.mapping_summary",
+        "bam.filter"
+      ],
+      "external_inputs": [
+        "coverage_region_contract"
+      ],
+      "upstream_inputs": [
+        "mapping_summary_report_json",
+        "filtered_bam",
+        "filtered_bai"
+      ],
+      "outputs": [
+        "coverage_report_json",
+        "coverage_stage_metrics"
+      ]
+    }
+  ]
+}

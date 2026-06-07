@@ -1,0 +1,4327 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation_set.v1",
+  "benchmark_root": "benchmarks",
+  "config_root": "benchmarks/configs/pipelines/local",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/all-benchmark-pipelines.json",
+  "pipeline_count": 20,
+  "valid_pipeline_count": 20,
+  "all_valid": true,
+  "pipelines": [
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/adna-gl-fastq-bam-vcf.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/adna-gl-fastq-bam-vcf.json",
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "domain": "cross",
+      "default_corpus_id": "corpus-01-mini",
+      "summary": "Ancient-DNA FASTQ-to-BAM-to-VCF DAG for terminal-damage-aware preprocessing, BAM damage and authenticity evidence, genotype-likelihood calling, explicit GL propagation, and downstream VCF QC.",
+      "node_count": 15,
+      "edge_count": 23,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "fastq.validate_reads",
+        "fastq.trim_terminal_damage",
+        "fastq.remove_duplicates",
+        "fastq.filter_reads",
+        "bam.align",
+        "bam.validate",
+        "bam.damage",
+        "bam.contamination",
+        "bam.complexity",
+        "bam.mapping_summary",
+        "bam.coverage",
+        "bam.authenticity",
+        "vcf.call_gl",
+        "vcf.gl_propagation",
+        "vcf.qc"
+      ],
+      "validation_profiles": [
+        {
+          "profile_id": "ancient_dna_gl",
+          "check_count": 8,
+          "checks": [
+            "default corpus anchored to corpus-01-mini for governed aDNA-like FASTQ inputs",
+            "fastq.trim_terminal_damage is fixture-backed by corpus-01-mini",
+            "fastq.remove_duplicates stays downstream of terminal-damage trimming",
+            "bam.damage and bam.authenticity stay fixture-backed by corpus-01-adna-damage-mini",
+            "bam.contamination declares the ancient-DNA contamination panel contract",
+            "vcf.call_gl consumes BAM damage and authenticity evidence with ancient-DNA reference contracts",
+            "vcf.gl_propagation stays downstream of genotype-likelihood calling with explicit GL handoff coverage",
+            "vcf.qc stays downstream of propagated genotype-likelihood outputs"
+          ]
+        }
+      ],
+      "nodes": [
+        {
+          "node_id": "fastq.validate_reads",
+          "stage_id": "fastq.validate_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 3,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.raw_fastq_reads"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "validated_reads_r1_path",
+            "validated_reads_r2_path",
+            "validation_report"
+          ]
+        },
+        {
+          "node_id": "fastq.trim_terminal_damage",
+          "stage_id": "fastq.trim_terminal_damage",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [
+            "terminal_damage_policy_contract"
+          ],
+          "upstream_inputs": [
+            "validated_reads_r1_path",
+            "validated_reads_r2_path"
+          ],
+          "outputs": [
+            "terminal_damage_trimmed_reads_r1_path",
+            "terminal_damage_trimmed_reads_r2_path",
+            "terminal_damage_trim_report_json"
+          ]
+        },
+        {
+          "node_id": "fastq.remove_duplicates",
+          "stage_id": "fastq.remove_duplicates",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 5,
+          "depends_on": [
+            "fastq.trim_terminal_damage"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "terminal_damage_trimmed_reads_r1_path",
+            "terminal_damage_trimmed_reads_r2_path"
+          ],
+          "outputs": [
+            "deduplicated_reads_r1_path",
+            "deduplicated_reads_r2_path",
+            "duplicate_classes_tsv",
+            "duplicate_provenance_json",
+            "deduplication_report"
+          ]
+        },
+        {
+          "node_id": "fastq.filter_reads",
+          "stage_id": "fastq.filter_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.remove_duplicates"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "deduplicated_reads_r1_path",
+            "deduplicated_reads_r2_path"
+          ],
+          "outputs": [
+            "filtered_reads_r1_path",
+            "filtered_reads_r2_path",
+            "filter_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.align",
+          "stage_id": "bam.align",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 1,
+          "external_input_count": 3,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.filter_reads"
+          ],
+          "external_inputs": [
+            "adna_alignment_reference_fasta_contract",
+            "adna_alignment_reference_index_contract",
+            "alignment_read_group_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_reads_r1_path",
+            "filtered_reads_r2_path"
+          ],
+          "outputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "align_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.validate",
+          "stage_id": "bam.validate",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 3,
+          "output_count": 1,
+          "depends_on": [
+            "bam.align"
+          ],
+          "external_inputs": [
+            "adna_reference_fasta_contract"
+          ],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "align_metrics"
+          ],
+          "outputs": [
+            "bam_validation_report"
+          ]
+        },
+        {
+          "node_id": "bam.mapping_summary",
+          "stage_id": "bam.mapping_summary",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "bam.align",
+            "bam.validate"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "aligned_bam",
+            "bam_validation_report"
+          ],
+          "outputs": [
+            "mapping_summary_report_json",
+            "mapping_summary_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.coverage",
+          "stage_id": "bam.coverage",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 1,
+          "upstream_input_count": 3,
+          "output_count": 2,
+          "depends_on": [
+            "bam.align",
+            "bam.mapping_summary"
+          ],
+          "external_inputs": [
+            "adna_coverage_region_contract"
+          ],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "mapping_summary_report_json"
+          ],
+          "outputs": [
+            "coverage_report_json",
+            "coverage_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.damage",
+          "stage_id": "bam.damage",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 2,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "bam.align"
+          ],
+          "external_inputs": [
+            "adna_reference_fasta_contract",
+            "expected_damage_contract"
+          ],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai"
+          ],
+          "outputs": [
+            "damage_report_json",
+            "damage_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.contamination",
+          "stage_id": "bam.contamination",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 1,
+          "external_input_count": 2,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "bam.align"
+          ],
+          "external_inputs": [
+            "adna_reference_fasta_contract",
+            "adna_contamination_panel_contract"
+          ],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai"
+          ],
+          "outputs": [
+            "contamination_report_json",
+            "contamination_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.complexity",
+          "stage_id": "bam.complexity",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "bam.align"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai"
+          ],
+          "outputs": [
+            "complexity_report_json",
+            "complexity_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.authenticity",
+          "stage_id": "bam.authenticity",
+          "readiness_kind": "smoke",
+          "dependency_count": 5,
+          "external_input_count": 1,
+          "upstream_input_count": 5,
+          "output_count": 2,
+          "depends_on": [
+            "bam.mapping_summary",
+            "bam.coverage",
+            "bam.damage",
+            "bam.contamination",
+            "bam.complexity"
+          ],
+          "external_inputs": [
+            "adna_authenticity_policy_contract"
+          ],
+          "upstream_inputs": [
+            "mapping_summary_report_json",
+            "coverage_report_json",
+            "damage_report_json",
+            "contamination_report_json",
+            "complexity_report_json"
+          ],
+          "outputs": [
+            "authenticity_report_json",
+            "authenticity_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.call_gl",
+          "stage_id": "vcf.call_gl",
+          "readiness_kind": "smoke",
+          "dependency_count": 4,
+          "external_input_count": 2,
+          "upstream_input_count": 5,
+          "output_count": 3,
+          "depends_on": [
+            "bam.align",
+            "bam.coverage",
+            "bam.damage",
+            "bam.authenticity"
+          ],
+          "external_inputs": [
+            "adna_reference_fasta_contract",
+            "adna_reference_fai_contract"
+          ],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "coverage_report_json",
+            "damage_report_json",
+            "authenticity_report_json"
+          ],
+          "outputs": [
+            "gl_sites_vcf",
+            "gl_sites_vcf_tbi",
+            "call_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.gl_propagation",
+          "stage_id": "vcf.gl_propagation",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 4,
+          "depends_on": [
+            "vcf.call_gl"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "gl_sites_vcf",
+            "gl_sites_vcf_tbi",
+            "call_stage_metrics"
+          ],
+          "outputs": [
+            "gl_propagated_vcf",
+            "gl_propagated_vcf_tbi",
+            "gl_propagation_report_json",
+            "gl_propagation_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.qc",
+          "stage_id": "vcf.qc",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 2,
+          "depends_on": [
+            "vcf.gl_propagation"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "gl_propagated_vcf",
+            "gl_propagated_vcf_tbi",
+            "gl_propagation_report_json"
+          ],
+          "outputs": [
+            "qc_report",
+            "qc_stage_metrics"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json",
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "domain": "cross",
+      "default_corpus_id": "corpus-01-mini",
+      "summary": "Ancient-DNA FASTQ-to-BAM-to-VCF DAG for governed terminal-damage trimming, duplicate-aware preprocessing, alignment, BAM damage and authenticity evidence, pseudohaploid calling, damage-aware filtering, and summary statistics.",
+      "node_count": 15,
+      "edge_count": 24,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "fastq.validate_reads",
+        "fastq.trim_terminal_damage",
+        "fastq.remove_duplicates",
+        "fastq.filter_reads",
+        "bam.align",
+        "bam.validate",
+        "bam.damage",
+        "bam.contamination",
+        "bam.complexity",
+        "bam.mapping_summary",
+        "bam.coverage",
+        "bam.authenticity",
+        "vcf.call_pseudohaploid",
+        "vcf.damage_filter",
+        "vcf.stats"
+      ],
+      "validation_profiles": [
+        {
+          "profile_id": "ancient_dna_pseudohaploid",
+          "check_count": 8,
+          "checks": [
+            "default corpus anchored to corpus-01-mini for governed aDNA-like FASTQ inputs",
+            "fastq.trim_terminal_damage is fixture-backed by corpus-01-mini",
+            "fastq.remove_duplicates stays downstream of terminal-damage trimming",
+            "bam.damage and bam.authenticity stay fixture-backed by corpus-01-adna-damage-mini",
+            "bam.contamination declares the ancient-DNA contamination panel contract",
+            "vcf.call_pseudohaploid consumes BAM damage and authenticity evidence with ancient-DNA reference contracts",
+            "vcf.damage_filter stays downstream of BAM damage evidence and pseudohaploid calling",
+            "vcf.stats stays downstream of damage-aware filtering"
+          ]
+        }
+      ],
+      "nodes": [
+        {
+          "node_id": "fastq.validate_reads",
+          "stage_id": "fastq.validate_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 3,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.raw_fastq_reads"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "validated_reads_r1_path",
+            "validated_reads_r2_path",
+            "validation_report"
+          ]
+        },
+        {
+          "node_id": "fastq.trim_terminal_damage",
+          "stage_id": "fastq.trim_terminal_damage",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [
+            "terminal_damage_policy_contract"
+          ],
+          "upstream_inputs": [
+            "validated_reads_r1_path",
+            "validated_reads_r2_path"
+          ],
+          "outputs": [
+            "terminal_damage_trimmed_reads_r1_path",
+            "terminal_damage_trimmed_reads_r2_path",
+            "terminal_damage_trim_report_json"
+          ]
+        },
+        {
+          "node_id": "fastq.remove_duplicates",
+          "stage_id": "fastq.remove_duplicates",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 5,
+          "depends_on": [
+            "fastq.trim_terminal_damage"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "terminal_damage_trimmed_reads_r1_path",
+            "terminal_damage_trimmed_reads_r2_path"
+          ],
+          "outputs": [
+            "deduplicated_reads_r1_path",
+            "deduplicated_reads_r2_path",
+            "duplicate_classes_tsv",
+            "duplicate_provenance_json",
+            "deduplication_report"
+          ]
+        },
+        {
+          "node_id": "fastq.filter_reads",
+          "stage_id": "fastq.filter_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.remove_duplicates"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "deduplicated_reads_r1_path",
+            "deduplicated_reads_r2_path"
+          ],
+          "outputs": [
+            "filtered_reads_r1_path",
+            "filtered_reads_r2_path",
+            "filter_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.align",
+          "stage_id": "bam.align",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 1,
+          "external_input_count": 3,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.filter_reads"
+          ],
+          "external_inputs": [
+            "adna_alignment_reference_fasta_contract",
+            "adna_alignment_reference_index_contract",
+            "alignment_read_group_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_reads_r1_path",
+            "filtered_reads_r2_path"
+          ],
+          "outputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "align_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.validate",
+          "stage_id": "bam.validate",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 3,
+          "output_count": 1,
+          "depends_on": [
+            "bam.align"
+          ],
+          "external_inputs": [
+            "adna_reference_fasta_contract"
+          ],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "align_metrics"
+          ],
+          "outputs": [
+            "bam_validation_report"
+          ]
+        },
+        {
+          "node_id": "bam.mapping_summary",
+          "stage_id": "bam.mapping_summary",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "bam.align",
+            "bam.validate"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "aligned_bam",
+            "bam_validation_report"
+          ],
+          "outputs": [
+            "mapping_summary_report_json",
+            "mapping_summary_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.coverage",
+          "stage_id": "bam.coverage",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 1,
+          "upstream_input_count": 3,
+          "output_count": 2,
+          "depends_on": [
+            "bam.align",
+            "bam.mapping_summary"
+          ],
+          "external_inputs": [
+            "adna_coverage_region_contract"
+          ],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "mapping_summary_report_json"
+          ],
+          "outputs": [
+            "coverage_report_json",
+            "coverage_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.damage",
+          "stage_id": "bam.damage",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 2,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "bam.align"
+          ],
+          "external_inputs": [
+            "adna_reference_fasta_contract",
+            "expected_damage_contract"
+          ],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai"
+          ],
+          "outputs": [
+            "damage_report_json",
+            "damage_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.contamination",
+          "stage_id": "bam.contamination",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 1,
+          "external_input_count": 2,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "bam.align"
+          ],
+          "external_inputs": [
+            "adna_reference_fasta_contract",
+            "adna_contamination_panel_contract"
+          ],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai"
+          ],
+          "outputs": [
+            "contamination_report_json",
+            "contamination_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.complexity",
+          "stage_id": "bam.complexity",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "bam.align"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai"
+          ],
+          "outputs": [
+            "complexity_report_json",
+            "complexity_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.authenticity",
+          "stage_id": "bam.authenticity",
+          "readiness_kind": "smoke",
+          "dependency_count": 5,
+          "external_input_count": 1,
+          "upstream_input_count": 5,
+          "output_count": 2,
+          "depends_on": [
+            "bam.mapping_summary",
+            "bam.coverage",
+            "bam.damage",
+            "bam.contamination",
+            "bam.complexity"
+          ],
+          "external_inputs": [
+            "adna_authenticity_policy_contract"
+          ],
+          "upstream_inputs": [
+            "mapping_summary_report_json",
+            "coverage_report_json",
+            "damage_report_json",
+            "contamination_report_json",
+            "complexity_report_json"
+          ],
+          "outputs": [
+            "authenticity_report_json",
+            "authenticity_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.call_pseudohaploid",
+          "stage_id": "vcf.call_pseudohaploid",
+          "readiness_kind": "smoke",
+          "dependency_count": 4,
+          "external_input_count": 2,
+          "upstream_input_count": 5,
+          "output_count": 4,
+          "depends_on": [
+            "bam.align",
+            "bam.coverage",
+            "bam.damage",
+            "bam.authenticity"
+          ],
+          "external_inputs": [
+            "adna_reference_fasta_contract",
+            "adna_reference_fai_contract"
+          ],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "coverage_report_json",
+            "damage_report_json",
+            "authenticity_report_json"
+          ],
+          "outputs": [
+            "pseudohaploid_vcf",
+            "pseudohaploid_vcf_tbi",
+            "pseudohaploid_sampling_log",
+            "call_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.damage_filter",
+          "stage_id": "vcf.damage_filter",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 1,
+          "upstream_input_count": 3,
+          "output_count": 4,
+          "depends_on": [
+            "vcf.call_pseudohaploid",
+            "bam.damage"
+          ],
+          "external_inputs": [
+            "damage_filter_policy_contract"
+          ],
+          "upstream_inputs": [
+            "pseudohaploid_vcf",
+            "pseudohaploid_vcf_tbi",
+            "damage_report_json"
+          ],
+          "outputs": [
+            "damage_filtered_vcf",
+            "damage_filtered_vcf_tbi",
+            "damage_bias_audit_report",
+            "damage_filter_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.stats",
+          "stage_id": "vcf.stats",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 2,
+          "depends_on": [
+            "vcf.damage_filter"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "damage_filtered_vcf",
+            "damage_filtered_vcf_tbi",
+            "damage_bias_audit_report"
+          ],
+          "outputs": [
+            "stats_json",
+            "stats_stage_metrics"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/amplicon-asv-otu-no-vcf.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/amplicon-asv-otu-no-vcf.json",
+      "pipeline_id": "amplicon-asv-otu-no-vcf",
+      "domain": "fastq",
+      "default_corpus_id": "corpus-03-amplicon-mini",
+      "summary": "Amplicon-only FASTQ DAG for corpus-03 validation, primer normalization, ASV inference, chimera removal, OTU clustering, abundance normalization, and local reporting without BAM or VCF germline branches.",
+      "node_count": 7,
+      "edge_count": 12,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "fastq.validate_reads",
+        "fastq.normalize_primers",
+        "fastq.infer_asvs",
+        "fastq.remove_chimeras",
+        "fastq.cluster_otus",
+        "fastq.normalize_abundance",
+        "fastq.report_qc"
+      ],
+      "validation_profiles": [
+        {
+          "profile_id": "amplicon_asv_otu_no_vcf",
+          "check_count": 8,
+          "checks": [
+            "default corpus anchored to corpus-03-amplicon-mini for governed amplicon inputs",
+            "pipeline remains fastq-only and rejects bam or vcf germline stages",
+            "fastq.normalize_primers, fastq.infer_asvs, fastq.cluster_otus, and fastq.normalize_abundance stay fixture-backed by corpus-03-amplicon-mini",
+            "fastq.normalize_primers keeps the governed primer contract explicit",
+            "fastq.infer_asvs and fastq.remove_chimeras keep ASV and chimera handoffs explicit",
+            "fastq.cluster_otus consumes normalized reads plus non-chimeric representatives",
+            "fastq.normalize_abundance stays downstream of OTU clustering with an explicit abundance table output",
+            "fastq.report_qc consumes ASV, OTU, and abundance evidence without mixing bam or vcf germline outputs"
+          ]
+        }
+      ],
+      "nodes": [
+        {
+          "node_id": "fastq.validate_reads",
+          "stage_id": "fastq.validate_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 2,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.raw_amplicon_fastq_reads"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "validated_amplicon_reads",
+            "validation_report"
+          ]
+        },
+        {
+          "node_id": "fastq.normalize_primers",
+          "stage_id": "fastq.normalize_primers",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 1,
+          "output_count": 2,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [
+            "amplicon_primer_contract"
+          ],
+          "upstream_inputs": [
+            "validated_amplicon_reads"
+          ],
+          "outputs": [
+            "normalized_amplicon_reads",
+            "primer_normalization_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.infer_asvs",
+          "stage_id": "fastq.infer_asvs",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.normalize_primers"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "normalized_amplicon_reads"
+          ],
+          "outputs": [
+            "asv_table",
+            "asv_representatives",
+            "asv_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.remove_chimeras",
+          "stage_id": "fastq.remove_chimeras",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 1,
+          "output_count": 2,
+          "depends_on": [
+            "fastq.infer_asvs"
+          ],
+          "external_inputs": [
+            "chimera_control_contract"
+          ],
+          "upstream_inputs": [
+            "asv_representatives"
+          ],
+          "outputs": [
+            "non_chimeric_representatives",
+            "chimera_report"
+          ]
+        },
+        {
+          "node_id": "fastq.cluster_otus",
+          "stage_id": "fastq.cluster_otus",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "fastq.normalize_primers",
+            "fastq.remove_chimeras"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "normalized_amplicon_reads",
+            "non_chimeric_representatives"
+          ],
+          "outputs": [
+            "otu_table",
+            "otu_representatives"
+          ]
+        },
+        {
+          "node_id": "fastq.normalize_abundance",
+          "stage_id": "fastq.normalize_abundance",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.cluster_otus"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "otu_table"
+          ],
+          "outputs": [
+            "normalized_abundance_table"
+          ]
+        },
+        {
+          "node_id": "fastq.report_qc",
+          "stage_id": "fastq.report_qc",
+          "readiness_kind": "smoke",
+          "dependency_count": 6,
+          "external_input_count": 0,
+          "upstream_input_count": 6,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads",
+            "fastq.normalize_primers",
+            "fastq.infer_asvs",
+            "fastq.remove_chimeras",
+            "fastq.cluster_otus",
+            "fastq.normalize_abundance"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validation_report",
+            "primer_normalization_metrics",
+            "asv_metrics",
+            "chimera_report",
+            "otu_table",
+            "normalized_abundance_table"
+          ],
+          "outputs": [
+            "qc_bundle"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/bam-authenticity.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/bam-authenticity.json",
+      "pipeline_id": "bam-authenticity",
+      "domain": "bam",
+      "default_corpus_id": "corpus-01-adna-damage-mini",
+      "summary": "BAM authenticity DAG for governed ancient-like evidence composition over damage, contamination, complexity, coverage, mapping, and sex diagnostics.",
+      "node_count": 7,
+      "edge_count": 7,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "bam.mapping_summary",
+        "bam.damage",
+        "bam.contamination",
+        "bam.complexity",
+        "bam.coverage",
+        "bam.sex",
+        "bam.authenticity"
+      ],
+      "validation_profiles": [],
+      "nodes": [
+        {
+          "node_id": "bam.mapping_summary",
+          "stage_id": "bam.mapping_summary",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 2,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.aligned_bam"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "mapping_summary_report_json",
+            "mapping_summary_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.coverage",
+          "stage_id": "bam.coverage",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 2,
+          "upstream_input_count": 1,
+          "output_count": 2,
+          "depends_on": [
+            "bam.mapping_summary"
+          ],
+          "external_inputs": [
+            "corpus.aligned_bam",
+            "coverage_region_contract"
+          ],
+          "upstream_inputs": [
+            "mapping_summary_report_json"
+          ],
+          "outputs": [
+            "coverage_report_json",
+            "coverage_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.damage",
+          "stage_id": "bam.damage",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 2,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.aligned_bam"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "damage_report_json",
+            "damage_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.contamination",
+          "stage_id": "bam.contamination",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 0,
+          "external_input_count": 2,
+          "upstream_input_count": 0,
+          "output_count": 2,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.aligned_bam",
+            "contamination_panel_contract"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "contamination_report_json",
+            "contamination_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.complexity",
+          "stage_id": "bam.complexity",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 2,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.aligned_bam"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "complexity_report_json",
+            "complexity_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.sex",
+          "stage_id": "bam.sex",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 2,
+          "upstream_input_count": 1,
+          "output_count": 2,
+          "depends_on": [
+            "bam.coverage"
+          ],
+          "external_inputs": [
+            "corpus.aligned_bam",
+            "sex_reference_contract"
+          ],
+          "upstream_inputs": [
+            "coverage_report_json"
+          ],
+          "outputs": [
+            "sex_report_json",
+            "sex_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.authenticity",
+          "stage_id": "bam.authenticity",
+          "readiness_kind": "smoke",
+          "dependency_count": 5,
+          "external_input_count": 1,
+          "upstream_input_count": 5,
+          "output_count": 2,
+          "depends_on": [
+            "bam.mapping_summary",
+            "bam.coverage",
+            "bam.damage",
+            "bam.contamination",
+            "bam.complexity"
+          ],
+          "external_inputs": [
+            "corpus.aligned_bam"
+          ],
+          "upstream_inputs": [
+            "mapping_summary_report_json",
+            "coverage_report_json",
+            "damage_report_json",
+            "contamination_report_json",
+            "complexity_report_json"
+          ],
+          "outputs": [
+            "authenticity_report_json",
+            "authenticity_stage_metrics"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/bam-core-qc.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/bam-core-qc.json",
+      "pipeline_id": "bam-core-qc",
+      "domain": "bam",
+      "default_corpus_id": "corpus-01-bam-mini",
+      "summary": "Core BAM QC DAG for governed validation, pre-QC metrics, mapping summary, filtering, and coverage collation.",
+      "node_count": 5,
+      "edge_count": 5,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "bam.validate",
+        "bam.qc_pre",
+        "bam.mapping_summary",
+        "bam.filter",
+        "bam.coverage"
+      ],
+      "validation_profiles": [],
+      "nodes": [
+        {
+          "node_id": "bam.validate",
+          "stage_id": "bam.validate",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 3,
+          "upstream_input_count": 0,
+          "output_count": 1,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.aligned_bam",
+            "corpus.aligned_bai",
+            "corpus.reference_fasta"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "validation_report"
+          ]
+        },
+        {
+          "node_id": "bam.qc_pre",
+          "stage_id": "bam.qc_pre",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 1,
+          "output_count": 4,
+          "depends_on": [
+            "bam.validate"
+          ],
+          "external_inputs": [
+            "corpus.aligned_bam"
+          ],
+          "upstream_inputs": [
+            "validation_report"
+          ],
+          "outputs": [
+            "qc_pre_flagstat",
+            "qc_pre_idxstats",
+            "qc_pre_stats",
+            "qc_pre_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.mapping_summary",
+          "stage_id": "bam.mapping_summary",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 3,
+          "output_count": 2,
+          "depends_on": [
+            "bam.qc_pre"
+          ],
+          "external_inputs": [
+            "corpus.aligned_bam"
+          ],
+          "upstream_inputs": [
+            "qc_pre_flagstat",
+            "qc_pre_idxstats",
+            "qc_pre_stats"
+          ],
+          "outputs": [
+            "mapping_summary_report_json",
+            "mapping_summary_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.filter",
+          "stage_id": "bam.filter",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 3,
+          "output_count": 4,
+          "depends_on": [
+            "bam.qc_pre"
+          ],
+          "external_inputs": [
+            "corpus.aligned_bam"
+          ],
+          "upstream_inputs": [
+            "qc_pre_flagstat",
+            "qc_pre_idxstats",
+            "qc_pre_stats"
+          ],
+          "outputs": [
+            "filtered_bam",
+            "filtered_bai",
+            "filter_report_json",
+            "filter_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.coverage",
+          "stage_id": "bam.coverage",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 1,
+          "upstream_input_count": 3,
+          "output_count": 2,
+          "depends_on": [
+            "bam.mapping_summary",
+            "bam.filter"
+          ],
+          "external_inputs": [
+            "coverage_region_contract"
+          ],
+          "upstream_inputs": [
+            "mapping_summary_report_json",
+            "filtered_bam",
+            "filtered_bai"
+          ],
+          "outputs": [
+            "coverage_report_json",
+            "coverage_stage_metrics"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/bam-genotyping-to-vcf-downstream.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json",
+      "pipeline_id": "bam-genotyping-to-vcf-downstream",
+      "domain": "cross",
+      "default_corpus_id": "corpus-01-bam-mini",
+      "summary": "Cross-domain BAM-to-VCF DAG for governed BAM genotyping, exact VCF bridge handoff, downstream VCF filtering, summary statistics, cohort QC, and optional PCA and ROH branches.",
+      "node_count": 9,
+      "edge_count": 11,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "bam.filter",
+        "bam.coverage",
+        "bam.recalibration",
+        "bam.genotyping",
+        "vcf.filter",
+        "vcf.stats",
+        "vcf.qc",
+        "vcf.pca",
+        "vcf.roh"
+      ],
+      "validation_profiles": [
+        {
+          "profile_id": "bam_genotyping_vcf_downstream",
+          "check_count": 8,
+          "checks": [
+            "default corpus anchored to corpus-01-bam-mini for governed bam-genotyping bridge inputs",
+            "bam.filter, bam.coverage, and bam.recalibration stay fixture-backed by corpus-01-bam-mini while bam.genotyping stays fixture-backed by corpus-01-genotyping-mini",
+            "bam.genotyping keeps the filtered fallback path, recalibrated run path, and governed genotyping contracts explicit",
+            "vcf.filter consumes exact bam.genotyping vcf handoffs instead of a conceptual cohort-vcf placeholder",
+            "vcf.stats stays downstream of the filtered vcf bridge",
+            "vcf.qc stays downstream of filtered vcf and stats while exporting qc-qualified cohort outputs",
+            "optional vcf.pca stays downstream of qc with metadata contracts and pruned cohort handoffs",
+            "optional vcf.roh stays downstream of qc with the same qc-qualified cohort handoff"
+          ]
+        }
+      ],
+      "nodes": [
+        {
+          "node_id": "bam.filter",
+          "stage_id": "bam.filter",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 4,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.aligned_bam"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "filtered_bam",
+            "filtered_bai",
+            "bam_filter_report_json",
+            "bam_filter_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.coverage",
+          "stage_id": "bam.coverage",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "bam.filter"
+          ],
+          "external_inputs": [
+            "coverage_region_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_bam",
+            "filtered_bai"
+          ],
+          "outputs": [
+            "coverage_report_json",
+            "coverage_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.recalibration",
+          "stage_id": "bam.recalibration",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 3,
+          "upstream_input_count": 2,
+          "output_count": 5,
+          "depends_on": [
+            "bam.filter",
+            "bam.coverage"
+          ],
+          "external_inputs": [
+            "recalibration_reference_contract",
+            "recalibration_known_sites_contract",
+            "recalibration_coverage_gate_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_bam",
+            "coverage_report_json"
+          ],
+          "outputs": [
+            "recalibrated_bam",
+            "recalibrated_bai",
+            "recalibration_report_text",
+            "recalibration_summary_json",
+            "recalibration_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.genotyping",
+          "stage_id": "bam.genotyping",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 2,
+          "external_input_count": 3,
+          "upstream_input_count": 5,
+          "output_count": 6,
+          "depends_on": [
+            "bam.filter",
+            "bam.recalibration"
+          ],
+          "external_inputs": [
+            "genotyping_reference_contract",
+            "candidate_sites_vcf_contract",
+            "target_regions_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_bam",
+            "filtered_bai",
+            "recalibrated_bam",
+            "recalibrated_bai",
+            "recalibration_summary_json"
+          ],
+          "outputs": [
+            "genotyping_bcf",
+            "genotyping_vcf_gz",
+            "genotyping_vcf_tbi",
+            "genotyping_gl_json",
+            "genotyping_report_json",
+            "genotyping_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.filter",
+          "stage_id": "vcf.filter",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 4,
+          "depends_on": [
+            "bam.genotyping"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "genotyping_vcf_gz",
+            "genotyping_vcf_tbi",
+            "genotyping_report_json"
+          ],
+          "outputs": [
+            "filtered_vcf",
+            "filtered_vcf_tbi",
+            "filter_report_json",
+            "filter_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.stats",
+          "stage_id": "vcf.stats",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 2,
+          "depends_on": [
+            "vcf.filter"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "filtered_vcf",
+            "filtered_vcf_tbi",
+            "filter_report_json"
+          ],
+          "outputs": [
+            "stats_json",
+            "stats_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.qc",
+          "stage_id": "vcf.qc",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 6,
+          "depends_on": [
+            "vcf.filter",
+            "vcf.stats"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "filtered_vcf",
+            "filtered_vcf_tbi",
+            "stats_json"
+          ],
+          "outputs": [
+            "qc_cohort_vcf",
+            "qc_cohort_vcf_tbi",
+            "qc_report",
+            "sample_qc_report_tsv",
+            "variant_qc_report_tsv",
+            "pruned_variants_tsv"
+          ]
+        },
+        {
+          "node_id": "vcf.pca",
+          "stage_id": "vcf.pca",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 3,
+          "upstream_input_count": 4,
+          "output_count": 3,
+          "depends_on": [
+            "vcf.qc"
+          ],
+          "external_inputs": [
+            "sample_metadata_manifest_contract",
+            "population_metadata_manifest_contract",
+            "population_labels_contract"
+          ],
+          "upstream_inputs": [
+            "qc_cohort_vcf",
+            "qc_cohort_vcf_tbi",
+            "pruned_variants_tsv",
+            "qc_report"
+          ],
+          "outputs": [
+            "pca_report",
+            "pca_projection_tsv",
+            "pca_metadata_join_tsv"
+          ]
+        },
+        {
+          "node_id": "vcf.roh",
+          "stage_id": "vcf.roh",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 4,
+          "output_count": 3,
+          "depends_on": [
+            "vcf.qc"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "qc_cohort_vcf",
+            "qc_cohort_vcf_tbi",
+            "pruned_variants_tsv",
+            "qc_report"
+          ],
+          "outputs": [
+            "roh_report",
+            "roh_segments_tsv",
+            "roh_summary_json"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/bam-genotyping.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping.json",
+      "pipeline_id": "bam-genotyping",
+      "domain": "bam",
+      "default_corpus_id": "corpus-01-bam-mini",
+      "summary": "BAM genotyping DAG for explicit filtered-BAM, coverage-gated recalibration, and downstream genotype-calling handoffs.",
+      "node_count": 4,
+      "edge_count": 5,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "bam.filter",
+        "bam.coverage",
+        "bam.recalibration",
+        "bam.genotyping"
+      ],
+      "validation_profiles": [],
+      "nodes": [
+        {
+          "node_id": "bam.filter",
+          "stage_id": "bam.filter",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 4,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.aligned_bam"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "filtered_bam",
+            "filtered_bai",
+            "filter_report_json",
+            "filter_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.coverage",
+          "stage_id": "bam.coverage",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "bam.filter"
+          ],
+          "external_inputs": [
+            "coverage_region_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_bam",
+            "filtered_bai"
+          ],
+          "outputs": [
+            "coverage_report_json",
+            "coverage_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.recalibration",
+          "stage_id": "bam.recalibration",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 3,
+          "upstream_input_count": 2,
+          "output_count": 5,
+          "depends_on": [
+            "bam.filter",
+            "bam.coverage"
+          ],
+          "external_inputs": [
+            "recalibration_reference_contract",
+            "recalibration_known_sites_contract",
+            "recalibration_coverage_gate_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_bam",
+            "coverage_report_json"
+          ],
+          "outputs": [
+            "recalibrated_bam",
+            "recalibrated_bai",
+            "recalibration_report_text",
+            "recalibration_summary_json",
+            "recalibration_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.genotyping",
+          "stage_id": "bam.genotyping",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 2,
+          "external_input_count": 3,
+          "upstream_input_count": 5,
+          "output_count": 6,
+          "depends_on": [
+            "bam.filter",
+            "bam.recalibration"
+          ],
+          "external_inputs": [
+            "genotyping_reference_contract",
+            "candidate_sites_vcf_contract",
+            "target_regions_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_bam",
+            "filtered_bai",
+            "recalibrated_bam",
+            "recalibrated_bai",
+            "recalibration_summary_json"
+          ],
+          "outputs": [
+            "genotyping_bcf",
+            "genotyping_vcf_gz",
+            "genotyping_vcf_tbi",
+            "genotyping_gl_json",
+            "genotyping_report_json",
+            "genotyping_stage_metrics"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/bam-kinship.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/bam-kinship.json",
+      "pipeline_id": "bam-kinship",
+      "domain": "bam",
+      "default_corpus_id": "corpus-01-bam-mini",
+      "summary": "BAM kinship DAG for explicit filtered-BAM, overlap-sufficiency, genotyping-readiness, and pairwise relatedness handoffs.",
+      "node_count": 4,
+      "edge_count": 4,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "bam.filter",
+        "bam.overlap_correction",
+        "bam.genotyping",
+        "bam.kinship"
+      ],
+      "validation_profiles": [],
+      "nodes": [
+        {
+          "node_id": "bam.filter",
+          "stage_id": "bam.filter",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 4,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.aligned_bam"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "filtered_bam",
+            "filtered_bai",
+            "filter_report_json",
+            "filter_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.overlap_correction",
+          "stage_id": "bam.overlap_correction",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 2,
+          "output_count": 4,
+          "depends_on": [
+            "bam.filter"
+          ],
+          "external_inputs": [
+            "overlap_pairing_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_bam",
+            "filtered_bai"
+          ],
+          "outputs": [
+            "overlap_corrected_bam",
+            "overlap_corrected_bai",
+            "overlap_correction_summary_json",
+            "overlap_correction_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.genotyping",
+          "stage_id": "bam.genotyping",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 1,
+          "external_input_count": 3,
+          "upstream_input_count": 2,
+          "output_count": 6,
+          "depends_on": [
+            "bam.filter"
+          ],
+          "external_inputs": [
+            "genotyping_reference_contract",
+            "candidate_sites_vcf_contract",
+            "target_regions_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_bam",
+            "filtered_bai"
+          ],
+          "outputs": [
+            "genotyping_bcf",
+            "genotyping_vcf_gz",
+            "genotyping_vcf_tbi",
+            "genotyping_gl_json",
+            "genotyping_report_json",
+            "genotyping_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.kinship",
+          "stage_id": "bam.kinship",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 3,
+          "upstream_input_count": 4,
+          "output_count": 4,
+          "depends_on": [
+            "bam.overlap_correction",
+            "bam.genotyping"
+          ],
+          "external_inputs": [
+            "kinship_reference_panel_contract",
+            "kinship_population_scope_contract",
+            "kinship_pairing_contract"
+          ],
+          "upstream_inputs": [
+            "overlap_corrected_bam",
+            "overlap_corrected_bai",
+            "overlap_correction_summary_json",
+            "genotyping_report_json"
+          ],
+          "outputs": [
+            "kinship_report_json",
+            "kinship_segments_tsv",
+            "kinship_summary_json",
+            "kinship_stage_metrics"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/core-germline-fastq-bam-vcf.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json",
+      "pipeline_id": "core-germline-fastq-bam-vcf",
+      "domain": "cross",
+      "default_corpus_id": "corpus-01-mini",
+      "summary": "Core germline FASTQ-to-BAM-to-VCF DAG for governed read validation, read profiling, trimming, alignment, BAM QC, coverage, variant calling, filtering, summary statistics, and cohort QC handoffs.",
+      "node_count": 12,
+      "edge_count": 15,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "fastq.validate_reads",
+        "fastq.profile_reads",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "bam.align",
+        "bam.validate",
+        "bam.qc_pre",
+        "bam.coverage",
+        "vcf.call",
+        "vcf.filter",
+        "vcf.stats",
+        "vcf.qc"
+      ],
+      "validation_profiles": [],
+      "nodes": [
+        {
+          "node_id": "fastq.validate_reads",
+          "stage_id": "fastq.validate_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 3,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.raw_fastq_reads"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "validated_reads_r1_path",
+            "validated_reads_r2_path",
+            "validation_report"
+          ]
+        },
+        {
+          "node_id": "fastq.profile_reads",
+          "stage_id": "fastq.profile_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_reads_r1_path",
+            "validated_reads_r2_path"
+          ],
+          "outputs": [
+            "validated_profile"
+          ]
+        },
+        {
+          "node_id": "fastq.trim_reads",
+          "stage_id": "fastq.trim_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_reads_r1_path",
+            "validated_reads_r2_path"
+          ],
+          "outputs": [
+            "trimmed_reads_r1_path",
+            "trimmed_reads_r2_path",
+            "trim_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.filter_reads",
+          "stage_id": "fastq.filter_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.trim_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "trimmed_reads_r1_path",
+            "trimmed_reads_r2_path"
+          ],
+          "outputs": [
+            "filtered_reads_r1_path",
+            "filtered_reads_r2_path",
+            "filter_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.align",
+          "stage_id": "bam.align",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 1,
+          "external_input_count": 3,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.filter_reads"
+          ],
+          "external_inputs": [
+            "alignment_reference_fasta_contract",
+            "alignment_reference_index_contract",
+            "alignment_read_group_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_reads_r1_path",
+            "filtered_reads_r2_path"
+          ],
+          "outputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "align_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.validate",
+          "stage_id": "bam.validate",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 3,
+          "output_count": 1,
+          "depends_on": [
+            "bam.align"
+          ],
+          "external_inputs": [
+            "reference_fasta_contract"
+          ],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "align_metrics"
+          ],
+          "outputs": [
+            "bam_validation_report"
+          ]
+        },
+        {
+          "node_id": "bam.qc_pre",
+          "stage_id": "bam.qc_pre",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 4,
+          "depends_on": [
+            "bam.align",
+            "bam.validate"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "bam_validation_report"
+          ],
+          "outputs": [
+            "qc_pre_flagstat",
+            "qc_pre_idxstats",
+            "qc_pre_stats",
+            "qc_pre_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.coverage",
+          "stage_id": "bam.coverage",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 1,
+          "upstream_input_count": 3,
+          "output_count": 2,
+          "depends_on": [
+            "bam.align",
+            "bam.qc_pre"
+          ],
+          "external_inputs": [
+            "coverage_region_contract"
+          ],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "qc_pre_stage_metrics"
+          ],
+          "outputs": [
+            "coverage_report_json",
+            "coverage_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.call",
+          "stage_id": "vcf.call",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 2,
+          "upstream_input_count": 3,
+          "output_count": 3,
+          "depends_on": [
+            "bam.align",
+            "bam.coverage"
+          ],
+          "external_inputs": [
+            "reference_fasta_contract",
+            "reference_fai_contract"
+          ],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "coverage_report_json"
+          ],
+          "outputs": [
+            "called_vcf",
+            "called_vcf_tbi",
+            "call_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.filter",
+          "stage_id": "vcf.filter",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 4,
+          "depends_on": [
+            "vcf.call"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "called_vcf",
+            "called_vcf_tbi",
+            "call_stage_metrics"
+          ],
+          "outputs": [
+            "filtered_vcf",
+            "filtered_vcf_tbi",
+            "filter_report_json",
+            "filter_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.stats",
+          "stage_id": "vcf.stats",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 2,
+          "depends_on": [
+            "vcf.filter"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "filtered_vcf",
+            "filtered_vcf_tbi",
+            "filter_report_json"
+          ],
+          "outputs": [
+            "stats_json",
+            "stats_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.qc",
+          "stage_id": "vcf.qc",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 2,
+          "depends_on": [
+            "vcf.filter",
+            "vcf.stats"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "filtered_vcf",
+            "filtered_vcf_tbi",
+            "stats_json"
+          ],
+          "outputs": [
+            "qc_report",
+            "qc_stage_metrics"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/diploid-small-fastq-bam-vcf.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/diploid-small-fastq-bam-vcf.json",
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "domain": "cross",
+      "default_corpus_id": "corpus-01-mini",
+      "summary": "Small-sample diploid FASTQ-to-BAM-to-VCF DAG for governed preprocessing, BAM filtering, coverage-gated recalibration, diploid calling, VCF QC, and an optional downstream phasing branch.",
+      "node_count": 16,
+      "edge_count": 24,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "fastq.validate_reads",
+        "fastq.profile_reads",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "bam.align",
+        "bam.validate",
+        "bam.qc_pre",
+        "bam.mapping_summary",
+        "bam.filter",
+        "bam.coverage",
+        "bam.recalibration",
+        "vcf.call_diploid",
+        "vcf.filter",
+        "vcf.stats",
+        "vcf.qc",
+        "vcf.phasing"
+      ],
+      "validation_profiles": [
+        {
+          "profile_id": "diploid_small_sample",
+          "check_count": 8,
+          "checks": [
+            "default corpus anchored to corpus-01-mini for governed small-sample FASTQ inputs",
+            "bam.filter and bam.recalibration stay fixture-backed by corpus-01-bam-mini",
+            "bam.recalibration keeps the low-coverage gate and known-sites contracts explicit",
+            "vcf.call_diploid consumes both the filtered-BAM fallback and recalibrated-BAM run-path handoffs",
+            "vcf.call_diploid keeps explicit coverage and recalibration decision evidence",
+            "vcf.filter and vcf.stats stay downstream of diploid calling",
+            "vcf.qc stays downstream of filtered VCF and stats without depending on phasing",
+            "vcf.phasing remains an optional downstream branch with explicit map and panel contracts"
+          ]
+        }
+      ],
+      "nodes": [
+        {
+          "node_id": "fastq.validate_reads",
+          "stage_id": "fastq.validate_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 3,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.raw_fastq_reads"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "validated_reads_r1_path",
+            "validated_reads_r2_path",
+            "validation_report"
+          ]
+        },
+        {
+          "node_id": "fastq.profile_reads",
+          "stage_id": "fastq.profile_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_reads_r1_path",
+            "validated_reads_r2_path"
+          ],
+          "outputs": [
+            "validated_profile"
+          ]
+        },
+        {
+          "node_id": "fastq.trim_reads",
+          "stage_id": "fastq.trim_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_reads_r1_path",
+            "validated_reads_r2_path"
+          ],
+          "outputs": [
+            "trimmed_reads_r1_path",
+            "trimmed_reads_r2_path",
+            "trim_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.filter_reads",
+          "stage_id": "fastq.filter_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.trim_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "trimmed_reads_r1_path",
+            "trimmed_reads_r2_path"
+          ],
+          "outputs": [
+            "filtered_reads_r1_path",
+            "filtered_reads_r2_path",
+            "filter_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.align",
+          "stage_id": "bam.align",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 1,
+          "external_input_count": 3,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.filter_reads"
+          ],
+          "external_inputs": [
+            "alignment_reference_fasta_contract",
+            "alignment_reference_index_contract",
+            "alignment_read_group_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_reads_r1_path",
+            "filtered_reads_r2_path"
+          ],
+          "outputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "align_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.validate",
+          "stage_id": "bam.validate",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 3,
+          "output_count": 1,
+          "depends_on": [
+            "bam.align"
+          ],
+          "external_inputs": [
+            "reference_fasta_contract"
+          ],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "align_metrics"
+          ],
+          "outputs": [
+            "bam_validation_report"
+          ]
+        },
+        {
+          "node_id": "bam.qc_pre",
+          "stage_id": "bam.qc_pre",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 4,
+          "depends_on": [
+            "bam.align",
+            "bam.validate"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "bam_validation_report"
+          ],
+          "outputs": [
+            "qc_pre_flagstat",
+            "qc_pre_idxstats",
+            "qc_pre_stats",
+            "qc_pre_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.mapping_summary",
+          "stage_id": "bam.mapping_summary",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 4,
+          "output_count": 2,
+          "depends_on": [
+            "bam.align",
+            "bam.qc_pre"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "aligned_bam",
+            "qc_pre_flagstat",
+            "qc_pre_idxstats",
+            "qc_pre_stats"
+          ],
+          "outputs": [
+            "mapping_summary_report_json",
+            "mapping_summary_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.filter",
+          "stage_id": "bam.filter",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 5,
+          "output_count": 4,
+          "depends_on": [
+            "bam.align",
+            "bam.qc_pre"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "aligned_bam",
+            "aligned_bai",
+            "qc_pre_flagstat",
+            "qc_pre_idxstats",
+            "qc_pre_stats"
+          ],
+          "outputs": [
+            "filtered_bam",
+            "filtered_bai",
+            "bam_filter_report_json",
+            "bam_filter_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.coverage",
+          "stage_id": "bam.coverage",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 1,
+          "upstream_input_count": 3,
+          "output_count": 2,
+          "depends_on": [
+            "bam.mapping_summary",
+            "bam.filter"
+          ],
+          "external_inputs": [
+            "coverage_region_contract"
+          ],
+          "upstream_inputs": [
+            "mapping_summary_report_json",
+            "filtered_bam",
+            "filtered_bai"
+          ],
+          "outputs": [
+            "coverage_report_json",
+            "coverage_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.recalibration",
+          "stage_id": "bam.recalibration",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 3,
+          "upstream_input_count": 2,
+          "output_count": 5,
+          "depends_on": [
+            "bam.filter",
+            "bam.coverage"
+          ],
+          "external_inputs": [
+            "recalibration_reference_contract",
+            "recalibration_known_sites_contract",
+            "recalibration_coverage_gate_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_bam",
+            "coverage_report_json"
+          ],
+          "outputs": [
+            "recalibrated_bam",
+            "recalibrated_bai",
+            "recalibration_report_text",
+            "recalibration_summary_json",
+            "recalibration_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.call_diploid",
+          "stage_id": "vcf.call_diploid",
+          "readiness_kind": "smoke",
+          "dependency_count": 3,
+          "external_input_count": 2,
+          "upstream_input_count": 6,
+          "output_count": 3,
+          "depends_on": [
+            "bam.filter",
+            "bam.coverage",
+            "bam.recalibration"
+          ],
+          "external_inputs": [
+            "reference_fasta_contract",
+            "reference_fai_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_bam",
+            "filtered_bai",
+            "recalibrated_bam",
+            "recalibrated_bai",
+            "coverage_report_json",
+            "recalibration_summary_json"
+          ],
+          "outputs": [
+            "diploid_vcf",
+            "diploid_vcf_tbi",
+            "call_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.filter",
+          "stage_id": "vcf.filter",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 4,
+          "depends_on": [
+            "vcf.call_diploid"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "diploid_vcf",
+            "diploid_vcf_tbi",
+            "call_stage_metrics"
+          ],
+          "outputs": [
+            "filtered_vcf",
+            "filtered_vcf_tbi",
+            "filter_report_json",
+            "filter_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.stats",
+          "stage_id": "vcf.stats",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 2,
+          "depends_on": [
+            "vcf.filter"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "filtered_vcf",
+            "filtered_vcf_tbi",
+            "filter_report_json"
+          ],
+          "outputs": [
+            "stats_json",
+            "stats_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.qc",
+          "stage_id": "vcf.qc",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 2,
+          "depends_on": [
+            "vcf.filter",
+            "vcf.stats"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "filtered_vcf",
+            "filtered_vcf_tbi",
+            "stats_json"
+          ],
+          "outputs": [
+            "qc_report",
+            "qc_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.phasing",
+          "stage_id": "vcf.phasing",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 2,
+          "upstream_input_count": 3,
+          "output_count": 3,
+          "depends_on": [
+            "vcf.filter",
+            "vcf.qc"
+          ],
+          "external_inputs": [
+            "genetic_map_contract",
+            "reference_panel_lock_contract"
+          ],
+          "upstream_inputs": [
+            "filtered_vcf",
+            "filtered_vcf_tbi",
+            "qc_report"
+          ],
+          "outputs": [
+            "phased_vcf",
+            "phased_vcf_tbi",
+            "phasing_stage_metrics"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/edna-taxonomy-no-vcf.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/edna-taxonomy-no-vcf.json",
+      "pipeline_id": "edna-taxonomy-no-vcf",
+      "domain": "fastq",
+      "default_corpus_id": "corpus-02-edna-mini",
+      "summary": "eDNA taxonomy-only FASTQ DAG for corpus-02 validation, adapter-aware trimming, filtering, taxonomy screening, and taxonomy-local reporting without BAM or VCF germline branches.",
+      "node_count": 6,
+      "edge_count": 10,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.screen_taxonomy",
+        "fastq.report_qc"
+      ],
+      "validation_profiles": [
+        {
+          "profile_id": "edna_taxonomy_no_vcf",
+          "check_count": 8,
+          "checks": [
+            "default corpus anchored to corpus-02-edna-mini for governed edna taxonomy inputs",
+            "pipeline remains fastq-only and rejects bam or vcf germline stages",
+            "fastq.validate_reads keeps the governed raw-fastq corpus handoff explicit",
+            "fastq.screen_taxonomy stays fixture-backed by corpus-02-edna-mini",
+            "fastq.screen_taxonomy remains downstream of filtered reads",
+            "fastq.screen_taxonomy keeps taxonomy database and expected-truth contracts explicit",
+            "fastq.screen_taxonomy keeps classification, unclassified, and summary outputs explicit",
+            "fastq.report_qc consumes taxonomy summary without mixing bam or vcf germline outputs"
+          ]
+        }
+      ],
+      "nodes": [
+        {
+          "node_id": "fastq.validate_reads",
+          "stage_id": "fastq.validate_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 2,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.raw_fastq_reads"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "validated_reads",
+            "validation_report"
+          ]
+        },
+        {
+          "node_id": "fastq.detect_adapters",
+          "stage_id": "fastq.detect_adapters",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_reads"
+          ],
+          "outputs": [
+            "adapter_report"
+          ]
+        },
+        {
+          "node_id": "fastq.trim_reads",
+          "stage_id": "fastq.trim_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "fastq.validate_reads",
+            "fastq.detect_adapters"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_reads",
+            "adapter_report"
+          ],
+          "outputs": [
+            "trimmed_reads",
+            "trim_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.filter_reads",
+          "stage_id": "fastq.filter_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 2,
+          "depends_on": [
+            "fastq.trim_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "trimmed_reads"
+          ],
+          "outputs": [
+            "filtered_reads",
+            "filter_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.screen_taxonomy",
+          "stage_id": "fastq.screen_taxonomy",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 1,
+          "external_input_count": 2,
+          "upstream_input_count": 1,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.filter_reads"
+          ],
+          "external_inputs": [
+            "taxonomy_database.root",
+            "taxonomy_expected_truth_table"
+          ],
+          "upstream_inputs": [
+            "filtered_reads"
+          ],
+          "outputs": [
+            "taxonomy_classification",
+            "unclassified_reads",
+            "taxonomy_summary"
+          ]
+        },
+        {
+          "node_id": "fastq.report_qc",
+          "stage_id": "fastq.report_qc",
+          "readiness_kind": "smoke",
+          "dependency_count": 5,
+          "external_input_count": 0,
+          "upstream_input_count": 5,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads",
+            "fastq.detect_adapters",
+            "fastq.trim_reads",
+            "fastq.filter_reads",
+            "fastq.screen_taxonomy"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validation_report",
+            "adapter_report",
+            "trim_metrics",
+            "filter_metrics",
+            "taxonomy_summary"
+          ],
+          "outputs": [
+            "qc_bundle"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/fastq-amplicon.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-amplicon.json",
+      "pipeline_id": "fastq-amplicon",
+      "domain": "fastq",
+      "default_corpus_id": "corpus-03-amplicon-mini",
+      "summary": "Amplicon FASTQ DAG for corpus-03 validation, primer normalization, ASV inference, chimera removal, OTU clustering, abundance normalization, and QC collation.",
+      "node_count": 7,
+      "edge_count": 12,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "fastq.validate_reads",
+        "fastq.normalize_primers",
+        "fastq.infer_asvs",
+        "fastq.remove_chimeras",
+        "fastq.cluster_otus",
+        "fastq.normalize_abundance",
+        "fastq.report_qc"
+      ],
+      "validation_profiles": [],
+      "nodes": [
+        {
+          "node_id": "fastq.validate_reads",
+          "stage_id": "fastq.validate_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 2,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.raw_amplicon_fastq_reads"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "validated_amplicon_reads",
+            "validation_report"
+          ]
+        },
+        {
+          "node_id": "fastq.normalize_primers",
+          "stage_id": "fastq.normalize_primers",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 1,
+          "output_count": 2,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [
+            "amplicon_primer_contract"
+          ],
+          "upstream_inputs": [
+            "validated_amplicon_reads"
+          ],
+          "outputs": [
+            "normalized_amplicon_reads",
+            "primer_normalization_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.infer_asvs",
+          "stage_id": "fastq.infer_asvs",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.normalize_primers"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "normalized_amplicon_reads"
+          ],
+          "outputs": [
+            "asv_table",
+            "asv_representatives",
+            "asv_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.remove_chimeras",
+          "stage_id": "fastq.remove_chimeras",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 1,
+          "output_count": 2,
+          "depends_on": [
+            "fastq.infer_asvs"
+          ],
+          "external_inputs": [
+            "chimera_control_contract"
+          ],
+          "upstream_inputs": [
+            "asv_representatives"
+          ],
+          "outputs": [
+            "non_chimeric_representatives",
+            "chimera_report"
+          ]
+        },
+        {
+          "node_id": "fastq.cluster_otus",
+          "stage_id": "fastq.cluster_otus",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "fastq.normalize_primers",
+            "fastq.remove_chimeras"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "normalized_amplicon_reads",
+            "non_chimeric_representatives"
+          ],
+          "outputs": [
+            "otu_table",
+            "otu_representatives"
+          ]
+        },
+        {
+          "node_id": "fastq.normalize_abundance",
+          "stage_id": "fastq.normalize_abundance",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.cluster_otus"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "otu_table"
+          ],
+          "outputs": [
+            "normalized_abundance_table"
+          ]
+        },
+        {
+          "node_id": "fastq.report_qc",
+          "stage_id": "fastq.report_qc",
+          "readiness_kind": "smoke",
+          "dependency_count": 6,
+          "external_input_count": 0,
+          "upstream_input_count": 6,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads",
+            "fastq.normalize_primers",
+            "fastq.infer_asvs",
+            "fastq.remove_chimeras",
+            "fastq.cluster_otus",
+            "fastq.normalize_abundance"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validation_report",
+            "primer_normalization_metrics",
+            "asv_metrics",
+            "chimera_report",
+            "otu_table",
+            "normalized_abundance_table"
+          ],
+          "outputs": [
+            "qc_bundle"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/fastq-core-preprocess.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-core-preprocess.json",
+      "pipeline_id": "fastq-core-preprocess",
+      "domain": "fastq",
+      "default_corpus_id": "corpus-01-mini",
+      "summary": "Core FASTQ preprocessing DAG for corpus-01 validation, read-length profiling, adapter detection, trimming, filtering, and terminal QC collation.",
+      "node_count": 7,
+      "edge_count": 12,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "fastq.validate_reads",
+        "fastq.profile_read_lengths",
+        "fastq.detect_adapters",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "validation_profiles": [],
+      "nodes": [
+        {
+          "node_id": "fastq.validate_reads",
+          "stage_id": "fastq.validate_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 2,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.raw_fastq_reads"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "validated_reads",
+            "validation_report"
+          ]
+        },
+        {
+          "node_id": "fastq.profile_read_lengths",
+          "stage_id": "fastq.profile_read_lengths",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_reads"
+          ],
+          "outputs": [
+            "read_length_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.detect_adapters",
+          "stage_id": "fastq.detect_adapters",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_reads"
+          ],
+          "outputs": [
+            "adapter_report"
+          ]
+        },
+        {
+          "node_id": "fastq.trim_reads",
+          "stage_id": "fastq.trim_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "fastq.validate_reads",
+            "fastq.detect_adapters"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_reads",
+            "adapter_report"
+          ],
+          "outputs": [
+            "trimmed_reads",
+            "trim_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.filter_reads",
+          "stage_id": "fastq.filter_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 2,
+          "depends_on": [
+            "fastq.trim_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "trimmed_reads"
+          ],
+          "outputs": [
+            "filtered_reads",
+            "filter_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.profile_reads",
+          "stage_id": "fastq.profile_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.filter_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "filtered_reads"
+          ],
+          "outputs": [
+            "filtered_profile"
+          ]
+        },
+        {
+          "node_id": "fastq.report_qc",
+          "stage_id": "fastq.report_qc",
+          "readiness_kind": "smoke",
+          "dependency_count": 6,
+          "external_input_count": 0,
+          "upstream_input_count": 6,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads",
+            "fastq.profile_read_lengths",
+            "fastq.detect_adapters",
+            "fastq.trim_reads",
+            "fastq.filter_reads",
+            "fastq.profile_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validation_report",
+            "read_length_metrics",
+            "adapter_report",
+            "trim_metrics",
+            "filter_metrics",
+            "filtered_profile"
+          ],
+          "outputs": [
+            "qc_bundle"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/fastq-edna-taxonomy.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-edna-taxonomy.json",
+      "pipeline_id": "fastq-edna-taxonomy",
+      "domain": "fastq",
+      "default_corpus_id": "corpus-02-edna-mini",
+      "summary": "eDNA and microbiome FASTQ DAG for corpus-02 validation, trimming, filtering, profiling, and taxonomy screening against the governed local database fixture.",
+      "node_count": 7,
+      "edge_count": 12,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.screen_taxonomy",
+        "fastq.report_qc"
+      ],
+      "validation_profiles": [],
+      "nodes": [
+        {
+          "node_id": "fastq.validate_reads",
+          "stage_id": "fastq.validate_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 2,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.raw_fastq_reads"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "validated_reads",
+            "validation_report"
+          ]
+        },
+        {
+          "node_id": "fastq.detect_adapters",
+          "stage_id": "fastq.detect_adapters",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_reads"
+          ],
+          "outputs": [
+            "adapter_report"
+          ]
+        },
+        {
+          "node_id": "fastq.trim_reads",
+          "stage_id": "fastq.trim_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "fastq.validate_reads",
+            "fastq.detect_adapters"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_reads",
+            "adapter_report"
+          ],
+          "outputs": [
+            "trimmed_reads",
+            "trim_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.filter_reads",
+          "stage_id": "fastq.filter_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 2,
+          "depends_on": [
+            "fastq.trim_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "trimmed_reads"
+          ],
+          "outputs": [
+            "filtered_reads",
+            "filter_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.profile_reads",
+          "stage_id": "fastq.profile_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.filter_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "filtered_reads"
+          ],
+          "outputs": [
+            "filtered_profile"
+          ]
+        },
+        {
+          "node_id": "fastq.screen_taxonomy",
+          "stage_id": "fastq.screen_taxonomy",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 1,
+          "external_input_count": 2,
+          "upstream_input_count": 1,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.filter_reads"
+          ],
+          "external_inputs": [
+            "taxonomy_database.root",
+            "taxonomy_expected_truth_table"
+          ],
+          "upstream_inputs": [
+            "filtered_reads"
+          ],
+          "outputs": [
+            "taxonomy_classification",
+            "unclassified_reads",
+            "taxonomy_summary"
+          ]
+        },
+        {
+          "node_id": "fastq.report_qc",
+          "stage_id": "fastq.report_qc",
+          "readiness_kind": "smoke",
+          "dependency_count": 6,
+          "external_input_count": 0,
+          "upstream_input_count": 6,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads",
+            "fastq.detect_adapters",
+            "fastq.trim_reads",
+            "fastq.filter_reads",
+            "fastq.profile_reads",
+            "fastq.screen_taxonomy"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validation_report",
+            "adapter_report",
+            "trim_metrics",
+            "filter_metrics",
+            "filtered_profile",
+            "taxonomy_summary"
+          ],
+          "outputs": [
+            "qc_bundle"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/fastq-paired-merge.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-paired-merge.json",
+      "pipeline_id": "fastq-paired-merge",
+      "domain": "fastq",
+      "default_corpus_id": "corpus-01-mini",
+      "summary": "Paired-end FASTQ DAG for validation, adapter-aware trimming, pair merging, downstream filtering of merged and unmerged reads, and QC collation.",
+      "node_count": 7,
+      "edge_count": 12,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters",
+        "fastq.trim_reads",
+        "fastq.merge_pairs",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "validation_profiles": [],
+      "nodes": [
+        {
+          "node_id": "fastq.validate_reads",
+          "stage_id": "fastq.validate_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 2,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.raw_paired_fastq_reads"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "validated_paired_reads",
+            "validation_report"
+          ]
+        },
+        {
+          "node_id": "fastq.detect_adapters",
+          "stage_id": "fastq.detect_adapters",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_paired_reads"
+          ],
+          "outputs": [
+            "adapter_report"
+          ]
+        },
+        {
+          "node_id": "fastq.trim_reads",
+          "stage_id": "fastq.trim_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 2,
+          "depends_on": [
+            "fastq.validate_reads",
+            "fastq.detect_adapters"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_paired_reads",
+            "adapter_report"
+          ],
+          "outputs": [
+            "trimmed_paired_reads",
+            "trim_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.merge_pairs",
+          "stage_id": "fastq.merge_pairs",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 1,
+          "output_count": 4,
+          "depends_on": [
+            "fastq.trim_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "trimmed_paired_reads"
+          ],
+          "outputs": [
+            "merged_reads",
+            "unmerged_r1_reads",
+            "unmerged_r2_reads",
+            "merge_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.filter_reads",
+          "stage_id": "fastq.filter_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 4,
+          "depends_on": [
+            "fastq.merge_pairs"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "merged_reads",
+            "unmerged_r1_reads",
+            "unmerged_r2_reads"
+          ],
+          "outputs": [
+            "filtered_merged_reads",
+            "filtered_unmerged_r1_reads",
+            "filtered_unmerged_r2_reads",
+            "filter_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.profile_reads",
+          "stage_id": "fastq.profile_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.filter_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "filtered_merged_reads",
+            "filtered_unmerged_r1_reads",
+            "filtered_unmerged_r2_reads"
+          ],
+          "outputs": [
+            "filtered_merge_profile"
+          ]
+        },
+        {
+          "node_id": "fastq.report_qc",
+          "stage_id": "fastq.report_qc",
+          "readiness_kind": "smoke",
+          "dependency_count": 6,
+          "external_input_count": 0,
+          "upstream_input_count": 6,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads",
+            "fastq.detect_adapters",
+            "fastq.trim_reads",
+            "fastq.merge_pairs",
+            "fastq.filter_reads",
+            "fastq.profile_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validation_report",
+            "adapter_report",
+            "trim_metrics",
+            "merge_metrics",
+            "filter_metrics",
+            "filtered_merge_profile"
+          ],
+          "outputs": [
+            "qc_bundle"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/fastq-to-bam.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-to-bam.json",
+      "pipeline_id": "fastq-to-bam",
+      "domain": "cross",
+      "default_corpus_id": "corpus-01-mini",
+      "summary": "Cross-domain FASTQ-to-BAM DAG for governed preprocessing path outputs, BAM alignment, and downstream BAM QC handoffs.",
+      "node_count": 6,
+      "edge_count": 7,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters",
+        "fastq.trim_reads",
+        "bam.align",
+        "bam.qc_pre",
+        "bam.mapping_summary"
+      ],
+      "validation_profiles": [],
+      "nodes": [
+        {
+          "node_id": "fastq.validate_reads",
+          "stage_id": "fastq.validate_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 3,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.raw_fastq_reads"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "validated_reads_r1_path",
+            "validated_reads_r2_path",
+            "validation_report"
+          ]
+        },
+        {
+          "node_id": "fastq.detect_adapters",
+          "stage_id": "fastq.detect_adapters",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_reads_r1_path",
+            "validated_reads_r2_path"
+          ],
+          "outputs": [
+            "adapter_report"
+          ]
+        },
+        {
+          "node_id": "fastq.trim_reads",
+          "stage_id": "fastq.trim_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.validate_reads",
+            "fastq.detect_adapters"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validated_reads_r1_path",
+            "validated_reads_r2_path",
+            "adapter_report"
+          ],
+          "outputs": [
+            "trimmed_reads_r1_path",
+            "trimmed_reads_r2_path",
+            "trim_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.align",
+          "stage_id": "bam.align",
+          "readiness_kind": "dry_or_smoke",
+          "dependency_count": 1,
+          "external_input_count": 3,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.trim_reads"
+          ],
+          "external_inputs": [
+            "alignment_reference_fasta_contract",
+            "alignment_reference_index_contract",
+            "alignment_read_group_contract"
+          ],
+          "upstream_inputs": [
+            "trimmed_reads_r1_path",
+            "trimmed_reads_r2_path"
+          ],
+          "outputs": [
+            "align_bam",
+            "align_bai",
+            "align_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.qc_pre",
+          "stage_id": "bam.qc_pre",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 4,
+          "depends_on": [
+            "bam.align"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "align_bam",
+            "align_bai",
+            "align_metrics"
+          ],
+          "outputs": [
+            "qc_pre_flagstat",
+            "qc_pre_idxstats",
+            "qc_pre_stats",
+            "qc_pre_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "bam.mapping_summary",
+          "stage_id": "bam.mapping_summary",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 0,
+          "upstream_input_count": 4,
+          "output_count": 2,
+          "depends_on": [
+            "bam.align",
+            "bam.qc_pre"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "align_bam",
+            "qc_pre_flagstat",
+            "qc_pre_idxstats",
+            "qc_pre_stats"
+          ],
+          "outputs": [
+            "mapping_summary_report_json",
+            "mapping_summary_stage_metrics"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/fastq-umi.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-umi.json",
+      "pipeline_id": "fastq-umi",
+      "domain": "fastq",
+      "default_corpus_id": "corpus-01-mini",
+      "summary": "FASTQ UMI DAG for governed validation, UMI extraction, duplicate-aware preprocessing, and QC collation.",
+      "node_count": 8,
+      "edge_count": 13,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "fastq.validate_reads",
+        "fastq.extract_umis",
+        "fastq.detect_duplicates_premerge",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.remove_duplicates",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "validation_profiles": [],
+      "nodes": [
+        {
+          "node_id": "fastq.validate_reads",
+          "stage_id": "fastq.validate_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 1,
+          "upstream_input_count": 0,
+          "output_count": 2,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.raw_fastq_reads"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "validated_reads",
+            "validation_report"
+          ]
+        },
+        {
+          "node_id": "fastq.extract_umis",
+          "stage_id": "fastq.extract_umis",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 1,
+          "upstream_input_count": 1,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.validate_reads"
+          ],
+          "external_inputs": [
+            "umi_pattern_contract"
+          ],
+          "upstream_inputs": [
+            "validated_reads"
+          ],
+          "outputs": [
+            "umi_tagged_reads_r1",
+            "umi_tagged_reads_r2",
+            "umi_extraction_report"
+          ]
+        },
+        {
+          "node_id": "fastq.detect_duplicates_premerge",
+          "stage_id": "fastq.detect_duplicates_premerge",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.extract_umis"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "umi_tagged_reads_r1",
+            "umi_tagged_reads_r2"
+          ],
+          "outputs": [
+            "duplicate_signal_report"
+          ]
+        },
+        {
+          "node_id": "fastq.trim_reads",
+          "stage_id": "fastq.trim_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.extract_umis"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "umi_tagged_reads_r1",
+            "umi_tagged_reads_r2"
+          ],
+          "outputs": [
+            "trimmed_umi_reads_r1",
+            "trimmed_umi_reads_r2",
+            "trim_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.filter_reads",
+          "stage_id": "fastq.filter_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 3,
+          "depends_on": [
+            "fastq.trim_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "trimmed_umi_reads_r1",
+            "trimmed_umi_reads_r2"
+          ],
+          "outputs": [
+            "filtered_umi_reads_r1",
+            "filtered_umi_reads_r2",
+            "filter_metrics"
+          ]
+        },
+        {
+          "node_id": "fastq.remove_duplicates",
+          "stage_id": "fastq.remove_duplicates",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 5,
+          "depends_on": [
+            "fastq.filter_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "filtered_umi_reads_r1",
+            "filtered_umi_reads_r2"
+          ],
+          "outputs": [
+            "deduplicated_umi_reads_r1",
+            "deduplicated_umi_reads_r2",
+            "duplicate_classes_tsv",
+            "duplicate_provenance_json",
+            "deduplication_report"
+          ]
+        },
+        {
+          "node_id": "fastq.profile_reads",
+          "stage_id": "fastq.profile_reads",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 2,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.remove_duplicates"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "deduplicated_umi_reads_r1",
+            "deduplicated_umi_reads_r2"
+          ],
+          "outputs": [
+            "deduplicated_profile"
+          ]
+        },
+        {
+          "node_id": "fastq.report_qc",
+          "stage_id": "fastq.report_qc",
+          "readiness_kind": "smoke",
+          "dependency_count": 7,
+          "external_input_count": 0,
+          "upstream_input_count": 7,
+          "output_count": 1,
+          "depends_on": [
+            "fastq.validate_reads",
+            "fastq.extract_umis",
+            "fastq.detect_duplicates_premerge",
+            "fastq.trim_reads",
+            "fastq.filter_reads",
+            "fastq.remove_duplicates",
+            "fastq.profile_reads"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "validation_report",
+            "umi_extraction_report",
+            "duplicate_signal_report",
+            "trim_metrics",
+            "filter_metrics",
+            "deduplication_report",
+            "deduplicated_profile"
+          ],
+          "outputs": [
+            "qc_bundle"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/popgen-structure-vcf.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/popgen-structure-vcf.json",
+      "pipeline_id": "popgen-structure-vcf",
+      "domain": "vcf",
+      "default_corpus_id": "vcf_production_regression",
+      "summary": "Cohort VCF DAG for governed QC, pruning and filtering, PCA, admixture, and population-structure summary with mandatory sample metadata and population labels.",
+      "node_count": 4,
+      "edge_count": 6,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "vcf.qc",
+        "vcf.pca",
+        "vcf.admixture",
+        "vcf.population_structure"
+      ],
+      "validation_profiles": [
+        {
+          "profile_id": "population_structure_vcf",
+          "check_count": 8,
+          "checks": [
+            "default corpus anchored to vcf_production_regression for governed cohort-vcf population-structure inputs",
+            "vcf.qc, vcf.pca, vcf.admixture, and vcf.population_structure stay bound to the vcf_cohort asset profile",
+            "vcf.qc exports the governed pruning/filtering handoff for downstream cohort analysis",
+            "vcf.pca requires sample metadata, population metadata, and population labels as explicit inputs",
+            "vcf.admixture requires sample metadata, population metadata, and population labels as explicit inputs",
+            "vcf.admixture stays downstream of pca with explicit pca evidence",
+            "vcf.pca and vcf.admixture both export sample-metadata join handoffs",
+            "vcf.population_structure consumes the pca and admixture metadata-join handoffs with mandatory labels"
+          ]
+        }
+      ],
+      "nodes": [
+        {
+          "node_id": "vcf.qc",
+          "stage_id": "vcf.qc",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 2,
+          "upstream_input_count": 0,
+          "output_count": 6,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.target_cohort_vcf",
+            "corpus.target_cohort_vcf_tbi"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "qc_cohort_vcf",
+            "qc_cohort_vcf_tbi",
+            "qc_report",
+            "sample_qc_report_tsv",
+            "variant_qc_report_tsv",
+            "pruned_variants_tsv"
+          ]
+        },
+        {
+          "node_id": "vcf.pca",
+          "stage_id": "vcf.pca",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 3,
+          "upstream_input_count": 4,
+          "output_count": 3,
+          "depends_on": [
+            "vcf.qc"
+          ],
+          "external_inputs": [
+            "sample_metadata_manifest_contract",
+            "population_metadata_manifest_contract",
+            "population_labels_contract"
+          ],
+          "upstream_inputs": [
+            "qc_cohort_vcf",
+            "qc_cohort_vcf_tbi",
+            "pruned_variants_tsv",
+            "qc_report"
+          ],
+          "outputs": [
+            "pca_report",
+            "pca_projection_tsv",
+            "pca_metadata_join_tsv"
+          ]
+        },
+        {
+          "node_id": "vcf.admixture",
+          "stage_id": "vcf.admixture",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 3,
+          "upstream_input_count": 5,
+          "output_count": 3,
+          "depends_on": [
+            "vcf.qc",
+            "vcf.pca"
+          ],
+          "external_inputs": [
+            "sample_metadata_manifest_contract",
+            "population_metadata_manifest_contract",
+            "population_labels_contract"
+          ],
+          "upstream_inputs": [
+            "qc_cohort_vcf",
+            "qc_cohort_vcf_tbi",
+            "pruned_variants_tsv",
+            "pca_report",
+            "pca_projection_tsv"
+          ],
+          "outputs": [
+            "admixture_report",
+            "admixture_q_matrix_tsv",
+            "admixture_metadata_join_tsv"
+          ]
+        },
+        {
+          "node_id": "vcf.population_structure",
+          "stage_id": "vcf.population_structure",
+          "readiness_kind": "smoke",
+          "dependency_count": 3,
+          "external_input_count": 3,
+          "upstream_input_count": 5,
+          "output_count": 2,
+          "depends_on": [
+            "vcf.qc",
+            "vcf.pca",
+            "vcf.admixture"
+          ],
+          "external_inputs": [
+            "sample_metadata_manifest_contract",
+            "population_metadata_manifest_contract",
+            "population_labels_contract"
+          ],
+          "upstream_inputs": [
+            "qc_report",
+            "pca_report",
+            "admixture_report",
+            "pca_metadata_join_tsv",
+            "admixture_metadata_join_tsv"
+          ],
+          "outputs": [
+            "population_structure_report",
+            "population_structure_table_tsv"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/reference-panel-imputation.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/reference-panel-imputation.json",
+      "pipeline_id": "reference-panel-imputation",
+      "domain": "vcf",
+      "default_corpus_id": "vcf_production_regression",
+      "summary": "Target-cohort VCF DAG for governed reference-panel preparation, target QC, optional prephasing, imputation, and downstream imputation metrics with explicit panel identity and asset-profile provenance.",
+      "node_count": 5,
+      "edge_count": 7,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "vcf.prepare_reference_panel",
+        "vcf.qc",
+        "vcf.phasing",
+        "vcf.impute",
+        "vcf.imputation"
+      ],
+      "validation_profiles": [
+        {
+          "profile_id": "reference_panel_imputation",
+          "check_count": 8,
+          "checks": [
+            "default corpus anchored to vcf_production_regression for governed target-cohort VCF inputs",
+            "vcf.prepare_reference_panel stays bound to the vcf_reference_panel asset profile",
+            "vcf.qc stays bound to the vcf_cohort asset profile",
+            "vcf.phasing, vcf.impute, and vcf.imputation stay bound to the vcf_cohort_with_panel asset profile",
+            "vcf.prepare_reference_panel keeps panel, map, and reference contracts explicit",
+            "vcf.phasing consumes the qc-qualified target VCF plus prepared-panel identity for the optional prephasing branch",
+            "vcf.impute consumes both the qc-target fallback path and phased run path with explicit panel identity",
+            "vcf.imputation stays downstream of imputation execution with panel-provenance and imputation-qc evidence"
+          ]
+        }
+      ],
+      "nodes": [
+        {
+          "node_id": "vcf.prepare_reference_panel",
+          "stage_id": "vcf.prepare_reference_panel",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 8,
+          "upstream_input_count": 0,
+          "output_count": 5,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.reference_panel_vcf",
+            "corpus.reference_panel_vcf_tbi",
+            "reference_panel_id_contract",
+            "reference_panel_lock_contract",
+            "genetic_map_contract",
+            "reference_fasta_contract",
+            "reference_fai_contract",
+            "reference_dict_contract"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "prepared_panel_vcf",
+            "prepared_panel_vcf_tbi",
+            "prepared_panel_chunks_json",
+            "prepared_panel_manifest_json",
+            "prepared_panel_panel_id"
+          ]
+        },
+        {
+          "node_id": "vcf.qc",
+          "stage_id": "vcf.qc",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 2,
+          "upstream_input_count": 0,
+          "output_count": 5,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.target_cohort_vcf",
+            "corpus.target_cohort_vcf_tbi"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "qc_target_vcf",
+            "qc_target_vcf_tbi",
+            "qc_report",
+            "target_qc_report_tsv",
+            "phasing_requirement_decision_json"
+          ]
+        },
+        {
+          "node_id": "vcf.phasing",
+          "stage_id": "vcf.phasing",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 3,
+          "upstream_input_count": 7,
+          "output_count": 4,
+          "depends_on": [
+            "vcf.prepare_reference_panel",
+            "vcf.qc"
+          ],
+          "external_inputs": [
+            "reference_panel_id_contract",
+            "reference_panel_lock_contract",
+            "genetic_map_contract"
+          ],
+          "upstream_inputs": [
+            "prepared_panel_vcf",
+            "prepared_panel_vcf_tbi",
+            "prepared_panel_panel_id",
+            "qc_target_vcf",
+            "qc_target_vcf_tbi",
+            "qc_report",
+            "phasing_requirement_decision_json"
+          ],
+          "outputs": [
+            "phased_vcf",
+            "phased_vcf_tbi",
+            "phasing_manifest_json",
+            "phasing_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.impute",
+          "stage_id": "vcf.impute",
+          "readiness_kind": "smoke",
+          "dependency_count": 3,
+          "external_input_count": 5,
+          "upstream_input_count": 11,
+          "output_count": 6,
+          "depends_on": [
+            "vcf.prepare_reference_panel",
+            "vcf.qc",
+            "vcf.phasing"
+          ],
+          "external_inputs": [
+            "reference_panel_id_contract",
+            "reference_panel_lock_contract",
+            "genetic_map_contract",
+            "reference_fasta_contract",
+            "reference_fai_contract"
+          ],
+          "upstream_inputs": [
+            "prepared_panel_vcf",
+            "prepared_panel_vcf_tbi",
+            "prepared_panel_chunks_json",
+            "prepared_panel_panel_id",
+            "qc_target_vcf",
+            "qc_target_vcf_tbi",
+            "target_qc_report_tsv",
+            "phasing_requirement_decision_json",
+            "phased_vcf",
+            "phased_vcf_tbi",
+            "phasing_manifest_json"
+          ],
+          "outputs": [
+            "imputed_vcf",
+            "imputed_vcf_tbi",
+            "imputation_qc_json",
+            "imputation_qc_tsv",
+            "imputation_manifest_json",
+            "imputation_stage_metrics"
+          ]
+        },
+        {
+          "node_id": "vcf.imputation",
+          "stage_id": "vcf.imputation",
+          "readiness_kind": "smoke",
+          "dependency_count": 2,
+          "external_input_count": 3,
+          "upstream_input_count": 6,
+          "output_count": 3,
+          "depends_on": [
+            "vcf.prepare_reference_panel",
+            "vcf.impute"
+          ],
+          "external_inputs": [
+            "reference_panel_id_contract",
+            "reference_panel_lock_contract",
+            "genetic_map_contract"
+          ],
+          "upstream_inputs": [
+            "prepared_panel_panel_id",
+            "imputed_vcf",
+            "imputed_vcf_tbi",
+            "imputation_qc_json",
+            "imputation_qc_tsv",
+            "imputation_manifest_json"
+          ],
+          "outputs": [
+            "imputation_metrics_json",
+            "imputation_metrics_tsv",
+            "imputation_summary_json"
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+      "config_path": "benchmarks/configs/pipelines/local/relatedness-segments-vcf.toml",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/relatedness-segments-vcf.json",
+      "pipeline_id": "relatedness-segments-vcf",
+      "domain": "vcf",
+      "default_corpus_id": "vcf_production_regression",
+      "summary": "Cohort VCF DAG for governed QC, kinship and IBD, ROH, and demography with explicit localization of insufficient-data branches.",
+      "node_count": 4,
+      "edge_count": 3,
+      "acyclic": true,
+      "valid": true,
+      "topological_order": [
+        "vcf.qc",
+        "vcf.ibd",
+        "vcf.roh",
+        "vcf.demography"
+      ],
+      "validation_profiles": [
+        {
+          "profile_id": "relatedness_segments_vcf",
+          "check_count": 8,
+          "checks": [
+            "default corpus anchored to vcf_production_regression for governed cohort-vcf relatedness inputs",
+            "vcf.qc, vcf.ibd, and vcf.roh stay bound to the vcf_cohort asset profile",
+            "vcf.demography stays bound to the json_ibd_segments asset profile",
+            "vcf.qc exports the qc-qualified cohort and pruning handoffs for downstream segment analysis",
+            "vcf.ibd stays downstream of qc with explicit insufficiency evidence",
+            "vcf.roh stays downstream of qc without depending on ibd outputs",
+            "vcf.demography stays downstream only of ibd with explicit insufficiency propagation",
+            "ibd insufficiency remains local to demography and does not block roh or qc outputs"
+          ]
+        }
+      ],
+      "nodes": [
+        {
+          "node_id": "vcf.qc",
+          "stage_id": "vcf.qc",
+          "readiness_kind": "smoke",
+          "dependency_count": 0,
+          "external_input_count": 2,
+          "upstream_input_count": 0,
+          "output_count": 6,
+          "depends_on": [],
+          "external_inputs": [
+            "corpus.target_cohort_vcf",
+            "corpus.target_cohort_vcf_tbi"
+          ],
+          "upstream_inputs": [],
+          "outputs": [
+            "qc_cohort_vcf",
+            "qc_cohort_vcf_tbi",
+            "qc_report",
+            "sample_qc_report_tsv",
+            "variant_qc_report_tsv",
+            "pruned_variants_tsv"
+          ]
+        },
+        {
+          "node_id": "vcf.ibd",
+          "stage_id": "vcf.ibd",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 4,
+          "output_count": 4,
+          "depends_on": [
+            "vcf.qc"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "qc_cohort_vcf",
+            "qc_cohort_vcf_tbi",
+            "pruned_variants_tsv",
+            "qc_report"
+          ],
+          "outputs": [
+            "ibd_segments",
+            "ibd_report",
+            "ibd_pairwise_table_tsv",
+            "ibd_insufficient_data_json"
+          ]
+        },
+        {
+          "node_id": "vcf.roh",
+          "stage_id": "vcf.roh",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 4,
+          "output_count": 3,
+          "depends_on": [
+            "vcf.qc"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "qc_cohort_vcf",
+            "qc_cohort_vcf_tbi",
+            "pruned_variants_tsv",
+            "qc_report"
+          ],
+          "outputs": [
+            "roh_report",
+            "roh_segments_tsv",
+            "roh_summary_json"
+          ]
+        },
+        {
+          "node_id": "vcf.demography",
+          "stage_id": "vcf.demography",
+          "readiness_kind": "smoke",
+          "dependency_count": 1,
+          "external_input_count": 0,
+          "upstream_input_count": 3,
+          "output_count": 3,
+          "depends_on": [
+            "vcf.ibd"
+          ],
+          "external_inputs": [],
+          "upstream_inputs": [
+            "ibd_segments",
+            "ibd_report",
+            "ibd_insufficient_data_json"
+          ],
+          "outputs": [
+            "demography_report",
+            "demography_insufficient_data_json",
+            "demography_trajectory_tsv"
+          ]
+        }
+      ]
+    }
+  ]
+}
