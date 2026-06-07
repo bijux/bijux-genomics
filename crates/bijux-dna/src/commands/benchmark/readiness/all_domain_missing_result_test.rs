@@ -28,10 +28,8 @@ const ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION: &str =
 
 const FASTQ_REMOVED_RESULT_ID: &str =
     "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2";
-const BAM_REMOVED_RESULT_ID: &str =
-    "bam:corpus-01-bam-mini:bam.coverage:sample-set:samtools";
-const VCF_REMOVED_RESULT_ID: &str =
-    "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools";
+const BAM_REMOVED_RESULT_ID: &str = "bam:corpus-01-bam-mini:bam.coverage:sample-set:samtools";
+const VCF_REMOVED_RESULT_ID: &str = "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -123,7 +121,8 @@ pub(crate) fn render_all_domain_missing_result_test(
             )
         })?;
     let output_rows = collect_all_domain_output_declaration_rows(repo_root)?;
-    let fixture = seed_all_domain_missing_result_fixture(repo_root, &fake_runs.results, &expected_rows)?;
+    let fixture =
+        seed_all_domain_missing_result_fixture(repo_root, &fake_runs.results, &expected_rows)?;
     let rows = collect_all_domain_missing_result_rows(
         repo_root,
         &fake_runs.results,
@@ -172,20 +171,18 @@ fn seed_all_domain_missing_result_fixture(
     fake_runs: &[AllDomainFakeRunResultReport],
     expected_rows: &[AllDomainExpectedBenchmarkResultRow],
 ) -> Result<AllDomainMissingResultFixture> {
-    let fake_runs_by_id = fake_runs
-        .iter()
-        .map(|row| (row.result_id.as_str(), row))
-        .collect::<BTreeMap<_, _>>();
-    let expected_by_id = expected_rows
-        .iter()
-        .map(|row| (row.result_id.as_str(), row))
-        .collect::<BTreeMap<_, _>>();
+    let fake_runs_by_id =
+        fake_runs.iter().map(|row| (row.result_id.as_str(), row)).collect::<BTreeMap<_, _>>();
+    let expected_by_id =
+        expected_rows.iter().map(|row| (row.result_id.as_str(), row)).collect::<BTreeMap<_, _>>();
 
     let mut removed_manifest_paths = Vec::new();
     let mut removed_result_ids = Vec::new();
     for result_id in [FASTQ_REMOVED_RESULT_ID, BAM_REMOVED_RESULT_ID, VCF_REMOVED_RESULT_ID] {
         let fake_run = fake_runs_by_id.get(result_id).copied().ok_or_else(|| {
-            anyhow!("all-domain missing-result fixture is missing fake-run coverage for `{result_id}`")
+            anyhow!(
+                "all-domain missing-result fixture is missing fake-run coverage for `{result_id}`"
+            )
         })?;
         let expected = expected_by_id.get(result_id).copied().ok_or_else(|| {
             anyhow!("all-domain missing-result fixture is missing expected-result coverage for `{result_id}`")
@@ -223,14 +220,10 @@ fn collect_all_domain_missing_result_rows(
     expected_rows: &[AllDomainExpectedBenchmarkResultRow],
     output_rows: &[AllDomainOutputDeclarationRow],
 ) -> Result<Vec<AllDomainMissingResultRow>> {
-    let fake_runs_by_id = fake_runs
-        .iter()
-        .map(|row| (row.result_id.as_str(), row))
-        .collect::<BTreeMap<_, _>>();
-    let output_rows_by_id = output_rows
-        .iter()
-        .map(|row| (row.result_id.as_str(), row))
-        .collect::<BTreeMap<_, _>>();
+    let fake_runs_by_id =
+        fake_runs.iter().map(|row| (row.result_id.as_str(), row)).collect::<BTreeMap<_, _>>();
+    let output_rows_by_id =
+        output_rows.iter().map(|row| (row.result_id.as_str(), row)).collect::<BTreeMap<_, _>>();
 
     if fake_runs_by_id.len() != expected_rows.len()
         || output_rows_by_id.len() != expected_rows.len()
@@ -241,10 +234,8 @@ fn collect_all_domain_missing_result_rows(
         ));
     }
 
-    let expected_ids = expected_rows
-        .iter()
-        .map(|row| row.result_id.as_str())
-        .collect::<BTreeSet<_>>();
+    let expected_ids =
+        expected_rows.iter().map(|row| row.result_id.as_str()).collect::<BTreeSet<_>>();
     let fake_run_ids = fake_runs_by_id.keys().copied().collect::<BTreeSet<_>>();
     let output_row_ids = output_rows_by_id.keys().copied().collect::<BTreeSet<_>>();
     if expected_ids != fake_run_ids || expected_ids != output_row_ids {
@@ -255,12 +246,13 @@ fn collect_all_domain_missing_result_rows(
 
     let mut rows = Vec::with_capacity(expected_rows.len());
     for expected in expected_rows {
-        let fake_run = fake_runs_by_id.get(expected.result_id.as_str()).copied().ok_or_else(|| {
-            anyhow!(
-                "all-domain missing-result test is missing fake-run coverage for `{}`",
-                expected.result_id
-            )
-        })?;
+        let fake_run =
+            fake_runs_by_id.get(expected.result_id.as_str()).copied().ok_or_else(|| {
+                anyhow!(
+                    "all-domain missing-result test is missing fake-run coverage for `{}`",
+                    expected.result_id
+                )
+            })?;
         let output_row = output_rows_by_id
             .get(expected.result_id.as_str())
             .copied()
@@ -313,10 +305,8 @@ fn collect_all_domain_missing_result_rows(
             .collect::<Vec<_>>();
         let observed_output_set =
             observed_output_artifact_ids.iter().cloned().collect::<BTreeSet<_>>();
-        let expected_output_set = expected_output_artifact_ids
-            .iter()
-            .cloned()
-            .collect::<BTreeSet<_>>();
+        let expected_output_set =
+            expected_output_artifact_ids.iter().cloned().collect::<BTreeSet<_>>();
         if observed_output_set != expected_output_set {
             return Err(anyhow!(
                 "all-domain fake-run manifest `{}` drifted from expected output ids for `{}`",
@@ -387,10 +377,8 @@ fn ensure_all_domain_missing_result_contract(
         .iter()
         .filter(|row| row.result_status == AllDomainMissingResultStatus::MissingResult)
         .collect::<Vec<_>>();
-    let missing_ids = missing_rows
-        .iter()
-        .map(|row| row.result_id.as_str())
-        .collect::<BTreeSet<_>>();
+    let missing_ids =
+        missing_rows.iter().map(|row| row.result_id.as_str()).collect::<BTreeSet<_>>();
     let expected_missing_ids =
         [FASTQ_REMOVED_RESULT_ID, BAM_REMOVED_RESULT_ID, VCF_REMOVED_RESULT_ID]
             .into_iter()
@@ -402,12 +390,10 @@ fn ensure_all_domain_missing_result_contract(
     }
 
     let missing_domain_counts =
-        missing_rows
-            .iter()
-            .fold(BTreeMap::<&str, usize>::new(), |mut acc, row| {
-                *acc.entry(row.domain.as_str()).or_default() += 1;
-                acc
-            });
+        missing_rows.iter().fold(BTreeMap::<&str, usize>::new(), |mut acc, row| {
+            *acc.entry(row.domain.as_str()).or_default() += 1;
+            acc
+        });
     for domain in ["fastq", "bam", "vcf"] {
         if missing_domain_counts.get(domain).copied() != Some(1) {
             return Err(anyhow!(
@@ -446,7 +432,8 @@ mod tests {
     use super::{
         render_all_domain_missing_result_test, AllDomainMissingResultStatus,
         ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION, BAM_REMOVED_RESULT_ID,
-        DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH, FASTQ_REMOVED_RESULT_ID, VCF_REMOVED_RESULT_ID,
+        DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH, FASTQ_REMOVED_RESULT_ID,
+        VCF_REMOVED_RESULT_ID,
     };
 
     fn repo_root() -> PathBuf {
@@ -498,7 +485,8 @@ mod tests {
         assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
         assert_eq!(report.domain_counts.get("vcf").copied(), Some(8));
 
-        let removed_ids = report.removed_result_ids.iter().map(String::as_str).collect::<BTreeSet<_>>();
+        let removed_ids =
+            report.removed_result_ids.iter().map(String::as_str).collect::<BTreeSet<_>>();
         assert_eq!(
             removed_ids,
             [FASTQ_REMOVED_RESULT_ID, BAM_REMOVED_RESULT_ID, VCF_REMOVED_RESULT_ID]

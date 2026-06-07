@@ -76,11 +76,7 @@ fn bench_readiness_all_domain_missing_result_test_writes_governed_report_and_fix
     assert_eq!(removed_manifest_paths.len(), 3);
     for path in removed_manifest_paths {
         let absolute = repo_root.join(path.as_str().expect("manifest path"));
-        assert!(
-            !absolute.exists(),
-            "removed manifest `{}` must stay absent",
-            absolute.display()
-        );
+        assert!(!absolute.exists(), "removed manifest `{}` must stay absent", absolute.display());
     }
 
     let rows = persisted.get("rows").and_then(serde_json::Value::as_array).expect("rows array");

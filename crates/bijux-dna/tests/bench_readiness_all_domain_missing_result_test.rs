@@ -36,12 +36,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_all_domain_missing_result_test_tracks_three_governed_missing_rows() {
-    let payload = run_cli_json(&[
-        "bench",
-        "readiness",
-        "render-all-domain-missing-result-test",
-        "--json",
-    ]);
+    let payload =
+        run_cli_json(&["bench", "readiness", "render-all-domain-missing-result-test", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -95,7 +91,9 @@ fn bench_readiness_all_domain_missing_result_test_tracks_three_governed_missing_
 
     let missing_rows = rows
         .iter()
-        .filter(|row| row.get("result_status").and_then(serde_json::Value::as_str) == Some("missing_result"))
+        .filter(|row| {
+            row.get("result_status").and_then(serde_json::Value::as_str) == Some("missing_result")
+        })
         .collect::<Vec<_>>();
     assert_eq!(missing_rows.len(), 3);
     assert_eq!(
