@@ -456,7 +456,7 @@
       "goal_id": 56,
       "category": "benchmark_harness",
       "surface": "fake-run stage harness materializes every governed stage output and manifest",
-      "output_path": "target/local-fake-runs/stages",
+      "output_path": "runs/bench/local-fake-runs/stages",
       "ok": true,
       "detail": "fake-run manifest covers 51 stages"
     },
@@ -464,7 +464,7 @@
       "goal_id": 57,
       "category": "benchmark_harness",
       "surface": "fake-run failure harness records structured stage failures",
-      "output_path": "target/local-fake-runs/failures",
+      "output_path": "runs/bench/local-fake-runs/failures",
       "ok": true,
       "detail": "fake-run failure manifest covers 51 stages"
     },
@@ -488,7 +488,7 @@
       "goal_id": 60,
       "category": "benchmark_harness",
       "surface": "stage-result manifests validate the governed runtime contract",
-      "output_path": "target/local-fake-runs/stages/*/stage-result.json",
+      "output_path": "runs/bench/local-fake-runs/stages/*/stage-result.json",
       "ok": true,
       "detail": "validated 51 governed stage-result manifests"
     },
@@ -504,7 +504,7 @@
       "goal_id": 62,
       "category": "benchmark_harness",
       "surface": "stage-result manifests carry explicit resource metric provenance",
-      "output_path": "target/local-fake-runs/stages/*/stage-result.json",
+      "output_path": "runs/bench/local-fake-runs/stages/*/stage-result.json",
       "ok": true,
       "detail": "resource_metrics.source is explicit for 51 governed stage results"
     },

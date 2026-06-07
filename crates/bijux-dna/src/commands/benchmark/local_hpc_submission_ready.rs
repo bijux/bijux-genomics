@@ -89,7 +89,7 @@ const DEFAULT_BENCHMARK_SUMMARY_JSON_PATH: &str =
     "benchmarks/readiness/local-ready/benchmark-summary.json";
 const DEFAULT_BENCHMARK_SUMMARY_MARKDOWN_PATH: &str =
     "benchmarks/readiness/local-ready/benchmark-summary.md";
-const DEFAULT_LOCAL_STAGE_FAILURE_ROOT: &str = "target/local-fake-runs/failures";
+const DEFAULT_LOCAL_STAGE_FAILURE_ROOT: &str = "runs/bench/local-fake-runs/failures";
 const DEFAULT_SLURM_DRY_RUN_ROOT: &str = "target/slurm-dry-run";
 const DEFAULT_SLURM_SUBMIT_MANIFEST_PATH: &str = "target/slurm-dry-run/submit-manifest.json";
 const DEFAULT_SLURM_DEPENDENCY_CHECK_REPORT_PATH: &str =
@@ -866,7 +866,7 @@ fn evaluate_stage_result_manifest_goal(
             60,
             "benchmark_harness",
             "stage-result manifests validate the governed runtime contract",
-            Some("target/local-fake-runs/stages/*/stage-result.json".to_string()),
+            Some("runs/bench/local-fake-runs/stages/*/stage-result.json".to_string()),
             "fake-run stage generation failed earlier".to_string(),
         ));
         return;
@@ -884,7 +884,7 @@ fn evaluate_stage_result_manifest_goal(
             60,
             "benchmark_harness",
             "stage-result manifests validate the governed runtime contract",
-            Some("target/local-fake-runs/stages/*/stage-result.json".to_string()),
+            Some("runs/bench/local-fake-runs/stages/*/stage-result.json".to_string()),
             format!("validated {} governed stage-result manifests", fake_run_manifest.stage_count),
         ));
     } else {
@@ -892,7 +892,7 @@ fn evaluate_stage_result_manifest_goal(
             60,
             "benchmark_harness",
             "stage-result manifests validate the governed runtime contract",
-            Some("target/local-fake-runs/stages/*/stage-result.json".to_string()),
+            Some("runs/bench/local-fake-runs/stages/*/stage-result.json".to_string()),
             validation_errors.join("; "),
         ));
     }
@@ -939,7 +939,7 @@ fn evaluate_resource_metrics_goal(
             62,
             "benchmark_harness",
             "stage-result manifests carry explicit resource metric provenance",
-            Some("target/local-fake-runs/stages/*/stage-result.json".to_string()),
+            Some("runs/bench/local-fake-runs/stages/*/stage-result.json".to_string()),
             "fake-run stage generation failed earlier".to_string(),
         ));
         return;
@@ -962,7 +962,7 @@ fn evaluate_resource_metrics_goal(
             62,
             "benchmark_harness",
             "stage-result manifests carry explicit resource metric provenance",
-            Some("target/local-fake-runs/stages/*/stage-result.json".to_string()),
+            Some("runs/bench/local-fake-runs/stages/*/stage-result.json".to_string()),
             format!(
                 "resource_metrics.source is explicit for {} governed stage results",
                 fake_run_manifest.stage_count
@@ -973,7 +973,7 @@ fn evaluate_resource_metrics_goal(
             62,
             "benchmark_harness",
             "stage-result manifests carry explicit resource metric provenance",
-            Some("target/local-fake-runs/stages/*/stage-result.json".to_string()),
+            Some("runs/bench/local-fake-runs/stages/*/stage-result.json".to_string()),
             invalid_sources.join("; "),
         ));
     }

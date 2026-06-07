@@ -114,7 +114,7 @@ fn bench_local_validate_hpc_submission_ready_reports_governed_blockers() {
             check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(56)
                 && check.get("ok").and_then(serde_json::Value::as_bool) == Some(true)
                 && check.get("output_path").and_then(serde_json::Value::as_str)
-                    == Some("target/local-fake-runs/stages")
+                    == Some("runs/bench/local-fake-runs/stages")
         }),
         "goal 56 must report the governed fake-run output root"
     );
