@@ -48,11 +48,11 @@ fn bench_validate_vcf_schemas_reports_governed_pass_state() {
     );
     assert_eq!(
         payload.get("shared_schema_path").and_then(serde_json::Value::as_str),
-        Some("schemas/bench/vcf-normalized-metrics.v1.json")
+        Some("benchmarks/schemas/vcf-normalized-metrics.v1.json")
     );
     assert_eq!(
         payload.get("stage_dir").and_then(serde_json::Value::as_str),
-        Some("schemas/bench/vcf-normalized-metrics")
+        Some("benchmarks/schemas/vcf-normalized-metrics")
     );
     assert_eq!(payload.get("passes_gate"), Some(&serde_json::Value::Bool(true)));
     assert_eq!(payload.get("shared_schema_matches"), Some(&serde_json::Value::Bool(true)));
