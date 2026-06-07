@@ -75,6 +75,9 @@ fn bench_local_render_all_domain_slurm_scripts_reports_governed_job_counts() {
     assert!(scripts.iter().any(|entry| {
         entry.get("job_kind").and_then(serde_json::Value::as_str) == Some("benchmark_result")
             && entry.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
+            && entry.get("stdout_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
+                path == "target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stdout.log"
+            })
             && entry.get("script_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
                 path.starts_with("target/slurm-dry-run/all-domains/benchmark-results/vcf/")
                     && path.ends_with("/job.sbatch")
@@ -86,6 +89,11 @@ fn bench_local_render_all_domain_slurm_scripts_reports_governed_job_counts() {
             && entry.get("pipeline_id").and_then(serde_json::Value::as_str)
                 == Some("relatedness-segments-vcf")
             && entry.get("node_id").and_then(serde_json::Value::as_str) == Some("vcf.ibd")
+            && entry.get("corpus_id").and_then(serde_json::Value::as_str)
+                == Some("vcf_production_regression")
+            && entry.get("stdout_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
+                path == "target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/relatedness-segments-vcf/vcf.ibd/germline/vcf_production_regression/sample-set/stdout.log"
+            })
             && entry
                 .get("script_path")
                 .and_then(serde_json::Value::as_str)

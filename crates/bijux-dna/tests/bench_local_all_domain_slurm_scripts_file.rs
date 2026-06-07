@@ -68,6 +68,12 @@ fn bench_local_render_all_domain_slurm_scripts_writes_governed_root() {
     let vcf_body = fs::read_to_string(&vcf_script).expect("read VCF script");
     assert!(vcf_body.contains("#SBATCH --job-name="));
     assert!(vcf_body.contains("bcftools"));
+    assert!(vcf_body.contains(
+        "#SBATCH --output=target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stdout.log"
+    ));
+    assert!(vcf_body.contains(
+        "RESULT_ROOT=target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort"
+    ));
 
     let pipeline_script =
         output_root.join("essential-pipelines/relatedness-segments-vcf/vcf.ibd/job.sbatch");
@@ -75,4 +81,7 @@ fn bench_local_render_all_domain_slurm_scripts_writes_governed_root() {
     let pipeline_body = fs::read_to_string(&pipeline_script).expect("read pipeline script");
     assert!(pipeline_body.contains("# dependency_node_ids:"));
     assert!(pipeline_body.contains("germline"));
+    assert!(pipeline_body.contains(
+        "#SBATCH --output=target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/relatedness-segments-vcf/vcf.ibd/germline/vcf_production_regression/sample-set/stdout.log"
+    ));
 }

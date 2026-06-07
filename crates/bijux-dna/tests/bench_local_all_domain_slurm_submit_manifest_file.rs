@@ -57,20 +57,23 @@ fn bench_local_render_all_domain_slurm_submit_manifest_writes_governed_manifest_
             .map(|rows| rows.len()),
         Some(0)
     );
-    assert!(
-        benchmark_job
-            .get("outputs")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|outputs| {
-                outputs.iter().any(|value| {
-                    value.as_str().is_some_and(|path| {
-                        path.contains("/declared-outputs/") && path.starts_with("target/slurm-dry-run/")
-                    })
-                }) && outputs.iter().any(|value| {
-                    value.as_str().is_some_and(|path| path.ends_with("stage-result.json"))
-                })
-            })
+    assert_eq!(
+        benchmark_job.get("stdout").and_then(serde_json::Value::as_str),
+        Some(
+            "target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stdout.log"
+        )
     );
+    assert!(benchmark_job.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
+        |outputs| {
+            outputs.iter().any(|value| {
+                value.as_str().is_some_and(|path| {
+                    path.contains("/declared-outputs/") && path.starts_with("target/slurm-dry-run/")
+                })
+            }) && outputs
+                .iter()
+                .any(|value| value.as_str().is_some_and(|path| path.ends_with("stage-result.json")))
+        }
+    ));
 
     let pipeline_job = jobs
         .iter()
@@ -89,6 +92,12 @@ fn bench_local_render_all_domain_slurm_submit_manifest_writes_governed_manifest_
     assert_eq!(
         pipeline_job.get("corpus_id").and_then(serde_json::Value::as_str),
         Some("vcf_production_regression")
+    );
+    assert_eq!(
+        pipeline_job.get("stdout").and_then(serde_json::Value::as_str),
+        Some(
+            "target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/relatedness-segments-vcf/vcf.demography/ibdne/vcf_production_regression/sample-set/stdout.log"
+        )
     );
     assert!(
         pipeline_job

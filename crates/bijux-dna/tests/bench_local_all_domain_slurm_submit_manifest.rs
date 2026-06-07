@@ -75,19 +75,26 @@ fn bench_local_render_all_domain_slurm_submit_manifest_reports_governed_job_slic
             && job.get("script_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
                 path.starts_with("target/slurm-dry-run/all-domains/") && path.ends_with(".sbatch")
             })
-            && job.get("stdout").and_then(serde_json::Value::as_str).is_some()
-            && job.get("stderr").and_then(serde_json::Value::as_str).is_some()
-            && job
-                .get("outputs")
-                .and_then(serde_json::Value::as_array)
-                .is_some_and(|outputs| {
-                    !outputs.is_empty()
-                        && outputs.iter().all(|value| {
-                            value.as_str().is_some_and(|path| {
-                                path.starts_with("target/slurm-dry-run/")
-                            })
+            && job.get("stdout").and_then(serde_json::Value::as_str).is_some_and(|path| {
+                path.starts_with(
+                    "target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/",
+                )
+            })
+            && job.get("stderr").and_then(serde_json::Value::as_str).is_some_and(|path| {
+                path.starts_with(
+                    "target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/",
+                )
+            })
+            && job.get("outputs").and_then(serde_json::Value::as_array).is_some_and(|outputs| {
+                !outputs.is_empty()
+                    && outputs.iter().all(|value| {
+                        value.as_str().is_some_and(|path| {
+                            path.starts_with(
+                            "target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/",
+                        )
                         })
-                })
+                    })
+            })
             && job.get("dependencies").and_then(serde_json::Value::as_array).is_some()
     }));
 }
