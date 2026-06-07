@@ -21,7 +21,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_TOOL_ASSETS_PATH: &str =
-    "configs/bench/local/stage-tool-assets.toml";
+    "benchmarks/configs/local/stage-tool-assets.toml";
 pub(crate) const LOCAL_STAGE_TOOL_ASSETS_SCHEMA_VERSION: &str =
     "bijux.bench.local_stage_tool_assets.v1";
 const STAGE_TOOL_ASSETS_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.stage_tool_assets.v1";
@@ -145,14 +145,14 @@ pub(crate) fn collect_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<Stag
     let kinship_assets = BamKinshipAssetContract {
         reference_fasta: normalize_report_path(repo_root, &kinship_fixture.reference_fasta)?,
         reference_panel: kinship_contract.reference_panel.clone(),
-        reference_panel_path: normalize_report_path(repo_root, &kinship_contract.reference_panel_path)?,
+        reference_panel_path: normalize_report_path(
+            repo_root,
+            &kinship_contract.reference_panel_path,
+        )?,
     };
 
     let mut rows = Vec::new();
-    for row in fastq_rows
-        .into_iter()
-        .filter(fastq_asset_declaration_required)
-    {
+    for row in fastq_rows.into_iter().filter(fastq_asset_declaration_required) {
         let Some(plan) = fastq_base_plans.get(&row.stage_id) else {
             continue;
         };
@@ -608,7 +608,9 @@ fn ensure_stage_tool_asset_row(
         .find(|row| {
             row.stage_id == stage_id && row.tool_id == tool_id && row.asset_role == asset_role
         })
-        .ok_or_else(|| anyhow!("{label} asset coverage is missing `{stage_id}` / `{tool_id}` / `{asset_role}`"))?;
+        .ok_or_else(|| {
+            anyhow!("{label} asset coverage is missing `{stage_id}` / `{tool_id}` / `{asset_role}`")
+        })?;
     if row.asset_id != asset_id || row.asset_path != asset_path {
         return Err(anyhow!(
             "{label} asset row `{stage_id}` / `{tool_id}` / `{asset_role}` must stay bound to `{asset_id}` at `{asset_path}`"
@@ -734,26 +736,24 @@ fn render_bam_stage_tool_asset_rows(
             }
             Ok(rows)
         }
-        "bam.kinship" => {
-            Ok(vec![
-                asset_row(
-                    "bam",
-                    stage_id,
-                    tool_id,
-                    "reference_fasta",
-                    asset_id_from_path(&kinship_assets.reference_fasta),
-                    kinship_assets.reference_fasta.clone(),
-                ),
-                asset_row(
-                    "bam",
-                    stage_id,
-                    tool_id,
-                    "reference_panel",
-                    kinship_assets.reference_panel.clone(),
-                    kinship_assets.reference_panel_path.clone(),
-                ),
-            ])
-        }
+        "bam.kinship" => Ok(vec![
+            asset_row(
+                "bam",
+                stage_id,
+                tool_id,
+                "reference_fasta",
+                asset_id_from_path(&kinship_assets.reference_fasta),
+                kinship_assets.reference_fasta.clone(),
+            ),
+            asset_row(
+                "bam",
+                stage_id,
+                tool_id,
+                "reference_panel",
+                kinship_assets.reference_panel.clone(),
+                kinship_assets.reference_panel_path.clone(),
+            ),
+        ]),
         _ => Ok(Vec::new()),
     }
 }
@@ -908,9 +908,9 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
 
 fn normalize_report_path(repo_root: &Path, path: &str) -> Result<PathBuf> {
     let candidate = PathBuf::from(path);
-    let absolute = repo_relative_path(repo_root, &candidate)
-        .canonicalize()
-        .with_context(|| format!("canonicalize {}", repo_relative_path(repo_root, &candidate).display()))?;
+    let absolute = repo_relative_path(repo_root, &candidate).canonicalize().with_context(|| {
+        format!("canonicalize {}", repo_relative_path(repo_root, &candidate).display())
+    })?;
     Ok(PathBuf::from(path_relative_to_repo(repo_root, &absolute)))
 }
 
@@ -939,7 +939,7 @@ mod tests {
             .expect("render stage-tool assets");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_assets.v1");
-        assert_eq!(report.config_path, "configs/bench/local/stage-tool-assets.toml");
+        assert_eq!(report.config_path, "benchmarks/configs/local/stage-tool-assets.toml");
         assert_eq!(report.classification_scope, "governed_benchmark_command_assets");
         assert_eq!(report.row_count, 36);
         assert_eq!(report.declared_stage_tool_row_count, 19);

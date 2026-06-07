@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_TOOL_EXECUTION_MODES_PATH: &str =
-    "configs/bench/local/tool-execution-modes.toml";
+    "benchmarks/configs/local/tool-execution-modes.toml";
 pub(crate) const LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION: &str =
     "bijux.bench.local_tool_execution_modes.v1";
 const TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION: &str =

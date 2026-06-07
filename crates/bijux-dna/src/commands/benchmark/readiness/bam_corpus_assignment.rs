@@ -36,13 +36,13 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_BAM_CORPUS_ASSIGNMENT_PATH: &str =
     "target/bench-readiness/bam-corpus-assignment.tsv";
 const BAM_CORPUS_ASSIGNMENT_SCHEMA_VERSION: &str = "bijux.bench.readiness.bam_corpus_assignment.v3";
-const DEFAULT_LOCAL_AUTHENTICITY_CONFIG_PATH: &str = "configs/bench/local/bam-authenticity.toml";
-const DEFAULT_LOCAL_CONTAMINATION_CONFIG_PATH: &str = "configs/bench/local/bam-contamination.toml";
-const DEFAULT_LOCAL_DAMAGE_CONFIG_PATH: &str = "configs/bench/local/bam-damage.toml";
-const DEFAULT_LOCAL_GENOTYPING_CONFIG_PATH: &str = "configs/bench/local/bam-genotyping.toml";
-const DEFAULT_LOCAL_HAPLOGROUPS_CONFIG_PATH: &str = "configs/bench/local/bam-haplogroups.toml";
-const DEFAULT_LOCAL_KINSHIP_CONFIG_PATH: &str = "configs/bench/local/bam-kinship.toml";
-const DEFAULT_LOCAL_SEX_CONFIG_PATH: &str = "configs/bench/local/bam-sex.toml";
+const DEFAULT_LOCAL_AUTHENTICITY_CONFIG_PATH: &str = "benchmarks/configs/local/bam-authenticity.toml";
+const DEFAULT_LOCAL_CONTAMINATION_CONFIG_PATH: &str = "benchmarks/configs/local/bam-contamination.toml";
+const DEFAULT_LOCAL_DAMAGE_CONFIG_PATH: &str = "benchmarks/configs/local/bam-damage.toml";
+const DEFAULT_LOCAL_GENOTYPING_CONFIG_PATH: &str = "benchmarks/configs/local/bam-genotyping.toml";
+const DEFAULT_LOCAL_HAPLOGROUPS_CONFIG_PATH: &str = "benchmarks/configs/local/bam-haplogroups.toml";
+const DEFAULT_LOCAL_KINSHIP_CONFIG_PATH: &str = "benchmarks/configs/local/bam-kinship.toml";
+const DEFAULT_LOCAL_SEX_CONFIG_PATH: &str = "benchmarks/configs/local/bam-sex.toml";
 const NOT_APPLICABLE: &str = "not_applicable";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -872,8 +872,7 @@ fn ensure_bam_fixture_assignment_coverage(rows: &[BamCorpusAssignmentRow]) -> Re
             stage_id: "bam.authenticity",
             fixture_id: "corpus-01-adna-damage-mini",
             sample_id: "adna_damage_non_udg",
-            input_contract:
-                "ct5p=0.18;ga3p=0.11;short_frag=1;signal=moderate;strict_profile_upgraded=false;terminal=ct5p_dominant;udg=non_udg",
+            input_contract: "ct5p=0.18;ga3p=0.11;short_frag=1;signal=moderate;strict_profile_upgraded=false;terminal=ct5p_dominant;udg=non_udg",
             benchmark_limits: "complexity_min_reads=3;coverage_depth_thresholds=1,5,10",
             required_assets: "expected_damage=expected_damage.json;reference_fasta=adna_damage_reference.fasta",
             expected_outputs: "authenticity_report,summary,stage_metrics",
@@ -883,8 +882,7 @@ fn ensure_bam_fixture_assignment_coverage(rows: &[BamCorpusAssignmentRow]) -> Re
             stage_id: "bam.damage",
             fixture_id: "corpus-01-adna-damage-mini",
             sample_id: "adna_damage_non_udg",
-            input_contract:
-                "ct5p=0.18;ga3p=0.11;short_frag=1;signal=moderate;strict_profile_upgraded=false;terminal=ct5p_dominant;udg=non_udg",
+            input_contract: "ct5p=0.18;ga3p=0.11;short_frag=1;signal=moderate;strict_profile_upgraded=false;terminal=ct5p_dominant;udg=non_udg",
             benchmark_limits: NOT_APPLICABLE,
             required_assets: "expected_damage=expected_damage.json;reference_fasta=adna_damage_reference.fasta",
             expected_outputs: "damage_report,terminal_position_metrics,stage_metrics",
@@ -896,8 +894,7 @@ fn ensure_bam_fixture_assignment_coverage(rows: &[BamCorpusAssignmentRow]) -> Re
             sample_id: "adna_contamination_panel_screen",
             input_contract: "signal=moderate;terminal=ct5p_dominant;udg=non_udg",
             benchmark_limits: "minimum_mean_coverage=0.5",
-            required_assets:
-                "reference_fasta=adna_bam_reference;reference_panel=adna_contamination_panel",
+            required_assets: "reference_fasta=adna_bam_reference;reference_panel=adna_contamination_panel",
             expected_outputs: "contamination_report,summary,stage_metrics",
             skip_behavior: NOT_APPLICABLE,
         },
@@ -906,8 +903,7 @@ fn ensure_bam_fixture_assignment_coverage(rows: &[BamCorpusAssignmentRow]) -> Re
             fixture_id: "corpus-01-adna-bam-mini",
             sample_id: "adna_xy_autosome_coverage",
             input_contract: "signal=moderate;terminal=ct5p_dominant;udg=non_udg",
-            benchmark_limits:
-                "expected_autosomal_coverage=1;expected_x_coverage=0.5;expected_y_coverage=0.5;minimum_y_sites=5",
+            benchmark_limits: "expected_autosomal_coverage=1;expected_x_coverage=0.5;expected_y_coverage=0.5;minimum_y_sites=5",
             required_assets: "reference_fasta=adna_bam_reference",
             expected_outputs: "sex_report,summary,stage_metrics",
             skip_behavior: NOT_APPLICABLE,
@@ -926,29 +922,21 @@ fn ensure_bam_fixture_assignment_coverage(rows: &[BamCorpusAssignmentRow]) -> Re
             stage_id: "bam.genotyping",
             fixture_id: "corpus-01-genotyping-mini",
             sample_id: "human_like_genotyping_candidate_panel",
-            input_contract:
-                "reference=corpus_01_bam_reference;regions=human_like_genotyping_target_regions;sites=human_like_genotyping_candidate_sites",
+            input_contract: "reference=corpus_01_bam_reference;regions=human_like_genotyping_target_regions;sites=human_like_genotyping_candidate_sites",
             benchmark_limits: "min_call_rate=0.5;min_posterior=0.9",
-            required_assets:
-                "reference_fasta=corpus_01_bam_reference;regions=human_like_genotyping_target_regions;sites_vcf=human_like_genotyping_candidate_sites",
-            expected_outputs:
-                "genotyping_bcf,genotyping_vcf,genotyping_vcf_tbi,genotyping_gl,summary,stage_metrics",
+            required_assets: "reference_fasta=corpus_01_bam_reference;regions=human_like_genotyping_target_regions;sites_vcf=human_like_genotyping_candidate_sites",
+            expected_outputs: "genotyping_bcf,genotyping_vcf,genotyping_vcf_tbi,genotyping_gl,summary,stage_metrics",
             skip_behavior: NOT_APPLICABLE,
         },
         BamFixtureAssignmentExpectation {
             stage_id: "bam.kinship",
             fixture_id: "corpus-01-kinship-mini",
-            sample_id:
-                "human_like_kinship_low_overlap_pair,human_like_kinship_related_pair",
-            input_contract:
-                "population_scope=human_diploid_panel;reference=corpus_01_bam_reference;reference_build=grch38;reference_panel=human_like_relatedness_panel",
-            benchmark_limits:
-                "human_like_kinship_low_overlap_pair.min_overlap_snps=5;human_like_kinship_low_overlap_pair.observed_max_overlap_snps=4;human_like_kinship_related_pair.min_overlap_snps=6;human_like_kinship_related_pair.observed_max_overlap_snps=6",
-            required_assets:
-                "reference_fasta=corpus_01_bam_reference;reference_panel=human_like_relatedness_panel",
+            sample_id: "human_like_kinship_low_overlap_pair,human_like_kinship_related_pair",
+            input_contract: "population_scope=human_diploid_panel;reference=corpus_01_bam_reference;reference_build=grch38;reference_panel=human_like_relatedness_panel",
+            benchmark_limits: "human_like_kinship_low_overlap_pair.min_overlap_snps=5;human_like_kinship_low_overlap_pair.observed_max_overlap_snps=4;human_like_kinship_related_pair.min_overlap_snps=6;human_like_kinship_related_pair.observed_max_overlap_snps=6",
+            required_assets: "reference_fasta=corpus_01_bam_reference;reference_panel=human_like_relatedness_panel",
             expected_outputs: "kinship_report,summary,kinship_segments,stage_metrics",
-            skip_behavior:
-                "human_like_kinship_low_overlap_pair=stop_without_pairwise_results;human_like_kinship_related_pair=emit_pairwise_results",
+            skip_behavior: "human_like_kinship_low_overlap_pair=stop_without_pairwise_results;human_like_kinship_related_pair=emit_pairwise_results",
         },
     ];
 

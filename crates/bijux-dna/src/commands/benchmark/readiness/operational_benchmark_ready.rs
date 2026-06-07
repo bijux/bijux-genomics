@@ -1273,7 +1273,7 @@ mod tests {
         let blocker = binding_blocker(
             &binding,
             "resource_hint_missing",
-            "configs/bench/local/stage-tool-resources.toml",
+            "benchmarks/configs/local/stage-tool-resources.toml",
             "canonical benchmark result is missing governed resource hints",
         );
 
@@ -1283,6 +1283,6 @@ mod tests {
         assert_eq!(blocker.corpus_id, "vcf_production_regression");
         assert_eq!(blocker.asset_profile_id, "vcf_cohort");
         assert_eq!(blocker.blocker_type, "resource_hint_missing");
-        assert_eq!(blocker.blocker_path, "configs/bench/local/stage-tool-resources.toml");
+        assert_eq!(blocker.blocker_path, "benchmarks/configs/local/stage-tool-resources.toml");
     }
 }

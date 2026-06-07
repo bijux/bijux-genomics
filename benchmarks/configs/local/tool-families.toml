@@ -73,7 +73,7 @@ tool_ids = ["umi_tools"]
 [[families]]
 family_id = "taxonomy_classification"
 summary = "Tools whose primary benchmark role is classifying reads against taxonomy databases."
-tool_ids = ["centrifuge", "diamond", "kaiju", "kraken2", "krakenuniq"]
+tool_ids = ["centrifuge", "kaiju", "kraken2", "krakenuniq"]
 
 [[families]]
 family_id = "rrna_depletion"
@@ -108,7 +108,7 @@ tool_ids = ["bamutil"]
 [[families]]
 family_id = "variant_analysis_and_recalibration"
 summary = "Tools whose primary benchmark role is genotyping, VCF-oriented variant analysis, or base-quality recalibration."
-tool_ids = ["bcftools", "gatk"]
+tool_ids = ["gatk"]
 
 [[families]]
 family_id = "genotyping_and_population_inference"
@@ -118,7 +118,7 @@ tool_ids = ["angsd"]
 [[families]]
 family_id = "damage_and_postmortem_bias"
 summary = "Tools whose primary benchmark role is profiling ancient-DNA damage or postmortem substitution bias."
-tool_ids = ["mapdamage2", "pmdtools", "pydamage"]
+tool_ids = ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
 
 [[families]]
 family_id = "authenticity_assessment"

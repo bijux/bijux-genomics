@@ -12,7 +12,7 @@ use super::tool_serving_map::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_TOOL_FAMILIES_PATH: &str = "configs/bench/local/tool-families.toml";
+pub(crate) const DEFAULT_TOOL_FAMILIES_PATH: &str = "benchmarks/configs/local/tool-families.toml";
 pub(crate) const LOCAL_TOOL_FAMILIES_SCHEMA_VERSION: &str = "bijux.bench.local_tool_families.v1";
 const TOOL_FAMILIES_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.tool_families_validation.v1";
@@ -313,7 +313,7 @@ mod tests {
         assert_eq!(report.schema_version, TOOL_FAMILIES_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.classification_scope, "primary_benchmark_function");
         assert_eq!(report.family_count, 25);
-        assert_eq!(report.tool_count, 66);
+        assert_eq!(report.tool_count, 67);
         assert!(report.valid, "governed tool family config must validate cleanly");
 
         let bowtie2_build = report
@@ -329,6 +329,9 @@ mod tests {
         let pydamage =
             report.rows.iter().find(|row| row.tool_id == "pydamage").expect("pydamage row");
         assert_eq!(pydamage.family_id, "damage_and_postmortem_bias");
+
+        let addeam = report.rows.iter().find(|row| row.tool_id == "addeam").expect("addeam row");
+        assert_eq!(addeam.family_id, "damage_and_postmortem_bias");
     }
 
     #[test]

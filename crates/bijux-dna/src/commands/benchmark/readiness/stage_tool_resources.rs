@@ -23,7 +23,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_TOOL_RESOURCES_PATH: &str =
-    "configs/bench/local/stage-tool-resources.toml";
+    "benchmarks/configs/local/stage-tool-resources.toml";
 pub(crate) const LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION: &str =
     "bijux.bench.local_stage_tool_resources.v1";
 const STAGE_TOOL_RESOURCES_REPORT_SCHEMA_VERSION: &str =
@@ -361,7 +361,7 @@ mod tests {
                 .expect("render stage-tool resources");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_resources.v1");
-        assert_eq!(report.config_path, "configs/bench/local/stage-tool-resources.toml");
+        assert_eq!(report.config_path, "benchmarks/configs/local/stage-tool-resources.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_command_resources");
         assert_eq!(report.row_count, 120);
         assert_eq!(report.benchmark_ready_row_count, 120);
