@@ -68,6 +68,7 @@ pub use self::readiness::{
     BenchReadinessCommand, BenchReadinessRenderAdapterMissingInputTestsArgs,
     BenchReadinessRenderAllDomainCommandsArgs, BenchReadinessRenderAllDomainCompletionCheckArgs,
     BenchReadinessRenderAllDomainExpectedBenchmarkResultsArgs,
+    BenchReadinessRenderAllDomainFailureClassificationArgs,
     BenchReadinessRenderAllDomainMissingResultTestArgs,
     BenchReadinessRenderAllDomainOutputDeclarationsArgs,
     BenchReadinessRenderAllDomainParserCollectorArgs,
