@@ -403,6 +403,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderFullBenchmarkReport(args) => {
+                        crate::commands::benchmark::readiness::full_benchmark_report::run_render_full_benchmark_report(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderAllDomainOutputDeclarations(args) => {
                         crate::commands::benchmark::readiness::all_domain_output_declarations::run_render_all_domain_output_declarations(
                             args,

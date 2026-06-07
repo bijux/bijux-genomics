@@ -38,6 +38,7 @@ pub(crate) mod fastq_corpus_assignment;
 pub(crate) mod fastq_normalized_metrics_schema;
 pub(crate) mod fastq_parser_coverage;
 pub(crate) mod fastq_report_map;
+pub(crate) mod full_benchmark_report;
 pub(crate) mod full_benchmark_result_collector;
 pub(crate) mod missing_benchmark_pairs;
 pub(crate) mod missing_result_report;

@@ -101,7 +101,7 @@ pub use self::readiness::{
     BenchReadinessRenderFastqComparableMetricsArgs, BenchReadinessRenderFastqCorpusAssignmentArgs,
     BenchReadinessRenderFastqNormalizedMetricsSchemaArgs,
     BenchReadinessRenderFastqParserCoverageArgs, BenchReadinessRenderFastqReportMapArgs,
-    BenchReadinessRenderFastqToolServingMapArgs,
+    BenchReadinessRenderFastqToolServingMapArgs, BenchReadinessRenderFullBenchmarkReportArgs,
     BenchReadinessRenderFullBenchmarkResultCollectorArgs,
     BenchReadinessRenderMissingBenchmarkPairsArgs, BenchReadinessRenderMissingResultReportArgs,
     BenchReadinessRenderOrphanToolsArgs, BenchReadinessRenderPairReadinessArgs,
