@@ -15,10 +15,11 @@ pub(crate) const DEFAULT_BENCHMARK_DATABASES_ROOT_SUFFIX: &str = "tests/fixtures
 pub(crate) const DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE: &str = "benchmarks/readiness";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE: &str =
     "benchmarks/readiness/local-ready";
+pub(crate) const DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE: &str = "runs/bench";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE: &str = "runs/bench/local-smoke";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE: &str =
     "runs/bench/local-fake-runs";
-pub(crate) const DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE: &str = "target/slurm-dry-run";
+pub(crate) const DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE: &str = "runs/bench/slurm-dry-run";
 
 #[derive(Debug, Clone)]
 pub(crate) struct BenchmarkPathResolver {
@@ -86,6 +87,10 @@ impl BenchmarkPathResolver {
         self.repo_root.join(DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE)
     }
 
+    pub(crate) fn benchmark_runs_root(&self) -> PathBuf {
+        self.repo_root.join(DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE)
+    }
+
     pub(crate) fn benchmark_local_smoke_root(&self) -> PathBuf {
         self.repo_root.join(DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE)
     }
@@ -148,15 +153,30 @@ pub(crate) fn ensure_path_stays_outside_benchmark_readiness_root(
     Ok(())
 }
 
+pub(crate) fn ensure_path_stays_within_benchmark_runs_root(
+    repo_root: &Path,
+    candidate: &Path,
+    output_kind: &str,
+) -> Result<()> {
+    let resolved = absolutize(repo_root, candidate);
+    let runs_root = repo_root.join(DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE);
+    if resolved == runs_root || resolved.starts_with(&runs_root) {
+        return Ok(());
+    }
+    bail!("{output_kind} must resolve inside `{}`", DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE);
+}
+
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
     use super::{
-        ensure_path_stays_outside_benchmark_readiness_root, BenchmarkPathResolver,
-        BENCHMARK_ROOT_ENV, DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE,
+        ensure_path_stays_outside_benchmark_readiness_root,
+        ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver, BENCHMARK_ROOT_ENV,
+        DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE, DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE, DEFAULT_BENCHMARK_ROOT_RELATIVE,
-        DEFAULT_BENCHMARK_SCHEMA_ROOT_SUFFIX, DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE,
+        DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE, DEFAULT_BENCHMARK_SCHEMA_ROOT_SUFFIX,
+        DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE,
     };
     use std::ffi::{OsStr, OsString};
     use std::path::Path;
@@ -215,6 +235,10 @@ mod tests {
         assert_eq!(
             resolver.benchmark_local_ready_root(),
             repo_root.join(DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE)
+        );
+        assert_eq!(
+            resolver.benchmark_runs_root(),
+            repo_root.join(DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE)
         );
         assert_eq!(
             resolver.benchmark_local_smoke_root(),
@@ -277,6 +301,23 @@ mod tests {
 
         assert!(
             error.to_string().contains("must remain disposable and must not resolve inside"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn benchmark_path_guard_rejects_paths_outside_runs_root() {
+        let repo_root = Path::new("/workspace/repo");
+
+        let error = ensure_path_stays_within_benchmark_runs_root(
+            repo_root,
+            Path::new("runs/bench/slurm-dry-run"),
+            "slurm dry-run output",
+        )
+        .expect_err("path outside runs root should be rejected");
+
+        assert!(
+            error.to_string().contains("must resolve inside `runs/bench`"),
             "unexpected error: {error}"
         );
     }

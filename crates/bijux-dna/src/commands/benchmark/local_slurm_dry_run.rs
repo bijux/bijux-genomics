@@ -11,11 +11,13 @@ use crate::commands::benchmark::local_stage_commands::{
     collect_local_stage_command_entries, BenchLocalStageCommandEntry,
 };
 use crate::commands::benchmark::local_stage_inventory::BenchLocalDomain;
+use crate::commands::benchmark::path_resolution::{
+    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const LOCAL_SLURM_DRY_RUN_SCHEMA_VERSION: &str = "bijux.bench.local_slurm_dry_run.v1";
-const DEFAULT_SLURM_DRY_RUN_ROOT: &str = "target/slurm-dry-run";
 const DEFAULT_SLURM_TIME_LIMIT: &str = "04:00:00";
 
 #[derive(Debug, Clone, Serialize)]
@@ -47,6 +49,7 @@ pub(crate) fn run_render_slurm_scripts(
     args: &parse::BenchLocalRenderSlurmScriptsArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
     let domain = match args.domain {
         parse::BenchLocalDomainArg::Fastq => BenchLocalDomain::Fastq,
         parse::BenchLocalDomainArg::Bam => BenchLocalDomain::Bam,
@@ -54,7 +57,7 @@ pub(crate) fn run_render_slurm_scripts(
     let output_root = args
         .output_root
         .clone()
-        .unwrap_or_else(|| PathBuf::from(DEFAULT_SLURM_DRY_RUN_ROOT).join(domain.as_str()));
+        .unwrap_or_else(|| benchmark_paths.benchmark_slurm_dry_run_root().join(domain.as_str()));
     let report = render_local_slurm_scripts(&repo_root, domain, output_root)?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -73,6 +76,11 @@ pub(crate) fn render_local_slurm_scripts(
     let command_entries = collect_local_stage_command_entries(repo_root, Some(domain))?;
     let absolute_output_root =
         if output_root.is_absolute() { output_root } else { repo_root.join(output_root) };
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &absolute_output_root,
+        "slurm dry-run output",
+    )?;
     fs::create_dir_all(&absolute_output_root)
         .with_context(|| format!("create {}", absolute_output_root.display()))?;
     let slurm_root = slurm_dry_run_root_from_output_root(&absolute_output_root, domain);
