@@ -4,6 +4,7 @@ This directory stores tracked deterministic benchmark readiness proof, including
 `.tsv`, and report artifacts that must survive deleting disposable local roots such as `target/`.
 
 Deterministic local-ready proof now lives under `benchmarks/readiness/local-ready/`.
+All-domain retained-tool proof now lives under `benchmarks/readiness/all-domains/`.
 Disposable-root cleanup proof now lives under `benchmarks/readiness/path-cleanup/`.
 
 Disposable run products do not belong here. Local smoke runs, fake runs, fixture-regeneration

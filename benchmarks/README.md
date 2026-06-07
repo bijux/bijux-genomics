@@ -20,6 +20,7 @@ Deterministic readiness proof now lives under the tracked benchmark root, while 
 products remain anchored under the active repository:
 
 - `benchmarks/readiness/`
+- `benchmarks/readiness/all-domains/`
 - `benchmarks/readiness/local-ready/`
 - `runs/bench/local-smoke/`
 - `runs/bench/local-fake-runs/`

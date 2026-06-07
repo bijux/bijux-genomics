@@ -590,6 +590,14 @@ Visible aliases are part of the operator surface:
   and parser surface ids, while VCF rows preserve the exact matrix-backed adapter and parser ids.
   The command fails closed unless every benchmark-ready row from the domain-local readiness tables
   appears exactly once in the unified cross-domain view.
+- `bijux-dna bench readiness render-all-domain-retained-tools`
+  `render-all-domain-retained-tools` writes
+  `benchmarks/readiness/all-domains/retained-tools.tsv` with one governed row per retained
+  FASTQ, BAM, and VCF tool across the unified active stage-tool surface. Each row keeps
+  `tool_id`, `domains`, `active_stage_count`, `benchmark_ready_stage_count`,
+  `active_binding_count`, `benchmark_ready_binding_count`, `benchmark_statuses`,
+  `active_stage_ids`, and `benchmark_ready_stage_ids` explicit. The command fails closed unless
+  every active matrix tool appears exactly once and no retained tool serves zero active stages.
 - `bijux-dna bench readiness render-vcf-comparable-metrics`
   `render-vcf-comparable-metrics` writes `benchmarks/readiness/vcf-comparable-metrics.tsv`
   with one governed row per shared normalized metric across the retained multi-tool VCF stage
