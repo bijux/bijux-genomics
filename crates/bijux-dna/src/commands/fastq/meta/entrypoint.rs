@@ -818,6 +818,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateAllDomainSlurmScriptBodies(args) => {
+                        crate::commands::benchmark::local_all_domain_slurm_script_bodies::run_validate_all_domain_slurm_script_bodies(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RenderSlurmSubmitManifest(args) => {
                         crate::commands::benchmark::local_slurm_submit_manifest::run_render_slurm_submit_manifest(
                             &args,
@@ -875,6 +880,16 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchLocalCommand::FakeRunAllDomainFailures(args) => {
                         crate::commands::benchmark::local_all_domain_fake_failures::run_fake_run_all_domain_failures(
+                            &args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::ExecuteAllDomainBenchmarkResult(args) => {
+                        crate::commands::benchmark::local_all_domain_job_execution::run_execute_all_domain_benchmark_result(
+                            &args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::ExecuteEssentialPipelineNode(args) => {
+                        crate::commands::benchmark::local_all_domain_job_execution::run_execute_essential_pipeline_node(
                             &args,
                         )?;
                     }

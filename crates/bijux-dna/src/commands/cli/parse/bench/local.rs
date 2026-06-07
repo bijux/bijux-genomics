@@ -101,6 +101,8 @@ pub enum BenchLocalCommand {
     ValidateSlurmDependencies(BenchLocalValidateSlurmDependenciesArgs),
     #[command(name = "validate-slurm-script-bodies")]
     ValidateSlurmScriptBodies(BenchLocalValidateSlurmScriptBodiesArgs),
+    #[command(name = "validate-all-domain-slurm-script-bodies")]
+    ValidateAllDomainSlurmScriptBodies(BenchLocalValidateAllDomainSlurmScriptBodiesArgs),
     #[command(name = "render-slurm-submit-manifest")]
     RenderSlurmSubmitManifest(BenchLocalRenderSlurmSubmitManifestArgs),
     #[command(name = "render-benchmark-summary")]
@@ -125,6 +127,10 @@ pub enum BenchLocalCommand {
     FakeRunAllDomains(BenchLocalFakeRunAllDomainsArgs),
     #[command(name = "fake-run-all-domain-failures")]
     FakeRunAllDomainFailures(BenchLocalFakeRunAllDomainFailuresArgs),
+    #[command(name = "execute-all-domain-benchmark-result")]
+    ExecuteAllDomainBenchmarkResult(BenchLocalExecuteAllDomainBenchmarkResultArgs),
+    #[command(name = "execute-essential-pipeline-node")]
+    ExecuteEssentialPipelineNode(BenchLocalExecuteEssentialPipelineNodeArgs),
     #[command(name = "render-all-domain-slurm-scripts")]
     RenderAllDomainSlurmScripts(BenchLocalRenderAllDomainSlurmScriptsArgs),
     #[command(name = "fake-run-failures")]
@@ -474,6 +480,16 @@ pub struct BenchLocalValidateSlurmScriptBodiesArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct BenchLocalValidateAllDomainSlurmScriptBodiesArgs {
+    #[arg(long)]
+    pub root: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
 pub struct BenchLocalRenderSlurmSubmitManifestArgs {
     #[arg(long)]
     pub root: Option<std::path::PathBuf>,
@@ -581,6 +597,24 @@ pub struct BenchLocalFakeRunAllDomainFailuresArgs {
     pub output_root: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = 7)]
     pub exit_code: i32,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalExecuteAllDomainBenchmarkResultArgs {
+    #[arg(long)]
+    pub result_id: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalExecuteEssentialPipelineNodeArgs {
+    #[arg(long)]
+    pub pipeline_id: String,
+    #[arg(long)]
+    pub node_id: String,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }
