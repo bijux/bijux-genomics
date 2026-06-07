@@ -1026,7 +1026,8 @@ fn validate_reference_panel_imputation_profile(
     let vcf_qc = require_profile_stage(&stage_index, PROFILE_ID, "vcf.qc")?;
     let vcf_phasing = require_profile_stage(&stage_index, PROFILE_ID, "vcf.phasing")?;
     let vcf_impute = require_profile_stage(&stage_index, PROFILE_ID, "vcf.impute")?;
-    let vcf_imputation = require_profile_stage(&stage_index, PROFILE_ID, "vcf.imputation")?;
+    let vcf_imputation_metrics =
+        require_profile_stage(&stage_index, PROFILE_ID, "vcf.imputation_metrics")?;
 
     let matrix_index = load_local_vcf_stage_matrix_index(repo_root)?;
     require_vcf_matrix_binding(
@@ -1060,7 +1061,7 @@ fn validate_reference_panel_imputation_profile(
     require_vcf_matrix_binding(
         &matrix_index,
         PROFILE_ID,
-        "vcf.imputation",
+        "vcf.imputation_metrics",
         "vcf_cohort_with_panel",
         "vcf_production_regression",
     )?;
@@ -1274,52 +1275,52 @@ fn validate_reference_panel_imputation_profile(
     )?;
 
     require_list_contains(
-        &vcf_imputation.depends_on,
+        &vcf_imputation_metrics.depends_on,
         "vcf.prepare_reference_panel",
         PROFILE_ID,
-        "vcf.imputation must remain downstream of prepared-panel provenance",
+        "vcf.imputation_metrics must remain downstream of prepared-panel provenance",
     )?;
     require_list_contains(
-        &vcf_imputation.depends_on,
+        &vcf_imputation_metrics.depends_on,
         "vcf.impute",
         PROFILE_ID,
-        "vcf.imputation must remain downstream of the imputation execution stage",
+        "vcf.imputation_metrics must remain downstream of the imputation execution stage",
     )?;
     require_list_contains(
-        &vcf_imputation.external_inputs,
+        &vcf_imputation_metrics.external_inputs,
         "reference_panel_id_contract",
         PROFILE_ID,
-        "vcf.imputation must declare the governed panel-id contract",
+        "vcf.imputation_metrics must declare the governed panel-id contract",
     )?;
     require_list_contains(
-        &vcf_imputation.external_inputs,
+        &vcf_imputation_metrics.external_inputs,
         "reference_panel_lock_contract",
         PROFILE_ID,
-        "vcf.imputation must declare the governed reference-panel lock contract",
+        "vcf.imputation_metrics must declare the governed reference-panel lock contract",
     )?;
     require_list_contains(
-        &vcf_imputation.external_inputs,
+        &vcf_imputation_metrics.external_inputs,
         "genetic_map_contract",
         PROFILE_ID,
-        "vcf.imputation must declare the governed genetic map contract",
+        "vcf.imputation_metrics must declare the governed genetic map contract",
     )?;
     require_list_contains(
-        &vcf_imputation.upstream_inputs,
+        &vcf_imputation_metrics.upstream_inputs,
         "prepared_panel_panel_id",
         PROFILE_ID,
-        "vcf.imputation must retain explicit panel identity in the downstream metrics branch",
+        "vcf.imputation_metrics must retain explicit panel identity in the downstream metrics branch",
     )?;
     require_list_contains(
-        &vcf_imputation.upstream_inputs,
+        &vcf_imputation_metrics.upstream_inputs,
         "imputation_manifest_json",
         PROFILE_ID,
-        "vcf.imputation must consume explicit imputation manifest evidence",
+        "vcf.imputation_metrics must consume explicit imputation manifest evidence",
     )?;
     require_list_contains(
-        &vcf_imputation.upstream_inputs,
+        &vcf_imputation_metrics.upstream_inputs,
         "imputation_qc_json",
         PROFILE_ID,
-        "vcf.imputation must consume explicit imputation QC evidence",
+        "vcf.imputation_metrics must consume explicit imputation QC evidence",
     )?;
 
     let checks = vec![
@@ -1328,7 +1329,7 @@ fn validate_reference_panel_imputation_profile(
         "vcf.prepare_reference_panel stays bound to the vcf_reference_panel asset profile"
             .to_string(),
         "vcf.qc stays bound to the vcf_cohort asset profile".to_string(),
-        "vcf.phasing, vcf.impute, and vcf.imputation stay bound to the vcf_cohort_with_panel asset profile"
+        "vcf.phasing, vcf.impute, and vcf.imputation_metrics stay bound to the vcf_cohort_with_panel asset profile"
             .to_string(),
         "vcf.prepare_reference_panel keeps panel, map, and reference contracts explicit"
             .to_string(),
@@ -1336,7 +1337,7 @@ fn validate_reference_panel_imputation_profile(
             .to_string(),
         "vcf.impute consumes both the qc-target fallback path and phased run path with explicit panel identity"
             .to_string(),
-        "vcf.imputation stays downstream of imputation execution with panel-provenance and imputation-qc evidence"
+        "vcf.imputation_metrics stays downstream of imputation execution with panel-provenance and imputation-qc evidence"
             .to_string(),
     ];
 

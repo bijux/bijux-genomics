@@ -20,7 +20,7 @@
             "vcf.admixture",
             "vcf.roh",
             "vcf.ibd",
-            "vcf.imputation",
+            "vcf.imputation_metrics",
             "vcf.impute",
             "vcf.phasing",
             "vcf.postprocess",
@@ -568,7 +568,7 @@
         "type": "object",
         "x-bijux-extension-id": "vcf_ibd_normalized_v1"
       },
-      "vcf.imputation": {
+      "vcf.imputation_metrics": {
         "additionalProperties": true,
         "properties": {
           "low_confidence_sites": {
@@ -592,10 +592,10 @@
             "type": "boolean"
           },
           "schema_version": {
-            "const": "bijux.vcf.imputation.v1"
+            "const": "bijux.vcf.imputation_metrics.v1"
           },
           "stage_id": {
-            "const": "vcf.imputation"
+            "const": "vcf.imputation_metrics"
           },
           "status": {
             "type": "string"
@@ -616,7 +616,7 @@
           "missing_quality_fields"
         ],
         "type": "object",
-        "x-bijux-extension-id": "vcf_imputation_normalized_v1"
+        "x-bijux-extension-id": "vcf_imputation_metrics_normalized_v1"
       },
       "vcf.impute": {
         "additionalProperties": true,
@@ -1190,7 +1190,7 @@
       "$ref": "#/$defs/stages/vcf.ibd"
     },
     {
-      "$ref": "#/$defs/stages/vcf.imputation"
+      "$ref": "#/$defs/stages/vcf.imputation_metrics"
     },
     {
       "$ref": "#/$defs/stages/vcf.impute"

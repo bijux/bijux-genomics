@@ -1,5 +1,5 @@
 {
   "backend": "beagle",
-  "stage_id": "vcf.imputation",
+  "stage_id": "vcf.imputation_metrics",
   "status": "complete"
 }

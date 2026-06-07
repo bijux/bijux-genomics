@@ -1,12 +1,12 @@
 {
   "schema_version": "bijux.fixture.vcf_raw_parser.v1",
-  "stage_id": "vcf.imputation",
-  "tool_id": "impute5",
-  "parser_id": "parse_impute5_imputation_metrics",
+  "stage_id": "vcf.imputation_metrics",
+  "tool_id": "minimac4",
+  "parser_id": "parse_minimac4_imputation_metrics",
   "normalized": {
-    "schema_version": "bijux.vcf.imputation.v1",
-    "stage_id": "vcf.imputation",
-    "tool_id": "impute5",
+    "schema_version": "bijux.vcf.imputation_metrics.v1",
+    "stage_id": "vcf.imputation_metrics",
+    "tool_id": "minimac4",
     "status": "complete",
     "mean_info_score": 0.825,
     "r2_available": true,

@@ -110,8 +110,8 @@ outputs = [
 ]
 
 [[nodes]]
-node_id = "vcf.imputation"
-stage_id = "vcf.imputation"
+node_id = "vcf.imputation_metrics"
+stage_id = "vcf.imputation_metrics"
 readiness_kind = "smoke"
 summary = "Summarize governed imputation metrics from the imputed cohort while retaining explicit panel identity, map provenance, and imputation QC evidence."
 depends_on = ["vcf.prepare_reference_panel", "vcf.impute"]

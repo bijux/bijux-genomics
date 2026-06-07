@@ -1,6 +1,6 @@
 {
   "tool_id": "impute5",
-  "stage_id": "vcf.imputation",
+  "stage_id": "vcf.imputation_metrics",
   "argv": [
     "sh",
     "-lc",

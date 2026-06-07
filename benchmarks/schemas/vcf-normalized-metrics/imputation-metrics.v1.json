@@ -1,5 +1,5 @@
 {
-  "$id": "bijux.schemas.bench.vcf-normalized-metrics.imputation.v1",
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.imputation-metrics.v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "allOf": [
     {
@@ -29,10 +29,10 @@
           "type": "boolean"
         },
         "schema_version": {
-          "const": "bijux.vcf.imputation.v1"
+          "const": "bijux.vcf.imputation_metrics.v1"
         },
         "stage_id": {
-          "const": "vcf.imputation"
+          "const": "vcf.imputation_metrics"
         },
         "status": {
           "type": "string"
@@ -53,9 +53,9 @@
         "missing_quality_fields"
       ],
       "type": "object",
-      "x-bijux-extension-id": "vcf_imputation_normalized_v1"
+      "x-bijux-extension-id": "vcf_imputation_metrics_normalized_v1"
     }
   ],
-  "description": "Governed normalized parser output for `vcf.imputation`.",
-  "title": "VCF normalized benchmark metrics: vcf.imputation"
+  "description": "Governed normalized parser output for `vcf.imputation_metrics`.",
+  "title": "VCF normalized benchmark metrics: vcf.imputation_metrics"
 }

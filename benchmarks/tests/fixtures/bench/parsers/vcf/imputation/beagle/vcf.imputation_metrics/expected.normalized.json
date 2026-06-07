@@ -1,11 +1,11 @@
 {
   "schema_version": "bijux.fixture.vcf_raw_parser.v1",
-  "stage_id": "vcf.imputation",
+  "stage_id": "vcf.imputation_metrics",
   "tool_id": "beagle",
   "parser_id": "parse_beagle_imputation_metrics",
   "normalized": {
-    "schema_version": "bijux.vcf.imputation.v1",
-    "stage_id": "vcf.imputation",
+    "schema_version": "bijux.vcf.imputation_metrics.v1",
+    "stage_id": "vcf.imputation_metrics",
     "tool_id": "beagle",
     "status": "complete",
     "mean_info_score": 0.825,

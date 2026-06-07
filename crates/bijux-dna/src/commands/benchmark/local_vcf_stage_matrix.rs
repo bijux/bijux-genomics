@@ -408,6 +408,19 @@ mod tests {
         assert_eq!(phasing.parser_id, "vcf.parser.vcf_output");
         assert_eq!(phasing.expected_outputs, vec!["phased_vcf".to_string()]);
 
+        let imputation_metrics = rows
+            .iter()
+            .find(|row| row.stage_id == "vcf.imputation_metrics")
+            .expect("imputation metrics row");
+        assert_eq!(imputation_metrics.tool_id, "beagle");
+        assert_eq!(imputation_metrics.asset_profile_id, "vcf_cohort_with_panel");
+        assert_eq!(imputation_metrics.adapter_id, "vcf.adapter.panel_workflow");
+        assert_eq!(imputation_metrics.parser_id, "vcf.parser.report_json");
+        assert_eq!(
+            imputation_metrics.expected_outputs,
+            vec!["imputation_metrics_json".to_string()]
+        );
+
         let stats = rows.iter().find(|row| row.stage_id == "vcf.stats").expect("stats row");
         assert_eq!(stats.asset_profile_id, "vcf_cohort");
         assert_eq!(stats.adapter_id, "vcf.adapter.quality_control");

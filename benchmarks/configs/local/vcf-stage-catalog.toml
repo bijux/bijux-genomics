@@ -152,13 +152,13 @@ benchmark_category = "phasing"
 local_smoke_mode = "vcf_cohort_with_panel"
 
 [[rows]]
-stage_id = "vcf.imputation"
-stage_name = "Genotype Imputation"
+stage_id = "vcf.imputation_metrics"
+stage_name = "Imputation Quality Metrics"
 support_status = "planned"
 default_tool_id = "beagle"
-metrics_schema_id = "bijux.vcf.imputation.v1"
+metrics_schema_id = "bijux.vcf.imputation_metrics.v1"
 input_types = ["vcf"]
-output_types = ["vcf"]
+output_types = ["json"]
 required_assets = [
     "genetic_map",
     "reference_panel_lock",

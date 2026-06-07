@@ -146,7 +146,7 @@ fn stage_name(stage: VcfDomainStage) -> &'static str {
         VcfDomainStage::GlPropagation => "Genotype Likelihood Propagation",
         VcfDomainStage::Qc => "Variant Quality Control",
         VcfDomainStage::Phasing => "Haplotype Phasing",
-        VcfDomainStage::Imputation => "Genotype Imputation",
+        VcfDomainStage::ImputationMetrics => "Imputation Quality Metrics",
         VcfDomainStage::Impute => "Imputed Genotype Refinement",
         VcfDomainStage::Postprocess => "VCF Postprocess Normalization",
         VcfDomainStage::PopulationStructure => "Population Structure Analysis",
@@ -170,7 +170,7 @@ fn benchmark_category(stage: VcfDomainStage) -> &'static str {
         VcfDomainStage::Filter | VcfDomainStage::Qc | VcfDomainStage::Stats => "quality_control",
         VcfDomainStage::GlPropagation => "likelihood_postprocess",
         VcfDomainStage::Phasing => "phasing",
-        VcfDomainStage::Imputation | VcfDomainStage::Impute => "imputation",
+        VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute => "imputation",
         VcfDomainStage::Postprocess => "normalization",
         VcfDomainStage::PopulationStructure | VcfDomainStage::Pca | VcfDomainStage::Admixture => {
             "population_structure"
@@ -199,7 +199,7 @@ fn local_smoke_mode(stage: VcfDomainStage) -> &'static str {
         | VcfDomainStage::Roh
         | VcfDomainStage::Ibd
         | VcfDomainStage::Stats => "vcf_cohort",
-        VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute => {
+        VcfDomainStage::Phasing | VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute => {
             "vcf_cohort_with_panel"
         }
         VcfDomainStage::Demography => "json_ibd_segments",
@@ -228,7 +228,7 @@ fn required_assets(stage: VcfDomainStage, required_indices: &[&str]) -> Vec<Stri
             assets.insert("reference_fasta".to_string());
             assets.insert("reference_panel_lock".to_string());
         }
-        VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute => {
+        VcfDomainStage::Phasing | VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute => {
             assets.insert("genetic_map".to_string());
             assets.insert("reference_panel_lock".to_string());
         }

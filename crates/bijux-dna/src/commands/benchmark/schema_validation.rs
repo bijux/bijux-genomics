@@ -39,7 +39,7 @@ const REQUIRED_VCF_SCHEMA_STAGE_IDS: &[&str] = &[
     "vcf.qc",
     "vcf.prepare_reference_panel",
     "vcf.phasing",
-    "vcf.imputation",
+    "vcf.imputation_metrics",
     "vcf.pca",
     "vcf.admixture",
     "vcf.population_structure",
