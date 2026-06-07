@@ -7,9 +7,9 @@
   "existing_root_count": 6,
   "tracked_marker_count": 6,
   "ignored_root_count": 0,
-  "readiness_snapshot_count": 62,
+  "readiness_snapshot_count": 63,
   "readiness_json_snapshot_count": 55,
-  "readiness_tsv_snapshot_count": 7,
+  "readiness_tsv_snapshot_count": 8,
   "root_tests_regular_file_count": 1,
   "root_tests_readme_tracked_by_git": true,
   "violation_count": 0,
@@ -87,6 +87,7 @@
     "benchmarks/readiness/local-ready/vcf/reference-compatibility.json",
     "benchmarks/readiness/local-ready/vcf/sample-compatibility.json",
     "benchmarks/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json",
+    "benchmarks/readiness/removed-from-scope.tsv",
     "benchmarks/readiness/vcf-schema-validation.json"
   ],
   "roots": [
