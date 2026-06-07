@@ -373,6 +373,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderAllDomainCommands(args) => {
+                        crate::commands::benchmark::readiness::all_domain_rendered_commands::run_render_all_domain_commands(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderAllDomainStageToolTable(args) => {
                         crate::commands::benchmark::readiness::all_domain_stage_tool_table::run_render_all_domain_stage_tool_table(
                             args,

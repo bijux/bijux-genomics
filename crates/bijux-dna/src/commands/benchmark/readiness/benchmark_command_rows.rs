@@ -16,6 +16,7 @@ use super::bam_command_adapter_coverage::{
 use super::fastq_command_adapter_coverage::{
     collect_fastq_command_adapter_coverage_rows, FastqBenchmarkStatus,
 };
+use crate::commands::benchmark::local_stage_commands::rendered_stage_materialize_argv;
 use crate::commands::benchmark::local_stage_commands::{
     collect_local_stage_plan_bundles, local_stage_plans,
 };
@@ -39,7 +40,11 @@ struct CanonicalStagePlan {
 
 pub(crate) fn collect_benchmark_command_rows(repo_root: &Path) -> Result<Vec<BenchmarkCommandRow>> {
     let fastq_base_plans = canonical_stage_plan_map(repo_root, BenchLocalDomain::Fastq)?;
-    let bam_base_plans = canonical_stage_plan_map(repo_root, BenchLocalDomain::Bam)?;
+    let bam_readiness_by_stage = load_local_stage_inventory(repo_root, BenchLocalDomain::Bam)?
+        .stages
+        .into_iter()
+        .map(|stage| (stage.stage_id, stage.readiness_kind))
+        .collect::<BTreeMap<_, _>>();
     let (_, _, fastq_rows) = collect_fastq_command_adapter_coverage_rows(repo_root)?;
     let (_, _, bam_rows) = collect_bam_command_adapter_coverage_rows(repo_root)?;
 
@@ -70,18 +75,41 @@ pub(crate) fn collect_benchmark_command_rows(repo_root: &Path) -> Result<Vec<Ben
         .into_iter()
         .filter(|row| row.benchmark_status == BamBenchmarkStatus::BenchmarkReady)
     {
-        let base = bam_base_plans.get(&row.stage_id).ok_or_else(|| {
-            anyhow!(
-                "missing canonical BAM local stage plan for benchmark-ready row `{}` / `{}`",
-                row.stage_id,
-                row.tool_id
+        let (readiness_kind, argv) = if stage_uses_materialize_stage_fallback(&row.stage_id) {
+            (
+                bam_readiness_by_stage
+                    .get(&row.stage_id)
+                    .copied()
+                    .unwrap_or(LocalStageReadinessKind::Smoke),
+                rendered_stage_materialize_argv(&row.stage_id),
             )
-        })?;
-        let argv = render_bam_stage_tool_argv(repo_root, &row.stage_id, &row.tool_id, &base.plan)?;
+        } else {
+            let base = local_stage_plans(repo_root, &row.stage_id)?.into_iter().next().ok_or_else(
+                || {
+                    anyhow!(
+                        "local benchmark BAM stage `{}` did not yield any governed plans",
+                        row.stage_id
+                    )
+                },
+            )?;
+            let readiness_kind = bam_readiness_by_stage.get(&row.stage_id).copied().ok_or_else(
+                || {
+                    anyhow!(
+                        "missing canonical BAM local stage inventory row for benchmark-ready row `{}` / `{}`",
+                        row.stage_id,
+                        row.tool_id
+                    )
+                },
+            )?;
+            (
+                readiness_kind,
+                render_bam_stage_tool_argv(repo_root, &row.stage_id, &row.tool_id, &base)?,
+            )
+        };
         rows.push(BenchmarkCommandRow {
             stage_id: row.stage_id,
             tool_id: row.tool_id,
-            readiness_kind: readiness_kind_label(base.readiness_kind).to_string(),
+            readiness_kind: readiness_kind_label(readiness_kind).to_string(),
             argv,
         });
     }
@@ -196,6 +224,10 @@ fn collect_selected_domain_command_rows(
     }
 
     Ok(rows)
+}
+
+fn stage_uses_materialize_stage_fallback(stage_id: &str) -> bool {
+    matches!(stage_id, "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship")
 }
 
 fn render_fastq_stage_tool_argv(

@@ -65,6 +65,7 @@ pub use self::publication::{
 };
 pub use self::readiness::{
     BenchReadinessCommand, BenchReadinessRenderAdapterMissingInputTestsArgs,
+    BenchReadinessRenderAllDomainCommandsArgs,
     BenchReadinessRenderAllDomainExpectedBenchmarkResultsArgs,
     BenchReadinessRenderAllDomainStageToolTableArgs,
     BenchReadinessRenderBamAdapterOutputContractArgs,
