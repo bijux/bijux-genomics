@@ -838,6 +838,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::FakeRunAllDomains(args) => {
+                        crate::commands::benchmark::local_all_domain_fake_runs::run_fake_run_all_domains(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::FakeRunFailures(args) => {
                         crate::commands::benchmark::local_stage_fake_runs::run_fake_run_failures(
                             &args,
