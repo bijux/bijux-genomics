@@ -42,7 +42,7 @@ fn bench_readiness_all_domain_completion_check_writes_governed_fixture_tree() {
         serde_json::from_slice(&fs::read(&report_path).expect("read completion-check report"))
             .expect("parse completion-check report");
 
-    let fixture_root = repo_root.join("benchmarks/readiness/completion-check-all-domains-fixture");
+    let fixture_root = repo_root.join("runs/bench/readiness-probes/all-domains/completion-check");
     assert!(fixture_root.is_dir(), "expected completion-check fixture root");
 
     let seeded_mutations = report_json

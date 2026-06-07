@@ -18,6 +18,7 @@ use crate::commands::benchmark::local_stage_fake_runs::path_relative_to_repo;
 use crate::commands::benchmark::local_stage_result_manifest::{
     load_validated_stage_result_manifest_path, BenchStageResultManifestV1, BenchStageResultStatus,
 };
+use crate::commands::benchmark::path_resolution::ensure_path_stays_within_benchmark_runs_root;
 use crate::commands::benchmark::path_resolution::BenchmarkPathResolver;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -25,7 +26,7 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_PATH: &str =
     "benchmarks/readiness/completion-check-all-domains.json";
 const DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_FIXTURE_ROOT: &str =
-    "benchmarks/readiness/completion-check-all-domains-fixture";
+    "runs/bench/readiness-probes/all-domains/completion-check";
 const ALL_DOMAIN_COMPLETION_CHECK_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_completion_check.v1";
 
@@ -142,7 +143,12 @@ pub(crate) fn render_all_domain_completion_check(
     }
 
     let fixture_root =
-        benchmark_paths.benchmark_readiness_root().join("completion-check-all-domains-fixture");
+        benchmark_paths.benchmark_readiness_probe_root().join("all-domains/completion-check");
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &fixture_root,
+        "all-domain completion fixture root",
+    )?;
     if fixture_root.exists() {
         fs::remove_dir_all(&fixture_root)
             .with_context(|| format!("remove {}", fixture_root.display()))?;
@@ -514,9 +520,9 @@ fn ensure_completion_row_alignment(
     output_rows: &BTreeMap<String, AllDomainOutputDeclarationRow>,
     fake_run_rows: &BTreeMap<String, AllDomainFakeRunResultReport>,
 ) -> Result<()> {
-    if expected_rows.len() != 120 || output_rows.len() != 120 || fake_run_rows.len() != 120 {
+    if expected_rows.len() != 121 || output_rows.len() != 121 || fake_run_rows.len() != 121 {
         return Err(anyhow!(
-            "all-domain completion checker requires exactly 120 expected-result, output-declaration, and fake-run rows"
+            "all-domain completion checker requires exactly 121 expected-result, output-declaration, and fake-run rows"
         ));
     }
     let expected_ids = expected_rows.keys().cloned().collect::<BTreeSet<_>>();
@@ -533,9 +539,9 @@ fn ensure_completion_row_alignment(
 fn ensure_all_domain_completion_check_contract(
     mut report: AllDomainCompletionCheckReport,
 ) -> Result<AllDomainCompletionCheckReport> {
-    if report.row_count != 120 {
+    if report.row_count != 121 {
         return Err(anyhow!(
-            "all-domain completion checker must report exactly 120 rows, found {}",
+            "all-domain completion checker must report exactly 121 rows, found {}",
             report.row_count
         ));
     }
@@ -553,7 +559,7 @@ fn ensure_all_domain_completion_check_contract(
             .map(|mutation| (mutation.mutation_id.as_str(), mutation.result_id.as_str()))
             .collect::<BTreeMap<_, _>>();
 
-        report.complete_row_count == 115
+        report.complete_row_count == 116
             && report.incomplete_row_count == 5
             && matches_seeded_reason(
                 &row_by_result_id,

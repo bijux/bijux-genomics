@@ -23,13 +23,16 @@ use super::vcf_parser_failure_tests::{
     DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH,
 };
 use crate::commands::benchmark::local_stage_fake_runs::path_relative_to_repo;
+use crate::commands::benchmark::path_resolution::{
+    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH: &str =
     "benchmarks/readiness/failure-classification-all-domains.json";
 const DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_FIXTURE_ROOT: &str =
-    "benchmarks/readiness/failure-classification-all-domains-fixture";
+    "runs/bench/readiness-probes/all-domains/failure-classification";
 const ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_failure_classification.v1";
 const INSUFFICIENT_DATA_FIXTURE_PATH: &str =
@@ -84,11 +87,14 @@ pub(crate) fn run_render_all_domain_failure_classification(
     args: &parse::BenchReadinessRenderAllDomainFailureClassificationArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
     let report = render_all_domain_failure_classification(
         &repo_root,
-        args.output
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH)),
+        args.output.clone().unwrap_or_else(|| {
+            benchmark_paths
+                .benchmark_readiness_root()
+                .join("failure-classification-all-domains.json")
+        }),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -102,15 +108,19 @@ pub(crate) fn render_all_domain_failure_classification(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<AllDomainFailureClassificationReport> {
+    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
 
-    let fixture_root = repo_relative_path(
+    let fixture_root =
+        benchmark_paths.benchmark_readiness_probe_root().join("all-domains/failure-classification");
+    ensure_path_stays_within_benchmark_runs_root(
         repo_root,
-        Path::new(DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_FIXTURE_ROOT),
-    );
+        &fixture_root,
+        "all-domain failure-classification fixture root",
+    )?;
     if fixture_root.exists() {
         fs::remove_dir_all(&fixture_root)
             .with_context(|| format!("remove {}", fixture_root.display()))?;
@@ -567,7 +577,7 @@ mod tests {
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH);
         assert_eq!(
             report.fixture_root,
-            "benchmarks/readiness/failure-classification-all-domains-fixture"
+            "runs/bench/readiness-probes/all-domains/failure-classification"
         );
         assert_eq!(report.row_count, 7);
         assert_eq!(report.triggered_row_count, 7);

@@ -13,13 +13,16 @@ use crate::commands::benchmark::local_all_domain_fake_runs::{
 use crate::commands::benchmark::local_stage_commands::materialize_local_stage;
 use crate::commands::benchmark::local_stage_result_manifest::load_validated_stage_result_manifest_path;
 use crate::commands::benchmark::local_vcf_stats_smoke::run_local_vcf_stats_smoke;
+use crate::commands::benchmark::path_resolution::{
+    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH: &str =
     "benchmarks/readiness/parser-collector-all-domains.json";
 const DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_FIXTURE_ROOT: &str =
-    "benchmarks/readiness/parser-collector-all-domains-fixture";
+    "runs/bench/readiness-probes/all-domains/parser-collector";
 const ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_parser_collector.v1";
 
@@ -71,11 +74,12 @@ pub(crate) fn run_render_all_domain_parser_collector(
     args: &parse::BenchReadinessRenderAllDomainParserCollectorArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
     let report = render_all_domain_parser_collector(
         &repo_root,
-        args.output
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH)),
+        args.output.clone().unwrap_or_else(|| {
+            benchmark_paths.benchmark_readiness_root().join("parser-collector-all-domains.json")
+        }),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -89,13 +93,19 @@ pub(crate) fn render_all_domain_parser_collector(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<AllDomainParserCollectorReport> {
+    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
 
     let fixture_root =
-        repo_relative_path(repo_root, Path::new(DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_FIXTURE_ROOT));
+        benchmark_paths.benchmark_readiness_probe_root().join("all-domains/parser-collector");
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &fixture_root,
+        "all-domain parser collector fixture root",
+    )?;
     if fixture_root.exists() {
         fs::remove_dir_all(&fixture_root)
             .with_context(|| format!("remove {}", fixture_root.display()))?;
@@ -598,22 +608,19 @@ mod tests {
 
         assert_eq!(report.schema_version, ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH);
-        assert_eq!(
-            report.fixture_root,
-            "benchmarks/readiness/parser-collector-all-domains-fixture"
-        );
+        assert_eq!(report.fixture_root, "runs/bench/readiness-probes/all-domains/parser-collector");
         assert_eq!(
             report.fake_run_root,
-            "benchmarks/readiness/parser-collector-all-domains-fixture/fake-runs"
+            "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs"
         );
-        assert_eq!(report.row_count, 123);
-        assert_eq!(report.fake_run_row_count, 120);
+        assert_eq!(report.row_count, 124);
+        assert_eq!(report.fake_run_row_count, 121);
         assert_eq!(report.real_smoke_row_count, 3);
-        assert_eq!(report.source_kind_counts.get("fake_run"), Some(&120));
+        assert_eq!(report.source_kind_counts.get("fake_run"), Some(&121));
         assert_eq!(report.source_kind_counts.get("real_smoke"), Some(&3));
         assert_eq!(report.domain_counts.get("fastq"), Some(&64));
         assert_eq!(report.domain_counts.get("bam"), Some(&50));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&9));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&10));
 
         let fastq_smoke = report
             .rows

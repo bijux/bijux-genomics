@@ -16,13 +16,16 @@ use crate::commands::benchmark::local_all_domain_fake_runs::{
 };
 use crate::commands::benchmark::local_stage_fake_runs::path_relative_to_repo;
 use crate::commands::benchmark::local_stage_result_manifest::load_validated_stage_result_manifest_path;
+use crate::commands::benchmark::path_resolution::{
+    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH: &str =
     "benchmarks/readiness/missing-result-test-all-domains.json";
 const DEFAULT_ALL_DOMAIN_MISSING_RESULT_FIXTURE_ROOT: &str =
-    "benchmarks/readiness/missing-result-test-all-domains-fixture";
+    "runs/bench/readiness-probes/all-domains/missing-result-test";
 const ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_missing_result_test.v1";
 
@@ -82,11 +85,12 @@ pub(crate) fn run_render_all_domain_missing_result_test(
     args: &parse::BenchReadinessRenderAllDomainMissingResultTestArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
     let report = render_all_domain_missing_result_test(
         &repo_root,
-        args.output
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH)),
+        args.output.clone().unwrap_or_else(|| {
+            benchmark_paths.benchmark_readiness_root().join("missing-result-test-all-domains.json")
+        }),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -100,13 +104,19 @@ pub(crate) fn render_all_domain_missing_result_test(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<AllDomainMissingResultTestReport> {
+    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
 
     let fixture_root =
-        repo_relative_path(repo_root, Path::new(DEFAULT_ALL_DOMAIN_MISSING_RESULT_FIXTURE_ROOT));
+        benchmark_paths.benchmark_readiness_probe_root().join("all-domains/missing-result-test");
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &fixture_root,
+        "all-domain missing-result fixture root",
+    )?;
     if fixture_root.exists() {
         fs::remove_dir_all(&fixture_root)
             .with_context(|| format!("remove {}", fixture_root.display()))?;
@@ -205,10 +215,9 @@ fn seed_all_domain_missing_result_fixture(
     }
 
     Ok(AllDomainMissingResultFixture {
-        fake_result_root: repo_relative_path(
-            repo_root,
-            Path::new(DEFAULT_ALL_DOMAIN_MISSING_RESULT_FIXTURE_ROOT),
-        ),
+        fake_result_root: BenchmarkPathResolver::new(repo_root, None)
+            .benchmark_readiness_probe_root()
+            .join("all-domains/missing-result-test"),
         removed_result_ids,
         removed_manifest_paths,
     })
@@ -227,10 +236,10 @@ fn collect_all_domain_missing_result_rows(
 
     if fake_runs_by_id.len() != expected_rows.len()
         || output_rows_by_id.len() != expected_rows.len()
-        || expected_rows.len() != 120
+        || expected_rows.len() != 121
     {
         return Err(anyhow!(
-            "all-domain missing-result test requires exact 120-row alignment between expected results, output declarations, and fake runs"
+            "all-domain missing-result test requires exact 121-row alignment between expected results, output declarations, and fake runs"
         ));
     }
 
@@ -342,21 +351,21 @@ fn collect_all_domain_missing_result_rows(
 fn ensure_all_domain_missing_result_contract(
     mut report: AllDomainMissingResultTestReport,
 ) -> Result<AllDomainMissingResultTestReport> {
-    if report.rows.len() != 120 {
+    if report.rows.len() != 121 {
         return Err(anyhow!(
-            "all-domain missing-result test must retain exactly 120 expected rows, found {}",
+            "all-domain missing-result test must retain exactly 121 expected rows, found {}",
             report.rows.len()
         ));
     }
-    if report.expected_row_count != 120 {
+    if report.expected_row_count != 121 {
         return Err(anyhow!(
-            "all-domain missing-result test must track exactly 120 expected rows, found {}",
+            "all-domain missing-result test must track exactly 121 expected rows, found {}",
             report.expected_row_count
         ));
     }
-    if report.present_result_row_count != 117 {
+    if report.present_result_row_count != 118 {
         return Err(anyhow!(
-            "all-domain missing-result test must retain exactly 117 present rows after removing three results, found {}",
+            "all-domain missing-result test must retain exactly 118 present rows after removing three results, found {}",
             report.present_result_row_count
         ));
     }
@@ -475,15 +484,15 @@ mod tests {
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH);
         assert_eq!(
             report.fake_result_root,
-            "benchmarks/readiness/missing-result-test-all-domains-fixture"
+            "runs/bench/readiness-probes/all-domains/missing-result-test"
         );
-        assert_eq!(report.expected_row_count, 120);
-        assert_eq!(report.present_result_row_count, 117);
+        assert_eq!(report.expected_row_count, 121);
+        assert_eq!(report.present_result_row_count, 118);
         assert_eq!(report.missing_result_row_count, 3);
         assert!(report.passes_behavior_test);
         assert_eq!(report.domain_counts.get("fastq").copied(), Some(63));
         assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
-        assert_eq!(report.domain_counts.get("vcf").copied(), Some(8));
+        assert_eq!(report.domain_counts.get("vcf").copied(), Some(9));
 
         let removed_ids =
             report.removed_result_ids.iter().map(String::as_str).collect::<BTreeSet<_>>();

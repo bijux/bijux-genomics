@@ -20,6 +20,8 @@ pub(crate) const DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE: &str = "runs/bench
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE: &str =
     "runs/bench/local-fake-runs";
 pub(crate) const DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE: &str = "runs/bench/slurm-dry-run";
+pub(crate) const DEFAULT_BENCHMARK_READINESS_PROBE_ROOT_RELATIVE: &str =
+    "runs/bench/readiness-probes";
 
 #[derive(Debug, Clone)]
 pub(crate) struct BenchmarkPathResolver {
@@ -103,6 +105,10 @@ impl BenchmarkPathResolver {
         self.repo_root.join(DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE)
     }
 
+    pub(crate) fn benchmark_readiness_probe_root(&self) -> PathBuf {
+        self.repo_root.join(DEFAULT_BENCHMARK_READINESS_PROBE_ROOT_RELATIVE)
+    }
+
     pub(crate) fn resolve_repo_relative(&self, candidate: &Path) -> PathBuf {
         if candidate.is_absolute() {
             candidate.to_path_buf()
@@ -174,9 +180,9 @@ mod tests {
         ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver, BENCHMARK_ROOT_ENV,
         DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE, DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE,
-        DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE, DEFAULT_BENCHMARK_ROOT_RELATIVE,
-        DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE, DEFAULT_BENCHMARK_SCHEMA_ROOT_SUFFIX,
-        DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE,
+        DEFAULT_BENCHMARK_READINESS_PROBE_ROOT_RELATIVE, DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE,
+        DEFAULT_BENCHMARK_ROOT_RELATIVE, DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE,
+        DEFAULT_BENCHMARK_SCHEMA_ROOT_SUFFIX, DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE,
     };
     use std::ffi::{OsStr, OsString};
     use std::path::Path;
@@ -251,6 +257,10 @@ mod tests {
         assert_eq!(
             resolver.benchmark_slurm_dry_run_root(),
             repo_root.join(DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE)
+        );
+        assert_eq!(
+            resolver.benchmark_readiness_probe_root(),
+            repo_root.join(DEFAULT_BENCHMARK_READINESS_PROBE_ROOT_RELATIVE)
         );
     }
 
