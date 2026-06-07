@@ -306,10 +306,8 @@ fn ensure_row_completeness(rows: &[FastqCorpusAssignmentRow]) -> Result<()> {
 }
 
 fn ensure_taxonomy_corpus_coverage(rows: &[FastqCorpusAssignmentRow]) -> Result<()> {
-    let taxonomy_rows = rows
-        .iter()
-        .filter(|row| row.stage_id == "fastq.screen_taxonomy")
-        .collect::<Vec<_>>();
+    let taxonomy_rows =
+        rows.iter().filter(|row| row.stage_id == "fastq.screen_taxonomy").collect::<Vec<_>>();
     let expected_tool_ids = ["centrifuge", "kaiju", "kraken2", "krakenuniq"];
     if taxonomy_rows.len() != expected_tool_ids.len() {
         return Err(anyhow!(

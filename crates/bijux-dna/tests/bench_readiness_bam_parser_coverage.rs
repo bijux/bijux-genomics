@@ -58,9 +58,7 @@ fn bench_readiness_bam_parser_coverage_reports_governed_rows() {
         Some(0)
     );
     assert_eq!(
-        payload
-            .get("excluded_non_benchmark_ready_row_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("excluded_non_benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
     assert_eq!(

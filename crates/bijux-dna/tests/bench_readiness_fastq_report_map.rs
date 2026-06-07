@@ -50,10 +50,7 @@ fn bench_readiness_fastq_report_map_reports_governed_stage_sections() {
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
     assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(6));
-    assert_eq!(
-        payload.get("summary_table_count").and_then(serde_json::Value::as_u64),
-        Some(7)
-    );
+    assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(
         payload
             .get("section_counts")
@@ -99,63 +96,53 @@ fn bench_readiness_fastq_report_map_reports_governed_stage_sections() {
         })
         .expect("estimate library complexity row");
     assert_eq!(
-        estimate_complexity
-            .get("anchor_tool_id")
-            .and_then(serde_json::Value::as_str),
+        estimate_complexity.get("anchor_tool_id").and_then(serde_json::Value::as_str),
         Some("bijux_dna")
     );
     assert_eq!(
-        estimate_complexity
-            .get("anchor_support_status")
-            .and_then(serde_json::Value::as_str),
+        estimate_complexity.get("anchor_support_status").and_then(serde_json::Value::as_str),
         Some("planned")
     );
     assert_eq!(
-        estimate_complexity
-            .get("summary_table_id")
-            .and_then(serde_json::Value::as_str),
+        estimate_complexity.get("summary_table_id").and_then(serde_json::Value::as_str),
         Some("premerge_complexity")
     );
 
     let report_qc = rows
         .iter()
-        .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.report_qc"))
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.report_qc")
+        })
         .expect("report qc row");
     assert_eq!(
         report_qc.get("anchor_tool_id").and_then(serde_json::Value::as_str),
         Some("multiqc")
     );
     assert_eq!(
-        report_qc
-            .get("report_section_id")
-            .and_then(serde_json::Value::as_str),
+        report_qc.get("report_section_id").and_then(serde_json::Value::as_str),
         Some("quality_profiling")
     );
     assert_eq!(
-        report_qc
-            .get("summary_table_id")
-            .and_then(serde_json::Value::as_str),
+        report_qc.get("summary_table_id").and_then(serde_json::Value::as_str),
         Some("qc_signal_profiles")
     );
     assert_eq!(
-        report_qc
-            .get("produces_reports_only")
-            .and_then(serde_json::Value::as_bool),
+        report_qc.get("produces_reports_only").and_then(serde_json::Value::as_bool),
         Some(true)
     );
 
     let infer_asvs = rows
         .iter()
-        .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.infer_asvs"))
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.infer_asvs")
+        })
         .expect("infer asvs row");
     assert_eq!(
         infer_asvs.get("criticality").and_then(serde_json::Value::as_str),
         Some("experimental")
     );
     assert_eq!(
-        infer_asvs
-            .get("report_section_id")
-            .and_then(serde_json::Value::as_str),
+        infer_asvs.get("report_section_id").and_then(serde_json::Value::as_str),
         Some("amplicon_interpretation")
     );
     assert_eq!(

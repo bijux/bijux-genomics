@@ -50,10 +50,7 @@ fn bench_readiness_bam_report_map_reports_governed_stage_sections() {
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(7));
-    assert_eq!(
-        payload.get("summary_table_count").and_then(serde_json::Value::as_u64),
-        Some(7)
-    );
+    assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(
         payload
             .get("section_counts")
@@ -88,7 +85,9 @@ fn bench_readiness_bam_report_map_reports_governed_stage_sections() {
 
     let contamination = rows
         .iter()
-        .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.contamination"))
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.contamination")
+        })
         .expect("contamination row");
     assert_eq!(
         contamination.get("anchor_tool_id").and_then(serde_json::Value::as_str),
@@ -111,16 +110,15 @@ fn bench_readiness_bam_report_map_reports_governed_stage_sections() {
     assert_eq!(
         sex.get("scientific_context_required")
             .and_then(serde_json::Value::as_array)
-            .map(|values| values
-                .iter()
-                .filter_map(serde_json::Value::as_str)
-                .collect::<Vec<_>>()),
+            .map(|values| values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()),
         Some(vec!["chromosome_system", "minimum_y_sites"])
     );
 
     let recalibration = rows
         .iter()
-        .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.recalibration"))
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.recalibration")
+        })
         .expect("recalibration row");
     assert_eq!(
         recalibration.get("report_section_id").and_then(serde_json::Value::as_str),

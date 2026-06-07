@@ -49,9 +49,7 @@ fn bench_readiness_corpus_incompatibility_reports_governed_blockers() {
     );
     assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(
-        payload
-            .get("benchmark_ready_binding_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("benchmark_ready_binding_count").and_then(serde_json::Value::as_u64),
         Some(112)
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(47));
@@ -140,19 +138,14 @@ fn bench_readiness_corpus_incompatibility_reports_governed_blockers() {
         })
         .expect("taxonomy incompatibility row");
     assert_eq!(
-        taxonomy
-            .get("incompatibility_kind")
-            .and_then(serde_json::Value::as_str),
+        taxonomy.get("incompatibility_kind").and_then(serde_json::Value::as_str),
         Some("missing_taxonomy_database_bundle")
     );
     assert!(
-        taxonomy
-            .get("required_assets")
-            .and_then(serde_json::Value::as_str)
-            .is_some_and(|value| {
-                value.contains("database_artifact_id=taxonomy_db")
-                    && value.contains("taxonomy_database_root=taxonomy_reference")
-            }),
+        taxonomy.get("required_assets").and_then(serde_json::Value::as_str).is_some_and(|value| {
+            value.contains("database_artifact_id=taxonomy_db")
+                && value.contains("taxonomy_database_root=taxonomy_reference")
+        }),
         "taxonomy row must carry the governed taxonomy asset bundle"
     );
 
@@ -160,17 +153,14 @@ fn bench_readiness_corpus_incompatibility_reports_governed_blockers() {
         .iter()
         .find(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.kinship")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.kinship")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("king")
                 && row.get("incompatible_fixture_id").and_then(serde_json::Value::as_str)
                     == Some("corpus-01-bam-mini")
         })
         .expect("kinship incompatibility row");
     assert_eq!(
-        kinship
-            .get("incompatibility_kind")
-            .and_then(serde_json::Value::as_str),
+        kinship.get("incompatibility_kind").and_then(serde_json::Value::as_str),
         Some("missing_kinship_pair_manifest")
     );
     assert!(
@@ -181,10 +171,9 @@ fn bench_readiness_corpus_incompatibility_reports_governed_blockers() {
         "kinship row must carry the governed relatedness panel asset"
     );
     assert!(
-        kinship
-            .get("required_contract")
-            .and_then(serde_json::Value::as_str)
-            .is_some_and(|value| value.contains("cases=") && value.contains("reference_build=grch38")),
+        kinship.get("required_contract").and_then(serde_json::Value::as_str).is_some_and(|value| {
+            value.contains("cases=") && value.contains("reference_build=grch38")
+        }),
         "kinship row must carry the governed pair-manifest contract"
     );
 }

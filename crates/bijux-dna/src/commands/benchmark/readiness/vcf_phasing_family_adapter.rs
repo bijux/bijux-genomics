@@ -32,7 +32,7 @@ const VCF_SHAPEIT5_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_sha
 const VCF_EAGLE_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_eagle_adapter.v1";
 const VCF_BEAGLE_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_beagle_adapter.v1";
 const GOVERNED_COHORT_VCF_PATH: &str =
-    "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
+    "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct VcfPhasingFamilyAdapterArtifact {

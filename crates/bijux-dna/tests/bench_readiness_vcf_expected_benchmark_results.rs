@@ -35,12 +35,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_vcf_expected_benchmark_results_tracks_governed_rows() {
-    let payload = run_cli_json(&[
-        "bench",
-        "readiness",
-        "render-vcf-expected-benchmark-results",
-        "--json",
-    ]);
+    let payload =
+        run_cli_json(&["bench", "readiness", "render-vcf-expected-benchmark-results", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -54,10 +50,7 @@ fn bench_readiness_vcf_expected_benchmark_results_tracks_governed_rows() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(
-        payload.get("asset_profile_count").and_then(serde_json::Value::as_u64),
-        Some(3)
-    );
+    assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(3));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 8);
@@ -87,12 +80,9 @@ fn bench_readiness_vcf_expected_benchmark_results_tracks_governed_rows() {
                 .get("expected_outputs")
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|items| items.iter().any(|item| item.as_str() == Some("called_vcf")))
-            && row
-                .get("expected_metrics")
-                .and_then(serde_json::Value::as_array)
-                .is_some_and(|items| {
-                    items.iter().any(|item| item.as_str() == Some("variant_count"))
-                })
+            && row.get("expected_metrics").and_then(serde_json::Value::as_array).is_some_and(
+                |items| items.iter().any(|item| item.as_str() == Some("variant_count")),
+            )
             && row.get("report_section").and_then(serde_json::Value::as_str)
                 == Some("variant_calling")
     }));
@@ -100,12 +90,9 @@ fn bench_readiness_vcf_expected_benchmark_results_tracks_governed_rows() {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.gl_propagation")
             && row.get("asset_profile_id").and_then(serde_json::Value::as_str)
                 == Some("vcf_single_sample")
-            && row
-                .get("expected_outputs")
-                .and_then(serde_json::Value::as_array)
-                .is_some_and(|items| {
-                    items.iter().any(|item| item.as_str() == Some("gl_propagated_vcf"))
-                })
+            && row.get("expected_outputs").and_then(serde_json::Value::as_array).is_some_and(
+                |items| items.iter().any(|item| item.as_str() == Some("gl_propagated_vcf")),
+            )
             && row
                 .get("expected_metrics")
                 .and_then(serde_json::Value::as_array)

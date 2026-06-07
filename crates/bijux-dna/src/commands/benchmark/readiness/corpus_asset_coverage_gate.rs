@@ -242,7 +242,13 @@ fn collect_corpus_asset_coverage_gate_rows(
     for row in fastq_coverage_rows {
         let corpus_row = fastq_corpus_by_binding
             .get(&(row.stage_id.clone(), row.tool_id.clone()))
-            .ok_or_else(|| anyhow!("missing FASTQ corpus assignment row for `{}` / `{}`", row.stage_id, row.tool_id))?;
+            .ok_or_else(|| {
+                anyhow!(
+                    "missing FASTQ corpus assignment row for `{}` / `{}`",
+                    row.stage_id,
+                    row.tool_id
+                )
+            })?;
         let assigned_assets = assets_by_binding
             .get(&("fastq".to_string(), row.stage_id.clone(), row.tool_id.clone()))
             .cloned()
@@ -252,7 +258,13 @@ fn collect_corpus_asset_coverage_gate_rows(
     for row in bam_coverage_rows {
         let corpus_row = bam_corpus_by_binding
             .get(&(row.stage_id.clone(), row.tool_id.clone()))
-            .ok_or_else(|| anyhow!("missing BAM corpus assignment row for `{}` / `{}`", row.stage_id, row.tool_id))?;
+            .ok_or_else(|| {
+                anyhow!(
+                    "missing BAM corpus assignment row for `{}` / `{}`",
+                    row.stage_id,
+                    row.tool_id
+                )
+            })?;
         let assigned_assets = assets_by_binding
             .get(&("bam".to_string(), row.stage_id.clone(), row.tool_id.clone()))
             .cloned()
@@ -286,7 +298,8 @@ fn render_fastq_row(
         FastqCorpusAssignmentStatus::Assigned => CorpusAssignmentStatus::Assigned,
         FastqCorpusAssignmentStatus::Excluded => CorpusAssignmentStatus::Excluded,
     };
-    let required_asset_roles = required_asset_roles("fastq", &coverage_row.stage_id, &coverage_row.tool_id);
+    let required_asset_roles =
+        required_asset_roles("fastq", &coverage_row.stage_id, &coverage_row.tool_id);
     let assigned_assets = assigned_assets
         .iter()
         .map(|row| format!("{}={}", row.asset_role, row.asset_id))
@@ -352,7 +365,8 @@ fn render_bam_row(
     } else {
         CorpusAssignmentStatus::Assigned
     };
-    let required_asset_roles = required_asset_roles("bam", &coverage_row.stage_id, &coverage_row.tool_id);
+    let required_asset_roles =
+        required_asset_roles("bam", &coverage_row.stage_id, &coverage_row.tool_id);
     let assigned_assets = assigned_assets
         .iter()
         .map(|row| format!("{}={}", row.asset_role, row.asset_id))
@@ -463,10 +477,7 @@ fn resolve_asset_assignment_status(
         .iter()
         .filter_map(|asset| asset.split_once('=').map(|(role, _)| role.to_string()))
         .collect::<BTreeSet<_>>();
-    if required_asset_roles
-        .iter()
-        .all(|role| assigned_roles.contains(role))
-    {
+    if required_asset_roles.iter().all(|role| assigned_roles.contains(role)) {
         AssetAssignmentStatus::Assigned
     } else {
         AssetAssignmentStatus::Missing
@@ -485,9 +496,7 @@ fn required_asset_roles(domain: &str, stage_id: &str, tool_id: &str) -> Vec<Stri
         | ("fastq", "fastq.deplete_reference_contaminants", "bowtie2") => {
             &["reference_catalog_id", "reference_index_artifact_id"]
         }
-        ("fastq", "fastq.deplete_rrna", "sortmerna") => {
-            &["rrna_reference", "database_artifact_id"]
-        }
+        ("fastq", "fastq.deplete_rrna", "sortmerna") => &["rrna_reference", "database_artifact_id"],
         ("fastq", "fastq.index_reference", "bowtie2_build") => {
             &["reference_fasta", "reference_index_output"]
         }
@@ -497,9 +506,9 @@ fn required_asset_roles(domain: &str, stage_id: &str, tool_id: &str) -> Vec<Stri
         | ("bam", "bam.haplogroups", "yleaf")
         | ("bam", "bam.kinship", "angsd")
         | ("bam", "bam.kinship", "king") => &["reference_fasta", "reference_panel"],
-        ("bam", "bam.sex", "angsd")
-        | ("bam", "bam.sex", "rxy")
-        | ("bam", "bam.sex", "yleaf") => &["reference_fasta"],
+        ("bam", "bam.sex", "angsd") | ("bam", "bam.sex", "rxy") | ("bam", "bam.sex", "yleaf") => {
+            &["reference_fasta"]
+        }
         ("bam", "bam.genotyping", "angsd") => &["reference_fasta", "sites_vcf", "regions"],
         ("bam", "bam.recalibration", "gatk") => &["reference_fasta", "known_sites"],
         _ => &[],
@@ -552,7 +561,9 @@ fn ensure_row(
     let row = rows
         .iter()
         .find(|row| row.domain == domain && row.stage_id == stage_id && row.tool_id == tool_id)
-        .ok_or_else(|| anyhow!("missing corpus asset coverage row for `{domain}` / `{stage_id}` / `{tool_id}`"))?;
+        .ok_or_else(|| {
+            anyhow!("missing corpus asset coverage row for `{domain}` / `{stage_id}` / `{tool_id}`")
+        })?;
     if row.gate_scope != CorpusAssetCoverageGateScope::BenchmarkSubmission
         || row.gate_status != CorpusAssetCoverageGateStatus::Pass
         || row.corpus_assignment_status != CorpusAssignmentStatus::Assigned
@@ -635,10 +646,7 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
 
 #[cfg(test)]
@@ -646,9 +654,9 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        render_corpus_asset_coverage_gate, AssetAssignmentStatus,
-        CORPUS_ASSET_COVERAGE_GATE_SCHEMA_VERSION, CorpusAssetCoverageGateStatus,
-        CorpusAssetCoverageGateScope, DEFAULT_CORPUS_ASSET_COVERAGE_GATE_PATH,
+        render_corpus_asset_coverage_gate, AssetAssignmentStatus, CorpusAssetCoverageGateScope,
+        CorpusAssetCoverageGateStatus, CORPUS_ASSET_COVERAGE_GATE_SCHEMA_VERSION,
+        DEFAULT_CORPUS_ASSET_COVERAGE_GATE_PATH,
     };
 
     fn repo_root() -> PathBuf {
@@ -689,7 +697,10 @@ mod tests {
                 && row.gate_scope == CorpusAssetCoverageGateScope::BenchmarkSubmission
                 && row.asset_assignment_status == AssetAssignmentStatus::Assigned
                 && row.required_asset_roles
-                    == vec!["taxonomy_database_root".to_string(), "database_artifact_id".to_string()]
+                    == vec![
+                        "taxonomy_database_root".to_string(),
+                        "database_artifact_id".to_string(),
+                    ]
         }));
         assert!(report.rows.iter().any(|row| {
             row.domain == "bam"

@@ -36,10 +36,7 @@ fn bench_readiness_corpus_asset_coverage_gate_file_writes_self_describing_report
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(
-        rendered_path.trim(),
-        "target/bench-readiness/gate-corpus-assets-complete.json"
-    );
+    assert_eq!(rendered_path.trim(), "target/bench-readiness/gate-corpus-assets-complete.json");
 
     let repo_root = support::repo_root().expect("repo root");
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
@@ -55,15 +52,11 @@ fn bench_readiness_corpus_asset_coverage_gate_file_writes_self_describing_report
     assert_eq!(report.get("gate_passed_row_count").and_then(serde_json::Value::as_u64), Some(112));
     assert_eq!(report.get("gate_failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
-        report
-            .get("benchmark_ready_asset_required_row_count")
-            .and_then(serde_json::Value::as_u64),
+        report.get("benchmark_ready_asset_required_row_count").and_then(serde_json::Value::as_u64),
         Some(18)
     );
     assert_eq!(
-        report
-            .get("benchmark_ready_asset_missing_row_count")
-            .and_then(serde_json::Value::as_u64),
+        report.get("benchmark_ready_asset_missing_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
     assert_eq!(report.get("rows").and_then(serde_json::Value::as_array).map(Vec::len), Some(123));

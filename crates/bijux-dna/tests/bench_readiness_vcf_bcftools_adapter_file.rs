@@ -83,7 +83,10 @@ fn bench_readiness_vcf_bcftools_adapter_writes_governed_json_file() {
         .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.stats"))
         .expect("stats row");
     assert_eq!(
-        stats_row.get("declared_outputs").and_then(serde_json::Value::as_array).map(|items| items.len()),
+        stats_row
+            .get("declared_outputs")
+            .and_then(serde_json::Value::as_array)
+            .map(|items| items.len()),
         Some(2),
         "stats row must retain both raw bcftools output and normalized parser output declarations"
     );

@@ -356,13 +356,7 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
             "runnable",
             "benchmark_normalized",
         ),
-        (
-            "dada2",
-            "fastq.infer_asvs",
-            "governed_execution",
-            "runnable",
-            "parse_normalized",
-        ),
+        ("dada2", "fastq.infer_asvs", "governed_execution", "runnable", "parse_normalized"),
         (
             "vsearch",
             "fastq.cluster_otus",

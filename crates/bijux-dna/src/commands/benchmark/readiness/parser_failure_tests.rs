@@ -16,8 +16,7 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_PARSER_FAILURE_TESTS_PATH: &str =
     "target/bench-readiness/parser-failure-tests.json";
-const PARSER_FAILURE_TESTS_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.parser_failure_tests.v1";
+const PARSER_FAILURE_TESTS_SCHEMA_VERSION: &str = "bijux.bench.readiness.parser_failure_tests.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct ParserFailureTestRow {
@@ -73,12 +72,8 @@ pub(crate) fn render_parser_failure_tests(
     let mut observed_failure_class_counts = BTreeMap::<String, usize>::new();
     for row in &rows {
         *domain_row_counts.entry(row.domain.clone()).or_default() += 1;
-        *expected_failure_class_counts
-            .entry(row.expected_failure_class.clone())
-            .or_default() += 1;
-        *observed_failure_class_counts
-            .entry(row.observed_failure_class.clone())
-            .or_default() += 1;
+        *expected_failure_class_counts.entry(row.expected_failure_class.clone()).or_default() += 1;
+        *observed_failure_class_counts.entry(row.observed_failure_class.clone()).or_default() += 1;
     }
 
     let report = ParserFailureTestsReport {
@@ -106,9 +101,8 @@ fn collect_parser_failure_test_rows(repo_root: &Path) -> Result<Vec<ParserFailur
     let mut rows = Vec::new();
 
     rows.extend(
-        evaluate_fastq_raw_parser_failure_contracts(repo_root, &scratch_root)?
-            .into_iter()
-            .map(|row| ParserFailureTestRow {
+        evaluate_fastq_raw_parser_failure_contracts(repo_root, &scratch_root)?.into_iter().map(
+            |row| ParserFailureTestRow {
                 domain: "fastq".to_string(),
                 stage_id: row.stage_id,
                 tool_id: row.tool_id,
@@ -119,12 +113,12 @@ fn collect_parser_failure_test_rows(repo_root: &Path) -> Result<Vec<ParserFailur
                     .to_string(),
                 observed_error: row.observed_error,
                 passed: row.passed,
-            }),
+            },
+        ),
     );
     rows.extend(
-        evaluate_bam_raw_parser_failure_contracts(repo_root, &scratch_root)?
-            .into_iter()
-            .map(|row| ParserFailureTestRow {
+        evaluate_bam_raw_parser_failure_contracts(repo_root, &scratch_root)?.into_iter().map(
+            |row| ParserFailureTestRow {
                 domain: "bam".to_string(),
                 stage_id: row.stage_id,
                 tool_id: row.tool_id,
@@ -135,7 +129,8 @@ fn collect_parser_failure_test_rows(repo_root: &Path) -> Result<Vec<ParserFailur
                     .to_string(),
                 observed_error: row.observed_error,
                 passed: row.passed,
-            }),
+            },
+        ),
     );
 
     rows.sort_by(|left, right| {
@@ -209,18 +204,9 @@ mod tests {
         assert_eq!(report.failed_row_count, 0);
         assert_eq!(report.domain_row_counts.get("fastq"), Some(&45));
         assert_eq!(report.domain_row_counts.get("bam"), Some(&51));
-        assert_eq!(
-            report.expected_failure_class_counts.get("missing_raw_output"),
-            Some(&32)
-        );
-        assert_eq!(
-            report.expected_failure_class_counts.get("empty_raw_output"),
-            Some(&32)
-        );
-        assert_eq!(
-            report.expected_failure_class_counts.get("malformed_raw_output"),
-            Some(&32)
-        );
+        assert_eq!(report.expected_failure_class_counts.get("missing_raw_output"), Some(&32));
+        assert_eq!(report.expected_failure_class_counts.get("empty_raw_output"), Some(&32));
+        assert_eq!(report.expected_failure_class_counts.get("malformed_raw_output"), Some(&32));
         assert!(!report.observed_failure_class_counts.contains_key("unexpected_success"));
         assert!(report.rows.iter().all(|row| row.passed));
         assert!(report.rows.iter().any(|row| {

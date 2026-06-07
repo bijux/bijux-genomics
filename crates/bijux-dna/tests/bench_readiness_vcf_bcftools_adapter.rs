@@ -50,13 +50,9 @@ fn bench_readiness_vcf_bcftools_adapter_reports_governed_rows() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("supported_row_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("planned_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("argv_valid_row_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(
-        payload.get("argv_valid_row_count").and_then(serde_json::Value::as_u64),
-        Some(10)
-    );
-    assert_eq!(
-        payload.get("missing_input_test_passed_row_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("missing_input_test_passed_row_count").and_then(serde_json::Value::as_u64),
         Some(10)
     );
     assert_eq!(payload.get("indexed_row_count").and_then(serde_json::Value::as_u64), Some(9));
@@ -107,13 +103,13 @@ fn bench_readiness_vcf_bcftools_adapter_reports_governed_rows() {
         .iter()
         .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.call"))
         .expect("call row");
-    let call_steps = call_row
-        .get("command_steps")
-        .and_then(serde_json::Value::as_array)
-        .expect("call steps");
+    let call_steps =
+        call_row.get("command_steps").and_then(serde_json::Value::as_array).expect("call steps");
     assert_eq!(call_steps.len(), 3, "call row must keep mpileup, call, and index steps");
     assert_eq!(
-        call_steps[0].get("argv").and_then(serde_json::Value::as_array)
+        call_steps[0]
+            .get("argv")
+            .and_then(serde_json::Value::as_array)
             .and_then(|argv| argv.first())
             .and_then(serde_json::Value::as_str),
         Some("bcftools")

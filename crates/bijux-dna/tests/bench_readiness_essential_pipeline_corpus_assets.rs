@@ -35,12 +35,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_essential_pipeline_corpus_assets_reports_governed_rows() {
-    let payload = run_cli_json(&[
-        "bench",
-        "readiness",
-        "render-essential-pipeline-corpus-assets",
-        "--json",
-    ]);
+    let payload =
+        run_cli_json(&["bench", "readiness", "render-essential-pipeline-corpus-assets", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -52,15 +48,9 @@ fn bench_readiness_essential_pipeline_corpus_assets_reports_governed_rows() {
     );
     assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(93));
-    assert_eq!(
-        payload.get("resolved_row_count").and_then(serde_json::Value::as_u64),
-        Some(93)
-    );
+    assert_eq!(payload.get("resolved_row_count").and_then(serde_json::Value::as_u64), Some(93));
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(11));
-    assert_eq!(
-        payload.get("asset_profile_count").and_then(serde_json::Value::as_u64),
-        Some(25)
-    );
+    assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(25));
     assert_eq!(
         payload
             .get("pipeline_row_counts")

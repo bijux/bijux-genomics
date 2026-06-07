@@ -161,7 +161,9 @@ fn collect_bam_comparable_metric_rows(
         comparable_tool_row_count,
         declared_stage_count: rows
             .iter()
-            .filter(|row| row.comparison_contract_status == BamComparableMetricContractStatus::Declared)
+            .filter(|row| {
+                row.comparison_contract_status == BamComparableMetricContractStatus::Declared
+            })
             .count(),
         missing_shared_metric_stage_count: rows
             .iter()
@@ -264,9 +266,11 @@ mod tests {
     #[test]
     fn render_bam_comparable_metrics_reports_governed_multi_tool_rows() {
         let root = repo_root();
-        let report =
-            render_bam_comparable_metrics(&root, PathBuf::from(DEFAULT_BAM_COMPARABLE_METRICS_PATH))
-                .expect("render BAM comparable metrics");
+        let report = render_bam_comparable_metrics(
+            &root,
+            PathBuf::from(DEFAULT_BAM_COMPARABLE_METRICS_PATH),
+        )
+        .expect("render BAM comparable metrics");
 
         assert_eq!(report.schema_version, BAM_COMPARABLE_METRICS_SCHEMA_VERSION);
         assert_eq!(report.comparable_stage_count, 15);
@@ -284,11 +288,7 @@ mod tests {
             row.stage_id == "bam.validate"
                 && row.tool_count == 3
                 && row.tool_ids
-                    == [
-                        "bamtools".to_string(),
-                        "bedtools".to_string(),
-                        "samtools".to_string(),
-                    ]
+                    == ["bamtools".to_string(), "bedtools".to_string(), "samtools".to_string()]
                 && row.default_tool_id == "samtools"
                 && row.corpus_status == "fixture:corpus-01-bam-mini"
                 && row.shared_metric_fields

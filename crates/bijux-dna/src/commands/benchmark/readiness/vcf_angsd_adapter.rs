@@ -21,13 +21,13 @@ const GOVERNED_ANGSD_TOOL_ID: &str = "angsd";
 const GOVERNED_ANGSD_TOOL_STATUS: &str = "planned";
 const GOVERNED_CORPUS_ID: &str = "vcf_production_regression";
 const GOVERNED_BAM_PATH: &str =
-    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam";
+    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam";
 const GOVERNED_REFERENCE_FASTA_PATH: &str =
-    "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta";
+    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta";
 const GOVERNED_SITES_VCF_PATH: &str =
-    "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf";
+    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf";
 const GOVERNED_RAW_SINGLE_SAMPLE_VCF_PATH: &str =
-    "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf";
+    "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct VcfAngsdAdapterArtifact {

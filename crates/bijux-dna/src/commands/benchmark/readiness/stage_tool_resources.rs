@@ -41,8 +41,8 @@ const VCF_MINUTES_STANDARD: u32 = 20;
 const VCF_MINUTES_PREPARE_PANEL: u32 = 30;
 const VCF_MINUTES_PANEL_WORKFLOW: u32 = 60;
 const TINY_BAM_RESOURCE_INPUT_PATHS: &[&str] = &[
-    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
-    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam",
+    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
+    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam",
 ];
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

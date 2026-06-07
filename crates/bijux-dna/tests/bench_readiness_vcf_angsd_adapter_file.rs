@@ -46,12 +46,9 @@ fn bench_readiness_vcf_angsd_adapter_writes_governed_json_file() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(4));
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
 
-    for stage_id in [
-        "vcf.call_gl",
-        "vcf.call_pseudohaploid",
-        "vcf.damage_filter",
-        "vcf.gl_propagation",
-    ] {
+    for stage_id in
+        ["vcf.call_gl", "vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.gl_propagation"]
+    {
         assert!(
             rows.iter().any(|row| {
                 row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
@@ -60,13 +57,15 @@ fn bench_readiness_vcf_angsd_adapter_writes_governed_json_file() {
         );
     }
 
-    let call_gl_bam_list = repo_root.join(
-        "target/bench-readiness/adapters/angsd/vcf.call_gl/angsd-inputs.bam.list",
+    let call_gl_bam_list =
+        repo_root.join("target/bench-readiness/adapters/angsd/vcf.call_gl/angsd-inputs.bam.list");
+    assert!(
+        call_gl_bam_list.is_file(),
+        "call_gl row must materialize the governed bam.list helper"
     );
-    assert!(call_gl_bam_list.is_file(), "call_gl row must materialize the governed bam.list helper");
     assert_eq!(
         std::fs::read_to_string(&call_gl_bam_list).expect("read call_gl bam.list"),
-        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam\n"
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam\n"
     );
 
     let damage_filter = rows

@@ -22,7 +22,7 @@ use crate::commands::benchmark::local_corpus_fixture::{
     damage::BAM_DAMAGE_FIXTURE_SCHEMA_VERSION,
     edna::{
         validate_edna_corpus_fixture_manifest_path, EdnaCorpusFixtureValidationReport,
-        EDNA_CORPUS_FIXTURE_SCHEMA_VERSION, DEFAULT_CORPUS_02_EDNA_MANIFEST_PATH,
+        DEFAULT_CORPUS_02_EDNA_MANIFEST_PATH, EDNA_CORPUS_FIXTURE_SCHEMA_VERSION,
     },
     fastq::FASTQ_CORPUS_FIXTURE_SCHEMA_VERSION,
 };
@@ -129,9 +129,7 @@ pub(crate) fn run_render_corpus_incompatibility(
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let report = render_corpus_incompatibility(
         &repo_root,
-        args.output
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_CORPUS_INCOMPATIBILITY_PATH)),
+        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_CORPUS_INCOMPATIBILITY_PATH)),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -153,16 +151,8 @@ pub(crate) fn render_corpus_incompatibility(
     let context = load_context(repo_root, &compatibility)?;
     let rows = collect_corpus_incompatibility_rows(repo_root, &context)?;
     let benchmark_ready_binding_count = count_benchmark_ready_bindings(&rows);
-    let stage_count = rows
-        .iter()
-        .map(|row| row.stage_id.clone())
-        .collect::<BTreeSet<_>>()
-        .len();
-    let tool_count = rows
-        .iter()
-        .map(|row| row.tool_id.clone())
-        .collect::<BTreeSet<_>>()
-        .len();
+    let stage_count = rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len();
+    let tool_count = rows.iter().map(|row| row.tool_id.clone()).collect::<BTreeSet<_>>().len();
 
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -206,22 +196,15 @@ fn collect_corpus_incompatibility_rows(
             && row.assignment_status == FastqCorpusAssignmentStatus::Assigned
     }) {
         let required_fixture_id = row.fixture_id.as_deref().ok_or_else(|| {
-            anyhow!(
-                "FASTQ row `{}` / `{}` is missing fixture_id",
-                row.stage_id,
-                row.tool_id
-            )
+            anyhow!("FASTQ row `{}` / `{}` is missing fixture_id", row.stage_id, row.tool_id)
         })?;
         let required_corpus_family_id = row.corpus_family_id.as_deref().ok_or_else(|| {
-            anyhow!(
-                "FASTQ row `{}` / `{}` is missing corpus_family_id",
-                row.stage_id,
-                row.tool_id
-            )
+            anyhow!("FASTQ row `{}` / `{}` is missing corpus_family_id", row.stage_id, row.tool_id)
         })?;
-        let stage_contract = context.compatibility_by_stage.get(&row.stage_id).ok_or_else(|| {
-            anyhow!("missing compatibility entry for FASTQ stage `{}`", row.stage_id)
-        })?;
+        let stage_contract =
+            context.compatibility_by_stage.get(&row.stage_id).ok_or_else(|| {
+                anyhow!("missing compatibility entry for FASTQ stage `{}`", row.stage_id)
+            })?;
 
         for fixture in context
             .fastq_fixtures
@@ -239,18 +222,14 @@ fn collect_corpus_incompatibility_rows(
         }
     }
 
-    for row in bam_rows
-        .iter()
-        .filter(|row| row.benchmark_status == "benchmark_ready")
-    {
-        let stage_contract = context.compatibility_by_stage.get(&row.stage_id).ok_or_else(|| {
-            anyhow!("missing compatibility entry for BAM stage `{}`", row.stage_id)
-        })?;
+    for row in bam_rows.iter().filter(|row| row.benchmark_status == "benchmark_ready") {
+        let stage_contract =
+            context.compatibility_by_stage.get(&row.stage_id).ok_or_else(|| {
+                anyhow!("missing compatibility entry for BAM stage `{}`", row.stage_id)
+            })?;
 
-        for fixture in context
-            .bam_fixtures
-            .iter()
-            .filter(|fixture| fixture.fixture_id != row.fixture_id)
+        for fixture in
+            context.bam_fixtures.iter().filter(|fixture| fixture.fixture_id != row.fixture_id)
         {
             rows.push(build_bam_incompatibility_row(row, fixture, stage_contract, context)?);
         }
@@ -413,9 +392,7 @@ fn load_context(
     let assets_by_binding = collect_stage_tool_asset_rows(repo_root)?.into_iter().fold(
         BTreeMap::<(String, String), Vec<StageToolAssetRow>>::new(),
         |mut acc, row| {
-            acc.entry((row.stage_id.clone(), row.tool_id.clone()))
-                .or_default()
-                .push(row);
+            acc.entry((row.stage_id.clone(), row.tool_id.clone())).or_default().push(row);
             acc
         },
     );
@@ -497,18 +474,15 @@ fn classify_fixture_domain(
 }
 
 fn load_manifest_schema_version(manifest_path: &Path) -> Result<String> {
-    let raw =
-        fs::read_to_string(manifest_path).with_context(|| format!("read {}", manifest_path.display()))?;
+    let raw = fs::read_to_string(manifest_path)
+        .with_context(|| format!("read {}", manifest_path.display()))?;
     let probe: ManifestSchemaProbe =
         toml::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))?;
     Ok(probe.schema_version)
 }
 
 fn taxonomy_contract(report: &EdnaCorpusFixtureValidationReport) -> String {
-    format!(
-        "community_id={};expected_taxa_path={}",
-        report.community_id, report.expected_taxa_path
-    )
+    format!("community_id={};expected_taxa_path={}", report.community_id, report.expected_taxa_path)
 }
 
 fn amplicon_asv_contract(report: &AmpliconCorpusFixtureValidationReport) -> String {
@@ -540,16 +514,12 @@ fn required_assets_for_binding(
     stage_id: &str,
     tool_id: &str,
 ) -> String {
-    let Some(rows) = context
-        .assets_by_binding
-        .get(&(stage_id.to_string(), tool_id.to_string()))
+    let Some(rows) = context.assets_by_binding.get(&(stage_id.to_string(), tool_id.to_string()))
     else {
         return NOT_APPLICABLE.to_string();
     };
-    let mut parts = rows
-        .iter()
-        .map(|row| format!("{}={}", row.asset_role, row.asset_id))
-        .collect::<Vec<_>>();
+    let mut parts =
+        rows.iter().map(|row| format!("{}={}", row.asset_role, row.asset_id)).collect::<Vec<_>>();
     parts.sort();
     parts.join(",")
 }
@@ -691,10 +661,7 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
 
 #[cfg(test)]

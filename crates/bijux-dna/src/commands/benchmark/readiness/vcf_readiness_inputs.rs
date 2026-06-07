@@ -108,7 +108,8 @@ pub(crate) fn materialize_reference_fasta_with_index(
 ) -> Result<(String, String)> {
     let source_fasta = repo_root.join(source_relative_path);
     let output_root = repo_root.join(staging_root);
-    fs::create_dir_all(&output_root).with_context(|| format!("create {}", output_root.display()))?;
+    fs::create_dir_all(&output_root)
+        .with_context(|| format!("create {}", output_root.display()))?;
     let file_name = source_fasta
         .file_name()
         .ok_or_else(|| anyhow!("reference FASTA has no file name: {}", source_fasta.display()))?;
@@ -156,7 +157,13 @@ fn build_fasta_index_payload(fasta_path: &Path) -> Result<String> {
         let line = if chunk.ends_with(b"\n") { &chunk[..chunk.len() - 1] } else { chunk };
         if let Some(header) = line.strip_prefix(b">") {
             if let Some(name) = current_name.take() {
-                rows.push((name, current_length, current_sequence_offset, current_line_bases, current_line_width));
+                rows.push((
+                    name,
+                    current_length,
+                    current_sequence_offset,
+                    current_line_bases,
+                    current_line_width,
+                ));
             }
             let header_text = std::str::from_utf8(header)
                 .with_context(|| format!("decode FASTA header in {}", fasta_path.display()))?;
@@ -186,7 +193,13 @@ fn build_fasta_index_payload(fasta_path: &Path) -> Result<String> {
     }
 
     if let Some(name) = current_name.take() {
-        rows.push((name, current_length, current_sequence_offset, current_line_bases, current_line_width));
+        rows.push((
+            name,
+            current_length,
+            current_sequence_offset,
+            current_line_bases,
+            current_line_width,
+        ));
     }
 
     if rows.is_empty() {

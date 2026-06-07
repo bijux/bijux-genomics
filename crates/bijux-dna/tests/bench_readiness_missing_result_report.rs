@@ -38,8 +38,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_missing_result_report_tracks_governed_missing_row() {
-    let payload =
-        run_cli_json(&["bench", "readiness", "render-missing-result-report", "--json"]);
+    let payload = run_cli_json(&["bench", "readiness", "render-missing-result-report", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -53,26 +52,16 @@ fn bench_readiness_missing_result_report_tracks_governed_missing_row() {
         payload.get("fake_result_root").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/missing-result-report-fixture")
     );
+    assert_eq!(payload.get("expected_row_count").and_then(serde_json::Value::as_u64), Some(112));
     assert_eq!(
-        payload.get("expected_row_count").and_then(serde_json::Value::as_u64),
-        Some(112)
-    );
-    assert_eq!(
-        payload
-            .get("present_result_row_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("present_result_row_count").and_then(serde_json::Value::as_u64),
         Some(111)
     );
     assert_eq!(
-        payload
-            .get("missing_result_row_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("missing_result_row_count").and_then(serde_json::Value::as_u64),
         Some(1)
     );
-    assert_eq!(
-        payload.get("passes_behavior_test"),
-        Some(&serde_json::Value::Bool(true))
-    );
+    assert_eq!(payload.get("passes_behavior_test"), Some(&serde_json::Value::Bool(true)));
     assert_eq!(
         payload
             .get("domain_counts")
@@ -88,10 +77,7 @@ fn bench_readiness_missing_result_report_tracks_governed_missing_row() {
         Some(49)
     );
 
-    let rows = payload
-        .get("rows")
-        .and_then(serde_json::Value::as_array)
-        .expect("rows array");
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 112);
 
     let removed_result_row_id = payload
@@ -100,20 +86,17 @@ fn bench_readiness_missing_result_report_tracks_governed_missing_row() {
         .expect("removed_result_row_id");
     let removed_row = rows
         .iter()
-        .find(|row| row.get("result_row_id").and_then(serde_json::Value::as_str) == Some(removed_result_row_id))
+        .find(|row| {
+            row.get("result_row_id").and_then(serde_json::Value::as_str)
+                == Some(removed_result_row_id)
+        })
         .expect("removed result row");
-    assert_eq!(
-        removed_row.get("domain").and_then(serde_json::Value::as_str),
-        Some("fastq")
-    );
+    assert_eq!(removed_row.get("domain").and_then(serde_json::Value::as_str), Some("fastq"));
     assert_eq!(
         removed_row.get("stage_id").and_then(serde_json::Value::as_str),
         Some("fastq.screen_taxonomy")
     );
-    assert_eq!(
-        removed_row.get("tool_id").and_then(serde_json::Value::as_str),
-        Some("kraken2")
-    );
+    assert_eq!(removed_row.get("tool_id").and_then(serde_json::Value::as_str), Some("kraken2"));
     assert_eq!(
         removed_row.get("result_status").and_then(serde_json::Value::as_str),
         Some("missing_result")
@@ -135,9 +118,7 @@ fn bench_readiness_missing_result_report_tracks_governed_missing_row() {
         })
         .expect("bam kinship result row");
     assert_eq!(
-        bam_present
-            .get("result_status")
-            .and_then(serde_json::Value::as_str),
+        bam_present.get("result_status").and_then(serde_json::Value::as_str),
         Some("present")
     );
     assert!(

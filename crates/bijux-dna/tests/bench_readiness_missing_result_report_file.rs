@@ -47,31 +47,12 @@ fn bench_readiness_missing_result_report_writes_self_describing_report() {
         report.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.missing_result_report.v1")
     );
+    assert_eq!(report.get("passes_behavior_test"), Some(&serde_json::Value::Bool(true)));
+    assert_eq!(report.get("expected_row_count").and_then(serde_json::Value::as_u64), Some(112));
     assert_eq!(
-        report.get("passes_behavior_test"),
-        Some(&serde_json::Value::Bool(true))
-    );
-    assert_eq!(
-        report.get("expected_row_count").and_then(serde_json::Value::as_u64),
-        Some(112)
-    );
-    assert_eq!(
-        report
-            .get("present_result_row_count")
-            .and_then(serde_json::Value::as_u64),
+        report.get("present_result_row_count").and_then(serde_json::Value::as_u64),
         Some(111)
     );
-    assert_eq!(
-        report
-            .get("missing_result_row_count")
-            .and_then(serde_json::Value::as_u64),
-        Some(1)
-    );
-    assert_eq!(
-        report
-            .get("rows")
-            .and_then(serde_json::Value::as_array)
-            .map(Vec::len),
-        Some(112)
-    );
+    assert_eq!(report.get("missing_result_row_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(report.get("rows").and_then(serde_json::Value::as_array).map(Vec::len), Some(112));
 }

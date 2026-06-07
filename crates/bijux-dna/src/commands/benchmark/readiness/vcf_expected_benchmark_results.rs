@@ -251,10 +251,7 @@ fn ensure_vcf_expected_benchmark_result_contract(
     let unique_rows = rows
         .iter()
         .map(|row| {
-            format!(
-                "{}:{}:{}:{}",
-                row.stage_id, row.tool_id, row.corpus_id, row.asset_profile_id
-            )
+            format!("{}:{}:{}:{}", row.stage_id, row.tool_id, row.corpus_id, row.asset_profile_id)
         })
         .collect::<BTreeSet<_>>();
     if unique_rows.len() != rows.len() {
@@ -273,7 +270,15 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "VCF expected-result table must keep the VCF domain label on every row"
         ));
     }
-    for (stage_id, tool_id, corpus_id, asset_profile_id, expected_outputs, expected_metrics, report_section) in [
+    for (
+        stage_id,
+        tool_id,
+        corpus_id,
+        asset_profile_id,
+        expected_outputs,
+        expected_metrics,
+        report_section,
+    ) in [
         (
             "vcf.call",
             "bcftools",
@@ -302,10 +307,10 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "quality_control",
         ),
     ] {
-        let row = rows
-            .iter()
-            .find(|row| row.stage_id == stage_id && row.tool_id == tool_id)
-            .ok_or_else(|| anyhow!("VCF expected-result table is missing `{stage_id}` / `{tool_id}`"))?;
+        let row =
+            rows.iter().find(|row| row.stage_id == stage_id && row.tool_id == tool_id).ok_or_else(
+                || anyhow!("VCF expected-result table is missing `{stage_id}` / `{tool_id}`"),
+            )?;
         if row.corpus_id != corpus_id
             || row.asset_profile_id != asset_profile_id
             || !row.expected_outputs.iter().any(|candidate| candidate == expected_outputs)

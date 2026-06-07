@@ -64,7 +64,7 @@ fn bench_readiness_vcf_parser_coverage_reports_benchmark_ready_rows() {
             && row
                 .get("fixture_path")
                 .and_then(serde_json::Value::as_str)
-                .is_some_and(|path| path.starts_with("tests/fixtures/bench/parsers/vcf/bcftools/"))
+                .is_some_and(|path| path.starts_with("benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/"))
             && row
                 .get("schema_id")
                 .and_then(serde_json::Value::as_str)

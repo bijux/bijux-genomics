@@ -3,7 +3,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_domain_bam::pipeline_contract::{optional_branches, stage_criticality, StageCriticality};
+use bijux_dna_domain_bam::pipeline_contract::{
+    optional_branches, stage_criticality, StageCriticality,
+};
 use bijux_dna_domain_bam::{
     bam_scientific_report_contract_for_stage, BamScientificReportContractV1, BamStage,
 };
@@ -126,12 +128,14 @@ pub(crate) fn collect_bam_report_map_rows(repo_root: &Path) -> Result<Vec<BamRep
 
     let mut rows = Vec::with_capacity(inventory.stages.len());
     for stage in inventory.stages {
-        let placement = placement_for_stage(stage.stage_id.as_str())
-            .ok_or_else(|| anyhow!("BAM report map is missing stage placement for `{}`", stage.stage_id))?;
+        let placement = placement_for_stage(stage.stage_id.as_str()).ok_or_else(|| {
+            anyhow!("BAM report map is missing stage placement for `{}`", stage.stage_id)
+        })?;
         let stage_kind = BamStage::try_from(stage.stage_id.as_str())
             .with_context(|| format!("resolve BAM stage `{}`", stage.stage_id))?;
-        let criticality = stage_criticality(stage.stage_id.as_str())
-            .ok_or_else(|| anyhow!("BAM report map is missing stage criticality for `{}`", stage.stage_id))?;
+        let criticality = stage_criticality(stage.stage_id.as_str()).ok_or_else(|| {
+            anyhow!("BAM report map is missing stage criticality for `{}`", stage.stage_id)
+        })?;
         let admissions = stage_admissions.get(stage.stage_id.as_str()).ok_or_else(|| {
             anyhow!("BAM report map is missing admitted benchmark tools for `{}`", stage.stage_id)
         })?;
@@ -141,10 +145,10 @@ pub(crate) fn collect_bam_report_map_rows(repo_root: &Path) -> Result<Vec<BamRep
         let report_contract = bam_scientific_report_contract_for_stage(stage.stage_id.as_str());
         let scientific_context_required = scientific_context_required(report_contract.as_ref());
         let workflow_branch_id = branch_by_stage.get(stage.stage_id.as_str()).cloned();
-        let canonical_stage_rank =
-            canonical_rank_by_stage.get(stage.stage_id.as_str()).copied().ok_or_else(|| {
-                anyhow!("BAM canonical stage order is missing `{}`", stage.stage_id)
-            })?;
+        let canonical_stage_rank = canonical_rank_by_stage
+            .get(stage.stage_id.as_str())
+            .copied()
+            .ok_or_else(|| anyhow!("BAM canonical stage order is missing `{}`", stage.stage_id))?;
 
         rows.push(BamReportMapRow {
             stage_id: stage.stage_id.clone(),
@@ -178,13 +182,15 @@ pub(crate) fn collect_bam_report_map_rows(repo_root: &Path) -> Result<Vec<BamRep
 
 fn placement_for_stage(stage_id: &str) -> Option<BamReportPlacement> {
     match stage_id {
-        "bam.align" | "bam.validate" | "bam.qc_pre" | "bam.mapping_summary" => Some(BamReportPlacement {
-            section_id: "alignment_intake",
-            section_title: "Alignment Intake",
-            summary_table_id: "alignment_baseline",
-            summary_table_title: "Alignment Baseline",
-            report_focus: "alignment provenance, validation status, and intake QC baselines",
-        }),
+        "bam.align" | "bam.validate" | "bam.qc_pre" | "bam.mapping_summary" => {
+            Some(BamReportPlacement {
+                section_id: "alignment_intake",
+                section_title: "Alignment Intake",
+                summary_table_id: "alignment_baseline",
+                summary_table_title: "Alignment Baseline",
+                report_focus: "alignment provenance, validation status, and intake QC baselines",
+            })
+        }
         "bam.filter" | "bam.mapq_filter" | "bam.length_filter" | "bam.overlap_correction" => {
             Some(BamReportPlacement {
                 section_id: "alignment_refinement",
@@ -224,13 +230,15 @@ fn placement_for_stage(stage_id: &str) -> Option<BamReportPlacement> {
             summary_table_title: "Identity and Relatedness",
             report_focus: "sex inference, haplogroup context, and relatedness interpretation",
         }),
-        "bam.bias_mitigation" | "bam.recalibration" | "bam.genotyping" => Some(BamReportPlacement {
-            section_id: "downstream_readiness",
-            section_title: "Downstream Readiness",
-            summary_table_id: "variant_readiness",
-            summary_table_title: "Variant and Bias Readiness",
-            report_focus: "bias control, recalibration, and genotyping readiness before downstream inference",
-        }),
+        "bam.bias_mitigation" | "bam.recalibration" | "bam.genotyping" => {
+            Some(BamReportPlacement {
+                section_id: "downstream_readiness",
+                section_title: "Downstream Readiness",
+                summary_table_id: "variant_readiness",
+                summary_table_title: "Variant and Bias Readiness",
+                report_focus: "bias control, recalibration, and genotyping readiness before downstream inference",
+            })
+        }
         _ => None,
     }
 }
@@ -351,16 +359,10 @@ fn ensure_bam_report_map_contract(rows: &[BamReportMapRow]) -> Result<()> {
         }
     }
 
-    let section_count = rows
-        .iter()
-        .map(|row| row.report_section_id.as_str())
-        .collect::<BTreeSet<_>>()
-        .len();
-    let summary_table_count = rows
-        .iter()
-        .map(|row| row.summary_table_id.as_str())
-        .collect::<BTreeSet<_>>()
-        .len();
+    let section_count =
+        rows.iter().map(|row| row.report_section_id.as_str()).collect::<BTreeSet<_>>().len();
+    let summary_table_count =
+        rows.iter().map(|row| row.summary_table_id.as_str()).collect::<BTreeSet<_>>().len();
     if section_count != 7 || summary_table_count != 7 {
         return Err(anyhow!(
             "BAM report map must retain 7 sections and 7 summary tables, found {section_count} sections and {summary_table_count} tables"
@@ -426,7 +428,9 @@ fn select_anchor_tool<'a>(
     admissions: &'a [super::catalog::ReadinessStageAdmission],
     preferred_tool_id: &str,
 ) -> Result<(&'a str, &'a str)> {
-    if let Some(admission) = admissions.iter().find(|admission| admission.tool_id == preferred_tool_id) {
+    if let Some(admission) =
+        admissions.iter().find(|admission| admission.tool_id == preferred_tool_id)
+    {
         return Ok((admission.tool_id.as_str(), admission.support_status.as_str()));
     }
 
@@ -485,7 +489,9 @@ fn sanitize_tsv(value: &str) -> String {
 mod tests {
     use std::path::PathBuf;
 
-    use super::{render_bam_report_map, BAM_REPORT_MAP_SCHEMA_VERSION, DEFAULT_BAM_REPORT_MAP_PATH};
+    use super::{
+        render_bam_report_map, BAM_REPORT_MAP_SCHEMA_VERSION, DEFAULT_BAM_REPORT_MAP_PATH,
+    };
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -497,9 +503,8 @@ mod tests {
     #[test]
     fn bam_report_map_tracks_governed_stage_sections() {
         let repo_root = repo_root();
-        let report =
-            render_bam_report_map(&repo_root, PathBuf::from(DEFAULT_BAM_REPORT_MAP_PATH))
-                .expect("render BAM report map");
+        let report = render_bam_report_map(&repo_root, PathBuf::from(DEFAULT_BAM_REPORT_MAP_PATH))
+            .expect("render BAM report map");
 
         assert_eq!(report.schema_version, BAM_REPORT_MAP_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_BAM_REPORT_MAP_PATH);

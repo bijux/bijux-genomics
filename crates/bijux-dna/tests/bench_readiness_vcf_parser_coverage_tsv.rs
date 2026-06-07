@@ -45,19 +45,19 @@ fn bench_readiness_vcf_parser_coverage_writes_governed_tsv_columns() {
     assert_eq!(rows.len(), 8);
     assert!(
         rows.iter().any(|row| {
-            row == &"vcf.call\tbcftools\tparse_bcftools_call_metrics\ttests/fixtures/bench/parsers/vcf/bcftools/vcf.call\tbijux.vcf.call.v1\tcovered"
+            row == &"vcf.call\tbcftools\tparse_bcftools_call_metrics\tbenchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call\tbijux.vcf.call.v1\tcovered"
         }),
         "TSV must retain the governed VCF call parser coverage row"
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"vcf.call_gl\tbcftools\tparse_bcftools_call_gl_metrics\ttests/fixtures/bench/parsers/vcf/bcftools/vcf.call_gl\tbijux.vcf.call_gl.v1\tcovered"
+            row == &"vcf.call_gl\tbcftools\tparse_bcftools_call_gl_metrics\tbenchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_gl\tbijux.vcf.call_gl.v1\tcovered"
         }),
         "TSV must retain the governed VCF GL parser coverage row"
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"vcf.stats\tbcftools\tparse_bcftools_stats_metrics\ttests/fixtures/bench/parsers/vcf/bcftools/vcf.stats\tbijux.vcf.stats.v1\tcovered"
+            row == &"vcf.stats\tbcftools\tparse_bcftools_stats_metrics\tbenchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.stats\tbijux.vcf.stats.v1\tcovered"
         }),
         "TSV must retain the governed VCF stats parser coverage row"
     );

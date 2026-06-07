@@ -38,7 +38,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_rows() {
-    let payload = run_cli_json(&["bench", "readiness", "render-parser-completeness-gate", "--json"]);
+    let payload =
+        run_cli_json(&["bench", "readiness", "render-parser-completeness-gate", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -55,10 +56,7 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
         Some(112)
     );
     assert_eq!(payload.get("gate_row_count").and_then(serde_json::Value::as_u64), Some(112));
-    assert_eq!(
-        payload.get("gate_passed_row_count").and_then(serde_json::Value::as_u64),
-        Some(112)
-    );
+    assert_eq!(payload.get("gate_passed_row_count").and_then(serde_json::Value::as_u64), Some(112));
     assert_eq!(payload.get("gate_failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("excluded_row_count").and_then(serde_json::Value::as_u64), Some(11));
     assert_eq!(
@@ -113,9 +111,9 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 123);
-    assert!(rows.iter().all(|row| {
-        row.get("gate_status").and_then(serde_json::Value::as_str) != Some("fail")
-    }));
+    assert!(rows
+        .iter()
+        .all(|row| { row.get("gate_status").and_then(serde_json::Value::as_str) != Some("fail") }));
 
     let bwa_align = rows
         .iter()
@@ -129,10 +127,7 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
         bwa_align.get("gate_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_reporting")
     );
-    assert_eq!(
-        bwa_align.get("gate_status").and_then(serde_json::Value::as_str),
-        Some("pass")
-    );
+    assert_eq!(bwa_align.get("gate_status").and_then(serde_json::Value::as_str), Some("pass"));
     assert_eq!(
         bwa_align.get("parser_status").and_then(serde_json::Value::as_str),
         Some("parser_fixture_validated")
@@ -150,10 +145,7 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
         bowtie2_align.get("gate_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_reporting")
     );
-    assert_eq!(
-        bowtie2_align.get("gate_status").and_then(serde_json::Value::as_str),
-        Some("pass")
-    );
+    assert_eq!(bowtie2_align.get("gate_status").and_then(serde_json::Value::as_str), Some("pass"));
     assert_eq!(
         bowtie2_align.get("parser_status").and_then(serde_json::Value::as_str),
         Some("parser_fixture_validated")

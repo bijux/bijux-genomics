@@ -33,7 +33,7 @@ const DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_FIXTURE_ROOT: &str =
 const ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_failure_classification.v1";
 const INSUFFICIENT_DATA_FIXTURE_PATH: &str =
-    "tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/insufficient_data/expected.normalized.json";
+    "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/insufficient_data/expected.normalized.json";
 
 const REQUIRED_FAILURE_CLASSES: [&str; 7] = [
     "missing_input",

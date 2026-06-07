@@ -22,19 +22,19 @@ pub(crate) const DEFAULT_VCF_BCFTOOLS_ADAPTER_PATH: &str =
 const VCF_BCFTOOLS_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_bcftools_adapter.v1";
 const GOVERNED_BCFTOOLS_TOOL_ID: &str = "bcftools";
 const GOVERNED_BAM_PATH: &str =
-    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam";
+    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam";
 const GOVERNED_BAM_INDEX_PATH: &str =
-    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai";
+    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai";
 const GOVERNED_REFERENCE_FASTA_PATH: &str =
-    "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta";
+    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta";
 const GOVERNED_RAW_SINGLE_SAMPLE_VCF_PATH: &str =
-    "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf";
+    "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf";
 const GOVERNED_FILTERED_SINGLE_SAMPLE_VCF_PATH: &str =
-    "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_filtered_single_sample.vcf";
+    "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_filtered_single_sample.vcf";
 const GOVERNED_MULTISAMPLE_VCF_PATH: &str =
-    "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
+    "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
 const GOVERNED_REFERENCE_PANEL_VCF_PATH: &str =
-    "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf";
+    "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct VcfBcftoolsAdapterArtifact {
@@ -270,11 +270,11 @@ fn governed_inputs_for_stage(
                 &PathBuf::from(output_root).join("artifacts/reference"),
             )?;
             vec![
-            artifact("input_bam", "bam", GOVERNED_BAM_PATH),
-            artifact("input_bam_index", "index", GOVERNED_BAM_INDEX_PATH),
-            artifact("reference_fasta", "reference", &reference_fasta),
-            artifact("reference_fai", "index", &reference_fai),
-        ]
+                artifact("input_bam", "bam", GOVERNED_BAM_PATH),
+                artifact("input_bam_index", "index", GOVERNED_BAM_INDEX_PATH),
+                artifact("reference_fasta", "reference", &reference_fasta),
+                artifact("reference_fai", "index", &reference_fai),
+            ]
         }
         VcfDomainStage::Stats => vec![artifact("vcf", "variant", GOVERNED_MULTISAMPLE_VCF_PATH)],
         VcfDomainStage::Postprocess => {

@@ -50,15 +50,11 @@ fn bench_readiness_pair_readiness_reports_governed_gap_columns() {
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
     assert_eq!(
-        payload
-            .get("benchmark_ready_row_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
         Some(112)
     );
     assert_eq!(
-        payload
-            .get("not_benchmark_ready_row_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("not_benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
         Some(11)
     );
     assert_eq!(
@@ -96,35 +92,22 @@ fn bench_readiness_pair_readiness_reports_governed_gap_columns() {
         })
         .expect("taxonomy readiness row");
     assert_eq!(
-        taxonomy
-            .get("benchmark_status")
-            .and_then(serde_json::Value::as_str),
+        taxonomy.get("benchmark_status").and_then(serde_json::Value::as_str),
         Some("benchmark_ready")
     );
     assert_eq!(
-        taxonomy
-            .get("adapter_status")
-            .and_then(serde_json::Value::as_str),
+        taxonomy.get("adapter_status").and_then(serde_json::Value::as_str),
         Some("runnable")
     );
     assert_eq!(
-        taxonomy
-            .get("parser_status")
-            .and_then(serde_json::Value::as_str),
+        taxonomy.get("parser_status").and_then(serde_json::Value::as_str),
         Some("benchmark_normalized")
     );
     assert_eq!(
-        taxonomy
-            .get("corpus_status")
-            .and_then(serde_json::Value::as_str),
+        taxonomy.get("corpus_status").and_then(serde_json::Value::as_str),
         Some("fixture:corpus-02-edna-mini")
     );
-    assert_eq!(
-        taxonomy
-            .get("asset_status")
-            .and_then(serde_json::Value::as_str),
-        Some("assigned")
-    );
+    assert_eq!(taxonomy.get("asset_status").and_then(serde_json::Value::as_str), Some("assigned"));
 
     let index_reference = rows
         .iter()
@@ -132,32 +115,23 @@ fn bench_readiness_pair_readiness_reports_governed_gap_columns() {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.index_reference")
-                && row.get("tool_id").and_then(serde_json::Value::as_str)
-                    == Some("bowtie2_build")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2_build")
         })
         .expect("index-reference readiness row");
     assert_eq!(
-        index_reference
-            .get("benchmark_status")
-            .and_then(serde_json::Value::as_str),
+        index_reference.get("benchmark_status").and_then(serde_json::Value::as_str),
         Some("not_benchmark_ready")
     );
     assert_eq!(
-        index_reference
-            .get("readiness_gap")
-            .and_then(serde_json::Value::as_str),
+        index_reference.get("readiness_gap").and_then(serde_json::Value::as_str),
         Some("corpus")
     );
     assert_eq!(
-        index_reference
-            .get("corpus_status")
-            .and_then(serde_json::Value::as_str),
+        index_reference.get("corpus_status").and_then(serde_json::Value::as_str),
         Some("planner_only")
     );
     assert_eq!(
-        index_reference
-            .get("asset_status")
-            .and_then(serde_json::Value::as_str),
+        index_reference.get("asset_status").and_then(serde_json::Value::as_str),
         Some("assigned")
     );
 }

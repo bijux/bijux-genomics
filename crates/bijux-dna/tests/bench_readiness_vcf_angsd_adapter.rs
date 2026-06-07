@@ -63,10 +63,7 @@ fn bench_readiness_vcf_angsd_adapter_reports_governed_rows() {
         Some(4)
     );
     assert_eq!(payload.get("bam_list_row_count").and_then(serde_json::Value::as_u64), Some(3));
-    assert_eq!(
-        payload.get("parser_output_row_count").and_then(serde_json::Value::as_u64),
-        Some(4)
-    );
+    assert_eq!(payload.get("parser_output_row_count").and_then(serde_json::Value::as_u64), Some(4));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 4);
@@ -74,8 +71,7 @@ fn bench_readiness_vcf_angsd_adapter_reports_governed_rows() {
     let has_stage = |stage_id: &str, stage_status: &str, benchmark_status: &str| {
         rows.iter().any(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
-                && row.get("stage_status").and_then(serde_json::Value::as_str)
-                    == Some(stage_status)
+                && row.get("stage_status").and_then(serde_json::Value::as_str) == Some(stage_status)
                 && row.get("benchmark_status").and_then(serde_json::Value::as_str)
                     == Some(benchmark_status)
                 && row.get("argv_validation_passed").and_then(serde_json::Value::as_bool)
@@ -143,10 +139,7 @@ fn bench_readiness_vcf_angsd_adapter_reports_governed_rows() {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.gl_propagation")
         })
         .expect("gl_propagation row");
-    assert_eq!(
-        gl_propagation.get("bam_list_path").and_then(serde_json::Value::as_str),
-        None
-    );
+    assert_eq!(gl_propagation.get("bam_list_path").and_then(serde_json::Value::as_str), None);
     let gl_propagation_argv = gl_propagation
         .get("command_steps")
         .and_then(serde_json::Value::as_array)

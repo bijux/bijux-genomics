@@ -37,8 +37,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_bam_comparable_metrics_reports_governed_stage_rows() {
-    let payload =
-        run_cli_json(&["bench", "readiness", "render-bam-comparable-metrics", "--json"]);
+    let payload = run_cli_json(&["bench", "readiness", "render-bam-comparable-metrics", "--json"]);
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.bam_comparable_metrics.v1")

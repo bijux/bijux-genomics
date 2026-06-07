@@ -475,7 +475,11 @@ pub(crate) fn render_stage_tool_benchmark_ready(
             covered_count: benchmark_ready_keys.len().saturating_sub(missing_pairs.rows.len()),
             excluded_count: excluded_keys.len(),
             failing_count: missing_pairs.rows.len()
-                + undercovered_stages.rows.iter().map(|row| row.missing_tool_ids.len()).sum::<usize>(),
+                + undercovered_stages
+                    .rows
+                    .iter()
+                    .map(|row| row.missing_tool_ids.len())
+                    .sum::<usize>(),
             evidence_paths: vec![
                 DEFAULT_MISSING_BENCHMARK_PAIRS_PATH.to_string(),
                 DEFAULT_UNDERCOVERED_STAGES_PATH.to_string(),
@@ -488,11 +492,13 @@ pub(crate) fn render_stage_tool_benchmark_ready(
         StageToolBenchmarkReadySurfaceSummary {
             surface_id: "tool_registry".to_string(),
             surface_status: if registry_extra_pairs.ok
-                && unregistered_pairs
-                    .rows
-                    .iter()
-                    .all(|row| !benchmark_ready_keys.contains(&binding_key(&row.domain, &row.stage_id, &row.tool_id)))
-            {
+                && unregistered_pairs.rows.iter().all(|row| {
+                    !benchmark_ready_keys.contains(&binding_key(
+                        &row.domain,
+                        &row.stage_id,
+                        &row.tool_id,
+                    ))
+                }) {
                 StageToolBenchmarkReadySurfaceStatus::ReadySliceComplete
             } else {
                 StageToolBenchmarkReadySurfaceStatus::FailingPairsPresent
@@ -503,14 +509,26 @@ pub(crate) fn render_stage_tool_benchmark_ready(
                 unregistered_pairs
                     .rows
                     .iter()
-                    .filter(|row| benchmark_ready_keys.contains(&binding_key(&row.domain, &row.stage_id, &row.tool_id)))
+                    .filter(|row| {
+                        benchmark_ready_keys.contains(&binding_key(
+                            &row.domain,
+                            &row.stage_id,
+                            &row.tool_id,
+                        ))
+                    })
                     .count(),
             ),
             excluded_count: excluded_registry_gap_count,
             failing_count: unregistered_pairs
                 .rows
                 .iter()
-                .filter(|row| benchmark_ready_keys.contains(&binding_key(&row.domain, &row.stage_id, &row.tool_id)))
+                .filter(|row| {
+                    benchmark_ready_keys.contains(&binding_key(
+                        &row.domain,
+                        &row.stage_id,
+                        &row.tool_id,
+                    ))
+                })
                 .count()
                 + registry_extra_pairs.extra_pair_count,
             evidence_paths: vec![
@@ -522,7 +540,11 @@ pub(crate) fn render_stage_tool_benchmark_ready(
                 unregistered_pairs
                     .rows
                     .iter()
-                    .filter(|row| benchmark_ready_keys.contains(&binding_key(&row.domain, &row.stage_id, &row.tool_id)))
+                    .filter(|row| benchmark_ready_keys.contains(&binding_key(
+                        &row.domain,
+                        &row.stage_id,
+                        &row.tool_id
+                    )))
                     .count(),
                 excluded_registry_gap_count,
                 registry_extra_pairs.extra_pair_count
@@ -544,10 +566,7 @@ pub(crate) fn render_stage_tool_benchmark_ready(
             detail: format!(
                 "generated benchmark command rows: {}; excluded pairs kept out of generated jobs: {}",
                 generated_job_keys.len(),
-                excluded_pairs
-                    .iter()
-                    .filter(|row| row.excluded_from_generated_jobs)
-                    .count()
+                excluded_pairs.iter().filter(|row| row.excluded_from_generated_jobs).count()
             ),
         },
         StageToolBenchmarkReadySurfaceSummary {
@@ -627,10 +646,7 @@ pub(crate) fn render_stage_tool_benchmark_ready(
             detail: format!(
                 "expected benchmark result rows: {}; excluded pairs kept out of expected results: {}",
                 expected_result_keys.len(),
-                excluded_pairs
-                    .iter()
-                    .filter(|row| row.excluded_from_expected_results)
-                    .count()
+                excluded_pairs.iter().filter(|row| row.excluded_from_expected_results).count()
             ),
         },
         StageToolBenchmarkReadySurfaceSummary {

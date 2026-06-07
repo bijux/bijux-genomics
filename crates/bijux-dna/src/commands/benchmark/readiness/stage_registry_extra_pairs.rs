@@ -257,9 +257,7 @@ mod tests {
         }));
         assert!(
             !report.rows.iter().any(|row| {
-                row.domain == "bam"
-                    && row.stage_id == "bam.qc_pre"
-                    && row.tool_id == "multiqc"
+                row.domain == "bam" && row.stage_id == "bam.qc_pre" && row.tool_id == "multiqc"
             }),
             "bam.qc_pre / multiqc must no longer remain a registry-only pair once the BAM tool contract exists"
         );

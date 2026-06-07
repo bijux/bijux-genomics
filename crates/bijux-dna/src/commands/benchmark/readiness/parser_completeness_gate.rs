@@ -75,9 +75,7 @@ pub(crate) fn run_render_parser_completeness_gate(
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let report = render_parser_completeness_gate(
         &repo_root,
-        args.output
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_PARSER_COMPLETENESS_GATE_PATH)),
+        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_PARSER_COMPLETENESS_GATE_PATH)),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -95,26 +93,18 @@ pub(crate) fn render_parser_completeness_gate(
     let (domain_stage_counts, domain_tool_counts, rows) =
         collect_parser_completeness_gate_rows(repo_root)?;
     let row_count = rows.len();
-    let benchmark_ready_row_count = rows
-        .iter()
-        .filter(|row| row.benchmark_status == "benchmark_ready")
-        .count();
+    let benchmark_ready_row_count =
+        rows.iter().filter(|row| row.benchmark_status == "benchmark_ready").count();
     let gate_row_count = rows
         .iter()
         .filter(|row| row.gate_scope == ParserCompletenessGateScope::BenchmarkReporting)
         .count();
-    let gate_passed_row_count = rows
-        .iter()
-        .filter(|row| row.gate_status == ParserCompletenessGateStatus::Pass)
-        .count();
-    let gate_failed_row_count = rows
-        .iter()
-        .filter(|row| row.gate_status == ParserCompletenessGateStatus::Fail)
-        .count();
-    let excluded_row_count = rows
-        .iter()
-        .filter(|row| row.gate_status == ParserCompletenessGateStatus::Excluded)
-        .count();
+    let gate_passed_row_count =
+        rows.iter().filter(|row| row.gate_status == ParserCompletenessGateStatus::Pass).count();
+    let gate_failed_row_count =
+        rows.iter().filter(|row| row.gate_status == ParserCompletenessGateStatus::Fail).count();
+    let excluded_row_count =
+        rows.iter().filter(|row| row.gate_status == ParserCompletenessGateStatus::Excluded).count();
 
     let mut domain_row_counts = BTreeMap::<String, usize>::new();
     let mut gate_domain_row_counts = BTreeMap::<String, usize>::new();
@@ -124,9 +114,7 @@ pub(crate) fn render_parser_completeness_gate(
         if row.gate_scope == ParserCompletenessGateScope::BenchmarkReporting {
             *gate_domain_row_counts.entry(row.domain.clone()).or_default() += 1;
         } else if row.readiness_gap != "none" {
-            *excluded_readiness_gap_counts
-                .entry(row.readiness_gap.clone())
-                .or_default() += 1;
+            *excluded_readiness_gap_counts.entry(row.readiness_gap.clone()).or_default() += 1;
         }
     }
 
@@ -158,14 +146,11 @@ pub(crate) fn render_parser_completeness_gate(
 
 fn collect_parser_completeness_gate_rows(
     repo_root: &Path,
-) -> Result<(
-    BTreeMap<String, usize>,
-    BTreeMap<String, usize>,
-    Vec<ParserCompletenessGateRow>,
-)> {
+) -> Result<(BTreeMap<String, usize>, BTreeMap<String, usize>, Vec<ParserCompletenessGateRow>)> {
     let (fastq_stage_count, fastq_tool_count, fastq_rows) =
         collect_fastq_command_adapter_coverage_rows(repo_root)?;
-    let (bam_stage_count, bam_tool_count, bam_rows) = collect_bam_command_adapter_coverage_rows(repo_root)?;
+    let (bam_stage_count, bam_tool_count, bam_rows) =
+        collect_bam_command_adapter_coverage_rows(repo_root)?;
     let mut domain_stage_counts = BTreeMap::from([
         ("fastq".to_string(), fastq_stage_count),
         ("bam".to_string(), bam_stage_count),
@@ -292,7 +277,9 @@ fn fastq_row_requires_parser(
         && row.corpus_status.starts_with("fixture:")
 }
 
-fn bam_row_requires_parser(row: &super::bam_command_adapter_coverage::BamCommandAdapterCoverageRow) -> bool {
+fn bam_row_requires_parser(
+    row: &super::bam_command_adapter_coverage::BamCommandAdapterCoverageRow,
+) -> bool {
     row.support_status == "supported"
         && matches!(row.adapter_status.as_str(), "runnable" | "plannable")
         && row.corpus_status.starts_with("fixture:")
@@ -389,7 +376,10 @@ mod tests {
         assert_eq!(report.excluded_readiness_gap_counts.get("corpus"), Some(&6));
         assert_eq!(report.excluded_readiness_gap_counts.get("support"), Some(&5));
         assert!(!report.excluded_readiness_gap_counts.contains_key("parser"));
-        assert!(report.rows.iter().all(|row| row.gate_status != super::ParserCompletenessGateStatus::Fail));
+        assert!(report
+            .rows
+            .iter()
+            .all(|row| row.gate_status != super::ParserCompletenessGateStatus::Fail));
         assert!(report.rows.iter().any(|row| {
             row.domain == "bam"
                 && row.stage_id == "bam.align"

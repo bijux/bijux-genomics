@@ -214,7 +214,10 @@ mod tests {
         assert_eq!(report.schema_version, UNDERCOVERED_STAGES_SCHEMA_VERSION);
         assert_eq!(report.stage_count, 51);
         assert!(
-            report.rows.iter().all(|row| row.valid_tool_count > 1 && row.registered_tool_count == 1),
+            report
+                .rows
+                .iter()
+                .all(|row| row.valid_tool_count > 1 && row.registered_tool_count == 1),
             "undercovered rows must only contain stage slices with multiple admitted tools but one registered tool"
         );
     }

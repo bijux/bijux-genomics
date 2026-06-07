@@ -334,7 +334,7 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
         );
         assert_eq!(
             kinship_panel.get("asset_path").and_then(serde_json::Value::as_str),
-            Some("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv")
+            Some("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv")
         );
         let kinship_reference = rows
             .iter()

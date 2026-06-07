@@ -181,13 +181,7 @@ fn ensure_fastq_amplicon_fixture_coverage(rows: &[ToolServingMapRow]) -> Result<
             "runnable",
             "benchmark_normalized",
         ),
-        (
-            "dada2",
-            "fastq.infer_asvs",
-            "governed_execution",
-            "runnable",
-            "parse_normalized",
-        ),
+        ("dada2", "fastq.infer_asvs", "governed_execution", "runnable", "parse_normalized"),
         (
             "vsearch",
             "fastq.cluster_otus",
@@ -212,10 +206,10 @@ fn ensure_fastq_amplicon_fixture_coverage(rows: &[ToolServingMapRow]) -> Result<
     ];
 
     for (tool_id, stage_id, support_status, adapter_status, parser_status) in expected_rows {
-        let row = rows
-            .iter()
-            .find(|row| row.tool_id == tool_id && row.stage_id == stage_id)
-            .ok_or_else(|| anyhow!("FASTQ amplicon serving map is missing `{stage_id}` / `{tool_id}`"))?;
+        let row =
+            rows.iter().find(|row| row.tool_id == tool_id && row.stage_id == stage_id).ok_or_else(
+                || anyhow!("FASTQ amplicon serving map is missing `{stage_id}` / `{tool_id}`"),
+            )?;
         if row.support_status != support_status
             || row.adapter_status != adapter_status
             || row.parser_status != parser_status
@@ -530,13 +524,7 @@ mod tests {
                 "runnable",
                 "benchmark_normalized",
             ),
-            (
-                "dada2",
-                "fastq.infer_asvs",
-                "governed_execution",
-                "runnable",
-                "parse_normalized",
-            ),
+            ("dada2", "fastq.infer_asvs", "governed_execution", "runnable", "parse_normalized"),
             (
                 "vsearch",
                 "fastq.cluster_otus",

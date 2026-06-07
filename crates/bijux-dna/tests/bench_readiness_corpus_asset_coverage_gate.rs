@@ -38,12 +38,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() {
-    let payload = run_cli_json(&[
-        "bench",
-        "readiness",
-        "render-corpus-asset-coverage-gate",
-        "--json",
-    ]);
+    let payload =
+        run_cli_json(&["bench", "readiness", "render-corpus-asset-coverage-gate", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -64,21 +60,15 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
     assert_eq!(payload.get("gate_failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("excluded_row_count").and_then(serde_json::Value::as_u64), Some(11));
     assert_eq!(
-        payload
-            .get("benchmark_ready_asset_required_row_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("benchmark_ready_asset_required_row_count").and_then(serde_json::Value::as_u64),
         Some(18)
     );
     assert_eq!(
-        payload
-            .get("benchmark_ready_asset_assigned_row_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("benchmark_ready_asset_assigned_row_count").and_then(serde_json::Value::as_u64),
         Some(18)
     );
     assert_eq!(
-        payload
-            .get("benchmark_ready_asset_missing_row_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("benchmark_ready_asset_missing_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
     assert_eq!(
@@ -116,15 +106,11 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
         Some("benchmark_submission")
     );
     assert_eq!(
-        taxonomy
-            .get("corpus_assignment_status")
-            .and_then(serde_json::Value::as_str),
+        taxonomy.get("corpus_assignment_status").and_then(serde_json::Value::as_str),
         Some("assigned")
     );
     assert_eq!(
-        taxonomy
-            .get("asset_assignment_status")
-            .and_then(serde_json::Value::as_str),
+        taxonomy.get("asset_assignment_status").and_then(serde_json::Value::as_str),
         Some("assigned")
     );
 
@@ -132,8 +118,7 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
         .iter()
         .find(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("bam.kinship")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.kinship")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("king")
         })
         .expect("kinship gate row");
@@ -142,16 +127,17 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
         Some("benchmark_submission")
     );
     assert_eq!(
-        kinship
-            .get("asset_assignment_status")
-            .and_then(serde_json::Value::as_str),
+        kinship.get("asset_assignment_status").and_then(serde_json::Value::as_str),
         Some("assigned")
     );
     assert!(
-        kinship
-            .get("assigned_assets")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|assets| assets.iter().any(|value| value.as_str() == Some("reference_panel=human_like_relatedness_panel"))),
+        kinship.get("assigned_assets").and_then(serde_json::Value::as_array).is_some_and(
+            |assets| {
+                assets.iter().any(|value| {
+                    value.as_str() == Some("reference_panel=human_like_relatedness_panel")
+                })
+            }
+        ),
         "kinship gate row must carry the governed relatedness panel asset"
     );
 
@@ -165,9 +151,7 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
         })
         .expect("trim-reads gate row");
     assert_eq!(
-        trim_reads
-            .get("asset_assignment_status")
-            .and_then(serde_json::Value::as_str),
+        trim_reads.get("asset_assignment_status").and_then(serde_json::Value::as_str),
         Some("not_required")
     );
 
@@ -177,8 +161,7 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
             row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.index_reference")
-                && row.get("tool_id").and_then(serde_json::Value::as_str)
-                    == Some("bowtie2_build")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2_build")
         })
         .expect("excluded index-reference row");
     assert_eq!(
@@ -186,9 +169,7 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
         Some("excluded")
     );
     assert_eq!(
-        excluded_index
-            .get("asset_assignment_status")
-            .and_then(serde_json::Value::as_str),
+        excluded_index.get("asset_assignment_status").and_then(serde_json::Value::as_str),
         Some("assigned")
     );
 }

@@ -265,7 +265,7 @@ mod tests {
         assert_eq!(report.coverage_status_counts.get("covered"), Some(&8));
         assert!(report.rows.iter().all(|row| {
             row.tool_id == "bcftools"
-                && row.fixture_path.starts_with("tests/fixtures/bench/parsers/vcf/bcftools/")
+                && row.fixture_path.starts_with("benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/")
                 && row.schema_id.starts_with("bijux.vcf.")
                 && coverage_status_label(row.coverage_status) == "covered"
         }));

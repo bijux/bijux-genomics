@@ -23,7 +23,7 @@ pub(crate) const DEFAULT_VCF_EIGENSOFT_ADAPTER_PATH: &str =
     "target/bench-readiness/adapters/eigensoft.vcf.json";
 const VCF_EIGENSOFT_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_eigensoft_adapter.v1";
 const GOVERNED_COHORT_VCF_PATH: &str =
-    "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
+    "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct VcfEigensoftAdapterArtifact {

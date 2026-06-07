@@ -27,9 +27,9 @@ const VCF_IMPUTATION_FAMILY_ADAPTER_SCHEMA_VERSION: &str =
 const GOVERNED_IMPUTATION_STAGE_IDS: [&str; 2] = ["vcf.imputation", "vcf.impute"];
 const GOVERNED_IMPUTATION_TOOL_IDS: [&str; 4] = ["beagle", "glimpse", "impute5", "minimac4"];
 const GOVERNED_GTCOHORT_VCF_PATH: &str =
-    "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_phased.vcf";
+    "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_phased.vcf";
 const GOVERNED_GLLIKE_VCF_PATH: &str =
-    "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
+    "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
 const GOVERNED_REGION_LITERAL: &str = "1:1-1000000";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

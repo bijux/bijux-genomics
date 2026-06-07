@@ -213,25 +213,18 @@ mod tests {
                 && row.registered_stage_ids == vec!["fastq.detect_duplicates_premerge".to_string()]
         }));
         assert!(
-            !report
-                .rows
-                .iter()
-                .any(|row| row.domain == "bam" && row.stage_id == "bam.genotyping"),
+            !report.rows.iter().any(|row| row.domain == "bam" && row.stage_id == "bam.genotyping"),
             "bam.genotyping must leave the registry-drift slice once angsd is registered in production"
         );
         assert!(
             !report.rows.iter().any(|row| {
-                row.domain == "bam"
-                    && row.stage_id == "bam.damage"
-                    && row.tool_id == "ngsbriggs"
+                row.domain == "bam" && row.stage_id == "bam.damage" && row.tool_id == "ngsbriggs"
             }),
             "bam.damage / ngsbriggs must leave the registry-drift slice once ngsbriggs is registered in production"
         );
         assert!(
             !report.rows.iter().any(|row| {
-                row.domain == "bam"
-                    && row.stage_id == "bam.haplogroups"
-                    && row.tool_id == "yleaf"
+                row.domain == "bam" && row.stage_id == "bam.haplogroups" && row.tool_id == "yleaf"
             }),
             "bam.haplogroups / yleaf must leave the registry-drift slice once yleaf is registered in production"
         );

@@ -23,7 +23,7 @@ pub(crate) const DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH: &str =
 const VCF_DESCENT_FAMILY_ADAPTER_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_descent_family_adapter.v1";
 const GOVERNED_COHORT_VCF_PATH: &str =
-    "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
+    "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
 const GOVERNED_DESCENT_ROWS: [(&str, &str); 5] = [
     ("plink2", "vcf.roh"),
     ("germline", "vcf.ibd"),

@@ -17,7 +17,8 @@ use crate::commands::benchmark::local_stage_inventory::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_FASTQ_REPORT_MAP_PATH: &str = "target/bench-readiness/fastq-report-map.tsv";
+pub(crate) const DEFAULT_FASTQ_REPORT_MAP_PATH: &str =
+    "target/bench-readiness/fastq-report-map.tsv";
 const FASTQ_REPORT_MAP_SCHEMA_VERSION: &str = "bijux.bench.readiness.fastq_report_map.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -127,10 +128,12 @@ pub(crate) fn collect_fastq_report_map_rows(repo_root: &Path) -> Result<Vec<Fast
     let mut rows = Vec::with_capacity(inventory.stages.len());
     for stage in inventory.stages {
         let stage_id = StageId::new(stage.stage_id.clone());
-        let placement = placement_for_stage(stage_id.as_str())
-            .ok_or_else(|| anyhow!("FASTQ report map is missing stage placement for `{}`", stage_id))?;
-        let semantics = stage_semantics(&stage_id)
-            .ok_or_else(|| anyhow!("FASTQ report map is missing stage semantics for `{}`", stage_id))?;
+        let placement = placement_for_stage(stage_id.as_str()).ok_or_else(|| {
+            anyhow!("FASTQ report map is missing stage placement for `{}`", stage_id)
+        })?;
+        let semantics = stage_semantics(&stage_id).ok_or_else(|| {
+            anyhow!("FASTQ report map is missing stage semantics for `{}`", stage_id)
+        })?;
         let stage_kind = stage_kind(&stage_id)
             .ok_or_else(|| anyhow!("FASTQ report map is missing stage kind for `{}`", stage_id))?;
         let criticality = stage_criticality(&stage_id)
@@ -142,11 +145,16 @@ pub(crate) fn collect_fastq_report_map_rows(repo_root: &Path) -> Result<Vec<Fast
             default_execution_tool_for_stage(&stage_id).map(|tool_id| tool_id.to_string());
         let (anchor_tool_id, anchor_support_status) =
             select_anchor_tool(admissions, preferred_default_tool_id.as_deref())?;
-        let metric_classes =
-            stage_metric_classes(&stage_id).unwrap_or(&[]).iter().map(metric_class_label).map(str::to_string).collect::<Vec<_>>();
-        let canonical_stage_rank = canonical_rank_by_stage.get(stage_id.as_str()).copied().ok_or_else(
-            || anyhow!("FASTQ canonical stage order is missing `{}`", stage_id),
-        )?;
+        let metric_classes = stage_metric_classes(&stage_id)
+            .unwrap_or(&[])
+            .iter()
+            .map(metric_class_label)
+            .map(str::to_string)
+            .collect::<Vec<_>>();
+        let canonical_stage_rank = canonical_rank_by_stage
+            .get(stage_id.as_str())
+            .copied()
+            .ok_or_else(|| anyhow!("FASTQ canonical stage order is missing `{}`", stage_id))?;
 
         rows.push(FastqReportMapRow {
             stage_id: stage_id.to_string(),
@@ -240,7 +248,8 @@ fn placement_for_stage(stage_id: &str) -> Option<FastqReportPlacement> {
             section_title: "Contamination Screening",
             summary_table_id: "screening_contamination",
             summary_table_title: "Screening and Contamination",
-            report_focus: "reference-guided depletion, contamination screening, and taxonomy evidence",
+            report_focus:
+                "reference-guided depletion, contamination screening, and taxonomy evidence",
         }),
         "fastq.normalize_primers"
         | "fastq.remove_chimeras"
@@ -251,7 +260,8 @@ fn placement_for_stage(stage_id: &str) -> Option<FastqReportPlacement> {
             section_title: "Amplicon Interpretation",
             summary_table_id: "amplicon_features",
             summary_table_title: "Amplicon Feature Tables",
-            report_focus: "amplicon cleanup, feature inference, and abundance normalization outputs",
+            report_focus:
+                "amplicon cleanup, feature inference, and abundance normalization outputs",
         }),
         _ => None,
     }
@@ -339,8 +349,7 @@ fn ensure_fastq_report_map_contract(rows: &[FastqReportMapRow]) -> Result<()> {
         criticality,
         anchor_tool_id,
         anchor_support_status,
-    ) in
-        expected_rows
+    ) in expected_rows
     {
         let row = rows
             .iter()
@@ -359,16 +368,10 @@ fn ensure_fastq_report_map_contract(rows: &[FastqReportMapRow]) -> Result<()> {
         }
     }
 
-    let section_count = rows
-        .iter()
-        .map(|row| row.report_section_id.as_str())
-        .collect::<BTreeSet<_>>()
-        .len();
-    let summary_table_count = rows
-        .iter()
-        .map(|row| row.summary_table_id.as_str())
-        .collect::<BTreeSet<_>>()
-        .len();
+    let section_count =
+        rows.iter().map(|row| row.report_section_id.as_str()).collect::<BTreeSet<_>>().len();
+    let summary_table_count =
+        rows.iter().map(|row| row.summary_table_id.as_str()).collect::<BTreeSet<_>>().len();
     if section_count != 6 || summary_table_count != 7 {
         return Err(anyhow!(
             "FASTQ report map must retain 6 sections and 7 summary tables, found {section_count} sections and {summary_table_count} tables"
@@ -432,7 +435,8 @@ fn select_anchor_tool<'a>(
     preferred_tool_id: Option<&str>,
 ) -> Result<(&'a str, &'a str)> {
     if let Some(preferred_tool_id) = preferred_tool_id {
-        if let Some(admission) = admissions.iter().find(|admission| admission.tool_id == preferred_tool_id)
+        if let Some(admission) =
+            admissions.iter().find(|admission| admission.tool_id == preferred_tool_id)
         {
             return Ok((admission.tool_id.as_str(), admission.support_status.as_str()));
         }
@@ -482,7 +486,9 @@ fn criticality_label(criticality: StageCriticality) -> &'static str {
     }
 }
 
-fn metric_class_label(metric_class: &bijux_dna_domain_fastq::metrics::spec::MetricClass) -> &'static str {
+fn metric_class_label(
+    metric_class: &bijux_dna_domain_fastq::metrics::spec::MetricClass,
+) -> &'static str {
     match metric_class {
         bijux_dna_domain_fastq::metrics::spec::MetricClass::Integrity => "integrity",
         bijux_dna_domain_fastq::metrics::spec::MetricClass::Retention => "retention",
@@ -513,7 +519,7 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        render_fastq_report_map, FASTQ_REPORT_MAP_SCHEMA_VERSION, DEFAULT_FASTQ_REPORT_MAP_PATH,
+        render_fastq_report_map, DEFAULT_FASTQ_REPORT_MAP_PATH, FASTQ_REPORT_MAP_SCHEMA_VERSION,
     };
 
     fn repo_root() -> PathBuf {
@@ -526,8 +532,9 @@ mod tests {
     #[test]
     fn fastq_report_map_tracks_governed_stage_sections() {
         let repo_root = repo_root();
-        let report = render_fastq_report_map(&repo_root, PathBuf::from(DEFAULT_FASTQ_REPORT_MAP_PATH))
-            .expect("render FASTQ report map");
+        let report =
+            render_fastq_report_map(&repo_root, PathBuf::from(DEFAULT_FASTQ_REPORT_MAP_PATH))
+                .expect("render FASTQ report map");
 
         assert_eq!(report.schema_version, FASTQ_REPORT_MAP_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_FASTQ_REPORT_MAP_PATH);

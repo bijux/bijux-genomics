@@ -26,7 +26,7 @@ pub(crate) const DEFAULT_VCF_PLINK2_ADAPTER_PATH: &str =
 const VCF_PLINK_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_plink_adapter.v1";
 const VCF_PLINK2_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_plink2_adapter.v1";
 const GOVERNED_COHORT_VCF_PATH: &str =
-    "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
+    "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct VcfPlinkFamilyAdapterArtifact {
