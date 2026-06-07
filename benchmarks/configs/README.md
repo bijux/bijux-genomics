@@ -5,3 +5,4 @@ under disposable local run roots.
 
 The local benchmark matrix and compatibility surfaces live under `local/`.
 The governed local benchmark pipeline DAG configs live under `pipelines/local/`.
+The governed benchmark HPC campaign profiles live under `hpc/campaign/`.
