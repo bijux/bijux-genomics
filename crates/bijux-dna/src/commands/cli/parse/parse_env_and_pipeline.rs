@@ -105,7 +105,7 @@ pub enum ConfigCommand {
     },
     #[command(name = "write-campaign-profiles")]
     WriteCampaignProfiles {
-        #[arg(long, default_value = "configs/hpc/campaign")]
+        #[arg(long, default_value = "benchmarks/configs/hpc/campaign")]
         out_dir: PathBuf,
     },
     #[command(name = "preparation-graph")]

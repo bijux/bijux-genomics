@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 const CAMPAIGN_SCHEMA_VERSION: &str = "bijux.hpc.campaign.v1";
 const ENV_DEFAULT_PATH: &str = "configs/hpc/.env";
-const USER_POLICY_DEFAULT_PATH: &str = "configs/hpc/campaign/user.policy.toml";
+const USER_POLICY_DEFAULT_PATH: &str = "benchmarks/configs/hpc/campaign/user.policy.toml";
 
 const BUILTIN_LUNARC_PROFILE: &str = "lunarc";
 const BUILTIN_GENERIC_PROFILE: &str = "generic";
