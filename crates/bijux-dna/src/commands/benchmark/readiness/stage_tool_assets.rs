@@ -466,7 +466,7 @@ fn ensure_taxonomy_database_asset_coverage(rows: &[StageToolAssetRow]) -> Result
         "bowtie2_build",
         "reference_index_output",
         "reference_index",
-        "target/local-ready/fastq.index_reference/reference_index/bowtie2/reference",
+        "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference",
         "FASTQ reference indexing",
     )?;
     Ok(())
@@ -1042,7 +1042,7 @@ mod tests {
                 && row.asset_role == "reference_index_output"
                 && row.asset_id == "reference_index"
                 && row.asset_path
-                    == "target/local-ready/fastq.index_reference/reference_index/bowtie2/reference"
+                    == "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.contamination"
