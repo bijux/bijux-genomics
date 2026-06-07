@@ -600,6 +600,13 @@ Visible aliases are part of the operator surface:
   explicit. The command fails closed unless the catalog matches the config-backed active stage
   inventory and the unified stage-tool surface, and unless parser, schema, and report-backed
   stages stay represented without drift.
+- `bijux-dna bench readiness render-all-domain-active-stage-tool-matrix`
+  `render-all-domain-active-stage-tool-matrix` writes
+  `benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv` with one governed row per
+  active FASTQ, BAM, and VCF stage-tool binding. Each row keeps `domain`, `stage_id`, `tool_id`,
+  `corpus_id`, `asset_profile_id`, `adapter_id`, `parser_id`, `schema_id`, and unified lifecycle
+  `status` explicit. The command fails closed unless the row set matches the governed all-domain
+  stage-tool surface and its stage coverage matches the all-domain active stage catalog.
 - `bijux-dna bench readiness render-all-domain-retained-tools`
   `render-all-domain-retained-tools` writes
   `benchmarks/readiness/all-domains/retained-tools.tsv` with one governed row per retained
