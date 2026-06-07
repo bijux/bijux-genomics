@@ -195,7 +195,9 @@ fn collect_partial_resume_rows(
                 repo_root,
                 pipeline_id,
             ),
-            &repo_root.join("target/local-ready/pipeline-dag").join(format!("{pipeline_id}.json")),
+            &repo_root
+                .join("benchmarks/readiness/local-ready/pipeline-dag")
+                .join(format!("{pipeline_id}.json")),
         )?;
         let nodes_by_id = dag_report
             .nodes

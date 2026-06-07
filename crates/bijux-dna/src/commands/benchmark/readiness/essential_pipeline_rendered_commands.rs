@@ -176,8 +176,9 @@ pub(crate) fn collect_essential_pipeline_rendered_command_rows(
                 repo_root,
                 pipeline_id,
             );
-        let report_path =
-            repo_root.join("target/local-ready/pipeline-dag").join(format!("{pipeline_id}.json"));
+        let report_path = repo_root
+            .join("benchmarks/readiness/local-ready/pipeline-dag")
+            .join(format!("{pipeline_id}.json"));
         let report = validate_pipeline_dag_path(repo_root, &config_path, &report_path)?;
         let nodes_by_id = report
             .nodes
@@ -210,8 +211,9 @@ fn initialize_command_caches(repo_root: &Path) -> Result<EssentialPipelineComman
                 repo_root,
                 pipeline_id,
             );
-        let report_path =
-            repo_root.join("target/local-ready/pipeline-dag").join(format!("{pipeline_id}.json"));
+        let report_path = repo_root
+            .join("benchmarks/readiness/local-ready/pipeline-dag")
+            .join(format!("{pipeline_id}.json"));
         let report = validate_pipeline_dag_path(repo_root, &config_path, &report_path)?;
         for node in &report.nodes {
             match stage_domain(node.stage_id.as_str())? {

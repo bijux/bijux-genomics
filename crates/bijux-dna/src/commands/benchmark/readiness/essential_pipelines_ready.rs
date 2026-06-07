@@ -209,8 +209,10 @@ pub(crate) fn render_essential_pipelines_ready(
     let mut report_map_row_count = 0usize;
 
     for expectation in PIPELINE_GOAL_EXPECTATIONS {
-        let output_path =
-            format!("target/local-ready/pipeline-dag/{}.json", expectation.pipeline_id);
+        let output_path = format!(
+            "benchmarks/readiness/local-ready/pipeline-dag/{}.json",
+            expectation.pipeline_id
+        );
         record_goal_check(
             &mut checks,
             expectation.goal_id,
@@ -224,7 +226,7 @@ pub(crate) fn render_essential_pipelines_ready(
                         expectation.pipeline_id,
                     ),
                     &repo_root
-                        .join("target/local-ready/pipeline-dag")
+                        .join("benchmarks/readiness/local-ready/pipeline-dag")
                         .join(format!("{}.json", expectation.pipeline_id)),
                 )?;
                 if !report.valid

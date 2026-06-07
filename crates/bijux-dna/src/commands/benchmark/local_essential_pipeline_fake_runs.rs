@@ -215,8 +215,9 @@ fn fake_run_pipeline(
     corpus_asset_rows_by_node: &BTreeMap<(String, String), EssentialPipelineCorpusAssetsRow>,
 ) -> Result<EssentialPipelineFakeRunPipelineReport> {
     let config_path = benchmark_local_pipeline_config_path(repo_root, pipeline_id);
-    let pipeline_report_path =
-        repo_root.join("target/local-ready/pipeline-dag").join(format!("{pipeline_id}.json"));
+    let pipeline_report_path = repo_root
+        .join("benchmarks/readiness/local-ready/pipeline-dag")
+        .join(format!("{pipeline_id}.json"));
     let dag_report = validate_pipeline_dag_path(repo_root, &config_path, &pipeline_report_path)?;
 
     let pipeline_root = fake_run_root.join(pipeline_id);

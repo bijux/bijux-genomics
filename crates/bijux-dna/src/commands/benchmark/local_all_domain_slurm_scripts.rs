@@ -183,8 +183,9 @@ pub(crate) fn render_all_domain_slurm_scripts(
     for pipeline_id in ESSENTIAL_PIPELINE_IDS {
         pipeline_count += 1;
         let config_path = benchmark_local_pipeline_config_path(repo_root, pipeline_id);
-        let report_path =
-            repo_root.join("target/local-ready/pipeline-dag").join(format!("{pipeline_id}.json"));
+        let report_path = repo_root
+            .join("benchmarks/readiness/local-ready/pipeline-dag")
+            .join(format!("{pipeline_id}.json"));
         let dag_report = validate_pipeline_dag_path(repo_root, &config_path, &report_path)?;
         let nodes_by_id = dag_report
             .nodes
@@ -300,8 +301,9 @@ fn expected_essential_pipeline_node_count(repo_root: &Path) -> Result<usize> {
     let mut total = 0usize;
     for pipeline_id in ESSENTIAL_PIPELINE_IDS {
         let config_path = benchmark_local_pipeline_config_path(repo_root, pipeline_id);
-        let report_path =
-            repo_root.join("target/local-ready/pipeline-dag").join(format!("{pipeline_id}.json"));
+        let report_path = repo_root
+            .join("benchmarks/readiness/local-ready/pipeline-dag")
+            .join(format!("{pipeline_id}.json"));
         total += validate_pipeline_dag_path(repo_root, &config_path, &report_path)?.node_count;
     }
     Ok(total)

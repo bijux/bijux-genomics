@@ -24,7 +24,8 @@ const LOCAL_STAGE_FAKE_FAILURE_RECORD_SCHEMA_VERSION: &str =
     "bijux.bench.local_stage_fake_failure_record.v1";
 pub(crate) const DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT: &str = "target/local-fake-runs/stages";
 const DEFAULT_LOCAL_STAGE_FAKE_FAILURE_ROOT: &str = "target/local-fake-runs/failures";
-const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str = "target/local-ready/rendered-stage-commands.sh";
+const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str =
+    "benchmarks/readiness/local-ready/rendered-stage-commands.sh";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct BenchLocalStageFakeRunOutputEntry {

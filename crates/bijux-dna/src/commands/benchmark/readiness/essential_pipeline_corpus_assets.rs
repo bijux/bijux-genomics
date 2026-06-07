@@ -150,8 +150,9 @@ pub(crate) fn collect_essential_pipeline_corpus_asset_rows(
                 repo_root,
                 pipeline_id,
             );
-        let report_path =
-            repo_root.join("target/local-ready/pipeline-dag").join(format!("{pipeline_id}.json"));
+        let report_path = repo_root
+            .join("benchmarks/readiness/local-ready/pipeline-dag")
+            .join(format!("{pipeline_id}.json"));
         let report = validate_pipeline_dag_path(repo_root, &config_path, &report_path)?;
         for node in &report.nodes {
             rows.push(build_row(&report, node, &compatibility_by_stage)?);
