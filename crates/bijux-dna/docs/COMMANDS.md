@@ -143,7 +143,10 @@ Visible aliases are part of the operator surface:
   reduced to `tests/README.md` plus a compatibility symlink at
   `tests/fixtures -> ../benchmarks/tests/fixtures`. It fails closed when any benchmark root is
   missing, ignored, or only present as an untracked local directory, or when the retired root
-  fixture path drifts back into a stored directory tree.
+  fixture path drifts back into a stored directory tree. Benchmark-owned config, schema, fixture,
+  and pipeline consumers resolve that root through the shared benchmark path contract, with
+  explicit `--benchmark-root` taking precedence over `BIJUX_BENCHMARK_ROOT`, and the repo default
+  falling back to `benchmarks/`.
 - `bijux-dna bench run`
 - `bijux-dna bench status`
 - `bijux-dna bench workspace-value`
