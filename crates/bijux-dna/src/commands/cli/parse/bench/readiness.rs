@@ -118,6 +118,8 @@ pub enum BenchReadinessCommand {
     RenderAllDomainActiveStageCatalog(BenchReadinessRenderAllDomainActiveStageCatalogArgs),
     #[command(name = "render-all-domain-active-stage-tool-matrix")]
     RenderAllDomainActiveStageToolMatrix(BenchReadinessRenderAllDomainActiveStageToolMatrixArgs),
+    #[command(name = "render-all-domain-no-planned-rows")]
+    RenderAllDomainNoPlannedRows(BenchReadinessRenderAllDomainNoPlannedRowsArgs),
     #[command(name = "render-all-domain-retained-tools")]
     RenderAllDomainRetainedTools(BenchReadinessRenderAllDomainRetainedToolsArgs),
     #[command(name = "render-all-domain-stage-tool-table")]
@@ -802,6 +804,14 @@ pub struct BenchReadinessRenderAllDomainActiveStageCatalogArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderAllDomainActiveStageToolMatrixArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderAllDomainNoPlannedRowsArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

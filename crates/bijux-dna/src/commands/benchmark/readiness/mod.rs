@@ -8,6 +8,7 @@ pub(crate) mod all_domain_expected_benchmark_results;
 pub(crate) mod all_domain_failure_classification;
 pub(crate) mod all_domain_harness_ready;
 pub(crate) mod all_domain_missing_result_test;
+pub(crate) mod all_domain_no_planned_rows;
 pub(crate) mod all_domain_output_declarations;
 pub(crate) mod all_domain_parser_collector;
 pub(crate) mod all_domain_rendered_commands;
