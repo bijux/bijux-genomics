@@ -3,7 +3,7 @@
 schema_version = "bijux.bench.bam.local_complexity.v1"
 tool_id = "preseq"
 threads = 2
-output_dir = "target/local-smoke/bam.complexity"
+output_dir = "runs/bench/local-smoke/bam.complexity"
 
 [[cases]]
 sample_id = "human_like_complexity_projection"

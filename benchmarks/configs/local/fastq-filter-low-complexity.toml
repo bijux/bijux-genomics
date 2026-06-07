@@ -3,7 +3,7 @@ tool_id = "bbduk"
 threads = 1
 entropy_threshold = 0.6
 polyx_threshold = 8
-output_dir = "target/local-smoke/fastq.filter_low_complexity"
+output_dir = "runs/bench/local-smoke/fastq.filter_low_complexity"
 
 [[cases]]
 sample_id = "human_like_se_filter_signals"

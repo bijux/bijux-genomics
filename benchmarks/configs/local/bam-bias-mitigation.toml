@@ -1,7 +1,7 @@
 schema_version = "bijux.bench.bam.local_bias_mitigation.v1"
 tool_id = "mapdamage2"
 threads = 2
-output_dir = "target/local-smoke/bam.bias_mitigation"
+output_dir = "runs/bench/local-smoke/bam.bias_mitigation"
 
 [[cases]]
 sample_id = "human_like_gc_window_ladder"

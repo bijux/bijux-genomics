@@ -8,7 +8,7 @@
 schema_version = "bijux.bench.bam.local_mapq_filter.v1"
 tool_id = "samtools"
 threads = 4
-output_dir = "target/local-smoke/bam.mapq_filter"
+output_dir = "runs/bench/local-smoke/bam.mapq_filter"
 
 [[cases]]
 sample_id = "human_like_mapq_threshold_ladder"

@@ -3,7 +3,7 @@ tool_id = "clumpify"
 threads = 1
 dedup_mode = "exact"
 keep_order = true
-output_dir = "target/local-smoke/fastq.remove_duplicates"
+output_dir = "runs/bench/local-smoke/fastq.remove_duplicates"
 
 [[cases]]
 sample_id = "human_like_pe_duplicate_signals"

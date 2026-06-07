@@ -8,7 +8,7 @@
 schema_version = "bijux.bench.bam.local_length_filter.v1"
 tool_id = "samtools"
 threads = 4
-output_dir = "target/local-smoke/bam.length_filter"
+output_dir = "runs/bench/local-smoke/bam.length_filter"
 
 [[cases]]
 sample_id = "human_like_length_threshold_ladder"

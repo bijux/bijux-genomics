@@ -8,7 +8,7 @@
 schema_version = "bijux.bench.bam.local_recalibration.v1"
 tool_id = "gatk"
 threads = 2
-output_dir = "target/local-smoke/bam.recalibration"
+output_dir = "runs/bench/local-smoke/bam.recalibration"
 
 [[cases]]
 sample_id = "human_like_recalibration_low_coverage"

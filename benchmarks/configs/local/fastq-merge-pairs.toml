@@ -4,7 +4,7 @@ threads = 1
 merge_overlap = 8
 min_length = 12
 unmerged_read_policy = "emit_unmerged_pairs"
-output_dir = "target/local-smoke/fastq.merge_pairs"
+output_dir = "runs/bench/local-smoke/fastq.merge_pairs"
 
 [[cases]]
 sample_id = "human_like_pe_merge_overlap"

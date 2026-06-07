@@ -1,7 +1,7 @@
 schema_version = "bijux.bench.fastq.local_infer_asvs.v1"
 tool_id = "dada2"
 threads = 1
-output_dir = "target/local-smoke/fastq.infer_asvs"
+output_dir = "runs/bench/local-smoke/fastq.infer_asvs"
 
 [[cases]]
 sample_id = "corpus-03-amplicon-se"

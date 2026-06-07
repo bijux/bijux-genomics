@@ -8,7 +8,7 @@
 schema_version = "bijux.bench.bam.local_qc_pre.v1"
 tool_id = "samtools"
 threads = 4
-output_dir = "target/local-smoke/bam.qc_pre"
+output_dir = "runs/bench/local-smoke/bam.qc_pre"
 
 [[cases]]
 sample_id = "human_like_duplicate_flagged_multicontig"

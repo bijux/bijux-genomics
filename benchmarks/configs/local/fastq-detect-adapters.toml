@@ -8,7 +8,7 @@
 schema_version = "bijux.bench.fastq.local_detect_adapters.v1"
 tool_id = "fastqc"
 threads = 4
-output_dir = "target/local-smoke/fastq.detect_adapters"
+output_dir = "runs/bench/local-smoke/fastq.detect_adapters"
 
 [[cases]]
 sample_id = "adapter-hit-se"

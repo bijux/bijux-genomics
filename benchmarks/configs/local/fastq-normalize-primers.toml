@@ -9,7 +9,7 @@ max_mismatch_rate = 0.10
 min_overlap_bp = 6
 strict_5p_anchor = true
 allow_iupac_codes = true
-output_dir = "target/local-smoke/fastq.normalize_primers"
+output_dir = "runs/bench/local-smoke/fastq.normalize_primers"
 
 [[cases]]
 sample_id = "amplicon-16s-se"

@@ -8,7 +8,7 @@
 schema_version = "bijux.bench.bam.local_overlap_correction.v1"
 tool_id = "bamutil"
 threads = 2
-output_dir = "target/local-smoke/bam.overlap_correction"
+output_dir = "runs/bench/local-smoke/bam.overlap_correction"
 
 [[cases]]
 sample_id = "human_like_paired_overlap_control"

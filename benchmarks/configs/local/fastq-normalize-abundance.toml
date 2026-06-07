@@ -2,7 +2,7 @@ schema_version = "bijux.bench.fastq.local_normalize_abundance.v1"
 tool_id = "seqkit"
 threads = 1
 method = "relative_abundance"
-output_dir = "target/local-smoke/fastq.normalize_abundance"
+output_dir = "runs/bench/local-smoke/fastq.normalize_abundance"
 
 [[cases]]
 sample_id = "corpus-03-otu-abundance-table"

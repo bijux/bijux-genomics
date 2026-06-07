@@ -2,7 +2,7 @@ schema_version = "bijux.bench.fastq.local_estimate_library_complexity_prealign.v
 tool_id = "bijux_dna"
 threads = 1
 kmer_size = 4
-output_dir = "target/local-smoke/fastq.estimate_library_complexity_prealign"
+output_dir = "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign"
 
 [[cases]]
 sample_id = "human_like_pe_duplicate_signals"

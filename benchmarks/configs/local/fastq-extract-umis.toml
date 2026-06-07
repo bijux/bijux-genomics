@@ -8,7 +8,7 @@ failed_extraction_policy = "retain_unmodified"
 grouping_policy = "pair_aware"
 downstream_dedup_policy = "sequence_identity_recommended"
 downstream_propagation = "header_and_report"
-output_dir = "target/local-smoke/fastq.extract_umis"
+output_dir = "runs/bench/local-smoke/fastq.extract_umis"
 
 [[cases]]
 sample_id = "human_like_pe_umi_prefix_signals"

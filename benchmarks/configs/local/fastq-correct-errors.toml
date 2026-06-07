@@ -3,7 +3,7 @@ tool_id = "rcorrector"
 threads = 1
 quality_encoding = "phred33"
 conservative_mode = false
-output_dir = "target/local-smoke/fastq.correct_errors"
+output_dir = "runs/bench/local-smoke/fastq.correct_errors"
 
 [[cases]]
 sample_id = "paired-dry-run"

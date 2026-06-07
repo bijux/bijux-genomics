@@ -8,7 +8,7 @@
 schema_version = "bijux.bench.fastq.local_profile_reads.v1"
 tool_id = "seqkit_stats"
 threads = 4
-output_dir = "target/local-smoke/fastq.profile_reads"
+output_dir = "runs/bench/local-smoke/fastq.profile_reads"
 
 [[cases]]
 sample_id = "toy-se"

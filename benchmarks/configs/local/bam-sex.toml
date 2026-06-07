@@ -8,7 +8,7 @@
 schema_version = "bijux.bench.bam.local_sex.v1"
 tool_id = "rxy"
 threads = 2
-output_dir = "target/local-smoke/bam.sex"
+output_dir = "runs/bench/local-smoke/bam.sex"
 
 [[cases]]
 sample_id = "adna_xy_autosome_coverage"

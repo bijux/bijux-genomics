@@ -8,7 +8,7 @@
 schema_version = "bijux.bench.bam.local_endogenous_content.v1"
 tool_id = "samtools"
 threads = 2
-output_dir = "target/local-smoke/bam.endogenous_content"
+output_dir = "runs/bench/local-smoke/bam.endogenous_content"
 
 [[cases]]
 sample_id = "human_like_endogenous_partial_mapping"

@@ -9,7 +9,7 @@ schema_version = "bijux.bench.fastq.local_validate_reads.v1"
 tool_id = "fastqvalidator"
 threads = 4
 validation_mode = "strict"
-output_dir = "target/local-smoke/fastq.validate_reads"
+output_dir = "runs/bench/local-smoke/fastq.validate_reads"
 
 [[cases]]
 sample_id = "toy-se"

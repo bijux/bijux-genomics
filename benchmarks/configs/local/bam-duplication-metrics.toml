@@ -8,7 +8,7 @@
 schema_version = "bijux.bench.bam.local_duplication_metrics.v1"
 tool_id = "samtools"
 threads = 4
-output_dir = "target/local-smoke/bam.duplication_metrics"
+output_dir = "runs/bench/local-smoke/bam.duplication_metrics"
 
 [[cases]]
 sample_id = "human_like_duplicate_cluster"

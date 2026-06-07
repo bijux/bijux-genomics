@@ -8,7 +8,7 @@
 schema_version = "bijux.bench.bam.local_kinship.v1"
 tool_id = "king"
 threads = 2
-output_dir = "target/local-smoke/bam.kinship"
+output_dir = "runs/bench/local-smoke/bam.kinship"
 
 [[cases]]
 sample_id = "human_like_kinship_low_overlap_pair"

@@ -1,7 +1,7 @@
 schema_version = "bijux.bench.fastq.local_detect_duplicates_premerge.v1"
 tool_id = "bijux_dna"
 threads = 1
-output_dir = "target/local-smoke/fastq.detect_duplicates_premerge"
+output_dir = "runs/bench/local-smoke/fastq.detect_duplicates_premerge"
 
 [[cases]]
 sample_id = "human_like_pe_duplicate_signals"

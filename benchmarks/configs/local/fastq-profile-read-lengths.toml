@@ -9,7 +9,7 @@ schema_version = "bijux.bench.fastq.local_profile_read_lengths.v1"
 tool_id = "seqkit_stats"
 threads = 4
 histogram_bins = 16
-output_dir = "target/local-smoke/fastq.profile_read_lengths"
+output_dir = "runs/bench/local-smoke/fastq.profile_read_lengths"
 
 [[cases]]
 sample_id = "toy-se"

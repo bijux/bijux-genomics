@@ -3,7 +3,7 @@ tool_id = "fastp"
 threads = 1
 max_n_count = 1
 low_complexity_threshold = 20.0
-output_dir = "target/local-smoke/fastq.filter_reads"
+output_dir = "runs/bench/local-smoke/fastq.filter_reads"
 
 [[cases]]
 sample_id = "n-and-complexity-se"

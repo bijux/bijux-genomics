@@ -4,7 +4,7 @@ threads = 1
 damage_mode = "ancient"
 trim_5p_bases = 2
 trim_3p_bases = 1
-output_dir = "target/local-smoke/fastq.trim_terminal_damage"
+output_dir = "runs/bench/local-smoke/fastq.trim_terminal_damage"
 
 [[cases]]
 sample_id = "adna-like-se"

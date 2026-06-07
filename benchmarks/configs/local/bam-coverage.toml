@@ -8,7 +8,7 @@
 schema_version = "bijux.bench.bam.local_coverage.v1"
 tool_id = "samtools"
 threads = 4
-output_dir = "target/local-smoke/bam.coverage"
+output_dir = "runs/bench/local-smoke/bam.coverage"
 
 [[cases]]
 sample_id = "human_like_target_window_coverage"
