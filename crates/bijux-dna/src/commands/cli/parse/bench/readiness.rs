@@ -94,6 +94,8 @@ pub enum BenchReadinessCommand {
     ),
     #[command(name = "render-all-domain-completion-check")]
     RenderAllDomainCompletionCheck(BenchReadinessRenderAllDomainCompletionCheckArgs),
+    #[command(name = "render-all-domain-parser-collector")]
+    RenderAllDomainParserCollector(BenchReadinessRenderAllDomainParserCollectorArgs),
     #[command(name = "render-all-domain-output-declarations")]
     RenderAllDomainOutputDeclarations(BenchReadinessRenderAllDomainOutputDeclarationsArgs),
     #[command(name = "render-all-domain-commands")]
