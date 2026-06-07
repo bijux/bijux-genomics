@@ -12,7 +12,9 @@ use super::local_stage_result_manifest::{
     BenchStageResultResourceMetricsV1, BenchStageResultRuntimeV1, BenchStageResultStatus,
     BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
-use super::path_resolution::BenchmarkPathResolver;
+use super::path_resolution::{
+    ensure_path_stays_outside_benchmark_readiness_root, BenchmarkPathResolver,
+};
 use super::readiness::all_domain_expected_benchmark_results::{
     collect_all_domain_expected_benchmark_result_rows, AllDomainExpectedBenchmarkResultRow,
 };
@@ -26,7 +28,7 @@ use super::readiness::all_domain_rendered_commands::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT: &str = "target/local-fake-runs/all-domains";
+pub(crate) const DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT: &str = "runs/bench/local-fake-runs/all-domains";
 const ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION: &str = "bijux.bench.local_all_domain_fake_runs.v1";
 const ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION: &str =
     "bijux.bench.local_all_domain_fake_run_metrics.v1";
@@ -121,6 +123,11 @@ pub(crate) fn fake_run_all_domain_benchmark_results(
     output_root: PathBuf,
 ) -> Result<AllDomainFakeRunsReport> {
     let absolute_output_root = repo_relative_path(repo_root, &output_root);
+    ensure_path_stays_outside_benchmark_readiness_root(
+        repo_root,
+        &absolute_output_root,
+        "all-domain fake-run output root",
+    )?;
     fs::create_dir_all(&absolute_output_root)
         .with_context(|| format!("create {}", absolute_output_root.display()))?;
 

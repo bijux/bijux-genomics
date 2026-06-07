@@ -32,7 +32,7 @@ fn bench_local_fake_run_all_domain_failures_writes_governed_failure_tree() {
     );
 
     let rendered_root = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_root.trim(), "target/local-fake-runs/all-domains-failures");
+    assert_eq!(rendered_root.trim(), "runs/bench/local-fake-runs/all-domains-failures");
 
     let failure_root = repo_root.join(rendered_root.trim());
     let root_manifest = failure_root.join("manifest.json");

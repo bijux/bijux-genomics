@@ -9,6 +9,9 @@ use super::local_all_domain_fake_runs::{
     declared_output_ids, output_relative_path, output_role, render_result_command_script,
 };
 use super::local_stage_fake_runs::path_relative_to_repo;
+use super::path_resolution::{
+    ensure_path_stays_outside_benchmark_readiness_root, BenchmarkPathResolver,
+};
 use super::readiness::all_domain_expected_benchmark_results::{
     collect_all_domain_expected_benchmark_result_rows, AllDomainExpectedBenchmarkResultRow,
 };
@@ -23,7 +26,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT: &str =
-    "target/local-fake-runs/all-domains-failures";
+    "runs/bench/local-fake-runs/all-domains-failures";
 const ALL_DOMAIN_FAKE_FAILURE_MANIFEST_SCHEMA_VERSION: &str =
     "bijux.bench.local_all_domain_fake_failures.v1";
 const ALL_DOMAIN_FAKE_FAILURE_RECORD_SCHEMA_VERSION: &str =
@@ -72,11 +75,12 @@ pub(crate) fn run_fake_run_all_domain_failures(
     args: &parse::BenchLocalFakeRunAllDomainFailuresArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
     let manifest = fake_run_all_domain_failures(
         &repo_root,
-        args.output_root
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT)),
+        args.output_root.clone().unwrap_or_else(|| {
+            benchmark_paths.benchmark_local_fake_run_root().join("all-domains-failures")
+        }),
         args.exit_code,
     )?;
     if args.json {
@@ -93,6 +97,11 @@ pub(crate) fn fake_run_all_domain_failures(
     exit_code: i32,
 ) -> Result<AllDomainFakeFailuresManifest> {
     let absolute_output_root = repo_relative_path(repo_root, &output_root);
+    ensure_path_stays_outside_benchmark_readiness_root(
+        repo_root,
+        &absolute_output_root,
+        "all-domain fake-failure output root",
+    )?;
     fs::create_dir_all(&absolute_output_root)
         .with_context(|| format!("create {}", absolute_output_root.display()))?;
 
