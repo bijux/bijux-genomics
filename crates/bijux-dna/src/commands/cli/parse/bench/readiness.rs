@@ -92,6 +92,8 @@ pub enum BenchReadinessCommand {
     RenderAllDomainExpectedBenchmarkResults(
         BenchReadinessRenderAllDomainExpectedBenchmarkResultsArgs,
     ),
+    #[command(name = "render-all-domain-completion-check")]
+    RenderAllDomainCompletionCheck(BenchReadinessRenderAllDomainCompletionCheckArgs),
     #[command(name = "render-all-domain-output-declarations")]
     RenderAllDomainOutputDeclarations(BenchReadinessRenderAllDomainOutputDeclarationsArgs),
     #[command(name = "render-all-domain-commands")]
@@ -674,6 +676,14 @@ pub struct BenchReadinessRenderVcfToolServingMapArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderAllDomainExpectedBenchmarkResultsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderAllDomainCompletionCheckArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

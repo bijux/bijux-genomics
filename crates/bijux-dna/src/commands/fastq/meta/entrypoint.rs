@@ -373,6 +373,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderAllDomainCompletionCheck(args) => {
+                        crate::commands::benchmark::readiness::all_domain_completion_check::run_render_all_domain_completion_check(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderAllDomainOutputDeclarations(args) => {
                         crate::commands::benchmark::readiness::all_domain_output_declarations::run_render_all_domain_output_declarations(
                             args,
