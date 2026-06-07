@@ -32,6 +32,10 @@ const REQUIRED_BENCHMARK_ROOTS: &[BenchmarkRootContract] = &[
         relative_path: "benchmarks/readiness",
         marker_path: "benchmarks/readiness/README.md",
     },
+    BenchmarkRootContract {
+        relative_path: "benchmarks/readiness/local-ready",
+        marker_path: "benchmarks/readiness/local-ready/README.md",
+    },
 ];
 
 #[derive(Debug, Clone, Copy)]

@@ -12,7 +12,8 @@ pub(crate) const DEFAULT_BENCHMARK_PARSER_FIXTURE_ROOT_SUFFIX: &str = "tests/fix
 pub(crate) const DEFAULT_BENCHMARK_CORPORA_ROOT_SUFFIX: &str = "tests/fixtures/corpora";
 pub(crate) const DEFAULT_BENCHMARK_DATABASES_ROOT_SUFFIX: &str = "tests/fixtures/databases";
 pub(crate) const DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE: &str = "benchmarks/readiness";
-pub(crate) const DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE: &str = "target/local-ready";
+pub(crate) const DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE: &str =
+    "benchmarks/readiness/local-ready";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE: &str = "target/local-fake-runs";
 pub(crate) const DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE: &str = "target/slurm-dry-run";
 
