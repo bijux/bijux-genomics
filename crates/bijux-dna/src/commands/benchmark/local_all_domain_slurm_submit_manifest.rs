@@ -155,7 +155,7 @@ fn load_pipeline_contexts(repo_root: &Path) -> Result<BTreeMap<String, PipelineN
     let mut contexts = BTreeMap::new();
     for pipeline_id in ESSENTIAL_PIPELINE_IDS {
         let config_path =
-            repo_root.join("configs/pipelines/local").join(format!("{pipeline_id}.toml"));
+            super::local_pipeline_dag::benchmark_local_pipeline_config_path(repo_root, pipeline_id);
         let report_path =
             repo_root.join("target/local-ready/pipeline-dag").join(format!("{pipeline_id}.json"));
         let report = validate_pipeline_dag_path(repo_root, &config_path, &report_path)?;

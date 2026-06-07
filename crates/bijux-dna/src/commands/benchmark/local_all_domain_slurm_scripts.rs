@@ -10,7 +10,10 @@ use super::local_all_domain_job_execution::{
     rendered_essential_pipeline_node_execution_argv,
 };
 use super::local_all_domain_result_paths::{benchmark_result_root, essential_pipeline_result_root};
-use super::local_pipeline_dag::{validate_pipeline_dag_path, LocalPipelineDagValidationNodeReport};
+use super::local_pipeline_dag::{
+    benchmark_local_pipeline_config_path, validate_pipeline_dag_path,
+    LocalPipelineDagValidationNodeReport,
+};
 use super::local_slurm_run_paths::load_fixture_sample_scope_map;
 use super::readiness::all_domain_expected_benchmark_results::{
     collect_all_domain_expected_benchmark_result_rows, AllDomainExpectedBenchmarkResultRow,
@@ -179,8 +182,7 @@ pub(crate) fn render_all_domain_slurm_scripts(
     let mut essential_pipeline_job_count = 0usize;
     for pipeline_id in ESSENTIAL_PIPELINE_IDS {
         pipeline_count += 1;
-        let config_path =
-            repo_root.join("configs/pipelines/local").join(format!("{pipeline_id}.toml"));
+        let config_path = benchmark_local_pipeline_config_path(repo_root, pipeline_id);
         let report_path =
             repo_root.join("target/local-ready/pipeline-dag").join(format!("{pipeline_id}.json"));
         let dag_report = validate_pipeline_dag_path(repo_root, &config_path, &report_path)?;
@@ -297,8 +299,7 @@ fn ensure_benchmark_alignment(
 fn expected_essential_pipeline_node_count(repo_root: &Path) -> Result<usize> {
     let mut total = 0usize;
     for pipeline_id in ESSENTIAL_PIPELINE_IDS {
-        let config_path =
-            repo_root.join("configs/pipelines/local").join(format!("{pipeline_id}.toml"));
+        let config_path = benchmark_local_pipeline_config_path(repo_root, pipeline_id);
         let report_path =
             repo_root.join("target/local-ready/pipeline-dag").join(format!("{pipeline_id}.json"));
         total += validate_pipeline_dag_path(repo_root, &config_path, &report_path)?.node_count;
