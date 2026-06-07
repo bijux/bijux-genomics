@@ -150,13 +150,14 @@ Visible aliases are part of the operator surface:
   catalog stage is missing, any row drifts from the owned contract set, or any row references a
   tool that is not declared in the VCF benchmark tool inventories.
 - `bijux-dna bench validate-schemas`
-  `validate-schemas --domain vcf` checks the committed VCF normalized metrics schema files against
-  the governed parser-supported VCF stage catalog and writes
-  `target/bench-readiness/vcf-schema-validation.json`. The gate fails closed unless the shared
-  schema file `schemas/bench/vcf-normalized-metrics.v1.json` and the full
-  `schemas/bench/vcf-normalized-metrics/` stage-specific file set match the canonical API-rendered
-  contracts exactly, including the required VCF benchmark stages for calling, filtering, QC,
-  phasing, imputation, population analyses, ROH, IBD, and demography.
+  `validate-schemas --schema-root benchmarks/schemas --domain fastq,bam,vcf` checks the tracked
+  benchmark-owned FASTQ, BAM, and VCF normalized-metrics schema files and writes
+  `target/bench-readiness/all-domain-schema-validation.json`. The gate fails closed unless
+  `benchmarks/schemas/fastq-normalized-metrics.v1.json`,
+  `benchmarks/schemas/bam-normalized-metrics.v1.json`,
+  `benchmarks/schemas/vcf-normalized-metrics.v1.json`, and the full
+  `benchmarks/schemas/vcf-normalized-metrics/` stage-specific file set match the canonical
+  API-rendered contracts exactly.
 - `bijux-dna bench publication-targets`
 - `bijux-dna bench corpus-fastq`
 - `bijux-dna bench normalize-workspace-layout`
@@ -463,7 +464,7 @@ Visible aliases are part of the operator surface:
   drift behind aggregate percentages.
 - `bijux-dna bench readiness render-bam-normalized-metrics-schema`
   `render-bam-normalized-metrics-schema` writes
-  `schemas/bench/bam-normalized-metrics.v1.json` with the governed JSON Schema contract for
+  `benchmarks/schemas/bam-normalized-metrics.v1.json` with the governed JSON Schema contract for
   normalized BAM parser outputs. The readiness report enumerates every benchmark BAM stage
   extension, its durable extension ID, and the required normalized key count so schema drift
   cannot hide behind backend-specific metric layouts.
@@ -521,7 +522,7 @@ Visible aliases are part of the operator surface:
   stay reviewer-visible before HPC submission.
 - `bijux-dna bench readiness render-fastq-normalized-metrics-schema`
   `render-fastq-normalized-metrics-schema` writes
-  `schemas/bench/fastq-normalized-metrics.v1.json` with the governed JSON Schema contract for
+  `benchmarks/schemas/fastq-normalized-metrics.v1.json` with the governed JSON Schema contract for
   normalized FASTQ parser outputs. The readiness report enumerates every benchmark FASTQ stage
   extension, its durable extension ID, and the required normalized key count so schema drift
   cannot hide behind parser-specific report formats.
@@ -610,11 +611,11 @@ Visible aliases are part of the operator surface:
   unless every benchmark-ready VCF row has a governed parser fixture and schema mapping.
 - `bijux-dna bench readiness render-vcf-normalized-metrics-schema`
   `render-vcf-normalized-metrics-schema` writes
-  `schemas/bench/vcf-normalized-metrics.v1.json` plus one stage-specific schema file under
-  `schemas/bench/vcf-normalized-metrics/` for every parser-supported VCF stage. The readiness
-  report enumerates each stage schema version, durable schema ID, stage file name, extension ID,
-  and required normalized key count so parser-owned VCF metrics stay governed by one shared schema
-  family instead of drifting into tool-private JSON shapes.
+  `benchmarks/schemas/vcf-normalized-metrics.v1.json` plus one stage-specific schema file under
+  `benchmarks/schemas/vcf-normalized-metrics/` for every parser-supported VCF stage. The
+  readiness report enumerates each stage schema version, durable schema ID, stage file name,
+  extension ID, and required normalized key count so parser-owned VCF metrics stay governed by
+  one shared schema family instead of drifting into tool-private JSON shapes.
 - `bijux-dna bench readiness render-vcf-parser-failure-tests`
   `render-vcf-parser-failure-tests` writes
   `target/bench-readiness/vcf-parser-failure-tests.json` with seven governed malformed-output
