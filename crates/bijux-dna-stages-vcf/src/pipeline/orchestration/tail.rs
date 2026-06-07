@@ -92,7 +92,7 @@ pub fn run_imputation_orchestration_stage(
         &orchestration_manifest_json,
         &serde_json::json!({
             "schema_version": "bijux.vcf.imputation.orchestration.v1",
-            "stage_id": "vcf.imputation",
+            "stage_id": "vcf.imputation_metrics",
             "semantics": "wrapper_stage",
             "substages": [
                 {"id": "prepare_reference_panel", "artifact": prepare_marker},
@@ -107,7 +107,7 @@ pub fn run_imputation_orchestration_stage(
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "wrapper=vcf.imputation\nbackend={}\nphase_ran={}\n",
+            "wrapper=vcf.imputation_metrics\nbackend={}\nphase_ran={}\n",
             params.backend.as_str(),
             phase_ran
         )

@@ -63,7 +63,8 @@ const VCF_PARSER_FIXTURE_INVENTORY: &[VcfParserFixtureInventoryRow] = &[
         tool_id: "bcftools",
         stage: VcfDomainStage::PrepareReferencePanel,
         parser_id: "parse_bcftools_prepare_reference_panel_metrics",
-        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.prepare_reference_panel",
+        fixture_path:
+            "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.prepare_reference_panel",
     },
     VcfParserFixtureInventoryRow {
         tool_id: "bcftools",
@@ -169,9 +170,10 @@ const VCF_PARSER_FIXTURE_INVENTORY: &[VcfParserFixtureInventoryRow] = &[
     },
     VcfParserFixtureInventoryRow {
         tool_id: "beagle",
-        stage: VcfDomainStage::Imputation,
+        stage: VcfDomainStage::ImputationMetrics,
         parser_id: "parse_beagle_imputation_metrics",
-        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation",
+        fixture_path:
+            "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics",
     },
     VcfParserFixtureInventoryRow {
         tool_id: "glimpse",
@@ -181,9 +183,10 @@ const VCF_PARSER_FIXTURE_INVENTORY: &[VcfParserFixtureInventoryRow] = &[
     },
     VcfParserFixtureInventoryRow {
         tool_id: "glimpse",
-        stage: VcfDomainStage::Imputation,
+        stage: VcfDomainStage::ImputationMetrics,
         parser_id: "parse_glimpse_imputation_metrics",
-        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.imputation",
+        fixture_path:
+            "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.imputation_metrics",
     },
     VcfParserFixtureInventoryRow {
         tool_id: "impute5",
@@ -193,9 +196,10 @@ const VCF_PARSER_FIXTURE_INVENTORY: &[VcfParserFixtureInventoryRow] = &[
     },
     VcfParserFixtureInventoryRow {
         tool_id: "impute5",
-        stage: VcfDomainStage::Imputation,
+        stage: VcfDomainStage::ImputationMetrics,
         parser_id: "parse_impute5_imputation_metrics",
-        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.imputation",
+        fixture_path:
+            "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.imputation_metrics",
     },
     VcfParserFixtureInventoryRow {
         tool_id: "minimac4",
@@ -205,39 +209,45 @@ const VCF_PARSER_FIXTURE_INVENTORY: &[VcfParserFixtureInventoryRow] = &[
     },
     VcfParserFixtureInventoryRow {
         tool_id: "minimac4",
-        stage: VcfDomainStage::Imputation,
+        stage: VcfDomainStage::ImputationMetrics,
         parser_id: "parse_minimac4_imputation_metrics",
-        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.imputation",
+        fixture_path:
+            "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.imputation_metrics",
     },
     VcfParserFixtureInventoryRow {
         tool_id: "plink2",
         stage: VcfDomainStage::Roh,
         parser_id: "parse_plink2_roh_segment_metrics",
-        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/segments/plink2/vcf.roh/complete",
+        fixture_path:
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/plink2/vcf.roh/complete",
     },
     VcfParserFixtureInventoryRow {
         tool_id: "germline",
         stage: VcfDomainStage::Ibd,
         parser_id: "parse_germline_ibd_segment_metrics",
-        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/segments/germline/vcf.ibd/complete",
+        fixture_path:
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/germline/vcf.ibd/complete",
     },
     VcfParserFixtureInventoryRow {
         tool_id: "ibdseq",
         stage: VcfDomainStage::Ibd,
         parser_id: "parse_ibdseq_ibd_segment_metrics",
-        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdseq/vcf.ibd/complete",
+        fixture_path:
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdseq/vcf.ibd/complete",
     },
     VcfParserFixtureInventoryRow {
         tool_id: "ibdhap",
         stage: VcfDomainStage::Ibd,
         parser_id: "parse_ibdhap_ibd_segment_metrics",
-        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdhap/vcf.ibd/complete",
+        fixture_path:
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdhap/vcf.ibd/complete",
     },
     VcfParserFixtureInventoryRow {
         tool_id: "ibdne",
         stage: VcfDomainStage::Demography,
         parser_id: "parse_ibdne_demography_metrics",
-        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/complete",
+        fixture_path:
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/complete",
     },
 ];
 

@@ -52,7 +52,10 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         bail!("vcf.demography requires vcf.ibd in requested/default stage set");
     }
     let requires_diploid_imputation = stages.iter().any(|s| {
-        matches!(s, VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute)
+        matches!(
+            s,
+            VcfDomainStage::Phasing | VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute
+        )
     });
     if requires_diploid_imputation && !resolved_species.supported_features.imputation {
         bail!(

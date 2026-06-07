@@ -15,7 +15,7 @@ version_cmd: "minimac4 --version"
 help_cmd: "minimac4 --help"
 expected_artifacts: ["imputed_vcf"]
 capabilities: ["SE", "PE"]
-metrics_schema_id: "bijux.vcf.imputation.v1"
+metrics_schema_id: "bijux.vcf.imputation_metrics.v1"
 comparability_notes: "External planned tool for imputation; containerization pending."
 container:
   image: "external"

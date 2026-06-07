@@ -22,7 +22,7 @@ Each fixture file under domain/vcf/fixtures/STAGE_ID/*.txt must define:
 - `vcf.filter`: intent = stage-specific command contract coverage for `vcf.filter`.
 - `vcf.gl_propagation`: intent = stage-specific command contract coverage for `vcf.gl_propagation`.
 - `vcf.ibd`: intent = stage-specific command contract coverage for `vcf.ibd`.
-- `vcf.imputation`: intent = stage-specific command contract coverage for `vcf.imputation`.
+- `vcf.imputation_metrics`: intent = stage-specific command contract coverage for `vcf.imputation_metrics`.
 - `vcf.impute`: intent = stage-specific command contract coverage for `vcf.impute`.
 - `vcf.pca`: intent = stage-specific command contract coverage for `vcf.pca`.
 - `vcf.phasing`: intent = stage-specific command contract coverage for `vcf.phasing`.

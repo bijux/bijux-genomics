@@ -223,7 +223,7 @@ pub fn stage_artifact_class_contract(stage: VcfDomainStage) -> VcfArtifactClassC
             stage,
             artifact_classes: &[VcfArtifactClass::PanelEvidence, VcfArtifactClass::VariantIndex],
         },
-        VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute => {
+        VcfDomainStage::Phasing | VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute => {
             VcfArtifactClassContract {
                 stage,
                 artifact_classes: &[
@@ -530,7 +530,7 @@ pub fn vcf_panel_boundary_contracts() -> &'static [VcfPanelBoundaryContract] {
             execution_mode: "enforced",
         },
         VcfPanelBoundaryContract {
-            stage: VcfDomainStage::Imputation,
+            stage: VcfDomainStage::ImputationMetrics,
             required_context: &[
                 "panel_identity",
                 "build_compatibility",
@@ -632,20 +632,20 @@ pub fn vcf_phasing_imputation_boundary_contracts() -> &'static [VcfPhasingImputa
             ],
         },
         VcfPhasingImputationBoundaryContract {
-            stage: VcfDomainStage::Imputation,
+            stage: VcfDomainStage::ImputationMetrics,
             accepted_tools: &["glimpse", "beagle", "impute5", "minimac4"],
             required_context: &["panel_identity", "build_compatibility", "map_file", "chunk_plan"],
             required_outputs: &[
-                "imputed_vcf",
+                "imputation_metrics_json",
                 "imputation_qc",
-                "imputation_acceptance",
-                "panel_mismatch_diagnostics",
+                "imputation_manifest",
+                "orchestration_manifest",
             ],
             refusal_reasons: &[
                 "panel_identity_missing",
                 "map_lock_missing",
                 "panel_build_mismatch",
-                "confidence_outputs_not_declared",
+                "metrics_outputs_not_declared",
             ],
         },
     ]

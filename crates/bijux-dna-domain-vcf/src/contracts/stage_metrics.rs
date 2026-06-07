@@ -192,9 +192,9 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
             metrics_schema_id: "bijux.vcf.phasing.v1",
             required_metrics: PHASING_METRICS,
         },
-        VcfDomainStage::Imputation => StageMetricsContract {
+        VcfDomainStage::ImputationMetrics => StageMetricsContract {
             stage,
-            metrics_schema_id: "bijux.vcf.imputation.v1",
+            metrics_schema_id: "bijux.vcf.imputation_metrics.v1",
             required_metrics: IMPUTATION_METRICS,
         },
         VcfDomainStage::Impute => StageMetricsContract {

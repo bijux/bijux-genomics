@@ -349,7 +349,7 @@
       "vcf.ibd": [
         "stable_artifact_contract"
       ],
-      "vcf.imputation": [
+      "vcf.imputation_metrics": [
         "stable_artifact_contract"
       ],
       "vcf.impute": [

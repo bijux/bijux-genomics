@@ -88,7 +88,7 @@ pub fn validate_vcf_invariants(
         VcfDomainStage::Filter
             | VcfDomainStage::GlPropagation
             | VcfDomainStage::Phasing
-            | VcfDomainStage::Imputation
+            | VcfDomainStage::ImputationMetrics
             | VcfDomainStage::Impute
             | VcfDomainStage::Postprocess
             | VcfDomainStage::Stats

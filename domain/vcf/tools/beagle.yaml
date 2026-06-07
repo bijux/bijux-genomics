@@ -1,6 +1,6 @@
 schema_version: "bijux.tool.v1"
 tool_id: "beagle"
-stage_ids: ["vcf.phasing", "vcf.imputation", "vcf.impute"]
+stage_ids: ["vcf.phasing", "vcf.imputation_metrics", "vcf.impute"]
 role: "analysis"
 authoritative: false
 strict_capable: true

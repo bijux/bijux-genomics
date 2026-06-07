@@ -1,9 +1,9 @@
 schema_version: "bijux.stage.v1"
-stage_id: "vcf.imputation"
+stage_id: "vcf.imputation_metrics"
 status: "planned"
 scope: "post_vcf"
 domain: "vcf"
-description: "VCF stage contract for vcf.imputation in the governed domain registry."
+description: "VCF stage contract for vcf.imputation_metrics in the governed domain registry."
 inputs:
   - name: "vcf"
     data_type: "vcf"

@@ -11,7 +11,7 @@ stage_ids:
   - "vcf.stats"
 planned_stage_ids:
   - "vcf.admixture"
-  - "vcf.imputation"
+  - "vcf.imputation_metrics"
   - "vcf.pca"
   - "vcf.phasing"
   - "vcf.postprocess"

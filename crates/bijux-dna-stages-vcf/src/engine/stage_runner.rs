@@ -374,7 +374,7 @@ impl VcfStageRunner for DispatchRunner {
                     out.logs_txt,
                 ]);
             }
-            VcfDomainStage::Imputation => {
+            VcfDomainStage::ImputationMetrics => {
                 let params = ctx.request.impute.clone().ok_or_else(|| {
                     refusal(VcfRefusalCode::PlanningFailed, "missing impute params")
                 })?;

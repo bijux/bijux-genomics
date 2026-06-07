@@ -38,19 +38,19 @@ pub fn parse_imputation_stage_metrics(
     artifact_root: &Path,
 ) -> Result<serde_json::Value> {
     match stage {
-        VcfDomainStage::Imputation => parse_imputation_metrics(tool_id, artifact_root),
+        VcfDomainStage::ImputationMetrics => parse_imputation_metrics(tool_id, artifact_root),
         VcfDomainStage::Impute => parse_impute_metrics(tool_id, artifact_root),
         other => bail!("unsupported imputation VCF parser stage `{}`", other.as_str()),
     }
 }
 
 fn parse_imputation_metrics(tool_id: &str, root: &Path) -> Result<serde_json::Value> {
-    validate_command(tool_id, "vcf.imputation", &read_json(&root.join(RAW_COMMAND_NAME))?)?;
+    validate_command(tool_id, "vcf.imputation_metrics", &read_json(&root.join(RAW_COMMAND_NAME))?)?;
 
     let imputation_qc = read_json(&root.join(RAW_IMPUTATION_QC_NAME))?;
     validate_backend_field(tool_id, &imputation_qc, "imputation qc")?;
     let manifest = read_json(&root.join(RAW_IMPUTATION_MANIFEST_NAME))?;
-    validate_manifest(tool_id, "vcf.imputation", &manifest)?;
+    validate_manifest(tool_id, "vcf.imputation_metrics", &manifest)?;
     let orchestration_manifest = read_json(&root.join(RAW_ORCHESTRATION_MANIFEST_NAME))?;
     validate_orchestration_manifest(tool_id, &orchestration_manifest)?;
     validate_accept_report(&read_json(&root.join(RAW_IMPUTATION_ACCEPT_NAME))?)?;
@@ -97,8 +97,8 @@ fn parse_imputation_metrics(tool_id: &str, root: &Path) -> Result<serde_json::Va
     };
 
     Ok(serde_json::json!({
-        "schema_version": "bijux.vcf.imputation.v1",
-        "stage_id": "vcf.imputation",
+        "schema_version": "bijux.vcf.imputation_metrics.v1",
+        "stage_id": "vcf.imputation_metrics",
         "tool_id": tool_id,
         "status": status,
         "mean_info_score": mean_info_score,
@@ -191,7 +191,7 @@ fn validate_manifest(tool_id: &str, stage_id: &str, manifest: &serde_json::Value
 fn validate_orchestration_manifest(tool_id: &str, manifest: &serde_json::Value) -> Result<()> {
     validate_backend_field(tool_id, manifest, "orchestration manifest")?;
     let stage_id = json_string(manifest, "/stage_id", "stage_id")?;
-    if stage_id != "vcf.imputation" {
+    if stage_id != "vcf.imputation_metrics" {
         bail!("orchestration manifest stage drifted: found `{stage_id}`");
     }
     let status = json_string(manifest, "/status", "status")?;

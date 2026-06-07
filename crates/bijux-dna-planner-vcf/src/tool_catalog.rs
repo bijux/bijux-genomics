@@ -14,7 +14,7 @@ pub(crate) fn stage_compat_tools(stage: VcfDomainStage) -> &'static [&'static st
         VcfDomainStage::GlPropagation => &["bcftools", "angsd"],
         VcfDomainStage::PrepareReferencePanel => &["bcftools"],
         VcfDomainStage::Phasing => &["beagle", "eagle", "shapeit5"],
-        VcfDomainStage::Imputation | VcfDomainStage::Impute => {
+        VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute => {
             &["glimpse", "impute5", "minimac4", "beagle"]
         }
         VcfDomainStage::Postprocess => &["bcftools"],
@@ -37,7 +37,7 @@ pub(crate) fn default_tool(stage: VcfDomainStage, coverage: CoverageRegime) -> &
             CoverageRegime::LowCovGl => "beagle",
             CoverageRegime::Pseudohaploid => "beagle",
         },
-        VcfDomainStage::Imputation | VcfDomainStage::Impute => match coverage {
+        VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute => match coverage {
             CoverageRegime::Diploid => "minimac4",
             CoverageRegime::LowCovGl => "glimpse",
             CoverageRegime::Pseudohaploid => "beagle",

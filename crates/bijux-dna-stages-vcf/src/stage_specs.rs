@@ -123,10 +123,10 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
             experimental: true,
         },
         VcfStageSpec {
-            stage_id: "vcf.imputation",
+            stage_id: "vcf.imputation_metrics",
             status: "planned",
             default_tool_id: "beagle",
-            metrics_schema: "bijux.vcf.imputation.v1",
+            metrics_schema: "bijux.vcf.imputation_metrics.v1",
             smoke_supported: true,
             parser_supported: true,
             experimental: true,
@@ -217,7 +217,7 @@ pub fn vcf_domain_stage_adapter_id(stage: VcfDomainStage) -> Option<&'static str
         | VcfDomainStage::Filter
         | VcfDomainStage::GlPropagation
         | VcfDomainStage::Postprocess => "vcf.adapter.transform",
-        VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute => {
+        VcfDomainStage::Phasing | VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute => {
             "vcf.adapter.panel_workflow"
         }
         VcfDomainStage::Qc | VcfDomainStage::Stats => "vcf.adapter.quality_control",
@@ -241,10 +241,10 @@ pub fn vcf_domain_stage_parser_id(stage: VcfDomainStage) -> Option<&'static str>
         | VcfDomainStage::Filter
         | VcfDomainStage::GlPropagation
         | VcfDomainStage::Phasing
-        | VcfDomainStage::Imputation
         | VcfDomainStage::Impute
         | VcfDomainStage::Postprocess
         | VcfDomainStage::PrepareReferencePanel => "vcf.parser.vcf_output",
+        VcfDomainStage::ImputationMetrics => "vcf.parser.report_json",
         VcfDomainStage::Qc => "vcf.parser.qc_report",
         VcfDomainStage::Stats => "vcf.parser.stats_report",
         VcfDomainStage::PopulationStructure
@@ -271,7 +271,8 @@ pub fn vcf_domain_stage_expected_output_ids(
         VcfDomainStage::GlPropagation => &["gl_propagated_vcf"],
         VcfDomainStage::Qc => &["qc_report"],
         VcfDomainStage::Phasing => &["phased_vcf"],
-        VcfDomainStage::Imputation | VcfDomainStage::Impute => &["imputed_vcf"],
+        VcfDomainStage::ImputationMetrics => &["imputation_metrics_json"],
+        VcfDomainStage::Impute => &["imputed_vcf"],
         VcfDomainStage::Postprocess => &["postprocess_vcf"],
         VcfDomainStage::PopulationStructure => &["population_structure_report"],
         VcfDomainStage::Pca => &["pca_report"],

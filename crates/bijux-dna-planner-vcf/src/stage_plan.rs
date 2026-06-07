@@ -21,7 +21,7 @@ use crate::tool_catalog::image_for_tool;
 pub fn stage_resources_for_stage(stage: VcfDomainStage) -> ToolConstraints {
     ToolConstraints {
         runtime: "docker".to_string(),
-        mem_gb: if matches!(stage, VcfDomainStage::Impute | VcfDomainStage::Imputation) {
+        mem_gb: if matches!(stage, VcfDomainStage::Impute | VcfDomainStage::ImputationMetrics) {
             16
         } else {
             4
@@ -29,7 +29,7 @@ pub fn stage_resources_for_stage(stage: VcfDomainStage) -> ToolConstraints {
         tmp_gb: 8,
         threads: if matches!(
             stage,
-            VcfDomainStage::Impute | VcfDomainStage::Imputation | VcfDomainStage::Phasing
+            VcfDomainStage::Impute | VcfDomainStage::ImputationMetrics | VcfDomainStage::Phasing
         ) {
             8
         } else {
@@ -141,7 +141,7 @@ fn append_panel_workflow_inputs(
 ) -> Result<()> {
     if !matches!(
         stage,
-        VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute
+        VcfDomainStage::Phasing | VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute
     ) {
         return Ok(());
     }

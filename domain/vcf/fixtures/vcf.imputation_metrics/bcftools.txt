@@ -1,6 +1,6 @@
 tool=bcftools
 tool_version=pinned
-stage=vcf.imputation
+stage=vcf.imputation_metrics
 domain=vcf
 fixture_kind=planned
 command=bcftools

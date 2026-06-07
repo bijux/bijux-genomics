@@ -23,7 +23,7 @@ pub fn choose_tool(
     if let Some(selected) = inputs.stage_tool_overrides.get(&key) {
         return Ok((selected.clone(), "stage_tool_override".to_string()));
     }
-    if matches!(stage, VcfDomainStage::Imputation | VcfDomainStage::Impute) {
+    if matches!(stage, VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute) {
         if resolved_coverage == CoverageRegime::LowCovGl {
             return Ok(("glimpse".to_string(), "lowcov_gl_default_glimpse".to_string()));
         }
@@ -56,7 +56,7 @@ pub fn validate_selected_tool(
         stage,
         VcfDomainStage::PrepareReferencePanel
             | VcfDomainStage::Phasing
-            | VcfDomainStage::Imputation
+            | VcfDomainStage::ImputationMetrics
             | VcfDomainStage::Impute
     ) {
         if !(stage == VcfDomainStage::Impute

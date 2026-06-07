@@ -88,8 +88,8 @@ params = [
 ]
 
 [[entries]]
-stage_id = "vcf.imputation"
-param_type_id = "vcf.imputation"
+stage_id = "vcf.imputation_metrics"
+param_type_id = "vcf.imputation_metrics"
 schema_version = "bijux.vcf.params.v1"
 params = [
   "schema_version",

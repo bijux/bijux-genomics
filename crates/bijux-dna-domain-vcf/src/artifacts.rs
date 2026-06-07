@@ -1308,7 +1308,7 @@ fn evaluate_imputation_workflow_boundary(
         if prerequisites_passed { info_score_mean.unwrap_or(0.80).clamp(0.0, 1.0) } else { 0.0 };
     VcfImputationWorkflowBoundaryV1 {
         schema_version: VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION.to_string(),
-        stage_id: "vcf.imputation".to_string(),
+        stage_id: "vcf.imputation_metrics".to_string(),
         backend: backend.to_string(),
         panel_id: panel_id.map(ToOwned::to_owned),
         map_id: map_id.map(ToOwned::to_owned),
@@ -2259,7 +2259,7 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
             false,
         );
         assert!(ready.prerequisites_passed);
-        assert_eq!(ready.stage_id, "vcf.imputation");
+        assert_eq!(ready.stage_id, "vcf.imputation_metrics");
         assert!(ready.panel_compatible);
         assert!(ready.map_compatible);
         assert!(ready.refusal_codes.is_empty());
@@ -2420,7 +2420,7 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         let report = build_panel_reference_drift_report(
             &baseline,
             &candidate,
-            &["vcf.imputation.vcf.gz", "vcf.phasing.vcf.gz", "vcf.imputation.vcf.gz"],
+            &["vcf.impute.vcf.gz", "vcf.phasing.vcf.gz", "vcf.impute.vcf.gz"],
         );
         assert!(report.requires_reprocessing);
         assert!(report.changed_surfaces.contains(&"reference_fasta".to_string()));

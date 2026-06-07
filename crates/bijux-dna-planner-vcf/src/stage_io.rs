@@ -16,7 +16,8 @@ pub(crate) fn stage_output_name(stage: VcfDomainStage) -> &'static str {
         VcfDomainStage::Filter => "filtered_vcf",
         VcfDomainStage::GlPropagation => "gl_propagated_vcf",
         VcfDomainStage::Phasing => "phased_vcf",
-        VcfDomainStage::Imputation | VcfDomainStage::Impute => "imputed_vcf",
+        VcfDomainStage::ImputationMetrics => "imputation_metrics_json",
+        VcfDomainStage::Impute => "imputed_vcf",
         VcfDomainStage::Postprocess => "postprocess_vcf",
         VcfDomainStage::PopulationStructure => "population_structure_report",
         VcfDomainStage::Pca => "pca_report",
@@ -81,6 +82,9 @@ pub(crate) fn stage_outputs_for(stage: VcfDomainStage, out_dir: &Path) -> Vec<Ar
     let output = stage_output_name(stage);
     let (path, role) = match stage {
         VcfDomainStage::Ibd => (out_dir.join(format!("{output}.tsv")), ArtifactRole::SummaryTsv),
+        VcfDomainStage::ImputationMetrics => {
+            (out_dir.join("imputation_metrics.json"), ArtifactRole::MetricsJson)
+        }
         _ if output.ends_with("json") || output.contains("report") => {
             (out_dir.join(format!("{output}.json")), ArtifactRole::MetricsJson)
         }
@@ -144,9 +148,14 @@ pub(crate) fn stage_command(
         VcfDomainStage::Phasing => {
             template.extend(["phase", "--input", "vcf"].into_iter().map(str::to_string))
         }
-        VcfDomainStage::Imputation | VcfDomainStage::Impute => {
+        VcfDomainStage::Impute => {
             template.extend(["impute", "--input", "vcf"].into_iter().map(str::to_string))
         }
+        VcfDomainStage::ImputationMetrics => template.extend(
+            ["derive-imputation-metrics", "--input", "vcf", "--output", "imputation_metrics_json"]
+                .into_iter()
+                .map(str::to_string),
+        ),
         VcfDomainStage::PopulationStructure => {
             template.extend(["pca", "--structure"].into_iter().map(str::to_string))
         }
@@ -477,17 +486,26 @@ fn imputation_stage_command(
     inputs: &[ArtifactSpec],
     outputs: &[ArtifactSpec],
 ) -> Result<Option<Vec<String>>> {
-    if !matches!(stage, VcfDomainStage::Imputation | VcfDomainStage::Impute) {
+    if !matches!(stage, VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute) {
         return Ok(None);
     }
 
     let input_vcf = input_path(inputs, "vcf")?.display().to_string();
     let panel_vcf = input_path(inputs, "reference_panel_vcf")?.display().to_string();
     let genetic_map = input_path(inputs, "genetic_map_tsv")?.display().to_string();
+    let region = "1:1-1000000";
+
+    if stage == VcfDomainStage::ImputationMetrics {
+        let report_path = output_path(outputs, "imputation_metrics_json")?.display().to_string();
+        let command = format!(
+            "printf '%s\\n' '{{\"schema_version\":\"bijux.vcf.imputation_metrics.v1\",\"stage_id\":\"vcf.imputation_metrics\",\"tool_id\":\"{tool}\",\"status\":\"planned_contract\",\"source_vcf\":\"{input_vcf}\",\"reference_panel_vcf\":\"{panel_vcf}\",\"genetic_map_tsv\":\"{genetic_map}\"}}' > '{report_path}'"
+        );
+        return Ok(Some(vec!["sh".to_string(), "-lc".to_string(), command]));
+    }
+
     let imputed_vcf = output_path(outputs, "imputed_vcf")?.display().to_string();
     let output_prefix = output_prefix_path(outputs, "imputed_vcf")?;
     let log_path = format!("{output_prefix}.log");
-    let region = "1:1-1000000";
 
     let command = match tool {
         "beagle" => format!(

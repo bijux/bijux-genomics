@@ -1050,7 +1050,7 @@
         ]
       },
       {
-        "stage_id": "vcf.imputation",
+        "stage_id": "vcf.imputation_metrics",
         "evidence_status": "planned",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [

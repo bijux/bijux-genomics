@@ -284,7 +284,7 @@ const IMPUTE_COMPARABLE_METRICS: &[VcfComparableMetricSpec] = &[
 
 const IMPUTATION_COMPARABLE_METRICS: &[VcfComparableMetricSpec] = &[
     VcfComparableMetricSpec {
-        stage: VcfDomainStage::Imputation,
+        stage: VcfDomainStage::ImputationMetrics,
         metric_id: "mean_info_score",
         metric_name: "mean info score",
         unit: "score",
@@ -292,7 +292,7 @@ const IMPUTATION_COMPARABLE_METRICS: &[VcfComparableMetricSpec] = &[
         required: true,
     },
     VcfComparableMetricSpec {
-        stage: VcfDomainStage::Imputation,
+        stage: VcfDomainStage::ImputationMetrics,
         metric_id: "low_confidence_sites",
         metric_name: "low-confidence sites",
         unit: "sites",
@@ -300,7 +300,7 @@ const IMPUTATION_COMPARABLE_METRICS: &[VcfComparableMetricSpec] = &[
         required: true,
     },
     VcfComparableMetricSpec {
-        stage: VcfDomainStage::Imputation,
+        stage: VcfDomainStage::ImputationMetrics,
         metric_id: "masked_truth_sites",
         metric_name: "masked-truth sites",
         unit: "sites",
@@ -331,7 +331,7 @@ pub fn stage_comparable_metric_specs(stage: VcfDomainStage) -> &'static [VcfComp
         VcfDomainStage::Admixture => ADMIXTURE_COMPARABLE_METRICS,
         VcfDomainStage::Phasing => PHASING_COMPARABLE_METRICS,
         VcfDomainStage::Impute => IMPUTE_COMPARABLE_METRICS,
-        VcfDomainStage::Imputation => IMPUTATION_COMPARABLE_METRICS,
+        VcfDomainStage::ImputationMetrics => IMPUTATION_COMPARABLE_METRICS,
         VcfDomainStage::Ibd => IBD_COMPARABLE_METRICS,
         _ => &[],
     }

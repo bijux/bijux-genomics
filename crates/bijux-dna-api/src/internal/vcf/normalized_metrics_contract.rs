@@ -386,7 +386,7 @@ fn fields_for_stage(stage_id: &str) -> Result<&'static [VcfNormalizedMetricsFiel
         "vcf.filter" => Ok(FILTER_FIELDS),
         "vcf.gl_propagation" => Ok(GL_PROPAGATION_FIELDS),
         "vcf.ibd" => Ok(IBD_FIELDS),
-        "vcf.imputation" => Ok(IMPUTATION_FIELDS),
+        "vcf.imputation_metrics" => Ok(IMPUTATION_FIELDS),
         "vcf.impute" => Ok(IMPUTE_FIELDS),
         "vcf.pca" => Ok(PCA_FIELDS),
         "vcf.phasing" => Ok(PHASING_FIELDS),

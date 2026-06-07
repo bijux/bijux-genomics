@@ -22,10 +22,10 @@ smoke_required = false
 tools = ["beagle", "shapeit5", "eagle"]
 
 [[stages]]
-id = "vcf.imputation"
+id = "vcf.imputation_metrics"
 status = "planned"
 experimental = true
-metrics_schema = "bijux.vcf.imputation.v1"
+metrics_schema = "bijux.vcf.imputation_metrics.v1"
 smoke_required = false
 tools = ["beagle", "glimpse", "impute5", "minimac4"]
 
@@ -33,7 +33,7 @@ tools = ["beagle", "glimpse", "impute5", "minimac4"]
 id = "vcf.impute"
 status = "planned"
 experimental = true
-metrics_schema = "bijux.vcf.imputation.v1"
+metrics_schema = "bijux.vcf.imputation_metrics.v1"
 smoke_required = false
 tools = ["beagle", "glimpse", "impute5", "minimac4"]
 

@@ -21,7 +21,7 @@ pub const VCF_STAGE_ORDER_DOWNSTREAM: &[VcfDomainStage] = &[
     VcfDomainStage::GlPropagation,
     VcfDomainStage::Qc,
     VcfDomainStage::Phasing,
-    VcfDomainStage::Imputation,
+    VcfDomainStage::ImputationMetrics,
     VcfDomainStage::Impute,
     VcfDomainStage::Postprocess,
     VcfDomainStage::PopulationStructure,
@@ -34,7 +34,7 @@ pub const VCF_STAGE_ORDER_DOWNSTREAM: &[VcfDomainStage] = &[
 ];
 
 pub const VCF_FORBIDDEN_TRANSITIONS: &[(VcfDomainStage, VcfDomainStage)] = &[
-    (VcfDomainStage::Imputation, VcfDomainStage::Call),
+    (VcfDomainStage::ImputationMetrics, VcfDomainStage::Call),
     (VcfDomainStage::Impute, VcfDomainStage::Call),
     (VcfDomainStage::Postprocess, VcfDomainStage::Call),
     (VcfDomainStage::Demography, VcfDomainStage::Ibd),
@@ -112,7 +112,7 @@ pub const VCF_STAGE_TAXONOMY: &[VcfStageTaxonomyRecord] = &[
         coverage_regimes: &[CoverageRegime::Diploid],
     },
     VcfStageTaxonomyRecord {
-        stage: VcfDomainStage::Imputation,
+        stage: VcfDomainStage::ImputationMetrics,
         kind: VcfStageKind::Imputation,
         status: DomainSupportStatus::Planned,
         coverage_regimes: &[CoverageRegime::Diploid, CoverageRegime::LowCovGl],

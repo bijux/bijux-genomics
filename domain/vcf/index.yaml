@@ -14,7 +14,7 @@ stage_ids:
   - vcf.filter
   - vcf.gl_propagation
   - vcf.ibd
-  - vcf.imputation
+  - vcf.imputation_metrics
   - vcf.impute
   - vcf.pca
   - vcf.phasing
@@ -78,7 +78,7 @@ stage_tool_compatibility:
   - germline
   - ibdseq
   - ibdhap
-  vcf.imputation:
+  vcf.imputation_metrics:
   - beagle
   - glimpse
   - impute5
@@ -138,7 +138,7 @@ stage_tool_integration:
     germline: governed_contract
     ibdseq: governed_contract
     ibdhap: governed_contract
-  vcf.imputation:
+  vcf.imputation_metrics:
     beagle: governed_contract
     glimpse: governed_contract
     impute5: governed_contract

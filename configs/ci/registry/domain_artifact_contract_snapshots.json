@@ -1424,7 +1424,7 @@
       "vcf.ibd": [
         "ibd_segments"
       ],
-      "vcf.imputation": [
+      "vcf.imputation_metrics": [
         "imputation_out"
       ],
       "vcf.impute": [

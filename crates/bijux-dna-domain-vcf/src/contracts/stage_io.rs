@@ -54,7 +54,6 @@ pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
         | VcfDomainStage::Filter
         | VcfDomainStage::GlPropagation
         | VcfDomainStage::Phasing
-        | VcfDomainStage::Imputation
         | VcfDomainStage::Impute
         | VcfDomainStage::Postprocess
         | VcfDomainStage::Qc
@@ -64,6 +63,14 @@ pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
             outputs: vec![port("vcf_out", "vcf", one)],
             required_inputs: vec!["vcf"],
             required_outputs: vec!["vcf_out"],
+            required_indices: vec!["vcf.tbi"],
+        },
+        VcfDomainStage::ImputationMetrics => StageIoContract {
+            stage,
+            inputs: vec![port("vcf", "vcf", one)],
+            outputs: vec![port("imputation_metrics_json", "json", one)],
+            required_inputs: vec!["vcf"],
+            required_outputs: vec!["imputation_metrics_json"],
             required_indices: vec!["vcf.tbi"],
         },
         VcfDomainStage::PopulationStructure
