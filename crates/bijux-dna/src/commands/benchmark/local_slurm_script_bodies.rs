@@ -110,13 +110,20 @@ fn inspect_slurm_script(
         .with_context(|| format!("read {}", script_path.display()))?;
     let mut findings = Vec::new();
     let mut has_bijux_dna_command = false;
+    let mut has_executable_command = false;
 
     for line in body.lines() {
         let trimmed = line.trim();
-        if trimmed.starts_with('#') {
+        if trimmed.is_empty() {
             continue;
         }
         let lowered = trimmed.to_ascii_lowercase();
+        if lowered.contains("todo") {
+            findings.push("contains `TODO`".to_string());
+        }
+        if trimmed.starts_with('#') {
+            continue;
+        }
         if lowered.contains("bijux-dna") {
             has_bijux_dna_command = true;
         }
@@ -132,10 +139,16 @@ fn inspect_slurm_script(
         {
             findings.push("contains fake `echo execute` job body".to_string());
         }
+        if !is_slurm_boilerplate_line(trimmed) {
+            has_executable_command = true;
+        }
     }
 
     if !has_bijux_dna_command {
         findings.push("missing `bijux-dna` command".to_string());
+    }
+    if !has_executable_command {
+        findings.push("contains empty command body".to_string());
     }
 
     Ok(BenchLocalSlurmScriptBodyEntry {
@@ -144,6 +157,30 @@ fn inspect_slurm_script(
         ok: findings.is_empty(),
         findings,
     })
+}
+
+fn is_slurm_boilerplate_line(line: &str) -> bool {
+    if line == "set -euo pipefail" || line.starts_with("cd ") || line.starts_with("mkdir -p ") {
+        return true;
+    }
+    if line.strip_prefix("export ").is_some_and(is_shell_assignment) || is_shell_assignment(line) {
+        return true;
+    }
+    false
+}
+
+fn is_shell_assignment(line: &str) -> bool {
+    let Some((name, _value)) = line.split_once('=') else {
+        return false;
+    };
+    let mut chars = name.chars();
+    let Some(first) = chars.next() else {
+        return false;
+    };
+    if !(first.is_ascii_alphabetic() || first == '_') {
+        return false;
+    }
+    chars.all(|ch| ch.is_ascii_alphanumeric() || ch == '_')
 }
 
 fn collect_sbatch_paths(root: &Path, paths: &mut Vec<PathBuf>) -> Result<()> {
