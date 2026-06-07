@@ -1202,10 +1202,11 @@ Visible aliases are part of the operator surface:
   benchmark result plus one per essential pipeline node under `target/slurm-dry-run/all-domains/`.
   The generated tree keeps benchmark-ready FASTQ, BAM, and VCF jobs under
   `benchmark-results/<domain>/<corpus>/<stage>/<asset-profile>/<tool>/job.sbatch` and essential
-  pipeline jobs under `essential-pipelines/<pipeline-id>/<node-id>/job.sbatch`, with matching
-  `stdout.log` and `stderr.log` paths beside each script. This is the owned cross-domain SLURM
-  generation surface for the governed 120-result benchmark slice and the 93-node essential
-  pipeline slice.
+  pipeline jobs under `essential-pipelines/<pipeline-id>/<node-id>/job.sbatch`, while `stdout`,
+  `stderr`, and declared outputs resolve under the canonical run root
+  `target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/`. This is the owned
+  cross-domain SLURM generation surface for the governed 120-result benchmark slice and the
+  93-node essential pipeline slice.
 - `bijux-dna bench local validate-all-domain-slurm-script-bodies`
   `validate-all-domain-slurm-script-bodies` regenerates the governed all-domain SLURM tree under
   `target/slurm-dry-run/all-domains/`, then writes
@@ -1213,6 +1214,13 @@ Visible aliases are part of the operator surface:
   generated `.sbatch` body contains `placeholder`, `TODO`, `echo execute`, unconditional `rc=0`,
   an empty executable body, or a missing `bijux-dna` invocation, so reviewers can prove the
   all-domain SLURM surface calls owned repo commands instead of template text.
+- `bijux-dna bench local validate-all-domain-slurm-result-paths`
+  `validate-all-domain-slurm-result-paths` regenerates the governed all-domain submit manifest and
+  writes `target/slurm-dry-run/all-domains/path-convention-check.json`. The report fails closed
+  unless every benchmark-result and essential-pipeline `stdout`, `stderr`, and declared output
+  path lives under the canonical run root
+  `target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/` and keeps stable path
+  ownership by domain, stage or pipeline node, tool, corpus, and sample scope where applicable.
 - `bijux-dna bench local execute-all-domain-benchmark-result`
   `execute-all-domain-benchmark-result` resolves one canonical all-domain benchmark-ready
   `result_id` back to the owned rendered-command collector and executes the governed command list
