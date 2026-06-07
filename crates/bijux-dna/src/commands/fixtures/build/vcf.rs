@@ -7,7 +7,7 @@ use serde::Serialize;
 use crate::commands::benchmark::local_corpus_fixture::vcf::{
     validate_vcf_corpus_fixture_manifest_path, VcfCorpusFixtureManifest,
     VcfCorpusFixtureValidationReport, VcfVariantSetValidationReport,
-    DEFAULT_VCF_MINI_MANIFEST_PATH, VCF_CORPUS_FIXTURE_SCHEMA_VERSION,
+    VCF_CORPUS_FIXTURE_SCHEMA_VERSION,
 };
 use crate::commands::fixtures::expected::vcf::{
     validate_vcf_expected_truth_manifest_path, write_vcf_expected_truth_bundle,
@@ -87,55 +87,15 @@ const POPULATION_ROWS: &[(&str, &str, &str, &str)] = &[
     ("ref_panel_south", "Reference South", "panel", "reference_panel"),
 ];
 const SAMPLE_ROWS: &[(&str, &str, &str, &str, &str)] = &[
-    (
-        "sample_a",
-        "cohort_alpha",
-        "female",
-        "cohort",
-        "study cohort sample a",
-    ),
-    (
-        "sample_b",
-        "cohort_alpha",
-        "male",
-        "cohort",
-        "study cohort sample b",
-    ),
-    (
-        "sample_c",
-        "cohort_beta",
-        "female",
-        "cohort",
-        "study cohort sample c",
-    ),
-    (
-        "sample_d",
-        "cohort_beta",
-        "male",
-        "cohort",
-        "study cohort sample d",
-    ),
-    (
-        "panel_ref_1",
-        "ref_panel_north",
-        "unknown",
-        "panel",
-        "reference panel sample north",
-    ),
-    (
-        "panel_ref_2",
-        "ref_panel_south",
-        "unknown",
-        "panel",
-        "reference panel sample south",
-    ),
+    ("sample_a", "cohort_alpha", "female", "cohort", "study cohort sample a"),
+    ("sample_b", "cohort_alpha", "male", "cohort", "study cohort sample b"),
+    ("sample_c", "cohort_beta", "female", "cohort", "study cohort sample c"),
+    ("sample_d", "cohort_beta", "male", "cohort", "study cohort sample d"),
+    ("panel_ref_1", "ref_panel_north", "unknown", "panel", "reference panel sample north"),
+    ("panel_ref_2", "ref_panel_south", "unknown", "panel", "reference panel sample south"),
 ];
-const TARGET_INTERVALS: &[(&str, u64, u64)] = &[
-    ("chr1", 0, 6),
-    ("chr1", 6, 12),
-    ("chr2", 0, 6),
-    ("chr2", 6, 12),
-];
+const TARGET_INTERVALS: &[(&str, u64, u64)] =
+    &[("chr1", 0, 6), ("chr1", 6, 12), ("chr2", 0, 6), ("chr2", 6, 12)];
 const RAW_SAMPLE_IDS: &[&str] = &["sample_a"];
 const FILTERED_SAMPLE_IDS: &[&str] = &["sample_a"];
 const MULTISAMPLE_SAMPLE_IDS: &[&str] = &["sample_a", "sample_b", "sample_c", "sample_d"];
@@ -160,52 +120,27 @@ const SITE_RS2: VariantSiteSpec = VariantSiteSpec {
     filter: "PASS",
 };
 const RAW_VARIANTS: &[VariantRecordSpec] = &[
-    VariantRecordSpec {
-        site: SITE_RS1,
-        genotypes: &["0/1"],
-    },
-    VariantRecordSpec {
-        site: SITE_RS2,
-        genotypes: &["1/1"],
-    },
+    VariantRecordSpec { site: SITE_RS1, genotypes: &["0/1"] },
+    VariantRecordSpec { site: SITE_RS2, genotypes: &["1/1"] },
 ];
-const FILTERED_VARIANTS: &[VariantRecordSpec] = &[VariantRecordSpec {
-    site: SITE_RS1,
-    genotypes: &["0/1"],
-}];
+const FILTERED_VARIANTS: &[VariantRecordSpec] =
+    &[VariantRecordSpec { site: SITE_RS1, genotypes: &["0/1"] }];
 const MULTISAMPLE_VARIANTS: &[VariantRecordSpec] = &[
-    VariantRecordSpec {
-        site: SITE_RS1,
-        genotypes: &["0/1", "0/0", "0/1", "1/1"],
-    },
-    VariantRecordSpec {
-        site: SITE_RS2,
-        genotypes: &["1/1", "0/1", "0/0", "0/1"],
-    },
+    VariantRecordSpec { site: SITE_RS1, genotypes: &["0/1", "0/0", "0/1", "1/1"] },
+    VariantRecordSpec { site: SITE_RS2, genotypes: &["1/1", "0/1", "0/0", "0/1"] },
 ];
 const PHASED_VARIANTS: &[VariantRecordSpec] = &[
-    VariantRecordSpec {
-        site: SITE_RS1,
-        genotypes: &["0|1", "0|0", "0|1", "1|1"],
-    },
-    VariantRecordSpec {
-        site: SITE_RS2,
-        genotypes: &["1|1", "0|1", "0|0", "0|1"],
-    },
+    VariantRecordSpec { site: SITE_RS1, genotypes: &["0|1", "0|0", "0|1", "1|1"] },
+    VariantRecordSpec { site: SITE_RS2, genotypes: &["1|1", "0|1", "0|0", "0|1"] },
 ];
 const PANEL_VARIANTS: &[VariantRecordSpec] = &[
-    VariantRecordSpec {
-        site: SITE_RS1,
-        genotypes: &["0/0", "0/1"],
-    },
-    VariantRecordSpec {
-        site: SITE_RS2,
-        genotypes: &["0/1", "1/1"],
-    },
+    VariantRecordSpec { site: SITE_RS1, genotypes: &["0/0", "0/1"] },
+    VariantRecordSpec { site: SITE_RS2, genotypes: &["0/1", "1/1"] },
 ];
 
 pub(crate) fn build_vcf_mini_fixture(
     repo_root: &Path,
+    source_manifest_path: &Path,
     output_root: &Path,
 ) -> Result<VcfFixtureBuildReport> {
     if output_root == repo_root {
@@ -230,11 +165,10 @@ pub(crate) fn build_vcf_mini_fixture(
     let checksums_path = output_root.join("CHECKSUMS.sha256");
     write_checksums(output_root, &checksums_path)?;
 
-    let source_manifest_path = repo_root.join(DEFAULT_VCF_MINI_MANIFEST_PATH);
     let governed_fixture_validation =
-        validate_vcf_corpus_fixture_manifest_path(repo_root, &source_manifest_path)?;
+        validate_vcf_corpus_fixture_manifest_path(repo_root, source_manifest_path)?;
     let governed_truth_validation =
-        validate_vcf_expected_truth_manifest_path(repo_root, &source_manifest_path)?;
+        validate_vcf_expected_truth_manifest_path(repo_root, source_manifest_path)?;
     let fixture_validation = validate_vcf_corpus_fixture_manifest_path(repo_root, &manifest_path)?;
     let expected_truth_validation =
         validate_vcf_expected_truth_manifest_path(repo_root, &manifest_path)?;
@@ -259,7 +193,7 @@ pub(crate) fn build_vcf_mini_fixture(
     let report = VcfFixtureBuildReport {
         schema_version: VCF_FIXTURE_BUILD_SCHEMA_VERSION,
         corpus_id: CORPUS_ID,
-        source_manifest_path: path_relative_to_repo(repo_root, &source_manifest_path),
+        source_manifest_path: path_relative_to_repo(repo_root, source_manifest_path),
         output_root: path_relative_to_repo(repo_root, output_root),
         manifest_path: path_relative_to_repo(repo_root, &manifest_path),
         report_path: path_relative_to_repo(repo_root, &report_path),
@@ -324,7 +258,8 @@ fn create_fixture_layout(output_root: &Path) -> Result<()> {
 }
 
 fn write_manifest(path: &Path, manifest: &VcfCorpusFixtureManifest) -> Result<()> {
-    let payload = toml::to_string_pretty(manifest).context("serialize VCF corpus fixture manifest")?;
+    let payload =
+        toml::to_string_pretty(manifest).context("serialize VCF corpus fixture manifest")?;
     bijux_dna_infra::atomic_write_bytes(path, payload.as_bytes())
         .with_context(|| format!("write {}", path.display()))
 }
@@ -377,9 +312,8 @@ fn write_metadata_files(output_root: &Path) -> Result<()> {
 
     let mut sample_payload = String::from("sample_id\tpopulation_id\tsex\trole\tdescription\n");
     for (sample_id, population_id, sex, role, description) in SAMPLE_ROWS {
-        sample_payload.push_str(&format!(
-            "{sample_id}\t{population_id}\t{sex}\t{role}\t{description}\n"
-        ));
+        sample_payload
+            .push_str(&format!("{sample_id}\t{population_id}\t{sex}\t{role}\t{description}\n"));
     }
 
     bijux_dna_infra::atomic_write_bytes(&population_path, population_payload.as_bytes())
@@ -428,11 +362,7 @@ fn write_variant_files(output_root: &Path) -> Result<()> {
     Ok(())
 }
 
-fn write_vcf_file(
-    path: &Path,
-    sample_ids: &[&str],
-    variants: &[VariantRecordSpec],
-) -> Result<()> {
+fn write_vcf_file(path: &Path, sample_ids: &[&str], variants: &[VariantRecordSpec]) -> Result<()> {
     for record in variants {
         if record.genotypes.len() != sample_ids.len() {
             return Err(anyhow!(
@@ -489,13 +419,10 @@ fn write_checksums(output_root: &Path, checksums_path: &Path) -> Result<()> {
 
     let mut payload = String::new();
     for path in files {
-        let relative = path
-            .strip_prefix(output_root)
-            .unwrap_or(path.as_path())
-            .display()
-            .to_string();
-        let digest =
-            bijux_dna_infra::hash_file_sha256(&path).with_context(|| format!("hash {}", path.display()))?;
+        let relative =
+            path.strip_prefix(output_root).unwrap_or(path.as_path()).display().to_string();
+        let digest = bijux_dna_infra::hash_file_sha256(&path)
+            .with_context(|| format!("hash {}", path.display()))?;
         payload.push_str(&format!("{digest}  {relative}\n"));
     }
     bijux_dna_infra::atomic_write_bytes(checksums_path, payload.as_bytes())
@@ -524,11 +451,7 @@ fn fixture_count_summary(report: &VcfCorpusFixtureValidationReport) -> VcfFixtur
         sample_count: report.sample_count,
         population_count: report.population_count,
         target_interval_count: report.target_interval_count,
-        variant_sets: report
-            .variant_sets
-            .iter()
-            .map(variant_set_count_summary)
-            .collect(),
+        variant_sets: report.variant_sets.iter().map(variant_set_count_summary).collect(),
     }
 }
 
@@ -554,18 +477,25 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 
 #[cfg(test)]
 mod tests {
+    use crate::commands::fixtures::paths::{
+        benchmark_corpus_manifest_path, benchmark_fixture_root_path,
+    };
+
     use super::build_vcf_mini_fixture;
 
     #[test]
     fn vcf_fixture_build_regenerates_governed_counts() {
-        let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .join("..");
+        let repo_root =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..").join("..");
         let temp = tempfile::tempdir().expect("tempdir");
         let output_root = temp.path().join("vcf-mini");
 
-        let report = build_vcf_mini_fixture(&repo_root, &output_root).expect("build fixture");
+        let source_manifest_path = benchmark_corpus_manifest_path(
+            &benchmark_fixture_root_path(&repo_root, None),
+            "vcf-mini",
+        );
+        let report = build_vcf_mini_fixture(&repo_root, &source_manifest_path, &output_root)
+            .expect("build fixture");
 
         assert_eq!(report.corpus_id, "vcf-mini");
         assert!(report.governed_counts_match);

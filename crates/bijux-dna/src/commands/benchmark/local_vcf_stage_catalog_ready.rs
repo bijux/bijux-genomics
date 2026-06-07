@@ -26,6 +26,9 @@ use crate::commands::fixtures::build::vcf::{
     build_vcf_mini_fixture, DEFAULT_VCF_MINI_REGENERATION_ROOT,
 };
 use crate::commands::fixtures::expected::vcf::validate_vcf_expected_truth_manifest_path;
+use crate::commands::fixtures::paths::{
+    benchmark_corpus_manifest_path, benchmark_fixture_root_path,
+};
 
 pub(crate) const DEFAULT_VCF_STAGE_CATALOG_READY_PATH: &str =
     "target/local-ready/VCF_STAGE_CATALOG_READY.json";
@@ -211,7 +214,12 @@ pub(crate) fn validate_vcf_stage_catalog_ready(
         "vcf mini regeneration",
         Some(format!("{DEFAULT_VCF_MINI_REGENERATION_ROOT}/manifest.json")),
         || {
-            let report = build_vcf_mini_fixture(repo_root, &regeneration_root)?;
+            let source_manifest_path = benchmark_corpus_manifest_path(
+                &benchmark_fixture_root_path(repo_root, None),
+                "vcf-mini",
+            );
+            let report =
+                build_vcf_mini_fixture(repo_root, &source_manifest_path, &regeneration_root)?;
             if !report.governed_counts_match {
                 bail!("regenerated fixture counts drifted from the governed fixture contract");
             }

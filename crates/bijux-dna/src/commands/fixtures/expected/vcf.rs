@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::commands::benchmark::local_corpus_fixture::vcf::{
     load_vcf_corpus_fixture_manifest_path, validate_vcf_corpus_fixture_manifest_path,
-    DEFAULT_VCF_MINI_MANIFEST_PATH,
 };
 
 const VCF_EXPECTED_TRUTH_VALIDATION_SCHEMA_VERSION: &str =
@@ -15,17 +14,13 @@ const VCF_EXPECTED_TRUTH_VALIDATION_SCHEMA_VERSION: &str =
 const VARIANT_COUNTS_SCHEMA_VERSION: &str = "bijux.bench.vcf_expected_truth.variant_counts.v1";
 const SAMPLE_MISSINGNESS_SCHEMA_VERSION: &str =
     "bijux.bench.vcf_expected_truth.sample_missingness.v1";
-const GENOTYPE_STATES_SCHEMA_VERSION: &str =
-    "bijux.bench.vcf_expected_truth.genotype_states.v1";
-const ALLELE_FREQUENCY_SCHEMA_VERSION: &str =
-    "bijux.bench.vcf_expected_truth.allele_frequency.v1";
-const PHASING_STATUS_SCHEMA_VERSION: &str =
-    "bijux.bench.vcf_expected_truth.phasing_status.v1";
+const GENOTYPE_STATES_SCHEMA_VERSION: &str = "bijux.bench.vcf_expected_truth.genotype_states.v1";
+const ALLELE_FREQUENCY_SCHEMA_VERSION: &str = "bijux.bench.vcf_expected_truth.allele_frequency.v1";
+const PHASING_STATUS_SCHEMA_VERSION: &str = "bijux.bench.vcf_expected_truth.phasing_status.v1";
 const PCA_EXPECTED_SCHEMA_VERSION: &str = "bijux.bench.vcf_expected_truth.pca_expected.v1";
 const ROH_EXPECTED_SCHEMA_VERSION: &str = "bijux.bench.vcf_expected_truth.roh_expected.v1";
 const IBD_EXPECTED_SCHEMA_VERSION: &str = "bijux.bench.vcf_expected_truth.ibd_expected.v1";
-const VCF_EXPECTED_TRUTH_BUILD_SCHEMA_VERSION: &str =
-    "bijux.bench.vcf_expected_truth_build.v1";
+const VCF_EXPECTED_TRUTH_BUILD_SCHEMA_VERSION: &str = "bijux.bench.vcf_expected_truth_build.v1";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct VcfExpectedTruthValidationReport {
@@ -301,9 +296,11 @@ impl ParsedGenotype {
     }
 }
 
-pub(crate) fn validate_vcf_expected_truth(cwd: &Path) -> Result<VcfExpectedTruthValidationReport> {
-    let manifest_path = cwd.join(DEFAULT_VCF_MINI_MANIFEST_PATH);
-    validate_vcf_expected_truth_manifest_path(cwd, &manifest_path)
+pub(crate) fn validate_vcf_expected_truth(
+    cwd: &Path,
+    manifest_path: &Path,
+) -> Result<VcfExpectedTruthValidationReport> {
+    validate_vcf_expected_truth_manifest_path(cwd, manifest_path)
 }
 
 pub(crate) fn validate_vcf_expected_truth_manifest_path(
@@ -320,15 +317,14 @@ pub(crate) fn validate_vcf_expected_truth_manifest_path(
     })?;
     let expected_dir = corpus_root.join("expected");
     if !expected_dir.is_dir() {
-        return Err(anyhow!(
-            "VCF expected truth directory is missing: {}",
-            expected_dir.display()
-        ));
+        return Err(anyhow!("VCF expected truth directory is missing: {}", expected_dir.display()));
     }
 
-    let sample_population_map = load_sample_population_map(corpus_root.join(&manifest.sample_metadata_path).as_path())?;
+    let sample_population_map =
+        load_sample_population_map(corpus_root.join(&manifest.sample_metadata_path).as_path())?;
 
-    let raw_summary = summarize_vcf_variant_set(corpus_root.join(&manifest.raw_vcf_path).as_path())?;
+    let raw_summary =
+        summarize_vcf_variant_set(corpus_root.join(&manifest.raw_vcf_path).as_path())?;
     let filtered_summary =
         summarize_vcf_variant_set(corpus_root.join(&manifest.filtered_vcf_path).as_path())?;
     let multisample_summary =
@@ -379,11 +375,7 @@ pub(crate) fn validate_vcf_expected_truth_manifest_path(
         &manifest.corpus_id,
         &[("multisample", &multisample_summary), ("panel", &panel_summary)],
     )?;
-    validate_phasing_status_truth(
-        &phasing_status_path,
-        &manifest.corpus_id,
-        &phased_summary,
-    )?;
+    validate_phasing_status_truth(&phasing_status_path, &manifest.corpus_id, &phased_summary)?;
     validate_pca_expected_truth(
         &pca_expected_path,
         &manifest.corpus_id,
@@ -433,7 +425,8 @@ pub(crate) fn write_vcf_expected_truth_bundle(
 
     let sample_population_map =
         load_sample_population_map(corpus_root.join(&manifest.sample_metadata_path).as_path())?;
-    let raw_summary = summarize_vcf_variant_set(corpus_root.join(&manifest.raw_vcf_path).as_path())?;
+    let raw_summary =
+        summarize_vcf_variant_set(corpus_root.join(&manifest.raw_vcf_path).as_path())?;
     let filtered_summary =
         summarize_vcf_variant_set(corpus_root.join(&manifest.filtered_vcf_path).as_path())?;
     let multisample_summary =
@@ -860,9 +853,10 @@ fn validate_sample_missingness_truth(
         return Err(anyhow!("sample-missingness truth sample count does not match observed"));
     }
     for (sample_id, observed_ratio) in observed {
-        let expected_ratio = truth.per_sample_missingness.get(&sample_id).copied().ok_or_else(|| {
-            anyhow!("sample-missingness truth is missing sample `{sample_id}`")
-        })?;
+        let expected_ratio =
+            truth.per_sample_missingness.get(&sample_id).copied().ok_or_else(|| {
+                anyhow!("sample-missingness truth is missing sample `{sample_id}`")
+            })?;
         if !float_eq(expected_ratio, observed_ratio) {
             return Err(anyhow!(
                 "sample-missingness truth for `{sample_id}` expected {}, observed {}",
@@ -918,9 +912,10 @@ fn validate_genotype_states_truth(
                     "genotype-states truth for `{variant_role}` is missing sample `{sample_id}`"
                 )
             })?;
-            let observed = summary.genotype_states.get(sample_id).ok_or_else(|| {
-                anyhow!("missing observed genotype state for `{sample_id}`")
-            })?;
+            let observed = summary
+                .genotype_states
+                .get(sample_id)
+                .ok_or_else(|| anyhow!("missing observed genotype state for `{sample_id}`"))?;
             if expected.hom_ref != observed.hom_ref
                 || expected.het != observed.het
                 || expected.hom_alt != observed.hom_alt
@@ -1014,16 +1009,10 @@ fn validate_phasing_status_truth(
             "phasing-status truth must target corpus `{corpus_id}` and source_variant_role `phased`"
         ));
     }
-    let phased_call_count = summary
-        .genotype_states
-        .values()
-        .map(|state| state.phased_calls)
-        .sum::<u64>();
-    let unphased_call_count = summary
-        .genotype_states
-        .values()
-        .map(|state| state.unphased_calls)
-        .sum::<u64>();
+    let phased_call_count =
+        summary.genotype_states.values().map(|state| state.phased_calls).sum::<u64>();
+    let unphased_call_count =
+        summary.genotype_states.values().map(|state| state.unphased_calls).sum::<u64>();
     if truth.sample_count != summary.sample_count
         || truth.variant_count != summary.variant_count
         || truth.phased_call_count != phased_call_count
@@ -1063,9 +1052,10 @@ fn validate_pca_expected_truth(
         .sample_ids
         .iter()
         .map(|sample_id| {
-            let population_id = sample_population_map.get(sample_id).cloned().ok_or_else(|| {
-                anyhow!("sample metadata is missing cohort sample `{sample_id}`")
-            })?;
+            let population_id = sample_population_map
+                .get(sample_id)
+                .cloned()
+                .ok_or_else(|| anyhow!("sample metadata is missing cohort sample `{sample_id}`"))?;
             Ok((sample_id.clone(), population_id))
         })
         .collect::<Result<BTreeMap<_, _>>>()?;
@@ -1081,20 +1071,11 @@ fn validate_pca_expected_truth(
     let truth_distances = truth
         .pairwise_squared_distances
         .iter()
-        .map(|row| {
-            (
-                ordered_pair_key(&row.left_sample_id, &row.right_sample_id),
-                row.distance_sq,
-            )
-        })
+        .map(|row| (ordered_pair_key(&row.left_sample_id, &row.right_sample_id), row.distance_sq))
         .collect::<BTreeMap<_, _>>();
     for (pair_key, observed_distance) in distances {
         let expected_distance = truth_distances.get(&pair_key).copied().ok_or_else(|| {
-            anyhow!(
-                "pca-expected truth is missing pair {} / {}",
-                pair_key.0,
-                pair_key.1
-            )
+            anyhow!("pca-expected truth is missing pair {} / {}", pair_key.0, pair_key.1)
         })?;
         if !float_eq(expected_distance, observed_distance) {
             return Err(anyhow!(
@@ -1130,18 +1111,16 @@ fn validate_roh_expected_truth(
     if truth.samples.len() != summary.sample_ids.len() {
         return Err(anyhow!("roh-expected truth sample count does not match observed"));
     }
-    let truth_rows = truth
-        .samples
-        .iter()
-        .map(|row| (row.sample_id.clone(), row))
-        .collect::<BTreeMap<_, _>>();
+    let truth_rows =
+        truth.samples.iter().map(|row| (row.sample_id.clone(), row)).collect::<BTreeMap<_, _>>();
     for sample_id in &summary.sample_ids {
-        let expected = truth_rows.get(sample_id).ok_or_else(|| {
-            anyhow!("roh-expected truth is missing sample `{sample_id}`")
-        })?;
-        let observed = summary.genotype_states.get(sample_id).ok_or_else(|| {
-            anyhow!("missing observed genotype state for `{sample_id}`")
-        })?;
+        let expected = truth_rows
+            .get(sample_id)
+            .ok_or_else(|| anyhow!("roh-expected truth is missing sample `{sample_id}`"))?;
+        let observed = summary
+            .genotype_states
+            .get(sample_id)
+            .ok_or_else(|| anyhow!("missing observed genotype state for `{sample_id}`"))?;
         let observed_roh_segments = count_roh_segments(observed);
         let observed_homozygous_variant_count = observed.hom_ref + observed.hom_alt;
         if expected.expected_roh_segment_count != observed_roh_segments
@@ -1176,12 +1155,7 @@ fn validate_ibd_expected_truth(
     let truth_rows = truth
         .pairs
         .iter()
-        .map(|row| {
-            (
-                ordered_pair_key(&row.left_sample_id, &row.right_sample_id),
-                row,
-            )
-        })
+        .map(|row| (ordered_pair_key(&row.left_sample_id, &row.right_sample_id), row))
         .collect::<BTreeMap<_, _>>();
     let observed_pair_keys = pair_keys(&summary.sample_ids);
     if truth_rows.len() != observed_pair_keys.len() {
@@ -1195,12 +1169,14 @@ fn validate_ibd_expected_truth(
                     "ibd-expected truth is missing pair `{left_sample_id}` / `{right_sample_id}`"
                 )
             })?;
-        let left = summary.genotype_states.get(&left_sample_id).ok_or_else(|| {
-            anyhow!("missing observed genotype state for `{left_sample_id}`")
-        })?;
-        let right = summary.genotype_states.get(&right_sample_id).ok_or_else(|| {
-            anyhow!("missing observed genotype state for `{right_sample_id}`")
-        })?;
+        let left = summary
+            .genotype_states
+            .get(&left_sample_id)
+            .ok_or_else(|| anyhow!("missing observed genotype state for `{left_sample_id}`"))?;
+        let right = summary
+            .genotype_states
+            .get(&right_sample_id)
+            .ok_or_else(|| anyhow!("missing observed genotype state for `{right_sample_id}`"))?;
         let observed_shared_sites = left
             .dosages
             .iter()
@@ -1220,7 +1196,8 @@ fn validate_ibd_expected_truth(
 }
 
 fn summarize_vcf_variant_set(vcf_path: &Path) -> Result<VcfVariantTruthSummary> {
-    let raw = fs::read_to_string(vcf_path).with_context(|| format!("read {}", vcf_path.display()))?;
+    let raw =
+        fs::read_to_string(vcf_path).with_context(|| format!("read {}", vcf_path.display()))?;
     let mut sample_ids = Vec::new();
     let mut sample_index = BTreeMap::new();
     let mut contigs = BTreeSet::new();
@@ -1265,9 +1242,9 @@ fn summarize_vcf_variant_set(vcf_path: &Path) -> Result<VcfVariantTruthSummary> 
         let mut alt_allele_count = 0u64;
         let mut called_allele_count = 0u64;
         for (sample_id, genotype) in sample_ids.iter().zip(record.sample_genotypes.iter()) {
-            let state = genotype_states.get_mut(sample_id).ok_or_else(|| {
-                anyhow!("missing genotype accumulator for `{sample_id}`")
-            })?;
+            let state = genotype_states
+                .get_mut(sample_id)
+                .ok_or_else(|| anyhow!("missing genotype accumulator for `{sample_id}`"))?;
             match genotype {
                 ParsedGenotype::Missing => {
                     state.missing += 1;
@@ -1322,16 +1299,10 @@ fn summarize_vcf_variant_set(vcf_path: &Path) -> Result<VcfVariantTruthSummary> 
     }
 
     if sample_ids.is_empty() || sample_index.is_empty() {
-        return Err(anyhow!(
-            "VCF truth parser found no samples in {}",
-            vcf_path.display()
-        ));
+        return Err(anyhow!("VCF truth parser found no samples in {}", vcf_path.display()));
     }
     if variant_count == 0 {
-        return Err(anyhow!(
-            "VCF truth parser found no variant records in {}",
-            vcf_path.display()
-        ));
+        return Err(anyhow!("VCF truth parser found no variant records in {}", vcf_path.display()));
     }
 
     Ok(VcfVariantTruthSummary {
@@ -1345,9 +1316,8 @@ fn summarize_vcf_variant_set(vcf_path: &Path) -> Result<VcfVariantTruthSummary> 
 }
 
 fn parse_variant_record(fields: &[&str]) -> Result<ParsedVariantRecord> {
-    let position = fields[1].parse::<u64>().with_context(|| {
-        format!("parse VCF position `{}`", fields[1])
-    })?;
+    let position =
+        fields[1].parse::<u64>().with_context(|| format!("parse VCF position `{}`", fields[1]))?;
     let format = fields[8];
     let format_keys = format.split(':').collect::<Vec<_>>();
     let gt_index = format_keys
@@ -1362,11 +1332,7 @@ fn parse_variant_record(fields: &[&str]) -> Result<ParsedVariantRecord> {
             parse_genotype(gt)
         })
         .collect::<Result<Vec<_>>>()?;
-    Ok(ParsedVariantRecord {
-        contig: fields[0].to_string(),
-        position,
-        sample_genotypes,
-    })
+    Ok(ParsedVariantRecord { contig: fields[0].to_string(), position, sample_genotypes })
 }
 
 fn parse_genotype(gt: &str) -> Result<ParsedGenotype> {
@@ -1389,8 +1355,7 @@ fn parse_genotype(gt: &str) -> Result<ParsedGenotype> {
 }
 
 fn parse_allele_token(token: &str) -> Result<u32> {
-    token.parse::<u32>()
-        .with_context(|| format!("parse genotype allele token `{token}`"))
+    token.parse::<u32>().with_context(|| format!("parse genotype allele token `{token}`"))
 }
 
 fn load_sample_population_map(sample_metadata_path: &Path) -> Result<BTreeMap<String, String>> {
@@ -1401,7 +1366,10 @@ fn load_sample_population_map(sample_metadata_path: &Path) -> Result<BTreeMap<St
         return Err(anyhow!("sample metadata is empty"));
     };
     if header != "sample_id\tpopulation_id\tsex\trole\tdescription" {
-        return Err(anyhow!("unexpected sample metadata header in {}", sample_metadata_path.display()));
+        return Err(anyhow!(
+            "unexpected sample metadata header in {}",
+            sample_metadata_path.display()
+        ));
     }
     let mut rows = BTreeMap::new();
     for (row_index, line) in lines.enumerate() {
@@ -1410,10 +1378,7 @@ fn load_sample_population_map(sample_metadata_path: &Path) -> Result<BTreeMap<St
         }
         let fields = line.split('\t').collect::<Vec<_>>();
         if fields.len() != 5 {
-            return Err(anyhow!(
-                "sample metadata row {} must contain 5 columns",
-                row_index + 2
-            ));
+            return Err(anyhow!("sample metadata row {} must contain 5 columns", row_index + 2));
         }
         rows.insert(fields[0].to_string(), fields[1].to_string());
     }
@@ -1448,11 +1413,7 @@ fn pairwise_squared_distances(
 }
 
 fn count_roh_segments(state: &ObservedGenotypeState) -> u64 {
-    state
-        .contig_is_homozygous
-        .values()
-        .map(|flags| count_true_runs(flags))
-        .sum::<u64>()
+    state.contig_is_homozygous.values().map(|flags| count_true_runs(flags)).sum::<u64>()
 }
 
 fn count_shared_dosage_segments(
@@ -1498,10 +1459,7 @@ fn pair_keys(sample_ids: &[String]) -> Vec<(String, String)> {
     let mut keys = Vec::new();
     for left_index in 0..sample_ids.len() {
         for right_index in (left_index + 1)..sample_ids.len() {
-            keys.push(ordered_pair_key(
-                &sample_ids[left_index],
-                &sample_ids[right_index],
-            ));
+            keys.push(ordered_pair_key(&sample_ids[left_index], &sample_ids[right_index]));
         }
     }
     keys
@@ -1516,8 +1474,8 @@ fn ordered_pair_key(left: &str, right: &str) -> (String, String) {
 }
 
 fn read_json_truth<T: for<'de> Deserialize<'de>>(truth_path: &Path) -> Result<T> {
-    let raw = fs::read_to_string(truth_path)
-        .with_context(|| format!("read {}", truth_path.display()))?;
+    let raw =
+        fs::read_to_string(truth_path).with_context(|| format!("read {}", truth_path.display()))?;
     serde_json::from_str(&raw).with_context(|| format!("parse {}", truth_path.display()))
 }
 
@@ -1531,15 +1489,22 @@ fn float_eq(left: f64, right: f64) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use crate::commands::fixtures::paths::{
+        benchmark_corpus_manifest_path, benchmark_fixture_root_path,
+    };
+
     use super::validate_vcf_expected_truth;
 
     #[test]
     fn vcf_expected_truth_matches_governed_fixture_assets() {
-        let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .join("..");
-        let report = validate_vcf_expected_truth(&repo_root).expect("validate expected truth");
+        let repo_root =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..").join("..");
+        let manifest_path = benchmark_corpus_manifest_path(
+            &benchmark_fixture_root_path(&repo_root, None),
+            "vcf-mini",
+        );
+        let report = validate_vcf_expected_truth(&repo_root, &manifest_path)
+            .expect("validate expected truth");
 
         assert_eq!(report.corpus_id, "vcf-mini");
         assert_eq!(report.truth_file_count, 8);
