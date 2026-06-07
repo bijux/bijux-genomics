@@ -858,6 +858,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RunRealSmokeCoreSubset(args) => {
+                        crate::commands::benchmark::local_real_smoke_core_subset::run_real_smoke_core_subset(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::FakeRunAllDomains(args) => {
                         crate::commands::benchmark::local_all_domain_fake_runs::run_fake_run_all_domains(
                             &args,

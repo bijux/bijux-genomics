@@ -119,6 +119,8 @@ pub enum BenchLocalCommand {
     MaterializeStage(BenchLocalMaterializeStageArgs),
     #[command(name = "fake-run-essential-pipelines")]
     FakeRunEssentialPipelines(BenchLocalFakeRunEssentialPipelinesArgs),
+    #[command(name = "run-real-smoke-core-subset")]
+    RunRealSmokeCoreSubset(BenchLocalRunRealSmokeCoreSubsetArgs),
     #[command(name = "fake-run-all-domains")]
     FakeRunAllDomains(BenchLocalFakeRunAllDomainsArgs),
     #[command(name = "fake-run-all-domain-failures")]
@@ -551,6 +553,14 @@ pub struct BenchLocalValidateStageResultArgs {
 pub struct BenchLocalFakeRunEssentialPipelinesArgs {
     #[arg(long)]
     pub output_root: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunRealSmokeCoreSubsetArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }
