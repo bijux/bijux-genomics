@@ -345,7 +345,7 @@ fn collect_missing_declarations(
 
 fn path_template_root(stage_id: &str, tool_id: &str) -> String {
     format!(
-        "target/slurm-dry-run/runs/{}/{}/{}/{}/{}",
+        "runs/bench/slurm-dry-run/runs/{}/{}/{}/{}/{}",
         LOCAL_SLURM_DRY_RUN_RUN_ID, "{fixture_scope}", stage_id, "{sample_scope}", tool_id
     )
 }
@@ -441,7 +441,7 @@ mod tests {
                     == vec!["qc_tsv".to_string(), "qc_plots_dir".to_string()]
                 && row.stdout_path_template.as_deref()
                     == Some(
-                        "target/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/fastq.profile_reads/{sample_scope}/seqkit_stats/stdout.log"
+                        "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/fastq.profile_reads/{sample_scope}/seqkit_stats/stdout.log"
                     )
         }));
         assert!(report.rows.iter().any(|row| {

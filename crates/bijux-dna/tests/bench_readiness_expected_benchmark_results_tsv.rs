@@ -53,7 +53,7 @@ fn bench_readiness_expected_benchmark_results_writes_governed_tsv_columns() {
             ) && row.contains(
                 "\tdry_or_smoke\tcorpus-02\tcorpus-02-edna-mini\tsample-set\tclassification_report_json,screen_report_tsv,unclassified_reads_r1,unclassified_reads_r2\t"
             ) && row.contains(
-                "\tscreen_report_tsv,unclassified_reads_r1,unclassified_reads_r2\tclassification_report_json\ttarget/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2\t"
+                "\tscreen_report_tsv,unclassified_reads_r1,unclassified_reads_r2\tclassification_report_json\truns/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2\t"
             )
         }),
         "TSV must retain the governed taxonomy expected-result row"
@@ -65,7 +65,7 @@ fn bench_readiness_expected_benchmark_results_writes_governed_tsv_columns() {
             ) && row.contains(
                 "\tsmoke\tcorpus-01-adna-bam\tcorpus-01-adna-damage-mini\tadna_damage_non_udg\t"
             ) && row.contains(
-                "\tdamage_report,terminal_position_metrics,parser_output,stage_metrics,damage_profile,damage_parameters\tterminal_position_metrics,parser_output,stage_metrics,damage_profile,damage_parameters\tdamage_report\ttarget/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs\t"
+                "\tdamage_report,terminal_position_metrics,parser_output,stage_metrics,damage_profile,damage_parameters\tterminal_position_metrics,parser_output,stage_metrics,damage_profile,damage_parameters\tdamage_report\truns/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs\t"
             )
         }),
         "TSV must retain the governed ancient-DNA damage expected-result row"
@@ -77,7 +77,7 @@ fn bench_readiness_expected_benchmark_results_writes_governed_tsv_columns() {
             ) && row.contains(
                 "\tsmoke\tcorpus-01-kinship\tcorpus-01-kinship-mini\tsample-set\tkinship_report,summary,stage_metrics\t"
             ) && row.contains(
-                "\tsummary,stage_metrics\tkinship_report\ttarget/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/king\t"
+                "\tsummary,stage_metrics\tkinship_report\truns/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/king\t"
             )
         }),
         "TSV must retain the governed kinship expected-result row"

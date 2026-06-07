@@ -22,7 +22,7 @@ pub(crate) const DEFAULT_MISSING_RESULT_REPORT_TEST_PATH: &str =
     "benchmarks/readiness/missing-result-report-test.json";
 const DEFAULT_MISSING_RESULT_REPORT_FIXTURE_ROOT: &str =
     "benchmarks/readiness/missing-result-report-fixture";
-const EXPECTED_RESULT_ROOT_PREFIX: &str = "target/slurm-dry-run/runs/local-benchmark-dry-run/";
+const EXPECTED_RESULT_ROOT_PREFIX: &str = "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/";
 const MISSING_RESULT_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.missing_result_report.v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

@@ -513,7 +513,7 @@ mod tests {
                 && row.normalized_metrics_output_id.as_deref() == Some("classification_report_json")
                 && row
                     .stage_result_manifest_path
-                    == "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json"
+                    == "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json"
         }));
         assert!(report.rows.iter().any(|row| {
             row.domain == "bam"

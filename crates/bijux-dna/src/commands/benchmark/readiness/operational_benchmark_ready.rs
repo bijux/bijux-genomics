@@ -563,13 +563,13 @@ pub(crate) fn render_operational_benchmark_ready(
     let slurm_path_report = render_surface(
         &mut checks,
         "all_domain_slurm_result_paths",
-        "target/slurm-dry-run/all-domains/path-convention-check.json",
+        "runs/bench/slurm-dry-run/all-domains/path-convention-check.json",
         || {
             validate_all_domain_slurm_result_paths(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT),
                 PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH),
-                PathBuf::from("target/slurm-dry-run/all-domains/path-convention-check.json"),
+                PathBuf::from("runs/bench/slurm-dry-run/all-domains/path-convention-check.json"),
             )
         },
         |report| format!("job_count={}, finding_count={}", report.job_count, report.finding_count),
@@ -582,7 +582,7 @@ pub(crate) fn render_operational_benchmark_ready(
             "benchmark_ready",
             "benchmark_ready",
             "surface_render_failed",
-            "target/slurm-dry-run/all-domains/path-convention-check.json",
+            "runs/bench/slurm-dry-run/all-domains/path-convention-check.json",
             "All-domain SLURM result-path validation failed",
         ));
     }

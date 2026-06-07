@@ -358,7 +358,7 @@ fn ensure_all_domain_output_declaration_contract(
         "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
         "classification_report_json",
         "screen_report_tsv",
-        "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json",
+        "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json",
         None,
     )?;
     require_output_row(
@@ -366,7 +366,7 @@ fn ensure_all_domain_output_declaration_contract(
         "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
         "kinship_report",
         "summary",
-        "target/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/king/stage-result.json",
+        "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/king/stage-result.json",
         None,
     )?;
     require_output_row(
@@ -374,7 +374,7 @@ fn ensure_all_domain_output_declaration_contract(
         "vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
         "called_vcf",
         "called_vcf",
-        "target/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json",
+        "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json",
         Some("called_vcf_tbi"),
     )?;
 
@@ -483,7 +483,7 @@ fn artifact_id(entry: &str) -> String {
 
 fn vcf_result_root(row: &VcfExpectedBenchmarkResultRow) -> String {
     format!(
-        "target/slurm-dry-run/runs/{}/{}/{}/{}/{}",
+        "runs/bench/slurm-dry-run/runs/{}/{}/{}/{}/{}",
         LOCAL_SLURM_DRY_RUN_RUN_ID, row.corpus_id, row.stage_id, row.asset_profile_id, row.tool_id
     )
 }
