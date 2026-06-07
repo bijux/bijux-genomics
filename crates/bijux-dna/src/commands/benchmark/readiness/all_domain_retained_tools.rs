@@ -16,6 +16,7 @@ pub(crate) const DEFAULT_ALL_DOMAIN_RETAINED_TOOLS_PATH: &str =
 const ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_retained_tools.v1";
 const BENCHMARK_READY_STATUS: &str = "benchmark_ready";
+const NO_BENCHMARK_READY_STAGE_IDS: &str = "none";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct AllDomainRetainedToolRow {
@@ -222,10 +223,18 @@ fn render_all_domain_retained_tools_tsv(rows: &[AllDomainRetainedToolRow]) -> St
             row.benchmark_ready_binding_count,
             row.benchmark_statuses.join(","),
             row.active_stage_ids.join(","),
-            row.benchmark_ready_stage_ids.join(","),
+            joined_stage_ids_or_none(&row.benchmark_ready_stage_ids),
         ));
     }
     rendered
+}
+
+fn joined_stage_ids_or_none(stage_ids: &[String]) -> String {
+    if stage_ids.is_empty() {
+        NO_BENCHMARK_READY_STAGE_IDS.to_string()
+    } else {
+        stage_ids.join(",")
+    }
 }
 
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {

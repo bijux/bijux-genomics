@@ -32,10 +32,7 @@ fn bench_readiness_all_domain_retained_tools_writes_governed_tsv_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(
-        rendered_path.trim(),
-        "benchmarks/readiness/all-domains/retained-tools.tsv"
-    );
+    assert_eq!(rendered_path.trim(), "benchmarks/readiness/all-domains/retained-tools.tsv");
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read all-domain retained tools");
@@ -56,6 +53,6 @@ fn bench_readiness_all_domain_retained_tools_writes_governed_tsv_file() {
         row == &"bcftools\tvcf\t10\t8\t10\t8\tbenchmark_ready,not_benchmark_ready\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.prepare_reference_panel,vcf.stats\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.stats"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"beagle\tvcf\t2\t0\t2\t0\tnot_benchmark_ready\tvcf.imputation,vcf.impute\t"
+        row == &"beagle\tvcf\t2\t0\t2\t0\tnot_benchmark_ready\tvcf.imputation,vcf.impute\tnone"
     }));
 }
