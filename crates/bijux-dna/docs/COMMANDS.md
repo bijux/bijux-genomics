@@ -179,6 +179,13 @@ Visible aliases are part of the operator surface:
   benchmark-ready FASTQ or BAM stage-tool-fixture binding, fixing the expected result root,
   `stage-result.json` path, and output artifact IDs before HPC benchmark submission or
   report-completeness checks proceed.
+- `bijux-dna bench readiness render-all-domain-expected-benchmark-results`
+  `render-all-domain-expected-benchmark-results` writes
+  `target/bench-readiness/expected-benchmark-results-all-domains.tsv` with one governed row per
+  benchmark-ready FASTQ, BAM, and VCF result binding. Each row keeps `result_id`, `domain`,
+  `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `expected_outputs`,
+  `expected_metrics`, and `report_section` explicit, and the command fails closed unless result
+  identities stay unique and stable across all governed benchmark-ready domains.
 - `bijux-dna bench readiness render-missing-result-report`
   `render-missing-result-report` writes `target/bench-readiness/missing-result-report-test.json`
   with one governed row per expected FASTQ or BAM benchmark result, materializes a controlled
