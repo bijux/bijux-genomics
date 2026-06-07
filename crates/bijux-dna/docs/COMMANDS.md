@@ -1141,6 +1141,14 @@ Visible aliases are part of the operator surface:
   governed FASTQ and BAM dry-run script slices first and then recording per-job job names, domain,
   stage ownership, corpus and sample scope, resources, script path, log paths, declared outputs,
   and derived dependencies.
+- `bijux-dna bench local render-all-domain-slurm-submit-manifest`
+  `render-all-domain-slurm-submit-manifest` writes
+  `target/slurm-dry-run/all-domains/submit-manifest.json` for the governed 213-job all-domain
+  SLURM tree. The manifest keeps one row per benchmark-result or essential-pipeline job with
+  `job_id_local`, domain, stage, pipeline or node identity where applicable, tool, corpus,
+  asset-profile, script path, stdout, stderr, declared outputs, manifest-only dependencies, and
+  resource ceilings. The command fails closed if any dependency points at a non-existent local job
+  id or if a generated script leaks dependency ordering into `#SBATCH --dependency` headers.
 - `bijux-dna bench local render-benchmark-summary`
   `render-benchmark-summary` writes both `target/local-ready/benchmark-summary.json` and
   `target/local-ready/benchmark-summary.md`, summarizing governed fake-run readiness across all 51
