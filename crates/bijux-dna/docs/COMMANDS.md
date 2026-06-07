@@ -57,17 +57,22 @@ Commands listed here are owned by this crate even when their durable behavior is
   variant, or cohort-pair counts drift from the governed fixture.
 - `bijux-dna fixtures validate`
   `fixtures validate --corpus vcf-mini` validates the governed
-  `tests/fixtures/corpora/vcf-mini/manifest.toml` contract against the owned reference FASTA and
-  FAI, single-sample/cohort/phased/panel VCF assets, target-sites BED, and sample/population
-  metadata. It fails closed when any declared file is missing, when the reference and FAI drift,
-  or when VCF sample ids fall out of sync with the metadata tables.
+  `benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml` contract against the owned reference
+  FASTA and FAI, single-sample/cohort/phased/panel VCF assets, target-sites BED, and
+  sample/population metadata. It fails closed when any declared file is missing, when the
+  reference and FAI drift, or when VCF sample ids fall out of sync with the metadata tables.
+  `fixtures validate --root benchmarks/tests/fixtures --all` writes
+  `target/bench-readiness/benchmark-fixture-root-validation.json` and fails closed unless the
+  benchmark-owned `bench`, `corpora`, and `databases` roots all exist, parser-bank domains remain
+  populated, and every governed corpus, taxonomy database, and `vcf-mini` expected-truth contract
+  validates from the benchmark fixture root.
 - `bijux-dna fixtures validate-expected`
   `fixtures validate-expected --corpus vcf-mini` validates the governed
-  `tests/fixtures/corpora/vcf-mini/expected/*.json` truth bundle against the owned multisample,
-  phased, panel, filtered, and raw VCF assets plus the cohort metadata contract. It fails closed
-  when variant counts, sample missingness, genotype-state tallies, allele frequencies, phasing
-  status, pairwise cohort distances, ROH expectations, or IBD expectations drift away from the
-  governed fixture corpus.
+  `benchmarks/tests/fixtures/corpora/vcf-mini/expected/*.json` truth bundle against the owned
+  multisample, phased, panel, filtered, and raw VCF assets plus the cohort metadata contract. It
+  fails closed when variant counts, sample missingness, genotype-state tallies, allele
+  frequencies, phasing status, pairwise cohort distances, ROH expectations, or IBD expectations
+  drift away from the governed fixture corpus.
 
 ### Status
 - `bijux-dna status`
@@ -1054,17 +1059,17 @@ Visible aliases are part of the operator surface:
   any governed surface regresses.
 - `bijux-dna bench local validate-corpus-fixture`
   `validate-corpus-fixture` checks governed corpus fixture manifests such as
-  `tests/fixtures/corpora/corpus-01-mini/manifest.toml` and
-  `tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml` and
-  `tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml` and
-  `tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml` and
-  `tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml` for declared sample identity,
-  file-path integrity, source-path provenance, expected taxonomy-output contracts, primer and
-  control declarations, amplicon primer-table, expected-ASV, and chimera-control contracts, and
-  modality-specific contract checks.
+  `benchmarks/tests/fixtures/corpora/corpus-01-mini/manifest.toml` and
+  `benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml` and
+  `benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml` and
+  `benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml` and
+  `benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml` for declared
+  sample identity, file-path integrity, source-path provenance, expected taxonomy-output
+  contracts, primer and control declarations, amplicon primer-table, expected-ASV, and
+  chimera-control contracts, and modality-specific contract checks.
 - `bijux-dna bench local judge-taxonomy-output`
   `judge-taxonomy-output` compares governed eDNA taxonomy reports against
-  `tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv`, writes
+  `benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv`, writes
   `target/local-ready/corpus-02-edna-taxonomy-judgment.json` by default, and fails when any
   declared sample is missing an observed report or any expected present or absent taxon does not
   match the observed classifier summary.
@@ -1165,9 +1170,9 @@ Visible aliases are part of the operator surface:
   stages explicit so no local stage disappears silently.
 - `bijux-dna bench local validate-taxonomy-database-fixture`
   `validate-taxonomy-database-fixture` checks governed taxonomy database fixture manifests such as
-  `tests/fixtures/databases/taxonomy-mini/manifest.toml` for declared taxa, lineage-table
-  consistency, per-classifier backend index paths, classifier-compatibility claims, source-manifest
-  integrity, and backend bundle shape.
+  `benchmarks/tests/fixtures/databases/taxonomy-mini/manifest.toml` for declared taxa,
+  lineage-table consistency, per-classifier backend index paths, classifier-compatibility claims,
+  source-manifest integrity, and backend bundle shape.
 - `bijux-dna bench local validate-slurm-dependencies`
   `validate-slurm-dependencies` writes `target/slurm-dry-run/dependency-check.json` and refuses
   any dry-run job whose dependencies are split or duplicated across both the submit manifest and
