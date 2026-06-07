@@ -311,11 +311,11 @@ mod tests {
         assert_eq!(contract.sample_name, "core-v1-pass");
         assert_eq!(
             contract.input_bam,
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
         );
         assert_eq!(
             contract.reference,
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
         );
     }
 
@@ -323,7 +323,7 @@ mod tests {
     fn parse_output_sample_count_reads_governed_fixture_vcf() {
         let repo_root = repo_root();
         let fixture_vcf =
-            repo_root.join("tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf");
+            repo_root.join("benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf");
         let sample_count = parse_output_sample_count(&fixture_vcf).expect("parse sample count");
         assert_eq!(sample_count, 4);
     }

@@ -11,7 +11,7 @@ use super::fastq::{
 use super::{path_relative_to_repo, resolve_manifest_relative_path};
 
 pub(crate) const DEFAULT_CORPUS_02_EDNA_MANIFEST_PATH: &str =
-    "tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml";
+    "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml";
 pub(crate) const EDNA_CORPUS_FIXTURE_SCHEMA_VERSION: &str = "bijux.bench.edna_corpus_fixture.v1";
 const EDNA_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.edna_corpus_fixture_validation.v1";
@@ -457,7 +457,7 @@ mod tests {
         assert_eq!(report.expected_taxa_count, 3);
         assert_eq!(
             report.expected_taxa_path,
-            "tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv"
+            "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv"
         );
         assert_eq!(report.expected_taxa_output_row_count, 6);
         assert_eq!(report.expected_present_row_count, 3);
@@ -516,19 +516,19 @@ mod tests {
         fs::write(&manifest_path, manifest).expect("write manifest");
 
         let expected_taxa = fs::read_to_string(
-            root.join("tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv"),
+            root.join("benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv"),
         )
         .expect("read governed expected taxa")
         .replacen("\tpresent", "\tmaybe", 1);
         fs::write(&expected_taxa_path, expected_taxa).expect("write expected taxa");
 
         fs::copy(
-            root.join("tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_a.fastq.gz"),
+            root.join("benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_a.fastq.gz"),
             &sample_a,
         )
         .expect("copy sample a");
         fs::copy(
-            root.join("tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_b.fastq.gz"),
+            root.join("benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_b.fastq.gz"),
             &sample_b,
         )
         .expect("copy sample b");

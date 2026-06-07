@@ -25,7 +25,7 @@ fn bench_local_validate_damage_fixture_json_reports_governed_corpus_01_adna_meta
             "local",
             "validate-corpus-fixture",
             "--manifest",
-            "tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml",
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml",
             "--json",
         ])
         .output()
@@ -47,7 +47,7 @@ fn bench_local_validate_damage_fixture_json_reports_governed_corpus_01_adna_meta
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml")
+        Some("benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml")
     );
     assert_eq!(
         payload.get("fixture_id").and_then(serde_json::Value::as_str),

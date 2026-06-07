@@ -484,7 +484,7 @@ mod tests {
     fn summarize_likelihood_fields_reads_governed_single_sample_fixture() {
         let repo_root = repo_root();
         let fixture_vcf = repo_root
-            .join("tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf");
+            .join("benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf");
         let summary = summarize_likelihood_fields(&fixture_vcf).expect("summarize fixture fields");
         assert_eq!(summary.site_count, 2);
         assert!(summary.fields.is_empty());

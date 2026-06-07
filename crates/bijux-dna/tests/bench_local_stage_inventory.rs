@@ -1103,7 +1103,7 @@ fn bench_local_materialize_stage_bam_recalibration_json_writes_governed_smoke_bu
     );
     assert_eq!(
         report.get("known_sites"),
-        Some(&serde_json::json!(["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"]))
+        Some(&serde_json::json!(["benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"]))
     );
     assert_eq!(
         report.get("coverage_gate"),
@@ -1465,7 +1465,7 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
     assert_eq!(
         plan.get("params").and_then(|params| params.get("reference_panels")),
         Some(&serde_json::json!([
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
         ]))
     );
 
@@ -1487,11 +1487,11 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
         plan["command"]["template"].as_array().is_some_and(|command| command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
                 shell.contains(
-                    "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai"
                 ) && shell.contains(
-                    "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
                 ) && shell.contains(
-                    "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
                 )
                     && shell.contains("target/local-ready/bam.contamination/contamination.summary.json")
             })
@@ -1562,11 +1562,11 @@ fn bench_local_materialize_stage_bam_haplogroups_json_writes_governed_plan_bundl
         plan["command"]["template"].as_array().is_some_and(|command| command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
                 shell.contains(
-                    "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam"
                 ) && shell.contains(
-                    "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai"
                 ) && shell.contains(
-                    "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
                 )
                     && shell.contains("--reference_genome hg38")
                     && shell.contains("target/local-ready/bam.haplogroups/haplogroups")
@@ -1636,19 +1636,19 @@ fn bench_local_materialize_stage_bam_genotyping_json_writes_governed_plan_bundle
         plan["command"]["template"].as_array().is_some_and(|command| command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
                 shell.contains(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
                 )
                     && shell.contains(
-                        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
+                        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
                     )
                     && shell.contains(
-                        "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+                        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
                     )
                     && shell.contains(
-                        "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+                        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
                     )
                     && shell.contains(
-                        "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+                        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
                     )
                     && shell.contains("target/local-ready/bam.genotyping/genotyping.bcf")
                     && shell.contains("target/local-ready/bam.genotyping/genotyping.vcf.gz")

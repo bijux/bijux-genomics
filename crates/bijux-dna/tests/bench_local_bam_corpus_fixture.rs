@@ -24,7 +24,7 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_corpus_01_bam_m
             "local",
             "validate-corpus-fixture",
             "--manifest",
-            "tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml",
             "--json",
         ])
         .output()
@@ -46,7 +46,7 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_corpus_01_bam_m
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml")
+        Some("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml")
     );
     assert_eq!(
         payload.get("corpus_id").and_then(serde_json::Value::as_str),
@@ -581,7 +581,7 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_corpus_01_adna_
             "local",
             "validate-corpus-fixture",
             "--manifest",
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml",
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml",
             "--json",
         ])
         .output()
@@ -603,7 +603,7 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_corpus_01_adna_
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml")
+        Some("benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml")
     );
     assert_eq!(
         payload.get("corpus_id").and_then(serde_json::Value::as_str),
@@ -672,7 +672,7 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_genotyping_cont
             "local",
             "validate-corpus-fixture",
             "--manifest",
-            "tests/fixtures/corpora/corpus-01-genotyping-mini/manifest.toml",
+            "benchmarks/tests/fixtures/corpora/corpus-01-genotyping-mini/manifest.toml",
             "--json",
         ])
         .output()
@@ -703,13 +703,13 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_genotyping_cont
     assert_eq!(
         contract.get("sites_vcf").and_then(serde_json::Value::as_str),
         Some(
-            "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
         )
     );
     assert_eq!(
         contract.get("regions").and_then(serde_json::Value::as_str),
         Some(
-            "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
         )
     );
     assert_eq!(contract.get("min_posterior").and_then(serde_json::Value::as_f64), Some(0.9));
@@ -762,7 +762,7 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_kinship_contrac
             "local",
             "validate-corpus-fixture",
             "--manifest",
-            "tests/fixtures/corpora/corpus-01-kinship-mini/manifest.toml",
+            "benchmarks/tests/fixtures/corpora/corpus-01-kinship-mini/manifest.toml",
             "--json",
         ])
         .output()
@@ -793,7 +793,7 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_kinship_contrac
     assert_eq!(
         contract.get("reference_panel_path").and_then(serde_json::Value::as_str),
         Some(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv"
         )
     );
     assert_eq!(contract.get("reference_build").and_then(serde_json::Value::as_str), Some("grch38"));

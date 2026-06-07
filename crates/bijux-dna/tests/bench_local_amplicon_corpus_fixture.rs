@@ -25,7 +25,7 @@ fn bench_local_validate_amplicon_corpus_fixture_json_reports_governed_corpus_03_
             "local",
             "validate-corpus-fixture",
             "--manifest",
-            "tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml",
+            "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml",
             "--json",
         ])
         .output()
@@ -47,7 +47,7 @@ fn bench_local_validate_amplicon_corpus_fixture_json_reports_governed_corpus_03_
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml")
+        Some("benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml")
     );
     assert_eq!(
         payload.get("corpus_id").and_then(serde_json::Value::as_str),
@@ -72,12 +72,12 @@ fn bench_local_validate_amplicon_corpus_fixture_json_reports_governed_corpus_03_
     );
     assert_eq!(
         payload.get("primers_tsv_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv")
+        Some("benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv")
     );
     assert_eq!(payload.get("primer_table_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
         payload.get("expected_asvs_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-03-amplicon-mini/expected_asvs.tsv")
+        Some("benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/expected_asvs.tsv")
     );
     assert_eq!(payload.get("expected_asv_row_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(
@@ -90,11 +90,11 @@ fn bench_local_validate_amplicon_corpus_fixture_json_reports_governed_corpus_03_
     );
     assert_eq!(
         payload.get("chimera_controls_fasta_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_controls.fasta")
+        Some("benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_controls.fasta")
     );
     assert_eq!(
         payload.get("chimera_expectations_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv")
+        Some("benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv")
     );
     assert_eq!(
         payload.get("chimera_expectation_row_count").and_then(serde_json::Value::as_u64),
@@ -135,7 +135,7 @@ fn bench_local_validate_amplicon_corpus_fixture_json_reports_governed_corpus_03_
                             == Some("otu_abundance")
                         && table.get("table_path").and_then(serde_json::Value::as_str)
                             == Some(
-                                "tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv"
+                                "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv"
                             )
                         && table.get("observed_row_count").and_then(serde_json::Value::as_u64)
                             == Some(4)

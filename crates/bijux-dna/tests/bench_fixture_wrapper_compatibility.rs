@@ -1,6 +1,6 @@
 #![allow(clippy::expect_used)]
 
-use std::process::Command;
+use std::{path::PathBuf, process::Command};
 
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
@@ -33,38 +33,48 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
     serde_json::from_slice(&output.stdout).expect("parse stdout as json")
 }
 
+fn legacy_fixture_wrapper_path(relative_path: &str) -> String {
+    PathBuf::from("tests")
+        .join("fixtures")
+        .join(relative_path)
+        .to_string_lossy()
+        .into_owned()
+}
+
 #[test]
 fn bench_local_validate_taxonomy_database_fixture_accepts_root_fixture_wrapper() {
+    let manifest_path = legacy_fixture_wrapper_path("databases/taxonomy-mini/manifest.toml");
     let payload = run_cli_json(&[
         "bench",
         "local",
         "validate-taxonomy-database-fixture",
         "--manifest",
-        "tests/fixtures/databases/taxonomy-mini/manifest.toml",
+        &manifest_path,
         "--json",
     ]);
 
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/databases/taxonomy-mini/manifest.toml")
+        Some(manifest_path.as_str())
     );
     assert_eq!(payload.get("valid").and_then(serde_json::Value::as_bool), Some(true));
 }
 
 #[test]
 fn bench_local_validate_corpus_fixture_accepts_root_fixture_wrapper() {
+    let manifest_path = legacy_fixture_wrapper_path("corpora/corpus-01-mini/manifest.toml");
     let payload = run_cli_json(&[
         "bench",
         "local",
         "validate-corpus-fixture",
         "--manifest",
-        "tests/fixtures/corpora/corpus-01-mini/manifest.toml",
+        &manifest_path,
         "--json",
     ]);
 
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-01-mini/manifest.toml")
+        Some(manifest_path.as_str())
     );
     assert_eq!(payload.get("valid").and_then(serde_json::Value::as_bool), Some(true));
 }

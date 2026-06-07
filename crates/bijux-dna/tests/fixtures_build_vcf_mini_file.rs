@@ -29,14 +29,8 @@ fn run_cli(args: &[&str]) -> (std::path::PathBuf, std::process::Output) {
 #[test]
 fn fixtures_build_vcf_mini_writes_manifest_report_and_fixture_assets() {
     let output_root = "target/local-ready/vcf-mini-regeneration-check";
-    let (repo_root, output) = run_cli(&[
-        "fixtures",
-        "build",
-        "--corpus",
-        "vcf-mini",
-        "--out",
-        output_root,
-    ]);
+    let (repo_root, output) =
+        run_cli(&["fixtures", "build", "--corpus", "vcf-mini", "--out", output_root]);
 
     assert!(
         output.status.success(),
@@ -50,20 +44,17 @@ fn fixtures_build_vcf_mini_writes_manifest_report_and_fixture_assets() {
     assert_eq!(stdout.trim(), "target/local-ready/vcf-mini-regeneration-check/manifest.json");
 
     let manifest_report_path = repo_root.join(output_root).join("manifest.json");
-    let manifest_report_raw = fs::read_to_string(&manifest_report_path).expect("read manifest.json");
+    let manifest_report_raw =
+        fs::read_to_string(&manifest_report_path).expect("read manifest.json");
     let manifest_report: serde_json::Value =
         serde_json::from_str(&manifest_report_raw).expect("parse manifest.json");
 
     assert_eq!(
-        manifest_report
-            .get("schema_version")
-            .and_then(serde_json::Value::as_str),
+        manifest_report.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.vcf_fixture_build.v1")
     );
     assert_eq!(
-        manifest_report
-            .get("governed_counts_match")
-            .and_then(serde_json::Value::as_bool),
+        manifest_report.get("governed_counts_match").and_then(serde_json::Value::as_bool),
         Some(true)
     );
 

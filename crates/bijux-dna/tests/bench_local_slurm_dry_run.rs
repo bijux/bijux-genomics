@@ -229,8 +229,8 @@ fn bench_local_render_slurm_scripts_bam_reports_governed_run_paths() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    let payload = serde_json::from_slice::<serde_json::Value>(&output.stdout)
-        .expect("parse stdout as json");
+    let payload =
+        serde_json::from_slice::<serde_json::Value>(&output.stdout).expect("parse stdout as json");
     let scripts =
         payload.get("scripts").and_then(serde_json::Value::as_array).expect("scripts array");
 

@@ -116,7 +116,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
             return Err(anyhow!(
                 "unsupported corpus benchmark sample scope `{other}` for {}",
                 contract.stage_id
-            ))
+            ));
         }
     };
     if args.sample_limit > 0 && args.sample_limit < selected_samples.len() {

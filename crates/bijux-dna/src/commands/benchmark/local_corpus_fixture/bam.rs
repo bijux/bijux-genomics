@@ -9,13 +9,13 @@ use serde::{Deserialize, Serialize};
 use super::{path_relative_to_repo, resolve_manifest_relative_path};
 
 pub(crate) const DEFAULT_CORPUS_01_BAM_MINI_MANIFEST_PATH: &str =
-    "tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml";
+    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml";
 pub(crate) const DEFAULT_CORPUS_01_ADNA_BAM_MINI_MANIFEST_PATH: &str =
-    "tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml";
+    "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml";
 pub(crate) const DEFAULT_CORPUS_01_GENOTYPING_MINI_MANIFEST_PATH: &str =
-    "tests/fixtures/corpora/corpus-01-genotyping-mini/manifest.toml";
+    "benchmarks/tests/fixtures/corpora/corpus-01-genotyping-mini/manifest.toml";
 pub(crate) const DEFAULT_CORPUS_01_KINSHIP_MINI_MANIFEST_PATH: &str =
-    "tests/fixtures/corpora/corpus-01-kinship-mini/manifest.toml";
+    "benchmarks/tests/fixtures/corpora/corpus-01-kinship-mini/manifest.toml";
 pub(crate) const BAM_CORPUS_FIXTURE_SCHEMA_VERSION: &str = "bijux.bench.bam_corpus_fixture.v1";
 const BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.bam_corpus_fixture_validation.v1";
@@ -805,9 +805,9 @@ mod tests {
                     == vec!["rg-gc-bias-human-like".to_string()]
                 && sample.source_paths
                     == vec![
-                        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+                        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
                             .to_string(),
-                        "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+                        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
                             .to_string(),
                     ]
         }));
@@ -827,7 +827,7 @@ mod tests {
                 && sample.observed_record_count == 5
                 && sample.source_paths
                     == vec![
-                        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
+                        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
                             .to_string(),
                     ]
         }));
@@ -841,9 +841,9 @@ mod tests {
                 && sample.observed_record_count == 3
                 && sample.source_paths
                     == vec![
-                        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam"
+                        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam"
                             .to_string(),
-                        "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
+                        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat"
                             .to_string(),
                     ]
         }));
@@ -857,7 +857,7 @@ mod tests {
                 && sample.observed_record_count == 4
                 && sample.source_paths
                     == vec![
-                        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam"
+                        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam"
                             .to_string(),
                     ]
         }));
@@ -902,9 +902,9 @@ mod tests {
                 && sample.observed_record_count == 5
                 && sample.source_paths
                     == vec![
-                        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam"
+                        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam"
                             .to_string(),
-                        "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+                        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
                             .to_string(),
                     ]
         }));
@@ -964,11 +964,11 @@ mod tests {
         assert_eq!(contract.sample_id, "human_like_genotyping_candidate_panel");
         assert_eq!(
             contract.sites_vcf,
-            "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
         );
         assert_eq!(
             contract.regions,
-            "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
         );
         assert_eq!(contract.min_posterior, 0.9);
         assert_eq!(contract.min_call_rate, 0.5);
@@ -1061,7 +1061,7 @@ mod tests {
         assert_eq!(contract.reference_panel, "human_like_relatedness_panel");
         assert_eq!(
             contract.reference_panel_path,
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv"
         );
         assert_eq!(contract.reference_build, "grch38");
         assert_eq!(contract.population_scope, "human_diploid_panel");

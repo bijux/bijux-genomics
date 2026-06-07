@@ -10,7 +10,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_TAXONOMY_MINI_MANIFEST_PATH: &str =
-    "tests/fixtures/databases/taxonomy-mini/manifest.toml";
+    "benchmarks/tests/fixtures/databases/taxonomy-mini/manifest.toml";
 pub(crate) const TAXONOMY_DATABASE_FIXTURE_SCHEMA_VERSION: &str =
     "bijux.bench.taxonomy_database_fixture.v2";
 const TAXONOMY_DATABASE_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
@@ -446,23 +446,22 @@ mod tests {
             vec![
                 super::TaxonomyClassifierBackendReport {
                     classifier: "kraken2".to_string(),
-                    index_path:
-                        "tests/fixtures/databases/taxonomy-mini/kraken2/hash.k2d".to_string(),
+                    index_path: "benchmarks/tests/fixtures/databases/taxonomy-mini/kraken2/hash.k2d"
+                        .to_string(),
                 },
                 super::TaxonomyClassifierBackendReport {
                     classifier: "krakenuniq".to_string(),
-                    index_path: "tests/fixtures/databases/taxonomy-mini/krakenuniq/database.kdb"
+                    index_path: "benchmarks/tests/fixtures/databases/taxonomy-mini/krakenuniq/database.kdb"
                         .to_string(),
                 },
                 super::TaxonomyClassifierBackendReport {
                     classifier: "centrifuge".to_string(),
-                    index_path:
-                        "tests/fixtures/databases/taxonomy-mini/centrifuge/reference.1.cf"
-                            .to_string(),
+                    index_path: "benchmarks/tests/fixtures/databases/taxonomy-mini/centrifuge/reference.1.cf"
+                        .to_string(),
                 },
                 super::TaxonomyClassifierBackendReport {
                     classifier: "kaiju".to_string(),
-                    index_path: "tests/fixtures/databases/taxonomy-mini/kaiju/nodes.dmp"
+                    index_path: "benchmarks/tests/fixtures/databases/taxonomy-mini/kaiju/nodes.dmp"
                         .to_string(),
                 },
             ]

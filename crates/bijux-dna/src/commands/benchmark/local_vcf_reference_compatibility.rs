@@ -46,7 +46,9 @@ pub(crate) fn run_validate_vcf_reference_compatibility(
     let manifest_path = match &args.manifest {
         Some(path) if path.is_absolute() => path.clone(),
         Some(path) => repo_root.join(path),
-        None => repo_root.join(crate::commands::benchmark::local_corpus_fixture::vcf::DEFAULT_VCF_MINI_MANIFEST_PATH),
+        None => repo_root.join(
+            crate::commands::benchmark::local_corpus_fixture::vcf::DEFAULT_VCF_MINI_MANIFEST_PATH,
+        ),
     };
     let output_path = match &args.output {
         Some(path) if path.is_absolute() => path.clone(),
@@ -92,14 +94,10 @@ pub(crate) fn render_vcf_reference_compatibility(
         .flat_map(|variant_set| variant_set.contigs.iter().cloned())
         .collect::<BTreeSet<_>>();
     let vcf_contigs = vcf_contig_set.iter().cloned().collect::<Vec<_>>();
-    let missing_contigs = reference_contig_set
-        .difference(&vcf_contig_set)
-        .cloned()
-        .collect::<Vec<_>>();
-    let extra_contigs = vcf_contig_set
-        .difference(&reference_contig_set)
-        .cloned()
-        .collect::<Vec<_>>();
+    let missing_contigs =
+        reference_contig_set.difference(&vcf_contig_set).cloned().collect::<Vec<_>>();
+    let extra_contigs =
+        vcf_contig_set.difference(&reference_contig_set).cloned().collect::<Vec<_>>();
     let status = if missing_contigs.is_empty() && extra_contigs.is_empty() {
         "compatible"
     } else {

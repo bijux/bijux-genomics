@@ -26,11 +26,11 @@ fn bench_local_judge_taxonomy_output_json_reports_governed_corpus_02_match() {
             "local",
             "judge-taxonomy-output",
             "--manifest",
-            "tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml",
+            "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml",
             "--report",
-            "mock_community_sample_a=tests/fixtures/corpora/corpus-02-edna-mini/observed_taxonomy/mock_community_sample_a.classification_report.json",
+            "mock_community_sample_a=benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/observed_taxonomy/mock_community_sample_a.classification_report.json",
             "--report",
-            "mock_community_sample_b=tests/fixtures/corpora/corpus-02-edna-mini/observed_taxonomy/mock_community_sample_b.classification_report.json",
+            "mock_community_sample_b=benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/observed_taxonomy/mock_community_sample_b.classification_report.json",
             "--output",
             output_path.to_str().expect("utf8 output path"),
             "--json",
@@ -54,11 +54,11 @@ fn bench_local_judge_taxonomy_output_json_reports_governed_corpus_02_match() {
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml")
+        Some("benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml")
     );
     assert_eq!(
         payload.get("expected_taxa_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv")
+        Some("benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv")
     );
     assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(payload.get("expectation_count").and_then(serde_json::Value::as_u64), Some(6));

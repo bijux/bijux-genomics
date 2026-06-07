@@ -487,10 +487,14 @@ reason = "Compact validation fixture."
     fn select_stage_run_root_requires_existing_mirrors() {
         let roots = vec![
             super::StageRunRootCandidate {
-                path: PathBuf::from("/bench/local/cache-mirror/results/corpus_01/fastq.validate_reads/cluster-apptainer"),
+                path: PathBuf::from(
+                    "/bench/local/cache-mirror/results/corpus_01/fastq.validate_reads/cluster-apptainer",
+                ),
             },
             super::StageRunRootCandidate {
-                path: PathBuf::from("/bench/local/archive/corpus_01/fastq.validate_reads/cluster-apptainer"),
+                path: PathBuf::from(
+                    "/bench/local/archive/corpus_01/fastq.validate_reads/cluster-apptainer",
+                ),
             },
         ];
 

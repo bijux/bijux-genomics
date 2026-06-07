@@ -85,7 +85,8 @@ pub(crate) fn render_vcf_sample_compatibility(
     let manifest_dir = manifest_path.parent().ok_or_else(|| {
         anyhow!("fixture manifest has no parent directory: {}", manifest_path.display())
     })?;
-    let sample_metadata_path = resolve_manifest_relative_path(manifest_dir, &manifest.sample_metadata_path);
+    let sample_metadata_path =
+        resolve_manifest_relative_path(manifest_dir, &manifest.sample_metadata_path);
     let population_metadata_path =
         resolve_manifest_relative_path(manifest_dir, &manifest.population_metadata_path);
 
@@ -104,26 +105,18 @@ pub(crate) fn render_vcf_sample_compatibility(
         })
         .flat_map(|variant_set| variant_set.observed_sample_ids.iter().cloned())
         .collect::<BTreeSet<_>>();
-    let metadata_sample_set = sample_metadata
-        .iter()
-        .map(|row| row.sample_id.clone())
-        .collect::<BTreeSet<_>>();
+    let metadata_sample_set =
+        sample_metadata.iter().map(|row| row.sample_id.clone()).collect::<BTreeSet<_>>();
 
     let vcf_samples = vcf_sample_set.iter().cloned().collect::<Vec<_>>();
     let metadata_samples = metadata_sample_set.iter().cloned().collect::<Vec<_>>();
-    let missing_metadata = vcf_sample_set
-        .difference(&metadata_sample_set)
-        .cloned()
-        .collect::<Vec<_>>();
-    let extra_metadata = metadata_sample_set
-        .difference(&vcf_sample_set)
-        .cloned()
-        .collect::<Vec<_>>();
+    let missing_metadata =
+        vcf_sample_set.difference(&metadata_sample_set).cloned().collect::<Vec<_>>();
+    let extra_metadata =
+        metadata_sample_set.difference(&vcf_sample_set).cloned().collect::<Vec<_>>();
 
-    let sample_rows = sample_metadata
-        .iter()
-        .map(|row| (row.sample_id.clone(), row))
-        .collect::<BTreeMap<_, _>>();
+    let sample_rows =
+        sample_metadata.iter().map(|row| (row.sample_id.clone(), row)).collect::<BTreeMap<_, _>>();
     let mut population_labels = BTreeMap::new();
     let mut sex_labels = BTreeMap::new();
     let mut missing_population_labels = Vec::new();
@@ -221,9 +214,7 @@ fn load_population_metadata(population_metadata_path: &Path) -> Result<Vec<Popul
             ));
         }
         if !seen.insert(population_id.to_string()) {
-            return Err(anyhow!(
-                "VCF population metadata repeats population_id `{population_id}`"
-            ));
+            return Err(anyhow!("VCF population metadata repeats population_id `{population_id}`"));
         }
         rows.push(PopulationMetadataRow {
             population_id: population_id.to_string(),
@@ -272,12 +263,15 @@ mod tests {
         .expect("render vcf sample compatibility");
 
         assert_eq!(report.corpus_id, "vcf-mini");
-        assert_eq!(report.vcf_samples, vec![
-            "sample_a".to_string(),
-            "sample_b".to_string(),
-            "sample_c".to_string(),
-            "sample_d".to_string(),
-        ]);
+        assert_eq!(
+            report.vcf_samples,
+            vec![
+                "sample_a".to_string(),
+                "sample_b".to_string(),
+                "sample_c".to_string(),
+                "sample_d".to_string(),
+            ]
+        );
         assert!(report.missing_metadata.is_empty());
         assert_eq!(
             report.extra_metadata,

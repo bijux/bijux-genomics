@@ -12,7 +12,7 @@ use super::fastq::{
 use super::{path_relative_to_repo, resolve_manifest_relative_path};
 
 pub(crate) const DEFAULT_CORPUS_03_AMPLICON_MANIFEST_PATH: &str =
-    "tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml";
+    "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml";
 pub(crate) const AMPLICON_CORPUS_FIXTURE_SCHEMA_VERSION: &str =
     "bijux.bench.amplicon_corpus_fixture.v1";
 const AMPLICON_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
@@ -1408,23 +1408,23 @@ mod tests {
         assert_eq!(report.reverse_primer_id, "16S_1492R");
         assert_eq!(
             report.primers_tsv_path,
-            "tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv"
+            "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv"
         );
         assert_eq!(report.primer_table_row_count, 1);
         assert_eq!(
             report.expected_asvs_path,
-            "tests/fixtures/corpora/corpus-03-amplicon-mini/expected_asvs.tsv"
+            "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/expected_asvs.tsv"
         );
         assert_eq!(report.expected_asv_row_count, 3);
         assert_eq!(report.expected_asv_present_row_count, 2);
         assert_eq!(report.expected_asv_absent_row_count, 1);
         assert_eq!(
             report.chimera_controls_fasta_path,
-            "tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_controls.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_controls.fasta"
         );
         assert_eq!(
             report.chimera_expectations_path,
-            "tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv"
+            "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv"
         );
         assert_eq!(report.chimera_expectation_row_count, 1);
         assert_eq!(report.chimera_expected_present_row_count, 1);
@@ -1452,7 +1452,7 @@ mod tests {
             table.sample_id == "corpus-03-otu-abundance-table"
                 && table.table_kind == "otu_abundance"
                 && table.table_path
-                    == "tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv"
+                    == "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv"
                 && table.observed_row_count == 4
                 && table.observed_sample_count == 2
                 && table.observed_feature_count == 3

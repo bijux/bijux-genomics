@@ -25,7 +25,7 @@ fn bench_local_validate_taxonomy_database_fixture_json_reports_governed_taxonomy
             "local",
             "validate-taxonomy-database-fixture",
             "--manifest",
-            "tests/fixtures/databases/taxonomy-mini/manifest.toml",
+            "benchmarks/tests/fixtures/databases/taxonomy-mini/manifest.toml",
             "--json",
         ])
         .output()
@@ -47,7 +47,7 @@ fn bench_local_validate_taxonomy_database_fixture_json_reports_governed_taxonomy
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/databases/taxonomy-mini/manifest.toml")
+        Some("benchmarks/tests/fixtures/databases/taxonomy-mini/manifest.toml")
     );
     assert_eq!(
         payload.get("database_id").and_then(serde_json::Value::as_str),
@@ -68,23 +68,20 @@ fn bench_local_validate_taxonomy_database_fixture_json_reports_governed_taxonomy
                     serde_json::Value::String("kaiju".to_string()),
                 ]
         }));
-    assert!(payload
-        .get("classifier_backends")
-        .and_then(serde_json::Value::as_array)
-        .is_some_and(|backends| {
+    assert!(payload.get("classifier_backends").and_then(serde_json::Value::as_array).is_some_and(
+        |backends| {
             backends.len() == 4
                 && backends.iter().any(|backend| {
-                    backend.get("classifier").and_then(serde_json::Value::as_str)
-                        == Some("kraken2")
+                    backend.get("classifier").and_then(serde_json::Value::as_str) == Some("kraken2")
                         && backend.get("index_path").and_then(serde_json::Value::as_str)
-                            == Some("tests/fixtures/databases/taxonomy-mini/kraken2/hash.k2d")
+                            == Some("benchmarks/tests/fixtures/databases/taxonomy-mini/kraken2/hash.k2d")
                 })
                 && backends.iter().any(|backend| {
                     backend.get("classifier").and_then(serde_json::Value::as_str)
                         == Some("krakenuniq")
                         && backend.get("index_path").and_then(serde_json::Value::as_str)
                             == Some(
-                                "tests/fixtures/databases/taxonomy-mini/krakenuniq/database.kdb",
+                                "benchmarks/tests/fixtures/databases/taxonomy-mini/krakenuniq/database.kdb",
                             )
                 })
                 && backends.iter().any(|backend| {
@@ -92,16 +89,16 @@ fn bench_local_validate_taxonomy_database_fixture_json_reports_governed_taxonomy
                         == Some("centrifuge")
                         && backend.get("index_path").and_then(serde_json::Value::as_str)
                             == Some(
-                                "tests/fixtures/databases/taxonomy-mini/centrifuge/reference.1.cf",
+                                "benchmarks/tests/fixtures/databases/taxonomy-mini/centrifuge/reference.1.cf",
                             )
                 })
                 && backends.iter().any(|backend| {
-                    backend.get("classifier").and_then(serde_json::Value::as_str)
-                        == Some("kaiju")
+                    backend.get("classifier").and_then(serde_json::Value::as_str) == Some("kaiju")
                         && backend.get("index_path").and_then(serde_json::Value::as_str)
-                            == Some("tests/fixtures/databases/taxonomy-mini/kaiju/nodes.dmp")
+                            == Some("benchmarks/tests/fixtures/databases/taxonomy-mini/kaiju/nodes.dmp")
                 })
-        }));
+        }
+    ));
     assert!(payload.get("taxa").and_then(serde_json::Value::as_array).is_some_and(|taxa| {
         taxa.len() == 3
             && taxa.iter().any(|taxon| {

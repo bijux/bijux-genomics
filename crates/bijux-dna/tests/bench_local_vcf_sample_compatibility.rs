@@ -59,13 +59,7 @@ fn bench_local_vcf_sample_compatibility_reports_cohort_label_parity() {
             .get("downstream_stage_ids")
             .and_then(serde_json::Value::as_array)
             .map(|values| values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()),
-        Some(vec![
-            "vcf.population_structure",
-            "vcf.pca",
-            "vcf.admixture",
-            "vcf.roh",
-            "vcf.ibd",
-        ])
+        Some(vec!["vcf.population_structure", "vcf.pca", "vcf.admixture", "vcf.roh", "vcf.ibd",])
     );
     assert_eq!(
         payload
@@ -79,21 +73,12 @@ fn bench_local_vcf_sample_compatibility_reports_cohort_label_parity() {
             .get("metadata_samples")
             .and_then(serde_json::Value::as_array)
             .map(|values| values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()),
-        Some(vec![
-            "panel_ref_1",
-            "panel_ref_2",
-            "sample_a",
-            "sample_b",
-            "sample_c",
-            "sample_d",
-        ])
+        Some(vec!["panel_ref_1", "panel_ref_2", "sample_a", "sample_b", "sample_c", "sample_d",])
     );
-    assert!(
-        payload
-            .get("missing_metadata")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|values| values.is_empty())
-    );
+    assert!(payload
+        .get("missing_metadata")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|values| values.is_empty()));
     assert_eq!(
         payload
             .get("extra_metadata")
@@ -133,16 +118,12 @@ fn bench_local_vcf_sample_compatibility_reports_cohort_label_parity() {
             .and_then(serde_json::Value::as_str),
         Some("male")
     );
-    assert!(
-        payload
-            .get("missing_population_labels")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|values| values.is_empty())
-    );
-    assert!(
-        payload
-            .get("missing_sex_labels")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|values| values.is_empty())
-    );
+    assert!(payload
+        .get("missing_population_labels")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|values| values.is_empty()));
+    assert!(payload
+        .get("missing_sex_labels")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|values| values.is_empty()));
 }

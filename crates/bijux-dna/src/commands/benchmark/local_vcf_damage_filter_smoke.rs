@@ -575,7 +575,7 @@ mod tests {
     fn parse_vcf_record_count_reads_governed_single_sample_fixture() {
         let repo_root = repo_root();
         let fixture_vcf = repo_root
-            .join("tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf");
+            .join("benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf");
         let record_count = parse_vcf_record_count(&fixture_vcf).expect("count fixture records");
         assert_eq!(record_count, 2);
     }

@@ -146,7 +146,7 @@ pub(crate) fn validate_vcf_stage_catalog_ready(
         &mut checks,
         204,
         "vcf expected truth",
-        Some("tests/fixtures/corpora/vcf-mini/expected".to_string()),
+        Some("benchmarks/tests/fixtures/corpora/vcf-mini/expected".to_string()),
         || {
             let report = validate_vcf_expected_truth_manifest_path(repo_root, &manifest_path)?;
             Ok(format!(

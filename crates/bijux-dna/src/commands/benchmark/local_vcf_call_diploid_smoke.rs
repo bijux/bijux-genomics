@@ -361,7 +361,7 @@ mod tests {
     fn diploid_genotype_summary_reads_governed_fixture() {
         let repo_root = repo_root();
         let fixture_vcf = repo_root
-            .join("tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf");
+            .join("benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf");
         let summary =
             summarize_diploid_genotypes(&fixture_vcf).expect("summarize fixture genotypes");
 

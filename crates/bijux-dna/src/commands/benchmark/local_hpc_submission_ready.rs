@@ -1133,7 +1133,7 @@ fn evaluate_corpus_goals(
                 70,
                 "corpora",
                 "corpus-02 expected taxonomy output validates sample-taxon truth rows",
-                Some("tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv".to_string()),
+                Some("benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv".to_string()),
                 "corpus-02 eDNA fixture validation failed earlier".to_string(),
             ));
             None
@@ -1229,17 +1229,17 @@ fn evaluate_corpus_goals(
                 (
                     72,
                     "corpus-03 primer metadata validates governed primer normalization inputs",
-                    "tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv".to_string(),
+                    "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv".to_string(),
                 ),
                 (
                     73,
                     "corpus-03 expected ASV table validates sample-aware amplicon truth rows",
-                    "tests/fixtures/corpora/corpus-03-amplicon-mini/expected_asvs.tsv".to_string(),
+                    "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/expected_asvs.tsv".to_string(),
                 ),
                 (
                     74,
                     "corpus-03 chimera controls validate governed positive-control expectations",
-                    "tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv"
+                    "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv"
                         .to_string(),
                 ),
             ] {

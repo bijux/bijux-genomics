@@ -25,7 +25,7 @@ fn bench_local_validate_corpus_fixture_json_reports_governed_corpus_01_mini_cont
             "local",
             "validate-corpus-fixture",
             "--manifest",
-            "tests/fixtures/corpora/corpus-01-mini/manifest.toml",
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/manifest.toml",
             "--json",
         ])
         .output()
@@ -47,7 +47,7 @@ fn bench_local_validate_corpus_fixture_json_reports_governed_corpus_01_mini_cont
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-01-mini/manifest.toml")
+        Some("benchmarks/tests/fixtures/corpora/corpus-01-mini/manifest.toml")
     );
     assert_eq!(
         payload.get("corpus_id").and_then(serde_json::Value::as_str),
@@ -66,11 +66,11 @@ fn bench_local_validate_corpus_fixture_json_reports_governed_corpus_01_mini_cont
                     && sample.get("layout").and_then(serde_json::Value::as_str) == Some("pe")
                     && sample.get("r1_path").and_then(serde_json::Value::as_str)
                         == Some(
-                            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R1.fastq.gz"
+                            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R1.fastq.gz"
                         )
                     && sample.get("r2_path").and_then(serde_json::Value::as_str)
                         == Some(
-                            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R2.fastq.gz"
+                            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R2.fastq.gz"
                         )
                     && sample
                         .get("source_paths")
@@ -101,11 +101,11 @@ fn bench_local_validate_corpus_fixture_json_reports_governed_corpus_01_mini_cont
                     && sample.get("layout").and_then(serde_json::Value::as_str) == Some("pe")
                     && sample.get("r1_path").and_then(serde_json::Value::as_str)
                         == Some(
-                            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_umi_prefix_signals_R1.fastq.gz"
+                            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_umi_prefix_signals_R1.fastq.gz"
                         )
                     && sample.get("r2_path").and_then(serde_json::Value::as_str)
                         == Some(
-                            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_umi_prefix_signals_R2.fastq.gz"
+                            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_umi_prefix_signals_R2.fastq.gz"
                         )
                     && sample
                         .get("source_paths")

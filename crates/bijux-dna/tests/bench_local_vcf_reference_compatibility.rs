@@ -53,15 +53,15 @@ fn bench_local_vcf_reference_compatibility_reports_governed_contig_parity() {
     );
     assert_eq!(
         payload.get("fasta_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/vcf-mini/reference/vcf_mini_reference.fasta")
+        Some("benchmarks/tests/fixtures/corpora/vcf-mini/reference/vcf_mini_reference.fasta")
     );
     assert_eq!(
         payload.get("fai_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/vcf-mini/reference/vcf_mini_reference.fasta.fai")
+        Some("benchmarks/tests/fixtures/corpora/vcf-mini/reference/vcf_mini_reference.fasta.fai")
     );
     assert_eq!(
         payload.get("dict_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/vcf-mini/reference/vcf_mini_reference.dict")
+        Some("benchmarks/tests/fixtures/corpora/vcf-mini/reference/vcf_mini_reference.dict")
     );
     assert_eq!(payload.get("contig_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(payload.get("status").and_then(serde_json::Value::as_str), Some("compatible"));
@@ -79,18 +79,14 @@ fn bench_local_vcf_reference_compatibility_reports_governed_contig_parity() {
             .map(|values| values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()),
         Some(vec!["chr1", "chr2"])
     );
-    assert!(
-        payload
-            .get("missing_contigs")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|values| values.is_empty())
-    );
-    assert!(
-        payload
-            .get("extra_contigs")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|values| values.is_empty())
-    );
+    assert!(payload
+        .get("missing_contigs")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|values| values.is_empty()));
+    assert!(payload
+        .get("extra_contigs")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|values| values.is_empty()));
 
     let variant_sets = payload
         .get("variant_sets")
@@ -99,12 +95,9 @@ fn bench_local_vcf_reference_compatibility_reports_governed_contig_parity() {
     assert_eq!(variant_sets.len(), 5);
     assert!(variant_sets.iter().any(|row| {
         row.get("variant_role").and_then(serde_json::Value::as_str) == Some("multisample")
-            && row
-                .get("contigs")
-                .and_then(serde_json::Value::as_array)
-                .is_some_and(|values| {
-                    values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()
-                        == vec!["chr1", "chr2"]
-                })
+            && row.get("contigs").and_then(serde_json::Value::as_array).is_some_and(|values| {
+                values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()
+                    == vec!["chr1", "chr2"]
+            })
     }));
 }

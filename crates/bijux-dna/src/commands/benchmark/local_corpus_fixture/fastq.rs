@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use super::{path_relative_to_repo, resolve_manifest_relative_path};
 
 pub(crate) const DEFAULT_CORPUS_01_MINI_MANIFEST_PATH: &str =
-    "tests/fixtures/corpora/corpus-01-mini/manifest.toml";
+    "benchmarks/tests/fixtures/corpora/corpus-01-mini/manifest.toml";
 pub(crate) const FASTQ_CORPUS_FIXTURE_SCHEMA_VERSION: &str = "bijux.bench.fastq_corpus_fixture.v1";
 const FASTQ_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.fastq_corpus_fixture_validation.v1";

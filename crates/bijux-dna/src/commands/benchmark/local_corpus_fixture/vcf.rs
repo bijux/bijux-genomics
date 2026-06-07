@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use super::{path_relative_to_repo, resolve_manifest_relative_path};
 
 pub(crate) const DEFAULT_VCF_MINI_MANIFEST_PATH: &str =
-    "tests/fixtures/corpora/vcf-mini/manifest.toml";
+    "benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml";
 pub(crate) const VCF_CORPUS_FIXTURE_SCHEMA_VERSION: &str = "bijux.bench.vcf_corpus_fixture.v1";
 const VCF_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.vcf_corpus_fixture_validation.v1";
@@ -136,11 +136,14 @@ pub(crate) fn validate_vcf_corpus_fixture_manifest_path(
     })?;
     validate_vcf_corpus_fixture_manifest_contract(&manifest)?;
 
-    let reference_fasta = resolve_manifest_relative_path(manifest_dir, &manifest.reference_fasta_path);
+    let reference_fasta =
+        resolve_manifest_relative_path(manifest_dir, &manifest.reference_fasta_path);
     let reference_fasta_index =
         resolve_manifest_relative_path(manifest_dir, &manifest.reference_fasta_index_path);
-    let reference_dict = resolve_manifest_relative_path(manifest_dir, &manifest.reference_dict_path);
-    let target_sites_bed = resolve_manifest_relative_path(manifest_dir, &manifest.target_sites_bed_path);
+    let reference_dict =
+        resolve_manifest_relative_path(manifest_dir, &manifest.reference_dict_path);
+    let target_sites_bed =
+        resolve_manifest_relative_path(manifest_dir, &manifest.target_sites_bed_path);
     let sample_metadata_path =
         resolve_manifest_relative_path(manifest_dir, &manifest.sample_metadata_path);
     let population_metadata_path =
@@ -159,11 +162,7 @@ pub(crate) fn validate_vcf_corpus_fixture_manifest_path(
     validate_sample_metadata_population_links(&sample_metadata, &population_ids)?;
 
     let variant_sets = [
-        (
-            VcfVariantRole::Raw,
-            &manifest.raw_vcf_path,
-            &manifest.expected_raw_sample_ids,
-        ),
+        (VcfVariantRole::Raw, &manifest.raw_vcf_path, &manifest.expected_raw_sample_ids),
         (
             VcfVariantRole::Filtered,
             &manifest.filtered_vcf_path,
@@ -174,16 +173,8 @@ pub(crate) fn validate_vcf_corpus_fixture_manifest_path(
             &manifest.multisample_vcf_path,
             &manifest.expected_multisample_sample_ids,
         ),
-        (
-            VcfVariantRole::Phased,
-            &manifest.phased_vcf_path,
-            &manifest.expected_phased_sample_ids,
-        ),
-        (
-            VcfVariantRole::Panel,
-            &manifest.panel_vcf_path,
-            &manifest.expected_panel_sample_ids,
-        ),
+        (VcfVariantRole::Phased, &manifest.phased_vcf_path, &manifest.expected_phased_sample_ids),
+        (VcfVariantRole::Panel, &manifest.panel_vcf_path, &manifest.expected_panel_sample_ids),
     ]
     .into_iter()
     .map(|(role, path, expected_sample_ids)| {
@@ -216,10 +207,7 @@ pub(crate) fn validate_vcf_corpus_fixture_manifest_path(
         sample_count: sample_metadata.len(),
         population_count: population_ids.len(),
         valid: true,
-        variant_sets: variant_sets
-            .into_iter()
-            .map(|(report, _)| report)
-            .collect(),
+        variant_sets: variant_sets.into_iter().map(|(report, _)| report).collect(),
     })
 }
 
@@ -235,10 +223,7 @@ pub(crate) fn validate_vcf_corpus_fixture_manifest_contract(
     manifest: &VcfCorpusFixtureManifest,
 ) -> Result<()> {
     if manifest.schema_version != VCF_CORPUS_FIXTURE_SCHEMA_VERSION {
-        return Err(anyhow!(
-            "unsupported VCF corpus fixture schema `{}`",
-            manifest.schema_version
-        ));
+        return Err(anyhow!("unsupported VCF corpus fixture schema `{}`", manifest.schema_version));
     }
     if manifest.corpus_id.trim().is_empty() {
         return Err(anyhow!("VCF corpus fixture must declare a non-empty `corpus_id`"));
@@ -263,9 +248,7 @@ pub(crate) fn validate_vcf_corpus_fixture_manifest_contract(
         ("population_metadata_path", &manifest.population_metadata_path),
     ] {
         if path.as_os_str().is_empty() {
-            return Err(anyhow!(
-                "VCF corpus fixture must declare a non-empty `{field_name}`"
-            ));
+            return Err(anyhow!("VCF corpus fixture must declare a non-empty `{field_name}`"));
         }
     }
 
@@ -285,9 +268,7 @@ pub(crate) fn validate_vcf_corpus_fixture_manifest_contract(
     validate_expected_sample_ids("expected_panel_sample_ids", &manifest.expected_panel_sample_ids)?;
 
     if manifest.expected_raw_sample_ids != manifest.expected_filtered_sample_ids {
-        return Err(anyhow!(
-            "VCF corpus fixture raw and filtered sample ids must match exactly"
-        ));
+        return Err(anyhow!("VCF corpus fixture raw and filtered sample ids must match exactly"));
     }
     if manifest.expected_multisample_sample_ids != manifest.expected_phased_sample_ids {
         return Err(anyhow!(
@@ -418,12 +399,12 @@ fn parse_reference_fasta(reference_fasta: &Path) -> Result<Vec<ReferenceContig>>
             }
             let name = header.trim();
             if name.is_empty() {
-                return Err(anyhow!("VCF corpus fixture reference FASTA contains an empty contig name"));
+                return Err(anyhow!(
+                    "VCF corpus fixture reference FASTA contains an empty contig name"
+                ));
             }
             if !seen.insert(name.to_string()) {
-                return Err(anyhow!(
-                    "VCF corpus fixture reference FASTA repeats contig `{name}`"
-                ));
+                return Err(anyhow!("VCF corpus fixture reference FASTA repeats contig `{name}`"));
             }
             current_name = Some(name.to_string());
             current_length = 0;
@@ -460,9 +441,7 @@ fn parse_reference_fasta(reference_fasta: &Path) -> Result<Vec<ReferenceContig>>
     }
 
     if contigs.is_empty() {
-        return Err(anyhow!(
-            "VCF corpus fixture reference FASTA must declare at least one contig"
-        ));
+        return Err(anyhow!("VCF corpus fixture reference FASTA must declare at least one contig"));
     }
     Ok(contigs)
 }
@@ -491,9 +470,7 @@ fn parse_reference_fasta_index(reference_fasta_index: &Path) -> Result<Vec<Fasta
             ));
         }
         if !seen.insert(name.to_string()) {
-            return Err(anyhow!(
-                "VCF corpus fixture FASTA index repeats contig `{name}`"
-            ));
+            return Err(anyhow!("VCF corpus fixture FASTA index repeats contig `{name}`"));
         }
         let length = fields[1].parse::<usize>().with_context(|| {
             format!(
@@ -505,9 +482,7 @@ fn parse_reference_fasta_index(reference_fasta_index: &Path) -> Result<Vec<Fasta
         rows.push(FastaIndexRow { name: name.to_string(), length });
     }
     if rows.is_empty() {
-        return Err(anyhow!(
-            "VCF corpus fixture FASTA index must declare at least one contig row"
-        ));
+        return Err(anyhow!("VCF corpus fixture FASTA index must declare at least one contig row"));
     }
     Ok(rows)
 }
@@ -527,10 +502,8 @@ fn parse_reference_dict(reference_dict: &Path) -> Result<Vec<ReferenceDictRow>> 
                 line_number + 1
             ));
         }
-        let name = line
-            .split('\t')
-            .find_map(|field| field.strip_prefix("SN:"))
-            .ok_or_else(|| {
+        let name =
+            line.split('\t').find_map(|field| field.strip_prefix("SN:")).ok_or_else(|| {
                 anyhow!(
                     "VCF corpus fixture reference dictionary line {} is missing `SN:`",
                     line_number + 1
@@ -554,9 +527,7 @@ fn parse_reference_dict(reference_dict: &Path) -> Result<Vec<ReferenceDictRow>> 
                 )
             })?;
         if !seen.insert(name.to_string()) {
-            return Err(anyhow!(
-                "VCF corpus fixture reference dictionary repeats contig `{name}`"
-            ));
+            return Err(anyhow!("VCF corpus fixture reference dictionary repeats contig `{name}`"));
         }
         rows.push(ReferenceDictRow { name: name.to_string(), length });
     }
@@ -568,7 +539,10 @@ fn parse_reference_dict(reference_dict: &Path) -> Result<Vec<ReferenceDictRow>> 
     Ok(rows)
 }
 
-fn validate_target_sites_bed(target_sites_bed: &Path, reference_contigs: &[ReferenceContig]) -> Result<usize> {
+fn validate_target_sites_bed(
+    target_sites_bed: &Path,
+    reference_contigs: &[ReferenceContig],
+) -> Result<usize> {
     if !target_sites_bed.is_file() {
         return Err(anyhow!(
             "VCF corpus fixture target-sites BED is missing: {}",
@@ -630,9 +604,7 @@ fn validate_target_sites_bed(target_sites_bed: &Path, reference_contigs: &[Refer
         interval_count += 1;
     }
     if interval_count == 0 {
-        return Err(anyhow!(
-            "VCF corpus fixture BED must declare at least one target interval"
-        ));
+        return Err(anyhow!("VCF corpus fixture BED must declare at least one target interval"));
     }
     Ok(interval_count)
 }
@@ -648,9 +620,7 @@ pub(crate) fn load_sample_metadata(sample_metadata_path: &Path) -> Result<Vec<Sa
         .with_context(|| format!("read {}", sample_metadata_path.display()))?;
     let mut lines = raw.lines();
     let Some(header) = lines.next() else {
-        return Err(anyhow!(
-            "VCF corpus fixture sample metadata must not be empty"
-        ));
+        return Err(anyhow!("VCF corpus fixture sample metadata must not be empty"));
     };
     if header != "sample_id\tpopulation_id\tsex\trole\tdescription" {
         return Err(anyhow!(
@@ -731,9 +701,7 @@ fn load_population_metadata(population_metadata_path: &Path) -> Result<BTreeSet<
         .with_context(|| format!("read {}", population_metadata_path.display()))?;
     let mut lines = raw.lines();
     let Some(header) = lines.next() else {
-        return Err(anyhow!(
-            "VCF corpus fixture population metadata must not be empty"
-        ));
+        return Err(anyhow!("VCF corpus fixture population metadata must not be empty"));
     };
     if header != "population_id\tpopulation_label\tsuper_population\trole" {
         return Err(anyhow!(
@@ -805,12 +773,11 @@ fn validate_variant_set(
             vcf_path.display()
         ));
     }
-    let expected_contigs = reference_contigs
-        .iter()
-        .map(|contig| contig.name.as_str())
-        .collect::<Vec<_>>();
-    let validation_summary = execute_vcf_validation(&vcf_path, &expected_contigs, false, false, None, None)
-        .with_context(|| format!("validate {}", vcf_path.display()))?;
+    let expected_contigs =
+        reference_contigs.iter().map(|contig| contig.name.as_str()).collect::<Vec<_>>();
+    let validation_summary =
+        execute_vcf_validation(&vcf_path, &expected_contigs, false, false, None, None)
+            .with_context(|| format!("validate {}", vcf_path.display()))?;
     if !validation_summary.header_valid || !validation_summary.refusal_codes.is_empty() {
         return Err(anyhow!(
             "VCF corpus fixture {} VCF failed validation: {}",
@@ -845,10 +812,8 @@ fn validate_variant_set(
         ));
     }
 
-    let reference_contig_names = reference_contigs
-        .iter()
-        .map(|contig| contig.name.as_str())
-        .collect::<BTreeSet<_>>();
+    let reference_contig_names =
+        reference_contigs.iter().map(|contig| contig.name.as_str()).collect::<BTreeSet<_>>();
     for contig in &document.contigs {
         if !reference_contig_names.contains(contig.as_str()) {
             return Err(anyhow!(
@@ -873,7 +838,8 @@ fn validate_variant_set(
 }
 
 fn parse_vcf_document(vcf_path: &Path, role: VcfVariantRole) -> Result<VcfDocumentSummary> {
-    let raw = fs::read_to_string(vcf_path).with_context(|| format!("read {}", vcf_path.display()))?;
+    let raw =
+        fs::read_to_string(vcf_path).with_context(|| format!("read {}", vcf_path.display()))?;
     let mut sample_ids = None;
     let mut contigs = BTreeSet::new();
     let mut variant_count = 0u64;
@@ -942,10 +908,7 @@ fn parse_vcf_document(vcf_path: &Path, role: VcfVariantRole) -> Result<VcfDocume
     }
 
     let sample_ids = sample_ids.ok_or_else(|| {
-        anyhow!(
-            "VCF corpus fixture {} is missing a #CHROM header line",
-            vcf_path.display()
-        )
+        anyhow!("VCF corpus fixture {} is missing a #CHROM header line", vcf_path.display())
     })?;
     if variant_count == 0 {
         return Err(anyhow!(
@@ -970,23 +933,17 @@ fn validate_manifest_sample_coverage(
     sample_metadata: &[SampleMetadataRow],
     variant_sets: &[(VcfVariantSetValidationReport, BTreeSet<String>)],
 ) -> Result<()> {
-    let declared_sample_ids = sample_metadata
-        .iter()
-        .map(|row| row.sample_id.clone())
-        .collect::<BTreeSet<_>>();
+    let declared_sample_ids =
+        sample_metadata.iter().map(|row| row.sample_id.clone()).collect::<BTreeSet<_>>();
     let observed_sample_ids = variant_sets
         .iter()
         .flat_map(|(_, sample_ids)| sample_ids.iter().cloned())
         .collect::<BTreeSet<_>>();
     if declared_sample_ids != observed_sample_ids {
-        let missing_metadata = observed_sample_ids
-            .difference(&declared_sample_ids)
-            .cloned()
-            .collect::<Vec<_>>();
-        let extra_metadata = declared_sample_ids
-            .difference(&observed_sample_ids)
-            .cloned()
-            .collect::<Vec<_>>();
+        let missing_metadata =
+            observed_sample_ids.difference(&declared_sample_ids).cloned().collect::<Vec<_>>();
+        let extra_metadata =
+            declared_sample_ids.difference(&observed_sample_ids).cloned().collect::<Vec<_>>();
         return Err(anyhow!(
             "VCF corpus fixture sample metadata does not match VCF sample ids (missing_metadata={missing_metadata:?}, extra_metadata={extra_metadata:?})"
         ));
@@ -1003,10 +960,8 @@ mod tests {
 
     #[test]
     fn vcf_mini_manifest_contract_is_valid() {
-        let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .join("..");
+        let repo_root =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..").join("..");
         let manifest_path = repo_root.join(DEFAULT_VCF_MINI_MANIFEST_PATH);
         let manifest =
             load_vcf_corpus_fixture_manifest_path(&manifest_path).expect("load vcf mini manifest");
@@ -1016,10 +971,8 @@ mod tests {
 
     #[test]
     fn vcf_mini_manifest_path_validates_fixture_assets() {
-        let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .join("..");
+        let repo_root =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..").join("..");
         let manifest_path = repo_root.join(DEFAULT_VCF_MINI_MANIFEST_PATH);
         let report = validate_vcf_corpus_fixture_manifest_path(&repo_root, &manifest_path)
             .expect("validate vcf mini fixture manifest");
@@ -1030,11 +983,9 @@ mod tests {
         assert_eq!(report.sample_count, 6);
         assert_eq!(report.population_count, 4);
         assert_eq!(report.variant_sets.len(), 5);
-        assert!(
-            report
-                .variant_sets
-                .iter()
-                .any(|row| row.variant_role == "phased" && row.phased_genotypes_only)
-        );
+        assert!(report
+            .variant_sets
+            .iter()
+            .any(|row| row.variant_role == "phased" && row.phased_genotypes_only));
     }
 }

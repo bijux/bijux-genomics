@@ -55,7 +55,7 @@ fn bench_local_vcf_call_pseudohaploid_smoke_writes_governed_files() {
         "target/local-smoke/vcf.call_pseudohaploid/bcftools/artifacts/reference/corpus_01_bam_reference.fasta.fai",
     );
     let governed_reference_fai = repo_root.join(
-        "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta.fai",
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta.fai",
     );
 
     assert!(output_vcf.is_file(), "expected output VCF at {}", output_vcf.display());

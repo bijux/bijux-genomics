@@ -27,7 +27,7 @@ pub(crate) fn print_benchmark_config_json(
         other => {
             return Err(anyhow!(
                 "unsupported benchmark config section `{other}`; expected one of: full, workspace, publication, corpora, stage_inputs"
-            ))
+            ));
         }
     }
     Ok(())

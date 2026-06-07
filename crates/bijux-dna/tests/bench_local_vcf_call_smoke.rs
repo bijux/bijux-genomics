@@ -65,11 +65,11 @@ fn bench_local_vcf_call_smoke_reports_real_governed_outputs() {
     );
     assert_eq!(
         payload.get("input_bam").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam")
+        Some("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam")
     );
     assert_eq!(
         payload.get("reference").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+        Some("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
     );
     assert_eq!(
         payload

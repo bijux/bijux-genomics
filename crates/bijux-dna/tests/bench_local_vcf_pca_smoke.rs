@@ -57,7 +57,7 @@ fn bench_local_vcf_pca_smoke_reports_complete_cohort_contract() {
     );
     assert_eq!(
         payload.get("fixture_manifest_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/vcf-mini/manifest.toml")
+        Some("benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml")
     );
     assert_eq!(
         payload.get("input_vcf_path").and_then(serde_json::Value::as_str),

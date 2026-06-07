@@ -25,7 +25,7 @@ fn bench_local_validate_edna_corpus_fixture_json_reports_governed_corpus_02_cont
             "local",
             "validate-corpus-fixture",
             "--manifest",
-            "tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml",
+            "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml",
             "--json",
         ])
         .output()
@@ -47,7 +47,7 @@ fn bench_local_validate_edna_corpus_fixture_json_reports_governed_corpus_02_cont
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml")
+        Some("benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml")
     );
     assert_eq!(
         payload.get("corpus_id").and_then(serde_json::Value::as_str),
@@ -59,7 +59,7 @@ fn bench_local_validate_edna_corpus_fixture_json_reports_governed_corpus_02_cont
     );
     assert_eq!(
         payload.get("expected_taxa_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv")
+        Some("benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv")
     );
     assert_eq!(payload.get("expected_taxa_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(

@@ -399,7 +399,7 @@ mod tests {
 
         let report = judge_edna_taxonomy_outputs(
             &root,
-            &root.join("tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml"),
+            &root.join("benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml"),
             &[
                 LocalTaxonomyObservedReportArg {
                     sample_id: "mock_community_sample_a".to_string(),
@@ -440,7 +440,7 @@ mod tests {
 
         let error = judge_edna_taxonomy_outputs(
             &root,
-            &root.join("tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml"),
+            &root.join("benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml"),
             &[LocalTaxonomyObservedReportArg {
                 sample_id: "mock_community_sample_a".to_string(),
                 report_path: sample_a,
