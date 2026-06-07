@@ -90,13 +90,13 @@ const DEFAULT_BENCHMARK_SUMMARY_JSON_PATH: &str =
 const DEFAULT_BENCHMARK_SUMMARY_MARKDOWN_PATH: &str =
     "benchmarks/readiness/local-ready/benchmark-summary.md";
 const DEFAULT_LOCAL_STAGE_FAILURE_ROOT: &str = "runs/bench/local-fake-runs/failures";
-const DEFAULT_SLURM_DRY_RUN_ROOT: &str = "target/slurm-dry-run";
-const DEFAULT_SLURM_SUBMIT_MANIFEST_PATH: &str = "target/slurm-dry-run/submit-manifest.json";
+const DEFAULT_SLURM_DRY_RUN_ROOT: &str = "runs/bench/slurm-dry-run";
+const DEFAULT_SLURM_SUBMIT_MANIFEST_PATH: &str = "runs/bench/slurm-dry-run/submit-manifest.json";
 const DEFAULT_SLURM_DEPENDENCY_CHECK_REPORT_PATH: &str =
-    "target/slurm-dry-run/dependency-check.json";
-const DEFAULT_SLURM_SHELL_SYNTAX_REPORT_PATH: &str = "target/slurm-dry-run/bash-n-report.json";
+    "runs/bench/slurm-dry-run/dependency-check.json";
+const DEFAULT_SLURM_SHELL_SYNTAX_REPORT_PATH: &str = "runs/bench/slurm-dry-run/bash-n-report.json";
 const DEFAULT_SLURM_SCRIPT_BODY_REPORT_PATH: &str =
-    "target/slurm-dry-run/no-placeholder-report.json";
+    "runs/bench/slurm-dry-run/no-placeholder-report.json";
 const DEFAULT_CORPUS_SKIP_REPORT_PATH: &str =
     "benchmarks/readiness/local-ready/corpus-skip-report.json";
 const DEFAULT_HPC_SUPPORT_ROOT: &str = "artifacts/hpc/hpc-submission-ready";
@@ -1767,7 +1767,7 @@ fn evaluate_slurm_goals(repo_root: &Path, checks: &mut Vec<BenchLocalHpcSubmissi
             92,
             "slurm_dry_run",
             "FASTQ local benchmark stages render governed SLURM dry-run scripts",
-            Some("target/slurm-dry-run/fastq".to_string()),
+            Some("runs/bench/slurm-dry-run/fastq".to_string()),
             format!("{err:#}"),
         )),
     }
@@ -1786,7 +1786,7 @@ fn evaluate_slurm_goals(repo_root: &Path, checks: &mut Vec<BenchLocalHpcSubmissi
                 93,
                 "slurm_dry_run",
                 "BAM local benchmark stages render governed SLURM dry-run scripts",
-                Some("target/slurm-dry-run/bam".to_string()),
+                Some("runs/bench/slurm-dry-run/bam".to_string()),
                 format!("{err:#}"),
             ));
             None
@@ -2031,7 +2031,7 @@ fn evaluate_slurm_run_path_goal(
             98,
             "slurm_dry_run",
             "SLURM dry-run scripts resolve predictable log and result paths",
-            Some("target/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
+            Some("runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
             "BAM SLURM script rendering failed earlier".to_string(),
         ));
         return;
@@ -2041,7 +2041,7 @@ fn evaluate_slurm_run_path_goal(
             98,
             "slurm_dry_run",
             "SLURM dry-run scripts resolve predictable log and result paths",
-            Some("target/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
+            Some("runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
             "SLURM submit manifest rendering failed earlier".to_string(),
         ));
         return;
@@ -2062,7 +2062,7 @@ fn evaluate_slurm_run_path_goal(
             98,
             "slurm_dry_run",
             "SLURM dry-run scripts resolve predictable log and result paths",
-            Some("target/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
+            Some("runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
             "SLURM dry-run scripts and submit manifest both carry governed run-path fields"
                 .to_string(),
         ));
@@ -2071,7 +2071,7 @@ fn evaluate_slurm_run_path_goal(
             98,
             "slurm_dry_run",
             "SLURM dry-run scripts resolve predictable log and result paths",
-            Some("target/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
+            Some("runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
             "one or more generated SLURM path fields are missing the governed run-id layout"
                 .to_string(),
         ));

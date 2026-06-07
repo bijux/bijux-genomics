@@ -89,8 +89,8 @@ fn bench_local_validate_hpc_submission_ready_reports_governed_blockers() {
         Some("benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(99));
-    assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(95));
-    assert_eq!(payload.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(97));
+    assert_eq!(payload.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
     assert!(
         payload.get("failing_goal_ids").and_then(serde_json::Value::as_array).is_some_and(
@@ -99,8 +99,6 @@ fn bench_local_validate_hpc_submission_ready_reports_governed_blockers() {
                     == &[
                         serde_json::Value::from(65_u64),
                         serde_json::Value::from(66_u64),
-                        serde_json::Value::from(94_u64),
-                        serde_json::Value::from(95_u64),
                     ]
             }
         ),
@@ -160,5 +158,5 @@ fn bench_local_validate_hpc_submission_ready_writes_governed_report_path() {
         report.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json")
     );
-    assert_eq!(report.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(report.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(2));
 }

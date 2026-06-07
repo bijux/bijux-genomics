@@ -2,13 +2,11 @@
   "schema_version": "bijux.bench.local_hpc_submission_ready.v1",
   "output_path": "benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json",
   "checked_goal_count": 99,
-  "passed_goal_count": 95,
-  "failed_goal_count": 4,
+  "passed_goal_count": 97,
+  "failed_goal_count": 2,
   "failing_goal_ids": [
     65,
-    66,
-    94,
-    95
+    66
   ],
   "ok": false,
   "checks": [
@@ -752,7 +750,7 @@
       "goal_id": 92,
       "category": "slurm_dry_run",
       "surface": "FASTQ local benchmark stages render governed SLURM dry-run scripts",
-      "output_path": "target/slurm-dry-run/fastq",
+      "output_path": "runs/bench/slurm-dry-run/fastq",
       "ok": true,
       "detail": "FASTQ SLURM dry-run rendered 27 scripts"
     },
@@ -760,7 +758,7 @@
       "goal_id": 93,
       "category": "slurm_dry_run",
       "surface": "BAM local benchmark stages render governed SLURM dry-run scripts",
-      "output_path": "target/slurm-dry-run/bam",
+      "output_path": "runs/bench/slurm-dry-run/bam",
       "ok": true,
       "detail": "BAM SLURM dry-run rendered 24 scripts"
     },
@@ -768,23 +766,23 @@
       "goal_id": 94,
       "category": "slurm_dry_run",
       "surface": "generated SLURM script bodies call real repo commands and contain no placeholders",
-      "output_path": "target/slurm-dry-run/no-placeholder-report.json",
-      "ok": false,
-      "detail": "ok=true script_count=51 findings_count=0"
+      "output_path": "runs/bench/slurm-dry-run/no-placeholder-report.json",
+      "ok": true,
+      "detail": "SLURM script body validation passed across 264 scripts"
     },
     {
       "goal_id": 95,
       "category": "slurm_dry_run",
       "surface": "generated SLURM scripts pass bash syntax validation",
-      "output_path": "target/slurm-dry-run/bash-n-report.json",
-      "ok": false,
-      "detail": "ok=true script_count=51 findings_count=0"
+      "output_path": "runs/bench/slurm-dry-run/bash-n-report.json",
+      "ok": true,
+      "detail": "SLURM shell syntax validation passed across 264 scripts"
     },
     {
       "goal_id": 96,
       "category": "slurm_dry_run",
       "surface": "SLURM dry-run submit manifest records complete job metadata",
-      "output_path": "target/slurm-dry-run/submit-manifest.json",
+      "output_path": "runs/bench/slurm-dry-run/submit-manifest.json",
       "ok": true,
       "detail": "submit manifest records 51 jobs"
     },
@@ -792,7 +790,7 @@
       "goal_id": 97,
       "category": "slurm_dry_run",
       "surface": "SLURM dependencies stay in exactly one source of truth",
-      "output_path": "target/slurm-dry-run/dependency-check.json",
+      "output_path": "runs/bench/slurm-dry-run/dependency-check.json",
       "ok": true,
       "detail": "dependency ownership is clean across 51 dry-run jobs"
     },
@@ -800,7 +798,7 @@
       "goal_id": 98,
       "category": "slurm_dry_run",
       "surface": "SLURM dry-run scripts resolve predictable log and result paths",
-      "output_path": "target/slurm-dry-run/runs/local-benchmark-dry-run",
+      "output_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run",
       "ok": true,
       "detail": "SLURM dry-run scripts and submit manifest both carry governed run-path fields"
     }
