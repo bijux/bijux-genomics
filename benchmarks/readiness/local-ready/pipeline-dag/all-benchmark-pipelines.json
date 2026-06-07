@@ -4014,7 +4014,7 @@
         "vcf.qc",
         "vcf.phasing",
         "vcf.impute",
-        "vcf.imputation"
+        "vcf.imputation_metrics"
       ],
       "validation_profiles": [
         {
@@ -4024,11 +4024,11 @@
             "default corpus anchored to vcf_production_regression for governed target-cohort VCF inputs",
             "vcf.prepare_reference_panel stays bound to the vcf_reference_panel asset profile",
             "vcf.qc stays bound to the vcf_cohort asset profile",
-            "vcf.phasing, vcf.impute, and vcf.imputation stay bound to the vcf_cohort_with_panel asset profile",
+            "vcf.phasing, vcf.impute, and vcf.imputation_metrics stay bound to the vcf_cohort_with_panel asset profile",
             "vcf.prepare_reference_panel keeps panel, map, and reference contracts explicit",
             "vcf.phasing consumes the qc-qualified target VCF plus prepared-panel identity for the optional prephasing branch",
             "vcf.impute consumes both the qc-target fallback path and phased run path with explicit panel identity",
-            "vcf.imputation stays downstream of imputation execution with panel-provenance and imputation-qc evidence"
+            "vcf.imputation_metrics stays downstream of imputation execution with panel-provenance and imputation-qc evidence"
           ]
         }
       ],
@@ -4159,8 +4159,8 @@
           ]
         },
         {
-          "node_id": "vcf.imputation",
-          "stage_id": "vcf.imputation",
+          "node_id": "vcf.imputation_metrics",
+          "stage_id": "vcf.imputation_metrics",
           "readiness_kind": "smoke",
           "dependency_count": 2,
           "external_input_count": 3,

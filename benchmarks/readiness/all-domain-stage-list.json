@@ -283,7 +283,7 @@
           "readiness_kind": "smoke"
         },
         {
-          "stage_id": "vcf.imputation",
+          "stage_id": "vcf.imputation_metrics",
           "readiness_kind": "smoke"
         },
         {

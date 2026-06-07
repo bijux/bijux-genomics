@@ -345,35 +345,35 @@
       "allow_empty_reason": null
     },
     {
-      "stage_id": "vcf.imputation",
-      "tool_id": "beagle",
-      "corpus_id": "vcf_production_regression",
-      "output_id": "imputed_vcf",
-      "output_kind": "vcf",
-      "output_path": "runs/bench/local-smoke/vcf/vcf.imputation/beagle/artifacts/imputed.vcf.gz",
-      "bytes": 232,
-      "status": "non_empty",
-      "allow_empty_reason": null
-    },
-    {
-      "stage_id": "vcf.imputation",
+      "stage_id": "vcf.imputation_metrics",
       "tool_id": "beagle",
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "runs/bench/local-smoke/vcf/vcf.imputation/beagle/artifacts/stderr.log",
-      "bytes": 63,
+      "output_path": "runs/bench/local-smoke/vcf/vcf.imputation_metrics/beagle/artifacts/stderr.log",
+      "bytes": 71,
       "status": "non_empty",
       "allow_empty_reason": null
     },
     {
-      "stage_id": "vcf.imputation",
+      "stage_id": "vcf.imputation_metrics",
       "tool_id": "beagle",
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "runs/bench/local-smoke/vcf/vcf.imputation/beagle/artifacts/stdout.log",
-      "bytes": 63,
+      "output_path": "runs/bench/local-smoke/vcf/vcf.imputation_metrics/beagle/artifacts/stdout.log",
+      "bytes": 71,
+      "status": "non_empty",
+      "allow_empty_reason": null
+    },
+    {
+      "stage_id": "vcf.imputation_metrics",
+      "tool_id": "beagle",
+      "corpus_id": "vcf_production_regression",
+      "output_id": "imputation_metrics_json",
+      "output_kind": "json",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.imputation_metrics/beagle/imputation_metrics.json",
+      "bytes": 263,
       "status": "non_empty",
       "allow_empty_reason": null
     },
