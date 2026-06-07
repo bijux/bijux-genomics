@@ -39,5 +39,6 @@ pub use planner::{plan_vcf_minimal, plan_vcf_pipeline, plan_vcf_stage_plans};
 pub use reference_context::{
     reference_context_report, resolve_reference_context_report, ReferenceContextReport,
 };
+pub use stage_plan::stage_resources_for_stage as vcf_stage_resource_constraints;
 
 pub const PLANNER_VERSION: &str = "bijux-dna-planner-vcf.v2";

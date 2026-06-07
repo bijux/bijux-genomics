@@ -86,6 +86,7 @@ bijux-dna-infra = { path = "crates/bijux-dna-infra" }
 bijux-dna-pipelines = { path = "crates/bijux-dna-pipelines" }
 bijux-dna-planner-bam = { path = "crates/bijux-dna-planner-bam" }
 bijux-dna-planner-fastq = { path = "crates/bijux-dna-planner-fastq" }
+bijux-dna-planner-vcf = { path = "crates/bijux-dna-planner-vcf" }
 bijux-dna-policies = { path = "crates/bijux-dna-policies" }
 bijux-dna-runner = { path = "crates/bijux-dna-runner" }
 bijux-dna-runtime = { path = "crates/bijux-dna-runtime" }

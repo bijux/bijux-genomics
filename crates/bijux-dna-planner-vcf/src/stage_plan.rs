@@ -18,7 +18,7 @@ use crate::params::{
 use crate::stage_io::{stage_command, stage_inputs_for, stage_outputs_for};
 use crate::tool_catalog::image_for_tool;
 
-fn stage_resources(stage: VcfDomainStage) -> ToolConstraints {
+pub fn stage_resources_for_stage(stage: VcfDomainStage) -> ToolConstraints {
     ToolConstraints {
         runtime: "docker".to_string(),
         mem_gb: if matches!(stage, VcfDomainStage::Impute | VcfDomainStage::Imputation) {
@@ -102,7 +102,7 @@ pub fn build_stage_plan(
         tool_version: "1.0".to_string(),
         image: image_for_tool(tool),
         command: stage_command(stage, tool, &io_inputs, &io_outputs)?,
-        resources: stage_resources(stage),
+        resources: stage_resources_for_stage(stage),
         io: StageIO { inputs: io_inputs, outputs: io_outputs },
         out_dir: out_dir.join(stage.as_str().replace('.', "_")),
         params: params.clone(),
