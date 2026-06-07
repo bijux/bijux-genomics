@@ -49,8 +49,9 @@ const FAKE_RUN_ROW_COUNT: usize = 120;
 const FAKE_FAILURE_ROW_COUNT: usize = 120;
 const MISSING_AUDIT_ROW_COUNT: usize = 120;
 const REAL_SMOKE_ROW_COUNT: usize = 4;
+const INSUFFICIENT_DATA_ROW_COUNT: usize = 1;
 const UNSUPPORTED_PAIR_ROW_COUNT: usize = 1;
-const TOTAL_ROW_COUNT: usize = 578;
+const TOTAL_ROW_COUNT: usize = 579;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -61,6 +62,7 @@ pub(crate) enum FullBenchmarkResultSurfaceKind {
     FakeFailure,
     MissingResultAudit,
     RealSmoke,
+    FailureClassification,
     UnsupportedPair,
 }
 
@@ -72,6 +74,7 @@ pub(crate) enum FullBenchmarkResultStatus {
     Failed,
     Present,
     MissingResult,
+    InsufficientData,
     UnsupportedPair,
 }
 
@@ -109,8 +112,10 @@ pub(crate) struct FullBenchmarkResultCollectorReport {
     pub(crate) fake_failure_row_count: usize,
     pub(crate) missing_result_audit_row_count: usize,
     pub(crate) real_smoke_row_count: usize,
+    pub(crate) insufficient_data_row_count: usize,
     pub(crate) unsupported_pair_row_count: usize,
     pub(crate) missing_result_status_count: usize,
+    pub(crate) insufficient_data_status_count: usize,
     pub(crate) unsupported_pair_status_count: usize,
     pub(crate) passes_behavior_test: bool,
     pub(crate) surface_kind_counts: BTreeMap<String, usize>,
@@ -183,6 +188,7 @@ pub(crate) fn render_full_benchmark_result_collector(
     rows.extend(collect_fake_failure_rows(&fake_failure_report));
     rows.extend(collect_missing_result_rows(&missing_result_report));
     rows.extend(collect_real_smoke_rows(&real_smoke_report));
+    rows.extend(collect_insufficient_data_rows(&failure_classification_report)?);
     rows.extend(collect_unsupported_pair_rows(&failure_classification_report)?);
     rows.sort_by(|left, right| {
         left.domain
@@ -233,6 +239,10 @@ pub(crate) fn render_full_benchmark_result_collector(
             &surface_kind_counts,
             FullBenchmarkResultSurfaceKind::RealSmoke,
         ),
+        insufficient_data_row_count: count_surface(
+            &surface_kind_counts,
+            FullBenchmarkResultSurfaceKind::FailureClassification,
+        ),
         unsupported_pair_row_count: count_surface(
             &surface_kind_counts,
             FullBenchmarkResultSurfaceKind::UnsupportedPair,
@@ -240,6 +250,10 @@ pub(crate) fn render_full_benchmark_result_collector(
         missing_result_status_count: count_status(
             &result_status_counts,
             FullBenchmarkResultStatus::MissingResult,
+        ),
+        insufficient_data_status_count: count_status(
+            &result_status_counts,
+            FullBenchmarkResultStatus::InsufficientData,
         ),
         unsupported_pair_status_count: count_status(
             &result_status_counts,
@@ -454,6 +468,44 @@ fn collect_real_smoke_rows(
         .collect()
 }
 
+fn collect_insufficient_data_rows(
+    report: &AllDomainFailureClassificationReport,
+) -> Result<Vec<FullBenchmarkResultCollectorRow>> {
+    let rows = report
+        .rows
+        .iter()
+        .filter(|row| row.class_id == "insufficient_data")
+        .map(|row| FullBenchmarkResultCollectorRow {
+            record_id: format!("insufficient-data:{}:{}:{}", row.domain, row.stage_id, row.tool_id),
+            source_surface: "all_domain_failure_classification".to_string(),
+            surface_kind: FullBenchmarkResultSurfaceKind::FailureClassification,
+            result_status: FullBenchmarkResultStatus::InsufficientData,
+            domain: row.domain.clone(),
+            stage_id: row.stage_id.clone(),
+            tool_id: row.tool_id.clone(),
+            pipeline_id: None,
+            node_id: None,
+            result_id: row.result_id.clone(),
+            execution_id: None,
+            corpus_id: None,
+            asset_profile_id: None,
+            report_section: None,
+            evidence_path: row.evidence_path.clone(),
+            manifest_path: None,
+            declared_output_count: 0,
+            normalized_metric_count: 1,
+            detail: row.detail.clone(),
+        })
+        .collect::<Vec<_>>();
+    if rows.len() != INSUFFICIENT_DATA_ROW_COUNT {
+        bail!(
+            "full benchmark result collector requires exactly one insufficient-data row, found {}",
+            rows.len()
+        );
+    }
+    Ok(rows)
+}
+
 fn collect_unsupported_pair_rows(
     report: &AllDomainFailureClassificationReport,
 ) -> Result<Vec<FullBenchmarkResultCollectorRow>> {
@@ -514,6 +566,7 @@ fn ensure_full_benchmark_result_collector_contract(
         || report.fake_failure_row_count != FAKE_FAILURE_ROW_COUNT
         || report.missing_result_audit_row_count != MISSING_AUDIT_ROW_COUNT
         || report.real_smoke_row_count != REAL_SMOKE_ROW_COUNT
+        || report.insufficient_data_row_count != INSUFFICIENT_DATA_ROW_COUNT
         || report.unsupported_pair_row_count != UNSUPPORTED_PAIR_ROW_COUNT
     {
         return Err(anyhow!(
@@ -525,6 +578,7 @@ fn ensure_full_benchmark_result_collector_contract(
         || count_status(&report.result_status_counts, FullBenchmarkResultStatus::Failed) != 120
         || count_status(&report.result_status_counts, FullBenchmarkResultStatus::Present) != 117
         || report.missing_result_status_count != 3
+        || report.insufficient_data_status_count != 1
         || report.unsupported_pair_status_count != 1
     {
         return Err(anyhow!(
@@ -533,7 +587,7 @@ fn ensure_full_benchmark_result_collector_contract(
     }
     if report.domain_counts.get("fastq").copied() != Some(282)
         || report.domain_counts.get("bam").copied() != Some(228)
-        || report.domain_counts.get("vcf").copied() != Some(68)
+        || report.domain_counts.get("vcf").copied() != Some(69)
     {
         return Err(anyhow!(
             "full benchmark result collector domain counts drifted from the governed merged dataset"
@@ -563,6 +617,21 @@ fn ensure_full_benchmark_result_collector_contract(
         .iter()
         .filter(|row| row.result_status == FullBenchmarkResultStatus::UnsupportedPair)
         .collect::<Vec<_>>();
+    let insufficient_rows = report
+        .rows
+        .iter()
+        .filter(|row| row.result_status == FullBenchmarkResultStatus::InsufficientData)
+        .collect::<Vec<_>>();
+    if insufficient_rows.len() != 1 {
+        return Err(anyhow!(
+            "full benchmark result collector must keep exactly one insufficient_data row"
+        ));
+    }
+    if insufficient_rows[0].surface_kind != FullBenchmarkResultSurfaceKind::FailureClassification {
+        return Err(anyhow!(
+            "full benchmark result collector must keep insufficient_data on the failure-classification surface"
+        ));
+    }
     if unsupported_rows.len() != 1 {
         return Err(anyhow!(
             "full benchmark result collector must keep exactly one unsupported_pair row"
@@ -626,6 +695,7 @@ fn surface_kind_label(surface_kind: FullBenchmarkResultSurfaceKind) -> &'static 
         FullBenchmarkResultSurfaceKind::FakeFailure => "fake_failure",
         FullBenchmarkResultSurfaceKind::MissingResultAudit => "missing_result_audit",
         FullBenchmarkResultSurfaceKind::RealSmoke => "real_smoke",
+        FullBenchmarkResultSurfaceKind::FailureClassification => "failure_classification",
         FullBenchmarkResultSurfaceKind::UnsupportedPair => "unsupported_pair",
     }
 }
@@ -637,6 +707,7 @@ fn result_status_label(status: FullBenchmarkResultStatus) -> &'static str {
         FullBenchmarkResultStatus::Failed => "failed",
         FullBenchmarkResultStatus::Present => "present",
         FullBenchmarkResultStatus::MissingResult => "missing_result",
+        FullBenchmarkResultStatus::InsufficientData => "insufficient_data",
         FullBenchmarkResultStatus::UnsupportedPair => "unsupported_pair",
     }
 }

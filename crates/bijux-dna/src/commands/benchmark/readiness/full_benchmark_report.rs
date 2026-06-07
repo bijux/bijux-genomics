@@ -1343,6 +1343,7 @@ fn full_benchmark_result_status_label(status: FullBenchmarkResultStatus) -> &'st
         FullBenchmarkResultStatus::Failed => "failed",
         FullBenchmarkResultStatus::Present => "present",
         FullBenchmarkResultStatus::MissingResult => "missing_result",
+        FullBenchmarkResultStatus::InsufficientData => "insufficient_data",
         FullBenchmarkResultStatus::UnsupportedPair => "unsupported_pair",
     }
 }

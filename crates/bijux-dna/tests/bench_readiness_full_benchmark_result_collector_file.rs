@@ -51,7 +51,7 @@ fn bench_readiness_full_benchmark_result_collector_writes_report_and_keeps_statu
         &std::fs::read(&report_path).expect("read full benchmark result collector report"),
     )
     .expect("parse full benchmark result collector report");
-    assert_eq!(persisted.get("row_count").and_then(serde_json::Value::as_u64), Some(578));
+    assert_eq!(persisted.get("row_count").and_then(serde_json::Value::as_u64), Some(579));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
 
@@ -90,6 +90,21 @@ fn bench_readiness_full_benchmark_result_collector_writes_report_and_keeps_statu
             .expect("unsupported pair evidence path"),
     );
     assert!(unsupported_pair_evidence_path.is_file(), "unsupported-pair evidence path must exist");
+
+    let insufficient_data_evidence_path = repo_root.join(
+        rows.iter()
+            .find(|row| {
+                row.get("result_status").and_then(serde_json::Value::as_str)
+                    == Some("insufficient_data")
+            })
+            .and_then(|row| row.get("evidence_path"))
+            .and_then(serde_json::Value::as_str)
+            .expect("insufficient-data evidence path"),
+    );
+    assert!(
+        insufficient_data_evidence_path.is_file(),
+        "insufficient-data evidence path must exist"
+    );
 
     let missing_manifest_path = repo_root.join(
         rows.iter()

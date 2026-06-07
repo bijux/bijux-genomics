@@ -47,7 +47,7 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/full-result-collector-test.json")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(578));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(579));
     assert_eq!(
         payload.get("benchmark_expected_row_count").and_then(serde_json::Value::as_u64),
         Some(120)
@@ -67,12 +67,20 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
     );
     assert_eq!(payload.get("real_smoke_row_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(
+        payload.get("insufficient_data_row_count").and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
+    assert_eq!(
         payload.get("unsupported_pair_row_count").and_then(serde_json::Value::as_u64),
         Some(1)
     );
     assert_eq!(
         payload.get("missing_result_status_count").and_then(serde_json::Value::as_u64),
         Some(3)
+    );
+    assert_eq!(
+        payload.get("insufficient_data_status_count").and_then(serde_json::Value::as_u64),
+        Some(1)
     );
     assert_eq!(
         payload.get("unsupported_pair_status_count").and_then(serde_json::Value::as_u64),
@@ -106,6 +114,10 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
     );
     assert_eq!(surface_kind_counts.get("real_smoke").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(
+        surface_kind_counts.get("failure_classification").and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
+    assert_eq!(
         surface_kind_counts.get("unsupported_pair").and_then(serde_json::Value::as_u64),
         Some(1)
     );
@@ -126,6 +138,10 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
         Some(3)
     );
     assert_eq!(
+        result_status_counts.get("insufficient_data").and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
+    assert_eq!(
         result_status_counts.get("unsupported_pair").and_then(serde_json::Value::as_u64),
         Some(1)
     );
@@ -134,16 +150,16 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(282));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(228));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(68));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(69));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 578);
+    assert_eq!(rows.len(), 579);
 
     let record_ids = rows
         .iter()
         .filter_map(|row| row.get("record_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(record_ids.len(), 578);
+    assert_eq!(record_ids.len(), 579);
 
     let missing_result_ids = rows
         .iter()
@@ -179,6 +195,23 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
         Some("samtools")
     );
     assert_eq!(unsupported_pair.get("result_id").and_then(serde_json::Value::as_str), None);
+
+    let insufficient_data = rows
+        .iter()
+        .find(|row| {
+            row.get("result_status").and_then(serde_json::Value::as_str)
+                == Some("insufficient_data")
+        })
+        .expect("insufficient-data row");
+    assert_eq!(
+        insufficient_data.get("surface_kind").and_then(serde_json::Value::as_str),
+        Some("failure_classification")
+    );
+    assert_eq!(
+        insufficient_data.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("vcf.demography")
+    );
+    assert_eq!(insufficient_data.get("tool_id").and_then(serde_json::Value::as_str), Some("ibdne"));
 
     let pipeline_row = rows
         .iter()
