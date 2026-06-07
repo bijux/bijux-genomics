@@ -12,6 +12,7 @@ pub(crate) mod local_dag_watchdog_simulation;
 pub(crate) mod local_essential_pipeline_fake_runs;
 pub(crate) mod local_hpc_submission_ready;
 pub(crate) mod local_pipeline_dag;
+pub(crate) mod local_real_smoke_core_subset;
 pub(crate) mod local_slurm_dependency_check;
 pub(crate) mod local_slurm_dry_run;
 pub(crate) mod local_slurm_run_paths;
