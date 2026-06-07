@@ -1074,35 +1074,40 @@ Visible aliases are part of the operator surface:
   are covered by corpus-01, corpus-02, corpus-03, or an explicit planner-only reason.
 - `bijux-dna bench local validate-pipeline-dag`
   `validate-pipeline-dag` checks governed local pipeline DAG configs such as
-  `configs/pipelines/local/adna-gl-fastq-bam-vcf.toml` and
-  `configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml` and
-  `configs/pipelines/local/amplicon-asv-otu-no-vcf.toml` and
-  `configs/pipelines/local/bam-genotyping-to-vcf-downstream.toml` and
-  `configs/pipelines/local/diploid-small-fastq-bam-vcf.toml` and
-  `configs/pipelines/local/popgen-structure-vcf.toml` and
-  `configs/pipelines/local/relatedness-segments-vcf.toml` and
-  `configs/pipelines/local/reference-panel-imputation.toml` and
-  `configs/pipelines/local/fastq-core-preprocess.toml` and
-  `configs/pipelines/local/fastq-to-bam.toml` and
-  `configs/pipelines/local/core-germline-fastq-bam-vcf.toml` and
-  `configs/pipelines/local/fastq-paired-merge.toml` and
-  `configs/pipelines/local/edna-taxonomy-no-vcf.toml` and
-  `configs/pipelines/local/fastq-edna-taxonomy.toml` and
-  `configs/pipelines/local/fastq-amplicon.toml` and
-  `configs/pipelines/local/fastq-umi.toml` and
-  `configs/pipelines/local/bam-core-qc.toml` and
-  `configs/pipelines/local/bam-authenticity.toml` and
-  `configs/pipelines/local/bam-genotyping.toml` and
-  `configs/pipelines/local/bam-kinship.toml`, writes a validation report under
+  `benchmarks/configs/pipelines/local/adna-gl-fastq-bam-vcf.toml` and
+  `benchmarks/configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml` and
+  `benchmarks/configs/pipelines/local/amplicon-asv-otu-no-vcf.toml` and
+  `benchmarks/configs/pipelines/local/bam-genotyping-to-vcf-downstream.toml` and
+  `benchmarks/configs/pipelines/local/diploid-small-fastq-bam-vcf.toml` and
+  `benchmarks/configs/pipelines/local/popgen-structure-vcf.toml` and
+  `benchmarks/configs/pipelines/local/relatedness-segments-vcf.toml` and
+  `benchmarks/configs/pipelines/local/reference-panel-imputation.toml` and
+  `benchmarks/configs/pipelines/local/fastq-core-preprocess.toml` and
+  `benchmarks/configs/pipelines/local/fastq-to-bam.toml` and
+  `benchmarks/configs/pipelines/local/core-germline-fastq-bam-vcf.toml` and
+  `benchmarks/configs/pipelines/local/fastq-paired-merge.toml` and
+  `benchmarks/configs/pipelines/local/edna-taxonomy-no-vcf.toml` and
+  `benchmarks/configs/pipelines/local/fastq-edna-taxonomy.toml` and
+  `benchmarks/configs/pipelines/local/fastq-amplicon.toml` and
+  `benchmarks/configs/pipelines/local/fastq-umi.toml` and
+  `benchmarks/configs/pipelines/local/bam-core-qc.toml` and
+  `benchmarks/configs/pipelines/local/bam-authenticity.toml` and
+  `benchmarks/configs/pipelines/local/bam-genotyping.toml` and
+  `benchmarks/configs/pipelines/local/bam-kinship.toml`, writes a validation report under
   `target/local-ready/pipeline-dag/`, proves the DAG is acyclic, and verifies that every node is
   inventory-aligned with declared inputs, outputs, and dependency handoffs, including governed
   mixed FASTQ-to-BAM-to-VCF path handoffs for cross-domain DAGs.
 - `bijux-dna plan validate`
   `plan validate --id core-germline-fastq-bam-vcf --strict` resolves the governed local pipeline
-  config at `configs/pipelines/local/core-germline-fastq-bam-vcf.toml`, writes
+  config at `benchmarks/configs/pipelines/local/core-germline-fastq-bam-vcf.toml`, writes
   `target/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json`, and fails closed unless the
   requested id matches the config identity and the DAG validates with explicit FASTQ, BAM, and VCF
   handoff coverage.
+  `plan validate --benchmark-root benchmarks --all --strict` scans every governed local benchmark
+  pipeline config under `benchmarks/configs/pipelines/local/`, writes
+  `target/local-ready/pipeline-dag/all-benchmark-pipelines.json`, and fails closed unless every
+  config stem matches the resolved pipeline identity and every DAG validates from the benchmark
+  pipeline root.
   `plan validate --id adna-pseudohaploid-fastq-bam-vcf --strict` resolves the governed ancient-DNA
   pseudohaploid pipeline config, writes
   `target/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json`, and fails closed unless
