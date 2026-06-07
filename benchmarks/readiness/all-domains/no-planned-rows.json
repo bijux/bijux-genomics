@@ -1,0 +1,205 @@
+{
+  "schema_version": "bijux.bench.readiness.all_domain_no_planned_rows.v1",
+  "output_path": "benchmarks/readiness/all-domains/no-planned-rows.json",
+  "active_row_count": 126,
+  "active_stage_count": 58,
+  "active_tool_count": 66,
+  "removed_row_count": 17,
+  "removed_stage_count": 16,
+  "removed_tool_count": 11,
+  "removed_status_counts": {
+    "planned": 17
+  },
+  "violation_count": 0,
+  "ok": true,
+  "removed_rows": [
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "tool_id": "bijux_dna",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "adapter_id": "fastq.adapter.estimate_library_complexity_prealign",
+      "parser_id": "fastq.parser.estimate_library_complexity_prealign",
+      "schema_id": "fastq_estimate_library_complexity_prealign_v1",
+      "status": "planned"
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "dustmasker",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "adapter_id": "fastq.adapter.filter_low_complexity",
+      "parser_id": "fastq.parser.filter_low_complexity",
+      "schema_id": "fastq_low_complexity_v1",
+      "status": "planned"
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "fastp",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "adapter_id": "fastq.adapter.filter_low_complexity",
+      "parser_id": "fastq.parser.filter_low_complexity",
+      "schema_id": "fastq_low_complexity_v1",
+      "status": "planned"
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.normalize_abundance",
+      "tool_id": "seqfu",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "asset_profile_id": "corpus_only",
+      "adapter_id": "fastq.adapter.normalize_abundance",
+      "parser_id": "fastq.parser.normalize_abundance",
+      "schema_id": "fastq_normalize_abundance_v1",
+      "status": "planned"
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "seqpurge",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "adapter_id": "fastq.adapter.trim_reads",
+      "parser_id": "fastq.parser.trim_reads",
+      "schema_id": "fastq_trim_reads_v2",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.admixture",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "adapter_id": "vcf.adapter.population_structure",
+      "parser_id": "vcf.parser.report_json",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.admixture.v1",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.demography",
+      "tool_id": "ibdne",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "json_ibd_segments",
+      "adapter_id": "vcf.adapter.demography",
+      "parser_id": "vcf.parser.report_json",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.demography.v1",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.ibd",
+      "tool_id": "germline",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "adapter_id": "vcf.adapter.ibd",
+      "parser_id": "vcf.parser.report_json",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.ibd.v1",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.imputation",
+      "tool_id": "beagle",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "adapter_id": "vcf.adapter.panel_workflow",
+      "parser_id": "vcf.parser.vcf_output",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.imputation.v1",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.impute",
+      "tool_id": "beagle",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "adapter_id": "vcf.adapter.panel_workflow",
+      "parser_id": "vcf.parser.vcf_output",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.impute.v1",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.pca",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "adapter_id": "vcf.adapter.population_structure",
+      "parser_id": "vcf.parser.report_json",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.pca.v1",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.phasing",
+      "tool_id": "shapeit5",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "adapter_id": "vcf.adapter.panel_workflow",
+      "parser_id": "vcf.parser.vcf_output",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.phasing.v1",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.population_structure",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "adapter_id": "vcf.adapter.population_structure",
+      "parser_id": "vcf.parser.report_json",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.population-structure.v1",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.postprocess",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "adapter_id": "vcf.adapter.transform",
+      "parser_id": "vcf.parser.vcf_output",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.postprocess.v1",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.prepare_reference_panel",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_reference_panel",
+      "adapter_id": "vcf.adapter.reference_panel",
+      "parser_id": "vcf.parser.vcf_output",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.prepare-reference-panel.v1",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "adapter_id": "vcf.adapter.quality_control",
+      "parser_id": "vcf.parser.qc_report",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.qc.v1",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.roh",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "adapter_id": "vcf.adapter.roh",
+      "parser_id": "vcf.parser.report_json",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.roh.v1",
+      "status": "planned"
+    }
+  ],
+  "violations": []
+}

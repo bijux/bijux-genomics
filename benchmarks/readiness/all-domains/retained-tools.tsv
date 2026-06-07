@@ -10,10 +10,9 @@ bamutil	bam	1	1	1	1	benchmark_ready	bam.overlap_correction	bam.overlap_correctio
 bayeshammer	fastq	1	1	1	1	benchmark_ready	fastq.correct_errors	fastq.correct_errors
 bbduk	fastq	4	4	4	4	benchmark_ready	fastq.filter_low_complexity,fastq.filter_reads,fastq.trim_polyg_tails,fastq.trim_reads	fastq.filter_low_complexity,fastq.filter_reads,fastq.trim_polyg_tails,fastq.trim_reads
 bbmerge	fastq	1	1	1	1	benchmark_ready	fastq.merge_pairs	fastq.merge_pairs
-bcftools	vcf	10	8	10	8	benchmark_ready,not_benchmark_ready	vcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.prepare_reference_panel,vcf.stats	vcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.stats
-beagle	vcf	2	0	2	0	not_benchmark_ready	vcf.imputation,vcf.impute	none
+bcftools	vcf	8	8	8	8	benchmark_ready	vcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.stats	vcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.stats
 bedtools	bam	3	3	3	3	benchmark_ready	bam.coverage,bam.filter,bam.validate	bam.coverage,bam.filter,bam.validate
-bijux_dna	fastq	2	1	2	1	benchmark_ready,not_benchmark_ready	fastq.detect_duplicates_premerge,fastq.estimate_library_complexity_prealign	fastq.detect_duplicates_premerge
+bijux_dna	fastq	1	1	1	1	benchmark_ready	fastq.detect_duplicates_premerge	fastq.detect_duplicates_premerge
 bowtie2	bam,fastq	3	3	3	3	benchmark_ready	bam.align,fastq.deplete_host,fastq.deplete_reference_contaminants	bam.align,fastq.deplete_host,fastq.deplete_reference_contaminants
 bowtie2_build	fastq	1	0	1	0	not_benchmark_ready	fastq.index_reference	none
 bwa	bam	1	1	1	1	benchmark_ready	bam.align	bam.align
@@ -23,8 +22,7 @@ contammix	bam	1	1	1	1	benchmark_ready	bam.contamination	bam.contamination
 cutadapt	fastq	3	3	3	3	benchmark_ready	fastq.normalize_primers,fastq.trim_reads,fastq.trim_terminal_damage	fastq.normalize_primers,fastq.trim_reads,fastq.trim_terminal_damage
 dada2	fastq	1	1	1	1	benchmark_ready	fastq.infer_asvs	fastq.infer_asvs
 damageprofiler	bam	2	2	2	2	benchmark_ready	bam.authenticity,bam.damage	bam.authenticity,bam.damage
-dustmasker	fastq	1	0	1	0	not_benchmark_ready	fastq.filter_low_complexity	none
-fastp	fastq	5	4	5	4	benchmark_ready,not_benchmark_ready	fastq.filter_low_complexity,fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_polyg_tails,fastq.trim_reads	fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_polyg_tails,fastq.trim_reads
+fastp	fastq	4	4	4	4	benchmark_ready	fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_polyg_tails,fastq.trim_reads	fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_polyg_tails,fastq.trim_reads
 fastq_scan	fastq	2	1	2	1	benchmark_ready,not_benchmark_ready	fastq.profile_overrepresented_sequences,fastq.validate_reads	fastq.validate_reads
 fastqc	fastq	3	2	3	2	benchmark_ready,not_benchmark_ready	fastq.detect_adapters,fastq.profile_overrepresented_sequences,fastq.validate_reads	fastq.detect_adapters,fastq.validate_reads
 fastqvalidator	fastq	1	1	1	1	benchmark_ready	fastq.validate_reads	fastq.validate_reads
@@ -33,8 +31,6 @@ fastx_clipper	fastq	1	1	1	1	benchmark_ready	fastq.trim_reads	fastq.trim_reads
 flash2	fastq	1	1	1	1	benchmark_ready	fastq.merge_pairs	fastq.merge_pairs
 fqtools	fastq	1	1	1	1	benchmark_ready	fastq.validate_reads	fastq.validate_reads
 gatk	bam	1	1	1	1	benchmark_ready	bam.recalibration	bam.recalibration
-germline	vcf	1	0	1	0	not_benchmark_ready	vcf.ibd	none
-ibdne	vcf	1	0	1	0	not_benchmark_ready	vcf.demography	none
 kaiju	fastq	1	1	1	1	benchmark_ready	fastq.screen_taxonomy	fastq.screen_taxonomy
 king	bam	1	1	1	1	benchmark_ready	bam.kinship	bam.kinship
 kraken2	fastq	1	1	1	1	benchmark_ready	fastq.screen_taxonomy	fastq.screen_taxonomy
@@ -48,7 +44,6 @@ musket	fastq	1	1	1	1	benchmark_ready	fastq.correct_errors	fastq.correct_errors
 ngsbriggs	bam	1	1	1	1	benchmark_ready	bam.damage	bam.damage
 pear	fastq	1	1	1	1	benchmark_ready	fastq.merge_pairs	fastq.merge_pairs
 picard	bam	6	6	6	6	benchmark_ready	bam.duplication_metrics,bam.gc_bias,bam.insert_size,bam.length_filter,bam.mapping_summary,bam.markdup	bam.duplication_metrics,bam.gc_bias,bam.insert_size,bam.length_filter,bam.mapping_summary,bam.markdup
-plink2	vcf	5	0	5	0	not_benchmark_ready	vcf.admixture,vcf.pca,vcf.population_structure,vcf.qc,vcf.roh	none
 pmdtools	bam	2	2	2	2	benchmark_ready	bam.authenticity,bam.damage	bam.authenticity,bam.damage
 preseq	bam	1	1	1	1	benchmark_ready	bam.complexity	bam.complexity
 prinseq	fastq	4	4	4	4	benchmark_ready	fastq.filter_low_complexity,fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_reads	fastq.filter_low_complexity,fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_reads
@@ -57,12 +52,10 @@ rcorrector	fastq	1	1	1	1	benchmark_ready	fastq.correct_errors	fastq.correct_erro
 rxy	bam	1	1	1	1	benchmark_ready	bam.sex	bam.sex
 samtools	bam	10	10	10	10	benchmark_ready	bam.coverage,bam.duplication_metrics,bam.endogenous_content,bam.filter,bam.length_filter,bam.mapping_summary,bam.mapq_filter,bam.markdup,bam.qc_pre,bam.validate	bam.coverage,bam.duplication_metrics,bam.endogenous_content,bam.filter,bam.length_filter,bam.mapping_summary,bam.mapq_filter,bam.markdup,bam.qc_pre,bam.validate
 schmutzi	bam	1	1	1	1	benchmark_ready	bam.contamination	bam.contamination
-seqfu	fastq	3	2	3	2	benchmark_ready,not_benchmark_ready	fastq.normalize_abundance,fastq.profile_read_lengths,fastq.profile_reads	fastq.profile_read_lengths,fastq.profile_reads
+seqfu	fastq	2	2	2	2	benchmark_ready	fastq.profile_read_lengths,fastq.profile_reads	fastq.profile_read_lengths,fastq.profile_reads
 seqkit	fastq	6	5	6	5	benchmark_ready,not_benchmark_ready	fastq.filter_reads,fastq.normalize_abundance,fastq.profile_overrepresented_sequences,fastq.profile_reads,fastq.trim_reads,fastq.trim_terminal_damage	fastq.filter_reads,fastq.normalize_abundance,fastq.profile_reads,fastq.trim_reads,fastq.trim_terminal_damage
 seqkit_stats	fastq	2	2	2	2	benchmark_ready	fastq.profile_read_lengths,fastq.profile_reads	fastq.profile_read_lengths,fastq.profile_reads
-seqpurge	fastq	1	0	1	0	not_benchmark_ready	fastq.trim_reads	none
 seqtk	fastq	1	1	1	1	benchmark_ready	fastq.validate_reads	fastq.validate_reads
-shapeit5	vcf	1	0	1	0	not_benchmark_ready	vcf.phasing	none
 skewer	fastq	1	1	1	1	benchmark_ready	fastq.trim_reads	fastq.trim_reads
 sortmerna	fastq	1	1	1	1	benchmark_ready	fastq.deplete_rrna	fastq.deplete_rrna
 star	fastq	1	0	1	0	not_benchmark_ready	fastq.index_reference	none
