@@ -5,6 +5,10 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
+use super::local_all_domain_job_execution::{
+    render_shell_command, rendered_benchmark_result_execution_argv,
+    rendered_essential_pipeline_node_execution_argv,
+};
 use super::local_pipeline_dag::{validate_pipeline_dag_path, LocalPipelineDagValidationNodeReport};
 use super::readiness::all_domain_expected_benchmark_results::{
     collect_all_domain_expected_benchmark_result_rows, AllDomainExpectedBenchmarkResultRow,
@@ -465,10 +469,13 @@ fn build_essential_pipeline_script_entry(
 fn build_benchmark_script_body(
     repo_root: &Path,
     expected: &AllDomainExpectedBenchmarkResultRow,
-    command: &AllDomainRenderedCommandRow,
+    _command: &AllDomainRenderedCommandRow,
     resource_hint: &SlurmResourceHint,
     artifacts: &ScriptArtifacts,
 ) -> String {
+    let command = render_shell_command(&rendered_benchmark_result_execution_argv(
+        expected.result_id.as_str(),
+    ));
     build_slurm_script_body(
         repo_root,
         &format!("benchmark:{}", expected.result_id),
@@ -482,7 +489,7 @@ fn build_benchmark_script_body(
         &expected.asset_profile_id,
         &[],
         resource_hint,
-        &command.script_commands,
+        &[command],
         artifacts,
     )
 }
@@ -495,6 +502,10 @@ fn build_essential_pipeline_script_body(
     resource_hint: &SlurmResourceHint,
     artifacts: &ScriptArtifacts,
 ) -> String {
+    let execution_command = render_shell_command(&rendered_essential_pipeline_node_execution_argv(
+        pipeline_id,
+        node.node_id.as_str(),
+    ));
     build_slurm_script_body(
         repo_root,
         &format!("pipeline:{pipeline_id}:{}", node.node_id),
@@ -508,7 +519,7 @@ fn build_essential_pipeline_script_body(
         "pipeline_node",
         &node.depends_on,
         resource_hint,
-        &command.script_commands,
+        &[execution_command],
         artifacts,
     )
 }
