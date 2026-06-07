@@ -67,7 +67,7 @@ pub use self::local::{
     BenchLocalValidateVcfStageCatalogReadyArgs,
 };
 pub use self::matrix::{BenchMatrixDomainArg, BenchValidateMatrixArgs};
-pub use self::paths::{BenchPathsCommand, BenchPathsValidateArgs};
+pub use self::paths::{BenchPathsCleanupProofArgs, BenchPathsCommand, BenchPathsValidateArgs};
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
     BenchCorpusFastqReportArgs, BenchPublicationTargetsArgs,

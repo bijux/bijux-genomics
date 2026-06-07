@@ -123,6 +123,12 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchPathsCommand::ProveDisposableRootCleanup(args) => {
+                        crate::commands::benchmark_paths::run_disposable_root_cleanup_proof_command(
+                            &std::env::current_dir()?,
+                            args,
+                        )?;
+                    }
                 },
                 BenchCommand::WriteScreenTaxonomyDatabaseLineage(args) => {
                     crate::commands::benchmark_taxonomy_database::run_write_screen_taxonomy_database_lineage(

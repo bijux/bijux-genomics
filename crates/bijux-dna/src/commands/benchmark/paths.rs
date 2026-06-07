@@ -10,9 +10,14 @@ use crate::commands::cli::render;
 const BENCHMARK_PATHS_VALIDATE_SCHEMA_VERSION: &str = "bijux.bench.paths_validate.v1";
 pub(crate) const DEFAULT_BENCHMARK_PATHS_VALIDATE_PATH: &str =
     "benchmarks/readiness/benchmark-paths-validation.json";
+const DISPOSABLE_ROOT_CLEANUP_PROOF_SCHEMA_VERSION: &str =
+    "bijux.bench.disposable_root_cleanup_proof.v1";
+pub(crate) const DEFAULT_DISPOSABLE_ROOT_CLEANUP_PROOF_PATH: &str =
+    "benchmarks/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json";
 const LEGACY_FIXTURE_WRAPPER_PATH: &str = "tests/fixtures";
 const LEGACY_FIXTURE_WRAPPER_TARGET: &str = "../benchmarks/tests/fixtures";
 const ROOT_TESTS_README_PATH: &str = "tests/README.md";
+const DISPOSABLE_ROOTS: &[&str] = &["target", "artifacts", "runs"];
 
 const REQUIRED_BENCHMARK_ROOTS: &[BenchmarkRootContract] = &[
     BenchmarkRootContract { relative_path: "benchmarks", marker_path: "benchmarks/README.md" },
@@ -85,6 +90,31 @@ pub(crate) struct BenchmarkPathsValidationReport {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub(crate) struct DisposableRootDeletionStatus {
+    pub(crate) relative_path: String,
+    pub(crate) existed_before: bool,
+    pub(crate) exists_after: bool,
+    pub(crate) removal_action: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub(crate) struct DisposableRootCleanupProofReport {
+    pub(crate) schema_version: &'static str,
+    pub(crate) output_path: String,
+    pub(crate) repo_root: String,
+    pub(crate) deleted_root_count: usize,
+    pub(crate) already_absent_root_count: usize,
+    pub(crate) validator_output_path: String,
+    pub(crate) validator_violation_count: usize,
+    pub(crate) validator_ok: bool,
+    pub(crate) validator_readiness_snapshot_count: usize,
+    pub(crate) validator_readiness_json_snapshot_count: usize,
+    pub(crate) validator_readiness_tsv_snapshot_count: usize,
+    pub(crate) ok: bool,
+    pub(crate) deleted_roots: Vec<DisposableRootDeletionStatus>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct LegacyFixtureWrapperStatus {
     pub(crate) wrapper_path: String,
     pub(crate) expected_target: String,
@@ -105,6 +135,22 @@ pub(crate) fn run_benchmark_paths_validate_command(
         cwd,
         PathBuf::from(DEFAULT_BENCHMARK_PATHS_VALIDATE_PATH),
         args.strict,
+    )?;
+    if args.json {
+        render::json::print_pretty(&report)?;
+    } else {
+        println!("{}", report.output_path);
+    }
+    Ok(())
+}
+
+pub(crate) fn run_disposable_root_cleanup_proof_command(
+    cwd: &Path,
+    args: &parse::BenchPathsCleanupProofArgs,
+) -> Result<()> {
+    let report = prove_disposable_root_cleanup(
+        cwd,
+        PathBuf::from(DEFAULT_DISPOSABLE_ROOT_CLEANUP_PROOF_PATH),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -183,6 +229,71 @@ pub(crate) fn validate_benchmark_paths(
     Ok(report)
 }
 
+pub(crate) fn prove_disposable_root_cleanup(
+    repo_root: &Path,
+    output_path: PathBuf,
+) -> Result<DisposableRootCleanupProofReport> {
+    let deleted_roots = DISPOSABLE_ROOTS
+        .iter()
+        .map(|relative_path| delete_disposable_root(repo_root, relative_path))
+        .collect::<Result<Vec<_>>>()?;
+    let deleted_root_count = deleted_roots.iter().filter(|root| root.existed_before).count();
+    let already_absent_root_count =
+        deleted_roots.iter().filter(|root| !root.existed_before).count();
+    let validator_report = validate_benchmark_paths(
+        repo_root,
+        PathBuf::from(DEFAULT_BENCHMARK_PATHS_VALIDATE_PATH),
+        false,
+    )?;
+    let absolute_output_path = repo_root.join(&output_path);
+    if let Some(parent) = absolute_output_path.parent() {
+        std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    let ok = validator_report.ok && deleted_roots.iter().all(|root| !root.exists_after);
+    let report = DisposableRootCleanupProofReport {
+        schema_version: DISPOSABLE_ROOT_CLEANUP_PROOF_SCHEMA_VERSION,
+        output_path: output_path.display().to_string(),
+        repo_root: repo_root.display().to_string(),
+        deleted_root_count,
+        already_absent_root_count,
+        validator_output_path: validator_report.output_path.clone(),
+        validator_violation_count: validator_report.violation_count,
+        validator_ok: validator_report.ok,
+        validator_readiness_snapshot_count: validator_report.readiness_snapshot_count,
+        validator_readiness_json_snapshot_count: validator_report
+            .readiness_json_snapshot_count,
+        validator_readiness_tsv_snapshot_count: validator_report.readiness_tsv_snapshot_count,
+        ok,
+        deleted_roots,
+    };
+    bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)
+        .with_context(|| format!("write {}", absolute_output_path.display()))?;
+    if !report.ok {
+        let summary = report
+            .deleted_roots
+            .iter()
+            .filter(|root| root.exists_after)
+            .map(|root| root.relative_path.as_str())
+            .collect::<Vec<_>>();
+        if !summary.is_empty() {
+            bail!(
+                "disposable root cleanup proof failed because disposable roots remain present: {}",
+                summary.join(", ")
+            );
+        }
+        bail!(
+            "disposable root cleanup proof failed because benchmark path validation reported {} violation(s)",
+            report.validator_violation_count
+        );
+    }
+    validate_benchmark_paths(
+        repo_root,
+        PathBuf::from(DEFAULT_BENCHMARK_PATHS_VALIDATE_PATH),
+        true,
+    )?;
+    Ok(report)
+}
+
 fn benchmark_root_status(
     repo_root: &Path,
     contract: &BenchmarkRootContract,
@@ -198,6 +309,53 @@ fn benchmark_root_status(
             || git_check_ignored(repo_root, contract.marker_path)?,
         marker_tracked_by_git: git_check_tracked(repo_root, contract.marker_path)?,
     })
+}
+
+fn delete_disposable_root(
+    repo_root: &Path,
+    relative_path: &str,
+) -> Result<DisposableRootDeletionStatus> {
+    let absolute_path = repo_root.join(relative_path);
+    let existed_before = absolute_path.exists();
+    let removal_action = if !existed_before {
+        "already_absent".to_string()
+    } else {
+        let metadata = std::fs::symlink_metadata(&absolute_path)
+            .with_context(|| format!("read metadata for {}", absolute_path.display()))?;
+        let file_type = metadata.file_type();
+        if file_type.is_dir() && !file_type.is_symlink() {
+            remove_directory_tree(&absolute_path)?;
+        } else {
+            std::fs::remove_file(&absolute_path)
+                .with_context(|| format!("remove file {}", absolute_path.display()))?;
+        }
+        "deleted".to_string()
+    };
+    Ok(DisposableRootDeletionStatus {
+        relative_path: relative_path.to_string(),
+        existed_before,
+        exists_after: absolute_path.exists(),
+        removal_action,
+    })
+}
+
+fn remove_directory_tree(path: &Path) -> Result<()> {
+    #[cfg(unix)]
+    {
+        let status = Command::new("rm")
+            .arg("-rf")
+            .arg(path)
+            .status()
+            .with_context(|| format!("remove directory {}", path.display()))?;
+        if !status.success() {
+            bail!("remove directory {} returned {}", path.display(), status);
+        }
+        return Ok(());
+    }
+    #[cfg(not(unix))]
+    {
+        std::fs::remove_dir_all(path).with_context(|| format!("remove directory {}", path.display()))
+    }
 }
 
 fn legacy_fixture_wrapper_status(repo_root: &Path) -> Result<LegacyFixtureWrapperStatus> {
@@ -372,7 +530,10 @@ fn collect_readiness_snapshots_recursive(
         let relative_path = entry_path
             .strip_prefix(repo_root)
             .with_context(|| format!("strip repo root from {}", entry_path.display()))?;
-        snapshots.push(relative_path.display().to_string());
+        let relative_path = relative_path.display().to_string();
+        if git_check_tracked(repo_root, &relative_path)? {
+            snapshots.push(relative_path);
+        }
     }
     Ok(())
 }
