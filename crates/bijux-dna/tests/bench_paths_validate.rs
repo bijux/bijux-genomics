@@ -35,6 +35,16 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_paths_validate_reports_tracked_benchmark_roots() {
+    let _ = run_cli_json(&[
+        "bench",
+        "validate-schemas",
+        "--schema-root",
+        "benchmarks/schemas",
+        "--domain",
+        "fastq,bam,vcf",
+        "--json",
+    ]);
+    let _ = run_cli_json(&["bench", "readiness", "render-all-domain-stage-tool-table", "--json"]);
     let payload = run_cli_json(&["bench", "paths", "validate", "--strict", "--json"]);
 
     assert_eq!(
@@ -43,13 +53,25 @@ fn bench_paths_validate_reports_tracked_benchmark_roots() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/benchmark-paths-validation.json")
+        Some("benchmarks/readiness/benchmark-paths-validation.json")
     );
     assert_eq!(payload.get("strict").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(payload.get("root_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("existing_root_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("tracked_marker_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("ignored_root_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert!(payload
+        .get("readiness_json_snapshot_count")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count >= 1));
+    assert!(payload
+        .get("readiness_tsv_snapshot_count")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count >= 1));
+    assert!(payload
+        .get("readiness_snapshot_count")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count >= 2));
     assert_eq!(
         payload.get("root_tests_regular_file_count").and_then(serde_json::Value::as_u64),
         Some(1)
@@ -77,4 +99,9 @@ fn bench_paths_validate_reports_tracked_benchmark_roots() {
         payload.get("roots").and_then(serde_json::Value::as_array).map(std::vec::Vec::len),
         Some(5)
     );
+    assert!(payload.get("readiness_snapshots").and_then(serde_json::Value::as_array).is_some_and(
+        |snapshots| snapshots.iter().any(|value| {
+            value.as_str() == Some("benchmarks/readiness/all-domain-stage-tool-table.tsv")
+        })
+    ));
 }
