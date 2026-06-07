@@ -1129,6 +1129,13 @@ Visible aliases are part of the operator surface:
   `stdout.txt`, `stderr.txt`, `metrics.json`, and `stage-result.json`, plus materialized fake
   declared outputs under `declared-outputs/`, so unified expected-result, command, and
   output-declaration contracts can be exercised without stopping at report generation alone.
+- `bijux-dna bench local fake-run-all-domain-failures`
+  `fake-run-all-domain-failures` writes one governed failure tree under
+  `target/local-fake-runs/all-domains-failures/` for every benchmark-ready FASTQ, BAM, and VCF
+  result binding in the canonical 120-row all-domain slice. Each result keeps a real
+  `command.sh`, `stderr.txt`, and `failure.json`, and the failure record enumerates the exact
+  declared outputs that remained missing, so unified failure handling stays explicit instead of
+  collapsing into raw stderr alone.
 - `bijux-dna bench local fake-run-essential-pipelines`
   `fake-run-essential-pipelines` writes one governed fake-run tree under
   `target/local-fake-runs/pipelines/essential/` for every node in the essential ten-pipeline
