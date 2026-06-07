@@ -257,6 +257,17 @@ Visible aliases are part of the operator surface:
   comparable-metrics, and unsupported-pairs sections from the governed source surfaces. The
   command fail-closes unless the report row count stays equal to the expected-result table count
   plus the explicit unsupported rows.
+- `bijux-dna bench readiness render-operational-benchmark-ready`
+  `render-operational-benchmark-ready` writes
+  `target/bench-readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json`. It reruns the
+  governed FASTQ/BAM readiness gate, the VCF catalog and local-smoke gates, the VCF adapter and
+  parser gates, the all-domain expected-result, command, output, parser, resource, harness, and
+  SLURM readiness surfaces, the essential pipeline readiness gate, and the full collector,
+  report, and dashboard surfaces. The command fail-closes unless every canonical
+  benchmark-ready FASTQ, BAM, and VCF binding keeps adapter, parser, corpus, asset-profile,
+  resource, output-declaration, and expected-result coverage, while still preserving explicit
+  `missing_result`, `insufficient_data`, and `unsupported_pair` evidence in the final readiness
+  gate.
 - `bijux-dna bench readiness render-missing-result-report`
   `render-missing-result-report` writes `target/bench-readiness/missing-result-report-test.json`
   with one governed row per expected FASTQ or BAM benchmark result, materializes a controlled
