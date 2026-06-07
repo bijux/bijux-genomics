@@ -172,7 +172,10 @@ pub(crate) fn collect_essential_pipeline_rendered_command_rows(
 
     for pipeline_id in ESSENTIAL_PIPELINE_IDS {
         let config_path =
-            repo_root.join("configs/pipelines/local").join(format!("{pipeline_id}.toml"));
+            crate::commands::benchmark::local_pipeline_dag::benchmark_local_pipeline_config_path(
+                repo_root,
+                pipeline_id,
+            );
         let report_path =
             repo_root.join("target/local-ready/pipeline-dag").join(format!("{pipeline_id}.json"));
         let report = validate_pipeline_dag_path(repo_root, &config_path, &report_path)?;
@@ -203,7 +206,10 @@ fn initialize_command_caches(repo_root: &Path) -> Result<EssentialPipelineComman
 
     for pipeline_id in ESSENTIAL_PIPELINE_IDS {
         let config_path =
-            repo_root.join("configs/pipelines/local").join(format!("{pipeline_id}.toml"));
+            crate::commands::benchmark::local_pipeline_dag::benchmark_local_pipeline_config_path(
+                repo_root,
+                pipeline_id,
+            );
         let report_path =
             repo_root.join("target/local-ready/pipeline-dag").join(format!("{pipeline_id}.json"));
         let report = validate_pipeline_dag_path(repo_root, &config_path, &report_path)?;

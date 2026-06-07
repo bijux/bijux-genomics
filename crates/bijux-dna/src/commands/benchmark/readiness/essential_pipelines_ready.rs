@@ -219,9 +219,10 @@ pub(crate) fn render_essential_pipelines_ready(
             || {
                 let report = validate_pipeline_dag_path(
                     repo_root,
-                    &repo_root
-                        .join("configs/pipelines/local")
-                        .join(format!("{}.toml", expectation.pipeline_id)),
+                    &crate::commands::benchmark::local_pipeline_dag::benchmark_local_pipeline_config_path(
+                        repo_root,
+                        expectation.pipeline_id,
+                    ),
                     &repo_root
                         .join("target/local-ready/pipeline-dag")
                         .join(format!("{}.json", expectation.pipeline_id)),
