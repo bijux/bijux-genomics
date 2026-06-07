@@ -597,7 +597,8 @@ Visible aliases are part of the operator surface:
   `stage_id`, `readiness_kind`, `active_tool_count`, `benchmark_ready_tool_count`,
   `parser_row_count`, `parser_covered_row_count`, `schema_present`, `report_row_count`,
   `benchmark_statuses`, `active_tool_ids`, `benchmark_ready_tool_ids`, and `report_section_ids`
-  explicit. The command fails closed unless the catalog matches the config-backed active stage
+  explicit. Active scope excludes `planned`, `future`, and equivalent not-yet-active lifecycle
+  rows. The command fails closed unless the catalog matches the config-backed active stage
   inventory and the unified stage-tool surface, and unless parser, schema, and report-backed
   stages stay represented without drift.
 - `bijux-dna bench readiness render-all-domain-active-stage-tool-matrix`
@@ -605,7 +606,8 @@ Visible aliases are part of the operator surface:
   `benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv` with one governed row per
   active FASTQ, BAM, and VCF stage-tool binding. Each row keeps `domain`, `stage_id`, `tool_id`,
   `corpus_id`, `asset_profile_id`, `adapter_id`, `parser_id`, `schema_id`, and unified lifecycle
-  `status` explicit. The command fails closed unless the row set matches the governed all-domain
+  `status` explicit. Active scope excludes `planned`, `future`, and equivalent not-yet-active
+  lifecycle rows. The command fails closed unless the row set matches the governed all-domain
   stage-tool surface and its stage coverage matches the all-domain active stage catalog.
 - `bijux-dna bench readiness render-all-domain-retained-tools`
   `render-all-domain-retained-tools` writes
@@ -613,8 +615,15 @@ Visible aliases are part of the operator surface:
   FASTQ, BAM, and VCF tool across the unified active stage-tool surface. Each row keeps
   `tool_id`, `domains`, `active_stage_count`, `benchmark_ready_stage_count`,
   `active_binding_count`, `benchmark_ready_binding_count`, `benchmark_statuses`,
-  `active_stage_ids`, and `benchmark_ready_stage_ids` explicit. The command fails closed unless
-  every active matrix tool appears exactly once and no retained tool serves zero active stages.
+  `active_stage_ids`, and `benchmark_ready_stage_ids` explicit. Active scope excludes `planned`,
+  `future`, and equivalent not-yet-active lifecycle rows. The command fails closed unless every
+  active matrix tool appears exactly once and no retained tool serves zero active stages.
+- `bijux-dna bench readiness render-all-domain-no-planned-rows`
+  `render-all-domain-no-planned-rows` writes
+  `benchmarks/readiness/all-domains/no-planned-rows.json` and audits the governed all-domain
+  active scope after removing `planned`, `future`, and equivalent not-yet-active lifecycle rows.
+  The report keeps active row, stage, and tool counts explicit, records the removed non-active
+  rows and their status counts, and fails closed if any disallowed row remains in active scope.
 - `bijux-dna bench readiness render-vcf-comparable-metrics`
   `render-vcf-comparable-metrics` writes `benchmarks/readiness/vcf-comparable-metrics.tsv`
   with one governed row per shared normalized metric across the retained multi-tool VCF stage
