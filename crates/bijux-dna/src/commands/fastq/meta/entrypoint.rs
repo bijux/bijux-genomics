@@ -121,6 +121,14 @@ pub(crate) fn handle_meta_commands(
                         }
                     }
                 }
+                BenchCommand::Paths { command } => match command {
+                    cli::BenchPathsCommand::Validate(args) => {
+                        crate::commands::benchmark_paths::run_benchmark_paths_validate_command(
+                            &std::env::current_dir()?,
+                            args,
+                        )?;
+                    }
+                },
                 BenchCommand::WriteScreenTaxonomyDatabaseLineage(args) => {
                     crate::commands::benchmark_taxonomy_database::run_write_screen_taxonomy_database_lineage(
                         &std::env::current_dir()?,

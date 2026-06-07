@@ -7,6 +7,7 @@ mod corpus_fastq;
 mod fastq;
 mod local;
 mod matrix;
+mod paths;
 mod publication;
 mod readiness;
 mod schema_validation;
@@ -66,6 +67,7 @@ pub use self::local::{
     BenchLocalValidateVcfStageCatalogReadyArgs,
 };
 pub use self::matrix::{BenchMatrixDomainArg, BenchValidateMatrixArgs};
+pub use self::paths::{BenchPathsCommand, BenchPathsValidateArgs};
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
     BenchCorpusFastqReportArgs, BenchPublicationTargetsArgs,
@@ -154,6 +156,10 @@ pub enum BenchCommand {
     ValidateMatrix(BenchValidateMatrixArgs),
     #[command(name = "validate-schemas")]
     ValidateSchemas(BenchValidateSchemasArgs),
+    Paths {
+        #[command(subcommand)]
+        command: BenchPathsCommand,
+    },
     #[command(name = "publication-targets")]
     PublicationTargets(BenchPublicationTargetsArgs),
     #[command(name = "corpus-fastq")]
