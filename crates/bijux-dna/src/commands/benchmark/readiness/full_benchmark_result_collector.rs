@@ -23,7 +23,8 @@ use crate::commands::benchmark::local_all_domain_fake_failures::{
     DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT,
 };
 use crate::commands::benchmark::local_all_domain_fake_runs::{
-    fake_run_all_domain_benchmark_results, AllDomainFakeRunsReport, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
+    fake_run_all_domain_benchmark_results, AllDomainFakeRunsReport,
+    DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
 };
 use crate::commands::benchmark::local_essential_pipeline_fake_runs::{
     fake_run_essential_pipelines, EssentialPipelineFakeRunsReport,
@@ -208,15 +209,42 @@ pub(crate) fn render_full_benchmark_result_collector(
         schema_version: FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_VERSION,
         output_path: path_relative_to_repo(repo_root, &absolute_output_path),
         row_count: rows.len(),
-        benchmark_expected_row_count: count_surface(&surface_kind_counts, FullBenchmarkResultSurfaceKind::BenchmarkExpected),
-        pipeline_fake_run_row_count: count_surface(&surface_kind_counts, FullBenchmarkResultSurfaceKind::PipelineFakeRun),
-        fake_run_row_count: count_surface(&surface_kind_counts, FullBenchmarkResultSurfaceKind::FakeRun),
-        fake_failure_row_count: count_surface(&surface_kind_counts, FullBenchmarkResultSurfaceKind::FakeFailure),
-        missing_result_audit_row_count: count_surface(&surface_kind_counts, FullBenchmarkResultSurfaceKind::MissingResultAudit),
-        real_smoke_row_count: count_surface(&surface_kind_counts, FullBenchmarkResultSurfaceKind::RealSmoke),
-        unsupported_pair_row_count: count_surface(&surface_kind_counts, FullBenchmarkResultSurfaceKind::UnsupportedPair),
-        missing_result_status_count: count_status(&result_status_counts, FullBenchmarkResultStatus::MissingResult),
-        unsupported_pair_status_count: count_status(&result_status_counts, FullBenchmarkResultStatus::UnsupportedPair),
+        benchmark_expected_row_count: count_surface(
+            &surface_kind_counts,
+            FullBenchmarkResultSurfaceKind::BenchmarkExpected,
+        ),
+        pipeline_fake_run_row_count: count_surface(
+            &surface_kind_counts,
+            FullBenchmarkResultSurfaceKind::PipelineFakeRun,
+        ),
+        fake_run_row_count: count_surface(
+            &surface_kind_counts,
+            FullBenchmarkResultSurfaceKind::FakeRun,
+        ),
+        fake_failure_row_count: count_surface(
+            &surface_kind_counts,
+            FullBenchmarkResultSurfaceKind::FakeFailure,
+        ),
+        missing_result_audit_row_count: count_surface(
+            &surface_kind_counts,
+            FullBenchmarkResultSurfaceKind::MissingResultAudit,
+        ),
+        real_smoke_row_count: count_surface(
+            &surface_kind_counts,
+            FullBenchmarkResultSurfaceKind::RealSmoke,
+        ),
+        unsupported_pair_row_count: count_surface(
+            &surface_kind_counts,
+            FullBenchmarkResultSurfaceKind::UnsupportedPair,
+        ),
+        missing_result_status_count: count_status(
+            &result_status_counts,
+            FullBenchmarkResultStatus::MissingResult,
+        ),
+        unsupported_pair_status_count: count_status(
+            &result_status_counts,
+            FullBenchmarkResultStatus::UnsupportedPair,
+        ),
         passes_behavior_test: false,
         surface_kind_counts,
         result_status_counts,
@@ -522,7 +550,9 @@ fn ensure_full_benchmark_result_collector_contract(
             "full benchmark result collector must keep exactly three missing_result rows"
         ));
     }
-    if missing_rows.iter().any(|row| row.surface_kind != FullBenchmarkResultSurfaceKind::MissingResultAudit)
+    if missing_rows
+        .iter()
+        .any(|row| row.surface_kind != FullBenchmarkResultSurfaceKind::MissingResultAudit)
     {
         return Err(anyhow!(
             "full benchmark result collector must keep missing_result rows on the missing-result audit surface"
@@ -584,10 +614,7 @@ fn count_surface(
     counts.get(surface_kind_label(surface_kind)).copied().unwrap_or(0)
 }
 
-fn count_status(
-    counts: &BTreeMap<String, usize>,
-    status: FullBenchmarkResultStatus,
-) -> usize {
+fn count_status(counts: &BTreeMap<String, usize>, status: FullBenchmarkResultStatus) -> usize {
     counts.get(result_status_label(status)).copied().unwrap_or(0)
 }
 
@@ -624,12 +651,13 @@ fn read_json_document(path: &Path) -> Result<Value> {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
 
 fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() { path.to_path_buf() } else { repo_root.join(path) }
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
 }
