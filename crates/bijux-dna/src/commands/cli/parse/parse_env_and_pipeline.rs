@@ -762,8 +762,12 @@ pub enum PipelinesCommand {
     },
     #[command(about = "Validate a governed local pipeline DAG by pipeline id.")]
     Validate {
+        #[arg(long, required_unless_present = "all", conflicts_with = "all")]
+        id: Option<String>,
+        #[arg(long, default_value_t = false, conflicts_with = "id")]
+        all: bool,
         #[arg(long)]
-        id: String,
+        benchmark_root: Option<PathBuf>,
         #[arg(long, default_value_t = false)]
         strict: bool,
         #[arg(long)]
