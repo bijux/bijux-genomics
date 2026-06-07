@@ -6,9 +6,8 @@ use anyhow::{anyhow, bail, Context, Result};
 use serde::Serialize;
 
 use crate::commands::benchmark::schema_paths::{
-    DEFAULT_BAM_NORMALIZED_METRICS_SCHEMA_PATH, DEFAULT_BENCHMARK_SCHEMA_ROOT,
-    DEFAULT_FASTQ_NORMALIZED_METRICS_SCHEMA_PATH, DEFAULT_VCF_NORMALIZED_METRICS_SCHEMA_PATH,
-    DEFAULT_VCF_NORMALIZED_METRICS_STAGE_DIR,
+    bam_schema_path, benchmark_schema_root_path, fastq_schema_path, vcf_schema_path,
+    vcf_stage_schema_dir,
 };
 use crate::commands::cli::parse::{self, BenchSchemaDomainArg};
 use crate::commands::cli::render;
@@ -139,8 +138,7 @@ pub(crate) fn run_validate_schemas(
     if domains.is_empty() {
         bail!("at least one schema domain is required");
     }
-    let schema_root =
-        args.schema_root.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_BENCHMARK_SCHEMA_ROOT));
+    let schema_root = benchmark_schema_root_path(repo_root, args.schema_root.as_deref());
 
     if domains.len() == 1 {
         run_single_domain_validation(repo_root, &domains[0], &schema_root, args)
@@ -579,35 +577,19 @@ fn write_validation_report<T: Serialize>(
 }
 
 fn default_fastq_schema_path(schema_root: &Path) -> PathBuf {
-    if schema_root == Path::new(DEFAULT_BENCHMARK_SCHEMA_ROOT) {
-        PathBuf::from(DEFAULT_FASTQ_NORMALIZED_METRICS_SCHEMA_PATH)
-    } else {
-        schema_root.join("fastq-normalized-metrics.v1.json")
-    }
+    fastq_schema_path(schema_root)
 }
 
 fn default_bam_schema_path(schema_root: &Path) -> PathBuf {
-    if schema_root == Path::new(DEFAULT_BENCHMARK_SCHEMA_ROOT) {
-        PathBuf::from(DEFAULT_BAM_NORMALIZED_METRICS_SCHEMA_PATH)
-    } else {
-        schema_root.join("bam-normalized-metrics.v1.json")
-    }
+    bam_schema_path(schema_root)
 }
 
 fn default_vcf_schema_path(schema_root: &Path) -> PathBuf {
-    if schema_root == Path::new(DEFAULT_BENCHMARK_SCHEMA_ROOT) {
-        PathBuf::from(DEFAULT_VCF_NORMALIZED_METRICS_SCHEMA_PATH)
-    } else {
-        schema_root.join("vcf-normalized-metrics.v1.json")
-    }
+    vcf_schema_path(schema_root)
 }
 
 fn default_vcf_stage_dir(schema_root: &Path) -> PathBuf {
-    if schema_root == Path::new(DEFAULT_BENCHMARK_SCHEMA_ROOT) {
-        PathBuf::from(DEFAULT_VCF_NORMALIZED_METRICS_STAGE_DIR)
-    } else {
-        schema_root.join("vcf-normalized-metrics")
-    }
+    vcf_stage_schema_dir(schema_root)
 }
 
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
