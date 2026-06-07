@@ -72,7 +72,7 @@ fn bench_local_validate_vcf_stage_catalog_ready_reports_governed_goal_slice() {
     );
     assert_eq!(
         goal_201.get("output_path").and_then(serde_json::Value::as_str),
-        Some("configs/bench/local/vcf-stage-catalog.toml")
+        Some("benchmarks/configs/local/vcf-stage-catalog.toml")
     );
     assert!(goal_201
         .get("detail")

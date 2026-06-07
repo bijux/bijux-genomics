@@ -45,7 +45,7 @@ fn bench_validate_matrix_vcf_strict_accepts_governed_matrix() {
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
     assert_eq!(
         payload.get("matrix_path").and_then(serde_json::Value::as_str),
-        Some("configs/bench/local/vcf-stage-matrix.toml")
+        Some("benchmarks/configs/local/vcf-stage-matrix.toml")
     );
     assert_eq!(payload.get("strict").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(20));

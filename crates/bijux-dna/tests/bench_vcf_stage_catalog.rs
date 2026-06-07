@@ -47,7 +47,7 @@ fn bench_vcf_stage_catalog_matches_code_catalog() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/bench/local/vcf-stage-catalog.toml")
+        Some("benchmarks/configs/local/vcf-stage-catalog.toml")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(payload.get("supported_stage_count").and_then(serde_json::Value::as_u64), Some(8));

@@ -35,7 +35,7 @@ fn bench_readiness_stage_tool_resources_writes_governed_toml_file() {
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let config_path = repo_root.join("configs/bench/local/stage-tool-resources.toml");
+    let config_path = repo_root.join("benchmarks/configs/local/stage-tool-resources.toml");
     let raw = std::fs::read_to_string(&config_path).expect("read config");
     let parsed: toml::Value = toml::from_str(&raw).expect("parse config");
 

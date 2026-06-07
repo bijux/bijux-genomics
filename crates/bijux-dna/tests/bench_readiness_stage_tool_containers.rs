@@ -45,7 +45,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/bench/local/stage-tool-containers.toml")
+        Some("benchmarks/configs/local/stage-tool-containers.toml")
     );
     assert_eq!(
         payload.get("classification_scope").and_then(serde_json::Value::as_str),

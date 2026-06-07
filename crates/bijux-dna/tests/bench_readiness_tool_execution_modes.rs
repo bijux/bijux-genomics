@@ -44,7 +44,7 @@ fn bench_readiness_tool_execution_modes_report_governs_all_benchmark_tools() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/bench/local/tool-execution-modes.toml")
+        Some("benchmarks/configs/local/tool-execution-modes.toml")
     );
     assert_eq!(
         payload.get("classification_scope").and_then(serde_json::Value::as_str),

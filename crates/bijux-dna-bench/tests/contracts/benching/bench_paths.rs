@@ -40,12 +40,12 @@ fn bench_paths_point_to_repository_owned_local_stage_matrix() {
         local_config.display()
     );
     assert!(
-        fastq_matrix.ends_with("configs/bench/local/fastq-stage-matrix.toml"),
+        fastq_matrix.ends_with("benchmarks/configs/local/fastq-stage-matrix.toml"),
         "unexpected FASTQ local stage matrix path: {}",
         fastq_matrix.display()
     );
     assert!(
-        bam_matrix.ends_with("configs/bench/local/bam-stage-matrix.toml"),
+        bam_matrix.ends_with("benchmarks/configs/local/bam-stage-matrix.toml"),
         "unexpected BAM local stage matrix path: {}",
         bam_matrix.display()
     );

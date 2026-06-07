@@ -44,14 +44,14 @@ fn bench_readiness_tool_families_report_governs_all_benchmark_tools() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/bench/local/tool-families.toml")
+        Some("benchmarks/configs/local/tool-families.toml")
     );
     assert_eq!(
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("primary_benchmark_function")
     );
     assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(25));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(66));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(67));
     assert_eq!(payload.get("valid").and_then(serde_json::Value::as_bool), Some(true));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -62,5 +62,14 @@ fn bench_readiness_tool_families_report_governs_all_benchmark_tools() {
     assert_eq!(
         multiqc.get("family_id").and_then(serde_json::Value::as_str),
         Some("report_aggregation")
+    );
+
+    let addeam = rows
+        .iter()
+        .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("addeam"))
+        .expect("addeam row");
+    assert_eq!(
+        addeam.get("family_id").and_then(serde_json::Value::as_str),
+        Some("damage_and_postmortem_bias")
     );
 }

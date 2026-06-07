@@ -44,7 +44,7 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
     );
     assert_eq!(
         payload.get("matrix_path").and_then(serde_json::Value::as_str),
-        Some("configs/bench/local/corpus-stage-compatibility.toml")
+        Some("benchmarks/configs/local/corpus-stage-compatibility.toml")
     );
     assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
@@ -56,8 +56,10 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
         Some(3)
     );
-    let corpus_family_counts =
-        payload.get("corpus_family_counts").and_then(serde_json::Value::as_object).expect("family counts");
+    let corpus_family_counts = payload
+        .get("corpus_family_counts")
+        .and_then(serde_json::Value::as_object)
+        .expect("family counts");
     assert_eq!(corpus_family_counts.get("corpus-01"), Some(&serde_json::json!(19)));
     assert_eq!(corpus_family_counts.get("corpus-01-bam"), Some(&serde_json::json!(16)));
     assert_eq!(corpus_family_counts.get("corpus-01-adna-bam"), Some(&serde_json::json!(5)));

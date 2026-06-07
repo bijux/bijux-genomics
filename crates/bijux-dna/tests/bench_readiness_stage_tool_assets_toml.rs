@@ -35,7 +35,7 @@ fn bench_readiness_stage_tool_assets_writes_governed_toml_file() {
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let config_path = repo_root.join("configs/bench/local/stage-tool-assets.toml");
+    let config_path = repo_root.join("benchmarks/configs/local/stage-tool-assets.toml");
     let raw = std::fs::read_to_string(&config_path).expect("read config");
     let parsed: toml::Value = toml::from_str(&raw).expect("parse config");
 
@@ -94,8 +94,7 @@ fn bench_readiness_stage_tool_assets_writes_governed_toml_file() {
         row.get("stage_id").and_then(toml::Value::as_str)
             == Some("fastq.deplete_reference_contaminants")
             && row.get("tool_id").and_then(toml::Value::as_str) == Some("bowtie2")
-            && row.get("asset_role").and_then(toml::Value::as_str)
-                == Some("reference_catalog_id")
+            && row.get("asset_role").and_then(toml::Value::as_str) == Some("reference_catalog_id")
             && row.get("asset_id").and_then(toml::Value::as_str) == Some("contaminant_reference")
     }));
     assert!(rows.iter().any(|row| {
@@ -116,16 +115,14 @@ fn bench_readiness_stage_tool_assets_writes_governed_toml_file() {
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.deplete_rrna")
             && row.get("tool_id").and_then(toml::Value::as_str) == Some("sortmerna")
-            && row.get("asset_role").and_then(toml::Value::as_str)
-                == Some("database_artifact_id")
+            && row.get("asset_role").and_then(toml::Value::as_str) == Some("database_artifact_id")
             && row.get("asset_id").and_then(toml::Value::as_str)
                 == Some("sortmerna_common_rrna_reference")
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.index_reference")
             && row.get("tool_id").and_then(toml::Value::as_str) == Some("bowtie2_build")
-            && row.get("asset_role").and_then(toml::Value::as_str)
-                == Some("reference_index_output")
+            && row.get("asset_role").and_then(toml::Value::as_str) == Some("reference_index_output")
             && row.get("asset_id").and_then(toml::Value::as_str) == Some("reference_index")
     }));
 
@@ -169,16 +166,14 @@ fn bench_readiness_stage_tool_assets_writes_governed_toml_file() {
         assert!(rows.iter().any(|row| {
             row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.kinship")
                 && row.get("tool_id").and_then(toml::Value::as_str) == Some(tool_id)
-                && row.get("asset_role").and_then(toml::Value::as_str)
-                    == Some("reference_fasta")
+                && row.get("asset_role").and_then(toml::Value::as_str) == Some("reference_fasta")
                 && row.get("asset_id").and_then(toml::Value::as_str)
                     == Some("corpus_01_bam_reference")
         }));
         assert!(rows.iter().any(|row| {
             row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.kinship")
                 && row.get("tool_id").and_then(toml::Value::as_str) == Some(tool_id)
-                && row.get("asset_role").and_then(toml::Value::as_str)
-                    == Some("reference_panel")
+                && row.get("asset_role").and_then(toml::Value::as_str) == Some("reference_panel")
                 && row.get("asset_id").and_then(toml::Value::as_str)
                     == Some("human_like_relatedness_panel")
         }));
