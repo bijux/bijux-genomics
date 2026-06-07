@@ -47,6 +47,7 @@ governed_stage_ids:
   - vcf.damage_filter
   - vcf.filter
   - vcf.gl_propagation
+  - vcf.postprocess
   - vcf.stats
 governed_tool_ids:
   - bcftools
@@ -76,7 +77,6 @@ stage_tool_compatibility:
   - angsd
   vcf.ibd:
   - germline
-  - ibdseq
   - ibdhap
   vcf.imputation_metrics:
   - beagle
@@ -136,7 +136,6 @@ stage_tool_integration:
     bcftools: governed_contract
   vcf.ibd:
     germline: governed_contract
-    ibdseq: governed_contract
     ibdhap: governed_contract
   vcf.imputation_metrics:
     beagle: governed_contract

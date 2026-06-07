@@ -57,7 +57,7 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.phasing` default: `shapeit5` (planned). rationale: current planned phasing baseline tracks the intended modern phasing backend instead of a placeholder.
 - `vcf.imputation_metrics` default: `beagle` (planned). rationale: keep the planned imputation-metrics contract anchored to the same governed backend family that produces the source imputation evidence.
 - `vcf.impute` default: `beagle` (planned). rationale: planned explicit imputation execution must stay aligned with the active default recorded in `domain/vcf/index.yaml`.
-- `vcf.postprocess` default: `bcftools` (planned). rationale: deterministic normalization/filter baseline.
+- `vcf.postprocess` default: `bcftools`. rationale: deterministic normalization/filter baseline for governed post-imputation outputs.
 - `vcf.prepare_reference_panel` default: `bcftools` (planned). rationale: deterministic reference panel prep baseline.
 - `vcf.call_gl` default: `bcftools`. rationale: current governed production default keeps GL emission runnable while `angsd` remains a planned low-coverage alternative.
 - `vcf.call_diploid` default: `bcftools`. rationale: deterministic diploid baseline for the current governed production profile.
