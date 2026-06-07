@@ -3,6 +3,7 @@ mod adapter_missing_input_contracts;
 pub(crate) mod adapter_missing_input_tests;
 pub(crate) mod all_domain_completion_check;
 pub(crate) mod all_domain_expected_benchmark_results;
+pub(crate) mod all_domain_missing_result_test;
 pub(crate) mod all_domain_output_declarations;
 pub(crate) mod all_domain_parser_collector;
 pub(crate) mod all_domain_rendered_commands;

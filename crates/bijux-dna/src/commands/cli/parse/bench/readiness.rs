@@ -94,6 +94,8 @@ pub enum BenchReadinessCommand {
     ),
     #[command(name = "render-all-domain-completion-check")]
     RenderAllDomainCompletionCheck(BenchReadinessRenderAllDomainCompletionCheckArgs),
+    #[command(name = "render-all-domain-missing-result-test")]
+    RenderAllDomainMissingResultTest(BenchReadinessRenderAllDomainMissingResultTestArgs),
     #[command(name = "render-all-domain-parser-collector")]
     RenderAllDomainParserCollector(BenchReadinessRenderAllDomainParserCollectorArgs),
     #[command(name = "render-all-domain-output-declarations")]
@@ -686,6 +688,14 @@ pub struct BenchReadinessRenderAllDomainExpectedBenchmarkResultsArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderAllDomainCompletionCheckArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderAllDomainMissingResultTestArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

@@ -378,6 +378,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderAllDomainMissingResultTest(args) => {
+                        crate::commands::benchmark::readiness::all_domain_missing_result_test::run_render_all_domain_missing_result_test(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderAllDomainParserCollector(args) => {
                         crate::commands::benchmark::readiness::all_domain_parser_collector::run_render_all_domain_parser_collector(
                             args,
