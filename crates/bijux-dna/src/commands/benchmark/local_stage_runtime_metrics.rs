@@ -144,7 +144,7 @@ mod tests {
     #[test]
     fn runtime_metrics_report_governed_51_stage_slice_from_fake_run_manifests() {
         let root = repo_root();
-        let fake_run_root = PathBuf::from("target/local-fake-runs/stages-runtime-metrics");
+        let fake_run_root = PathBuf::from("runs/bench/local-fake-runs/stages-runtime-metrics");
         fake_run_local_stage_commands(&root, fake_run_root.clone())
             .expect("fake-run local stage commands");
         let report = collect_local_stage_runtime_metrics(
@@ -171,7 +171,7 @@ mod tests {
     fn runtime_metrics_report_refuses_stage_manifest_missing_runtime_fields() {
         let root = repo_root();
         let fake_run_root =
-            PathBuf::from("target/local-fake-runs/stages-runtime-metrics-missing-runtime");
+            PathBuf::from("runs/bench/local-fake-runs/stages-runtime-metrics-missing-runtime");
         let report_output_path =
             PathBuf::from("benchmarks/readiness/local-ready/runtime-metrics.missing.json");
         let fake_runs = fake_run_local_stage_commands(&root, fake_run_root.clone())

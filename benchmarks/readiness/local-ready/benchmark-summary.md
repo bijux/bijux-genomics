@@ -7,7 +7,7 @@
 
 ## Sources
 
-- Fake-run root: `target/local-fake-runs/stages`
+- Fake-run root: `runs/bench/local-fake-runs/stages`
 - Stage command manifest: `benchmarks/readiness/local-ready/rendered-stage-commands.json`
 - Manifest completion report: `benchmarks/readiness/local-ready/manifest-completion-report.json`
 - Output completion report: `benchmarks/readiness/local-ready/output-completion-report.json`

@@ -368,7 +368,7 @@ mod tests {
         let root = repo_root();
         let report = render_local_benchmark_summary(
             &root,
-            PathBuf::from("target/local-fake-runs/stages-benchmark-summary"),
+            PathBuf::from("runs/bench/local-fake-runs/stages-benchmark-summary"),
             PathBuf::from(DEFAULT_BENCHMARK_SUMMARY_JSON_PATH),
             PathBuf::from(DEFAULT_BENCHMARK_SUMMARY_MARKDOWN_PATH),
         )

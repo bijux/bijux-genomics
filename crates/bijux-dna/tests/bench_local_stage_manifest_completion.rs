@@ -37,7 +37,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_check_manifest_completion_json_reports_governed_51_stage_slice_complete() {
-    let fake_run_root = "target/local-fake-runs/stages-manifest-completion-cli";
+    let fake_run_root = "runs/bench/local-fake-runs/stages-manifest-completion-cli";
     let report_output = "benchmarks/readiness/local-ready/manifest-completion-report.cli.json";
 
     let _fake_run_manifest = run_cli_json(&[

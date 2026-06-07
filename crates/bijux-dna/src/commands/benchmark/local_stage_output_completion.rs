@@ -204,7 +204,7 @@ mod tests {
     fn output_completion_reports_stage_incomplete_when_declared_output_is_missing() {
         let root = repo_root();
         let fake_run_root =
-            PathBuf::from("target/local-fake-runs/stages-output-completion-missing");
+            PathBuf::from("runs/bench/local-fake-runs/stages-output-completion-missing");
         let report_output_path =
             PathBuf::from("benchmarks/readiness/local-ready/output-completion-report.missing.json");
         let fake_runs = fake_run_local_stage_commands(&root, fake_run_root.clone())

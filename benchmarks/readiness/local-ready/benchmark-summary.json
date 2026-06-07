@@ -1,6 +1,6 @@
 {
   "schema_version": "bijux.bench.local_benchmark_summary.v1",
-  "fake_run_root": "target/local-fake-runs/stages",
+  "fake_run_root": "runs/bench/local-fake-runs/stages",
   "report_output_path": "benchmarks/readiness/local-ready/benchmark-summary.json",
   "markdown_output_path": "benchmarks/readiness/local-ready/benchmark-summary.md",
   "source_stage_command_manifest_path": "benchmarks/readiness/local-ready/rendered-stage-commands.json",
