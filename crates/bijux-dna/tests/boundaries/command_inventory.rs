@@ -150,6 +150,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-all-domain-no-declared-only-rows",
     "bijux-dna bench readiness render-all-domain-no-not-benchmark-ready-rows",
     "bijux-dna bench readiness render-all-domain-no-planned-rows",
+    "bijux-dna bench readiness render-removed-from-scope",
     "bijux-dna bench readiness render-all-domain-stage-tool-table",
     "bijux-dna bench readiness render-vcf-comparable-metrics",
     "bijux-dna bench readiness render-vcf-expected-benchmark-results",
