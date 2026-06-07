@@ -20,7 +20,7 @@ Sharing flow:
 
 1. Define collaborator recipients in `sharing/*.toml`.
 2. Re-encrypt and redact with:
-   `bijux-dna slurm share-bundle --bundle <path> --profile configs/hpc/campaign/sharing/<profile>.toml --out-dir <dir>`
+   `bijux-dna slurm share-bundle --bundle <path> --profile benchmarks/configs/hpc/campaign/sharing/<profile>.toml --out-dir <dir>`
 3. Verify policy coverage with:
    `bijux-dna slurm verify-results-policy --results-bundle <results> --code-bundle <code>`
 

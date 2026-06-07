@@ -1362,7 +1362,15 @@ These commands are hidden in non-debug builds or exist for repository control-pl
 - `bijux-dna config doctor`
 - `bijux-dna config campaign-preflight`
 - `bijux-dna config campaign-dry-run`
+  `campaign-dry-run --config benchmarks/configs/hpc/campaign/lunarc-fastq-bam-vcf-local-ready.toml`
+  validates a tracked benchmark-owned HPC campaign profile, loads any adjacent
+  `site-profiles/<name>.toml`, applies the benchmark-owned default user policy from
+  `benchmarks/configs/hpc/campaign/user.policy.toml` when present, and renders the governed job
+  plan without submitting anything.
 - `bijux-dna config write-campaign-profiles`
+  `write-campaign-profiles` defaults to `benchmarks/configs/hpc/campaign/`, so the generated
+  local-ready and fixture campaign profiles stay in the tracked benchmark config root rather than
+  the runtime HPC config tree.
 - `bijux-dna slurm submit-stage-benchmark`
 - `bijux-dna slurm submit-domain-benchmark`
 - `bijux-dna slurm submit-cross-benchmark`
