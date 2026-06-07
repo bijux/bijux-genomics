@@ -10,14 +10,16 @@ The committed subroots are:
 - `benchmarks/tests/`
 - `benchmarks/readiness/`
 
-Benchmark-owned config, schema, and fixture consumers resolve from this root through the shared
-benchmark path contract. The default root is `benchmarks/`, `--benchmark-root` overrides it on the
-surfaces that expose that flag, and `BIJUX_BENCHMARK_ROOT` provides the environment-level override
-when an explicit CLI root is not passed.
+Benchmark-owned config, schema, fixture, and deterministic readiness-proof consumers resolve from
+this root through the shared benchmark path contract. The default root is `benchmarks/`,
+`--benchmark-root` overrides it on the surfaces that expose that flag, and
+`BIJUX_BENCHMARK_ROOT` provides the environment-level override when an explicit CLI root is not
+passed.
 
-Readiness reports and disposable run products are still anchored under the active repository:
+Deterministic readiness proof now lives under the tracked benchmark root, while disposable run
+products remain anchored under the active repository:
 
-- `target/bench-readiness/`
+- `benchmarks/readiness/`
 - `target/local-ready/`
 - `target/local-fake-runs/`
 - `target/slurm-dry-run/`

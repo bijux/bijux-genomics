@@ -62,7 +62,7 @@ Commands listed here are owned by this crate even when their durable behavior is
   sample/population metadata. It fails closed when any declared file is missing, when the
   reference and FAI drift, or when VCF sample ids fall out of sync with the metadata tables.
   `fixtures validate --root benchmarks/tests/fixtures --all` writes
-  `target/bench-readiness/benchmark-fixture-root-validation.json` and fails closed unless the
+  `benchmarks/readiness/benchmark-fixture-root-validation.json` and fails closed unless the
   benchmark-owned `bench`, `corpora`, and `databases` roots all exist, parser-bank domains remain
   populated, and every governed corpus, taxonomy database, and `vcf-mini` expected-truth contract
   validates from the benchmark fixture root.
@@ -136,7 +136,7 @@ Visible aliases are part of the operator surface:
 ### Benchmarking
 - `bijux-dna bench config validate`
 - `bijux-dna bench paths validate`
-  `paths validate --strict` writes `target/bench-readiness/benchmark-paths-validation.json` and
+  `paths validate --strict` writes `benchmarks/readiness/benchmark-paths-validation.json` and
   proves that the tracked `benchmarks/`, `benchmarks/configs/`, `benchmarks/schemas/`,
   `benchmarks/tests/`, and `benchmarks/readiness/` roots exist, are not ignored by git, and each
   carries a tracked marker file. It also proves that the repository-root `tests/` tree has been
@@ -163,7 +163,7 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench validate-schemas`
   `validate-schemas --schema-root benchmarks/schemas --domain fastq,bam,vcf` checks the tracked
   benchmark-owned FASTQ, BAM, and VCF normalized-metrics schema files and writes
-  `target/bench-readiness/all-domain-schema-validation.json`. The gate fails closed unless
+  `benchmarks/readiness/all-domain-schema-validation.json`. The gate fails closed unless
   `benchmarks/schemas/fastq-normalized-metrics.v1.json`,
   `benchmarks/schemas/bam-normalized-metrics.v1.json`,
   `benchmarks/schemas/vcf-normalized-metrics.v1.json`, and the full
@@ -177,36 +177,36 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench corpus-fastq-published-dossiers`
 - `bijux-dna bench readiness render-adapter-missing-input-tests`
   `render-adapter-missing-input-tests` writes
-  `target/bench-readiness/adapter-missing-input-tests.json` with one governed structured failure
+  `benchmarks/readiness/adapter-missing-input-tests.json` with one governed structured failure
   row per benchmark-ready adapter probe, proving that missing FASTQ, BAM, reference, and taxonomy
   database inputs fail early through the real planner entrypoints with the exact missing input role
   preserved in reviewer-visible JSON.
 - `bijux-dna bench readiness render-parser-failure-tests`
-  `render-parser-failure-tests` writes `target/bench-readiness/parser-failure-tests.json` with
+  `render-parser-failure-tests` writes `benchmarks/readiness/parser-failure-tests.json` with
   one governed structured row per FASTQ and BAM raw parser failure probe, proving that missing,
   empty, and malformed raw backend outputs are classified explicitly by domain-owned parser
   contracts instead of collapsing into silent zero-metric fallbacks.
 - `bijux-dna bench readiness render-parser-completeness-gate`
-  `render-parser-completeness-gate` writes `target/bench-readiness/gate-parser-complete.json`
+  `render-parser-completeness-gate` writes `benchmarks/readiness/gate-parser-complete.json`
   with one governed row per FASTQ or BAM readiness binding, classifying whether the row belongs
   to benchmark-reporting scope or an excluded cohort and proving that every benchmark-ready row
   is backed by parser fixtures before downstream benchmark reporting proceeds.
 - `bijux-dna bench readiness render-expected-benchmark-results`
   `render-expected-benchmark-results` writes
-  `target/bench-readiness/expected-benchmark-results.tsv` with one governed row per
+  `benchmarks/readiness/expected-benchmark-results.tsv` with one governed row per
   benchmark-ready FASTQ or BAM stage-tool-fixture binding, fixing the expected result root,
   `stage-result.json` path, and output artifact IDs before HPC benchmark submission or
   report-completeness checks proceed.
 - `bijux-dna bench readiness render-all-domain-expected-benchmark-results`
   `render-all-domain-expected-benchmark-results` writes
-  `target/bench-readiness/expected-benchmark-results-all-domains.tsv` with one governed row per
+  `benchmarks/readiness/expected-benchmark-results-all-domains.tsv` with one governed row per
   benchmark-ready FASTQ, BAM, and VCF result binding. Each row keeps `result_id`, `domain`,
   `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `expected_outputs`,
   `expected_metrics`, and `report_section` explicit, and the command fails closed unless result
   identities stay unique and stable across all governed benchmark-ready domains.
 - `bijux-dna bench readiness render-all-domain-harness-ready`
   `render-all-domain-harness-ready` writes
-  `target/bench-readiness/ALL_DOMAIN_HARNESS_READY.json` and fail-closes across Goals 278–289.
+  `benchmarks/readiness/ALL_DOMAIN_HARNESS_READY.json` and fail-closes across Goals 278–289.
   The gate reruns the governed all-domain stage inventory, stage-tool table, expected-result
   table, rendered commands, output declarations, fake-runner, fake failures, completion checker,
   parser collector, missing-result behavior, failure classification, and real-smoke subset, then
@@ -214,8 +214,8 @@ Visible aliases are part of the operator surface:
   silently between surfaces.
 - `bijux-dna bench readiness render-all-domain-failure-classification`
   `render-all-domain-failure-classification` writes
-  `target/bench-readiness/failure-classification-all-domains.json` and materializes a governed
-  fixture tree under `target/bench-readiness/failure-classification-all-domains-fixture/`. It
+  `benchmarks/readiness/failure-classification-all-domains.json` and materializes a governed
+  fixture tree under `benchmarks/readiness/failure-classification-all-domains-fixture/`. It
   keeps one explicit row for each required failure class across the unified FASTQ, BAM, and VCF
   readiness surface: `missing_input`, `tool_not_found`, `command_failed`, `missing_output`,
   `parser_failed`, `insufficient_data`, and `unsupported_pair`. The command fails closed unless
@@ -223,34 +223,34 @@ Visible aliases are part of the operator surface:
   failed status.
 - `bijux-dna bench readiness render-all-domain-completion-check`
   `render-all-domain-completion-check` writes
-  `target/bench-readiness/completion-check-all-domains.json` and materializes a governed fixture
-  tree under `target/bench-readiness/completion-check-all-domains-fixture/`. It seeds five
+  `benchmarks/readiness/completion-check-all-domains.json` and materializes a governed fixture
+  tree under `benchmarks/readiness/completion-check-all-domains-fixture/`. It seeds five
   distinct incomplete cases across the canonical 120-result FASTQ, BAM, and VCF slice and then
   proves a result is complete only when execution succeeded, the stage manifest is present and
   valid, declared outputs are present, normalized metrics are present, and required run files are
   non-empty.
 - `bijux-dna bench readiness render-all-domain-missing-result-test`
   `render-all-domain-missing-result-test` writes
-  `target/bench-readiness/missing-result-test-all-domains.json` and materializes a governed
-  fixture tree under `target/bench-readiness/missing-result-test-all-domains-fixture/`. It
+  `benchmarks/readiness/missing-result-test-all-domains.json` and materializes a governed
+  fixture tree under `benchmarks/readiness/missing-result-test-all-domains-fixture/`. It
   removes one governed fake-run manifest from FASTQ, BAM, and VCF, then proves the final table
   still carries exactly three `missing_result` rows instead of dropping those benchmark bindings.
 - `bijux-dna bench readiness render-all-domain-output-declarations`
   `render-all-domain-output-declarations` writes
-  `target/bench-readiness/output-declarations-all-domains.tsv` with one governed row per
+  `benchmarks/readiness/output-declarations-all-domains.tsv` with one governed row per
   benchmark-ready FASTQ, BAM, and VCF result binding. Each row keeps raw outputs, normalized
   metrics outputs, logs, result manifest, and index outputs explicit, and the command fails closed
   unless every governed result keeps complete output declarations.
 - `bijux-dna bench readiness render-all-domain-parser-collector`
   `render-all-domain-parser-collector` writes
-  `target/bench-readiness/parser-collector-all-domains.json` and materializes a governed fixture
-  tree under `target/bench-readiness/parser-collector-all-domains-fixture/`. It collects fake-run
+  `benchmarks/readiness/parser-collector-all-domains.json` and materializes a governed fixture
+  tree under `benchmarks/readiness/parser-collector-all-domains-fixture/`. It collects fake-run
   parser evidence for the canonical 120-result FASTQ, BAM, and VCF benchmark-ready slice, joins a
   governed real-smoke subset from each domain, and normalizes both sources into one reviewable
   dataset with stable domain, stage, tool, and manifest identity.
 - `bijux-dna bench readiness render-full-benchmark-result-collector`
   `render-full-benchmark-result-collector` writes
-  `target/bench-readiness/full-result-collector-test.json`. It merges the canonical FASTQ, BAM,
+  `benchmarks/readiness/full-result-collector-test.json`. It merges the canonical FASTQ, BAM,
   and VCF expected-result rows, the 93 essential-pipeline fake-run nodes, the all-domain fake-run
   and fake-failure surfaces, the missing-result audit rows, the governed real-smoke subset, and
   the explicit unsupported-pair row into one reviewable dataset with stable `record_id`,
@@ -258,8 +258,8 @@ Visible aliases are part of the operator surface:
   distinct from unsupported pairs.
 - `bijux-dna bench readiness render-full-benchmark-dashboard`
   `render-full-benchmark-dashboard` writes
-  `target/bench-readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md` and
-  `target/bench-readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json`. It derives the required
+  `benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md` and
+  `benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json`. It derives the required
   summary counts for total stages, total tools, total expected jobs, ready jobs, blocked jobs,
   missing parsers, missing adapters, missing assets, and failed real smokes directly from the
   governed all-domain stage inventory, expected-result, rendered-command, parser-collector,
@@ -267,8 +267,8 @@ Visible aliases are part of the operator surface:
   matches those machine-readable source surfaces exactly.
 - `bijux-dna bench readiness render-full-benchmark-report`
   `render-full-benchmark-report` writes
-  `target/bench-readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md` and
-  `target/bench-readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json`. It renders one canonical report
+  `benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md` and
+  `benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json`. It renders one canonical report
   row per all-domain expected benchmark binding, keeps the governed missing-result rows visible,
   appends the explicit unsupported pair row, and then builds the required stage-centric,
   tool-centric, corpus-centric, pipeline-centric, runtime, memory, failures, missing-results,
@@ -277,7 +277,7 @@ Visible aliases are part of the operator surface:
   plus the explicit unsupported rows.
 - `bijux-dna bench readiness render-operational-benchmark-ready`
   `render-operational-benchmark-ready` writes
-  `target/bench-readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json`. It reruns the
+  `benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json`. It reruns the
   governed FASTQ/BAM readiness gate, the VCF catalog and local-smoke gates, the VCF adapter and
   parser gates, the all-domain expected-result, command, output, parser, resource, harness, and
   SLURM readiness surfaces, the essential pipeline readiness gate, and the full collector,
@@ -287,18 +287,18 @@ Visible aliases are part of the operator surface:
   `missing_result`, `insufficient_data`, and `unsupported_pair` evidence in the final readiness
   gate.
 - `bijux-dna bench readiness render-missing-result-report`
-  `render-missing-result-report` writes `target/bench-readiness/missing-result-report-test.json`
+  `render-missing-result-report` writes `benchmarks/readiness/missing-result-report-test.json`
   with one governed row per expected FASTQ or BAM benchmark result, materializes a controlled
   fake result tree, removes the governed taxonomy result manifest, and proves that the report
   keeps the missing binding visible as a `missing_result` row instead of dropping it.
 - `bijux-dna bench readiness render-pair-readiness`
-  `render-pair-readiness` writes `target/bench-readiness/pair-readiness.tsv` with one governed
+  `render-pair-readiness` writes `benchmarks/readiness/pair-readiness.tsv` with one governed
   row per FASTQ or BAM stage-tool pair, carrying the exact `adapter_status`, `parser_status`,
   `corpus_status`, and `asset_status` columns plus the resolved `readiness_gap` so incomplete
   bindings stay reviewable by the precise missing component instead of collapsing into a generic
   not-ready bucket.
 - `bijux-dna bench readiness render-corpus-centric-report`
-  `render-corpus-centric-report` writes `target/bench-readiness/corpus-centric-report.md` with
+  `render-corpus-centric-report` writes `benchmarks/readiness/corpus-centric-report.md` with
   one governed section per FASTQ or BAM corpus family, carrying the stage inventory that corpus
   exercises plus exact fixture IDs, ready-vs-blocked tool counts, shared metric visibility, and
   blocked tool rows. Taxonomy stays reviewer-visible under `corpus-02`, ASV or OTU or chimera
@@ -306,28 +306,28 @@ Visible aliases are part of the operator surface:
   remain bound to their owned BAM corpora.
 - `bijux-dna bench readiness render-benchmark-readiness-dashboard`
   `render-benchmark-readiness-dashboard` writes
-  `target/bench-readiness/FASTQ_BAM_BENCHMARK_READINESS.md` and
-  `target/bench-readiness/FASTQ_BAM_BENCHMARK_READINESS.json`, aggregating the governed matrix,
+  `benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.md` and
+  `benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.json`, aggregating the governed matrix,
   adapter, parser, corpus, asset, and report surfaces into one local dashboard. The summary keeps
   total expected pairs, ready pairs, blocked pairs, exact blocker counts, and every blocked
   `stage_id × tool_id` row reviewer-visible in one place.
 - `bijux-dna bench readiness render-stage-tool-benchmark-ready`
   `render-stage-tool-benchmark-ready` writes
-  `target/bench-readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json`, proving that the
+  `benchmarks/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json`, proving that the
   benchmark-ready FASTQ/BAM slice is complete enough to generate local HPC benchmark jobs and
   report expectations while keeping every excluded `not_benchmark_ready` pair explicit. The gate
   passes only when the ready slice retains matrix, registry, adapter, parser, corpus, asset,
   expected-result, and report-map coverage; excluded pairs stay visible with exact readiness gaps
   and explicit confirmation that they are omitted from generated jobs and expected results.
 - `bijux-dna bench readiness render-tool-centric-report`
-  `render-tool-centric-report` writes `target/bench-readiness/tool-centric-report.md` with one
+  `render-tool-centric-report` writes `benchmarks/readiness/tool-centric-report.md` with one
   governed section per benchmarked tool, carrying the full FASTQ/BAM stage list that tool serves
   plus exact `benchmark_status`, `readiness_gap`, `support_status`, `adapter_status`,
   `parser_status`, `corpus_status`, and `asset_status` columns so named tools such as
   `samtools`, `picard`, `fastp`, `vsearch`, `kraken2`, `bowtie2`, and `gatk` stay reviewer-visible
   with complete stage coverage and precise blockers.
 - `bijux-dna bench readiness render-stage-centric-report`
-  `render-stage-centric-report` writes `target/bench-readiness/stage-centric-report.md` with one
+  `render-stage-centric-report` writes `benchmarks/readiness/stage-centric-report.md` with one
   governed section per FASTQ or BAM benchmark stage, carrying the full tool list benchmarked
   against that stage plus exact `benchmark_status`, `readiness_gap`, `support_status`,
   `adapter_status`, `parser_status`, `corpus_status`, and `asset_status` columns. Multi-tool
@@ -336,82 +336,82 @@ Visible aliases are part of the operator surface:
   `damage`, and `contamination` remain reviewer-visible with complete tool coverage and precise
   pending rows.
 - `bijux-dna bench readiness render-fastq-report-map`
-  `render-fastq-report-map` writes `target/bench-readiness/fastq-report-map.tsv` with one
+  `render-fastq-report-map` writes `benchmarks/readiness/fastq-report-map.tsv` with one
   governed row per FASTQ benchmark-ready stage, fixing the report section, summary table, and
   benchmark anchor tool that downstream stage-centric benchmark reporting must use.
 - `bijux-dna bench readiness render-bam-report-map`
-  `render-bam-report-map` writes `target/bench-readiness/bam-report-map.tsv` with one governed
+  `render-bam-report-map` writes `benchmarks/readiness/bam-report-map.tsv` with one governed
   row per BAM benchmark-ready stage, fixing the report section, summary table, workflow branch,
   and benchmark anchor tool that downstream BAM stage reporting must use.
 - `bijux-dna bench readiness render-corpus-asset-coverage-gate`
   `render-corpus-asset-coverage-gate` writes
-  `target/bench-readiness/gate-corpus-assets-complete.json` with one governed row per FASTQ or
+  `benchmarks/readiness/gate-corpus-assets-complete.json` with one governed row per FASTQ or
   BAM readiness binding, classifying whether the row belongs to benchmark-submission scope or an
   excluded cohort and proving that every benchmark-ready row retains governed corpus assignment
   plus any required stage-tool asset bindings before HPC benchmark submission proceeds.
 - `bijux-dna bench readiness render-essential-pipeline-corpus-assets`
   `render-essential-pipeline-corpus-assets` writes
-  `target/bench-readiness/essential-pipeline-corpus-assets.tsv` with one governed row per node in
+  `benchmarks/readiness/essential-pipeline-corpus-assets.tsv` with one governed row per node in
   the essential local pipeline set, keeping explicit `pipeline_id`, `node_id`, `stage_id`,
   `corpus_id`, derived `asset_profile_id`, symbolic input handoffs, symbolic output handoffs, and
   resolution status reviewer-visible so no essential pipeline node falls back to implicit global
   corpus or asset paths.
 - `bijux-dna bench readiness render-essential-pipeline-partial-resume`
   `render-essential-pipeline-partial-resume` writes
-  `target/bench-readiness/essential-pipeline-partial-resume.json` and a governed simulation tree
-  under `target/bench-readiness/essential-pipeline-partial-resume-tree/`. It proves partial-resume
+  `benchmarks/readiness/essential-pipeline-partial-resume.json` and a governed simulation tree
+  under `benchmarks/readiness/essential-pipeline-partial-resume-tree/`. It proves partial-resume
   behavior against validated `stage-result.json` manifests, forcing the seeded
   `relatedness-segments-vcf` IBD node to rerun while preserving the independent ROH branch.
 - `bijux-dna bench readiness render-essential-pipeline-failure-isolation`
   `render-essential-pipeline-failure-isolation` writes
-  `target/bench-readiness/essential-pipeline-failure-isolation.json` and a governed simulation
-  tree under `target/bench-readiness/essential-pipeline-failure-isolation-tree/`. It injects a
+  `benchmarks/readiness/essential-pipeline-failure-isolation.json` and a governed simulation
+  tree under `benchmarks/readiness/essential-pipeline-failure-isolation-tree/`. It injects a
   real failed `stage-result.json` for the seeded `relatedness-segments-vcf` IBD node, then proves
   that only the dependent demography descendant is blocked while the unrelated ROH branch remains
   completed.
 - `bijux-dna bench readiness render-essential-pipeline-report-map`
   `render-essential-pipeline-report-map` writes
-  `target/bench-readiness/essential-pipeline-report-map.tsv` with one governed row per declared
+  `benchmarks/readiness/essential-pipeline-report-map.tsv` with one governed row per declared
   essential-pipeline output symbol, keeping explicit `pipeline_id`, `stage_id`, `tool_id`,
   `output_metric`, `report_section`, and `failure_column`. It fails closed unless every declared
   FASTQ, BAM, and VCF pipeline output is collected into a stable report section.
 - `bijux-dna bench readiness render-essential-pipelines-ready`
   `render-essential-pipelines-ready` writes
-  `target/bench-readiness/ESSENTIAL_PIPELINES_READY.json` and fail-closes across Goals 261–276. It
+  `benchmarks/readiness/ESSENTIAL_PIPELINES_READY.json` and fail-closes across Goals 261–276. It
   reruns the governed essential pipeline DAG, corpus/assets, command rendering, fake-run,
   partial-resume, failure-isolation, and report-map surfaces, then cross-checks that the shared
   node and output counts still agree.
 - `bijux-dna bench readiness render-essential-pipeline-commands`
   `render-essential-pipeline-commands` writes
-  `target/bench-readiness/essential-pipelines-rendered-commands.sh` plus
-  `target/bench-readiness/essential-pipelines-rendered-commands.argv.jsonl` with one governed row
+  `benchmarks/readiness/essential-pipelines-rendered-commands.sh` plus
+  `benchmarks/readiness/essential-pipelines-rendered-commands.argv.jsonl` with one governed row
   per essential pipeline node, preserving real executable command steps for FASTQ, BAM, and VCF
   nodes while keeping owned `bijux-dna` materialization fallbacks explicit for composed local
   stages such as `fastq.report_qc` and feature-gated surfaces such as `bam.genotyping`.
 - `bijux-dna bench readiness render-commands`
-  `render-commands` writes `target/bench-readiness/rendered-commands.sh` with one governed shell
+  `render-commands` writes `benchmarks/readiness/rendered-commands.sh` with one governed shell
   command per local benchmark stage command, preserving a parseable `bash` script that can be
   syntax-checked before any HPC-facing submission or wrapper generation.
 - `bijux-dna bench readiness render-command-argv`
-  `render-command-argv` writes `target/bench-readiness/rendered-commands.argv.jsonl` with one
+  `render-command-argv` writes `benchmarks/readiness/rendered-commands.argv.jsonl` with one
   governed JSON row per benchmark command, preserving the executable and arguments as a separated
   `argv` array so local benchmark rendering is reproducible without shell-parsing ambiguity.
 - `bijux-dna bench readiness render-vcf-commands`
-  `render-vcf-commands` writes both `target/bench-readiness/vcf-rendered-commands.sh` and
-  `target/bench-readiness/vcf-rendered-commands.argv.jsonl` for the canonical VCF
+  `render-vcf-commands` writes both `benchmarks/readiness/vcf-rendered-commands.sh` and
+  `benchmarks/readiness/vcf-rendered-commands.argv.jsonl` for the canonical VCF
   `benchmark_ready` slice. The shell script preserves the real multi-step adapter pipelines in a
   `bash -n` parseable form, and the JSONL preserves one governed row per benchmark-ready VCF pair
   with structured `command_steps` argv so VCF command rendering stays executable without shell
   placeholders or synthetic `echo execute` stubs.
 - `bijux-dna bench readiness render-all-domain-commands`
   `render-all-domain-commands` writes both
-  `target/bench-readiness/rendered-commands-all-domains.sh` and
-  `target/bench-readiness/rendered-commands-all-domains.argv.jsonl` with one governed row per
+  `benchmarks/readiness/rendered-commands-all-domains.sh` and
+  `benchmarks/readiness/rendered-commands-all-domains.argv.jsonl` with one governed row per
   benchmark-ready FASTQ, BAM, and VCF result binding. Each row keeps the stable `result_id`,
   domain identity, benchmark status, and structured command steps explicit, and the command fails
   closed unless all governed rows render real commands with no placeholder execution text.
 - `bijux-dna bench readiness render-vcf-adapters-ready`
-  `render-vcf-adapters-ready` writes `target/bench-readiness/VCF_ADAPTERS_READY.json` and
+  `render-vcf-adapters-ready` writes `benchmarks/readiness/VCF_ADAPTERS_READY.json` and
   fail-closes across the governed VCF readiness slice for Goals 231 through 244. The gate reruns
   each owned VCF readiness surface, keeps one explicit row per goal with `goal_id`, `surface`,
   `output_path`, `ok`, and `detail`, and also verifies that the canonical benchmark-ready VCF pair
@@ -441,20 +441,20 @@ Visible aliases are part of the operator surface:
   `memory_gb`, `walltime_minutes`, and `scratch_gb` hints plus the declared resource-origin
   strategy used to derive those local benchmark defaults.
 - `bijux-dna bench readiness render-bam-stage-decision-table`
-  `render-bam-stage-decision-table` writes `target/bench-readiness/bam-stage-decision-table.tsv`
+  `render-bam-stage-decision-table` writes `benchmarks/readiness/bam-stage-decision-table.tsv`
   with one governed row per BAM stage in the 24-stage local benchmark slice, classifying each
   stage as `benchmark_ready`, `needs_adapter`, `needs_parser`, `needs_corpus`, or
   `future_not_in_hpc_round` from the current registry, adapter, parser, and corpus surfaces.
 - `bijux-dna bench readiness render-bam-command-adapter-coverage`
   `render-bam-command-adapter-coverage` writes
-  `target/bench-readiness/bam-command-adapter-coverage.tsv` with one governed row per BAM
+  `benchmarks/readiness/bam-command-adapter-coverage.tsv` with one governed row per BAM
   stage-tool binding in the 24-stage benchmark slice, carrying `benchmark_status`,
   `adapter_coverage`, `readiness_gap`, and the underlying `support_status`, `adapter_status`,
   `parser_status`, and `corpus_status`. The report proves which BAM benchmark rows are already
   fully renderable with parser-fixture-validated outputs and fixture-backed corpus coverage while
   keeping parser-blocked, corpus-blocked, and support-blocked rows explicit.
 - `bijux-dna bench readiness render-bam-corpus-assignment`
-  `render-bam-corpus-assignment` writes `target/bench-readiness/bam-corpus-assignment.tsv` with
+  `render-bam-corpus-assignment` writes `benchmarks/readiness/bam-corpus-assignment.tsv` with
   one governed row per admitted BAM stage-tool binding, carrying the resolved
   `corpus_family_id`, `fixture_id`, and the benchmark readiness context that proves whether a row
   belongs on the general FASTQ alignment corpus, the BAM mini corpus, the aDNA BAM fixture, the
@@ -467,7 +467,7 @@ Visible aliases are part of the operator surface:
   the BAM domain-owned routing contract against the local corpus compatibility matrix and the
   governed BAM fixture/config evidence so corpus drift cannot hide behind stage-level labels.
 - `bijux-dna bench readiness render-bam-parser-coverage`
-  `render-bam-parser-coverage` writes `target/bench-readiness/bam-parser-coverage.tsv` with one
+  `render-bam-parser-coverage` writes `benchmarks/readiness/bam-parser-coverage.tsv` with one
   governed row per BAM stage-tool binding that is already benchmark-ready. Each row carries
   `parser_coverage`, `parser_status`, `support_status`, `adapter_status`, and `corpus_status`,
   proving that the benchmark-ready BAM slice stays fully parser-fixture-validated while still
@@ -481,14 +481,14 @@ Visible aliases are part of the operator surface:
   cannot hide behind backend-specific metric layouts.
 - `bijux-dna bench readiness render-bam-comparable-metrics`
   `render-bam-comparable-metrics` writes
-  `target/bench-readiness/bam-comparable-metrics.tsv` with one governed row per BAM stage that
+  `benchmarks/readiness/bam-comparable-metrics.tsv` with one governed row per BAM stage that
   still has more than one admitted comparable tool in the BAM benchmark surface. Each row carries
   the admitted comparable tools, the default tool, the current corpus-routing status, and the
   governed shared metric fields that make same-stage BAM tool comparisons interpretable without
   relying on tool-private report details.
 - `bijux-dna bench readiness render-bam-adapter-output-contract`
   `render-bam-adapter-output-contract` writes
-  `target/bench-readiness/bam-adapter-output-contract.tsv` with one governed row per BAM
+  `benchmarks/readiness/bam-adapter-output-contract.tsv` with one governed row per BAM
   stage-tool binding in the 24-stage benchmark slice, proving whether each runnable or plannable
   adapter declares every governed stage artifact in both `tool.outputs` and
   `execution_contract.expected_outputs`, identifies the normalized metrics artifact and
@@ -496,7 +496,7 @@ Visible aliases are part of the operator surface:
   stderr, and stage-result manifest path templates used by local dry-run execution.
 - `bijux-dna bench readiness render-fastq-command-adapter-coverage`
   `render-fastq-command-adapter-coverage` writes
-  `target/bench-readiness/fastq-command-adapter-coverage.tsv` with one governed row per FASTQ
+  `benchmarks/readiness/fastq-command-adapter-coverage.tsv` with one governed row per FASTQ
   stage-tool binding in the 27-stage benchmark slice, carrying `benchmark_status`,
   `adapter_coverage`, `readiness_gap`, and the underlying `support_status`, `adapter_status`,
   `parser_status`, and `corpus_status`. The report proves which FASTQ benchmark rows are already
@@ -504,14 +504,14 @@ Visible aliases are part of the operator surface:
   while keeping corpus-blocked and planned-contract rows explicit instead of hidden.
 - `bijux-dna bench readiness render-fastq-comparable-metrics`
   `render-fastq-comparable-metrics` writes
-  `target/bench-readiness/fastq-comparable-metrics.tsv` with one governed row per FASTQ stage
+  `benchmarks/readiness/fastq-comparable-metrics.tsv` with one governed row per FASTQ stage
   that both participates in the observer-specialized comparable benchmark surface and still has
   more than one comparable tool. Each row carries the admitted comparable tools, the default tool,
   the current corpus-routing status, and the governed shared metric fields that make same-stage
   tool comparisons interpretable without relying on tool-private report details.
 - `bijux-dna bench readiness render-fastq-corpus-assignment`
   `render-fastq-corpus-assignment` writes
-  `target/bench-readiness/fastq-corpus-assignment.tsv` with one governed row per FASTQ
+  `benchmarks/readiness/fastq-corpus-assignment.tsv` with one governed row per FASTQ
   stage-tool binding in the 27-stage benchmark slice, carrying `benchmark_status`,
   `support_status`, `adapter_status`, `parser_status`, and either an assigned
   `corpus_family_id` plus `fixture_id` or a precise `excluded_reason`. The report validates that
@@ -523,7 +523,7 @@ Visible aliases are part of the operator surface:
   `corpus-03-amplicon-mini`.
 - `bijux-dna bench readiness render-corpus-incompatibility`
   `render-corpus-incompatibility` writes
-  `target/bench-readiness/corpus-incompatibility.tsv` with one governed row per benchmark-ready
+  `benchmarks/readiness/corpus-incompatibility.tsv` with one governed row per benchmark-ready
   FASTQ or BAM stage-tool binding against each incompatible alternative fixture, carrying the
   incompatible fixture IDs, the required governed replacement, the `incompatibility_kind`, any
   required stage assets, and the exact contract evidence that blocks the mismatch. The report is
@@ -538,7 +538,7 @@ Visible aliases are part of the operator surface:
   extension, its durable extension ID, and the required normalized key count so schema drift
   cannot hide behind parser-specific report formats.
 - `bijux-dna bench readiness render-fastq-parser-coverage`
-  `render-fastq-parser-coverage` writes `target/bench-readiness/fastq-parser-coverage.tsv` with
+  `render-fastq-parser-coverage` writes `benchmarks/readiness/fastq-parser-coverage.tsv` with
   one governed row per FASTQ stage-tool binding that already has governed support,
   adapter-backed command rendering, and fixture-backed corpus coverage. Each row carries
   `parser_coverage`, `parser_status`, `support_status`, `adapter_status`, and `corpus_status`,
@@ -546,14 +546,14 @@ Visible aliases are part of the operator surface:
   of letting parser drift hide inside the broader readiness summary.
 - `bijux-dna bench readiness render-fastq-adapter-output-contract`
   `render-fastq-adapter-output-contract` writes
-  `target/bench-readiness/fastq-adapter-output-contract.tsv` with one governed row per FASTQ
+  `benchmarks/readiness/fastq-adapter-output-contract.tsv` with one governed row per FASTQ
   stage-tool binding in the 27-stage benchmark slice, proving whether each runnable or plannable
   adapter declares every governed stage artifact in both `tool.outputs` and
   `execution_contract.expected_outputs`, identifies the normalized metrics artifact and raw output
   artifacts, and records the deterministic stdout, stderr, and stage-result manifest path
   templates used by local dry-run execution.
 - `bijux-dna bench readiness render-fastq-tool-serving-map`
-  `render-fastq-tool-serving-map` writes `target/bench-readiness/fastq-tool-serving-map.tsv`
+  `render-fastq-tool-serving-map` writes `benchmarks/readiness/fastq-tool-serving-map.tsv`
   with one governed row per FASTQ stage-tool binding in the 27-stage benchmark slice, carrying
   `tool_id`, `stage_id`, `support_status`, `adapter_status`, `parser_status`, and `corpus_status`
   from the real FASTQ governance contracts and local corpus-compatibility matrix. The amplicon
@@ -561,7 +561,7 @@ Visible aliases are part of the operator surface:
   clustering, and abundance normalization all remain fixture-backed by
   `corpus-03-amplicon-mini`.
 - `bijux-dna bench readiness render-bam-tool-serving-map`
-  `render-bam-tool-serving-map` writes `target/bench-readiness/bam-tool-serving-map.tsv`
+  `render-bam-tool-serving-map` writes `benchmarks/readiness/bam-tool-serving-map.tsv`
   with one governed row per BAM stage-tool binding in the 24-stage benchmark slice, carrying
   `tool_id`, `stage_id`, `support_status`, `adapter_status`, `parser_status`, and `corpus_status`
   from the real BAM stage catalog, tool contracts, planner admission, and local corpus-compatibility
@@ -569,7 +569,7 @@ Visible aliases are part of the operator surface:
   tool contract (`missing_contract`) or is admitted by stage metadata but not by the BAM tool YAML
   (`mismatched_contract`).
 - `bijux-dna bench readiness render-vcf-tool-serving-map`
-  `render-vcf-tool-serving-map` writes `target/bench-readiness/vcf-tool-serving-map.tsv` with one
+  `render-vcf-tool-serving-map` writes `benchmarks/readiness/vcf-tool-serving-map.tsv` with one
   governed row per VCF stage-tool matrix binding, carrying `tool_id`, `stage_id`,
   `support_status`, `adapter_status`, `parser_status`, `corpus_status`, `asset_status`, and
   `benchmark_status` from the owned VCF stage catalog and matrix. The report fails closed unless
@@ -577,7 +577,7 @@ Visible aliases are part of the operator surface:
   the canonical VCF stage contracts.
 - `bijux-dna bench readiness render-all-domain-stage-tool-table`
   `render-all-domain-stage-tool-table` writes
-  `target/bench-readiness/all-domain-stage-tool-table.tsv` with one governed row per FASTQ, BAM,
+  `benchmarks/readiness/all-domain-stage-tool-table.tsv` with one governed row per FASTQ, BAM,
   and VCF stage-tool binding in the unified benchmark-ready and planned local surface. Each row
   keeps `domain`, `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `adapter_id`,
   `parser_id`, and `benchmark_status` explicit. FASTQ and BAM rows use normalized owned adapter
@@ -585,38 +585,38 @@ Visible aliases are part of the operator surface:
   The command fails closed unless every benchmark-ready row from the domain-local readiness tables
   appears exactly once in the unified cross-domain view.
 - `bijux-dna bench readiness render-vcf-comparable-metrics`
-  `render-vcf-comparable-metrics` writes `target/bench-readiness/vcf-comparable-metrics.tsv`
+  `render-vcf-comparable-metrics` writes `benchmarks/readiness/vcf-comparable-metrics.tsv`
   with one governed row per shared normalized metric across the retained multi-tool VCF stage
   slice. Each row keeps `stage_id`, `metric_id`, `metric_name`, `unit`, `direction`, `required`,
   and `tools_covered`, and the command fails closed unless every retained multi-tool stage has at
   least one governed normalized metric shared across all covered tools.
 - `bijux-dna bench readiness render-vcf-expected-benchmark-results`
   `render-vcf-expected-benchmark-results` writes
-  `target/bench-readiness/vcf-expected-benchmark-results.tsv` with one row per benchmark-ready VCF
+  `benchmarks/readiness/vcf-expected-benchmark-results.tsv` with one row per benchmark-ready VCF
   stage-tool-corpus-asset binding. Each row keeps `domain`, `stage_id`, `tool_id`, `corpus_id`,
   `asset_profile_id`, `expected_outputs`, `expected_metrics`, and `report_section`, and the
   command fails closed unless the owned benchmark-ready VCF slice retains complete expected-result
   coverage.
 - `bijux-dna bench readiness render-vcf-missing-result-report`
   `render-vcf-missing-result-report` writes
-  `target/bench-readiness/vcf-missing-result-report-test.json` after materializing a governed fake
-  VCF benchmark-result tree under `target/bench-readiness/vcf-missing-result-report-fixture`,
+  `benchmarks/readiness/vcf-missing-result-report-test.json` after materializing a governed fake
+  VCF benchmark-result tree under `benchmarks/readiness/vcf-missing-result-report-fixture`,
   deleting exactly one governed VCF manifest, and auditing the remaining rows. The report fails
   closed unless exactly one row is visible as `missing_result` instead of disappearing from the
   table.
 - `bijux-dna bench readiness render-vcf-report-map`
-  `render-vcf-report-map` writes `target/bench-readiness/vcf-report-map.tsv` with one row per
+  `render-vcf-report-map` writes `benchmarks/readiness/vcf-report-map.tsv` with one row per
   expected benchmark-ready VCF result. Each row keeps `stage_id`, `tool_id`, `section_id`,
   `summary_table`, `metric_columns`, and `failure_columns`, and the command fails closed unless
   every expected VCF result row maps to one governed report section and summary table.
 - `bijux-dna bench readiness render-vcf-parsers-report-ready`
-  `render-vcf-parsers-report-ready` writes `target/bench-readiness/VCF_PARSERS_REPORT_READY.json`
+  `render-vcf-parsers-report-ready` writes `benchmarks/readiness/VCF_PARSERS_REPORT_READY.json`
   and fail-closes across Goals 246–260. The gate reruns the governed VCF schema, parser-fixture,
   parser-failure, parser-coverage, expected-result, missing-result, comparable-metric, and
   report-map surfaces, then validates that parser coverage, expected results, and report mapping
   stay aligned on the same benchmark-ready VCF pair slice.
 - `bijux-dna bench readiness render-vcf-parser-coverage`
-  `render-vcf-parser-coverage` writes `target/bench-readiness/vcf-parser-coverage.tsv` with one
+  `render-vcf-parser-coverage` writes `benchmarks/readiness/vcf-parser-coverage.tsv` with one
   row per benchmark-ready VCF stage-tool parser surface. Each row keeps `stage_id`, `tool_id`,
   `parser_id`, `fixture_path`, `schema_id`, and `coverage_status`, and the command fails closed
   unless every benchmark-ready VCF row has a governed parser fixture and schema mapping.
@@ -629,7 +629,7 @@ Visible aliases are part of the operator surface:
   one shared schema family instead of drifting into tool-private JSON shapes.
 - `bijux-dna bench readiness render-vcf-parser-failure-tests`
   `render-vcf-parser-failure-tests` writes
-  `target/bench-readiness/vcf-parser-failure-tests.json` with seven governed malformed-output
+  `benchmarks/readiness/vcf-parser-failure-tests.json` with seven governed malformed-output
   probes across the retained VCF parser surfaces: empty output, malformed VCF, missing index,
   missing sample column, malformed PCA table, malformed imputation quality JSON, and malformed
   segment TSV. Each passing row must retain `parser_id`, `stage_id`, `tool_id`, and a structured
@@ -637,7 +637,7 @@ Visible aliases are part of the operator surface:
   output.
 - `bijux-dna bench readiness render-vcf-adapter-missing-input-tests`
   `render-vcf-adapter-missing-input-tests` writes
-  `target/bench-readiness/vcf-adapter-missing-input-tests.json` with one governed missing-input
+  `benchmarks/readiness/vcf-adapter-missing-input-tests.json` with one governed missing-input
   probe row for each required Goal 243 VCF role: `bam`, `bai`, `fasta`, `fai`, `vcf`,
   `vcf_index`, `sites_bed`, `panel_vcf`, `map_file`, and `sample_metadata`. The report replays
   adapter-contract validation before any external tool argv can run, and it keeps the one honest
@@ -645,14 +645,14 @@ Visible aliases are part of the operator surface:
   contract because no retained VCF adapter currently consumes a target-sites BED directly.
 - `bijux-dna bench readiness render-vcf-adapter-output-coverage`
   `render-vcf-adapter-output-coverage` writes
-  `target/bench-readiness/vcf-adapter-output-coverage.tsv` with one governed row per retained VCF
+  `benchmarks/readiness/vcf-adapter-output-coverage.tsv` with one governed row per retained VCF
   adapter binding across `bcftools`, `angsd`, `plink`, `plink2`, `eigensoft`, `shapeit5`,
   `eagle`, `beagle`, `germline`, `ibdseq`, `ibdhap`, and `ibdne`. Each row keeps explicit raw
   outputs, normalized parser-facing outputs, deterministic stdout/stderr/stage-result paths, and
   index outputs where compressed VCF or BCF artifacts require them. The report fails closed unless
   every benchmark-ready VCF row has complete output declarations.
 - `bijux-dna bench readiness render-vcf-angsd-adapter`
-  `render-vcf-angsd-adapter` writes `target/bench-readiness/adapters/angsd.vcf.json` with one
+  `render-vcf-angsd-adapter` writes `benchmarks/readiness/adapters/angsd.vcf.json` with one
   governed row per admitted VCF `angsd` registry binding. Each row keeps the materialized BAM-list
   helper when the stage is BAM-backed, the governed reference and sites inputs, the declared
   likelihood model, the output prefix, the parser output ids, the concrete `angsd` argv, and a
@@ -661,7 +661,7 @@ Visible aliases are part of the operator surface:
   contract.
 - `bijux-dna bench readiness render-vcf-descent-family-adapter`
   `render-vcf-descent-family-adapter` writes
-  `target/bench-readiness/adapters/descent-family.vcf.json` with one governed row per retained VCF
+  `benchmarks/readiness/adapters/descent-family.vcf.json` with one governed row per retained VCF
   descent binding across `plink2` for `vcf.roh`, `germline`, `ibdseq`, and `ibdhap` for `vcf.ibd`,
   and `ibdne` for `vcf.demography`. Each row keeps the cohort VCF or materialized IBD-segment TSV
   input, the normalized ROH, IBD, or demography output, the raw side outputs, the parser output
@@ -669,7 +669,7 @@ Visible aliases are part of the operator surface:
   benchmark status by keeping `plink2`, `germline`, and `ibdne` benchmark-ready while `ibdseq` and
   `ibdhap` remain explicit retained rows that are still not benchmark-ready.
 - `bijux-dna bench readiness render-vcf-eigensoft-adapter`
-  `render-vcf-eigensoft-adapter` writes `target/bench-readiness/adapters/eigensoft.vcf.json` with
+  `render-vcf-eigensoft-adapter` writes `benchmarks/readiness/adapters/eigensoft.vcf.json` with
   one governed row per admitted VCF `eigensoft` registry binding. Each row keeps the concrete
   `convertf` par file, the declared `.geno`, `.snp`, and `.ind` conversion outputs, the
   `smartpca` par file, the declared `.evec`, `.eval`, and `.smartpca.log` outputs, plus the
@@ -677,7 +677,7 @@ Visible aliases are part of the operator surface:
   unless both governed EIGENSOFT rows retain real conversion and PCA command rendering instead of
   drifting back to manual conversion or placeholder argv.
 - `bijux-dna bench readiness render-vcf-shapeit5-adapter`
-  `render-vcf-shapeit5-adapter` writes `target/bench-readiness/adapters/shapeit5.vcf.json` with
+  `render-vcf-shapeit5-adapter` writes `benchmarks/readiness/adapters/shapeit5.vcf.json` with
   the governed benchmark-ready `vcf.phasing` row for `shapeit5`. The report materializes the owned
   reference panel and genetic map, keeps the input cohort VCF, phased output VCF, index output,
   phase-block and switch-proxy reports, parser-visible phasing QC and phasing manifest outputs,
@@ -685,7 +685,7 @@ Visible aliases are part of the operator surface:
   retained benchmark phasing backend cannot drift back to placeholders or implicit panel/map
   wiring.
 - `bijux-dna bench readiness render-vcf-eagle-adapter`
-  `render-vcf-eagle-adapter` writes `target/bench-readiness/adapters/eagle.vcf.json` with the
+  `render-vcf-eagle-adapter` writes `benchmarks/readiness/adapters/eagle.vcf.json` with the
   retained-but-not-benchmark-ready `vcf.phasing` row for `eagle`. The report keeps the governed
   input cohort VCF, owned reference panel and genetic map, phased VCF, index output, phasing QC
   and phasing manifest parser outputs, log output, concrete `eagle --vcfTarget ... --vcfRef ...
@@ -693,7 +693,7 @@ Visible aliases are part of the operator surface:
   phasing coverage stays reviewer-visible instead of hiding behind the matrix’s single benchmark
   row.
 - `bijux-dna bench readiness render-vcf-beagle-adapter`
-  `render-vcf-beagle-adapter` writes `target/bench-readiness/adapters/beagle.vcf.json` with the
+  `render-vcf-beagle-adapter` writes `benchmarks/readiness/adapters/beagle.vcf.json` with the
   retained-but-not-benchmark-ready `vcf.phasing` row for `beagle`. The report keeps the governed
   input cohort VCF, owned reference panel and genetic map, phased VCF, index output, phasing QC
   and phasing manifest parser outputs, log output, concrete `beagle gt=... ref=... map=... out=...`
@@ -701,7 +701,7 @@ Visible aliases are part of the operator surface:
   parser-complete even when it is not the current benchmark binding.
 - `bijux-dna bench readiness render-vcf-imputation-family-adapter`
   `render-vcf-imputation-family-adapter` writes
-  `target/bench-readiness/adapters/imputation-family.vcf.json` with one governed row per retained
+  `benchmarks/readiness/adapters/imputation-family.vcf.json` with one governed row per retained
   VCF imputation binding across `beagle`, `glimpse`, `impute5`, and `minimac4` for both
   `vcf.imputation` and `vcf.impute`. Each row keeps the target cohort VCF, owned reference panel
   VCF and `panel.m3vcf.gz` when required, genetic map or region literal when required, the
@@ -710,7 +710,7 @@ Visible aliases are part of the operator surface:
   The report stays honest about benchmark status by keeping `beagle` as the only benchmark-ready
   imputation backend while the other retained rows remain explicit and `not_benchmark_ready`.
 - `bijux-dna bench readiness render-vcf-plink-adapter`
-  `render-vcf-plink-adapter` writes `target/bench-readiness/adapters/plink.vcf.json` with one
+  `render-vcf-plink-adapter` writes `benchmarks/readiness/adapters/plink.vcf.json` with one
   governed row per admitted VCF `plink` registry binding. Each row keeps the concrete cohort
   command argv, declared input artifacts, raw PLINK outputs such as `.imiss`, `.lmiss`, `.frq`,
   `.het`, `.hwe`, `.bed`, `.bim`, `.fam`, and `.log`, plus the normalized metrics mapping to
@@ -718,7 +718,7 @@ Visible aliases are part of the operator surface:
   missing-input probe result and an explicit normalized-report mapping instead of leaving raw
   PLINK outputs unmapped.
 - `bijux-dna bench readiness render-vcf-plink2-adapter`
-  `render-vcf-plink2-adapter` writes `target/bench-readiness/adapters/plink2.vcf.json` with one
+  `render-vcf-plink2-adapter` writes `benchmarks/readiness/adapters/plink2.vcf.json` with one
   governed row per benchmarked VCF `plink2` matrix binding. Each row keeps the concrete command
   argv, declared input artifacts, raw PLINK2 outputs such as `.smiss`, `.vmiss`, `.afreq`,
   `.het`, `.hardy`, `.eigenvec`, `.eigenval`, `.hom`, `.prune.in`, `.prune.out`, and `.log`,
@@ -727,45 +727,45 @@ Visible aliases are part of the operator surface:
   PLINK2 PCA-proxy contract by keeping eigen outputs explicit instead of pretending PLINK2 owns a
   native Q-matrix artifact.
 - `bijux-dna bench readiness render-vcf-bcftools-adapter`
-  `render-vcf-bcftools-adapter` writes `target/bench-readiness/adapters/bcftools.vcf.json` with
+  `render-vcf-bcftools-adapter` writes `benchmarks/readiness/adapters/bcftools.vcf.json` with
   one governed row per retained VCF `bcftools` matrix binding. Each row keeps the concrete
   command-step argv, declared input artifacts, raw output artifacts, parser output artifacts, and
   a real missing-input probe result, so calling, filtering, GL propagation, postprocess, stats,
   and panel-preparation rows cannot fall back to placeholder execution or silent input drift.
 - `bijux-dna bench readiness render-orphan-tools`
-  `render-orphan-tools` writes `target/bench-readiness/orphan-tools.tsv` with one governed row per
+  `render-orphan-tools` writes `benchmarks/readiness/orphan-tools.tsv` with one governed row per
   FASTQ or BAM tool contract that exists in scope but serves no currently rendered benchmark stage.
   Each row carries `domain`, `tool_id`, `decision`, `declared_stage_ids`, `benchmark_stage_ids`,
   and `reason`, and every orphan row is forced into an explicit disposition:
   `register_to_stage`, `remove_from_scope`, or `future_tool`.
 - `bijux-dna bench readiness render-vcf-orphan-tools`
-  `render-vcf-orphan-tools` writes `target/bench-readiness/vcf-orphan-tools.tsv` with one governed
+  `render-vcf-orphan-tools` writes `benchmarks/readiness/vcf-orphan-tools.tsv` with one governed
   row per VCF tool that is still registered and required in the VCF tool catalogs but serves zero
   current VCF matrix rows. Each row carries `tool_id`, `registered_binary`, `served_stage_count`,
   and `decision`, and the detector fails closed unless every orphan is explicitly
   `future_not_benchmark_ready` or `remove_from_scope`.
 - `bijux-dna bench readiness render-vcf-undercovered-stages`
-  `render-vcf-undercovered-stages` writes `target/bench-readiness/vcf-undercovered-stages.tsv`
+  `render-vcf-undercovered-stages` writes `benchmarks/readiness/vcf-undercovered-stages.tsv`
   with one governed row per VCF stage that admits multiple registered tool backends but currently
   benchmarks only one. Each row carries `stage_id`, `valid_tool_classes`, `registered_tools`,
   `missing_tools`, and `decision`, and the detector fails closed unless every undercovered stage is
   explicitly `future_not_benchmark_ready` or `limit_to_specialized_tool`.
 - `bijux-dna bench readiness render-vcf-matrix-registry-consistency`
   `render-vcf-matrix-registry-consistency` writes
-  `target/bench-readiness/vcf-matrix-registry-consistency.json` and fails closed unless every VCF
+  `benchmarks/readiness/vcf-matrix-registry-consistency.json` and fails closed unless every VCF
   matrix row is admitted by the VCF registry and every benchmark-ready VCF registry pair is present
   in the matrix. The report keeps `matrix_row_unregistered` and
   `benchmark_ready_registry_pair_missing_from_matrix` drift rows explicit when disagreement returns.
 - `bijux-dna bench readiness render-missing-benchmark-pairs`
   `render-missing-benchmark-pairs` writes
-  `target/bench-readiness/missing-benchmark-pairs.tsv` with one governed row per FASTQ or BAM
+  `benchmarks/readiness/missing-benchmark-pairs.tsv` with one governed row per FASTQ or BAM
   stage-tool pair that is admitted by the domain contracts but missing from the current benchmark
   matrix. Each row carries `domain`, `stage_id`, `tool_id`, `support_status`,
   `registered_tool_ids`, and `reason` so compatible pairs cannot disappear silently before
   readiness review.
 - `bijux-dna bench readiness render-tool-id-normalization`
   `render-tool-id-normalization` writes
-  `target/bench-readiness/tool-id-normalization.tsv` with one governed row per separator-folded
+  `benchmarks/readiness/tool-id-normalization.tsv` with one governed row per separator-folded
   FASTQ or BAM tool-ID alias cluster, carrying `normalized_tool_id`, `canonical_tool_id`,
   `alias_tool_ids`, `domains`, and `reason` so inconsistent `-` versus `_` benchmark tool naming
   cannot drift without an explicit canonical mapping.
@@ -784,7 +784,7 @@ Visible aliases are part of the operator surface:
   stage scope.
 - `bijux-dna bench readiness render-stage-registry-extra-pairs`
   `render-stage-registry-extra-pairs` writes
-  `target/bench-readiness/stage-registry-extra-pairs.tsv` with one governed row per benchmark-
+  `benchmarks/readiness/stage-registry-extra-pairs.tsv` with one governed row per benchmark-
   scoped stage-registry pair that is present in `configs/ci/registry/tool_registry.toml` but not
   admitted by the domain tool contracts. Each row carries `domain`, `stage_id`, `tool_id`,
   `contract_status`, `registry_sources`, `registered_stage_ids`, `intentional_override_status`,
@@ -792,13 +792,13 @@ Visible aliases are part of the operator surface:
   domain truth.
 - `bijux-dna bench readiness render-unregistered-benchmark-pairs`
   `render-unregistered-benchmark-pairs` writes
-  `target/bench-readiness/unregistered-benchmark-pairs.tsv` with one governed row per FASTQ or
+  `benchmarks/readiness/unregistered-benchmark-pairs.tsv` with one governed row per FASTQ or
   BAM benchmark-matrix pair that is missing from `configs/ci/registry/tool_registry.toml`. Each
   row carries `domain`, `stage_id`, `tool_id`, `support_status`, `registry_status`,
   `registered_stage_ids`, and `reason` so benchmark scope cannot silently outrun the production
   tool registry.
 - `bijux-dna bench readiness render-undercovered-stages`
-  `render-undercovered-stages` writes `target/bench-readiness/undercovered-stages.tsv` with one
+  `render-undercovered-stages` writes `benchmarks/readiness/undercovered-stages.tsv` with one
   governed row per benchmark stage that admits multiple tool options in the domain tool contracts
   but currently registers only one tool in the benchmark serving map. Each row carries `domain`,
   `stage_id`, `valid_tool_count`, `registered_tool_count`, `valid_tool_ids`,
@@ -808,7 +808,7 @@ Visible aliases are part of the operator surface:
   `list-stages` keeps the governed local stage inventory visible by domain. Single-domain JSON
   requests such as `--domain fastq`, `--domain bam`, or `--domain vcf` return the domain-local
   stage inventory directly. Multi-domain requests such as `--domain fastq,bam,vcf` write
-  `target/bench-readiness/all-domain-stage-list.json` and report separate `domain_counts` plus
+  `benchmarks/readiness/all-domain-stage-list.json` and report separate `domain_counts` plus
   the unified `total_stage_count` so FASTQ, BAM, and VCF coverage cannot silently drift together.
 - `bijux-dna bench local render-vcf-stage-catalog`
   `render-vcf-stage-catalog` writes `benchmarks/configs/local/vcf-stage-catalog.toml`, deriving the
