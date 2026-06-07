@@ -9,7 +9,7 @@ use crate::commands::cli::render;
 
 const BENCHMARK_PATHS_VALIDATE_SCHEMA_VERSION: &str = "bijux.bench.paths_validate.v1";
 pub(crate) const DEFAULT_BENCHMARK_PATHS_VALIDATE_PATH: &str =
-    "target/bench-readiness/benchmark-paths-validation.json";
+    "benchmarks/readiness/benchmark-paths-validation.json";
 const LEGACY_FIXTURE_WRAPPER_PATH: &str = "tests/fixtures";
 const LEGACY_FIXTURE_WRAPPER_TARGET: &str = "../benchmarks/tests/fixtures";
 const ROOT_TESTS_README_PATH: &str = "tests/README.md";
@@ -67,11 +67,15 @@ pub(crate) struct BenchmarkPathsValidationReport {
     pub(crate) existing_root_count: usize,
     pub(crate) tracked_marker_count: usize,
     pub(crate) ignored_root_count: usize,
+    pub(crate) readiness_snapshot_count: usize,
+    pub(crate) readiness_json_snapshot_count: usize,
+    pub(crate) readiness_tsv_snapshot_count: usize,
     pub(crate) root_tests_regular_file_count: usize,
     pub(crate) root_tests_readme_tracked_by_git: bool,
     pub(crate) violation_count: usize,
     pub(crate) ok: bool,
     pub(crate) legacy_fixture_wrapper: LegacyFixtureWrapperStatus,
+    pub(crate) readiness_snapshots: Vec<String>,
     pub(crate) roots: Vec<BenchmarkRootStatus>,
     pub(crate) violations: Vec<BenchmarkPathViolation>,
 }
@@ -121,7 +125,14 @@ pub(crate) fn validate_benchmark_paths(
         .map(|contract| benchmark_root_status(repo_root, contract))
         .collect::<Result<Vec<_>>>()?;
     let legacy_fixture_wrapper = legacy_fixture_wrapper_status(repo_root)?;
-    let violations = collect_path_violations(&roots, &legacy_fixture_wrapper);
+    let readiness_snapshots =
+        collect_readiness_snapshots(&repo_root.join("benchmarks/readiness"), repo_root)?;
+    let readiness_snapshot_count = readiness_snapshots.len();
+    let readiness_json_snapshot_count =
+        readiness_snapshots.iter().filter(|path| path.ends_with(".json")).count();
+    let readiness_tsv_snapshot_count =
+        readiness_snapshots.iter().filter(|path| path.ends_with(".tsv")).count();
+    let violations = collect_path_violations(&roots, &legacy_fixture_wrapper, &readiness_snapshots);
     let existing_root_count = roots.iter().filter(|root| root.exists).count();
     let tracked_marker_count = roots.iter().filter(|root| root.marker_tracked_by_git).count();
     let ignored_root_count = roots.iter().filter(|root| root.ignored_by_git).count();
@@ -134,11 +145,15 @@ pub(crate) fn validate_benchmark_paths(
         existing_root_count,
         tracked_marker_count,
         ignored_root_count,
+        readiness_snapshot_count,
+        readiness_json_snapshot_count,
+        readiness_tsv_snapshot_count,
         root_tests_regular_file_count: legacy_fixture_wrapper.root_tests_regular_file_count,
         root_tests_readme_tracked_by_git: legacy_fixture_wrapper.root_tests_readme_tracked_by_git,
         violation_count: violations.len(),
         ok: violations.is_empty(),
         legacy_fixture_wrapper,
+        readiness_snapshots,
         roots,
         violations,
     };
@@ -217,6 +232,7 @@ fn legacy_fixture_wrapper_status(repo_root: &Path) -> Result<LegacyFixtureWrappe
 fn collect_path_violations(
     roots: &[BenchmarkRootStatus],
     legacy_fixture_wrapper: &LegacyFixtureWrapperStatus,
+    readiness_snapshots: &[String],
 ) -> Vec<BenchmarkPathViolation> {
     let mut violations = Vec::new();
     for root in roots {
@@ -298,7 +314,63 @@ fn collect_path_violations(
             ),
         });
     }
+    if !readiness_snapshots.iter().any(|path| path.ends_with(".json")) {
+        violations.push(BenchmarkPathViolation {
+            relative_path: "benchmarks/readiness".to_string(),
+            violation_type: "missing_readiness_json_snapshot".to_string(),
+            detail: "tracked readiness proof must include at least one .json snapshot".to_string(),
+        });
+    }
+    if !readiness_snapshots.iter().any(|path| path.ends_with(".tsv")) {
+        violations.push(BenchmarkPathViolation {
+            relative_path: "benchmarks/readiness".to_string(),
+            violation_type: "missing_readiness_tsv_snapshot".to_string(),
+            detail: "tracked readiness proof must include at least one .tsv snapshot".to_string(),
+        });
+    }
     violations
+}
+
+fn collect_readiness_snapshots(root: &Path, repo_root: &Path) -> Result<Vec<String>> {
+    let mut snapshots = Vec::new();
+    collect_readiness_snapshots_recursive(root, repo_root, &mut snapshots)?;
+    snapshots.sort();
+    Ok(snapshots)
+}
+
+fn collect_readiness_snapshots_recursive(
+    path: &Path,
+    repo_root: &Path,
+    snapshots: &mut Vec<String>,
+) -> Result<()> {
+    if !path.exists() {
+        return Ok(());
+    }
+    for entry in
+        std::fs::read_dir(path).with_context(|| format!("read directory {}", path.display()))?
+    {
+        let entry = entry.with_context(|| format!("read entry in {}", path.display()))?;
+        let entry_path = entry.path();
+        let file_type = entry
+            .file_type()
+            .with_context(|| format!("read file type for {}", entry_path.display()))?;
+        if file_type.is_dir() {
+            collect_readiness_snapshots_recursive(&entry_path, repo_root, snapshots)?;
+            continue;
+        }
+        if !file_type.is_file() {
+            continue;
+        }
+        let extension = entry_path.extension().and_then(|value| value.to_str());
+        if !matches!(extension, Some("json" | "tsv")) {
+            continue;
+        }
+        let relative_path = entry_path
+            .strip_prefix(repo_root)
+            .with_context(|| format!("strip repo root from {}", entry_path.display()))?;
+        snapshots.push(relative_path.display().to_string());
+    }
+    Ok(())
 }
 
 fn count_regular_files_without_following_symlinks(path: &Path) -> Result<usize> {
@@ -436,6 +508,14 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         init_repo(temp.path());
         write_benchmark_root(temp.path());
+        write_text(
+            &temp.path().join("benchmarks/readiness/all-domain-schema-validation.json"),
+            "{\n  \"ok\": true\n}\n",
+        );
+        write_text(
+            &temp.path().join("benchmarks/readiness/all-domain-stage-tool-table.tsv"),
+            "stage_id\ttool_id\nvcf.call\tbcftools\n",
+        );
         write_text(&temp.path().join(".gitignore"), "");
         stage_all(temp.path());
 
@@ -451,6 +531,9 @@ mod tests {
         assert_eq!(report.existing_root_count, 5);
         assert_eq!(report.tracked_marker_count, 5);
         assert_eq!(report.ignored_root_count, 0);
+        assert_eq!(report.readiness_snapshot_count, 2);
+        assert_eq!(report.readiness_json_snapshot_count, 1);
+        assert_eq!(report.readiness_tsv_snapshot_count, 1);
         assert_eq!(report.root_tests_regular_file_count, 1);
         assert!(report.root_tests_readme_tracked_by_git);
         assert!(report.legacy_fixture_wrapper.exists);
@@ -458,6 +541,13 @@ mod tests {
         assert_eq!(
             report.legacy_fixture_wrapper.actual_target.as_deref(),
             Some("../benchmarks/tests/fixtures")
+        );
+        assert_eq!(
+            report.readiness_snapshots,
+            vec![
+                "benchmarks/readiness/all-domain-schema-validation.json".to_string(),
+                "benchmarks/readiness/all-domain-stage-tool-table.tsv".to_string(),
+            ]
         );
         assert!(report.violations.is_empty());
     }
@@ -499,10 +589,12 @@ mod tests {
             root_tests_readme_tracked_by_git: true,
             root_tests_regular_file_count: 1,
         };
-        let violations = collect_path_violations(&roots, &legacy_fixture_wrapper);
-        assert_eq!(violations.len(), 2);
+        let violations = collect_path_violations(&roots, &legacy_fixture_wrapper, &[]);
+        assert_eq!(violations.len(), 4);
         assert_eq!(violations[0].violation_type, "missing_marker");
         assert_eq!(violations[1].violation_type, "untracked_marker");
+        assert_eq!(violations[2].violation_type, "missing_readiness_json_snapshot");
+        assert_eq!(violations[3].violation_type, "missing_readiness_tsv_snapshot");
     }
 
     #[test]
@@ -519,7 +611,14 @@ mod tests {
             root_tests_readme_tracked_by_git: true,
             root_tests_regular_file_count: 3,
         };
-        let violations = collect_path_violations(&roots, &legacy_fixture_wrapper);
+        let violations = collect_path_violations(
+            &roots,
+            &legacy_fixture_wrapper,
+            &[
+                "benchmarks/readiness/all-domain-schema-validation.json".to_string(),
+                "benchmarks/readiness/all-domain-stage-tool-table.tsv".to_string(),
+            ],
+        );
         assert_eq!(violations.len(), 2);
         assert_eq!(violations[0].violation_type, "legacy_fixture_wrapper_not_symlink");
         assert_eq!(violations[1].violation_type, "unexpected_root_tests_files");
