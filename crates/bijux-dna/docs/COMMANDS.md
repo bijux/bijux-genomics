@@ -130,6 +130,12 @@ Visible aliases are part of the operator surface:
 
 ### Benchmarking
 - `bijux-dna bench config validate`
+- `bijux-dna bench paths validate`
+  `paths validate --strict` writes `target/bench-readiness/benchmark-paths-validation.json` and
+  proves that the tracked `benchmarks/`, `benchmarks/configs/`, `benchmarks/schemas/`,
+  `benchmarks/tests/`, and `benchmarks/readiness/` roots exist, are not ignored by git, and each
+  carries a tracked marker file. It fails closed when any benchmark root is missing, ignored, or
+  only present as an untracked local directory.
 - `bijux-dna bench run`
 - `bijux-dna bench status`
 - `bijux-dna bench workspace-value`
