@@ -55,53 +55,22 @@ fn bench_readiness_full_benchmark_dashboard_tracks_governed_summary_counts() {
         payload.get("passes_behavior_test").and_then(serde_json::Value::as_bool),
         Some(true)
     );
+    assert_eq!(payload.get("total_stages").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(payload.get("total_tools").and_then(serde_json::Value::as_u64), Some(64));
+    assert_eq!(payload.get("total_expected_jobs").and_then(serde_json::Value::as_u64), Some(120));
+    assert_eq!(payload.get("ready_jobs").and_then(serde_json::Value::as_u64), Some(117));
+    assert_eq!(payload.get("blocked_jobs").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(payload.get("missing_parsers").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("missing_adapters").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("missing_assets").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("failed_real_smokes").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
-        payload.get("total_stages").and_then(serde_json::Value::as_u64),
-        Some(71)
-    );
-    assert_eq!(
-        payload.get("total_tools").and_then(serde_json::Value::as_u64),
-        Some(64)
-    );
-    assert_eq!(
-        payload.get("total_expected_jobs").and_then(serde_json::Value::as_u64),
-        Some(120)
-    );
-    assert_eq!(
-        payload.get("ready_jobs").and_then(serde_json::Value::as_u64),
-        Some(117)
-    );
-    assert_eq!(
-        payload.get("blocked_jobs").and_then(serde_json::Value::as_u64),
-        Some(3)
-    );
-    assert_eq!(
-        payload.get("missing_parsers").and_then(serde_json::Value::as_u64),
-        Some(0)
-    );
-    assert_eq!(
-        payload.get("missing_adapters").and_then(serde_json::Value::as_u64),
-        Some(0)
-    );
-    assert_eq!(
-        payload.get("missing_assets").and_then(serde_json::Value::as_u64),
-        Some(0)
-    );
-    assert_eq!(
-        payload.get("failed_real_smokes").and_then(serde_json::Value::as_u64),
-        Some(0)
-    );
-    assert_eq!(
-        payload
-            .get("explicit_unsupported_pairs")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("explicit_unsupported_pairs").and_then(serde_json::Value::as_u64),
         Some(1)
     );
 
-    let metrics = payload
-        .get("metrics")
-        .and_then(serde_json::Value::as_array)
-        .expect("metrics array");
+    let metrics =
+        payload.get("metrics").and_then(serde_json::Value::as_array).expect("metrics array");
     assert_eq!(metrics.len(), 9);
 
     let counts = metrics
@@ -112,10 +81,8 @@ fn bench_readiness_full_benchmark_dashboard_tracks_governed_summary_counts() {
                 .and_then(serde_json::Value::as_str)
                 .expect("metric id")
                 .to_string();
-            let count = metric
-                .get("count")
-                .and_then(serde_json::Value::as_u64)
-                .expect("metric count");
+            let count =
+                metric.get("count").and_then(serde_json::Value::as_u64).expect("metric count");
             (metric_id, count)
         })
         .collect::<BTreeMap<_, _>>();

@@ -114,8 +114,10 @@ pub(crate) fn render_full_benchmark_dashboard(
         repo_root,
         PathBuf::from(DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH),
     )?;
-    let rendered_commands =
-        render_all_domain_commands(repo_root, PathBuf::from(DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH))?;
+    let rendered_commands = render_all_domain_commands(
+        repo_root,
+        PathBuf::from(DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH),
+    )?;
     let parser_collector = render_all_domain_parser_collector(
         repo_root,
         PathBuf::from(DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH),
@@ -124,8 +126,10 @@ pub(crate) fn render_full_benchmark_dashboard(
         repo_root,
         PathBuf::from(DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH),
     )?;
-    let real_smoke =
-        render_real_smoke_core_subset(repo_root, PathBuf::from(DEFAULT_REAL_SMOKE_CORE_SUBSET_PATH))?;
+    let real_smoke = render_real_smoke_core_subset(
+        repo_root,
+        PathBuf::from(DEFAULT_REAL_SMOKE_CORE_SUBSET_PATH),
+    )?;
 
     let total_stages = stage_inventory.total_stage_count;
     let total_tools = expected_results.tool_count;
@@ -193,14 +197,16 @@ pub(crate) fn render_full_benchmark_dashboard(
             count: missing_assets,
             source_path: stage_tool_table.output_path.clone(),
             source_field: "expected_bindings - benchmark_ready_asset_bindings".to_string(),
-            detail: "canonical benchmark bindings without assigned asset-profile coverage".to_string(),
+            detail: "canonical benchmark bindings without assigned asset-profile coverage"
+                .to_string(),
         },
         FullBenchmarkDashboardMetric {
             metric_id: "failed_real_smokes".to_string(),
             count: failed_real_smokes,
             source_path: real_smoke.output_path.clone(),
             source_field: "real_smoke_rows failing success contract".to_string(),
-            detail: "governed real-smoke executions that do not satisfy their success contract".to_string(),
+            detail: "governed real-smoke executions that do not satisfy their success contract"
+                .to_string(),
         },
     ];
 
@@ -245,11 +251,8 @@ fn count_missing_parsers(
     expected_results: &AllDomainExpectedBenchmarkResultsReport,
     parser_collector: &AllDomainParserCollectorReport,
 ) -> usize {
-    let expected_result_ids = expected_results
-        .rows
-        .iter()
-        .map(|row| row.result_id.as_str())
-        .collect::<BTreeSet<_>>();
+    let expected_result_ids =
+        expected_results.rows.iter().map(|row| row.result_id.as_str()).collect::<BTreeSet<_>>();
     let fake_run_result_ids = parser_collector
         .rows
         .iter()
@@ -263,16 +266,10 @@ fn count_missing_adapters(
     expected_results: &AllDomainExpectedBenchmarkResultsReport,
     rendered_commands: &AllDomainRenderedCommandsReport,
 ) -> usize {
-    let expected_result_ids = expected_results
-        .rows
-        .iter()
-        .map(|row| row.result_id.as_str())
-        .collect::<BTreeSet<_>>();
-    let rendered_result_ids = rendered_commands
-        .rows
-        .iter()
-        .map(|row| row.result_id.as_str())
-        .collect::<BTreeSet<_>>();
+    let expected_result_ids =
+        expected_results.rows.iter().map(|row| row.result_id.as_str()).collect::<BTreeSet<_>>();
+    let rendered_result_ids =
+        rendered_commands.rows.iter().map(|row| row.result_id.as_str()).collect::<BTreeSet<_>>();
     expected_result_ids.difference(&rendered_result_ids).count()
 }
 
@@ -296,11 +293,7 @@ fn count_missing_assets(
 }
 
 fn count_failed_real_smokes(report: &RealSmokeCoreSubsetReport) -> usize {
-    report
-        .rows
-        .iter()
-        .filter(|row| !real_smoke_row_passes(row))
-        .count()
+    report.rows.iter().filter(|row| !real_smoke_row_passes(row)).count()
 }
 
 fn real_smoke_row_passes(row: &RealSmokeCoreSubsetRow) -> bool {
@@ -337,7 +330,9 @@ fn ensure_full_benchmark_dashboard_contract(
             "full benchmark dashboard output paths drifted from the governed locations"
         ));
     }
-    if report.total_stages != 71 || stage_inventory_output_path != DEFAULT_ALL_DOMAIN_STAGE_LIST_PATH {
+    if report.total_stages != 71
+        || stage_inventory_output_path != DEFAULT_ALL_DOMAIN_STAGE_LIST_PATH
+    {
         return Err(anyhow!(
             "full benchmark dashboard total stages drifted from the governed all-domain stage inventory"
         ));
@@ -352,7 +347,8 @@ fn ensure_full_benchmark_dashboard_contract(
             "full benchmark dashboard total tools must equal full benchmark report tool rows"
         ));
     }
-    if report.total_expected_jobs != expected_results.row_count || report.total_expected_jobs != 120 {
+    if report.total_expected_jobs != expected_results.row_count || report.total_expected_jobs != 120
+    {
         return Err(anyhow!(
             "full benchmark dashboard total expected jobs drifted from the governed expected-result slice"
         ));
@@ -475,10 +471,7 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
 
 fn derive_json_output_path(markdown_output_path: &Path) -> PathBuf {
@@ -511,7 +504,8 @@ mod tests {
             asset_profile_id: "vcf_cohort".to_string(),
             evidence_path: "target/test.json".to_string(),
             parsed_schema_version: "schema".to_string(),
-            stage_result_manifest_path: manifest_status.map(|_| "target/stage-result.json".to_string()),
+            stage_result_manifest_path: manifest_status
+                .map(|_| "target/stage-result.json".to_string()),
             manifest_status: manifest_status.map(str::to_string),
             manifest_exit_code,
             normalized_metric_count,

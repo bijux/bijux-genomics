@@ -35,16 +35,12 @@ fn bench_readiness_full_benchmark_dashboard_writes_markdown_and_json_outputs() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(
-        rendered_path.trim(),
-        "target/bench-readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md"
-    );
+    assert_eq!(rendered_path.trim(), "target/bench-readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md");
 
     let repo_root = support::repo_root().expect("repo root");
     let markdown = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read dashboard markdown");
-    let json_path =
-        repo_root.join("target/bench-readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json");
+    let json_path = repo_root.join("target/bench-readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json");
     let json_payload = std::fs::read_to_string(&json_path).expect("read dashboard json");
     let json_value: serde_json::Value =
         serde_json::from_str(&json_payload).expect("parse dashboard json");
@@ -67,9 +63,7 @@ fn bench_readiness_full_benchmark_dashboard_writes_markdown_and_json_outputs() {
         Some("bijux.bench.readiness.full_benchmark_dashboard.v1")
     );
     assert_eq!(
-        json_value
-            .get("total_expected_jobs")
-            .and_then(serde_json::Value::as_u64),
+        json_value.get("total_expected_jobs").and_then(serde_json::Value::as_u64),
         Some(120)
     );
 }
