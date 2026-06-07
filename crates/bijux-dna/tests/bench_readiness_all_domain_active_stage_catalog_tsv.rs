@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_active_stage_catalog_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 71);
+    assert_eq!(rows.len(), 58);
     assert!(rows.iter().any(|row| {
         row == &"bam\tbam.damage\tsmoke\t6\t6\t6\t6\ttrue\t1\tbenchmark_ready\taddeam,damageprofiler,mapdamage2,ngsbriggs,pmdtools,pydamage\taddeam,damageprofiler,mapdamage2,ngsbriggs,pmdtools,pydamage\tancient_signal"
     }));
@@ -53,9 +53,9 @@ fn bench_readiness_all_domain_active_stage_catalog_writes_governed_tsv_file() {
         row == &"fastq\tfastq.index_reference\tdry_run\t2\t0\t0\t0\ttrue\t1\tnot_benchmark_ready\tbowtie2_build,star\tnone\treference_preparation"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"fastq\tfastq.trim_reads\tsmoke\t14\t13\t13\t13\ttrue\t1\tbenchmark_ready,not_benchmark_ready\tadapterremoval,alientrimmer,atropos,bbduk,cutadapt,fastp,fastx_clipper,leehom,prinseq,seqkit,seqpurge,skewer,trim_galore,trimmomatic\tadapterremoval,alientrimmer,atropos,bbduk,cutadapt,fastp,fastx_clipper,leehom,prinseq,seqkit,skewer,trim_galore,trimmomatic\tread_cleanup"
+        row == &"fastq\tfastq.trim_reads\tsmoke\t13\t13\t13\t13\ttrue\t1\tbenchmark_ready\tadapterremoval,alientrimmer,atropos,bbduk,cutadapt,fastp,fastx_clipper,leehom,prinseq,seqkit,skewer,trim_galore,trimmomatic\tadapterremoval,alientrimmer,atropos,bbduk,cutadapt,fastp,fastx_clipper,leehom,prinseq,seqkit,skewer,trim_galore,trimmomatic\tread_cleanup"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"vcf\tvcf.admixture\tsmoke\t1\t0\t0\t0\ttrue\t0\tnot_benchmark_ready\tplink2\tnone\tnone"
+        row == &"vcf\tvcf.stats\tsmoke\t1\t1\t1\t1\ttrue\t1\tbenchmark_ready\tbcftools\tbcftools\tquality_control"
     }));
 }

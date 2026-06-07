@@ -45,14 +45,18 @@ fn bench_readiness_all_domain_retained_tools_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 73);
+    assert_eq!(rows.len(), 66);
     assert!(rows.iter().any(|row| {
         row == &"kraken2\tfastq\t1\t1\t1\t1\tbenchmark_ready\tfastq.screen_taxonomy\tfastq.screen_taxonomy"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"bcftools\tvcf\t10\t8\t10\t8\tbenchmark_ready,not_benchmark_ready\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.prepare_reference_panel,vcf.stats\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.stats"
+        row == &"bcftools\tvcf\t8\t8\t8\t8\tbenchmark_ready\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.stats\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.stats"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"beagle\tvcf\t2\t0\t2\t0\tnot_benchmark_ready\tvcf.imputation,vcf.impute\tnone"
+        row == &"star\tfastq\t1\t0\t1\t0\tnot_benchmark_ready\tfastq.index_reference\tnone"
     }));
+    assert!(
+        rows.iter().all(|row| !row.starts_with("beagle\t")),
+        "planned-only tools must be outside retained active scope"
+    );
 }

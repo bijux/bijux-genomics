@@ -50,15 +50,15 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(143));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(73));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(126));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(58));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(66));
 
     let domain_counts =
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(74));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(8));
 
     let status_counts =
         payload.get("status_counts").and_then(serde_json::Value::as_object).expect("status counts");
@@ -67,10 +67,10 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
         status_counts.get("not_benchmark_ready").and_then(serde_json::Value::as_u64),
         Some(6)
     );
-    assert_eq!(status_counts.get("planned").and_then(serde_json::Value::as_u64), Some(17));
+    assert_eq!(status_counts.len(), 2);
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 143);
+    assert_eq!(rows.len(), 126);
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -108,7 +108,7 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
             && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.trim_reads")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqpurge")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("trimmomatic")
             && row.get("corpus_id").and_then(serde_json::Value::as_str) == Some("corpus-01-mini")
             && row.get("asset_profile_id").and_then(serde_json::Value::as_str)
                 == Some("corpus_only")
@@ -118,24 +118,7 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
                 == Some("fastq.parser.trim_reads")
             && row.get("schema_id").and_then(serde_json::Value::as_str)
                 == Some("fastq_trim_reads_v2")
-            && row.get("status").and_then(serde_json::Value::as_str) == Some("planned")
-    }));
-
-    assert!(rows.iter().any(|row| {
-        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
-            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.impute")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
-            && row.get("corpus_id").and_then(serde_json::Value::as_str)
-                == Some("vcf_production_regression")
-            && row.get("asset_profile_id").and_then(serde_json::Value::as_str)
-                == Some("vcf_cohort_with_panel")
-            && row.get("adapter_id").and_then(serde_json::Value::as_str)
-                == Some("vcf.adapter.panel_workflow")
-            && row.get("parser_id").and_then(serde_json::Value::as_str)
-                == Some("vcf.parser.vcf_output")
-            && row.get("schema_id").and_then(serde_json::Value::as_str)
-                == Some("bijux.schemas.bench.vcf-normalized-metrics.impute.v1")
-            && row.get("status").and_then(serde_json::Value::as_str) == Some("planned")
+            && row.get("status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
     }));
 
     assert!(rows.iter().any(|row| {
@@ -144,7 +127,8 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
             && row.get("corpus_id").and_then(serde_json::Value::as_str)
                 == Some("vcf_production_regression")
-            && row.get("asset_profile_id").and_then(serde_json::Value::as_str) == Some("vcf_cohort")
+            && row.get("asset_profile_id").and_then(serde_json::Value::as_str)
+                == Some("vcf_cohort")
             && row.get("adapter_id").and_then(serde_json::Value::as_str)
                 == Some("vcf.adapter.quality_control")
             && row.get("parser_id").and_then(serde_json::Value::as_str)
@@ -153,4 +137,12 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
                 == Some("bijux.schemas.bench.vcf-normalized-metrics.stats.v1")
             && row.get("status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
     }));
+
+    assert!(
+        rows.iter().all(|row| {
+            row.get("status").and_then(serde_json::Value::as_str) != Some("planned")
+                && row.get("status").and_then(serde_json::Value::as_str) != Some("future")
+        }),
+        "active scope must exclude planned and future rows"
+    );
 }
