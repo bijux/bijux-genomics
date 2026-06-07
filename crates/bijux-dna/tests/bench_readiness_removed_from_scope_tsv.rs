@@ -45,7 +45,7 @@ fn bench_readiness_removed_from_scope_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 23);
+    assert_eq!(rows.len(), 22);
     assert!(rows.iter().any(|row| {
         row == &"fastq\tfastq.index_reference\tbowtie2_build\tnot_assigned\treference_fasta+reference_index_output\tfastq.adapter.index_reference\tfastq.parser.index_reference\tfastq_index_reference_v1\tnot_benchmark_ready\trunnable\tbenchmark_not_ready\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
     }));

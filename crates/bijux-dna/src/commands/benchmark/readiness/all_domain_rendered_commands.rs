@@ -371,9 +371,9 @@ fn ensure_all_domain_rendered_command_contract(
         ));
     }
 
-    if rows.len() != 120 {
+    if rows.len() != 121 {
         return Err(anyhow!(
-            "all-domain rendered commands must retain exactly 120 benchmark-ready rows, found {}",
+            "all-domain rendered commands must retain exactly 121 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -554,12 +554,12 @@ mod tests {
             report.argv_output_path,
             "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl"
         );
-        assert_eq!(report.row_count, 120);
-        assert_eq!(report.result_id_count, 120);
+        assert_eq!(report.row_count, 121);
+        assert_eq!(report.result_id_count, 121);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&8));
-        assert_eq!(report.benchmark_status_counts.get("benchmark_ready"), Some(&120));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&9));
+        assert_eq!(report.benchmark_status_counts.get("benchmark_ready"), Some(&121));
         assert!(report.rows.iter().all(|row| !row.command_steps.is_empty()));
     }
 }

@@ -53,7 +53,7 @@ pub(crate) const DEFAULT_ALL_DOMAIN_HARNESS_READY_PATH: &str =
     "benchmarks/readiness/ALL_DOMAIN_HARNESS_READY.json";
 const ALL_DOMAIN_HARNESS_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_harness_ready.v1";
-const CANONICAL_BENCHMARK_READY_RESULT_COUNT: usize = 120;
+const CANONICAL_BENCHMARK_READY_RESULT_COUNT: usize = 121;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct AllDomainHarnessReadyGoalCheck {
@@ -194,13 +194,13 @@ pub(crate) fn render_all_domain_harness_ready(
                 || report.domain_counts.get("vcf").copied() != Some(20)
                 || report.benchmark_ready_domain_counts.get("fastq").copied() != Some(63)
                 || report.benchmark_ready_domain_counts.get("bam").copied() != Some(49)
-                || report.benchmark_ready_domain_counts.get("vcf").copied() != Some(8)
+                || report.benchmark_ready_domain_counts.get("vcf").copied() != Some(9)
             {
                 bail!("all-domain stage tool table drifted from the governed binding set");
             }
             benchmark_ready_binding_count = report.benchmark_ready_unique_binding_count;
             stage_tool_report = Some(report);
-            Ok("validated 120 benchmark-ready all-domain stage/tool bindings".to_string())
+            Ok("validated 121 benchmark-ready all-domain stage/tool bindings".to_string())
         },
     );
 
@@ -216,19 +216,19 @@ pub(crate) fn render_all_domain_harness_ready(
             )?;
             if report.row_count != CANONICAL_BENCHMARK_READY_RESULT_COUNT
                 || report.result_id_count != CANONICAL_BENCHMARK_READY_RESULT_COUNT
-                || report.stage_count != 55
+                || report.stage_count != 56
                 || report.tool_count != 64
                 || report.corpus_count != 9
                 || report.asset_profile_count != 11
                 || report.domain_counts.get("fastq").copied() != Some(63)
                 || report.domain_counts.get("bam").copied() != Some(49)
-                || report.domain_counts.get("vcf").copied() != Some(8)
+                || report.domain_counts.get("vcf").copied() != Some(9)
             {
                 bail!("all-domain expected benchmark results drifted from the governed slice");
             }
             expected_result_row_count = report.row_count;
             expected_results_report = Some(report);
-            Ok("validated 120 canonical all-domain expected benchmark results".to_string())
+            Ok("validated 121 canonical all-domain expected benchmark results".to_string())
         },
     );
 
@@ -246,18 +246,18 @@ pub(crate) fn render_all_domain_harness_ready(
                 || report.result_id_count != CANONICAL_BENCHMARK_READY_RESULT_COUNT
                 || report.domain_counts.get("fastq").copied() != Some(63)
                 || report.domain_counts.get("bam").copied() != Some(49)
-                || report.domain_counts.get("vcf").copied() != Some(8)
+                || report.domain_counts.get("vcf").copied() != Some(9)
                 || report.benchmark_status_counts.get("benchmark_ready").copied()
                     != Some(CANONICAL_BENCHMARK_READY_RESULT_COUNT)
                 || report.command_source_counts.get("fastq_bam_command_adapter").copied()
                     != Some(112)
-                || report.command_source_counts.get("vcf_bcftools_adapter").copied() != Some(8)
+                || report.command_source_counts.get("vcf_bcftools_adapter").copied() != Some(9)
             {
                 bail!("all-domain rendered commands drifted from the governed binding slice");
             }
             rendered_command_row_count = report.row_count;
             rendered_commands_report = Some(report);
-            Ok("validated executable commands for all 120 benchmark-ready all-domain results"
+            Ok("validated executable commands for all 121 benchmark-ready all-domain results"
                 .to_string())
         },
     );
@@ -278,7 +278,7 @@ pub(crate) fn render_all_domain_harness_ready(
                 || report.incomplete_row_count != 0
                 || report.domain_counts.get("fastq").copied() != Some(63)
                 || report.domain_counts.get("bam").copied() != Some(49)
-                || report.domain_counts.get("vcf").copied() != Some(8)
+                || report.domain_counts.get("vcf").copied() != Some(9)
                 || report.status_counts.get("complete").copied()
                     != Some(CANONICAL_BENCHMARK_READY_RESULT_COUNT)
             {
@@ -286,7 +286,7 @@ pub(crate) fn render_all_domain_harness_ready(
             }
             output_declaration_row_count = report.row_count;
             output_declarations_report = Some(report);
-            Ok("validated complete output declarations for all 120 benchmark-ready results"
+            Ok("validated complete output declarations for all 121 benchmark-ready results"
                 .to_string())
         },
     );
@@ -302,17 +302,17 @@ pub(crate) fn render_all_domain_harness_ready(
                 PathBuf::from(DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT),
             )?;
             if report.result_count != CANONICAL_BENCHMARK_READY_RESULT_COUNT
-                || report.created_output_count != 482
+                || report.created_output_count != 484
                 || report.domain_counts.get("fastq").copied() != Some(63)
                 || report.domain_counts.get("bam").copied() != Some(49)
-                || report.domain_counts.get("vcf").copied() != Some(8)
+                || report.domain_counts.get("vcf").copied() != Some(9)
             {
                 bail!("all-domain fake-runner drifted from the governed result slice");
             }
             fake_run_result_count = report.result_count;
             fake_run_output_count = report.created_output_count;
             fake_runs_report = Some(report);
-            Ok("validated fake-run materialization for all 120 benchmark-ready results".to_string())
+            Ok("validated fake-run materialization for all 121 benchmark-ready results".to_string())
         },
     );
 
@@ -328,18 +328,18 @@ pub(crate) fn render_all_domain_harness_ready(
                 7,
             )?;
             if report.result_count != CANONICAL_BENCHMARK_READY_RESULT_COUNT
-                || report.failed_output_count != 482
+                || report.failed_output_count != 484
                 || report.exit_code != 7
                 || report.domain_counts.get("fastq").copied() != Some(63)
                 || report.domain_counts.get("bam").copied() != Some(49)
-                || report.domain_counts.get("vcf").copied() != Some(8)
+                || report.domain_counts.get("vcf").copied() != Some(9)
             {
                 bail!("all-domain fake-failure runner drifted from the governed result slice");
             }
             fake_failure_result_count = report.result_count;
             fake_failure_output_count = report.failed_output_count;
             fake_failures_report = Some(report);
-            Ok("validated structured failure records for all 120 benchmark-ready results"
+            Ok("validated structured failure records for all 121 benchmark-ready results"
                 .to_string())
         },
     );
@@ -355,18 +355,18 @@ pub(crate) fn render_all_domain_harness_ready(
                 PathBuf::from(DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_PATH),
             )?;
             if report.row_count != CANONICAL_BENCHMARK_READY_RESULT_COUNT
-                || report.complete_row_count != 115
+                || report.complete_row_count != 116
                 || report.incomplete_row_count != 5
                 || !report.passes_behavior_test
                 || report.domain_counts.get("fastq").copied() != Some(63)
                 || report.domain_counts.get("bam").copied() != Some(49)
-                || report.domain_counts.get("vcf").copied() != Some(8)
+                || report.domain_counts.get("vcf").copied() != Some(9)
             {
                 bail!("all-domain completion checker drifted from the governed seeded behavior");
             }
             completion_row_count = report.row_count;
             completion_check_report = Some(report);
-            Ok("validated governed completion behavior across the 120-result harness slice"
+            Ok("validated governed completion behavior across the 121-result harness slice"
                 .to_string())
         },
     );
@@ -381,12 +381,12 @@ pub(crate) fn render_all_domain_harness_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH),
             )?;
-            if report.row_count != 123
+            if report.row_count != 124
                 || report.fake_run_row_count != CANONICAL_BENCHMARK_READY_RESULT_COUNT
                 || report.real_smoke_row_count != 3
                 || report.domain_counts.get("fastq").copied() != Some(64)
                 || report.domain_counts.get("bam").copied() != Some(50)
-                || report.domain_counts.get("vcf").copied() != Some(9)
+                || report.domain_counts.get("vcf").copied() != Some(10)
             {
                 bail!(
                     "all-domain parser collector drifted from the governed fake-run and smoke set"
@@ -394,7 +394,7 @@ pub(crate) fn render_all_domain_harness_ready(
             }
             parser_collector_row_count = report.row_count;
             parser_collector_report = Some(report);
-            Ok("validated parser collection for 120 fake-run rows and 3 governed real-smoke rows"
+            Ok("validated parser collection for 121 fake-run rows and 3 governed real-smoke rows"
                 .to_string())
         },
     );
@@ -410,18 +410,18 @@ pub(crate) fn render_all_domain_harness_ready(
                 PathBuf::from(DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH),
             )?;
             if report.expected_row_count != CANONICAL_BENCHMARK_READY_RESULT_COUNT
-                || report.present_result_row_count != 117
+                || report.present_result_row_count != 118
                 || report.missing_result_row_count != 3
                 || !report.passes_behavior_test
                 || report.domain_counts.get("fastq").copied() != Some(63)
                 || report.domain_counts.get("bam").copied() != Some(49)
-                || report.domain_counts.get("vcf").copied() != Some(8)
+                || report.domain_counts.get("vcf").copied() != Some(9)
             {
                 bail!("all-domain missing-result behavior drifted from the governed 3-row probe");
             }
             missing_result_row_count = report.expected_row_count;
             missing_result_report = Some(report);
-            Ok("validated one explicit missing result row per domain across the 120-result slice"
+            Ok("validated one explicit missing result row per domain across the 121-result slice"
                 .to_string())
         },
     );

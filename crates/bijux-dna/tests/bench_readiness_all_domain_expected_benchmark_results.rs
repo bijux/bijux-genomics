@@ -51,9 +51,9 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/expected-benchmark-results-all-domains.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(120));
-    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(120));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(55));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(121));
+    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(121));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(56));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(64));
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(11));
@@ -62,7 +62,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(9));
 
     let section_counts = payload
         .get("report_section_counts")
@@ -72,13 +72,13 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     assert_eq!(section_counts.get("variant_calling").and_then(serde_json::Value::as_u64), Some(4));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 120);
+    assert_eq!(rows.len(), 121);
 
     let result_ids = rows
         .iter()
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(result_ids.len(), 120);
+    assert_eq!(result_ids.len(), 121);
 
     let taxonomy = rows
         .iter()
@@ -142,4 +142,26 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     assert!(vcf_call.get("expected_metrics").and_then(serde_json::Value::as_array).is_some_and(
         |metrics| metrics.iter().any(|value| value.as_str() == Some("variant_count"))
     ));
+
+    let vcf_postprocess = rows
+        .iter()
+        .find(|row| {
+            row.get("result_id").and_then(serde_json::Value::as_str)
+                == Some("vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools")
+        })
+        .expect("VCF postprocess result row");
+    assert_eq!(
+        vcf_postprocess.get("report_section").and_then(serde_json::Value::as_str),
+        Some("normalization")
+    );
+    assert!(vcf_postprocess
+        .get("expected_outputs")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|outputs| outputs
+            .iter()
+            .any(|value| value.as_str() == Some("postprocess_vcf"))));
+    assert!(vcf_postprocess
+        .get("expected_metrics")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|metrics| metrics.iter().any(|value| value.as_str() == Some("readable_vcf"))));
 }

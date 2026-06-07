@@ -49,11 +49,11 @@ fn bench_readiness_all_domain_stage_tool_table_reports_governed_rows() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(143));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(120)
+        Some(121)
     );
     assert_eq!(
         payload.get("benchmark_ready_unique_binding_count").and_then(serde_json::Value::as_u64),
-        Some(120)
+        Some(121)
     );
 
     let domain_counts =
@@ -68,7 +68,7 @@ fn bench_readiness_all_domain_stage_tool_table_reports_governed_rows() {
         .expect("ready domain counts");
     assert_eq!(ready_domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(ready_domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(ready_domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(ready_domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(9));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 143);

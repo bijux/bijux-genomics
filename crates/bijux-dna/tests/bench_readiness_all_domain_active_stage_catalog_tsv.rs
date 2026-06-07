@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_active_stage_catalog_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 55);
+    assert_eq!(rows.len(), 56);
     assert!(rows.iter().any(|row| {
         row == &"bam\tbam.damage\tsmoke\t6\t6\t6\t6\ttrue\t1\tbenchmark_ready\taddeam,damageprofiler,mapdamage2,ngsbriggs,pmdtools,pydamage\taddeam,damageprofiler,mapdamage2,ngsbriggs,pmdtools,pydamage\tancient_signal"
     }));
@@ -54,6 +54,9 @@ fn bench_readiness_all_domain_active_stage_catalog_writes_governed_tsv_file() {
     }));
     assert!(rows.iter().any(|row| {
         row == &"vcf\tvcf.stats\tsmoke\t1\t1\t1\t1\ttrue\t1\tbenchmark_ready\tbcftools\tbcftools\tquality_control"
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"vcf\tvcf.postprocess\tsmoke\t1\t1\t1\t1\ttrue\t1\tbenchmark_ready\tbcftools\tbcftools\tnormalization"
     }));
     assert!(
         rows.iter().all(|row| {

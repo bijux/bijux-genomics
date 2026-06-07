@@ -43,9 +43,9 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_writes_governed_json_f
 
     assert_eq!(
         payload.get("executable_active_row_count").and_then(serde_json::Value::as_u64),
-        Some(126)
+        Some(127)
     );
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(120));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(121));
     assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));

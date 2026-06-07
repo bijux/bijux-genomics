@@ -50,14 +50,14 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/rendered-commands-all-domains.argv.jsonl")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(120));
-    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(120));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(121));
+    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(121));
 
     let domain_counts =
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(9));
 
     let command_source_counts = payload
         .get("command_source_counts")
@@ -69,16 +69,16 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
     );
     assert_eq!(
         command_source_counts.get("vcf_bcftools_adapter").and_then(serde_json::Value::as_u64),
-        Some(8)
+        Some(9)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 120);
+    assert_eq!(rows.len(), 121);
     let result_ids = rows
         .iter()
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(result_ids.len(), 120);
+    assert_eq!(result_ids.len(), 121);
 
     let bias_mitigation = rows
         .iter()
@@ -148,4 +148,31 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
                 })
         }
     ));
+
+    let vcf_postprocess = rows
+        .iter()
+        .find(|row| {
+            row.get("result_id").and_then(serde_json::Value::as_str)
+                == Some("vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools")
+        })
+        .expect("VCF postprocess row");
+    assert_eq!(
+        vcf_postprocess.get("command_source").and_then(serde_json::Value::as_str),
+        Some("vcf_bcftools_adapter")
+    );
+    assert!(vcf_postprocess
+        .get("command_steps")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|steps| {
+            steps.len() == 2
+                && steps.iter().any(|step| {
+                    step.get("argv").and_then(serde_json::Value::as_array).is_some_and(|argv| {
+                        argv.iter()
+                            .filter_map(serde_json::Value::as_str)
+                            .collect::<Vec<_>>()
+                            .join(" ")
+                            .contains("bcftools +fill-tags")
+                    })
+                })
+        }));
 }

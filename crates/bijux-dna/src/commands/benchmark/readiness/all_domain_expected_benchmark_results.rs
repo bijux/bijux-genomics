@@ -289,9 +289,9 @@ fn ensure_all_domain_expected_benchmark_result_contract(
             expected_count
         ));
     }
-    if rows.len() != 120 {
+    if rows.len() != 121 {
         return Err(anyhow!(
-            "all-domain expected-result table must retain exactly 120 benchmark-ready rows, found {}",
+            "all-domain expected-result table must retain exactly 121 benchmark-ready rows, found {}",
             rows.len()
         ));
     }

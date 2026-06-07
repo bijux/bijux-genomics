@@ -38,8 +38,8 @@ fn bench_readiness_all_domain_no_planned_rows_writes_governed_json_file() {
         .expect("read all-domain no-planned-rows report");
     let payload: serde_json::Value = serde_json::from_str(&payload).expect("parse report json");
 
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(126));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(17));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(121));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(16));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
