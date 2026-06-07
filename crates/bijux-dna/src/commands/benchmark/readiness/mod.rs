@@ -9,6 +9,7 @@ pub(crate) mod all_domain_missing_result_test;
 pub(crate) mod all_domain_output_declarations;
 pub(crate) mod all_domain_parser_collector;
 pub(crate) mod all_domain_rendered_commands;
+pub(crate) mod all_domain_retained_tools;
 pub(crate) mod all_domain_stage_tool_table;
 pub(crate) mod bam_adapter_output_contract;
 pub(crate) mod bam_command_adapter_coverage;

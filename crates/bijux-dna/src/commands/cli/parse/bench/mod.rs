@@ -81,6 +81,7 @@ pub use self::readiness::{
     BenchReadinessRenderAllDomainMissingResultTestArgs,
     BenchReadinessRenderAllDomainOutputDeclarationsArgs,
     BenchReadinessRenderAllDomainParserCollectorArgs,
+    BenchReadinessRenderAllDomainRetainedToolsArgs,
     BenchReadinessRenderAllDomainStageToolTableArgs,
     BenchReadinessRenderBamAdapterOutputContractArgs,
     BenchReadinessRenderBamCommandAdapterCoverageArgs,
