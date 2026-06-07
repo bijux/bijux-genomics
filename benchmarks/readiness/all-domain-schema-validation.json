@@ -1,0 +1,44 @@
+{
+  "schema_version": "bijux.bench.readiness.all_domain_schema_validation.v1",
+  "output_path": "benchmarks/readiness/all-domain-schema-validation.json",
+  "schema_root": "benchmarks/schemas",
+  "domain_count": 3,
+  "passed_domain_count": 3,
+  "failed_domain_count": 0,
+  "ok": true,
+  "domains": [
+    {
+      "domain": "bam",
+      "output_path": "benchmarks/readiness/bam-schema-validation.json",
+      "shared_schema_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
+      "stage_dir": null,
+      "passes_gate": true,
+      "shared_schema_matches": true,
+      "stage_count": 24,
+      "required_stage_count": null,
+      "exact_stage_schema_file_count": null
+    },
+    {
+      "domain": "fastq",
+      "output_path": "benchmarks/readiness/fastq-schema-validation.json",
+      "shared_schema_path": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
+      "stage_dir": null,
+      "passes_gate": true,
+      "shared_schema_matches": true,
+      "stage_count": 27,
+      "required_stage_count": null,
+      "exact_stage_schema_file_count": null
+    },
+    {
+      "domain": "vcf",
+      "output_path": "benchmarks/readiness/vcf-schema-validation.json",
+      "shared_schema_path": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
+      "stage_dir": "benchmarks/schemas/vcf-normalized-metrics",
+      "passes_gate": true,
+      "shared_schema_matches": true,
+      "stage_count": 20,
+      "required_stage_count": 17,
+      "exact_stage_schema_file_count": 20
+    }
+  ]
+}

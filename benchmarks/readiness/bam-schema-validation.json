@@ -1,0 +1,131 @@
+{
+  "schema_version": "bijux.bench.readiness.bam_schema_validation.v1",
+  "domain": "bam",
+  "output_path": "benchmarks/readiness/bam-schema-validation.json",
+  "shared_schema_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
+  "passes_gate": true,
+  "shared_schema_matches": true,
+  "stage_count": 24,
+  "rows": [
+    {
+      "stage_id": "bam.align",
+      "extension_id": "bam_align_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.authenticity",
+      "extension_id": "bam_authenticity_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.bias_mitigation",
+      "extension_id": "bam_bias_mitigation_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.complexity",
+      "extension_id": "bam_complexity_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.contamination",
+      "extension_id": "bam_contamination_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.coverage",
+      "extension_id": "bam_coverage_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.damage",
+      "extension_id": "bam_damage_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.duplication_metrics",
+      "extension_id": "bam_duplication_metrics_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.endogenous_content",
+      "extension_id": "bam_endogenous_content_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.filter",
+      "extension_id": "bam_filter_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.gc_bias",
+      "extension_id": "bam_gc_bias_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.genotyping",
+      "extension_id": "bam_genotyping_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.haplogroups",
+      "extension_id": "bam_haplogroups_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.insert_size",
+      "extension_id": "bam_insert_size_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.kinship",
+      "extension_id": "bam_kinship_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.length_filter",
+      "extension_id": "bam_length_filter_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.mapping_summary",
+      "extension_id": "bam_mapping_summary_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.mapq_filter",
+      "extension_id": "bam_mapq_filter_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.markdup",
+      "extension_id": "bam_markdup_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.overlap_correction",
+      "extension_id": "bam_overlap_correction_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.qc_pre",
+      "extension_id": "bam_qc_pre_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.recalibration",
+      "extension_id": "bam_recalibration_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.sex",
+      "extension_id": "bam_sex_normalized_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "bam.validate",
+      "extension_id": "bam_validate_normalized_v1",
+      "required_key_count": 9
+    }
+  ]
+}
