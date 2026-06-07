@@ -186,6 +186,14 @@ Visible aliases are part of the operator surface:
   `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `expected_outputs`,
   `expected_metrics`, and `report_section` explicit, and the command fails closed unless result
   identities stay unique and stable across all governed benchmark-ready domains.
+- `bijux-dna bench readiness render-all-domain-completion-check`
+  `render-all-domain-completion-check` writes
+  `target/bench-readiness/completion-check-all-domains.json` and materializes a governed fixture
+  tree under `target/bench-readiness/completion-check-all-domains-fixture/`. It seeds five
+  distinct incomplete cases across the canonical 120-result FASTQ, BAM, and VCF slice and then
+  proves a result is complete only when execution succeeded, the stage manifest is present and
+  valid, declared outputs are present, normalized metrics are present, and required run files are
+  non-empty.
 - `bijux-dna bench readiness render-all-domain-output-declarations`
   `render-all-domain-output-declarations` writes
   `target/bench-readiness/output-declarations-all-domains.tsv` with one governed row per
