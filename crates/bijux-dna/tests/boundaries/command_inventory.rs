@@ -96,6 +96,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench corpus-fastq-published-dossiers",
     "bijux-dna bench readiness render-adapter-missing-input-tests",
     "bijux-dna bench readiness render-expected-benchmark-results",
+    "bijux-dna bench readiness render-all-domain-expected-benchmark-results",
     "bijux-dna bench readiness render-parser-completeness-gate",
     "bijux-dna bench readiness render-corpus-asset-coverage-gate",
     "bijux-dna bench readiness render-essential-pipeline-corpus-assets",
