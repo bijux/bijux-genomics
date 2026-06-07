@@ -23,6 +23,7 @@ fn run_cli(args: &[&str]) -> std::process::Output {
         .expect("run cli")
 }
 
+#[cfg(feature = "bam_downstream")]
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let output = run_cli(args);
     assert!(
@@ -91,6 +92,57 @@ fn bench_local_validate_slurm_script_bodies_refuses_placeholder_job_bodies() {
         findings.iter().any(|finding| finding.contains("missing `bijux-dna` command")),
         "findings must include missing bijux-dna detection"
     );
+}
+
+#[test]
+fn bench_local_validate_slurm_script_bodies_refuses_todo_and_empty_job_bodies() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let root = temp.path().join("slurm-dry-run");
+    std::fs::create_dir_all(&root).expect("create root");
+    let script_path = root.join("fake-empty.sbatch");
+    std::fs::write(
+        &script_path,
+        "#!/usr/bin/env bash\n\
+set -euo pipefail\n\
+# TODO: wire the real command\n\
+REPO_ROOT=/tmp/repo\n\
+JOB_ROOT=target/slurm/example\n\
+STDOUT_PATH=target/slurm/example/stdout.log\n\
+STDERR_PATH=target/slurm/example/stderr.log\n\
+cd \"$REPO_ROOT\"\n\
+mkdir -p \"$JOB_ROOT\"\n",
+    )
+    .expect("write fake script");
+    let report_path = temp.path().join("no-placeholder-report.json");
+
+    let output = run_cli(&[
+        "bench",
+        "local",
+        "validate-slurm-script-bodies",
+        "--root",
+        root.to_str().expect("root str"),
+        "--output",
+        report_path.to_str().expect("report str"),
+        "--json",
+    ]);
+
+    assert!(!output.status.success(), "command should fail on TODO-only script");
+
+    let payload: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&report_path).expect("read report"))
+            .expect("parse report");
+    let scripts =
+        payload.get("scripts").and_then(serde_json::Value::as_array).expect("scripts array");
+    let findings = scripts[0]
+        .get("findings")
+        .and_then(serde_json::Value::as_array)
+        .expect("findings array")
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+    assert!(findings.iter().any(|finding| finding.contains("TODO")));
+    assert!(findings.iter().any(|finding| finding.contains("empty command body")));
+    assert!(findings.iter().any(|finding| finding.contains("missing `bijux-dna` command")));
 }
 
 #[cfg(feature = "bam_downstream")]
