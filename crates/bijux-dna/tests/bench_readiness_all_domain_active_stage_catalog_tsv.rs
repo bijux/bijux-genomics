@@ -45,12 +45,9 @@ fn bench_readiness_all_domain_active_stage_catalog_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 58);
+    assert_eq!(rows.len(), 55);
     assert!(rows.iter().any(|row| {
         row == &"bam\tbam.damage\tsmoke\t6\t6\t6\t6\ttrue\t1\tbenchmark_ready\taddeam,damageprofiler,mapdamage2,ngsbriggs,pmdtools,pydamage\taddeam,damageprofiler,mapdamage2,ngsbriggs,pmdtools,pydamage\tancient_signal"
-    }));
-    assert!(rows.iter().any(|row| {
-        row == &"fastq\tfastq.index_reference\tdry_run\t2\t0\t0\t0\ttrue\t1\tnot_benchmark_ready\tbowtie2_build,star\tnone\treference_preparation"
     }));
     assert!(rows.iter().any(|row| {
         row == &"fastq\tfastq.trim_reads\tsmoke\t13\t13\t13\t13\ttrue\t1\tbenchmark_ready\tadapterremoval,alientrimmer,atropos,bbduk,cutadapt,fastp,fastx_clipper,leehom,prinseq,seqkit,skewer,trim_galore,trimmomatic\tadapterremoval,alientrimmer,atropos,bbduk,cutadapt,fastp,fastx_clipper,leehom,prinseq,seqkit,skewer,trim_galore,trimmomatic\tread_cleanup"
@@ -58,4 +55,12 @@ fn bench_readiness_all_domain_active_stage_catalog_writes_governed_tsv_file() {
     assert!(rows.iter().any(|row| {
         row == &"vcf\tvcf.stats\tsmoke\t1\t1\t1\t1\ttrue\t1\tbenchmark_ready\tbcftools\tbcftools\tquality_control"
     }));
+    assert!(
+        rows.iter().all(|row| {
+            !row.contains("\tfastq.index_reference\t")
+                && !row.contains("\tfastq.profile_overrepresented_sequences\t")
+                && !row.contains("\tfastq.report_qc\t")
+        }),
+        "active stage catalog TSV must exclude not-benchmark-ready-only stages"
+    );
 }

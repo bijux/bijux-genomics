@@ -48,12 +48,9 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_writes_governed_tsv_file(
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 126);
+    assert_eq!(rows.len(), 120);
     assert!(rows.iter().any(|row| {
         row == &"bam\tbam.contamination\tschmutzi\tcorpus-01-adna-bam-mini\treference_fasta+reference_panel\tbam.adapter.contamination\tbam.parser.contamination\tbam_contamination_normalized_v1\tbenchmark_ready"
-    }));
-    assert!(rows.iter().any(|row| {
-        row == &"fastq\tfastq.report_qc\tmultiqc\tnot_assigned\tcorpus_only\tfastq.adapter.report_qc\tfastq.parser.report_qc\tfastq_report_qc_v1\tnot_benchmark_ready"
     }));
     assert!(rows.iter().any(|row| {
         row == &"fastq\tfastq.trim_reads\ttrimmomatic\tcorpus-01-mini\tcorpus_only\tfastq.adapter.trim_reads\tfastq.parser.trim_reads\tfastq_trim_reads_v2\tbenchmark_ready"
@@ -62,7 +59,15 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_writes_governed_tsv_file(
         row == &"vcf\tvcf.stats\tbcftools\tvcf_production_regression\tvcf_cohort\tvcf.adapter.quality_control\tvcf.parser.stats_report\tbijux.schemas.bench.vcf-normalized-metrics.stats.v1\tbenchmark_ready"
     }));
     assert!(
-        rows.iter().all(|row| !row.ends_with("\tplanned") && !row.ends_with("\tfuture")),
-        "active scope TSV must exclude planned and future rows"
+        rows.iter().all(|row| row.ends_with("\tbenchmark_ready")),
+        "active scope TSV must keep only benchmark-ready rows"
+    );
+    assert!(
+        rows.iter().all(|row| {
+            !row.contains("\tfastq.index_reference\t")
+                && !row.contains("\tfastq.profile_overrepresented_sequences\t")
+                && !row.contains("\tfastq.report_qc\t")
+        }),
+        "active scope TSV must exclude not-benchmark-ready-only stages"
     );
 }
