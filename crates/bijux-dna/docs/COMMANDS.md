@@ -635,6 +635,14 @@ Visible aliases are part of the operator surface:
   `future`, equivalent not-yet-active lifecycle rows, declaration-only adapter coverage, and
   `not_benchmark_ready` rows. The command fails closed unless every active matrix tool appears
   exactly once and no retained tool serves zero active stages.
+- `bijux-dna bench readiness render-removed-from-scope`
+  `render-removed-from-scope` writes `benchmarks/readiness/removed-from-scope.tsv` with one
+  governed row per candidate FASTQ, BAM, and VCF stage-tool binding that is outside the final
+  job-bearing active benchmark scope. Each row keeps `domain`, `stage_id`, `tool_id`,
+  `corpus_id`, `asset_profile_id`, `adapter_id`, `parser_id`, `schema_id`, `status`,
+  `adapter_status`, `scope_exit_kind`, and explicit absence booleans for the active matrix,
+  rendered commands, expected results, and full benchmark report surface. The command fails
+  closed unless every removed binding is absent from those governed active downstream surfaces.
 - `bijux-dna bench readiness render-all-domain-no-planned-rows`
   `render-all-domain-no-planned-rows` writes
   `benchmarks/readiness/all-domains/no-planned-rows.json` and audits the governed all-domain
