@@ -30,7 +30,7 @@ fn local_filter_reads_smoke_plans_use_governed_corpus_fixture() -> Result<()> {
     assert_eq!(case.low_complexity_threshold, Some(20.0));
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp")
+        PathBuf::from("runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp")
     );
     assert_eq!(case.plan.effective_params["max_n_count"], serde_json::json!(1));
     assert_eq!(case.plan.effective_params["low_complexity_threshold"], serde_json::json!(20.0));

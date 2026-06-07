@@ -24,13 +24,13 @@ fn local_normalize_primers_smoke_plans_use_governed_amplicon_fixture() -> Result
     assert_eq!(case.r2, None);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt")
+        PathBuf::from("runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt")
     );
     assert_eq!(case.plan.resources.threads, 1);
     assert_eq!(
         case.plan.params["report_json"],
         serde_json::json!(
-            "target/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/normalize_primers_report.json"
+            "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/normalize_primers_report.json"
         )
     );
     assert_eq!(case.plan.effective_params["primer_set_id"], serde_json::json!("16S_universal_v1"));

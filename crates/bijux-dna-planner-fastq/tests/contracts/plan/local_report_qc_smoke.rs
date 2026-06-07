@@ -17,7 +17,7 @@ fn local_report_qc_smoke_plan_uses_governed_qc_fixture_bundle() -> Result<()> {
     assert_eq!(plan.stage_id.as_str(), "fastq.report_qc");
     assert_eq!(plan.tool_id.as_str(), "multiqc");
     assert_eq!(plan.resources.threads, 2);
-    assert_eq!(plan.out_dir, PathBuf::from("target/local-smoke/fastq.report_qc"));
+    assert_eq!(plan.out_dir, PathBuf::from("runs/bench/local-smoke/fastq.report_qc"));
     assert_eq!(plan.io.inputs.len(), 3);
 
     let detect_adapters = plan
@@ -40,7 +40,7 @@ fn local_report_qc_smoke_plan_uses_governed_qc_fixture_bundle() -> Result<()> {
         .unwrap_or_else(|| panic!("governed_qc_inputs_manifest output missing"));
     assert_eq!(
         manifest_output.path,
-        PathBuf::from("target/local-smoke/fastq.report_qc/governed_qc_inputs_manifest.json")
+        PathBuf::from("runs/bench/local-smoke/fastq.report_qc/governed_qc_inputs_manifest.json")
     );
 
     let report_output = plan
@@ -51,7 +51,7 @@ fn local_report_qc_smoke_plan_uses_governed_qc_fixture_bundle() -> Result<()> {
         .unwrap_or_else(|| panic!("report_json output missing"));
     assert_eq!(
         report_output.path,
-        PathBuf::from("target/local-smoke/fastq.report_qc/report_qc_report.json")
+        PathBuf::from("runs/bench/local-smoke/fastq.report_qc/report_qc_report.json")
     );
 
     assert_eq!(plan.effective_params["aggregation_engine"], serde_json::json!("multiqc"));
@@ -61,7 +61,7 @@ fn local_report_qc_smoke_plan_uses_governed_qc_fixture_bundle() -> Result<()> {
     );
     assert!(
         plan.command.template[2].contains(
-            "multiqc -o 'target/local-smoke/fastq.report_qc/multiqc_data' -n multiqc_report.html"
+            "multiqc -o 'runs/bench/local-smoke/fastq.report_qc/multiqc_data' -n multiqc_report.html"
         ),
         "local report_qc smoke plan must target the governed output directory"
     );

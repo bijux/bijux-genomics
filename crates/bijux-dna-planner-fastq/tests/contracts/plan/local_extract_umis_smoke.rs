@@ -41,7 +41,7 @@ fn local_extract_umis_smoke_plans_use_governed_known_umi_fixture() -> Result<()>
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools"
+            "runs/bench/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools"
         )
     );
     assert_eq!(case.plan.resources.threads, 1);
@@ -70,25 +70,25 @@ fn local_extract_umis_smoke_plans_use_governed_known_umi_fixture() -> Result<()>
     assert_eq!(
         case.plan.params["output_r1"],
         serde_json::json!(
-            "target/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_tagged_R1.fastq.gz"
+            "runs/bench/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_tagged_R1.fastq.gz"
         )
     );
     assert_eq!(
         case.plan.params["output_r2"],
         serde_json::json!(
-            "target/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_tagged_R2.fastq.gz"
+            "runs/bench/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_tagged_R2.fastq.gz"
         )
     );
     assert_eq!(
         case.plan.params["report_json"],
         serde_json::json!(
-            "target/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_report.json"
+            "runs/bench/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_report.json"
         )
     );
     assert_eq!(
         case.plan.params["raw_backend_report"],
         serde_json::json!(
-            "target/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_tools.extract.log"
+            "runs/bench/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_tools.extract.log"
         )
     );
 

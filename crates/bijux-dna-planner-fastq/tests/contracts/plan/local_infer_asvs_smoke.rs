@@ -25,7 +25,7 @@ fn local_infer_asvs_smoke_plans_use_governed_corpus_fixture() -> Result<()> {
     );
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2")
+        PathBuf::from("runs/bench/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2")
     );
     assert_eq!(case.plan.resources.threads, 1);
     assert_eq!(case.denoising_method, "dada2");

@@ -29,7 +29,7 @@ fn local_normalize_abundance_smoke_plans_use_governed_abundance_fixture() -> Res
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit"
+            "runs/bench/local-smoke/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit"
         )
     );
     assert_eq!(case.plan.resources.threads, 1);

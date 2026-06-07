@@ -47,14 +47,14 @@ fn local_estimate_library_complexity_prealign_smoke_plans_use_governed_corpus_fi
     assert_eq!(
         complexity_hit.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_duplicate_signals/bijux_dna"
+            "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_duplicate_signals/bijux_dna"
         )
     );
     assert_eq!(complexity_hit.plan.resources.threads, 1);
     assert_eq!(
         complexity_hit.plan.params["library_complexity_report"],
         serde_json::json!(
-            "target/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_duplicate_signals/bijux_dna/library_complexity_report.json"
+            "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_duplicate_signals/bijux_dna/library_complexity_report.json"
         )
     );
 
@@ -79,7 +79,7 @@ fn local_estimate_library_complexity_prealign_smoke_plans_use_governed_corpus_fi
     assert_eq!(
         complexity_clear.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_distinct_pairs/bijux_dna"
+            "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_distinct_pairs/bijux_dna"
         )
     );
     assert_eq!(

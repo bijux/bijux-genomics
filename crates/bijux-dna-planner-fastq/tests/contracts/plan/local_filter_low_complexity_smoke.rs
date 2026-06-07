@@ -35,7 +35,7 @@ fn local_filter_low_complexity_smoke_plans_use_governed_low_complexity_fixture()
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk"
+            "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk"
         )
     );
     assert_eq!(case.plan.resources.threads, 1);
@@ -51,19 +51,19 @@ fn local_filter_low_complexity_smoke_plans_use_governed_low_complexity_fixture()
     assert_eq!(
         case.plan.params["output_r1"],
         serde_json::json!(
-            "target/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz"
+            "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz"
         )
     );
     assert_eq!(
         case.plan.params["report_json"],
         serde_json::json!(
-            "target/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/low_complexity_report.json"
+            "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/low_complexity_report.json"
         )
     );
     assert_eq!(
         case.plan.params["raw_backend_report"],
         serde_json::json!(
-            "target/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.low_complexity.stats"
+            "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.low_complexity.stats"
         )
     );
 

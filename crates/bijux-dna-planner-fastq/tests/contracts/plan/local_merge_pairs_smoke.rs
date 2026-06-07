@@ -40,7 +40,7 @@ fn local_merge_pairs_smoke_plans_use_governed_overlap_fixture() -> Result<()> {
     assert_eq!(case.plan.tool_id.as_str(), "pear");
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear")
+        PathBuf::from("runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear")
     );
     assert_eq!(case.plan.resources.threads, 1);
     assert_eq!(case.plan.effective_params["paired_mode"], serde_json::json!("paired_end"));
@@ -65,19 +65,19 @@ fn local_merge_pairs_smoke_plans_use_governed_overlap_fixture() -> Result<()> {
     assert_eq!(
         case.plan.params["merged_reads"],
         serde_json::json!(
-            "target/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.assembled.fastq"
+            "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.assembled.fastq"
         )
     );
     assert_eq!(
         case.plan.params["unmerged_reads_r1"],
         serde_json::json!(
-            "target/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.unassembled.forward.fastq"
+            "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.unassembled.forward.fastq"
         )
     );
     assert_eq!(
         case.plan.params["unmerged_reads_r2"],
         serde_json::json!(
-            "target/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.unassembled.reverse.fastq"
+            "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.unassembled.reverse.fastq"
         )
     );
 

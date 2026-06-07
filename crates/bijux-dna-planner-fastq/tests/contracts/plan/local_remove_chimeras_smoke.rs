@@ -25,7 +25,7 @@ fn local_remove_chimeras_smoke_plans_use_governed_corpus_fixture() -> Result<()>
     );
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch")
+        PathBuf::from("runs/bench/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch")
     );
     assert_eq!(case.plan.resources.threads, 1);
     assert_eq!(case.plan.effective_params["input_layout"], serde_json::json!("single_stream"));

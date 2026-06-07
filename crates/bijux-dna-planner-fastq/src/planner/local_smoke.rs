@@ -89,68 +89,96 @@ use crate::tool_adapters::fastq::validate_reads::{
     default_plan_options_for_layout, plan_with_options, validation_mode_from_literal,
 };
 
-const LOCAL_DETECT_ADAPTERS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-detect-adapters.toml";
-const DEFAULT_LOCAL_DETECT_ADAPTERS_OUTPUT_DIR: &str = "target/local-smoke/fastq.detect_adapters";
+const LOCAL_DETECT_ADAPTERS_CONFIG_PATH: &str =
+    "benchmarks/configs/local/fastq-detect-adapters.toml";
+const DEFAULT_LOCAL_DETECT_ADAPTERS_OUTPUT_DIR: &str =
+    "runs/bench/local-smoke/fastq.detect_adapters";
 const LOCAL_CORRECT_ERRORS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-correct-errors.toml";
-const DEFAULT_LOCAL_CORRECT_ERRORS_OUTPUT_DIR: &str = "target/local-smoke/fastq.correct_errors";
+const DEFAULT_LOCAL_CORRECT_ERRORS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.correct_errors";
 const LOCAL_EXTRACT_UMIS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-extract-umis.toml";
-const DEFAULT_LOCAL_EXTRACT_UMIS_OUTPUT_DIR: &str = "target/local-smoke/fastq.extract_umis";
+const DEFAULT_LOCAL_EXTRACT_UMIS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.extract_umis";
 const LOCAL_DETECT_DUPLICATES_PREMERGE_CONFIG_PATH: &str =
     "benchmarks/configs/local/fastq-detect-duplicates-premerge.toml";
 const DEFAULT_LOCAL_DETECT_DUPLICATES_PREMERGE_OUTPUT_DIR: &str =
-    "target/local-smoke/fastq.detect_duplicates_premerge";
+    "runs/bench/local-smoke/fastq.detect_duplicates_premerge";
 const LOCAL_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_CONFIG_PATH: &str =
     "benchmarks/configs/local/fastq-estimate-library-complexity-prealign.toml";
 const DEFAULT_LOCAL_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_OUTPUT_DIR: &str =
-    "target/local-smoke/fastq.estimate_library_complexity_prealign";
+    "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign";
 const LOCAL_FILTER_LOW_COMPLEXITY_CONFIG_PATH: &str =
     "benchmarks/configs/local/fastq-filter-low-complexity.toml";
 const DEFAULT_LOCAL_FILTER_LOW_COMPLEXITY_OUTPUT_DIR: &str =
-    "target/local-smoke/fastq.filter_low_complexity";
+    "runs/bench/local-smoke/fastq.filter_low_complexity";
 const LOCAL_FILTER_READS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-filter-reads.toml";
-const DEFAULT_LOCAL_FILTER_READS_OUTPUT_DIR: &str = "target/local-smoke/fastq.filter_reads";
+const DEFAULT_LOCAL_FILTER_READS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.filter_reads";
 const LOCAL_CLUSTER_OTUS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-cluster-otus.toml";
-const DEFAULT_LOCAL_CLUSTER_OTUS_OUTPUT_DIR: &str = "target/local-smoke/fastq.cluster_otus";
+const DEFAULT_LOCAL_CLUSTER_OTUS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.cluster_otus";
 const LOCAL_INFER_ASVS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-infer-asvs.toml";
-const DEFAULT_LOCAL_INFER_ASVS_OUTPUT_DIR: &str = "target/local-smoke/fastq.infer_asvs";
+const DEFAULT_LOCAL_INFER_ASVS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.infer_asvs";
 const LOCAL_MERGE_PAIRS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-merge-pairs.toml";
-const DEFAULT_LOCAL_MERGE_PAIRS_OUTPUT_DIR: &str = "target/local-smoke/fastq.merge_pairs";
+const DEFAULT_LOCAL_MERGE_PAIRS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.merge_pairs";
 const LOCAL_NORMALIZE_ABUNDANCE_CONFIG_PATH: &str =
     "benchmarks/configs/local/fastq-normalize-abundance.toml";
 const DEFAULT_LOCAL_NORMALIZE_ABUNDANCE_OUTPUT_DIR: &str =
-    "target/local-smoke/fastq.normalize_abundance";
+    "runs/bench/local-smoke/fastq.normalize_abundance";
 const LOCAL_NORMALIZE_PRIMERS_CONFIG_PATH: &str =
     "benchmarks/configs/local/fastq-normalize-primers.toml";
 const DEFAULT_LOCAL_NORMALIZE_PRIMERS_OUTPUT_DIR: &str =
-    "target/local-smoke/fastq.normalize_primers";
+    "runs/bench/local-smoke/fastq.normalize_primers";
 const LOCAL_PROFILE_READS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-profile-reads.toml";
-const DEFAULT_LOCAL_PROFILE_READS_OUTPUT_DIR: &str = "target/local-smoke/fastq.profile_reads";
+const DEFAULT_LOCAL_PROFILE_READS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.profile_reads";
 const LOCAL_REPORT_QC_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-report-qc.toml";
-const DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR: &str = "target/local-smoke/fastq.report_qc";
+const DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.report_qc";
 const LOCAL_PROFILE_OVERREPRESENTED_SEQUENCES_CONFIG_PATH: &str =
     "benchmarks/configs/local/fastq-profile-overrepresented-sequences.toml";
 const DEFAULT_LOCAL_PROFILE_OVERREPRESENTED_SEQUENCES_OUTPUT_DIR: &str =
-    "target/local-smoke/fastq.profile_overrepresented_sequences";
+    "runs/bench/local-smoke/fastq.profile_overrepresented_sequences";
 const LOCAL_PROFILE_READ_LENGTHS_CONFIG_PATH: &str =
     "benchmarks/configs/local/fastq-profile-read-lengths.toml";
 const DEFAULT_LOCAL_PROFILE_READ_LENGTHS_OUTPUT_DIR: &str =
-    "target/local-smoke/fastq.profile_read_lengths";
+    "runs/bench/local-smoke/fastq.profile_read_lengths";
 const LOCAL_REMOVE_DUPLICATES_CONFIG_PATH: &str =
     "benchmarks/configs/local/fastq-remove-duplicates.toml";
 const DEFAULT_LOCAL_REMOVE_DUPLICATES_OUTPUT_DIR: &str =
-    "target/local-smoke/fastq.remove_duplicates";
-const LOCAL_REMOVE_CHIMERAS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-remove-chimeras.toml";
-const DEFAULT_LOCAL_REMOVE_CHIMERAS_OUTPUT_DIR: &str = "target/local-smoke/fastq.remove_chimeras";
+    "runs/bench/local-smoke/fastq.remove_duplicates";
+const LOCAL_REMOVE_CHIMERAS_CONFIG_PATH: &str =
+    "benchmarks/configs/local/fastq-remove-chimeras.toml";
+const DEFAULT_LOCAL_REMOVE_CHIMERAS_OUTPUT_DIR: &str =
+    "runs/bench/local-smoke/fastq.remove_chimeras";
 const LOCAL_TRIM_READS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-trim-reads.toml";
-const DEFAULT_LOCAL_TRIM_READS_OUTPUT_DIR: &str = "target/local-smoke/fastq.trim_reads";
-const LOCAL_TRIM_POLYG_TAILS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-trim-polyg-tails.toml";
-const DEFAULT_LOCAL_TRIM_POLYG_TAILS_OUTPUT_DIR: &str = "target/local-smoke/fastq.trim_polyg_tails";
+const DEFAULT_LOCAL_TRIM_READS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.trim_reads";
+const LOCAL_TRIM_POLYG_TAILS_CONFIG_PATH: &str =
+    "benchmarks/configs/local/fastq-trim-polyg-tails.toml";
+const DEFAULT_LOCAL_TRIM_POLYG_TAILS_OUTPUT_DIR: &str =
+    "runs/bench/local-smoke/fastq.trim_polyg_tails";
 const LOCAL_TRIM_TERMINAL_DAMAGE_CONFIG_PATH: &str =
     "benchmarks/configs/local/fastq-trim-terminal-damage.toml";
 const DEFAULT_LOCAL_TRIM_TERMINAL_DAMAGE_OUTPUT_DIR: &str =
-    "target/local-smoke/fastq.trim_terminal_damage";
+    "runs/bench/local-smoke/fastq.trim_terminal_damage";
 const LOCAL_VALIDATE_READS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-validate-reads.toml";
-const DEFAULT_LOCAL_VALIDATE_READS_OUTPUT_DIR: &str = "target/local-smoke/fastq.validate_reads";
+const DEFAULT_LOCAL_VALIDATE_READS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.validate_reads";
+const BENCHMARK_READINESS_ROOT_RELATIVE: &str = "benchmarks/readiness";
+
+fn local_smoke_case_output_dir(
+    repo_root: &Path,
+    output_root: &Path,
+    sample_id: &str,
+    tool_id: &str,
+) -> Result<PathBuf> {
+    let resolved_root = if output_root.is_absolute() {
+        output_root.to_path_buf()
+    } else {
+        repo_root.join(output_root)
+    };
+    let readiness_root = repo_root.join(BENCHMARK_READINESS_ROOT_RELATIVE);
+    if resolved_root == readiness_root || resolved_root.starts_with(&readiness_root) {
+        return Err(anyhow!(
+            "local-smoke output_dir must remain disposable under `runs/bench/local-smoke` and must not resolve inside `{}`",
+            BENCHMARK_READINESS_ROOT_RELATIVE
+        ));
+    }
+    Ok(output_root.join(sample_id).join(tool_id))
+}
 
 #[derive(Debug, Clone)]
 pub struct LocalProfileReadLengthsSmokeCasePlan {
@@ -1686,7 +1714,12 @@ fn build_local_detect_adapters_smoke_case(
         }
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let mut options = crate::DetectAdaptersStageParams::default();
     options.threads = Some(tool_spec.resources.threads.max(1));
     let plan = plan_detect_adapters(tool_spec, &case.r1, case.r2.as_deref(), &out_dir, &options)?;
@@ -1723,7 +1756,12 @@ fn build_local_correct_errors_smoke_case(
         }
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan =
         plan_correct_with_options(tool_spec, &case.r1, case.r2.as_deref(), &out_dir, options)?;
 
@@ -1759,7 +1797,12 @@ fn build_local_extract_umis_smoke_case(
         ));
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_umi_with_options(tool_spec, &case.r1, &case.r2, &out_dir, options)?;
     let effective_params = serde_json::from_value::<bijux_dna_domain_fastq::FastqUmiParams>(
         plan.effective_params.clone(),
@@ -1800,7 +1843,12 @@ fn build_local_detect_duplicates_premerge_smoke_case(
         }
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_detect_duplicates_premerge(tool_spec, &case.r1, case.r2.as_deref(), &out_dir)?;
 
     Ok(LocalDetectDuplicatesPremergeSmokeCasePlan {
@@ -1835,7 +1883,12 @@ fn build_local_estimate_library_complexity_prealign_smoke_case(
         }
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_estimate_library_complexity_prealign(
         tool_spec,
         &case.r1,
@@ -1877,7 +1930,12 @@ fn build_local_filter_reads_smoke_case(
         }
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_filter(tool_spec, &case.r1, case.r2.as_deref(), &out_dir, plan_options)?;
 
     Ok(LocalFilterReadsSmokeCasePlan {
@@ -1916,7 +1974,12 @@ fn build_local_filter_low_complexity_smoke_case(
         }
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan =
         plan_low_complexity(tool_spec, &case.r1, case.r2.as_deref(), &out_dir, plan_options)?;
 
@@ -1945,7 +2008,12 @@ fn build_local_infer_asvs_smoke_case(
         ));
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_infer_asvs_with_options(tool_spec, &case.reads, None, &out_dir, options)?;
 
     Ok(LocalInferAsvsSmokeCasePlan {
@@ -1973,7 +2041,12 @@ fn build_local_cluster_otus_smoke_case(
         ));
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_cluster_otus_with_options(tool_spec, &case.reads, None, &out_dir, options)?;
 
     Ok(LocalClusterOtusSmokeCasePlan {
@@ -2008,7 +2081,12 @@ fn build_local_normalize_primers_smoke_case(
         }
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_normalize_primers(tool_spec, &case.r1, case.r2.as_deref(), &out_dir, options)?;
 
     Ok(LocalNormalizePrimersSmokeCasePlan {
@@ -2034,7 +2112,12 @@ fn build_local_normalize_abundance_smoke_case(
         ));
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan =
         plan_normalize_abundance_with_options(tool_spec, &case.abundance_table, &out_dir, options)?;
 
@@ -2070,7 +2153,12 @@ fn build_local_trim_terminal_damage_smoke_case(
         }
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_trim_terminal_damage_with_options(
         tool_spec,
         &case.r1,
@@ -2111,7 +2199,12 @@ fn build_local_trim_polyg_tails_smoke_case(
         }
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_trim_polyg_tails_with_options(
         tool_spec,
         &case.r1,
@@ -2151,7 +2244,12 @@ fn build_local_merge_pairs_smoke_case(
         ));
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_merge_with_options(tool_spec, &case.r1, &case.r2, &out_dir, options)?;
 
     Ok(LocalMergePairsSmokeCasePlan {
@@ -2203,7 +2301,12 @@ fn build_local_remove_duplicates_smoke_case(
         }
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan =
         plan_deduplicate_with_options(tool_spec, &case.r1, case.r2.as_deref(), &out_dir, options)?;
 
@@ -2231,7 +2334,12 @@ fn build_local_remove_chimeras_smoke_case(
         ));
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_remove_chimeras(tool_spec, &case.reads, None, &out_dir)?;
 
     Ok(LocalRemoveChimerasSmokeCasePlan { sample_id: case.sample_id, reads: case.reads, plan })
@@ -2262,7 +2370,12 @@ fn build_local_trim_reads_smoke_case(
         }
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_trim_reads_with_options(
         tool_spec,
         &case.r1,
@@ -2490,7 +2603,12 @@ fn build_local_profile_reads_smoke_case(
         }
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_stats_with_threads(
         tool_spec,
         &case.r1,
@@ -2526,7 +2644,12 @@ fn build_local_profile_overrepresented_sequences_smoke_case(
         }
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_profile_overrepresented_sequences_with_options(
         tool_spec,
         &case.r1,
@@ -2571,7 +2694,12 @@ fn build_local_validate_reads_smoke_case(
     let mut options = default_plan_options_for_layout(case.r2.as_deref());
     options.threads = Some(tool_spec.resources.threads.max(1));
     options.validation_mode = validation_mode.clone();
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_with_options(tool_spec, &case.r1, case.r2.as_deref(), &out_dir, &options)?;
 
     Ok(LocalValidateReadsSmokeCasePlan {
@@ -2828,7 +2956,12 @@ fn build_local_profile_read_lengths_smoke_case(
         }
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = plan_profile_read_lengths(
         tool_spec,
         &case.r1,
@@ -3567,5 +3700,28 @@ fn parse_local_merge_pairs_unmerged_read_policy(
         other => {
             Err(anyhow!("unsupported local-smoke fastq.merge_pairs unmerged_read_policy `{other}`"))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+
+    use super::local_smoke_case_output_dir;
+
+    #[test]
+    fn local_smoke_case_output_dir_rejects_readiness_root() {
+        let error = local_smoke_case_output_dir(
+            Path::new("/workspace/repo"),
+            Path::new("benchmarks/readiness/local-ready/fastq.validate_reads"),
+            "toy-se",
+            "fastqvalidator",
+        )
+        .expect_err("readiness-root smoke outputs must be refused");
+
+        assert!(
+            error.to_string().contains("local-smoke output_dir must remain disposable"),
+            "unexpected error: {error}"
+        );
     }
 }

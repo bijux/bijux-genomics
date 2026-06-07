@@ -25,7 +25,7 @@ fn local_profile_reads_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
     assert_eq!(single_end.r2, None);
     assert_eq!(
         single_end.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.profile_reads/toy-se/seqkit_stats")
+        PathBuf::from("runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats")
     );
     assert_eq!(single_end.plan.resources.threads, 4);
 
@@ -37,7 +37,7 @@ fn local_profile_reads_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
     assert_eq!(paired_end.r2, Some(PathBuf::from("assets/toy/core-v1/fastq/reads_2.fastq")));
     assert_eq!(
         paired_end.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats")
+        PathBuf::from("runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats")
     );
     assert_eq!(paired_end.plan.effective_params["paired_mode"], serde_json::json!("paired_end"));
     assert_eq!(

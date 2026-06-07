@@ -25,7 +25,7 @@ fn local_cluster_otus_smoke_plans_use_governed_corpus_fixture() -> Result<()> {
     );
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch")
+        PathBuf::from("runs/bench/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch")
     );
     assert_eq!(case.plan.resources.threads, 1);
     assert!((case.otu_identity - 0.97).abs() < f64::EPSILON);

@@ -27,7 +27,7 @@ fn local_trim_reads_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
     assert_eq!(se_case.quality_cutoff, Some(20));
     assert_eq!(
         se_case.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.trim_reads/adapter-quality-se/fastp")
+        PathBuf::from("runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp")
     );
     assert_eq!(se_case.plan.effective_params["adapter_policy"], serde_json::json!("bank"));
     assert_eq!(se_case.plan.effective_params["min_len"], serde_json::json!(4));
@@ -47,7 +47,7 @@ fn local_trim_reads_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
     );
     assert_eq!(
         pe_case.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp")
+        PathBuf::from("runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp")
     );
     assert_eq!(pe_case.plan.effective_params["paired_mode"], serde_json::json!("paired_end"));
 

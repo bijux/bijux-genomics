@@ -29,13 +29,13 @@ fn local_trim_terminal_damage_smoke_plans_use_governed_corpus_fixture() -> Resul
     assert_eq!(case.r2, None);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt")
+        PathBuf::from("runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt")
     );
     assert_eq!(case.plan.resources.threads, 1);
     assert_eq!(
         case.plan.params["report_json"],
         serde_json::json!(
-            "target/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage_report.json"
+            "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage_report.json"
         )
     );
     assert_eq!(case.plan.effective_params["damage_mode"], serde_json::json!("ancient"));

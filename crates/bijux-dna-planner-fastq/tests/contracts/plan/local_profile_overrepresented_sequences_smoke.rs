@@ -30,7 +30,7 @@ fn local_profile_overrepresented_sequences_smoke_plans_use_governed_repeat_fixtu
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/fastq.profile_overrepresented_sequences/known-repeat-se/seqkit"
+            "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/known-repeat-se/seqkit"
         )
     );
     assert_eq!(case.plan.resources.threads, 1);

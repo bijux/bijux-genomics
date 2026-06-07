@@ -29,13 +29,13 @@ fn local_trim_polyg_tails_smoke_plans_use_governed_corpus_fixture() -> Result<()
     assert_eq!(case.min_polyg_run, 6);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp")
+        PathBuf::from("runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp")
     );
     assert_eq!(case.plan.resources.threads, 1);
     assert_eq!(
         case.plan.params["report_json"],
         serde_json::json!(
-            "target/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.json"
+            "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.json"
         )
     );
     assert_eq!(case.plan.effective_params["trim_polyg"], serde_json::json!(true));

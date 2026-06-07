@@ -44,14 +44,14 @@ fn local_detect_duplicates_premerge_smoke_plans_use_governed_corpus_fixtures() -
     assert_eq!(
         duplicate_hit.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/fastq.detect_duplicates_premerge/human_like_pe_duplicate_signals/bijux_dna"
+            "runs/bench/local-smoke/fastq.detect_duplicates_premerge/human_like_pe_duplicate_signals/bijux_dna"
         )
     );
     assert_eq!(duplicate_hit.plan.resources.threads, 1);
     assert_eq!(
         duplicate_hit.plan.params["duplicate_signal_report"],
         serde_json::json!(
-            "target/local-smoke/fastq.detect_duplicates_premerge/human_like_pe_duplicate_signals/bijux_dna/duplicate_signal_report.json"
+            "runs/bench/local-smoke/fastq.detect_duplicates_premerge/human_like_pe_duplicate_signals/bijux_dna/duplicate_signal_report.json"
         )
     );
 
@@ -74,7 +74,7 @@ fn local_detect_duplicates_premerge_smoke_plans_use_governed_corpus_fixtures() -
     assert_eq!(
         duplicate_clear.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/fastq.detect_duplicates_premerge/human_like_pe_distinct_pairs/bijux_dna"
+            "runs/bench/local-smoke/fastq.detect_duplicates_premerge/human_like_pe_distinct_pairs/bijux_dna"
         )
     );
     assert_eq!(
