@@ -177,7 +177,7 @@ fn read_expected_json(case: &VcfImputationFixtureCase) -> Result<serde_json::Val
 
 fn fixture_dir(case: &VcfImputationFixtureCase) -> PathBuf {
     repo_root()
-        .join("tests/fixtures/bench/parsers/vcf/imputation")
+        .join("benchmarks/tests/fixtures/bench/parsers/vcf/imputation")
         .join(case.tool_id)
         .join(case.stage.as_str())
 }

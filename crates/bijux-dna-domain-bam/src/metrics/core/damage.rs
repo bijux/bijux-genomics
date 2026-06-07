@@ -188,13 +188,11 @@ pub fn parse_mapdamage2_misincorporation(
         g_to_a = Some(g_to_a_val);
         break;
     }
-    let c_to_t = c_to_t.ok_or_else(|| anyhow::anyhow!("mapdamage2 report contains no data rows"))?;
-    let g_to_a = g_to_a.ok_or_else(|| anyhow::anyhow!("mapdamage2 report contains no data rows"))?;
-    Ok(DamageMetricsV1 {
-        c_to_t_5p: c_to_t,
-        g_to_a_3p: g_to_a,
-        pmd_score_histogram: Vec::new(),
-    })
+    let c_to_t =
+        c_to_t.ok_or_else(|| anyhow::anyhow!("mapdamage2 report contains no data rows"))?;
+    let g_to_a =
+        g_to_a.ok_or_else(|| anyhow::anyhow!("mapdamage2 report contains no data rows"))?;
+    Ok(DamageMetricsV1 { c_to_t_5p: c_to_t, g_to_a_3p: g_to_a, pmd_score_histogram: Vec::new() })
 }
 
 fn parse_damage_metrics_json_value(value: &serde_json::Value) -> DamageMetricsV1 {

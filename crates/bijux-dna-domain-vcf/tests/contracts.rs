@@ -250,7 +250,7 @@ mod contracts {
             row.tool_id == "bcftools"
                 && row.stage == VcfDomainStage::Call
                 && row.parser_id == "parse_bcftools_call_metrics"
-                && row.fixture_path == "tests/fixtures/bench/parsers/vcf/bcftools/vcf.call"
+                && row.fixture_path == "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call"
         }));
         assert!(rows.iter().any(|row| {
             row.tool_id == "bcftools"

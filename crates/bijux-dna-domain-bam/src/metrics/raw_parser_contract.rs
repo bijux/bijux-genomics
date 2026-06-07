@@ -310,7 +310,7 @@ fn parse_case(case: &BamRawParserFixtureCase, raw_path: &Path) -> Result<()> {
 }
 
 fn fixture_dir(repo_root: &Path, case: &BamRawParserFixtureCase) -> PathBuf {
-    repo_root.join("tests/fixtures/bench/parsers/bam").join(case.stage_id).join(case.tool_id)
+    repo_root.join("benchmarks/tests/fixtures/bench/parsers/bam").join(case.stage_id).join(case.tool_id)
 }
 
 #[cfg(test)]
@@ -338,7 +338,9 @@ mod tests {
         assert!(failed_rows.is_empty(), "failed rows: {failed_rows:#?}");
         assert_eq!(
             rows.iter()
-                .filter(|row| row.expected_failure_class == BamRawParserFailureClass::MissingRawOutput)
+                .filter(
+                    |row| row.expected_failure_class == BamRawParserFailureClass::MissingRawOutput
+                )
                 .count(),
             17
         );
@@ -350,7 +352,8 @@ mod tests {
         );
         assert_eq!(
             rows.iter()
-                .filter(|row| row.expected_failure_class == BamRawParserFailureClass::MalformedRawOutput)
+                .filter(|row| row.expected_failure_class
+                    == BamRawParserFailureClass::MalformedRawOutput)
                 .count(),
             17
         );
@@ -359,9 +362,7 @@ mod tests {
             row.stage_id == "bam.qc_pre"
                 && row.tool_id == "samtools"
                 && row.expected_failure_class == BamRawParserFailureClass::MalformedRawOutput
-                && row
-                    .observed_error
-                    .contains("flagstat summary missing `in total` line")
+                && row.observed_error.contains("flagstat summary missing `in total` line")
         }));
         assert!(rows.iter().any(|row| {
             row.stage_id == "bam.coverage"

@@ -127,7 +127,7 @@ fn read_expected_json(case: &VcfPhasingFixtureCase) -> Result<serde_json::Value>
 }
 
 fn fixture_dir(case: &VcfPhasingFixtureCase) -> PathBuf {
-    repo_root().join("tests/fixtures/bench/parsers/vcf/phasing").join(case.tool_id)
+    repo_root().join("benchmarks/tests/fixtures/bench/parsers/vcf/phasing").join(case.tool_id)
 }
 
 fn repo_root() -> PathBuf {

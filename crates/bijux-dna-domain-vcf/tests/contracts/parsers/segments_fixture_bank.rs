@@ -156,13 +156,10 @@ fn vcf_segment_fixture_bank_parses_insufficient_cases_as_structured_reports() ->
                     case.case_id
                 )
             })?;
-        let status = normalized
-            .get("status")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default();
+        let status =
+            normalized.get("status").and_then(serde_json::Value::as_str).unwrap_or_default();
         assert_eq!(
-            status,
-            case.case_id,
+            status, case.case_id,
             "insufficient segment fixture must normalize into a structured status"
         );
     }
@@ -197,7 +194,7 @@ fn read_expected_json(case: &VcfSegmentFixtureCase) -> Result<serde_json::Value>
 
 fn fixture_dir(case: &VcfSegmentFixtureCase) -> PathBuf {
     repo_root()
-        .join("tests/fixtures/bench/parsers/vcf/segments")
+        .join("benchmarks/tests/fixtures/bench/parsers/vcf/segments")
         .join(case.tool_id)
         .join(case.stage.as_str())
         .join(case.case_id)

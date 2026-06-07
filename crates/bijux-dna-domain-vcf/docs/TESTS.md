@@ -13,22 +13,22 @@ guardrails, and crate layout.
 
 ## Fixture Banks
 
-- `tests/fixtures/bench/parsers/vcf/bcftools/<stage>/` stores the governed raw artifact bank for
+- `benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/<stage>/` stores the governed raw artifact bank for
   retained `bcftools` VCF stages.
-- `tests/fixtures/bench/parsers/vcf/angsd/<stage>/` stores the governed raw artifact bank for
+- `benchmarks/tests/fixtures/bench/parsers/vcf/angsd/<stage>/` stores the governed raw artifact bank for
   retained `angsd` low-coverage VCF stages.
-- `tests/fixtures/bench/parsers/vcf/plink/<stage>/` stores the governed raw artifact bank for the
+- `benchmarks/tests/fixtures/bench/parsers/vcf/plink/<stage>/` stores the governed raw artifact bank for the
   retained classic `plink` VCF rows.
-- `tests/fixtures/bench/parsers/vcf/plink2/<stage>/` stores the governed raw artifact bank for the
+- `benchmarks/tests/fixtures/bench/parsers/vcf/plink2/<stage>/` stores the governed raw artifact bank for the
   retained `plink2` VCF rows.
-- `tests/fixtures/bench/parsers/vcf/eigensoft/pca/` and
-  `tests/fixtures/bench/parsers/vcf/eigensoft/population_structure/` store the governed raw
+- `benchmarks/tests/fixtures/bench/parsers/vcf/eigensoft/pca/` and
+  `benchmarks/tests/fixtures/bench/parsers/vcf/eigensoft/population_structure/` store the governed raw
   artifact bank for the retained `eigensoft` population-analysis rows.
-- `tests/fixtures/bench/parsers/vcf/phasing/<tool_id>/` stores the governed raw artifact bank for
+- `benchmarks/tests/fixtures/bench/parsers/vcf/phasing/<tool_id>/` stores the governed raw artifact bank for
   the retained phasing backends.
-- `tests/fixtures/bench/parsers/vcf/imputation/<tool_id>/<stage_id>/` stores the governed raw
+- `benchmarks/tests/fixtures/bench/parsers/vcf/imputation/<tool_id>/<stage_id>/` stores the governed raw
   artifact bank for the retained imputation backends across `vcf.impute` and `vcf.imputation`.
-- `tests/fixtures/bench/parsers/vcf/segments/<tool_id>/<stage_id>/<case_id>/` stores the
+- `benchmarks/tests/fixtures/bench/parsers/vcf/segments/<tool_id>/<stage_id>/<case_id>/` stores the
   governed raw artifact bank for retained ROH, IBD, and demography segment-producing rows,
   including explicit insufficient-data cases.
 - Every stage directory must contain the raw parser inputs required by `src/parsers/bcftools.rs`

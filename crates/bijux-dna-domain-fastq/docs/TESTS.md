@@ -14,7 +14,7 @@ semantic behavior, and contract snapshots.
 | Invariants | `tests/semantics/invariants/*` | Invariant specs, metric fixtures, and evaluation behavior. |
 
 The raw FASTQ parser bank for benchmark-facing observer fixtures lives at
-`tests/fixtures/bench/parsers/fastq/<stage>/<tool>/` in the repository root.
+`benchmarks/tests/fixtures/bench/parsers/fastq/<stage>/<tool>/` in the repository root.
 Domain parser contracts consume that bank directly so raw tool outputs and expected normalized
 JSON stay governed in one location.
 

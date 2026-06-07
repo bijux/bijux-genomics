@@ -228,7 +228,7 @@ fn read_expected_json(case: &FastqRawParserFixtureCase) -> Result<serde_json::Va
 }
 
 fn fixture_dir(case: &FastqRawParserFixtureCase) -> PathBuf {
-    repo_root().join("tests/fixtures/bench/parsers/fastq").join(case.stage_id).join(case.tool_id)
+    repo_root().join("benchmarks/tests/fixtures/bench/parsers/fastq").join(case.stage_id).join(case.tool_id)
 }
 
 fn repo_root() -> PathBuf {

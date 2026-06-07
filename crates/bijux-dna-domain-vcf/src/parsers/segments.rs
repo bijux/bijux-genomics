@@ -61,10 +61,7 @@ pub fn parse_segment_stage_metrics(
         | ("ibdseq", VcfDomainStage::Ibd)
         | ("ibdhap", VcfDomainStage::Ibd) => parse_ibd_metrics(tool_id, artifact_root),
         ("ibdne", VcfDomainStage::Demography) => parse_demography_metrics(artifact_root),
-        _ => bail!(
-            "unsupported VCF segment parser row `{tool_id}` / `{}`",
-            stage.as_str()
-        ),
+        _ => bail!("unsupported VCF segment parser row `{tool_id}` / `{}`", stage.as_str()),
     }
 }
 
@@ -174,8 +171,7 @@ fn parse_ibd_metrics(tool_id: &str, root: &Path) -> Result<serde_json::Value> {
     }
 
     let total_length = segments.iter().map(|segment| segment.length_cm).sum::<f64>();
-    let summary_total_length =
-        json_f64(&summary, "/total_length_cm", "IBD summary total length")?;
+    let summary_total_length = json_f64(&summary, "/total_length_cm", "IBD summary total length")?;
     if !approx_equal(total_length, summary_total_length) {
         bail!(
             "IBD summary total length drifted from segment rows: {} vs {}",
@@ -299,15 +295,11 @@ fn parse_demography_metrics(root: &Path) -> Result<serde_json::Value> {
     }
 
     let time_bins = json_u64_array(&contract, "/time_bins", "demography time_bins")?;
-    if time_bins
-        != json_u64_array(&metrics, "/time_bins", "demography metrics time_bins")?
-    {
+    if time_bins != json_u64_array(&metrics, "/time_bins", "demography metrics time_bins")? {
         bail!("demography time bins drifted between contract and metrics");
     }
     let ne_estimates = json_array(&contract, "/ne_estimates", "demography ne_estimates")?;
-    if ne_estimates
-        != json_array(&metrics, "/ne_estimates", "demography metrics ne_estimates")?
-    {
+    if ne_estimates != json_array(&metrics, "/ne_estimates", "demography metrics ne_estimates")? {
         bail!("demography ne_estimates drifted between contract and metrics");
     }
 
@@ -508,8 +500,9 @@ fn parse_ibd_segments(path: &Path) -> Result<Vec<IbdSegment>> {
 fn parse_demography_trajectory(path: &Path) -> Result<Vec<DemographyPoint>> {
     let raw = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     let mut lines = raw.lines();
-    let header =
-        lines.next().ok_or_else(|| anyhow!("demography trajectory is empty: {}", path.display()))?;
+    let header = lines
+        .next()
+        .ok_or_else(|| anyhow!("demography trajectory is empty: {}", path.display()))?;
     if header.trim() != "generation\tne\tci_low\tci_high" {
         bail!("demography trajectory header drifted in {}: `{header}`", path.display());
     }
@@ -551,10 +544,7 @@ fn validate_demography_points(
             || !approx_equal(ci_low, trajectory_point.ci_low)
             || !approx_equal(ci_high, trajectory_point.ci_high)
         {
-            bail!(
-                "demography estimate row {} drifted from trajectory row",
-                index + 1
-            );
+            bail!("demography estimate row {} drifted from trajectory row", index + 1);
         }
     }
     Ok(())
@@ -576,7 +566,9 @@ fn read_json(path: &Path) -> Result<serde_json::Value> {
 fn index_for(header: &[String], accepted: &[&str]) -> Result<usize> {
     header
         .iter()
-        .position(|column| accepted.iter().any(|accepted_name| normalize_header(column) == *accepted_name))
+        .position(|column| {
+            accepted.iter().any(|accepted_name| normalize_header(column) == *accepted_name)
+        })
         .ok_or_else(|| anyhow!("missing required header column from {:?}", accepted))
 }
 
@@ -599,13 +591,11 @@ fn ordered_pair(sample_a: &str, sample_b: &str) -> (String, String) {
 }
 
 fn parse_u64(raw: &str, label: &str) -> Result<u64> {
-    raw.parse::<u64>()
-        .with_context(|| format!("parse `{label}` from `{raw}`"))
+    raw.parse::<u64>().with_context(|| format!("parse `{label}` from `{raw}`"))
 }
 
 fn parse_f64(raw: &str, label: &str) -> Result<f64> {
-    raw.parse::<f64>()
-        .with_context(|| format!("parse `{label}` from `{raw}`"))
+    raw.parse::<f64>().with_context(|| format!("parse `{label}` from `{raw}`"))
 }
 
 fn json_string<'a>(value: &'a serde_json::Value, pointer: &str, label: &str) -> Result<&'a str> {
@@ -652,7 +642,11 @@ fn json_u64_array(value: &serde_json::Value, pointer: &str, label: &str) -> Resu
         .collect()
 }
 
-fn json_array(value: &serde_json::Value, pointer: &str, label: &str) -> Result<Vec<serde_json::Value>> {
+fn json_array(
+    value: &serde_json::Value,
+    pointer: &str,
+    label: &str,
+) -> Result<Vec<serde_json::Value>> {
     value
         .pointer(pointer)
         .and_then(serde_json::Value::as_array)
@@ -668,9 +662,7 @@ fn json_string_array(value: &serde_json::Value, pointer: &str, label: &str) -> R
     array
         .iter()
         .map(|item| {
-            item.as_str()
-                .map(str::to_string)
-                .ok_or_else(|| anyhow!("{label} must contain strings"))
+            item.as_str().map(str::to_string).ok_or_else(|| anyhow!("{label} must contain strings"))
         })
         .collect()
 }

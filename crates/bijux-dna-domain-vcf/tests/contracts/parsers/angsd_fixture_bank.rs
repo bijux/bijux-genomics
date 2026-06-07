@@ -97,7 +97,7 @@ fn read_expected_json(case: &VcfAngsdFixtureCase) -> Result<serde_json::Value> {
 }
 
 fn fixture_dir(case: &VcfAngsdFixtureCase) -> PathBuf {
-    repo_root().join("tests/fixtures/bench/parsers/vcf/angsd").join(case.stage.as_str())
+    repo_root().join("benchmarks/tests/fixtures/bench/parsers/vcf/angsd").join(case.stage.as_str())
 }
 
 fn repo_root() -> PathBuf {

@@ -48,18 +48,19 @@ fn comparable_stage_contracts_manifest() -> &'static [BamComparableStageContract
         .map(|raw| {
             let manifest: StageComparisonManifest = bijux_dna_infra::formats::parse_yaml(raw)
                 .unwrap_or_else(|err| panic!("parse BAM stage comparison manifest: {err}"));
-            let mut compatible_tool_ids = manifest
-                .compatible_tools
-                .into_iter()
-                .map(ToolId::new)
-                .collect::<Vec<_>>();
+            let mut compatible_tool_ids =
+                manifest.compatible_tools.into_iter().map(ToolId::new).collect::<Vec<_>>();
             compatible_tool_ids.sort();
             compatible_tool_ids.dedup();
 
             BamComparableStageContract {
                 stage_id: StageId::new(manifest.stage_id),
                 compatible_tool_ids,
-                shared_metric_fields: manifest.metrics.into_iter().map(|metric| metric.name).collect(),
+                shared_metric_fields: manifest
+                    .metrics
+                    .into_iter()
+                    .map(|metric| metric.name)
+                    .collect(),
             }
         })
         .filter(|contract| contract.compatible_tool_ids.len() >= 2)
@@ -74,10 +75,7 @@ pub fn comparable_benchmark_stage_contracts() -> Vec<BamComparableStageContract>
 
 #[must_use]
 pub fn comparable_benchmark_stage_ids() -> Vec<StageId> {
-    comparable_stage_contracts_manifest()
-        .iter()
-        .map(|contract| contract.stage_id.clone())
-        .collect()
+    comparable_stage_contracts_manifest().iter().map(|contract| contract.stage_id.clone()).collect()
 }
 
 #[must_use]

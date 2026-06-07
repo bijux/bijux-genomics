@@ -4,14 +4,14 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
+use super::tool_metrics::{
+    parse_adapterremoval_metrics, parse_fastp_metrics, parse_fastqc_summary_metrics,
+    parse_multiqc_general_stats_metrics, parse_seqkit_tool_metrics,
+};
 use super::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastqvalidator_count,
     parse_length_histogram, parse_low_complexity_report, parse_screen_summary_tsv,
     parse_seqkit_stats,
-};
-use super::tool_metrics::{
-    parse_adapterremoval_metrics, parse_fastp_metrics, parse_fastqc_summary_metrics,
-    parse_multiqc_general_stats_metrics, parse_seqkit_tool_metrics,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -292,14 +292,12 @@ fn parse_case(case: &FastqRawParserFixtureCase, raw: &str) -> Result<()> {
 }
 
 fn fixture_dir(repo_root: &Path, case: &FastqRawParserFixtureCase) -> PathBuf {
-    repo_root.join("tests/fixtures/bench/parsers/fastq").join(case.stage_id).join(case.tool_id)
+    repo_root.join("benchmarks/tests/fixtures/bench/parsers/fastq").join(case.stage_id).join(case.tool_id)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        evaluate_fastq_raw_parser_failure_contracts, FastqRawParserFailureClass,
-    };
+    use super::{evaluate_fastq_raw_parser_failure_contracts, FastqRawParserFailureClass};
     use anyhow::Result;
     use std::path::PathBuf;
 
@@ -348,9 +346,7 @@ mod tests {
             row.stage_id == "fastq.detect_adapters"
                 && row.tool_id == "fastqc"
                 && row.expected_failure_class == FastqRawParserFailureClass::MalformedRawOutput
-                && row
-                    .observed_error
-                    .contains("fastqc total sequences missing")
+                && row.observed_error.contains("fastqc total sequences missing")
         }));
         assert!(rows.iter().any(|row| {
             row.stage_id == "fastq.trim_terminal_damage"

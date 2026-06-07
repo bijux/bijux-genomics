@@ -37,8 +37,12 @@ pub fn parse_preseq_estimates(path: &std::path::Path) -> anyhow::Result<Complexi
             anyhow::bail!("preseq line {} has {} columns", line_no + 1, parts.len());
         }
         points.push((
-            parts[0].parse::<u64>().with_context(|| format!("parse preseq x on line {}", line_no + 1))?,
-            parts[1].parse::<u64>().with_context(|| format!("parse preseq y on line {}", line_no + 1))?,
+            parts[0]
+                .parse::<u64>()
+                .with_context(|| format!("parse preseq x on line {}", line_no + 1))?,
+            parts[1]
+                .parse::<u64>()
+                .with_context(|| format!("parse preseq y on line {}", line_no + 1))?,
         ));
     }
     if points.is_empty() {

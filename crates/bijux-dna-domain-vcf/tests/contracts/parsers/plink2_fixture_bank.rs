@@ -121,7 +121,7 @@ fn read_expected_json(case: &VcfPlink2FixtureCase) -> Result<serde_json::Value> 
 }
 
 fn fixture_dir(case: &VcfPlink2FixtureCase) -> PathBuf {
-    repo_root().join("tests/fixtures/bench/parsers/vcf/plink2").join(case.stage.as_str())
+    repo_root().join("benchmarks/tests/fixtures/bench/parsers/vcf/plink2").join(case.stage.as_str())
 }
 
 fn repo_root() -> PathBuf {

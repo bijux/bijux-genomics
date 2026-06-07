@@ -80,8 +80,12 @@ pub fn parse_samtools_stats(
                 anyhow::bail!("samtools stats RL line {} has {} columns", line_no + 1, parts.len());
             }
             length_hist.push((
-                parts[1].parse::<u32>().with_context(|| format!("parse RL length on line {}", line_no + 1))?,
-                parts[2].parse::<u64>().with_context(|| format!("parse RL count on line {}", line_no + 1))?,
+                parts[1]
+                    .parse::<u32>()
+                    .with_context(|| format!("parse RL length on line {}", line_no + 1))?,
+                parts[2]
+                    .parse::<u64>()
+                    .with_context(|| format!("parse RL count on line {}", line_no + 1))?,
             ));
         } else if line.starts_with("MQ") {
             let parts: Vec<&str> = line.split('\t').collect();
@@ -89,8 +93,12 @@ pub fn parse_samtools_stats(
                 anyhow::bail!("samtools stats MQ line {} has {} columns", line_no + 1, parts.len());
             }
             mapq_hist.push((
-                parts[1].parse::<u8>().with_context(|| format!("parse MQ score on line {}", line_no + 1))?,
-                parts[2].parse::<u64>().with_context(|| format!("parse MQ count on line {}", line_no + 1))?,
+                parts[1]
+                    .parse::<u8>()
+                    .with_context(|| format!("parse MQ score on line {}", line_no + 1))?,
+                parts[2]
+                    .parse::<u64>()
+                    .with_context(|| format!("parse MQ count on line {}", line_no + 1))?,
             ));
         }
     }

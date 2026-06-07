@@ -95,7 +95,8 @@ fn render_case(case: &BamAlignmentFixtureCase) -> Result<serde_json::Value> {
     let reference = dir.join(case.reference_file);
     let reads_r1 = dir.join(case.reads_r1_file);
     let reads_r2 = case.reads_r2_file.map(|path| dir.join(path));
-    let output_root = repo_root().join("artifacts/bench-readiness/bam-align-fixtures").join(case.tool_id);
+    let output_root =
+        repo_root().join("artifacts/bench-readiness/bam-align-fixtures").join(case.tool_id);
     std::fs::create_dir_all(&output_root)
         .with_context(|| format!("create {}", output_root.display()))?;
     let read_group = ReadGroupSpec::with_defaults(case.sample_id);
@@ -122,12 +123,8 @@ fn render_case(case: &BamAlignmentFixtureCase) -> Result<serde_json::Value> {
         )?,
     };
 
-    let mut output_names = provenance
-        .outputs
-        .outputs
-        .iter()
-        .map(|entry| entry.name.clone())
-        .collect::<Vec<_>>();
+    let mut output_names =
+        provenance.outputs.outputs.iter().map(|entry| entry.name.clone()).collect::<Vec<_>>();
     output_names.sort();
 
     Ok(serde_json::json!({
@@ -169,7 +166,7 @@ fn read_expected_json(case: &BamAlignmentFixtureCase) -> Result<serde_json::Valu
 }
 
 fn fixture_dir(case: &BamAlignmentFixtureCase) -> PathBuf {
-    repo_root().join("tests/fixtures/bench/parsers/bam/bam.align").join(case.tool_id)
+    repo_root().join("benchmarks/tests/fixtures/bench/parsers/bam/bam.align").join(case.tool_id)
 }
 
 fn repo_root() -> PathBuf {

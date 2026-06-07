@@ -1,8 +1,8 @@
 // Auto-generated test aggregator for contracts
-#[path = "contracts/canonical_serialization.rs"]
-mod mod_contracts_canonical_serialization_rs;
 #[path = "contracts/benchmark_corpus_assignment.rs"]
 mod mod_contracts_benchmark_corpus_assignment_rs;
+#[path = "contracts/canonical_serialization.rs"]
+mod mod_contracts_canonical_serialization_rs;
 #[path = "contracts/comparison_contracts.rs"]
 mod mod_contracts_comparison_contracts_rs;
 #[path = "contracts/completeness_contract.rs"]

@@ -88,18 +88,14 @@ fn benchmark_corpus_assignment_routes_general_adna_genotyping_and_kinship_rows()
 
 #[test]
 fn benchmark_corpus_assignment_rejects_ungoverned_tool_stage_pairs() {
-    assert!(
-        benchmark_corpus_assignment_for_stage_tool(
-            &StageId::new("bam.haplogroups".to_string()),
-            &ToolId::new("samtools".to_string()),
-        )
-        .is_none()
-    );
-    assert!(
-        benchmark_corpus_assignment_for_stage_tool(
-            &StageId::new("bam.authenticity".to_string()),
-            &ToolId::new("pydamage".to_string()),
-        )
-        .is_none()
-    );
+    assert!(benchmark_corpus_assignment_for_stage_tool(
+        &StageId::new("bam.haplogroups".to_string()),
+        &ToolId::new("samtools".to_string()),
+    )
+    .is_none());
+    assert!(benchmark_corpus_assignment_for_stage_tool(
+        &StageId::new("bam.authenticity".to_string()),
+        &ToolId::new("pydamage".to_string()),
+    )
+    .is_none());
 }

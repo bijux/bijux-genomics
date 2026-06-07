@@ -89,7 +89,7 @@ fn read_expected_json(case: &VcfPlinkFixtureCase) -> Result<serde_json::Value> {
 }
 
 fn fixture_dir(case: &VcfPlinkFixtureCase) -> PathBuf {
-    repo_root().join("tests/fixtures/bench/parsers/vcf/plink").join(case.stage.as_str())
+    repo_root().join("benchmarks/tests/fixtures/bench/parsers/vcf/plink").join(case.stage.as_str())
 }
 
 fn repo_root() -> PathBuf {

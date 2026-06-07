@@ -40,11 +40,8 @@ pub fn parse_fastp_metrics(report_json: &str) -> Result<FastpToolMetricsV1> {
 pub fn parse_adapterremoval_metrics(stdout: &str) -> Result<AdapterRemovalToolMetricsV1> {
     let pairs_processed =
         parse_required_prefix_u64(stdout, "Total number of read pairs", "adapterremoval")?;
-    let pairs_merged = parse_required_prefix_u64(
-        stdout,
-        "Number of fully overlapping pairs",
-        "adapterremoval",
-    )?;
+    let pairs_merged =
+        parse_required_prefix_u64(stdout, "Number of fully overlapping pairs", "adapterremoval")?;
     let merge_rate = if pairs_processed > 0 {
         u64_to_f64(pairs_merged) / u64_to_f64(pairs_processed)
     } else {
@@ -107,7 +104,8 @@ pub fn parse_fastqc_summary_metrics(summary_txt: &str) -> Result<FastqcToolMetri
     }
     Ok(FastqcToolMetricsV1 {
         schema_version: "bijux.fastqc.metrics.v1".to_string(),
-        total_sequences: total_sequences.ok_or_else(|| anyhow!("fastqc total sequences missing"))?,
+        total_sequences: total_sequences
+            .ok_or_else(|| anyhow!("fastqc total sequences missing"))?,
         gc_percent: gc_percent.ok_or_else(|| anyhow!("fastqc %GC missing"))?,
     })
 }

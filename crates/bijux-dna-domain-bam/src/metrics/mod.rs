@@ -3,8 +3,8 @@
 mod catalog;
 pub mod core;
 pub mod downstream;
-mod raw_parser_contract;
 pub mod pre;
+mod raw_parser_contract;
 
 pub use core::{
     compare_damage_metrics, parse_addeam_json, parse_damageprofiler_json,
