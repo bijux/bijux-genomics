@@ -1578,8 +1578,9 @@ fn evaluate_hpc_campaign_goals(
     repo_root: &Path,
     checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
 ) {
-    let cross_campaign_path = repo_root.join("configs/hpc/campaign/cross-mini.toml");
-    let generic_campaign_path = repo_root.join("configs/hpc/campaign/generic-small.toml");
+    let cross_campaign_path = repo_root.join("benchmarks/configs/hpc/campaign/cross-mini.toml");
+    let generic_campaign_path =
+        repo_root.join("benchmarks/configs/hpc/campaign/generic-small.toml");
     match (
         campaign_dry_run(&cross_campaign_path, None, None),
         campaign_dry_run(&generic_campaign_path, None, None),
@@ -1588,7 +1589,7 @@ fn evaluate_hpc_campaign_goals(
             91,
             "slurm_dry_run",
             "HPC campaign configs reference only real governed stage IDs",
-            Some("configs/hpc/campaign/cross-mini.toml".to_string()),
+            Some("benchmarks/configs/hpc/campaign/cross-mini.toml".to_string()),
             format!(
                 "campaign stage validation passes for `{}` and `{}`",
                 cross_report.campaign_id, generic_report.campaign_id
@@ -1606,7 +1607,7 @@ fn evaluate_hpc_campaign_goals(
                 91,
                 "slurm_dry_run",
                 "HPC campaign configs reference only real governed stage IDs",
-                Some("configs/hpc/campaign/cross-mini.toml".to_string()),
+                Some("benchmarks/configs/hpc/campaign/cross-mini.toml".to_string()),
                 details.join("; "),
             ));
         }
@@ -1616,7 +1617,7 @@ fn evaluate_hpc_campaign_goals(
     match prepare_local_hpc_profile_support(&support_root) {
         Ok(support) => {
             let config_path =
-                repo_root.join("configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml");
+                repo_root.join("benchmarks/configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml");
             let dry_run = campaign_dry_run(
                 &config_path,
                 Some(&support.env_file_path),
@@ -1661,7 +1662,7 @@ fn evaluate_hpc_campaign_goals(
                                 "slurm_dry_run",
                                 "LUNARC local-ready profile dry-runs against prepared roots and prepared lock contracts",
                                 Some(
-                                    "configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml"
+                                    "benchmarks/configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml"
                                         .to_string(),
                                 ),
                                 format!(
@@ -1676,7 +1677,7 @@ fn evaluate_hpc_campaign_goals(
                             "slurm_dry_run",
                             "LUNARC local-ready profile dry-runs against prepared roots and prepared lock contracts",
                             Some(
-                                "configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml"
+                                "benchmarks/configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml"
                                     .to_string(),
                             ),
                             "mock submission scripts are missing prepared foundation lock exports"
@@ -1687,7 +1688,7 @@ fn evaluate_hpc_campaign_goals(
                             "slurm_dry_run",
                             "LUNARC local-ready profile dry-runs against prepared roots and prepared lock contracts",
                             Some(
-                                "configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml"
+                                "benchmarks/configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml"
                                     .to_string(),
                             ),
                             format!("{err:#}"),
@@ -1723,7 +1724,8 @@ fn evaluate_hpc_campaign_goals(
                         "slurm_dry_run",
                         "LUNARC local-ready profile dry-runs against prepared roots and prepared lock contracts",
                         Some(
-                            "configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml".to_string(),
+                            "benchmarks/configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml"
+                                .to_string(),
                         ),
                         details.join("; "),
                     ));
@@ -1734,7 +1736,7 @@ fn evaluate_hpc_campaign_goals(
             99,
             "slurm_dry_run",
             "LUNARC local-ready profile dry-runs against prepared roots and prepared lock contracts",
-            Some("configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml".to_string()),
+            Some("benchmarks/configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml".to_string()),
             format!("{err:#}"),
         )),
     }
@@ -1897,7 +1899,7 @@ fn evaluate_slurm_script_body_goal(
     checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
     report: &BenchLocalSlurmScriptBodyReport,
 ) {
-    if report.ok && report.script_count == 51 {
+    if report.ok && report.script_count == 264 {
         checks.push(ok_check(
             94,
             "slurm_dry_run",
@@ -1923,7 +1925,7 @@ fn evaluate_slurm_shell_syntax_goal(
     checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
     report: &BenchLocalSlurmShellSyntaxReport,
 ) {
-    if report.ok && report.script_count == 51 {
+    if report.ok && report.script_count == 264 {
         checks.push(ok_check(
             95,
             "slurm_dry_run",
