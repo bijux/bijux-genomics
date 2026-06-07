@@ -319,7 +319,7 @@ fn fake_run_result(
     Ok(report)
 }
 
-fn declared_output_ids(outputs: &AllDomainOutputDeclarationRow) -> Vec<String> {
+pub(crate) fn declared_output_ids(outputs: &AllDomainOutputDeclarationRow) -> Vec<String> {
     let mut seen = BTreeSet::<&str>::new();
     let mut ordered = Vec::<String>::new();
     for artifact_id in outputs
@@ -356,7 +356,7 @@ fn ensure_fake_run_row_alignment(
     Ok(())
 }
 
-fn render_result_command_script(
+pub(crate) fn render_result_command_script(
     expected: &AllDomainExpectedBenchmarkResultRow,
     command: &AllDomainRenderedCommandRow,
 ) -> String {
@@ -407,7 +407,7 @@ fn render_result_stdout(
     rendered
 }
 
-fn output_relative_path(artifact_id: &str) -> PathBuf {
+pub(crate) fn output_relative_path(artifact_id: &str) -> PathBuf {
     let file_name = if artifact_id.ends_with("_bundle") {
         return PathBuf::from(artifact_id);
     } else if artifact_id.ends_with("_dir") {
@@ -560,7 +560,7 @@ fn materialized_path_size(path: &Path) -> Result<u64> {
     Ok(fs::metadata(path).with_context(|| format!("stat {}", path.display()))?.len())
 }
 
-fn output_role(artifact_id: &str) -> &'static str {
+pub(crate) fn output_role(artifact_id: &str) -> &'static str {
     if artifact_id.contains("manifest") {
         "manifest"
     } else if artifact_id.contains("metrics") {

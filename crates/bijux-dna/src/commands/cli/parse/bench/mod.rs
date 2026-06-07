@@ -33,9 +33,10 @@ pub use self::fastq::{
 pub use self::local::{
     BenchLocalCheckManifestCompletionArgs, BenchLocalCheckOutputCompletionArgs,
     BenchLocalCollectRuntimeMetricsArgs, BenchLocalCommand, BenchLocalDagWatchdogScenarioArg,
-    BenchLocalDomainArg, BenchLocalFakeRunAllDomainsArgs, BenchLocalFakeRunEssentialPipelinesArgs,
-    BenchLocalFakeRunFailuresArgs, BenchLocalFakeRunStagesArgs, BenchLocalJudgeTaxonomyOutputArgs,
-    BenchLocalListStagesArgs, BenchLocalMaterializeStageArgs, BenchLocalRenderBenchmarkSummaryArgs,
+    BenchLocalDomainArg, BenchLocalFakeRunAllDomainFailuresArgs, BenchLocalFakeRunAllDomainsArgs,
+    BenchLocalFakeRunEssentialPipelinesArgs, BenchLocalFakeRunFailuresArgs,
+    BenchLocalFakeRunStagesArgs, BenchLocalJudgeTaxonomyOutputArgs, BenchLocalListStagesArgs,
+    BenchLocalMaterializeStageArgs, BenchLocalRenderBenchmarkSummaryArgs,
     BenchLocalRenderCorpusSkipReportArgs, BenchLocalRenderSlurmScriptsArgs,
     BenchLocalRenderSlurmSubmitManifestArgs, BenchLocalRenderStageCommandsArgs,
     BenchLocalRenderToolComparisonTemplateArgs, BenchLocalRenderVcfSmokeRootArgs,
