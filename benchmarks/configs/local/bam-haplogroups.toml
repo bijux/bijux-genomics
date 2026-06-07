@@ -18,4 +18,4 @@ population_scope = "adna_y_haplogroup_panel"
 min_coverage = 2.0
 refuse_without_population_context = true
 threads = 2
-output_dir = "target/local-ready/bam.haplogroups"
+output_dir = "benchmarks/readiness/local-ready/bam.haplogroups"

@@ -18,7 +18,7 @@ fn local_align_plan_uses_governed_repo_inputs() -> Result<()> {
     assert_eq!(plan.tool_id.as_str(), "bowtie2");
     assert_eq!(plan.resources.threads, 4);
     assert_eq!(plan.resources.mem_gb, 8);
-    assert_eq!(plan.out_dir, PathBuf::from("target/local-ready/bam.align"));
+    assert_eq!(plan.out_dir, PathBuf::from("benchmarks/readiness/local-ready/bam.align"));
 
     let input_r1 = plan
         .io
@@ -64,7 +64,10 @@ fn local_align_plan_uses_governed_repo_inputs() -> Result<()> {
         .iter()
         .find(|artifact| artifact.name.as_str() == "align_bam")
         .unwrap_or_else(|| panic!("align_bam output missing from local-ready plan"));
-    assert_eq!(aligned_bam.path, PathBuf::from("target/local-ready/bam.align/align.bam"));
+    assert_eq!(
+        aligned_bam.path,
+        PathBuf::from("benchmarks/readiness/local-ready/bam.align/align.bam")
+    );
 
     let aligned_bai = plan
         .io
@@ -72,7 +75,10 @@ fn local_align_plan_uses_governed_repo_inputs() -> Result<()> {
         .iter()
         .find(|artifact| artifact.name.as_str() == "align_bai")
         .unwrap_or_else(|| panic!("align_bai output missing from local-ready plan"));
-    assert_eq!(aligned_bai.path, PathBuf::from("target/local-ready/bam.align/align.bam.bai"));
+    assert_eq!(
+        aligned_bai.path,
+        PathBuf::from("benchmarks/readiness/local-ready/bam.align/align.bam.bai")
+    );
 
     assert_eq!(
         plan.params["reference"],
@@ -108,7 +114,7 @@ fn local_align_plan_uses_governed_repo_inputs() -> Result<()> {
     assert!(
         command.contains("-x assets/reference/host/references/toy_host_reference")
             && command.contains("assets/reference/host/references/toy_host_reference.fasta")
-            && command.contains("target/local-ready/bam.align/align.bam"),
+            && command.contains("benchmarks/readiness/local-ready/bam.align/align.bam"),
         "local-ready plan command must carry the governed Bowtie2 index prefix, FASTA path, and BAM output"
     );
 

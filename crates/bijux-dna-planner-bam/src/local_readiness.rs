@@ -19,12 +19,14 @@ const LOCAL_GENOTYPING_CONFIG_PATH: &str = "benchmarks/configs/local/bam-genotyp
 #[cfg(feature = "bam_downstream")]
 const LOCAL_HAPLOGROUPS_CONFIG_PATH: &str = "benchmarks/configs/local/bam-haplogroups.toml";
 const LOCAL_RUNTIME_PROFILE_PATH: &str = "configs/runtime/profiles/local.toml";
-const DEFAULT_LOCAL_ALIGN_OUTPUT_DIR: &str = "target/local-ready/bam.align";
-const DEFAULT_LOCAL_CONTAMINATION_OUTPUT_DIR: &str = "target/local-ready/bam.contamination";
+const DEFAULT_LOCAL_ALIGN_OUTPUT_DIR: &str = "benchmarks/readiness/local-ready/bam.align";
+const DEFAULT_LOCAL_CONTAMINATION_OUTPUT_DIR: &str =
+    "benchmarks/readiness/local-ready/bam.contamination";
 #[cfg(feature = "bam_downstream")]
-const DEFAULT_LOCAL_GENOTYPING_OUTPUT_DIR: &str = "target/local-ready/bam.genotyping";
+const DEFAULT_LOCAL_GENOTYPING_OUTPUT_DIR: &str = "benchmarks/readiness/local-ready/bam.genotyping";
 #[cfg(feature = "bam_downstream")]
-const DEFAULT_LOCAL_HAPLOGROUPS_OUTPUT_DIR: &str = "target/local-ready/bam.haplogroups";
+const DEFAULT_LOCAL_HAPLOGROUPS_OUTPUT_DIR: &str =
+    "benchmarks/readiness/local-ready/bam.haplogroups";
 
 #[derive(Debug, Deserialize)]
 struct LocalAlignPlanConfig {

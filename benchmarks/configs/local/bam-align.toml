@@ -13,4 +13,4 @@ reference_index = "assets/reference/host/references/toy_host_reference"
 tool_id = "bowtie2"
 sample_id = "core-v1-align"
 threads = 4
-output_dir = "target/local-ready/bam.align"
+output_dir = "benchmarks/readiness/local-ready/bam.align"

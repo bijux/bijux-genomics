@@ -20,4 +20,4 @@ chromosome_system = "xy"
 minimum_mean_coverage = 0.5
 emit_confidence_caveats = true
 threads = 2
-output_dir = "target/local-ready/bam.contamination"
+output_dir = "benchmarks/readiness/local-ready/bam.contamination"

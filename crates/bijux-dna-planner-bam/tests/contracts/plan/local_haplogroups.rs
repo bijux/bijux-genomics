@@ -43,7 +43,7 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
     assert_eq!(plan.tool_id.as_str(), "yleaf");
     assert_eq!(plan.resources.threads, 2);
     assert_eq!(plan.resources.mem_gb, 8);
-    assert_eq!(plan.out_dir, PathBuf::from("target/local-ready/bam.haplogroups"));
+    assert_eq!(plan.out_dir, PathBuf::from("benchmarks/readiness/local-ready/bam.haplogroups"));
 
     let bam = plan
         .io
@@ -107,7 +107,7 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
         .unwrap_or_else(|| panic!("haplogroups output missing from local-ready plan"));
     assert_eq!(
         haplogroups_report.path,
-        PathBuf::from("target/local-ready/bam.haplogroups/haplogroups.json")
+        PathBuf::from("benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.json")
     );
 
     assert_eq!(plan.params["reference_panel_id"], serde_json::json!("adna-y-hg38-mini"));
@@ -142,7 +142,7 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
         ) && command.contains(
             "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
         )
-            && command.contains("target/local-ready/bam.haplogroups/haplogroups")
+            && command.contains("benchmarks/readiness/local-ready/bam.haplogroups/haplogroups")
             && command.contains("--reference_genome hg38"),
         "local-ready haplogroups command must carry the governed BAM, BAI, panel, output prefix, and reference build"
     );
@@ -177,7 +177,7 @@ population_scope = "human_y_haplogroup_panel"
 min_coverage = 2.0
 refuse_without_population_context = true
 threads = 2
-output_dir = "target/local-ready/bam.haplogroups"
+output_dir = "benchmarks/readiness/local-ready/bam.haplogroups"
 "#,
             bam = repo_root
                 .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
@@ -223,7 +223,7 @@ population_scope = "human_y_haplogroup_panel"
 min_coverage = 2.0
 refuse_without_population_context = true
 threads = 2
-output_dir = "target/local-ready/bam.haplogroups"
+output_dir = "benchmarks/readiness/local-ready/bam.haplogroups"
 "#,
             bam = repo_root
                 .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
@@ -272,7 +272,7 @@ population_scope = "human_y_haplogroup_panel"
 min_coverage = 2.0
 refuse_without_population_context = true
 threads = 2
-output_dir = "target/local-ready/bam.haplogroups"
+output_dir = "benchmarks/readiness/local-ready/bam.haplogroups"
 "#,
             bam = repo_root
                 .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
@@ -318,7 +318,7 @@ population_scope = " "
 min_coverage = 2.0
 refuse_without_population_context = true
 threads = 2
-output_dir = "target/local-ready/bam.haplogroups"
+output_dir = "benchmarks/readiness/local-ready/bam.haplogroups"
 "#,
             bam = repo_root
                 .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
@@ -364,7 +364,7 @@ population_scope = "human_y_haplogroup_panel"
 min_coverage = 0.0
 refuse_without_population_context = true
 threads = 2
-output_dir = "target/local-ready/bam.haplogroups"
+output_dir = "benchmarks/readiness/local-ready/bam.haplogroups"
 "#,
             bam = repo_root
                 .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")

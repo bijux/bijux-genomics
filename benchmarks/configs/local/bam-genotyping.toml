@@ -16,4 +16,4 @@ sample_id = "human_like_genotyping_candidate_panel"
 min_posterior = 0.9
 min_call_rate = 0.5
 threads = 2
-output_dir = "target/local-ready/bam.genotyping"
+output_dir = "benchmarks/readiness/local-ready/bam.genotyping"

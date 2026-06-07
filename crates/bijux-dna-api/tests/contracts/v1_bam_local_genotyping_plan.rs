@@ -33,13 +33,16 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-ready/bam.genotyping");
+    let output_dir = repo_root.join("benchmarks/readiness/local-ready/bam.genotyping");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
 
     let plan_path = bijux_dna_api::v1::api::bam::write_local_genotyping_plan()?;
-    assert_eq!(plan_path, repo_root.join("target/local-ready/bam.genotyping/plan.json"));
+    assert_eq!(
+        plan_path,
+        repo_root.join("benchmarks/readiness/local-ready/bam.genotyping/plan.json")
+    );
     assert!(plan_path.is_file(), "local-ready plan artifact must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
@@ -67,11 +70,11 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
     );
     assert_eq!(
         payload["params"]["producer_contract"]["bcf"],
-        serde_json::json!("target/local-ready/bam.genotyping/genotyping.bcf")
+        serde_json::json!("benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf")
     );
     assert_eq!(
         payload["params"]["producer_contract"]["vcf"],
-        serde_json::json!("target/local-ready/bam.genotyping/genotyping.vcf.gz")
+        serde_json::json!("benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz")
     );
     assert_eq!(
         payload["params"]["sample_id"],
@@ -140,14 +143,17 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
         .iter()
         .find(|artifact| artifact["name"] == serde_json::json!("genotyping_bcf"))
         .unwrap_or_else(|| panic!("genotyping_bcf output missing from local-ready payload"));
-    assert_eq!(bcf["path"], serde_json::json!("target/local-ready/bam.genotyping/genotyping.bcf"));
+    assert_eq!(
+        bcf["path"],
+        serde_json::json!("benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf")
+    );
     let vcf = outputs
         .iter()
         .find(|artifact| artifact["name"] == serde_json::json!("genotyping_vcf"))
         .unwrap_or_else(|| panic!("genotyping_vcf output missing from local-ready payload"));
     assert_eq!(
         vcf["path"],
-        serde_json::json!("target/local-ready/bam.genotyping/genotyping.vcf.gz")
+        serde_json::json!("benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz")
     );
     let tbi = outputs
         .iter()
@@ -155,7 +161,7 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
         .unwrap_or_else(|| panic!("genotyping_vcf_tbi output missing from local-ready payload"));
     assert_eq!(
         tbi["path"],
-        serde_json::json!("target/local-ready/bam.genotyping/genotyping.vcf.gz.tbi")
+        serde_json::json!("benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz.tbi")
     );
     let gl = outputs
         .iter()
@@ -163,7 +169,7 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
         .unwrap_or_else(|| panic!("genotyping_gl output missing from local-ready payload"));
     assert_eq!(
         gl["path"],
-        serde_json::json!("target/local-ready/bam.genotyping/genotyping.gl.json")
+        serde_json::json!("benchmarks/readiness/local-ready/bam.genotyping/genotyping.gl.json")
     );
 
     assert!(
@@ -193,7 +199,7 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("target/local-ready/bam.genotyping/genotyping.bcf")
+                shell.contains("benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf")
             })
         )),
         "local-ready genotyping command must carry the governed BAI, reference, sites, regions, and BCF output"
@@ -205,7 +211,7 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
 fn write_local_genotyping_plan_preserves_governed_command_metadata() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-ready/bam.genotyping");
+    let output_dir = repo_root.join("benchmarks/readiness/local-ready/bam.genotyping");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -213,7 +219,10 @@ fn write_local_genotyping_plan_preserves_governed_command_metadata() -> Result<(
     let plan_path = bijux_dna_api::v1::api::bam::write_local_genotyping_plan()?;
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
 
-    assert_eq!(payload["out_dir"], serde_json::json!("target/local-ready/bam.genotyping"));
+    assert_eq!(
+        payload["out_dir"],
+        serde_json::json!("benchmarks/readiness/local-ready/bam.genotyping")
+    );
     assert_eq!(payload["effective_params"]["caller"], serde_json::json!("angsd"));
     assert_eq!(payload["effective_params"]["min_posterior"], serde_json::json!(0.9));
     assert_eq!(payload["effective_params"]["min_call_rate"], serde_json::json!(0.5));
@@ -233,10 +242,10 @@ fn write_local_genotyping_plan_preserves_governed_command_metadata() -> Result<(
             && command.contains(
                 "-rf benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
             )
-            && command.contains("target/local-ready/bam.genotyping/genotyping.summary.json")
+            && command.contains("benchmarks/readiness/local-ready/bam.genotyping/genotyping.summary.json")
             && command.contains("\"min_posterior\": 0.9")
             && command.contains("\"min_call_rate\": 0.5")
-            && command.contains("\"bcf_source\": \"target/local-ready/bam.genotyping/genotyping.bcf\""),
+            && command.contains("\"bcf_source\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf\""),
         "local-ready genotyping command must preserve the governed caller, sites, regions, summary, threshold metadata, and BCF source contract"
     );
 

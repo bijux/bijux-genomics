@@ -31,13 +31,13 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_align_plan_materializes_governed_target_output() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-ready/bam.align");
+    let output_dir = repo_root.join("benchmarks/readiness/local-ready/bam.align");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
 
     let plan_path = bijux_dna_api::v1::api::bam::write_local_align_plan()?;
-    assert_eq!(plan_path, repo_root.join("target/local-ready/bam.align/plan.json"));
+    assert_eq!(plan_path, repo_root.join("benchmarks/readiness/local-ready/bam.align/plan.json"));
     assert!(plan_path.is_file(), "local-ready plan artifact must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
@@ -81,18 +81,24 @@ fn write_local_align_plan_materializes_governed_target_output() -> Result<()> {
         .unwrap_or_else(|| panic!("align_metrics output missing from local-ready plan payload"));
     assert_eq!(
         align_metrics["path"],
-        serde_json::json!("target/local-ready/bam.align/align.metrics.json")
+        serde_json::json!("benchmarks/readiness/local-ready/bam.align/align.metrics.json")
     );
     let align_bam = outputs
         .iter()
         .find(|artifact| artifact["name"] == serde_json::json!("align_bam"))
         .unwrap_or_else(|| panic!("align_bam output missing from local-ready plan payload"));
-    assert_eq!(align_bam["path"], serde_json::json!("target/local-ready/bam.align/align.bam"));
+    assert_eq!(
+        align_bam["path"],
+        serde_json::json!("benchmarks/readiness/local-ready/bam.align/align.bam")
+    );
     let align_bai = outputs
         .iter()
         .find(|artifact| artifact["name"] == serde_json::json!("align_bai"))
         .unwrap_or_else(|| panic!("align_bai output missing from local-ready plan payload"));
-    assert_eq!(align_bai["path"], serde_json::json!("target/local-ready/bam.align/align.bam.bai"));
+    assert_eq!(
+        align_bai["path"],
+        serde_json::json!("benchmarks/readiness/local-ready/bam.align/align.bam.bai")
+    );
     assert!(
         payload["command"]["template"].as_array().is_some_and(|command| command.iter().any(
             |part| {

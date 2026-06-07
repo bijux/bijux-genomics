@@ -45,7 +45,7 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(plan.tool_id.as_str(), "verifybamid2");
     assert_eq!(plan.resources.threads, 2);
     assert_eq!(plan.resources.mem_gb, 8);
-    assert_eq!(plan.out_dir, PathBuf::from("target/local-ready/bam.contamination"));
+    assert_eq!(plan.out_dir, PathBuf::from("benchmarks/readiness/local-ready/bam.contamination"));
 
     let bam = plan
         .io
@@ -107,7 +107,7 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         .unwrap_or_else(|| panic!("contamination_report output missing from local-ready plan"));
     assert_eq!(
         contamination_report.path,
-        PathBuf::from("target/local-ready/bam.contamination/contamination.json")
+        PathBuf::from("benchmarks/readiness/local-ready/bam.contamination/contamination.json")
     );
     let contamination_summary = plan
         .io
@@ -117,7 +117,9 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         .unwrap_or_else(|| panic!("summary output missing from local-ready plan"));
     assert_eq!(
         contamination_summary.path,
-        PathBuf::from("target/local-ready/bam.contamination/contamination.summary.json")
+        PathBuf::from(
+            "benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json"
+        )
     );
     let stage_metrics = plan
         .io
@@ -127,7 +129,7 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         .unwrap_or_else(|| panic!("stage_metrics output missing from local-ready plan"));
     assert_eq!(
         stage_metrics.path,
-        PathBuf::from("target/local-ready/bam.contamination/stage.metrics.json")
+        PathBuf::from("benchmarks/readiness/local-ready/bam.contamination/stage.metrics.json")
     );
     assert_eq!(plan.params["scope"], serde_json::json!("nuclear"));
     assert_eq!(plan.params["prior"], serde_json::json!(0.02));
@@ -180,8 +182,8 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         ) && command.contains(
             "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
         )
-            && command.contains("target/local-ready/bam.contamination/contamination")
-            && command.contains("target/local-ready/bam.contamination/contamination.summary.json"),
+            && command.contains("benchmarks/readiness/local-ready/bam.contamination/contamination")
+            && command.contains("benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json"),
         "local-ready contamination command must carry the governed BAI, reference, panel, report prefix, and summary output"
     );
 
@@ -217,7 +219,7 @@ chromosome_system = "xy"
 minimum_mean_coverage = 0.5
 emit_confidence_caveats = true
 threads = 2
-output_dir = "target/local-ready/bam.contamination"
+output_dir = "benchmarks/readiness/local-ready/bam.contamination"
 "#,
             bam = repo_root
                 .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam")
@@ -263,7 +265,7 @@ chromosome_system = "xy"
 minimum_mean_coverage = 0.5
 emit_confidence_caveats = true
 threads = 2
-output_dir = "target/local-ready/bam.contamination"
+output_dir = "benchmarks/readiness/local-ready/bam.contamination"
 "#,
             bam = repo_root
                 .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam")
@@ -312,7 +314,7 @@ chromosome_system = "xy"
 minimum_mean_coverage = 0.0
 emit_confidence_caveats = true
 threads = 2
-output_dir = "target/local-ready/bam.contamination"
+output_dir = "benchmarks/readiness/local-ready/bam.contamination"
 "#,
             bam = repo_root
                 .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam")
