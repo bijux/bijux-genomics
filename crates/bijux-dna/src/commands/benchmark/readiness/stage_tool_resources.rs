@@ -6,8 +6,10 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::contract::ToolExecutionSpecV1;
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_domain_bam::{estimate_bam_stage_resources_with_origin, BamInputOriginV1};
+use bijux_dna_domain_vcf::VcfDomainStage;
 use bijux_dna_planner_bam::stage_api::load_bam_domain_tool_execution_spec;
 use bijux_dna_planner_fastq::stage_api::load_fastq_domain_tool_execution_spec;
+use bijux_dna_planner_vcf::vcf_stage_resource_constraints;
 use serde::{Deserialize, Serialize};
 
 use super::bam_command_adapter_coverage::{
@@ -16,6 +18,7 @@ use super::bam_command_adapter_coverage::{
 use super::fastq_command_adapter_coverage::{
     collect_fastq_command_adapter_coverage_rows, FastqBenchmarkStatus,
 };
+use super::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -28,11 +31,15 @@ const STAGE_TOOL_RESOURCES_REPORT_SCHEMA_VERSION: &str =
 const STAGE_TOOL_RESOURCES_SCOPE: &str = "benchmark_ready_command_resources";
 const FASTQ_RESOURCE_ORIGIN: &str = "tool_constraints_with_stage_walltime_profile";
 const BAM_RESOURCE_ORIGIN: &str = "tool_constraints_with_tiny_bam_stage_estimate";
+const VCF_RESOURCE_ORIGIN: &str = "planner_stage_constraints_with_stage_walltime_profile";
 const FASTQ_MINUTES_QC: u32 = 10;
 const FASTQ_MINUTES_TRANSFORM: u32 = 15;
 const FASTQ_MINUTES_REFERENCE: u32 = 20;
 const FASTQ_MINUTES_HEAVY_ANALYSIS: u32 = 30;
 const FASTQ_MINUTES_DADA2: u32 = 45;
+const VCF_MINUTES_STANDARD: u32 = 20;
+const VCF_MINUTES_PREPARE_PANEL: u32 = 30;
+const VCF_MINUTES_PANEL_WORKFLOW: u32 = 60;
 const TINY_BAM_RESOURCE_INPUT_PATHS: &[&str] = &[
     "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
     "tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam",
@@ -134,6 +141,7 @@ pub(crate) fn render_stage_tool_resources(
 fn collect_stage_tool_resource_rows(repo_root: &Path) -> Result<Vec<StageToolResourceRow>> {
     let (_, _, fastq_rows) = collect_fastq_command_adapter_coverage_rows(repo_root)?;
     let (_, _, bam_rows) = collect_bam_command_adapter_coverage_rows(repo_root)?;
+    let vcf_rows = collect_vcf_expected_benchmark_result_rows(repo_root)?;
     let bam_input_bytes = detect_tiny_bam_resource_input_bytes(repo_root)?;
 
     let mut rows = Vec::new();
@@ -167,6 +175,15 @@ fn collect_stage_tool_resource_rows(repo_root: &Path) -> Result<Vec<StageToolRes
                 )
             })?;
         rows.push(render_bam_resource_row(&stage_id, &tool_id, &spec, bam_input_bytes));
+    }
+
+    for row in vcf_rows {
+        let stage_id = StageId::new(row.stage_id.clone());
+        let tool_id = ToolId::new(row.tool_id.clone());
+        let stage = VcfDomainStage::try_from(row.stage_id.as_str()).with_context(|| {
+            format!("parse VCF stage id `{}` for benchmark-ready resource coverage", row.stage_id)
+        })?;
+        rows.push(render_vcf_resource_row(&stage_id, &tool_id, stage));
     }
 
     rows.sort_by(|left, right| {
@@ -219,6 +236,24 @@ fn render_bam_resource_row(
     }
 }
 
+fn render_vcf_resource_row(
+    stage_id: &StageId,
+    tool_id: &ToolId,
+    stage: VcfDomainStage,
+) -> StageToolResourceRow {
+    let resources = vcf_stage_resource_constraints(stage);
+    StageToolResourceRow {
+        domain: "vcf".to_string(),
+        stage_id: stage_id.as_str().to_string(),
+        tool_id: tool_id.as_str().to_string(),
+        threads: resources.threads.max(1),
+        memory_gb: resources.mem_gb.max(1),
+        walltime_minutes: vcf_walltime_minutes(stage),
+        scratch_gb: resources.tmp_gb.max(1),
+        resource_origin: VCF_RESOURCE_ORIGIN.to_string(),
+    }
+}
+
 fn fastq_walltime_minutes(stage_id: &str, tool_id: &str) -> u32 {
     match (stage_id, tool_id) {
         ("fastq.infer_asvs", "dada2") => FASTQ_MINUTES_DADA2,
@@ -237,6 +272,16 @@ fn fastq_walltime_minutes(stage_id: &str, tool_id: &str) -> u32 {
         | ("fastq.profile_reads", _)
         | ("fastq.validate_reads", _) => FASTQ_MINUTES_QC,
         _ => FASTQ_MINUTES_TRANSFORM,
+    }
+}
+
+fn vcf_walltime_minutes(stage: VcfDomainStage) -> u32 {
+    match stage {
+        VcfDomainStage::Phasing | VcfDomainStage::Impute | VcfDomainStage::Imputation => {
+            VCF_MINUTES_PANEL_WORKFLOW
+        }
+        VcfDomainStage::PrepareReferencePanel => VCF_MINUTES_PREPARE_PANEL,
+        _ => VCF_MINUTES_STANDARD,
     }
 }
 
@@ -273,7 +318,7 @@ fn render_stage_tool_resources_toml(config: &StageToolResourcesConfig) -> Result
     Ok(format!(
         "# schema_version = 1\n\
          # owner = bijux-dna-bench\n\
-         # purpose = Governed resource hints for benchmark-ready FASTQ and BAM stage-tool commands.\n\
+         # purpose = Governed resource hints for benchmark-ready FASTQ, BAM, and VCF stage-tool commands.\n\
          # authority = bijux-dna-bench\n\
          # stability = evolving\n\n{body}"
     ))
@@ -318,11 +363,12 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_resources.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-resources.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_command_resources");
-        assert_eq!(report.row_count, 112);
-        assert_eq!(report.benchmark_ready_row_count, 112);
-        assert_eq!(report.nonzero_resource_row_count, 112);
+        assert_eq!(report.row_count, 120);
+        assert_eq!(report.benchmark_ready_row_count, 120);
+        assert_eq!(report.nonzero_resource_row_count, 120);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&8));
         assert!(report.rows.iter().all(|row| {
             row.threads > 0 && row.memory_gb > 0 && row.walltime_minutes > 0 && row.scratch_gb > 0
         }));
@@ -510,6 +556,24 @@ mod tests {
                 && row.walltime_minutes == 7
                 && row.scratch_gb == 2
         }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.call"
+                && row.tool_id == "bcftools"
+                && row.threads == 2
+                && row.memory_gb == 4
+                && row.walltime_minutes == 20
+                && row.scratch_gb == 8
+                && row.resource_origin == super::VCF_RESOURCE_ORIGIN
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.stats"
+                && row.tool_id == "bcftools"
+                && row.threads == 2
+                && row.memory_gb == 4
+                && row.walltime_minutes == 20
+                && row.scratch_gb == 8
+                && row.resource_origin == super::VCF_RESOURCE_ORIGIN
+        }));
     }
 
     #[cfg(feature = "bam_downstream")]
@@ -533,7 +597,7 @@ mod tests {
 
         assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION);
         assert_eq!(config.classification_scope, STAGE_TOOL_RESOURCES_SCOPE);
-        assert_eq!(config.rows.len(), 108);
+        assert_eq!(config.rows.len(), 120);
         assert!(config.rows.iter().all(|row| {
             row.threads > 0 && row.memory_gb > 0 && row.walltime_minutes > 0 && row.scratch_gb > 0
         }));
@@ -637,5 +701,14 @@ mod tests {
                     && row.scratch_gb == 2
             }));
         }
+        assert!(config.rows.iter().any(|row| {
+            row.stage_id == "vcf.call"
+                && row.tool_id == "bcftools"
+                && row.threads == 2
+                && row.memory_gb == 4
+                && row.walltime_minutes == 20
+                && row.scratch_gb == 8
+                && row.resource_origin == super::VCF_RESOURCE_ORIGIN
+        }));
     }
 }

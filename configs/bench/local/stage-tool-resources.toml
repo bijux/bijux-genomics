@@ -1,6 +1,6 @@
 # schema_version = 1
 # owner = bijux-dna-bench
-# purpose = Governed resource hints for benchmark-ready FASTQ and BAM stage-tool commands.
+# purpose = Governed resource hints for benchmark-ready FASTQ, BAM, and VCF stage-tool commands.
 # authority = bijux-dna-bench
 # stability = evolving
 
@@ -1126,3 +1126,83 @@ memory_gb = 8
 walltime_minutes = 10
 scratch_gb = 4
 resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call"
+tool_id = "bcftools"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_diploid"
+tool_id = "bcftools"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_gl"
+tool_id = "bcftools"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_pseudohaploid"
+tool_id = "bcftools"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.damage_filter"
+tool_id = "bcftools"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.filter"
+tool_id = "bcftools"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.gl_propagation"
+tool_id = "bcftools"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.stats"
+tool_id = "bcftools"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"

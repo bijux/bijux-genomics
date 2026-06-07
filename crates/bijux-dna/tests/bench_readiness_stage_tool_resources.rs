@@ -51,14 +51,14 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(112));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(120));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(112)
+        Some(120)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(112)
+        Some(120)
     );
     assert_eq!(
         payload
@@ -73,6 +73,13 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
             .and_then(|value| value.get("bam"))
             .and_then(serde_json::Value::as_u64),
         Some(49)
+    );
+    assert_eq!(
+        payload
+            .get("domain_counts")
+            .and_then(|value| value.get("vcf"))
+            .and_then(serde_json::Value::as_u64),
+        Some(8)
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let bwa_align = rows
@@ -95,10 +102,7 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         .expect("bam align bowtie2 row");
     assert_eq!(bowtie2_align.get("threads").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(bowtie2_align.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
-    assert_eq!(
-        bowtie2_align.get("walltime_minutes").and_then(serde_json::Value::as_u64),
-        Some(7)
-    );
+    assert_eq!(bowtie2_align.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(bowtie2_align.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
     let fastqc = rows
         .iter()
@@ -215,6 +219,17 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         Some(7)
     );
     assert_eq!(mapdamage2_bias.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    let vcf_call = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.call")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
+        })
+        .expect("vcf call bcftools row");
+    assert_eq!(vcf_call.get("threads").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(vcf_call.get("memory_gb").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(vcf_call.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(vcf_call.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(8));
     let trim_polyg_fastp = rows
         .iter()
         .find(|row| {
