@@ -19,7 +19,11 @@ pub struct FixturesBuildArgs {
 #[derive(Debug, Args)]
 pub struct FixturesValidateArgs {
     #[arg(long, value_name = "CORPUS_ID")]
-    pub corpus: String,
+    pub corpus: Option<String>,
+    #[arg(long, value_name = "PATH")]
+    pub root: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub all: bool,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }
@@ -28,6 +32,8 @@ pub struct FixturesValidateArgs {
 pub struct FixturesValidateExpectedArgs {
     #[arg(long, value_name = "CORPUS_ID")]
     pub corpus: String,
+    #[arg(long, value_name = "PATH")]
+    pub root: Option<PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

@@ -2,14 +2,18 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 
-use crate::commands::benchmark::local_corpus_fixture::vcf::{
-    validate_vcf_corpus_fixture_manifest_path, DEFAULT_VCF_MINI_MANIFEST_PATH,
-};
+use crate::commands::benchmark::local_corpus_fixture::vcf::validate_vcf_corpus_fixture_manifest_path;
+use crate::commands::cli;
 use crate::commands::fixtures::build::vcf::{
     build_vcf_mini_fixture, DEFAULT_VCF_MINI_REGENERATION_ROOT,
 };
 use crate::commands::fixtures::expected::vcf::validate_vcf_expected_truth;
-use crate::commands::cli;
+use crate::commands::fixtures::paths::{
+    benchmark_corpus_manifest_path, benchmark_fixture_root_path,
+};
+use crate::commands::fixtures::root_validation::{
+    validate_benchmark_fixture_root, DEFAULT_BENCHMARK_FIXTURE_ROOT_VALIDATION_REPORT_PATH,
+};
 
 /// Build a governed local fixture corpus by corpus id.
 ///
@@ -19,17 +23,19 @@ use crate::commands::cli;
 pub(crate) fn build_fixture(cwd: &Path, args: &cli::FixturesBuildArgs) -> Result<()> {
     match args.corpus.as_str() {
         "vcf-mini" => {
-            let output_root = args
-                .out
-                .as_ref()
-                .map_or_else(|| cwd.join(DEFAULT_VCF_MINI_REGENERATION_ROOT), |path| {
+            let output_root = args.out.as_ref().map_or_else(
+                || cwd.join(DEFAULT_VCF_MINI_REGENERATION_ROOT),
+                |path| {
                     if path.is_absolute() {
                         path.clone()
                     } else {
                         cwd.join(path)
                     }
-                });
-            let report = build_vcf_mini_fixture(cwd, &output_root)?;
+                },
+            );
+            let fixture_root = benchmark_fixture_root_path(cwd, None);
+            let source_manifest_path = benchmark_corpus_manifest_path(&fixture_root, "vcf-mini");
+            let report = build_vcf_mini_fixture(cwd, &source_manifest_path, &output_root)?;
             if args.json {
                 cli::render::json::print_pretty(&report)?;
             } else {
@@ -37,10 +43,7 @@ pub(crate) fn build_fixture(cwd: &Path, args: &cli::FixturesBuildArgs) -> Result
             }
             Ok(())
         }
-        _ => Err(anyhow!(
-            "unsupported governed fixture corpus `{}`",
-            args.corpus
-        )),
+        _ => Err(anyhow!("unsupported governed fixture corpus `{}`", args.corpus)),
     }
 }
 
@@ -50,9 +53,32 @@ pub(crate) fn build_fixture(cwd: &Path, args: &cli::FixturesBuildArgs) -> Result
 /// Returns an error if the requested corpus id is unsupported or its governed
 /// fixture contract fails validation.
 pub(crate) fn validate_fixture(cwd: &Path, args: &cli::FixturesValidateArgs) -> Result<()> {
-    match args.corpus.as_str() {
+    if args.all {
+        if args.corpus.is_some() {
+            return Err(anyhow!("fixtures validate accepts either --corpus or --all, not both"));
+        }
+        let fixture_root = benchmark_fixture_root_path(cwd, args.root.as_deref());
+        let report = validate_benchmark_fixture_root(
+            cwd,
+            &fixture_root,
+            cwd.join(DEFAULT_BENCHMARK_FIXTURE_ROOT_VALIDATION_REPORT_PATH),
+        )?;
+        if args.json {
+            cli::render::json::print_pretty(&report)?;
+        } else {
+            println!("{}", report.output_path);
+        }
+        return Ok(());
+    }
+
+    let corpus = args
+        .corpus
+        .as_deref()
+        .ok_or_else(|| anyhow!("fixtures validate requires either --corpus or --all"))?;
+    let fixture_root = benchmark_fixture_root_path(cwd, args.root.as_deref());
+    match corpus {
         "vcf-mini" => {
-            let manifest_path = cwd.join(DEFAULT_VCF_MINI_MANIFEST_PATH);
+            let manifest_path = benchmark_corpus_manifest_path(&fixture_root, "vcf-mini");
             let report = validate_vcf_corpus_fixture_manifest_path(cwd, &manifest_path)?;
             if args.json {
                 cli::render::json::print_pretty(&report)?;
@@ -61,10 +87,7 @@ pub(crate) fn validate_fixture(cwd: &Path, args: &cli::FixturesValidateArgs) -> 
             }
             Ok(())
         }
-        _ => Err(anyhow!(
-            "unsupported governed fixture corpus `{}`",
-            args.corpus
-        )),
+        _ => Err(anyhow!("unsupported governed fixture corpus `{corpus}`")),
     }
 }
 
@@ -77,9 +100,13 @@ pub(crate) fn validate_expected_fixture(
     cwd: &Path,
     args: &cli::FixturesValidateExpectedArgs,
 ) -> Result<()> {
+    let fixture_root = benchmark_fixture_root_path(cwd, args.root.as_deref());
     match args.corpus.as_str() {
         "vcf-mini" => {
-            let report = validate_vcf_expected_truth(cwd)?;
+            let report = validate_vcf_expected_truth(
+                cwd,
+                &benchmark_corpus_manifest_path(&fixture_root, "vcf-mini"),
+            )?;
             if args.json {
                 cli::render::json::print_pretty(&report)?;
             } else {
@@ -87,9 +114,6 @@ pub(crate) fn validate_expected_fixture(
             }
             Ok(())
         }
-        _ => Err(anyhow!(
-            "unsupported governed expected-truth corpus `{}`",
-            args.corpus
-        )),
+        _ => Err(anyhow!("unsupported governed expected-truth corpus `{}`", args.corpus)),
     }
 }
