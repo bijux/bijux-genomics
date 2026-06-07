@@ -56,7 +56,7 @@ fn bench_local_fake_run_failures_json_reports_stage_tool_exit_and_failed_outputs
     );
     assert_eq!(
         payload.get("failure_root").and_then(serde_json::Value::as_str),
-        Some("target/local-fake-runs/failures")
+        Some("runs/bench/local-fake-runs/failures")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(2));
 

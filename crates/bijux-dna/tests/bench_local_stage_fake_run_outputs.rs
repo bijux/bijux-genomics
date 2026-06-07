@@ -43,7 +43,7 @@ fn bench_local_fake_run_stages_writes_stage_manifests_and_declared_outputs() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let fake_run_root = repo_root.join("target/local-fake-runs/stages");
+    let fake_run_root = repo_root.join("runs/bench/local-fake-runs/stages");
     let root_manifest = fake_run_root.join("manifest.json");
     assert!(root_manifest.is_file(), "fake-run root manifest must exist");
 

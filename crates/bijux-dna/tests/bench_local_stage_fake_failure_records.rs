@@ -50,7 +50,7 @@ fn bench_local_fake_run_failures_writes_failure_records_and_stderr_files() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let failure_root = repo_root.join("target/local-fake-runs/failures");
+    let failure_root = repo_root.join("runs/bench/local-fake-runs/failures");
     let root_manifest = failure_root.join("manifest.json");
     assert!(root_manifest.is_file(), "fake failure root manifest must exist");
 

@@ -15,9 +15,9 @@ pub(crate) const DEFAULT_BENCHMARK_DATABASES_ROOT_SUFFIX: &str = "tests/fixtures
 pub(crate) const DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE: &str = "benchmarks/readiness";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE: &str =
     "benchmarks/readiness/local-ready";
-pub(crate) const DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE: &str =
-    "runs/bench/local-smoke";
-pub(crate) const DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE: &str = "target/local-fake-runs";
+pub(crate) const DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE: &str = "runs/bench/local-smoke";
+pub(crate) const DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE: &str =
+    "runs/bench/local-fake-runs";
 pub(crate) const DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE: &str = "target/slurm-dry-run";
 
 #[derive(Debug, Clone)]
@@ -156,8 +156,7 @@ mod tests {
         BENCHMARK_ROOT_ENV, DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE, DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE, DEFAULT_BENCHMARK_ROOT_RELATIVE,
-        DEFAULT_BENCHMARK_SCHEMA_ROOT_SUFFIX,
-        DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE,
+        DEFAULT_BENCHMARK_SCHEMA_ROOT_SUFFIX, DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE,
     };
     use std::ffi::{OsStr, OsString};
     use std::path::Path;
@@ -277,9 +276,7 @@ mod tests {
         .expect_err("readiness-root output should be rejected");
 
         assert!(
-            error
-                .to_string()
-                .contains("must remain disposable and must not resolve inside"),
+            error.to_string().contains("must remain disposable and must not resolve inside"),
             "unexpected error: {error}"
         );
     }

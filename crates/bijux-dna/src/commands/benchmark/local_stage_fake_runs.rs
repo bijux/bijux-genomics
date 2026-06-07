@@ -14,6 +14,9 @@ use crate::commands::benchmark::local_stage_result_manifest::{
     BenchStageResultResourceMetricsV1, BenchStageResultRuntimeV1, BenchStageResultStatus,
     BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
+use crate::commands::benchmark::path_resolution::{
+    ensure_path_stays_outside_benchmark_readiness_root, BenchmarkPathResolver,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -22,8 +25,8 @@ const LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_VERSION: &str =
     "bijux.bench.local_stage_fake_failures.v1";
 const LOCAL_STAGE_FAKE_FAILURE_RECORD_SCHEMA_VERSION: &str =
     "bijux.bench.local_stage_fake_failure_record.v1";
-pub(crate) const DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT: &str = "target/local-fake-runs/stages";
-const DEFAULT_LOCAL_STAGE_FAKE_FAILURE_ROOT: &str = "target/local-fake-runs/failures";
+pub(crate) const DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT: &str = "runs/bench/local-fake-runs/stages";
+const DEFAULT_LOCAL_STAGE_FAKE_FAILURE_ROOT: &str = "runs/bench/local-fake-runs/failures";
 const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str =
     "benchmarks/readiness/local-ready/rendered-stage-commands.sh";
 
@@ -93,11 +96,12 @@ pub(crate) struct BenchLocalStageFakeFailureManifest {
 
 pub(crate) fn run_fake_run_stages(args: &parse::BenchLocalFakeRunStagesArgs) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
     let manifest = fake_run_local_stage_commands(
         &repo_root,
         args.output_root
             .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT)),
+            .unwrap_or_else(|| benchmark_paths.benchmark_local_fake_run_root().join("stages")),
     )?;
     if args.json {
         render::json::print_pretty(&manifest)?;
@@ -109,11 +113,12 @@ pub(crate) fn run_fake_run_stages(args: &parse::BenchLocalFakeRunStagesArgs) -> 
 
 pub(crate) fn run_fake_run_failures(args: &parse::BenchLocalFakeRunFailuresArgs) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
     let manifest = fake_run_local_stage_failures(
         &repo_root,
         args.output_root
             .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_STAGE_FAKE_FAILURE_ROOT)),
+            .unwrap_or_else(|| benchmark_paths.benchmark_local_fake_run_root().join("failures")),
         &args.stage_ids,
         args.exit_code,
     )?;
@@ -135,6 +140,11 @@ pub(crate) fn fake_run_local_stage_commands(
     )?;
     let absolute_output_root =
         if output_root.is_absolute() { output_root } else { repo_root.join(&output_root) };
+    ensure_path_stays_outside_benchmark_readiness_root(
+        repo_root,
+        &absolute_output_root,
+        "local fake-run output root",
+    )?;
     fs::create_dir_all(&absolute_output_root)
         .with_context(|| format!("create {}", absolute_output_root.display()))?;
 
@@ -168,6 +178,11 @@ pub(crate) fn fake_run_local_stage_failures(
     let commands = select_stage_commands(&source_manifest.commands, stage_ids)?;
     let absolute_output_root =
         if output_root.is_absolute() { output_root } else { repo_root.join(&output_root) };
+    ensure_path_stays_outside_benchmark_readiness_root(
+        repo_root,
+        &absolute_output_root,
+        "local fake-failure output root",
+    )?;
     fs::create_dir_all(&absolute_output_root)
         .with_context(|| format!("create {}", absolute_output_root.display()))?;
 
@@ -460,6 +475,7 @@ mod tests {
         fake_run_local_stage_commands, fake_run_local_stage_failures,
         DEFAULT_LOCAL_STAGE_FAKE_FAILURE_ROOT, DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT,
     };
+    use crate::commands::benchmark::path_resolution::BenchmarkPathResolver;
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -477,7 +493,7 @@ mod tests {
                 .expect("fake-run local stage commands");
 
         assert_eq!(fake_runs.schema_version, "bijux.bench.local_stage_fake_runs.v1");
-        assert_eq!(fake_runs.fake_run_root, "target/local-fake-runs/stages");
+        assert_eq!(fake_runs.fake_run_root, "runs/bench/local-fake-runs/stages");
         assert_eq!(fake_runs.stage_count, 51);
         assert_eq!(fake_runs.stages.len(), 51);
         assert!(fake_runs.stages.iter().all(|stage| {
@@ -504,7 +520,7 @@ mod tests {
         .expect("fake-run local stage failures");
 
         assert_eq!(failures.schema_version, "bijux.bench.local_stage_fake_failures.v1");
-        assert_eq!(failures.failure_root, "target/local-fake-runs/failures");
+        assert_eq!(failures.failure_root, "runs/bench/local-fake-runs/failures");
         assert_eq!(failures.stage_count, 51);
         assert_eq!(failures.failures.len(), 51);
         assert!(failures.failures.iter().all(|failure| {
@@ -545,5 +561,31 @@ mod tests {
             error.to_string().contains("requires the `bam_downstream` feature"),
             "missing-feature error should stay explicit: {error:#}"
         );
+    }
+
+    #[test]
+    fn benchmark_local_fake_run_root_uses_disposable_runs_root() {
+        let root = repo_root();
+        let resolver = BenchmarkPathResolver::new(&root, None);
+
+        assert_eq!(
+            resolver.benchmark_local_fake_run_root(),
+            root.join("runs/bench/local-fake-runs")
+        );
+    }
+
+    #[cfg(feature = "bam_downstream")]
+    #[test]
+    fn fake_run_local_stage_commands_rejects_readiness_root() {
+        let root = repo_root();
+        let error = fake_run_local_stage_commands(
+            &root,
+            PathBuf::from("benchmarks/readiness/local-ready/fake-runs"),
+        )
+        .expect_err("fake-run output under readiness root must fail");
+
+        assert!(error
+            .to_string()
+            .contains("must remain disposable and must not resolve inside `benchmarks/readiness`"));
     }
 }
