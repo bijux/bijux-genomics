@@ -1,0 +1,12 @@
+{
+  "schema_version": "bijux.fixture.fastq_raw_parser.v1",
+  "stage_id": "fastq.trim_terminal_damage",
+  "tool_id": "adapterremoval",
+  "parser_id": "parse_adapterremoval_metrics",
+  "normalized": {
+    "schema_version": "bijux.adapterremoval.metrics.v1",
+    "pairs_processed": 1000,
+    "pairs_merged": 640,
+    "merge_rate": 0.64
+  }
+}

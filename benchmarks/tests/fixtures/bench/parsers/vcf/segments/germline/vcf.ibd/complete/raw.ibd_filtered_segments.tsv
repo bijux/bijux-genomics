@@ -1,0 +1,3 @@
+sample_a	sample_b	contig	start	end	length_cm	marker_count
+sample_a	sample_b	chr1	100	220	4.250	18
+sample_a	sample_b	chr1	300	470	5.250	23

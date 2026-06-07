@@ -1,0 +1,20 @@
+{
+  "schema_version": "bijux.vcf.phasing.manifest.v1",
+  "stage_id": "vcf.phasing",
+  "backend": "eagle",
+  "requested_backend": "eagle",
+  "backend_execution_attempted": true,
+  "command_argv": [
+    "eagle",
+    "--vcfTarget",
+    "input.vcf",
+    "--vcfRef",
+    "panel.vcf.gz",
+    "--geneticMapFile",
+    "map.tsv.gz",
+    "--outPrefix",
+    "phased",
+    "--numThreads",
+    "8"
+  ]
+}

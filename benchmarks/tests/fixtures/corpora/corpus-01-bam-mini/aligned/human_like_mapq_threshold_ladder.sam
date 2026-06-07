@@ -1,0 +1,7 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chr1	LN:100
+@RG	ID:rg-mapq-filter-human-like	SM:human_like_mapq_threshold_ladder
+mapq60	0	chr1	1	60	8M	*	0	0	ACGTACGT	FFFFFFFF	RG:Z:rg-mapq-filter-human-like
+mapq30	0	chr1	12	30	8M	*	0	0	TGCATGCA	FFFFFFFF	RG:Z:rg-mapq-filter-human-like
+mapq10	0	chr1	24	10	8M	*	0	0	GGGGTTTT	FFFFFFFF	RG:Z:rg-mapq-filter-human-like
+unmapped	4	*	0	0	*	*	0	0	NNNNNNNN	FFFFFFFF	RG:Z:rg-mapq-filter-human-like

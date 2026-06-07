@@ -1,0 +1,10 @@
+{
+  "sample_a": {
+    "fastqc_total_sequences": 1000,
+    "fastqc_gc": 42.0
+  },
+  "sample_b": {
+    "fastqc_total_sequences": 1100,
+    "fastqc_gc": 41.0
+  }
+}

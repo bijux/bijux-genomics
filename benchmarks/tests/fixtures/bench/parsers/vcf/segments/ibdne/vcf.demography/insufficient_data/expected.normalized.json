@@ -1,0 +1,23 @@
+{
+  "schema_version": "bijux.fixture.vcf_raw_parser.v1",
+  "stage_id": "vcf.demography",
+  "tool_id": "ibdne",
+  "parser_id": "parse_ibdne_demography_metrics",
+  "normalized": {
+    "schema_version": "bijux.vcf.demography.v1",
+    "stage_id": "vcf.demography",
+    "tool_id": "ibdne",
+    "method": "ibdne",
+    "inference_status": "insufficient_data",
+    "status": "insufficient_data",
+    "insufficient_reason": "not_enough_ibd_segments",
+    "time_bins": [],
+    "ne_estimates": [],
+    "insufficient_data_probe": {
+      "status": "insufficient_data",
+      "insufficient_reason": "not_enough_ibd_segments",
+      "time_bins": [],
+      "ne_estimates": []
+    }
+  }
+}

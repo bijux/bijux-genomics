@@ -1,0 +1,5 @@
+#CHROM ID REF ALT ALT_FREQS OBS_CT
+chr1 chr1:10:A:G A G 0.24 6
+chr1 chr1:20:C:T C T 0.16 6
+chr1 chr1:30:G:A G A 0.34 6
+chr1 chr1:40:T:G T G 0.06 6

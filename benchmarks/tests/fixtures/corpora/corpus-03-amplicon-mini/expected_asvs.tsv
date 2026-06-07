@@ -1,0 +1,4 @@
+asv_id	sequence	sample_id	expected_presence
+ASV00001	ACGTTGCAACGTTGCA	corpus-03-amplicon-se	present
+ASV00002	TTGCAACGTTTGCAAC	corpus-03-amplicon-se	present
+ASV00003	AAACCTACGGGTTTGACTACCC	corpus-03-amplicon-se	absent

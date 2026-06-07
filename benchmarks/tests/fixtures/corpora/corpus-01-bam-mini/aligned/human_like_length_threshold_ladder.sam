@@ -1,0 +1,7 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chr1	LN:100
+@RG	ID:rg-length-filter-human-like	SM:human_like_length_threshold_ladder
+len12	0	chr1	1	60	12M	*	0	0	ACGTACGTTGCA	FFFFFFFFFFFF	RG:Z:rg-length-filter-human-like
+len8	0	chr1	20	60	8M	*	0	0	TGCATGCA	FFFFFFFF	RG:Z:rg-length-filter-human-like
+len5	0	chr1	32	60	5M	*	0	0	GATTA	FFFFF	RG:Z:rg-length-filter-human-like
+unmapped10	4	*	0	0	*	*	0	0	NNNNNNNNNN	FFFFFFFFFF	RG:Z:rg-length-filter-human-like

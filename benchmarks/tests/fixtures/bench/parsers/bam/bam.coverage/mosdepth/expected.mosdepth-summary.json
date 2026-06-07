@@ -1,0 +1,13 @@
+{
+  "schema_version": "bijux.fixture.bam_raw_parser.v1",
+  "stage_id": "bam.coverage",
+  "tool_id": "mosdepth",
+  "parser_id": "parse_mosdepth_summary",
+  "normalized": {
+    "mean": 2.5,
+    "median": 2.5,
+    "breadth_1x": 0.8,
+    "breadth_3x": 0.0,
+    "breadth_5x": 0.0
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "schema_version": "bijux.fixture.fastq_raw_parser.v1",
+  "stage_id": "fastq.filter_low_complexity",
+  "tool_id": "prinseq",
+  "parser_id": "parse_low_complexity_report",
+  "normalized": {
+    "reads_removed_low_complexity": 155
+  }
+}

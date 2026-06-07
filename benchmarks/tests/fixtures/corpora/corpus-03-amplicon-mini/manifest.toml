@@ -1,0 +1,58 @@
+schema_version = "bijux.bench.amplicon_corpus_fixture.v1"
+corpus_id = "corpus-03-amplicon-mini"
+assay_id = "amplicon_standard"
+marker_id = "16S"
+target_region = "bacterial_16s_rrna_full_length"
+description = "Tiny governed amplicon FASTQ fixture with primer-normalization, ASV, OTU, abundance-normalization, and chimera-control inputs for local benchmark contract checks."
+compression = "gzip"
+primer_set_id = "16S_universal_v1"
+forward_primer_id = "16S_27F"
+reverse_primer_id = "16S_1492R"
+primer_fasta = "../../../../../assets/reference/primers/16S_universal_v1.fasta"
+primers_tsv_path = "primers.tsv"
+expected_asvs_path = "expected_asvs.tsv"
+chimera_controls_fasta_path = "chimera_controls.fasta"
+chimera_expectations_path = "chimera_expectations.tsv"
+amplicon_governance_path = "../../../../../assets/reference/amplicon_governance.toml"
+
+[[controls]]
+sample_id = "chimera-control-se"
+control_kind = "chimera_positive"
+purpose = "Provides a governed positive control for local chimera-removal checks against the amplicon corpus."
+
+[[abundance_tables]]
+sample_id = "corpus-03-otu-abundance-table"
+table_kind = "otu_abundance"
+table_path = "tables/corpus-03-otu-abundance.tsv"
+expected_row_count = 4
+expected_sample_count = 2
+expected_feature_count = 3
+source_paths = ["assets/toy/core-v1/tables/otu_abundance_small.tsv"]
+
+[[samples]]
+sample_id = "amplicon-16s-se"
+sample_kind = "biological"
+fastq_path = "normalized/amplicon-16s-se.fastq.gz"
+expected_read_count = 3
+source_paths = ["assets/toy/core-v1/fastq/reads_with_primers.fastq"]
+
+[[samples]]
+sample_id = "corpus-03-amplicon-se"
+sample_kind = "biological"
+fastq_path = "normalized/corpus-03-amplicon-se.fastq.gz"
+expected_read_count = 3
+source_paths = ["assets/toy/corpus-03-amplicon-mini/fastq/merged_amplicon_reads.fastq"]
+
+[[samples]]
+sample_id = "corpus-03-otu-cluster-se"
+sample_kind = "biological"
+fastq_path = "normalized/corpus-03-otu-cluster-se.fastq.gz"
+expected_read_count = 3
+source_paths = ["assets/toy/corpus-03-amplicon-mini/fastq/merged_amplicon_reads.fastq"]
+
+[[samples]]
+sample_id = "chimera-control-se"
+sample_kind = "control"
+fastq_path = "normalized/chimera-control-se.fastq.gz"
+expected_read_count = 3
+source_paths = ["assets/toy/corpus-03-amplicon-mini/fastq/merged_amplicon_reads.fastq"]

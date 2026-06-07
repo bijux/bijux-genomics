@@ -1,0 +1,9 @@
+{
+  "schema_version": "bijux.fixture.fastq_raw_parser.v1",
+  "stage_id": "fastq.validate_reads",
+  "tool_id": "fastqvalidator",
+  "parser_id": "parse_fastqvalidator_count",
+  "normalized": {
+    "total_reads": 12345
+  }
+}

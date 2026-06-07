@@ -1,0 +1,20 @@
+{
+  "schema_version": "bijux.fixture.vcf_raw_parser.v1",
+  "stage_id": "vcf.postprocess",
+  "tool_id": "bcftools",
+  "parser_id": "parse_bcftools_postprocess_metrics",
+  "normalized": {
+    "schema_version": "bijux.vcf.postprocess.v1",
+    "stage_id": "vcf.postprocess",
+    "tool_id": "bcftools",
+    "readable_vcf": true,
+    "tabix_present": true,
+    "contigs_consistent_with_species_context": true,
+    "left_align_applied": true,
+    "multiallelic_records_split": 1,
+    "indels_normalized": 1,
+    "variant_ids_normalized": 3,
+    "invalid_records_removed": 0,
+    "filter_standardized_to_pass": 2
+  }
+}

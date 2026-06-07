@@ -1,0 +1,2 @@
+primer_id	forward_sequence	reverse_sequence	target	orientation
+16S_universal_v1	AGAGTTTGATCMTGGCTCAG	GGTTACCTTGTTACGACTT	bacterial_16s_rrna_full_length	normalize_to_forward_primer

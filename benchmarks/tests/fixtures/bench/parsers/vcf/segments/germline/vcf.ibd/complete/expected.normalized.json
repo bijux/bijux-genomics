@@ -1,0 +1,29 @@
+{
+  "schema_version": "bijux.fixture.vcf_raw_parser.v1",
+  "stage_id": "vcf.ibd",
+  "tool_id": "germline",
+  "parser_id": "parse_germline_ibd_segment_metrics",
+  "normalized": {
+    "schema_version": "bijux.vcf.ibd.v1",
+    "stage_id": "vcf.ibd",
+    "tool_id": "germline",
+    "status": "complete",
+    "insufficient_reason": null,
+    "pair_count": 1,
+    "rows": [
+      {
+        "sample_a": "sample_a",
+        "sample_b": "sample_b",
+        "segment_count": 2,
+        "total_length": 9.5,
+        "marker_count_total": 41,
+        "status": "complete"
+      }
+    ],
+    "insufficient_overlap_probe": {
+      "status": "not_run",
+      "insufficient_reason": null,
+      "filtered_segment_count": 0
+    }
+  }
+}

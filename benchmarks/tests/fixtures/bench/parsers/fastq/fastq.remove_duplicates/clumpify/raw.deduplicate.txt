@@ -1,0 +1,3 @@
+reads_in=1000
+reads_out=840
+reads_removed_duplicates=160

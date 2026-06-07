@@ -1,0 +1,36 @@
+{
+  "schema_version": "bijux.vcf.pca.v1",
+  "toolchain": "plink2",
+  "execution_mode": "fallback_proxy",
+  "sample_count": 4,
+  "sample_ids": [
+    "sample_a",
+    "sample_b",
+    "sample_c",
+    "sample_d"
+  ],
+  "sample_population_labels": [
+    {
+      "sample_id": "sample_a",
+      "population_id": "cohort_alpha"
+    },
+    {
+      "sample_id": "sample_b",
+      "population_id": "cohort_alpha"
+    },
+    {
+      "sample_id": "sample_c",
+      "population_id": "cohort_beta"
+    },
+    {
+      "sample_id": "sample_d",
+      "population_id": "cohort_beta"
+    }
+  ],
+  "variants_passing": 2,
+  "tool_attempts": {
+    "pca": {
+      "ok": false
+    }
+  }
+}

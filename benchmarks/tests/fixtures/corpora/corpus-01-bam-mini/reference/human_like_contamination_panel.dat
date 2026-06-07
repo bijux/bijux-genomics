@@ -1,0 +1,5 @@
+# Governed population-AF panel fixture for local contamination planning.
+# The planner treats this as a verifybamid2-style panel input for command rendering.
+variant_id	contig	position	ref	alt	af
+human-like-rs1	chr1	5	A	G	0.12
+human-like-rs2	chr1	18	G	A	0.21

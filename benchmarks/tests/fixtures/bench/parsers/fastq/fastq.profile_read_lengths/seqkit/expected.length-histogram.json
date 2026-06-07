@@ -1,0 +1,16 @@
+{
+  "schema_version": "bijux.fixture.fastq_raw_parser.v1",
+  "stage_id": "fastq.profile_read_lengths",
+  "tool_id": "seqkit",
+  "parser_id": "parse_length_histogram",
+  "normalized": [
+    {
+      "length": 2,
+      "count": 2
+    },
+    {
+      "length": 4,
+      "count": 1
+    }
+  ]
+}

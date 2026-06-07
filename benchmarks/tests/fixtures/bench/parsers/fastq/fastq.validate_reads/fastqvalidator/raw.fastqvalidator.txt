@@ -1,0 +1,2 @@
+FASTQValidator report
+Total reads: 12345

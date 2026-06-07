@@ -1,0 +1,73 @@
+{
+  "schema_version": "bijux.fixture.vcf_raw_parser.v1",
+  "stage_id": "vcf.population_structure",
+  "tool_id": "plink2",
+  "parser_id": "parse_plink2_population_structure_metrics",
+  "normalized": {
+    "schema_version": "bijux.vcf.population_structure.v1",
+    "stage_id": "vcf.population_structure",
+    "tool_id": "plink2",
+    "consumed_pca": {
+      "sample_count": 4,
+      "variant_count": 2,
+      "execution_mode": "fallback_proxy",
+      "tool_ok": false
+    },
+    "consumed_admixture": {
+      "sample_count": 4,
+      "selected_k": 2,
+      "execution_mode": "fallback_proxy",
+      "tool_ok": false,
+      "status": "complete"
+    },
+    "sample_groups": [
+      {
+        "sample_id": "sample_a",
+        "population_id": "cohort_alpha",
+        "dominant_cluster": "cluster_1",
+        "dominant_fraction": 1.0,
+        "pc1": 0.01,
+        "pc2": 0.02,
+        "status": "complete"
+      },
+      {
+        "sample_id": "sample_b",
+        "population_id": "cohort_alpha",
+        "dominant_cluster": "cluster_1",
+        "dominant_fraction": 1.0,
+        "pc1": 0.02,
+        "pc2": 0.03,
+        "status": "complete"
+      },
+      {
+        "sample_id": "sample_c",
+        "population_id": "cohort_beta",
+        "dominant_cluster": "cluster_2",
+        "dominant_fraction": 1.0,
+        "pc1": 0.03,
+        "pc2": 0.04,
+        "status": "complete"
+      },
+      {
+        "sample_id": "sample_d",
+        "population_id": "cohort_beta",
+        "dominant_cluster": "cluster_2",
+        "dominant_fraction": 1.0,
+        "pc1": 0.04,
+        "pc2": 0.05,
+        "status": "complete"
+      }
+    ],
+    "distance_summary": {
+      "sample_count": 4,
+      "pair_count": 6,
+      "within_population_pair_count": 2,
+      "cross_population_pair_count": 4,
+      "min_pc_distance": 0.01414213562373095,
+      "max_pc_distance": 0.042426406871192854,
+      "mean_pc_distance": 0.023570226039551587
+    },
+    "variant_count": 2,
+    "status": "complete"
+  }
+}

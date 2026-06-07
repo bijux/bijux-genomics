@@ -1,0 +1,5 @@
+{
+  "backend": "minimac4",
+  "stage_id": "vcf.imputation",
+  "status": "complete"
+}

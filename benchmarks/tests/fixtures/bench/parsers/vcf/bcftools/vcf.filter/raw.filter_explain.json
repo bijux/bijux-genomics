@@ -1,0 +1,7 @@
+{
+  "thresholds": {
+    "min_depth": 8.0,
+    "min_qual": 30.0,
+    "sample_missingness_max": 0.2
+  }
+}

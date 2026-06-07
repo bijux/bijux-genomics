@@ -1,0 +1,8 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chr1	LN:100
+@RG	ID:rg-filter-human-like	SM:human_like_mixed_filter_constraints
+good001	0	chr1	1	60	8M	*	0	0	ACGTACGT	FFFFFFFF	RG:Z:rg-filter-human-like
+lowq001	0	chr1	10	10	8M	*	0	0	TGCATGCA	FFFFFFFF	RG:Z:rg-filter-human-like
+short001	0	chr1	20	60	6M	*	0	0	GATTAC	FFFFFF	RG:Z:rg-filter-human-like
+dup001	1024	chr1	30	60	8M	*	0	0	CCCCGGGG	FFFFFFFF	RG:Z:rg-filter-human-like
+unmap001	4	*	0	0	*	*	0	0	NNNNNNNN	FFFFFFFF	RG:Z:rg-filter-human-like

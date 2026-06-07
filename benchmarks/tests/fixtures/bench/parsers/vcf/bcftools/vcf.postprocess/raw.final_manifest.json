@@ -1,0 +1,10 @@
+{
+  "normalization": {
+    "left_align_applied": true,
+    "multiallelic_records_split": 1,
+    "indels_normalized": 1,
+    "variant_ids_normalized": 3,
+    "invalid_records_removed": 0,
+    "filter_standardized_to_pass": 2
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "tool": "ngsbriggs",
+  "c_to_t_5p": 0.22,
+  "g_to_a_3p": 0.18,
+  "pmd_score_histogram": [
+    [
+      0,
+      350
+    ],
+    [
+      3,
+      950
+    ]
+  ]
+}

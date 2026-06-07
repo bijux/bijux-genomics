@@ -1,0 +1,9 @@
+sample contig start end length_bp n_sites
+sample_a chr1 3 3 1 1
+sample_a chr1 8 8 1 1
+sample_b chr1 3 3 1 1
+sample_b chr1 8 8 1 1
+sample_c chr1 3 3 1 1
+sample_c chr1 8 8 1 1
+sample_d chr1 3 3 1 1
+sample_d chr1 8 8 1 1

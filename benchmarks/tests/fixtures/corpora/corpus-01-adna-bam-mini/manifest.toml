@@ -1,0 +1,50 @@
+schema_version = "bijux.bench.bam_corpus_fixture.v1"
+corpus_id = "corpus-01-adna-bam-mini"
+species = "Homo sapiens"
+description = "Tiny ancient-like BAM-stage corpus with governed contamination, sex, and haplogroup fixture slices plus a shared non-UDG reference for local benchmark contract checks."
+reference_fasta = "reference/adna_bam_reference.fasta"
+udg_model = "non_udg"
+damage_signal = "moderate"
+expected_terminal_pattern_class = "ct5p_dominant"
+
+[[samples]]
+sample_id = "adna_contamination_panel_screen"
+cohort = "adna_like"
+alignment_path = "aligned/adna_contamination_panel_screen.sam"
+index_path = "aligned/adna_contamination_panel_screen.sam.bai"
+expected_contigs = ["chr1"]
+expected_header_sample_ids = ["adna_contamination_panel_screen"]
+expected_read_group_ids = ["rg-contamination-adna"]
+expected_record_count = 3
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat",
+]
+
+[[samples]]
+sample_id = "adna_xy_autosome_coverage"
+cohort = "adna_like"
+alignment_path = "aligned/adna_xy_autosome_coverage.sam"
+index_path = "aligned/adna_xy_autosome_coverage.sam.bai"
+expected_contigs = ["chr1", "chrX", "chrY"]
+expected_header_sample_ids = ["adna_xy_autosome_coverage"]
+expected_read_group_ids = ["rg-sex-adna"]
+expected_record_count = 5
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_xy_autosome_coverage.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+]
+
+[[samples]]
+sample_id = "adna_y_haplogroup_panel"
+cohort = "adna_like"
+alignment_path = "aligned/adna_y_haplogroup_panel.sam"
+index_path = "aligned/adna_y_haplogroup_panel.sam.bai"
+expected_contigs = ["chrY"]
+expected_header_sample_ids = ["adna_y_haplogroup_panel"]
+expected_read_group_ids = ["rg-haplogroups-adna"]
+expected_record_count = 4
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv",
+]

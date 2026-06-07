@@ -1,0 +1,4 @@
+{
+  "sampling_policy": "deterministic_first_allele_projection",
+  "random_seed": 73
+}

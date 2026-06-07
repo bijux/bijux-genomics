@@ -1,0 +1,25 @@
+{
+  "tool_id": "angsd",
+  "stage_id": "vcf.call_gl",
+  "likelihood_model": "GL2_doGlf2_doMajorMinor1_doMaf1",
+  "likelihood_field": "GL",
+  "argv": [
+    "angsd",
+    "-b",
+    "bam.list",
+    "-ref",
+    "ref.fa",
+    "-sites",
+    "sites.vcf",
+    "-GL",
+    "2",
+    "-doGlf",
+    "2",
+    "-doMajorMinor",
+    "1",
+    "-doMaf",
+    "1",
+    "-out",
+    "gl_sites"
+  ]
+}

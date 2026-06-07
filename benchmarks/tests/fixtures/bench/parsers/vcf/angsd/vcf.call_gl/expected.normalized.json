@@ -1,0 +1,16 @@
+{
+  "schema_version": "bijux.fixture.vcf_raw_parser.v1",
+  "stage_id": "vcf.call_gl",
+  "tool_id": "angsd",
+  "parser_id": "parse_angsd_call_gl_metrics",
+  "normalized": {
+    "schema_version": "bijux.vcf.call_gl.v1",
+    "stage_id": "vcf.call_gl",
+    "tool_id": "angsd",
+    "likelihood_field": "GL",
+    "sites_with_likelihoods": 3,
+    "samples_with_likelihoods": 1,
+    "missing_likelihoods": 0,
+    "sample_count": 1
+  }
+}

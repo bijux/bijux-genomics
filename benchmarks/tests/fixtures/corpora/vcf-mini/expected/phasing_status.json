@@ -1,0 +1,10 @@
+{
+  "schema_version": "bijux.bench.vcf_expected_truth.phasing_status.v1",
+  "corpus_id": "vcf-mini",
+  "source_variant_role": "phased",
+  "sample_count": 4,
+  "variant_count": 2,
+  "phased_call_count": 8,
+  "unphased_call_count": 0,
+  "fully_phased_sample_ids": ["sample_a", "sample_b", "sample_c", "sample_d"]
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": "bijux.vcf.ibd.v1",
+  "ibd_segment_count": 0,
+  "ibd_total_length_cM": 0.0,
+  "ibd_length_distribution_cM": [],
+  "status": "insufficient_marker_overlap",
+  "insufficient_data_reason": "no_pairs_met_min_marker_or_length_threshold",
+  "pairwise_ibd_sharing_matrix": {
+    "samples": [
+      "sample_a",
+      "sample_b"
+    ],
+    "shape": [
+      2,
+      2
+    ]
+  },
+  "tool_attempts": {
+    "germline": false,
+    "ibdhap": false
+  },
+  "execution_mode": "fallback_proxy"
+}
