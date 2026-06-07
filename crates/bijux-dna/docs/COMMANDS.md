@@ -200,6 +200,13 @@ Visible aliases are part of the operator surface:
   benchmark-ready FASTQ, BAM, and VCF result binding. Each row keeps raw outputs, normalized
   metrics outputs, logs, result manifest, and index outputs explicit, and the command fails closed
   unless every governed result keeps complete output declarations.
+- `bijux-dna bench readiness render-all-domain-parser-collector`
+  `render-all-domain-parser-collector` writes
+  `target/bench-readiness/parser-collector-all-domains.json` and materializes a governed fixture
+  tree under `target/bench-readiness/parser-collector-all-domains-fixture/`. It collects fake-run
+  parser evidence for the canonical 120-result FASTQ, BAM, and VCF benchmark-ready slice, joins a
+  governed real-smoke subset from each domain, and normalizes both sources into one reviewable
+  dataset with stable domain, stage, tool, and manifest identity.
 - `bijux-dna bench readiness render-missing-result-report`
   `render-missing-result-report` writes `target/bench-readiness/missing-result-report-test.json`
   with one governed row per expected FASTQ or BAM benchmark result, materializes a controlled
