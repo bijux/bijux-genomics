@@ -97,6 +97,8 @@ pub enum BenchLocalCommand {
     JudgeTaxonomyOutput(BenchLocalJudgeTaxonomyOutputArgs),
     #[command(name = "validate-slurm-shell-syntax")]
     ValidateSlurmShellSyntax(BenchLocalValidateSlurmShellSyntaxArgs),
+    #[command(name = "validate-all-domain-slurm-shell-syntax")]
+    ValidateAllDomainSlurmShellSyntax(BenchLocalValidateAllDomainSlurmShellSyntaxArgs),
     #[command(name = "validate-slurm-dependencies")]
     ValidateSlurmDependencies(BenchLocalValidateSlurmDependenciesArgs),
     #[command(name = "validate-slurm-script-bodies")]
@@ -449,6 +451,16 @@ pub struct BenchLocalJudgeTaxonomyOutputArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalValidateSlurmShellSyntaxArgs {
+    #[arg(long)]
+    pub root: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateAllDomainSlurmShellSyntaxArgs {
     #[arg(long)]
     pub root: Option<std::path::PathBuf>,
     #[arg(long)]

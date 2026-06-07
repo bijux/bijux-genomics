@@ -808,6 +808,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateAllDomainSlurmShellSyntax(args) => {
+                        crate::commands::benchmark::local_all_domain_slurm_shell_syntax::run_validate_all_domain_slurm_shell_syntax(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateSlurmDependencies(args) => {
                         crate::commands::benchmark::local_slurm_dependency_check::run_validate_slurm_dependencies(
                             &args,
