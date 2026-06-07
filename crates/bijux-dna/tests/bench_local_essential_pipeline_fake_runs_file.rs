@@ -32,7 +32,7 @@ fn bench_local_fake_run_essential_pipelines_writes_governed_artifact_tree() {
     );
 
     let rendered_root = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_root.trim(), "target/local-fake-runs/pipelines/essential");
+    assert_eq!(rendered_root.trim(), "runs/bench/local-fake-runs/pipelines/essential");
 
     let fake_run_root = repo_root.join(rendered_root.trim());
     let root_manifest = fake_run_root.join("manifest.json");

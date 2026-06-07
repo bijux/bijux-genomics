@@ -43,7 +43,7 @@ fn bench_local_fake_run_essential_pipelines_json_reports_governed_pipeline_slice
     );
     assert_eq!(
         payload.get("fake_run_root").and_then(serde_json::Value::as_str),
-        Some("target/local-fake-runs/pipelines/essential")
+        Some("runs/bench/local-fake-runs/pipelines/essential")
     );
     assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(93));

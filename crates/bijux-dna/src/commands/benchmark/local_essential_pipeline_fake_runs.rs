@@ -15,6 +15,9 @@ use super::local_stage_result_manifest::{
     BenchStageResultResourceMetricsV1, BenchStageResultRuntimeV1, BenchStageResultStatus,
     BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
+use super::path_resolution::{
+    ensure_path_stays_outside_benchmark_readiness_root, BenchmarkPathResolver,
+};
 use super::readiness::essential_pipeline_corpus_assets::{
     collect_essential_pipeline_corpus_asset_rows, EssentialPipelineCorpusAssetsRow,
     ESSENTIAL_PIPELINE_IDS,
@@ -26,7 +29,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_FAKE_RUN_ROOT: &str =
-    "target/local-fake-runs/pipelines/essential";
+    "runs/bench/local-fake-runs/pipelines/essential";
 const ESSENTIAL_PIPELINE_FAKE_RUNS_SCHEMA_VERSION: &str =
     "bijux.bench.local_essential_pipeline_fake_runs.v1";
 const ESSENTIAL_PIPELINE_FAKE_RUN_PIPELINE_SCHEMA_VERSION: &str =
@@ -140,11 +143,12 @@ pub(crate) fn run_fake_run_essential_pipelines(
     args: &parse::BenchLocalFakeRunEssentialPipelinesArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
     let manifest = fake_run_essential_pipelines(
         &repo_root,
-        args.output_root
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_ESSENTIAL_PIPELINE_FAKE_RUN_ROOT)),
+        args.output_root.clone().unwrap_or_else(|| {
+            benchmark_paths.benchmark_local_fake_run_root().join("pipelines/essential")
+        }),
     )?;
     if args.json {
         render::json::print_pretty(&manifest)?;
@@ -159,6 +163,11 @@ pub(crate) fn fake_run_essential_pipelines(
     output_root: PathBuf,
 ) -> Result<EssentialPipelineFakeRunsReport> {
     let absolute_output_root = repo_relative_path(repo_root, &output_root);
+    ensure_path_stays_outside_benchmark_readiness_root(
+        repo_root,
+        &absolute_output_root,
+        "essential pipeline fake-run output root",
+    )?;
     fs::create_dir_all(&absolute_output_root)
         .with_context(|| format!("create {}", absolute_output_root.display()))?;
 
