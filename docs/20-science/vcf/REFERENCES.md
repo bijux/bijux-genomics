@@ -26,7 +26,7 @@ The VCF domain mixes currently supported calling stages with many planned downst
 ## Planned Downstream Inference Families
 | Tool | Applies to | Reference status | Primary locator |
 | --- | --- | --- | --- |
-| beagle | `vcf.phasing`, `vcf.imputation`, `vcf.impute` | planned citation closure | https://faculty.washington.edu/browning/beagle/beagle.html |
+| beagle | `vcf.phasing`, `vcf.imputation_metrics`, `vcf.impute` | planned citation closure | https://faculty.washington.edu/browning/beagle/beagle.html |
 | eagle | `vcf.phasing` | planned citation closure | https://alkesgroup.broadinstitute.org/Eagle/ |
 | eigensoft | `vcf.pca`, `vcf.population_structure` | planned citation closure | https://github.com/DReichLab/EIG |
 | germline | `vcf.ibd` | governed paper locator present; promotion and runtime evidence still pending | https://www.cs.columbia.edu/~gusev/germline/ |

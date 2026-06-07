@@ -140,7 +140,7 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 - Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/prepare_reference_panel.yaml`, `docs/20-science/vcf/IMPUTATION_SCOPE.md`.
 
-### vcf.imputation {#vcf-imputation}
+### vcf.imputation_metrics {#vcf-imputation-metrics}
 - Status: planned.
 - Purpose: describe the multi-tool imputation family admitted for downstream panel-based inference.
 - Inputs/Outputs: phased VCF plus panel metadata → imputation report.

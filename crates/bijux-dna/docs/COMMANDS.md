@@ -768,7 +768,7 @@ Visible aliases are part of the operator surface:
   `render-vcf-imputation-family-adapter` writes
   `benchmarks/readiness/adapters/imputation-family.vcf.json` with one governed row per retained
   VCF imputation binding across `beagle`, `glimpse`, `impute5`, and `minimac4` for both
-  `vcf.imputation` and `vcf.impute`. Each row keeps the target cohort VCF, owned reference panel
+  `vcf.imputation_metrics` and `vcf.impute`. Each row keeps the target cohort VCF, owned reference panel
   VCF and `panel.m3vcf.gz` when required, genetic map or region literal when required, the
   imputed VCF and index outputs, quality and warning outputs, orchestration and imputation
   manifests, log output, concrete argv, parser output ids, and a real missing-input probe result.

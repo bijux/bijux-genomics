@@ -18,7 +18,7 @@ The authoritative VCF stage catalog is `bijux_dna_domain_vcf::taxonomy::VcfDomai
 - `vcf.filter`
 - `vcf.gl_propagation`
 - `vcf.ibd`
-- `vcf.imputation`
+- `vcf.imputation_metrics`
 - `vcf.impute`
 - `vcf.pca`
 - `vcf.phasing`

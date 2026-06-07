@@ -27,7 +27,7 @@ guardrails, and crate layout.
 - `benchmarks/tests/fixtures/bench/parsers/vcf/phasing/<tool_id>/` stores the governed raw artifact bank for
   the retained phasing backends.
 - `benchmarks/tests/fixtures/bench/parsers/vcf/imputation/<tool_id>/<stage_id>/` stores the governed raw
-  artifact bank for the retained imputation backends across `vcf.impute` and `vcf.imputation`.
+  artifact bank for the retained imputation backends across `vcf.impute` and `vcf.imputation_metrics`.
 - `benchmarks/tests/fixtures/bench/parsers/vcf/segments/<tool_id>/<stage_id>/<case_id>/` stores the
   governed raw artifact bank for retained ROH, IBD, and demography segment-producing rows,
   including explicit insufficient-data cases.

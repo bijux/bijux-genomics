@@ -71,7 +71,7 @@ Check:
 
 - `vcf.prepare_reference_panel`: panel lock fields + index sidecars.
 - `vcf.phasing`: phased VCF exists, sample IDs unchanged.
-- `vcf.imputation` / `vcf.impute`: INFO/Rsq-like metrics present, output indexed when required.
+- `vcf.imputation_metrics` / `vcf.impute`: INFO/Rsq-like metrics present, output indexed when required.
 - `vcf.ibd`: segment table non-empty, minimum sample constraints satisfied.
 - `vcf.roh`: ROH counts/segments emitted and parseable.
 - `vcf.demography`: IBD-derived inputs present and non-empty.

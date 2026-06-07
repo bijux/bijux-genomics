@@ -32,9 +32,9 @@ Contracts:
 | `ibdseq` | `vcf.ibd` | `apptainer_only` | Alternate IBD segment inference path for cross-method relatedness checks. | `@bijux-dna-platform` |
 | `ibdhap` | `vcf.ibd` | `docker_apptainer` | Haplotype-oriented IBD analysis path kept planned until wrapper behavior is validated. | `@bijux-dna-platform` |
 | `ibdne` | `vcf.ibd`, `vcf.demography` | `docker_apptainer` | IBD-derived demographic inference path that depends on stable IBD segment inputs. | `@bijux-dna-platform` |
-| `glimpse` | `vcf.impute`, `vcf.imputation` | `docker_apptainer` | Low-coverage imputation baseline needed for genotype-likelihood workflows. | `@bijux-dna-platform` |
-| `impute5` | `vcf.impute`, `vcf.imputation` | `docker_apptainer` | Alternate imputation lineage for cross-method accuracy and runtime comparison. | `@bijux-dna-platform` |
-| `minimac4` | `vcf.impute`, `vcf.imputation` | `docker_apptainer` | Widely used imputation path that should stay visible until scientific validation is wired. | `@bijux-dna-platform` |
+| `glimpse` | `vcf.impute`, `vcf.imputation_metrics` | `docker_apptainer` | Low-coverage imputation baseline needed for genotype-likelihood workflows. | `@bijux-dna-platform` |
+| `impute5` | `vcf.impute`, `vcf.imputation_metrics` | `docker_apptainer` | Alternate imputation lineage for cross-method accuracy and runtime comparison. | `@bijux-dna-platform` |
+| `minimac4` | `vcf.impute`, `vcf.imputation_metrics` | `docker_apptainer` | Widely used imputation path that should stay visible until scientific validation is wired. | `@bijux-dna-platform` |
 
 ## VCF Downstream Stack Admission Checklist
 

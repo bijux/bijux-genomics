@@ -11,7 +11,7 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.admixture`: VCF matrix prepared for ancestry decomposition.
 - `vcf.ibd`: phased/imputed-compatible VCF plus sample metadata.
 - `vcf.phasing`: filtered VCF + reference panels (when enabled).
-- `vcf.imputation`: phased VCF + panel metadata.
+- `vcf.imputation_metrics`: phased VCF + panel metadata + imputation QC evidence.
 - `vcf.impute`: phased VCF + panel metadata.
 - `vcf.postprocess`: imputed VCF + report filters.
 - `vcf.prepare_reference_panel`: raw panel VCF/BCF + build metadata.
@@ -25,7 +25,7 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.admixture` -> `admixture_json`
 - `vcf.ibd` -> `ibd_json`
 - `vcf.phasing` -> `phased_vcf`
-- `vcf.imputation` -> `imputed_vcf`
+- `vcf.imputation_metrics` -> `imputation_metrics_json`
 - `vcf.impute` -> `imputed_vcf`
 - `vcf.postprocess` -> `postprocess_vcf`
 - `vcf.prepare_reference_panel` -> `prepared_panel`
@@ -36,7 +36,7 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - summary aggregation mode (`vcf.stats`)
 - missingness/maf guardrails (`vcf.qc`, `vcf.pca`, `vcf.admixture`)
 - window/segment constraints (`vcf.ibd`)
-- panel and phasing algorithm toggles (`vcf.phasing`, `vcf.imputation`)
+- panel and phasing algorithm toggles (`vcf.phasing`, `vcf.imputation_metrics`)
 - panel and imputation engine toggles (`vcf.impute`)
 - post-imputation INFO/filter normalization toggles (`vcf.postprocess`)
 - panel normalization/index strategy (`vcf.prepare_reference_panel`)
@@ -55,7 +55,7 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.admixture` default: `plink2` (planned). rationale: keep the planned admixture surface anchored to an admitted matrix-preparation backend until a dedicated admixture tool is formally admitted.
 - `vcf.ibd` default: `germline` (planned). rationale: current planned IBD baseline names the intended segment caller while alternative tools stay comparative.
 - `vcf.phasing` default: `shapeit5` (planned). rationale: current planned phasing baseline tracks the intended modern phasing backend instead of a placeholder.
-- `vcf.imputation` default: `beagle` (planned). rationale: keep the planned imputation family anchored to an admitted broadly applicable baseline while alternatives remain comparative.
+- `vcf.imputation_metrics` default: `beagle` (planned). rationale: keep the planned imputation-metrics contract anchored to the same governed backend family that produces the source imputation evidence.
 - `vcf.impute` default: `beagle` (planned). rationale: planned explicit imputation execution must stay aligned with the active default recorded in `domain/vcf/index.yaml`.
 - `vcf.postprocess` default: `bcftools` (planned). rationale: deterministic normalization/filter baseline.
 - `vcf.prepare_reference_panel` default: `bcftools` (planned). rationale: deterministic reference panel prep baseline.
@@ -76,7 +76,7 @@ single_tool_justification: vcf.pca
 single_tool_justification: vcf.admixture
 single_tool_justification: vcf.ibd
 single_tool_justification: vcf.phasing
-single_tool_justification: vcf.imputation
+single_tool_justification: vcf.imputation_metrics
 single_tool_justification: vcf.impute
 single_tool_justification: vcf.postprocess
 single_tool_justification: vcf.prepare_reference_panel

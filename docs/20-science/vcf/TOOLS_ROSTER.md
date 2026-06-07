@@ -31,7 +31,7 @@ The VCF science layer needs a readable tool inventory that mirrors the stage man
 | vcf.population_structure | planned | plink, plink2, eigensoft | Population-structure summaries admit both PLINK-family and EIGENSOFT-family tooling. |
 | vcf.phasing | planned | beagle, shapeit5, eagle | Phasing remains a planned multi-backend comparative surface. |
 | vcf.prepare_reference_panel | planned | bcftools | Reference-panel preparation stays deterministic even while downstream imputation remains planned. |
-| vcf.imputation | planned | beagle, glimpse, impute5, minimac4 | Imputation-family admission stays broad while promotion evidence is still incomplete. |
+| vcf.imputation_metrics | planned | beagle, glimpse, impute5, minimac4 | Imputation-metrics admission stays broad while promotion evidence is still incomplete. |
 | vcf.impute | planned | beagle, glimpse, impute5, minimac4 | Explicit imputation execution mirrors the admitted imputation family. |
 | vcf.postprocess | planned | bcftools | Post-imputation normalization remains deterministic and single-tool. |
 | vcf.ibd | planned | germline, ibdhap | IBD remains a comparative multi-backend planned surface. |

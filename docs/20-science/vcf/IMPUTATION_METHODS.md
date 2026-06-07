@@ -7,7 +7,7 @@ Provide reference-grade method defaults for planned VCF imputation workflows in 
 Covers two recommended paths:
 - aDNA low-coverage (GL-based style; GLIMPSE-like workflow).
 - Modern diploid cohorts (phasing + imputation; SHAPEIT5/IMPUTE5-like workflow).
-Both paths stay inside the governed `vcf.prepare_reference_panel` -> `vcf.phasing` -> `vcf.imputation` -> `vcf.impute` -> `vcf.postprocess` family.
+Both paths stay inside the governed `vcf.prepare_reference_panel` -> `vcf.phasing` -> `vcf.impute` -> `vcf.imputation_metrics` -> `vcf.postprocess` family.
 
 ## Non-goals
 - Declaring scientific equivalence between tools.
@@ -18,7 +18,7 @@ Both paths stay inside the governed `vcf.prepare_reference_panel` -> `vcf.phasin
 - Preferred flow:
   1. `vcf.prepare_reference_panel` for panel normalization.
   2. `vcf.phasing` with conservative assumptions when a backend requires phased input.
-  3. `vcf.imputation` to keep the admitted GL-oriented method family explicit.
+  3. `vcf.imputation_metrics` to keep the admitted GL-oriented metrics surface explicit.
   4. `vcf.impute` with the chosen GL-oriented backend (GLIMPSE-style baseline family).
   5. `vcf.postprocess` for INFO/filter normalization.
 - Practical defaults:
@@ -31,7 +31,7 @@ Both paths stay inside the governed `vcf.prepare_reference_panel` -> `vcf.phasin
 - Preferred flow:
   1. `vcf.prepare_reference_panel`
   2. `vcf.phasing` (SHAPEIT5/Eagle family)
-  3. `vcf.imputation` to keep the admitted Beagle/IMPUTE5/Minimac4 family explicit
+  3. `vcf.imputation_metrics` to keep the admitted Beagle/IMPUTE5/Minimac4 metrics surface explicit
   4. `vcf.impute` (IMPUTE5/Minimac4/Beagle family)
   5. `vcf.postprocess`
 - Practical defaults:

@@ -7,7 +7,7 @@ Define the real reference-governance boundary for planned VCF downstream analysi
 This document governs the panel-bound downstream family:
 - `vcf.prepare_reference_panel`
 - `vcf.phasing`
-- `vcf.imputation`
+- `vcf.imputation_metrics`
 - `vcf.impute`
 - `vcf.postprocess`
 - `vcf.qc`
@@ -26,7 +26,7 @@ This document governs the panel-bound downstream family:
 ## Runtime Rules
 - `vcf.prepare_reference_panel` refuses panel/build mismatches before any downstream method is admitted.
 - `vcf.phasing` and `vcf.impute` must consume the same governed panel and map identity recorded at admission time.
-- `vcf.imputation` keeps multi-tool admission explicit, but tool choice does not weaken bundle compatibility checks.
+- `vcf.imputation_metrics` keeps multi-tool admission explicit, but tool choice does not weaken bundle compatibility checks.
 - `vcf.postprocess` and `vcf.qc` inherit the same governed build and panel provenance rather than inventing fresh reference identity.
 
 ## Failure modes
