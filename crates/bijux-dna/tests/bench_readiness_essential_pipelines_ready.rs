@@ -44,7 +44,7 @@ fn bench_readiness_essential_pipelines_ready_reports_governed_pass_state() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/ESSENTIAL_PIPELINES_READY.json")
+        Some("benchmarks/readiness/ESSENTIAL_PIPELINES_READY.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(16));
     assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(16));

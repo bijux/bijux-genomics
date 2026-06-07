@@ -50,7 +50,7 @@ fn fixtures_validate_all_reports_benchmark_root_pass_state() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/benchmark-fixture-root-validation.json")
+        Some("benchmarks/readiness/benchmark-fixture-root-validation.json")
     );
     assert_eq!(
         payload.get("root_path").and_then(serde_json::Value::as_str),

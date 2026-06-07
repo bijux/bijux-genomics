@@ -44,7 +44,7 @@ fn bench_readiness_essential_pipeline_corpus_assets_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/essential-pipeline-corpus-assets.tsv")
+        Some("benchmarks/readiness/essential-pipeline-corpus-assets.tsv")
     );
     assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(93));

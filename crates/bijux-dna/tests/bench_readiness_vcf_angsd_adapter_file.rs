@@ -31,7 +31,7 @@ fn bench_readiness_vcf_angsd_adapter_writes_governed_json_file() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let report_path = repo_root.join("target/bench-readiness/adapters/angsd.vcf.json");
+    let report_path = repo_root.join("benchmarks/readiness/adapters/angsd.vcf.json");
     assert!(report_path.is_file(), "VCF angsd adapter JSON must exist");
 
     let payload = serde_json::from_slice::<serde_json::Value>(
@@ -58,7 +58,7 @@ fn bench_readiness_vcf_angsd_adapter_writes_governed_json_file() {
     }
 
     let call_gl_bam_list =
-        repo_root.join("target/bench-readiness/adapters/angsd/vcf.call_gl/angsd-inputs.bam.list");
+        repo_root.join("benchmarks/readiness/adapters/angsd/vcf.call_gl/angsd-inputs.bam.list");
     assert!(
         call_gl_bam_list.is_file(),
         "call_gl row must materialize the governed bam.list helper"

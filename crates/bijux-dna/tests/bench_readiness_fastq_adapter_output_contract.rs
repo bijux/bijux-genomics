@@ -45,7 +45,7 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/fastq-adapter-output-contract.tsv")
+        Some("benchmarks/readiness/fastq-adapter-output-contract.tsv")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(74));
     assert_eq!(payload.get("adapter_row_count").and_then(serde_json::Value::as_u64), Some(69));

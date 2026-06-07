@@ -44,7 +44,7 @@ fn bench_readiness_vcf_orphan_tools_reports_governed_decisions() {
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/vcf-orphan-tools.tsv")
+        Some("benchmarks/readiness/vcf-orphan-tools.tsv")
     );
     assert_eq!(payload.get("orphan_count").and_then(serde_json::Value::as_u64), Some(11));
     assert_eq!(payload.get("required_tool_count").and_then(serde_json::Value::as_u64), Some(17));

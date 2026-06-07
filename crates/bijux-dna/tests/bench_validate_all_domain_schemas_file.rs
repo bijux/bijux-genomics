@@ -39,7 +39,7 @@ fn bench_validate_all_domain_schemas_writes_governed_summary_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "target/bench-readiness/all-domain-schema-validation.json");
+    assert_eq!(rendered_path.trim(), "benchmarks/readiness/all-domain-schema-validation.json");
 
     let report_path = repo_root.join(rendered_path.trim());
     let report: serde_json::Value = serde_json::from_str(

@@ -45,7 +45,7 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/unregistered-benchmark-pairs.tsv")
+        Some("benchmarks/readiness/unregistered-benchmark-pairs.tsv")
     );
     assert_eq!(payload.get("unregistered_pair_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));

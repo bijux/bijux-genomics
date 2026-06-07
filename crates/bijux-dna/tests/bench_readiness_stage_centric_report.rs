@@ -46,7 +46,7 @@ fn bench_readiness_stage_centric_report_tracks_multi_tool_stage_coverage() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/stage-centric-report.md")
+        Some("benchmarks/readiness/stage-centric-report.md")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(30));

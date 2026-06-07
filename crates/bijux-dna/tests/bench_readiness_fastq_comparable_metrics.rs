@@ -45,7 +45,7 @@ fn bench_readiness_fastq_comparable_metrics_reports_governed_stage_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/fastq-comparable-metrics.tsv")
+        Some("benchmarks/readiness/fastq-comparable-metrics.tsv")
     );
     assert_eq!(payload.get("comparable_stage_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(3));

@@ -31,7 +31,7 @@ fn bench_readiness_missing_benchmark_pairs_writes_governed_tsv_columns() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let tsv_path = repo_root.join("target/bench-readiness/missing-benchmark-pairs.tsv");
+    let tsv_path = repo_root.join("benchmarks/readiness/missing-benchmark-pairs.tsv");
     assert!(tsv_path.is_file(), "missing benchmark pairs TSV must exist");
 
     let tsv = std::fs::read_to_string(&tsv_path).expect("read missing benchmark pairs");

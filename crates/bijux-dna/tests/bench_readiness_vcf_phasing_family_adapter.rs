@@ -49,7 +49,7 @@ fn bench_readiness_vcf_shapeit5_adapter_reports_governed_row() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/adapters/shapeit5.vcf.json")
+        Some("benchmarks/readiness/adapters/shapeit5.vcf.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
@@ -117,7 +117,7 @@ fn bench_readiness_vcf_eagle_adapter_reports_governed_row() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/adapters/eagle.vcf.json")
+        Some("benchmarks/readiness/adapters/eagle.vcf.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
@@ -172,7 +172,7 @@ fn bench_readiness_vcf_beagle_adapter_reports_governed_row() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/adapters/beagle.vcf.json")
+        Some("benchmarks/readiness/adapters/beagle.vcf.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(

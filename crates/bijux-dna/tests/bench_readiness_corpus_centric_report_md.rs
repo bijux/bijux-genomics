@@ -36,7 +36,7 @@ fn bench_readiness_corpus_centric_report_writes_named_corpus_sections() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "target/bench-readiness/corpus-centric-report.md");
+    assert_eq!(rendered_path.trim(), "benchmarks/readiness/corpus-centric-report.md");
 
     let repo_root = support::repo_root().expect("repo root");
     let markdown = std::fs::read_to_string(repo_root.join(rendered_path.trim()))

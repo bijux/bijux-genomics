@@ -44,7 +44,7 @@ fn bench_readiness_vcf_expected_benchmark_results_tracks_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/vcf-expected-benchmark-results.tsv")
+        Some("benchmarks/readiness/vcf-expected-benchmark-results.tsv")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(8));

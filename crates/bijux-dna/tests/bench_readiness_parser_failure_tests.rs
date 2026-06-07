@@ -46,7 +46,7 @@ fn bench_readiness_parser_failure_tests_report_structures_parser_errors() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/parser-failure-tests.json")
+        Some("benchmarks/readiness/parser-failure-tests.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(96));
     assert_eq!(payload.get("passed_row_count").and_then(serde_json::Value::as_u64), Some(96));

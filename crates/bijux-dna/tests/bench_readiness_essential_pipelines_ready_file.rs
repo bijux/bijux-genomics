@@ -32,7 +32,7 @@ fn bench_readiness_essential_pipelines_ready_writes_gate_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "target/bench-readiness/ESSENTIAL_PIPELINES_READY.json");
+    assert_eq!(rendered_path.trim(), "benchmarks/readiness/ESSENTIAL_PIPELINES_READY.json");
 
     let payload: serde_json::Value = serde_json::from_slice(
         &std::fs::read(repo_root.join(rendered_path.trim())).expect("read readiness gate"),

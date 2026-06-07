@@ -45,11 +45,11 @@ fn bench_readiness_all_domain_failure_classification_reports_each_required_class
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/failure-classification-all-domains.json")
+        Some("benchmarks/readiness/failure-classification-all-domains.json")
     );
     assert_eq!(
         payload.get("fixture_root").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/failure-classification-all-domains-fixture")
+        Some("benchmarks/readiness/failure-classification-all-domains-fixture")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(payload.get("triggered_row_count").and_then(serde_json::Value::as_u64), Some(7));

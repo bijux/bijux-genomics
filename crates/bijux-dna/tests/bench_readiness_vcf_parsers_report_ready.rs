@@ -43,7 +43,7 @@ fn bench_readiness_vcf_parsers_report_ready_reports_governed_pass_state() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/VCF_PARSERS_REPORT_READY.json")
+        Some("benchmarks/readiness/VCF_PARSERS_REPORT_READY.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(15));
     assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(15));

@@ -44,11 +44,11 @@ fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() {
     );
     assert_eq!(
         payload.get("markdown_output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md")
+        Some("benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md")
     );
     assert_eq!(
         payload.get("json_output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json")
+        Some("benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(121));
     assert_eq!(

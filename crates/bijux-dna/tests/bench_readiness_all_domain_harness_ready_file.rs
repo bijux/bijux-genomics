@@ -32,7 +32,7 @@ fn bench_readiness_all_domain_harness_ready_writes_gate_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "target/bench-readiness/ALL_DOMAIN_HARNESS_READY.json");
+    assert_eq!(rendered_path.trim(), "benchmarks/readiness/ALL_DOMAIN_HARNESS_READY.json");
 
     let payload: serde_json::Value = serde_json::from_slice(
         &std::fs::read(repo_root.join(rendered_path.trim())).expect("read harness gate"),

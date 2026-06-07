@@ -44,7 +44,7 @@ fn bench_readiness_vcf_tool_serving_map_reports_owned_matrix_rows() {
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/vcf-tool-serving-map.tsv")
+        Some("benchmarks/readiness/vcf-tool-serving-map.tsv")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));

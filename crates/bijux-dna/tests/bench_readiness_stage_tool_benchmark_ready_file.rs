@@ -38,7 +38,7 @@ fn bench_readiness_stage_tool_benchmark_ready_writes_json_output() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "target/bench-readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json"
+        "benchmarks/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json"
     );
 
     let repo_root = support::repo_root().expect("repo root");

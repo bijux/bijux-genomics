@@ -43,7 +43,7 @@ fn bench_readiness_vcf_adapter_missing_input_tests_report_governed_roles() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/vcf-adapter-missing-input-tests.json")
+        Some("benchmarks/readiness/vcf-adapter-missing-input-tests.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("passed_row_count").and_then(serde_json::Value::as_u64), Some(10));

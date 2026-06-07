@@ -45,7 +45,7 @@ fn bench_readiness_corpus_incompatibility_reports_governed_blockers() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/corpus-incompatibility.tsv")
+        Some("benchmarks/readiness/corpus-incompatibility.tsv")
     );
     assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(

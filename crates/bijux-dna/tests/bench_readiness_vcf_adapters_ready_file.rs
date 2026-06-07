@@ -13,7 +13,7 @@ fn bench_readiness_vcf_adapters_ready_writes_governed_json_file() {
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
-    let output_path = repo_root.join("target/bench-readiness/VCF_ADAPTERS_READY.json");
+    let output_path = repo_root.join("benchmarks/readiness/VCF_ADAPTERS_READY.json");
 
     if output_path.exists() {
         fs::remove_file(&output_path).expect("remove stale output");
@@ -38,7 +38,7 @@ fn bench_readiness_vcf_adapters_ready_writes_governed_json_file() {
     );
     assert_eq!(
         String::from_utf8(output.stdout).expect("stdout utf8").trim(),
-        "target/bench-readiness/VCF_ADAPTERS_READY.json"
+        "benchmarks/readiness/VCF_ADAPTERS_READY.json"
     );
 
     let payload = fs::read_to_string(&output_path).expect("read output file");

@@ -31,7 +31,7 @@ fn bench_readiness_vcf_descent_family_adapter_writes_governed_json_file() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let report_path = repo_root.join("target/bench-readiness/adapters/descent-family.vcf.json");
+    let report_path = repo_root.join("benchmarks/readiness/adapters/descent-family.vcf.json");
     assert!(report_path.is_file(), "descent-family adapter JSON must exist");
 
     let payload = serde_json::from_slice::<serde_json::Value>(

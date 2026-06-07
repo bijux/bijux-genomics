@@ -44,7 +44,7 @@ fn bench_validate_vcf_schemas_reports_governed_pass_state() {
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/vcf-schema-validation.json")
+        Some("benchmarks/readiness/vcf-schema-validation.json")
     );
     assert_eq!(
         payload.get("shared_schema_path").and_then(serde_json::Value::as_str),

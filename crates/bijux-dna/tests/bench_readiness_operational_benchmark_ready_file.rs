@@ -34,7 +34,7 @@ fn bench_readiness_operational_benchmark_ready_writes_gate_file() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "target/bench-readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json"
+        "benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json"
     );
 
     let payload: serde_json::Value = serde_json::from_slice(

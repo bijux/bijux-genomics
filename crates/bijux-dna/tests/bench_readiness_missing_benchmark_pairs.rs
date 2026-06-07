@@ -44,7 +44,7 @@ fn bench_readiness_missing_benchmark_pairs_reports_governed_gaps() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/missing-benchmark-pairs.tsv")
+        Some("benchmarks/readiness/missing-benchmark-pairs.tsv")
     );
     assert_eq!(payload.get("missing_pair_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));

@@ -47,7 +47,7 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/gate-corpus-assets-complete.json")
+        Some("benchmarks/readiness/gate-corpus-assets-complete.json")
     );
     assert_eq!(payload.get("passes_gate"), Some(&serde_json::Value::Bool(true)));
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(123));

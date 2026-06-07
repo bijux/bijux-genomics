@@ -47,7 +47,7 @@ fn bench_readiness_all_domain_failure_classification_writes_governed_report_and_
     ]);
 
     let report_path =
-        repo_root.join("target/bench-readiness/failure-classification-all-domains.json");
+        repo_root.join("benchmarks/readiness/failure-classification-all-domains.json");
     assert!(report_path.is_file(), "all-domain failure-classification report must exist");
 
     let persisted: serde_json::Value = serde_json::from_slice(
@@ -61,7 +61,7 @@ fn bench_readiness_all_domain_failure_classification_writes_governed_report_and_
     assert_eq!(persisted.get("passes_behavior_test"), Some(&serde_json::Value::Bool(true)));
 
     let fixture_root =
-        repo_root.join("target/bench-readiness/failure-classification-all-domains-fixture");
+        repo_root.join("benchmarks/readiness/failure-classification-all-domains-fixture");
     assert!(fixture_root.is_dir(), "failure-classification fixture root must exist");
 
     let rows = persisted.get("rows").and_then(serde_json::Value::as_array).expect("rows array");

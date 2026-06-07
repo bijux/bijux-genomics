@@ -31,7 +31,7 @@ fn bench_readiness_render_commands_writes_bash_parseable_script() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let script_path = repo_root.join("target/bench-readiness/rendered-commands.sh");
+    let script_path = repo_root.join("benchmarks/readiness/rendered-commands.sh");
     assert!(script_path.is_file(), "rendered command script must exist");
 
     let script = std::fs::read_to_string(&script_path).expect("read rendered command script");

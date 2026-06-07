@@ -31,7 +31,7 @@ fn bench_readiness_vcf_adapter_output_coverage_writes_governed_tsv_columns() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let tsv_path = repo_root.join("target/bench-readiness/vcf-adapter-output-coverage.tsv");
+    let tsv_path = repo_root.join("benchmarks/readiness/vcf-adapter-output-coverage.tsv");
     assert!(tsv_path.is_file(), "VCF adapter output coverage TSV must exist");
 
     let tsv = std::fs::read_to_string(&tsv_path).expect("read VCF adapter output coverage");

@@ -46,11 +46,11 @@ fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_n
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/essential-pipelines-rendered-commands.sh")
+        Some("benchmarks/readiness/essential-pipelines-rendered-commands.sh")
     );
     assert_eq!(
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/essential-pipelines-rendered-commands.argv.jsonl")
+        Some("benchmarks/readiness/essential-pipelines-rendered-commands.argv.jsonl")
     );
     assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(93));

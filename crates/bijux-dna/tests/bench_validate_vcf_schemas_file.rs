@@ -32,7 +32,7 @@ fn bench_validate_vcf_schemas_writes_governed_report_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "target/bench-readiness/vcf-schema-validation.json");
+    assert_eq!(rendered_path.trim(), "benchmarks/readiness/vcf-schema-validation.json");
 
     let report_path = repo_root.join(rendered_path.trim());
     let report: serde_json::Value = serde_json::from_str(

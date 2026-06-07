@@ -43,7 +43,7 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/vcf-adapter-output-coverage.tsv")
+        Some("benchmarks/readiness/vcf-adapter-output-coverage.tsv")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(38));
     assert_eq!(

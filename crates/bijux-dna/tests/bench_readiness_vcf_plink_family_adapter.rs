@@ -49,7 +49,7 @@ fn bench_readiness_vcf_plink_adapter_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/adapters/plink.vcf.json")
+        Some("benchmarks/readiness/adapters/plink.vcf.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
@@ -136,7 +136,7 @@ fn bench_readiness_vcf_plink2_adapter_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/adapters/plink2.vcf.json")
+        Some("benchmarks/readiness/adapters/plink2.vcf.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(

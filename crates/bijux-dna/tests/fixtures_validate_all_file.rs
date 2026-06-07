@@ -41,11 +41,10 @@ fn fixtures_validate_all_writes_benchmark_root_report_file() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/bench-readiness/benchmark-fixture-root-validation.json"
+        "benchmarks/readiness/benchmark-fixture-root-validation.json"
     );
 
-    let report_path =
-        repo_root.join("target/bench-readiness/benchmark-fixture-root-validation.json");
+    let report_path = repo_root.join("benchmarks/readiness/benchmark-fixture-root-validation.json");
     let report_raw = fs::read_to_string(&report_path).expect("read report");
     let report: serde_json::Value = serde_json::from_str(&report_raw).expect("parse report");
 

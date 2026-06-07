@@ -45,11 +45,11 @@ fn bench_readiness_all_domain_missing_result_test_tracks_three_governed_missing_
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/missing-result-test-all-domains.json")
+        Some("benchmarks/readiness/missing-result-test-all-domains.json")
     );
     assert_eq!(
         payload.get("fake_result_root").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/missing-result-test-all-domains-fixture")
+        Some("benchmarks/readiness/missing-result-test-all-domains-fixture")
     );
     assert_eq!(payload.get("expected_row_count").and_then(serde_json::Value::as_u64), Some(120));
     assert_eq!(

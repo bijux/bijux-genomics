@@ -44,7 +44,7 @@ fn bench_readiness_undercovered_stages_reports_single_backend_gaps() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/undercovered-stages.tsv")
+        Some("benchmarks/readiness/undercovered-stages.tsv")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(

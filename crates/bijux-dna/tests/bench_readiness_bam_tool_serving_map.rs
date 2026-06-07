@@ -45,7 +45,7 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("bam"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/bam-tool-serving-map.tsv")
+        Some("benchmarks/readiness/bam-tool-serving-map.tsv")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(25));

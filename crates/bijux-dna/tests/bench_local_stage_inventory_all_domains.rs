@@ -44,7 +44,7 @@ fn bench_local_stage_inventory_all_domains_json_reports_separate_governed_counts
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/all-domain-stage-list.json")
+        Some("benchmarks/readiness/all-domain-stage-list.json")
     );
     assert_eq!(
         payload

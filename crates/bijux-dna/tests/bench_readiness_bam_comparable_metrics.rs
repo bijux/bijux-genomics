@@ -44,7 +44,7 @@ fn bench_readiness_bam_comparable_metrics_reports_governed_stage_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/bam-comparable-metrics.tsv")
+        Some("benchmarks/readiness/bam-comparable-metrics.tsv")
     );
     assert_eq!(payload.get("comparable_stage_count").and_then(serde_json::Value::as_u64), Some(15));
     assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(15));

@@ -47,7 +47,7 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_ready_slice_and_excluded_pa
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json")
+        Some("benchmarks/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json")
     );
     assert_eq!(payload.get("passes_gate").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(payload.get("expected_pair_count").and_then(serde_json::Value::as_u64), Some(123));

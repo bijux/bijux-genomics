@@ -31,7 +31,7 @@ fn bench_readiness_all_domain_rendered_commands_write_bash_parseable_script() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let script_path = repo_root.join("target/bench-readiness/rendered-commands-all-domains.sh");
+    let script_path = repo_root.join("benchmarks/readiness/rendered-commands-all-domains.sh");
     assert!(script_path.is_file(), "all-domain rendered command script must exist");
 
     let script = std::fs::read_to_string(&script_path).expect("read all-domain rendered script");

@@ -46,7 +46,7 @@ fn bench_readiness_pair_readiness_reports_governed_gap_columns() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/pair-readiness.tsv")
+        Some("benchmarks/readiness/pair-readiness.tsv")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
     assert_eq!(

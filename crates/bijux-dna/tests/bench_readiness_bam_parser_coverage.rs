@@ -44,7 +44,7 @@ fn bench_readiness_bam_parser_coverage_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/bam-parser-coverage.tsv")
+        Some("benchmarks/readiness/bam-parser-coverage.tsv")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(25));

@@ -32,7 +32,7 @@ fn bench_readiness_essential_pipeline_rendered_commands_write_bash_parseable_scr
     );
 
     let script_path =
-        repo_root.join("target/bench-readiness/essential-pipelines-rendered-commands.sh");
+        repo_root.join("benchmarks/readiness/essential-pipelines-rendered-commands.sh");
     assert!(script_path.is_file(), "essential pipeline rendered command script must exist");
 
     let script = std::fs::read_to_string(&script_path)

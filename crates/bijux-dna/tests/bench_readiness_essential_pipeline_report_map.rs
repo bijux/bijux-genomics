@@ -44,7 +44,7 @@ fn bench_readiness_essential_pipeline_report_map_tracks_all_pipeline_outputs() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/essential-pipeline-report-map.tsv")
+        Some("benchmarks/readiness/essential-pipeline-report-map.tsv")
     );
     assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(45));

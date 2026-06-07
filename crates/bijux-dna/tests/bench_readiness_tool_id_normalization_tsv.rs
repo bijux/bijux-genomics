@@ -31,7 +31,7 @@ fn bench_readiness_tool_id_normalization_writes_empty_governed_tsv() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let tsv_path = repo_root.join("target/bench-readiness/tool-id-normalization.tsv");
+    let tsv_path = repo_root.join("benchmarks/readiness/tool-id-normalization.tsv");
     assert!(tsv_path.is_file(), "tool ID normalization TSV must exist");
 
     let tsv = std::fs::read_to_string(&tsv_path).expect("read tool ID normalization TSV");

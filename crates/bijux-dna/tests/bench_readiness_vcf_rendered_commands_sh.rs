@@ -31,7 +31,7 @@ fn bench_readiness_vcf_rendered_commands_write_bash_parseable_script() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let script_path = repo_root.join("target/bench-readiness/vcf-rendered-commands.sh");
+    let script_path = repo_root.join("benchmarks/readiness/vcf-rendered-commands.sh");
     assert!(script_path.is_file(), "VCF rendered command script must exist");
 
     let script = std::fs::read_to_string(&script_path).expect("read VCF rendered command script");

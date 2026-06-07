@@ -32,7 +32,7 @@ fn bench_readiness_essential_pipeline_corpus_assets_writes_governed_tsv_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "target/bench-readiness/essential-pipeline-corpus-assets.tsv");
+    assert_eq!(rendered_path.trim(), "benchmarks/readiness/essential-pipeline-corpus-assets.tsv");
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read essential pipeline corpus/assets tsv");

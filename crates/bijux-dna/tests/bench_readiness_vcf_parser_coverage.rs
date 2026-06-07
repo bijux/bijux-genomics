@@ -43,7 +43,7 @@ fn bench_readiness_vcf_parser_coverage_reports_benchmark_ready_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/vcf-parser-coverage.tsv")
+        Some("benchmarks/readiness/vcf-parser-coverage.tsv")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(1));
@@ -61,10 +61,9 @@ fn bench_readiness_vcf_parser_coverage_reports_benchmark_ready_rows() {
     assert!(rows.iter().all(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
             && row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
-            && row
-                .get("fixture_path")
-                .and_then(serde_json::Value::as_str)
-                .is_some_and(|path| path.starts_with("benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/"))
+            && row.get("fixture_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
+                path.starts_with("benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/")
+            })
             && row
                 .get("schema_id")
                 .and_then(serde_json::Value::as_str)

@@ -34,7 +34,7 @@ fn bench_readiness_essential_pipeline_failure_isolation_writes_report_and_failed
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "target/bench-readiness/essential-pipeline-failure-isolation.json"
+        "benchmarks/readiness/essential-pipeline-failure-isolation.json"
     );
 
     let report_path = repo_root.join(rendered_path.trim());

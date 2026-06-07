@@ -45,7 +45,7 @@ fn bench_readiness_stage_registry_extra_pairs_reports_registry_domain_drift() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/stage-registry-extra-pairs.tsv")
+        Some("benchmarks/readiness/stage-registry-extra-pairs.tsv")
     );
     assert_eq!(payload.get("extra_pair_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));

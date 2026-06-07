@@ -41,7 +41,7 @@ fn bench_readiness_vcf_phasing_family_adapter_writes_governed_json_files() {
         ("beagle", "bijux.bench.readiness.vcf_beagle_adapter.v1", 0_u64),
     ] {
         let report_path =
-            repo_root.join(format!("target/bench-readiness/adapters/{tool_id}.vcf.json"));
+            repo_root.join(format!("benchmarks/readiness/adapters/{tool_id}.vcf.json"));
         assert!(report_path.is_file(), "{tool_id} VCF adapter JSON must exist");
 
         let payload = serde_json::from_slice::<serde_json::Value>(

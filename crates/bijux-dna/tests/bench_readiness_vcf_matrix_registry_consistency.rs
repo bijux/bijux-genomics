@@ -45,7 +45,7 @@ fn bench_readiness_vcf_matrix_registry_consistency_reports_governed_pass_state()
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/vcf-matrix-registry-consistency.json")
+        Some("benchmarks/readiness/vcf-matrix-registry-consistency.json")
     );
     assert_eq!(payload.get("passes_gate"), Some(&serde_json::Value::Bool(true)));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));

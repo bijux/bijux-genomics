@@ -44,7 +44,7 @@ fn bench_readiness_operational_benchmark_ready_reports_green_surface() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json")
+        Some("benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json")
     );
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),

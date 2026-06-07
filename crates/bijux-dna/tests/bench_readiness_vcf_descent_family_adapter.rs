@@ -44,7 +44,7 @@ fn bench_readiness_vcf_descent_family_adapter_reports_governed_rows() {
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/adapters/descent-family.vcf.json")
+        Some("benchmarks/readiness/adapters/descent-family.vcf.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(5));

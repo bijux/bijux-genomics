@@ -46,7 +46,7 @@ fn bench_readiness_fastq_report_map_reports_governed_stage_sections() {
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("fastq"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/fastq-report-map.tsv")
+        Some("benchmarks/readiness/fastq-report-map.tsv")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
     assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(6));

@@ -49,7 +49,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/expected-benchmark-results-all-domains.tsv")
+        Some("benchmarks/readiness/expected-benchmark-results-all-domains.tsv")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(120));
     assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(120));

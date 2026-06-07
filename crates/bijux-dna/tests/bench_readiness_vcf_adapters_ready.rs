@@ -43,7 +43,7 @@ fn bench_readiness_vcf_adapters_ready_reports_governed_pass_state() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/VCF_ADAPTERS_READY.json")
+        Some("benchmarks/readiness/VCF_ADAPTERS_READY.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(15));
     assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(15));
@@ -92,7 +92,7 @@ fn bench_readiness_vcf_adapters_ready_reports_governed_pass_state() {
         .expect("goal 242 check");
     assert_eq!(
         output_check.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/vcf-adapter-output-coverage.tsv")
+        Some("benchmarks/readiness/vcf-adapter-output-coverage.tsv")
     );
 
     let completeness_check = checks

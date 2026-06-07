@@ -44,11 +44,11 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/rendered-commands-all-domains.sh")
+        Some("benchmarks/readiness/rendered-commands-all-domains.sh")
     );
     assert_eq!(
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/rendered-commands-all-domains.argv.jsonl")
+        Some("benchmarks/readiness/rendered-commands-all-domains.argv.jsonl")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(120));
     assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(120));

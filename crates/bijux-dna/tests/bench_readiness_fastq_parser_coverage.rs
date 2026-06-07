@@ -44,7 +44,7 @@ fn bench_readiness_fastq_parser_coverage_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/fastq-parser-coverage.tsv")
+        Some("benchmarks/readiness/fastq-parser-coverage.tsv")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(44));

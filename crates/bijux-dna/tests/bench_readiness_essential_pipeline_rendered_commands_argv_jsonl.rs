@@ -32,7 +32,7 @@ fn bench_readiness_essential_pipeline_rendered_commands_write_governed_argv_json
     );
 
     let jsonl_path =
-        repo_root.join("target/bench-readiness/essential-pipelines-rendered-commands.argv.jsonl");
+        repo_root.join("benchmarks/readiness/essential-pipelines-rendered-commands.argv.jsonl");
     assert!(jsonl_path.is_file(), "essential pipeline argv JSONL must exist");
 
     let jsonl =

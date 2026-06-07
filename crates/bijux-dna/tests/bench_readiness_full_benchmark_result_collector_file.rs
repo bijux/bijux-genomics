@@ -44,7 +44,7 @@ fn bench_readiness_full_benchmark_result_collector_writes_report_and_keeps_statu
         "--json",
     ]);
 
-    let report_path = repo_root.join("target/bench-readiness/full-result-collector-test.json");
+    let report_path = repo_root.join("benchmarks/readiness/full-result-collector-test.json");
     assert!(report_path.is_file(), "collector report must exist");
 
     let persisted: serde_json::Value = serde_json::from_slice(

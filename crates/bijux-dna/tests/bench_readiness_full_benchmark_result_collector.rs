@@ -45,7 +45,7 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/full-result-collector-test.json")
+        Some("benchmarks/readiness/full-result-collector-test.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(579));
     assert_eq!(

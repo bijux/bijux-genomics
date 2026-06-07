@@ -44,7 +44,7 @@ fn bench_readiness_orphan_tools_reports_governed_decisions() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/orphan-tools.tsv")
+        Some("benchmarks/readiness/orphan-tools.tsv")
     );
     assert_eq!(payload.get("orphan_count").and_then(serde_json::Value::as_u64), Some(0));
 

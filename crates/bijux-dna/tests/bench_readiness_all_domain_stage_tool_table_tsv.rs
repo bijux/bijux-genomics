@@ -32,7 +32,7 @@ fn bench_readiness_all_domain_stage_tool_table_writes_governed_tsv_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "target/bench-readiness/all-domain-stage-tool-table.tsv");
+    assert_eq!(rendered_path.trim(), "benchmarks/readiness/all-domain-stage-tool-table.tsv");
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read all-domain stage tool table");

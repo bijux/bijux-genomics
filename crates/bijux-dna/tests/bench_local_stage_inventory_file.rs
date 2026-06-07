@@ -32,7 +32,7 @@ fn bench_local_stage_inventory_all_domains_writes_governed_stage_list_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "target/bench-readiness/all-domain-stage-list.json");
+    assert_eq!(rendered_path.trim(), "benchmarks/readiness/all-domain-stage-list.json");
 
     let payload: serde_json::Value = serde_json::from_slice(
         &std::fs::read(repo_root.join(rendered_path.trim())).expect("read all-domain stage list"),

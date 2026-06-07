@@ -34,7 +34,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_writes_governed_tsv_fil
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "target/bench-readiness/expected-benchmark-results-all-domains.tsv"
+        "benchmarks/readiness/expected-benchmark-results-all-domains.tsv"
     );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))

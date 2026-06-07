@@ -31,7 +31,7 @@ fn bench_readiness_vcf_eigensoft_adapter_writes_governed_json_file() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let report_path = repo_root.join("target/bench-readiness/adapters/eigensoft.vcf.json");
+    let report_path = repo_root.join("benchmarks/readiness/adapters/eigensoft.vcf.json");
     assert!(report_path.is_file(), "VCF eigensoft adapter JSON must exist");
 
     let payload = serde_json::from_slice::<serde_json::Value>(
@@ -101,11 +101,11 @@ fn bench_readiness_vcf_eigensoft_adapter_writes_governed_json_file() {
                 items.iter().any(|item| item.get("artifact_id").and_then(serde_json::Value::as_str) == Some("population_structure_report"))
                     && items.iter().any(|item| {
                         item.get("path").and_then(serde_json::Value::as_str)
-                            == Some("target/bench-readiness/adapters/eigensoft/vcf.population_structure/population_structure_report.evec")
+                            == Some("benchmarks/readiness/adapters/eigensoft/vcf.population_structure/population_structure_report.evec")
                     })
                     && items.iter().any(|item| {
                         item.get("path").and_then(serde_json::Value::as_str)
-                            == Some("target/bench-readiness/adapters/eigensoft/vcf.population_structure/population_structure_report.eval")
+                            == Some("benchmarks/readiness/adapters/eigensoft/vcf.population_structure/population_structure_report.eval")
                     })
             }),
         "population-structure row must retain smartpca outputs and normalized population-structure report"

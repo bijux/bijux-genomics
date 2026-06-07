@@ -45,11 +45,11 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/completion-check-all-domains.json")
+        Some("benchmarks/readiness/completion-check-all-domains.json")
     );
     assert_eq!(
         payload.get("fixture_root").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/completion-check-all-domains-fixture")
+        Some("benchmarks/readiness/completion-check-all-domains-fixture")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(120));
     assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(115));

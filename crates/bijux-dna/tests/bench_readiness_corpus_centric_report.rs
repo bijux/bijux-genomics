@@ -46,7 +46,7 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/bench-readiness/corpus-centric-report.md")
+        Some("benchmarks/readiness/corpus-centric-report.md")
     );
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(48));

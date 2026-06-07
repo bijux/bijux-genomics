@@ -41,7 +41,7 @@ fn bench_readiness_pair_readiness_writes_gap_status_columns() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "target/bench-readiness/pair-readiness.tsv");
+    assert_eq!(rendered_path.trim(), "benchmarks/readiness/pair-readiness.tsv");
 
     let repo_root = support::repo_root().expect("repo root");
     let tsv = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
