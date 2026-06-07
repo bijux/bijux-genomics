@@ -144,7 +144,7 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench write-screen-taxonomy-database-lineage`
 - `bijux-dna bench validate-matrix`
   `validate-matrix --domain vcf --strict` checks
-  `configs/bench/local/vcf-stage-matrix.toml` against the governed VCF stage catalog, the
+  `benchmarks/configs/local/vcf-stage-matrix.toml` against the governed VCF stage catalog, the
   production-regression VCF benchmark corpus contract, the VCF required-tool and registry files,
   and the owned adapter, parser, and expected-output contracts. It fails closed when any VCF
   catalog stage is missing, any row drifts from the owned contract set, or any row references a
@@ -406,13 +406,13 @@ Visible aliases are part of the operator surface:
   set matches across the tool-serving map, executable adapter rows, complete output declarations,
   and rendered shell or argv commands.
 - `bijux-dna bench readiness render-stage-tool-containers`
-  `render-stage-tool-containers` writes `configs/bench/local/stage-tool-containers.toml` with one
+  `render-stage-tool-containers` writes `benchmarks/configs/local/stage-tool-containers.toml` with one
   governed row per benchmark-ready FASTQ or BAM stage-tool command, preserving the primary
   execution mode, install kind, declared container identity when available, and the governed
   command entrypoint or explicit host-binary mode needed to keep local and HPC runtime surfaces
   reviewable before submission.
 - `bijux-dna bench readiness render-stage-tool-assets`
-  `render-stage-tool-assets` writes `configs/bench/local/stage-tool-assets.toml` with one
+  `render-stage-tool-assets` writes `benchmarks/configs/local/stage-tool-assets.toml` with one
   governed asset-binding row per local benchmark FASTQ or BAM stage-tool command that depends on
   external taxonomy databases, database artifact IDs, host or contaminant reference catalogs,
   reference index artifacts, rRNA references, reference-index outputs, contamination panels,
@@ -424,7 +424,7 @@ Visible aliases are part of the operator surface:
   canonical local backend selected by the governed plan, and the BAM kinship slice must keep the
   governed `reference_fasta` and `reference_panel` bindings for both `angsd` and `king`.
 - `bijux-dna bench readiness render-stage-tool-resources`
-  `render-stage-tool-resources` writes `configs/bench/local/stage-tool-resources.toml` with one
+  `render-stage-tool-resources` writes `benchmarks/configs/local/stage-tool-resources.toml` with one
   governed row per benchmark-ready FASTQ or BAM stage-tool command, carrying non-zero `threads`,
   `memory_gb`, `walltime_minutes`, and `scratch_gb` hints plus the declared resource-origin
   strategy used to derive those local benchmark defaults.
@@ -758,14 +758,14 @@ Visible aliases are part of the operator surface:
   `alias_tool_ids`, `domains`, and `reason` so inconsistent `-` versus `_` benchmark tool naming
   cannot drift without an explicit canonical mapping.
 - `bijux-dna bench readiness validate-tool-execution-modes`
-  `validate-tool-execution-modes` checks `configs/bench/local/tool-execution-modes.toml` against
+  `validate-tool-execution-modes` checks `benchmarks/configs/local/tool-execution-modes.toml` against
   the governed FASTQ and BAM benchmark serving maps plus each tool's runtime probe contract,
   enforcing one primary operator runtime classification for every benchmark tool. The JSON report
   carries `mode_count`, `tool_count`, `multidomain_tool_count`, `mode_counts`, and one row per
   tool with its `execution_mode`, `expected_install_kind`, domains, benchmark stage scope, and
   required runtime fields.
 - `bijux-dna bench readiness validate-tool-families`
-  `validate-tool-families` checks `configs/bench/local/tool-families.toml` against the governed
+  `validate-tool-families` checks `benchmarks/configs/local/tool-families.toml` against the governed
   FASTQ and BAM benchmark serving maps, enforcing one primary-function family assignment for every
   benchmark tool. The JSON report carries `family_count`, `tool_count`, `multidomain_tool_count`,
   `family_counts`, and one row per tool with its `family_id`, domains, and governed benchmark
@@ -799,13 +799,13 @@ Visible aliases are part of the operator surface:
   `target/bench-readiness/all-domain-stage-list.json` and report separate `domain_counts` plus
   the unified `total_stage_count` so FASTQ, BAM, and VCF coverage cannot silently drift together.
 - `bijux-dna bench local render-vcf-stage-catalog`
-  `render-vcf-stage-catalog` writes `configs/bench/local/vcf-stage-catalog.toml`, deriving the
+  `render-vcf-stage-catalog` writes `benchmarks/configs/local/vcf-stage-catalog.toml`, deriving the
   governed VCF stage catalog from the domain downstream order, stage-spec metadata, and VCF IO
   contracts. Each row keeps `stage_id`, `stage_name`, `support_status`, `default_tool_id`,
   `metrics_schema_id`, `input_types`, `output_types`, `required_assets`, `benchmark_category`,
   and `local_smoke_mode` explicit so the local VCF benchmark surface cannot drift from code.
 - `bijux-dna bench local render-vcf-stage-matrix`
-  `render-vcf-stage-matrix` writes `configs/bench/local/vcf-stage-matrix.toml`, deriving the
+  `render-vcf-stage-matrix` writes `benchmarks/configs/local/vcf-stage-matrix.toml`, deriving the
   governed VCF benchmark matrix from the checked-in VCF stage catalog, the production-regression
   VCF corpus contract, and the owned VCF adapter, parser, and expected-output contracts. Each row
   keeps `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `adapter_id`, `parser_id`, and
@@ -1069,7 +1069,7 @@ Visible aliases are part of the operator surface:
   match the observed classifier summary.
 - `bijux-dna bench local validate-corpus-stage-compatibility`
   `validate-corpus-stage-compatibility` checks
-  `configs/bench/local/corpus-stage-compatibility.toml` against the governed 51-stage local FASTQ
+  `benchmarks/configs/local/corpus-stage-compatibility.toml` against the governed 51-stage local FASTQ
   and BAM inventories, validates every referenced corpus fixture manifest, and reports which stages
   are covered by corpus-01, corpus-02, corpus-03, or an explicit planner-only reason.
 - `bijux-dna bench local validate-pipeline-dag`
