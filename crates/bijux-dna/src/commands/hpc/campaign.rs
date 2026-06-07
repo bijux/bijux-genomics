@@ -5,9 +5,11 @@ use anyhow::{anyhow, Context, Result};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
+use crate::commands::benchmark::path_resolution::BenchmarkPathResolver;
+
 const CAMPAIGN_SCHEMA_VERSION: &str = "bijux.hpc.campaign.v1";
 const ENV_DEFAULT_PATH: &str = "configs/hpc/.env";
-const USER_POLICY_DEFAULT_PATH: &str = "benchmarks/configs/hpc/campaign/user.policy.toml";
+const DEFAULT_CAMPAIGN_PROFILE_OUT_DIR: &str = "benchmarks/configs/hpc/campaign";
 
 const BUILTIN_LUNARC_PROFILE: &str = "lunarc";
 const BUILTIN_GENERIC_PROFILE: &str = "generic";
@@ -1031,9 +1033,15 @@ fn resolve_campaign_config(
     merge_site_profile_file(&mut config, config_path)?;
     validate_campaign_job_stage_ids(config_path, &config)?;
 
-    let policy_path = user_policy_path
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|| PathBuf::from(USER_POLICY_DEFAULT_PATH));
+    let policy_path = match user_policy_path {
+        Some(path) => path.to_path_buf(),
+        None => {
+            let cwd = std::env::current_dir().context("resolve current directory")?;
+            BenchmarkPathResolver::new(&cwd, None)
+                .benchmark_hpc_campaign_root()
+                .join("user.policy.toml")
+        }
+    };
     let mut user_policies_applied = false;
     if policy_path.exists() {
         let policies = load_policy_file(&policy_path)?;
@@ -1052,14 +1060,23 @@ fn resolve_campaign_config(
 }
 
 pub fn write_campaign_profiles(out_dir: &Path) -> Result<Vec<PathBuf>> {
-    bijux_dna_infra::ensure_dir(out_dir)
-        .with_context(|| format!("create {}", out_dir.display()))?;
+    let cwd = std::env::current_dir().context("resolve current directory")?;
+    let resolved_out_dir = if out_dir == Path::new(DEFAULT_CAMPAIGN_PROFILE_OUT_DIR) {
+        BenchmarkPathResolver::new(&cwd, None).benchmark_hpc_campaign_root()
+    } else if out_dir.is_absolute() {
+        out_dir.to_path_buf()
+    } else {
+        cwd.join(out_dir)
+    };
+    bijux_dna_infra::ensure_dir(&resolved_out_dir)
+        .with_context(|| format!("create {}", resolved_out_dir.display()))?;
 
-    let lunarc_path = out_dir.join("lunarc-small.toml");
-    let lunarc_local_ready_path = out_dir.join("lunarc-fastq-bam-local-ready.toml");
-    let lunarc_local_ready_vcf_path = out_dir.join("lunarc-fastq-bam-vcf-local-ready.toml");
-    let generic_path = out_dir.join("generic-small.toml");
-    let cross_path = out_dir.join("cross-mini.toml");
+    let lunarc_path = resolved_out_dir.join("lunarc-small.toml");
+    let lunarc_local_ready_path = resolved_out_dir.join("lunarc-fastq-bam-local-ready.toml");
+    let lunarc_local_ready_vcf_path =
+        resolved_out_dir.join("lunarc-fastq-bam-vcf-local-ready.toml");
+    let generic_path = resolved_out_dir.join("generic-small.toml");
+    let cross_path = resolved_out_dir.join("cross-mini.toml");
 
     let lunarc = r#"schema_version = "bijux.hpc.campaign.v1"
 
