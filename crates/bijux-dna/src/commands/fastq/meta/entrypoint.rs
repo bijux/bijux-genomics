@@ -447,6 +447,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderAllDomainNoDeclaredOnlyRows(args) => {
+                        crate::commands::benchmark::readiness::all_domain_no_declared_only_rows::run_render_all_domain_no_declared_only_rows(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderAllDomainNoPlannedRows(args) => {
                         crate::commands::benchmark::readiness::all_domain_no_planned_rows::run_render_all_domain_no_planned_rows(
                             args,
