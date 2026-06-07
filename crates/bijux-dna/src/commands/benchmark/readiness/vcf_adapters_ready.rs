@@ -121,8 +121,8 @@ pub(crate) fn render_vcf_adapters_ready(
             if report.row_count != 20
                 || report.stage_count != 20
                 || report.tool_count != 6
-                || report.benchmark_ready_row_count != 8
-                || report.not_benchmark_ready_row_count != 12
+                || report.benchmark_ready_row_count != 9
+                || report.not_benchmark_ready_row_count != 11
             {
                 bail!(
                     "VCF tool-serving map drifted: rows={}, stages={}, tools={}, benchmark_ready={}, not_benchmark_ready={}",
@@ -135,7 +135,7 @@ pub(crate) fn render_vcf_adapters_ready(
             }
             benchmark_ready_pair_count = report.benchmark_ready_row_count;
             tool_serving_map_report = Some(report);
-            Ok("validated 20 governed VCF stage-tool rows with 8 canonical benchmark-ready pairs"
+            Ok("validated 20 governed VCF stage-tool rows with 9 canonical benchmark-ready pairs"
                 .to_string())
         },
     );
@@ -208,7 +208,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 || report.stage_count != 20
                 || report.matrix_row_count != 20
                 || report.registry_pair_count != 48
-                || report.benchmark_ready_registry_pair_count != 8
+                || report.benchmark_ready_registry_pair_count != 9
                 || report.unregistered_matrix_pair_count != 0
                 || report.missing_benchmark_ready_registry_pair_count != 0
                 || !report.rows.is_empty()
@@ -231,8 +231,8 @@ pub(crate) fn render_vcf_adapters_ready(
                 PathBuf::from(DEFAULT_VCF_BCFTOOLS_ADAPTER_PATH),
             )?;
             if report.row_count != 10
-                || report.supported_row_count != 8
-                || report.planned_row_count != 2
+                || report.supported_row_count != 9
+                || report.planned_row_count != 1
                 || report.argv_valid_row_count != report.row_count
                 || report.missing_input_test_passed_row_count != report.row_count
                 || report.indexed_row_count != 9
@@ -437,8 +437,8 @@ pub(crate) fn render_vcf_adapters_ready(
                 PathBuf::from(DEFAULT_VCF_ADAPTER_OUTPUT_COVERAGE_PATH),
             )?;
             if report.row_count != 38
-                || report.benchmark_ready_row_count != 8
-                || report.benchmark_ready_complete_row_count != 8
+                || report.benchmark_ready_row_count != 9
+                || report.benchmark_ready_complete_row_count != 9
                 || report.benchmark_ready_incomplete_row_count != 0
                 || report.complete_row_count != 35
                 || report.incomplete_row_count != 3
@@ -489,7 +489,7 @@ pub(crate) fn render_vcf_adapters_ready(
         || {
             let report =
                 render_vcf_commands(repo_root, PathBuf::from(DEFAULT_VCF_RENDERED_COMMANDS_PATH))?;
-            if report.row_count != 8 || report.rows.iter().any(|row| row.tool_id != "bcftools") {
+            if report.row_count != 9 || report.rows.iter().any(|row| row.tool_id != "bcftools") {
                 bail!(
                     "VCF rendered commands drifted from the governed benchmark-ready command slice"
                 );
@@ -759,10 +759,10 @@ mod tests {
             &root,
             &root.join(DEFAULT_VCF_ADAPTERS_READY_PATH),
             checks,
-            8,
-            8,
-            8,
-            8,
+            9,
+            9,
+            9,
+            9,
         );
 
         assert_eq!(report.schema_version, VCF_ADAPTERS_READY_SCHEMA_VERSION);
@@ -771,10 +771,10 @@ mod tests {
         assert_eq!(report.passed_goal_count, 1);
         assert_eq!(report.failed_goal_count, 1);
         assert_eq!(report.failing_goal_ids, vec![245]);
-        assert_eq!(report.benchmark_ready_pair_count, 8);
-        assert_eq!(report.adapter_complete_pair_count, 8);
-        assert_eq!(report.output_complete_pair_count, 8);
-        assert_eq!(report.rendered_command_pair_count, 8);
+        assert_eq!(report.benchmark_ready_pair_count, 9);
+        assert_eq!(report.adapter_complete_pair_count, 9);
+        assert_eq!(report.output_complete_pair_count, 9);
+        assert_eq!(report.rendered_command_pair_count, 9);
         assert!(!report.ok);
     }
 }

@@ -56,12 +56,12 @@ fn bench_local_validate_all_domain_slurm_result_paths_reports_governed_run_root(
         payload.get("report_path").and_then(serde_json::Value::as_str),
         Some("runs/bench/slurm-dry-run/all-domains/path-convention-check.json")
     );
-    assert_eq!(payload.get("job_count").and_then(serde_json::Value::as_u64), Some(213));
+    assert_eq!(payload.get("job_count").and_then(serde_json::Value::as_u64), Some(214));
     assert_eq!(payload.get("finding_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let jobs = payload.get("jobs").and_then(serde_json::Value::as_array).expect("jobs array");
-    assert_eq!(jobs.len(), 213);
+    assert_eq!(jobs.len(), 214);
     assert!(jobs.iter().all(|job| {
         job.get("ok").and_then(serde_json::Value::as_bool) == Some(true)
             && job

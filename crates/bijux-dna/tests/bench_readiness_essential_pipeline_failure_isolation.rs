@@ -54,7 +54,7 @@ fn bench_readiness_essential_pipeline_failure_isolation_tracks_failed_and_blocke
     );
     assert_eq!(
         payload.get("simulation_root").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/essential-pipeline-failure-isolation-tree")
+        Some("runs/bench/local-fake-runs/pipelines/essential-failure-isolation")
     );
     assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(93));

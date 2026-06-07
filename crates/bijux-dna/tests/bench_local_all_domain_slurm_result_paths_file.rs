@@ -44,7 +44,7 @@ fn bench_local_validate_all_domain_slurm_result_paths_writes_governed_report_pat
         serde_json::from_slice(&fs::read(&report_path).expect("read report"))
             .expect("parse report");
     assert_eq!(report.get("ok").and_then(serde_json::Value::as_bool), Some(true));
-    assert_eq!(report.get("job_count").and_then(serde_json::Value::as_u64), Some(213));
+    assert_eq!(report.get("job_count").and_then(serde_json::Value::as_u64), Some(214));
 
     let jobs = report.get("jobs").and_then(serde_json::Value::as_array).expect("jobs array");
     let benchmark_job = jobs

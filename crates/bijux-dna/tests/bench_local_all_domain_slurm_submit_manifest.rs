@@ -56,15 +56,15 @@ fn bench_local_render_all_domain_slurm_submit_manifest_reports_governed_job_slic
         payload.get("run_id").and_then(serde_json::Value::as_str),
         Some("all-domain-benchmark-dry-run")
     );
-    assert_eq!(payload.get("job_count").and_then(serde_json::Value::as_u64), Some(213));
-    assert_eq!(payload.get("benchmark_job_count").and_then(serde_json::Value::as_u64), Some(120));
+    assert_eq!(payload.get("job_count").and_then(serde_json::Value::as_u64), Some(214));
+    assert_eq!(payload.get("benchmark_job_count").and_then(serde_json::Value::as_u64), Some(121));
     assert_eq!(
         payload.get("essential_pipeline_job_count").and_then(serde_json::Value::as_u64),
         Some(93)
     );
 
     let jobs = payload.get("jobs").and_then(serde_json::Value::as_array).expect("jobs array");
-    assert_eq!(jobs.len(), 213);
+    assert_eq!(jobs.len(), 214);
     assert!(jobs.iter().all(|job| {
         job.get("job_id_local").and_then(serde_json::Value::as_str).is_some()
             && job.get("domain").and_then(serde_json::Value::as_str).is_some()
