@@ -828,6 +828,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateAllDomainSlurmResultPaths(args) => {
+                        crate::commands::benchmark::local_all_domain_slurm_path_convention::run_validate_all_domain_slurm_result_paths(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RenderAllDomainSlurmSubmitManifest(args) => {
                         crate::commands::benchmark::local_all_domain_slurm_submit_manifest::run_render_all_domain_slurm_submit_manifest(
                             &args,

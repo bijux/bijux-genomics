@@ -54,6 +54,7 @@ pub use self::local::{
     BenchLocalRunVcfPopulationStructureSmokeArgs, BenchLocalRunVcfPrepareReferencePanelSmokeArgs,
     BenchLocalRunVcfQcSmokeArgs, BenchLocalRunVcfRohSmokeArgs, BenchLocalRunVcfStatsSmokeArgs,
     BenchLocalSimulateDagWatchdogArgs, BenchLocalStageListDomainArg,
+    BenchLocalValidateAllDomainSlurmResultPathsArgs,
     BenchLocalValidateAllDomainSlurmScriptBodiesArgs,
     BenchLocalValidateAllDomainSlurmShellSyntaxArgs, BenchLocalValidateCorpusFixtureArgs,
     BenchLocalValidateCorpusStageCompatibilityArgs, BenchLocalValidateHpcSubmissionReadyArgs,
