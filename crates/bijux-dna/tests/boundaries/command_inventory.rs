@@ -219,6 +219,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench local validate-all-domain-slurm-shell-syntax",
     "bijux-dna bench local validate-slurm-script-bodies",
     "bijux-dna bench local validate-all-domain-slurm-script-bodies",
+    "bijux-dna bench local render-all-domain-slurm-submit-manifest",
     "bijux-dna bench local render-slurm-submit-manifest",
     "bijux-dna bench local render-benchmark-summary",
     "bijux-dna bench local check-manifest-completion",
