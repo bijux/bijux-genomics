@@ -89,7 +89,7 @@ fn write_local_sex_smoke_report_materializes_governed_outputs() -> Result<()> {
         summary_json["reference_fasta"],
         serde_json::json!(repo_root
             .join(
-                "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+                "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
             )
             .display()
             .to_string())

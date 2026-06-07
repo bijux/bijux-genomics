@@ -30,7 +30,7 @@ fn local_complexity_smoke_plans_use_governed_projection_fixture() -> Result<()> 
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_complexity_projection.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_complexity_projection.sam"
         )
     );
     assert_eq!(case.min_reads, 3);
@@ -99,7 +99,7 @@ fn local_complexity_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_complexity_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-complexity.toml"), body)?;
     Ok(())

@@ -25,16 +25,16 @@ fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
         mean_depth_x: None,
         vcf: PathBuf::from("sample.vcf.gz"),
         call_bam: Some(PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
         )),
         call_bam_index: Some(PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai",
         )),
         reference_fasta: Some(PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
         )),
         reference_panel_vcf: Some(PathBuf::from(
-            "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
         )),
         out_dir: PathBuf::from("out"),
         stage_tool_overrides: BTreeMap::new(),
@@ -886,7 +886,7 @@ fn vcf_planner_keeps_bam_call_inputs_after_reference_panel_preparation() {
     assert_eq!(
         call_gl.io.inputs[0].path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
         )
     );
 }

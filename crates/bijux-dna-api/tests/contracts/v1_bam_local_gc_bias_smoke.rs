@@ -65,11 +65,11 @@ fn write_local_gc_bias_smoke_summary_materializes_governed_outputs() -> Result<(
     assert_eq!(zero_gc_row["case_expectation_matched"], "true");
     assert_eq!(
         zero_gc_row["input_bam"],
-        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
     );
     assert_eq!(
         zero_gc_row["reference_fasta"],
-        "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
     );
 
     let mid_gc_row = rows

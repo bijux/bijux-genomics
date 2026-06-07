@@ -26,7 +26,7 @@ fn local_qc_pre_smoke_plans_use_governed_bam_metrics_fixture() -> Result<()> {
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_flagged_multicontig.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_flagged_multicontig.sam"
         )
     );
     assert_eq!(case.expected_total_reads, 3);
@@ -77,7 +77,7 @@ fn local_qc_pre_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_qc_pre_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-qc-pre.toml"), body)?;
     Ok(())

@@ -28,7 +28,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
 }
 
 fn write_local_kinship_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-kinship.toml"), body)?;
     Ok(())
@@ -50,7 +50,7 @@ fn local_kinship_smoke_plans_use_governed_pair_expectations() -> Result<()> {
     assert_eq!(
         insufficient.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
         )
     );
     assert_eq!(insufficient.reference_panel, "human_like_relatedness_panel");
@@ -85,7 +85,7 @@ fn local_kinship_smoke_plans_use_governed_pair_expectations() -> Result<()> {
     assert_eq!(
         valid.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam"
         )
     );
     assert_eq!(valid.reference_panel, "human_like_relatedness_panel");
@@ -169,7 +169,7 @@ expected_insufficiency_reason = "insufficient_overlap_snps"
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
                 )
                 .display(),
         ),
@@ -230,12 +230,12 @@ relationship_label = "first_degree"
             insufficient_bam =
                 repo_root
                     .join(
-                        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
+                        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
                     )
                     .display(),
             valid_bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam"
                 )
                 .display(),
         ),
@@ -287,7 +287,7 @@ relationship_label = "unrelated"
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
                 )
                 .display(),
         ),
@@ -348,7 +348,7 @@ relationship_label = "first_degree"
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam"
                 )
                 .display(),
         ),

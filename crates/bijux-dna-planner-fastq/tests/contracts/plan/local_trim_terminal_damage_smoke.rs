@@ -23,7 +23,7 @@ fn local_trim_terminal_damage_smoke_plans_use_governed_corpus_fixture() -> Resul
     assert_eq!(
         case.r1,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz"
         )
     );
     assert_eq!(case.r2, None);

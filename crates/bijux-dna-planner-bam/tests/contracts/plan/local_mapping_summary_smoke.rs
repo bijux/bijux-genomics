@@ -31,7 +31,7 @@ fn local_mapping_summary_smoke_plans_use_governed_partial_mapping_fixture() -> R
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"
         )
     );
     assert_eq!(case.expected_total_reads, 3);
@@ -79,7 +79,7 @@ fn local_mapping_summary_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_mapping_summary_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-mapping-summary.toml"), body)?;
     Ok(())
@@ -176,7 +176,7 @@ expected_reference_name = " "
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"
                 )
                 .display(),
         ),
@@ -212,7 +212,7 @@ expected_reference_name = "chr1"
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"
                 )
                 .display(),
         ),
@@ -248,7 +248,7 @@ expected_reference_name = "chr1"
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam"
                 )
                 .display(),
         ),
@@ -272,7 +272,7 @@ fn mapping_summary_plan_accepts_picard_governed_planning_contract() -> Result<()
         &repo_root, &stage_id, &tool_id,
     )?;
     let bam = PathBuf::from(
-        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam",
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam",
     );
     let out_dir =
         PathBuf::from("target/local-smoke/bam.mapping_summary/human_like_partial_mapping/picard");

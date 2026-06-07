@@ -34,13 +34,13 @@ fn local_estimate_library_complexity_prealign_smoke_plans_use_governed_corpus_fi
     assert_eq!(
         complexity_hit.r1,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz"
         )
     );
     assert_eq!(
         complexity_hit.r2,
         Some(PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz"
         ))
     );
     assert_eq!(complexity_hit.kmer_size, 4);
@@ -67,13 +67,13 @@ fn local_estimate_library_complexity_prealign_smoke_plans_use_governed_corpus_fi
     assert_eq!(
         complexity_clear.r1,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R1.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R1.fastq.gz"
         )
     );
     assert_eq!(
         complexity_clear.r2,
         Some(PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R2.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R2.fastq.gz"
         ))
     );
     assert_eq!(

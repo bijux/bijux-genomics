@@ -30,7 +30,7 @@ fn local_insert_size_smoke_plans_use_governed_paired_fixture() -> Result<()> {
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
         )
     );
     assert_eq!(case.expected_read_pairs, 3);
@@ -45,7 +45,7 @@ fn local_insert_size_smoke_plans_use_governed_paired_fixture() -> Result<()> {
     assert_eq!(
         case.plan.params["bam"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
         )
     );
 
@@ -88,7 +88,7 @@ fn local_insert_size_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_insert_size_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-insert-size.toml"), body)?;
     Ok(())
@@ -114,7 +114,7 @@ tool_id = "picard"
 
 [[cases]]
 sample_id = " "
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
 expected_read_pairs = 3
 expected_median_insert_size = 20.0
 expected_mean_insert_size = 21.666666666666668
@@ -140,7 +140,7 @@ tool_id = "picard"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
 expected_read_pairs = 3
 expected_median_insert_size = 20.0
 expected_mean_insert_size = 21.666666666666668
@@ -149,7 +149,7 @@ expected_max_insert_size = 30
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
 expected_read_pairs = 3
 expected_median_insert_size = 20.0
 expected_mean_insert_size = 21.666666666666668
@@ -187,7 +187,7 @@ expected_mean_insert_size = 21.666666666666668
 expected_min_insert_size = 15
 expected_max_insert_size = 30
 "#,
-            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
+            bam = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
         ),
     )?;
 
@@ -220,7 +220,7 @@ expected_mean_insert_size = 21.666666666666668
 expected_min_insert_size = 0
 expected_max_insert_size = 30
 "#,
-            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
+            bam = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
         ),
     )?;
 
@@ -253,7 +253,7 @@ expected_mean_insert_size = 21.666666666666668
 expected_min_insert_size = 31
 expected_max_insert_size = 30
 "#,
-            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
+            bam = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
         ),
     )?;
 
@@ -286,7 +286,7 @@ expected_mean_insert_size = 40.0
 expected_min_insert_size = 15
 expected_max_insert_size = 30
 "#,
-            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
+            bam = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
         ),
     )?;
 
@@ -319,7 +319,7 @@ expected_mean_insert_size = 21.666666666666668
 expected_min_insert_size = 15
 expected_max_insert_size = 30
 "#,
-            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
+            bam = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam").display(),
         ),
     )?;
 

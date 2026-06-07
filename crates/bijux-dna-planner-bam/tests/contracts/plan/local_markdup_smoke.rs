@@ -31,7 +31,7 @@ fn local_markdup_smoke_plans_use_governed_duplicate_fixture() -> Result<()> {
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
         )
     );
     assert_eq!(case.expected_input_reads, 4);
@@ -97,7 +97,7 @@ fn local_markdup_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_markdup_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-markdup.toml"), body)?;
     Ok(())
@@ -123,7 +123,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = " "
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
 duplicate_action = "mark"
 optical_duplicates = "mark_only"
 umi_policy = "ignore"
@@ -154,7 +154,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
 duplicate_action = "mark"
 optical_duplicates = "mark_only"
 umi_policy = "ignore"
@@ -168,7 +168,7 @@ expected_newly_marked_reads = 1
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
 duplicate_action = "mark"
 optical_duplicates = "mark_only"
 umi_policy = "ignore"
@@ -214,7 +214,7 @@ expected_duplicate_fraction = 0.2
 expected_newly_marked_reads = 1
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
                 .display(),
         ),
     )?;
@@ -254,7 +254,7 @@ expected_duplicate_fraction = 0.25
 expected_newly_marked_reads = 1
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
                 .display(),
         ),
     )?;
@@ -294,7 +294,7 @@ expected_duplicate_fraction = 0.5
 expected_newly_marked_reads = 1
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
                 .display(),
         ),
     )?;
@@ -335,7 +335,7 @@ expected_duplicate_fraction = 0.25
 expected_newly_marked_reads = 2
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
                 .display(),
         ),
     )?;
@@ -375,7 +375,7 @@ expected_duplicate_fraction = 0.3333333333333333
 expected_newly_marked_reads = 1
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
                 .display(),
         ),
     )?;
@@ -415,7 +415,7 @@ expected_duplicate_fraction = 0.3333333333333333
 expected_newly_marked_reads = 1
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam")
                 .display(),
         ),
     )?;
@@ -438,7 +438,7 @@ fn markdup_plan_accepts_picard_governed_planning_contract() -> Result<()> {
         &repo_root, &stage_id, &tool_id,
     )?;
     let bam = PathBuf::from(
-        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam",
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam",
     );
     let params = bijux_dna_domain_bam::params::MarkDupEffectiveParams {
         optical_duplicates: bijux_dna_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,

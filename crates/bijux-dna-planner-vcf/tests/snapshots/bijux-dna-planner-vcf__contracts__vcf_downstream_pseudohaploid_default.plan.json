@@ -28,9 +28,9 @@
         "template": [
           "angsd",
           "-i",
-          "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
+          "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
           "-ref",
-          "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+          "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
           "-doHaploCall",
           "1",
           "-doCounts",
@@ -80,19 +80,19 @@
           {
             "name": "input_bam",
             "optional": false,
-            "path": "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
+            "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
             "role": "bam"
           },
           {
             "name": "input_bam_index",
             "optional": false,
-            "path": "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai",
+            "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai",
             "role": "index"
           },
           {
             "name": "reference_fasta",
             "optional": false,
-            "path": "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+            "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
             "role": "reference"
           }
         ],

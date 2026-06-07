@@ -12,7 +12,7 @@ fn repo_root() -> PathBuf {
 
 fn governed_endogenous_bam(repo_root: &Path) -> PathBuf {
     repo_root.join(
-        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam",
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam",
     )
 }
 
@@ -36,7 +36,7 @@ fn local_endogenous_content_smoke_plans_use_governed_bam_and_host_scope() -> Res
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
         )
     );
     assert_eq!(case.host_reference_scope, "human_host");
@@ -53,7 +53,7 @@ fn local_endogenous_content_smoke_plans_use_governed_bam_and_host_scope() -> Res
     assert_eq!(
         case.plan.params["bam"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
         )
     );
     assert_eq!(case.plan.params["host_reference_scope"], serde_json::json!("human_host"));
@@ -94,7 +94,7 @@ fn local_endogenous_content_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_endogenous_content_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-endogenous-content.toml"), body)?;
     Ok(())
@@ -120,7 +120,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = " "
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
 host_reference_scope = "human_host"
 expected_total_reads = 5
 expected_mapped_reads = 3
@@ -146,7 +146,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
 host_reference_scope = "human_host"
 expected_total_reads = 5
 expected_mapped_reads = 3
@@ -155,7 +155,7 @@ expected_method = "mapped_fraction_from_flagstat"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam"
 host_reference_scope = "human_host"
 expected_total_reads = 5
 expected_mapped_reads = 3

@@ -26,7 +26,7 @@ fn local_damage_smoke_plans_use_governed_bam_fixture() -> Result<()> {
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
         )
     );
     assert_eq!(case.expected_terminal_c_to_t_5p, 0.18);
@@ -41,7 +41,7 @@ fn local_damage_smoke_plans_use_governed_bam_fixture() -> Result<()> {
     assert_eq!(
         case.plan.params["bam"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
         )
     );
     assert_eq!(case.plan.params["udg_model"], serde_json::json!("non_udg"));
@@ -87,7 +87,7 @@ fn local_damage_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_damage_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-damage.toml"), body)?;
     Ok(())

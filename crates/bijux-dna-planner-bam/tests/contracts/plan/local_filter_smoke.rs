@@ -27,7 +27,7 @@ fn local_filter_smoke_plans_use_governed_mixed_constraint_fixture() -> Result<()
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"
         )
     );
     assert_eq!(case.expected_input_reads, 5);
@@ -99,7 +99,7 @@ fn local_filter_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_filter_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-filter.toml"), body)?;
     Ok(())
@@ -125,7 +125,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = " "
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"
 expected_input_reads = 5
 expected_kept_reads = 1
 expected_removed_reads = 4
@@ -156,7 +156,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"
 expected_input_reads = 5
 expected_kept_reads = 1
 expected_removed_reads = 4
@@ -170,7 +170,7 @@ base_quality_threshold = 20
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam"
 expected_input_reads = 5
 expected_kept_reads = 1
 expected_removed_reads = 4
@@ -216,7 +216,7 @@ remove_duplicates = true
 base_quality_threshold = 20
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam")
                 .display(),
         ),
     )?;
@@ -256,7 +256,7 @@ remove_duplicates = true
 base_quality_threshold = 20
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam")
                 .display(),
         ),
     )?;
@@ -296,7 +296,7 @@ remove_duplicates = true
 base_quality_threshold = 20
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam")
                 .display(),
         ),
     )?;
@@ -336,7 +336,7 @@ remove_duplicates = true
 base_quality_threshold = 20
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam")
                 .display(),
         ),
     )?;
@@ -355,7 +355,7 @@ fn filter_plan_accepts_bamtools_and_bedtools_governed_planning_contracts() -> Re
     let repo_root = repo_root();
     let stage_id = StageId::new("bam.filter".to_string());
     let bam = PathBuf::from(
-        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam",
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam",
     );
 
     for (tool, expected_command_fragment) in

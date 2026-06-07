@@ -32,13 +32,13 @@ fn local_detect_duplicates_premerge_smoke_plans_use_governed_corpus_fixtures() -
     assert_eq!(
         duplicate_hit.r1,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz"
         )
     );
     assert_eq!(
         duplicate_hit.r2,
         Some(PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz"
         ))
     );
     assert_eq!(
@@ -62,13 +62,13 @@ fn local_detect_duplicates_premerge_smoke_plans_use_governed_corpus_fixtures() -
     assert_eq!(
         duplicate_clear.r1,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R1.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R1.fastq.gz"
         )
     );
     assert_eq!(
         duplicate_clear.r2,
         Some(PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R2.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R2.fastq.gz"
         ))
     );
     assert_eq!(

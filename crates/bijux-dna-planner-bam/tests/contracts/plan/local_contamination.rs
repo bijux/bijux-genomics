@@ -30,7 +30,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
 }
 
 fn write_local_contamination_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-contamination.toml"), body)?;
     Ok(())
@@ -56,7 +56,7 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(
         bam.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam"
         )
     );
 
@@ -69,7 +69,7 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(
         bai.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai"
         )
     );
 
@@ -82,7 +82,7 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(
         reference.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
         )
     );
 
@@ -95,7 +95,7 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(
         reference_panel.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
         )
     );
 
@@ -144,13 +144,10 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(
         plan.params["reference_panels"],
         serde_json::json!([
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
         ])
     );
-    assert_eq!(
-        plan.params["sample_id"],
-        serde_json::json!("adna_contamination_panel_screen")
-    );
+    assert_eq!(plan.params["sample_id"], serde_json::json!("adna_contamination_panel_screen"));
     assert_eq!(plan.params["tool"], serde_json::json!("verifybamid2"));
     assert_eq!(
         plan.params["required_reference_digest"],
@@ -177,11 +174,11 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         });
     assert!(
         command.contains(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai"
         ) && command.contains(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
         ) && command.contains(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
         )
             && command.contains("target/local-ready/bam.contamination/contamination")
             && command.contains("target/local-ready/bam.contamination/contamination.summary.json"),
@@ -223,16 +220,16 @@ threads = 2
 output_dir = "target/local-ready/bam.contamination"
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam")
                 .display(),
             bai = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai")
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat")
                 .display(),
         ),
     )?;
@@ -269,16 +266,16 @@ threads = 2
 output_dir = "target/local-ready/bam.contamination"
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam")
                 .display(),
             bai = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai")
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat")
                 .display(),
         ),
     )?;
@@ -318,16 +315,16 @@ threads = 2
 output_dir = "target/local-ready/bam.contamination"
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam")
                 .display(),
             bai = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_contamination_panel_screen.sam.bai")
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_contamination_panel.dat")
                 .display(),
         ),
     )?;

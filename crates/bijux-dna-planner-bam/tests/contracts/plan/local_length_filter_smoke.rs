@@ -31,7 +31,7 @@ fn local_length_filter_smoke_plans_use_governed_threshold_fixture() -> Result<()
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
         )
     );
     assert_eq!(case.min_length, 8);
@@ -98,7 +98,7 @@ fn local_length_filter_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_length_filter_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-length-filter.toml"), body)?;
     Ok(())
@@ -124,7 +124,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = " "
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
 min_length = 8
 expected_input_reads = 4
 expected_kept_reads = 3
@@ -151,7 +151,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
 min_length = 8
 expected_input_reads = 4
 expected_kept_reads = 3
@@ -161,7 +161,7 @@ expected_observed_max_length = 12
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
 min_length = 8
 expected_input_reads = 4
 expected_kept_reads = 3
@@ -203,7 +203,7 @@ expected_observed_max_length = 12
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
                 )
                 .display(),
         ),
@@ -241,7 +241,7 @@ expected_observed_max_length = 12
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
                 )
                 .display(),
         ),
@@ -279,7 +279,7 @@ expected_observed_max_length = 12
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
                 )
                 .display(),
         ),
@@ -317,7 +317,7 @@ expected_observed_max_length = 8
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
                 )
                 .display(),
         ),
@@ -355,7 +355,7 @@ expected_observed_max_length = 12
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
                 )
                 .display(),
         ),
@@ -379,7 +379,7 @@ fn length_filter_plan_accepts_picard_governed_planning_contract() -> Result<()> 
         &repo_root, &stage_id, &tool_id,
     )?;
     let bam = PathBuf::from(
-        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam",
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam",
     );
     let params = bijux_dna_domain_bam::params::FilterEffectiveParams {
         mapq_threshold: 0,

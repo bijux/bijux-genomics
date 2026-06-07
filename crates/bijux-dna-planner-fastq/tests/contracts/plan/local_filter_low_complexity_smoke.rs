@@ -23,7 +23,7 @@ fn local_filter_low_complexity_smoke_plans_use_governed_low_complexity_fixture()
     assert_eq!(
         case.r1,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz"
         )
     );
     assert_eq!(case.r2, None);
@@ -45,7 +45,7 @@ fn local_filter_low_complexity_smoke_plans_use_governed_low_complexity_fixture()
     assert_eq!(
         case.plan.params["input_r1"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz"
         )
     );
     assert_eq!(

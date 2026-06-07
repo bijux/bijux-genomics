@@ -30,7 +30,7 @@ fn local_overlap_correction_smoke_plans_use_governed_bam_fixture() -> Result<()>
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
         )
     );
     assert_eq!(case.expected_pair_count, 2);
@@ -45,7 +45,7 @@ fn local_overlap_correction_smoke_plans_use_governed_bam_fixture() -> Result<()>
     assert_eq!(
         case.plan.params["bam"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam"
         )
     );
     assert_eq!(case.plan.params["overlap_method"], serde_json::json!("paired_overlap_correction"));
@@ -98,7 +98,7 @@ fn local_overlap_correction_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_overlap_correction_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-overlap-correction.toml"), body)?;
     Ok(())
@@ -193,7 +193,7 @@ expected_corrected_overlap_bases = 0
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
                 )
                 .display(),
         ),
@@ -228,7 +228,7 @@ expected_corrected_overlap_bases = 7
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
                 )
                 .display(),
         ),
@@ -263,7 +263,7 @@ expected_corrected_overlap_bases = 0
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
                 )
                 .display(),
         ),
@@ -299,7 +299,7 @@ expected_corrected_overlap_bases = 5
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
                 )
                 .display(),
         ),

@@ -64,7 +64,7 @@
           "bcftools",
           "norm",
           "-m-any",
-          "tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+          "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
           "-Oz",
           "-o",
           "out/prepared_panel.vcf.gz"
@@ -112,7 +112,7 @@
         "command": [
           "sh",
           "-lc",
-          "bcftools mpileup -Ou -f 'tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta' 'tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam' | bcftools call -mv -Oz -o 'out/diploid_vcf.vcf.gz'"
+          "bcftools mpileup -Ou -f 'benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta' 'benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam' | bcftools call -mv -Oz -o 'out/diploid_vcf.vcf.gz'"
         ],
         "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
         "out_dir": "out/vcf_call_diploid",

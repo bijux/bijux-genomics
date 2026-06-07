@@ -23,13 +23,13 @@ fn local_merge_pairs_smoke_plans_use_governed_overlap_fixture() -> Result<()> {
     assert_eq!(
         case.r1,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R1.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R1.fastq.gz"
         )
     );
     assert_eq!(
         case.r2,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R2.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R2.fastq.gz"
         )
     );
     assert_eq!(case.merge_overlap, 8);
@@ -53,13 +53,13 @@ fn local_merge_pairs_smoke_plans_use_governed_overlap_fixture() -> Result<()> {
     assert_eq!(
         case.plan.params["r1"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R1.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R1.fastq.gz"
         )
     );
     assert_eq!(
         case.plan.params["r2"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R2.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R2.fastq.gz"
         )
     );
     assert_eq!(

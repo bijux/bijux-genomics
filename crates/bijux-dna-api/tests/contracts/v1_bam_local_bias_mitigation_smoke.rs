@@ -105,7 +105,7 @@ fn write_local_bias_mitigation_smoke_report_materializes_governed_outputs() -> R
     assert_eq!(
         summary_json["reference_fasta"],
         serde_json::json!(repo_root
-            .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
+            .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
             .display()
             .to_string())
     );

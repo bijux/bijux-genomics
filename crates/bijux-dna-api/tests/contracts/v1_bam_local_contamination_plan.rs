@@ -60,7 +60,7 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
     assert_eq!(
         bam["path"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam"
         )
     );
     let bai = inputs
@@ -72,7 +72,7 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
     assert_eq!(
         bai["path"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai"
         )
     );
     let reference = inputs
@@ -84,7 +84,7 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
     assert_eq!(
         reference["path"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
         )
     );
     let reference_panel = inputs
@@ -96,7 +96,7 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
     assert_eq!(
         reference_panel["path"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
         )
     );
     assert_eq!(payload["params"]["scope"], serde_json::json!("nuclear"));
@@ -108,7 +108,7 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
     assert_eq!(
         payload["params"]["reference_panels"],
         serde_json::json!([
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
         ])
     );
     assert_eq!(
@@ -174,19 +174,19 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
         payload["command"]["template"].as_array().is_some_and(|command| command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
                 shell.contains(
-                    "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai"
                 )
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
                 shell.contains(
-                    "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
                 )
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
                 shell.contains(
-                    "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
                 )
             })
         ) && command.iter().any(

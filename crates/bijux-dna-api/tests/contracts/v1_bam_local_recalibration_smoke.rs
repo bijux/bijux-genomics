@@ -57,7 +57,7 @@ fn write_local_recalibration_smoke_report_materializes_governed_outputs() -> Res
     assert_eq!(payload["reason"], serde_json::json!("coverage_below_gate"));
     assert_eq!(
         payload["known_sites"],
-        serde_json::json!(["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
+        serde_json::json!(["benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
     );
     assert_eq!(
         payload["coverage_gate"],
@@ -112,7 +112,7 @@ fn write_local_recalibration_smoke_report_materializes_governed_outputs() -> Res
     assert_eq!(
         summary_json["known_sites"],
         serde_json::json!([repo_root
-            .join("tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf")
+            .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf")
             .display()
             .to_string()])
     );
@@ -120,7 +120,7 @@ fn write_local_recalibration_smoke_report_materializes_governed_outputs() -> Res
         summary_json["reference_fasta"],
         serde_json::json!(repo_root
             .join(
-                "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
             )
             .display()
             .to_string())
@@ -146,11 +146,11 @@ fn write_local_recalibration_smoke_report_materializes_governed_outputs() -> Res
     assert_eq!(stage_metrics_json["reason"], serde_json::json!("coverage_below_gate"));
     assert_eq!(
         stage_metrics_json["expected_known_sites"],
-        serde_json::json!(["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
+        serde_json::json!(["benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
     );
     assert_eq!(
         stage_metrics_json["known_sites"],
-        serde_json::json!(["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
+        serde_json::json!(["benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
     );
     assert_eq!(
         stage_metrics_json["expected_coverage_gate"],

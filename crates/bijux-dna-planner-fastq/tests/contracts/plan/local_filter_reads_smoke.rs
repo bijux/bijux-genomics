@@ -22,7 +22,7 @@ fn local_filter_reads_smoke_plans_use_governed_corpus_fixture() -> Result<()> {
     assert_eq!(
         case.r1,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz"
         )
     );
     assert_eq!(case.r2, None);

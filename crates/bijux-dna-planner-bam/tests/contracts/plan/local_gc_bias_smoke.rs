@@ -30,13 +30,13 @@ fn local_gc_bias_smoke_plans_use_governed_reference_and_bam() -> Result<()> {
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
         )
     );
     assert_eq!(
         case.reference,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
         )
     );
     assert_eq!(case.window_size, 10);
@@ -70,13 +70,13 @@ fn local_gc_bias_smoke_plans_use_governed_reference_and_bam() -> Result<()> {
     assert_eq!(
         case.plan.params["bam"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
         )
     );
     assert_eq!(
         case.plan.params["reference"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
         )
     );
     assert_eq!(case.plan.params["window_size"], serde_json::json!(10));
@@ -117,7 +117,7 @@ fn local_gc_bias_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_gc_bias_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-gc-bias.toml"), body)?;
     Ok(())
@@ -143,8 +143,8 @@ tool_id = "picard"
 
 [[cases]]
 sample_id = " "
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
-reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
 window_size = 10
 
 [[cases.expected_rows]]
@@ -172,8 +172,8 @@ tool_id = "picard"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
-reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
 window_size = 10
 
 [[cases.expected_rows]]
@@ -184,8 +184,8 @@ read_starts = 1
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
-reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
 window_size = 10
 
 [[cases.expected_rows]]
@@ -226,10 +226,10 @@ windows = 1
 read_starts = 1
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
                 .display(),
         ),
     )?;
@@ -262,10 +262,10 @@ window_size = 10
 expected_rows = []
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
                 .display(),
         ),
     )?;
@@ -309,10 +309,10 @@ windows = 1
 read_starts = 2
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
                 .display(),
         ),
     )?;
@@ -350,10 +350,10 @@ windows = 0
 read_starts = 1
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
                 .display(),
         ),
     )?;
@@ -391,10 +391,10 @@ windows = 1
 read_starts = 1
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam")
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta")
                 .display(),
         ),
     )?;

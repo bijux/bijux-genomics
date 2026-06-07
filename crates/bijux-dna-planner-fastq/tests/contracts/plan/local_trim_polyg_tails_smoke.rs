@@ -22,7 +22,7 @@ fn local_trim_polyg_tails_smoke_plans_use_governed_corpus_fixture() -> Result<()
     assert_eq!(
         case.r1,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_polyg_trim_signals_R1.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_polyg_trim_signals_R1.fastq.gz"
         )
     );
     assert_eq!(case.r2, None);

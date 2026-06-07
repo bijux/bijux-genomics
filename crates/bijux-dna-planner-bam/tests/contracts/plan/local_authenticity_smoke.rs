@@ -30,7 +30,7 @@ fn local_authenticity_smoke_plans_use_governed_bam_fixture() -> Result<()> {
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
         )
     );
     assert_eq!(case.damage_terminal_c_to_t_5p, 0.18);
@@ -62,7 +62,7 @@ fn local_authenticity_smoke_plans_use_governed_bam_fixture() -> Result<()> {
     assert_eq!(
         case.plan.params["bam"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
         )
     );
     assert_eq!(case.plan.params["mode"], serde_json::json!("aggregate"));
@@ -106,7 +106,7 @@ fn local_authenticity_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_authenticity_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-authenticity.toml"), body)?;
     Ok(())
@@ -135,7 +135,7 @@ tool_id = "authenticct"
 
 [[cases]]
 sample_id = " "
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam"
 damage_terminal_c_to_t_5p = 0.18
 damage_terminal_g_to_a_3p = 0.11
 contamination_method = "mitochondrial_panel_screen"
@@ -169,7 +169,7 @@ tool_id = "authenticct"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam"
 damage_terminal_c_to_t_5p = 0.18
 damage_terminal_g_to_a_3p = 0.11
 contamination_method = "mitochondrial_panel_screen"
@@ -186,7 +186,7 @@ expected_consumed_metrics = ["damage", "contamination", "complexity", "coverage"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam"
 damage_terminal_c_to_t_5p = 0.18
 damage_terminal_g_to_a_3p = 0.11
 contamination_method = "mitochondrial_panel_screen"
@@ -242,7 +242,7 @@ expected_pmd_like_signal_present = true
 expected_consumed_metrics = ["damage", "contamination", "complexity", "coverage", "mapping"]
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam")
                 .display(),
         ),
     )?;
@@ -285,7 +285,7 @@ expected_pmd_like_signal_present = true
 expected_consumed_metrics = ["damage", "coverage", "mapping"]
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam")
                 .display(),
         ),
     )?;
@@ -329,7 +329,7 @@ expected_pmd_like_signal_present = true
 expected_consumed_metrics = ["damage", "contamination", "complexity", "coverage", "mapping"]
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam")
                 .display(),
         ),
     )?;

@@ -28,7 +28,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
 }
 
 fn write_local_genotyping_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-genotyping.toml"), body)?;
     Ok(())
@@ -54,7 +54,7 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
     assert_eq!(
         bam.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam",
         )
     );
 
@@ -67,7 +67,7 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
     assert_eq!(
         bai.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai",
         )
     );
 
@@ -80,7 +80,7 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
     assert_eq!(
         reference.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
         )
     );
 
@@ -93,7 +93,7 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
     assert_eq!(
         sites.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
         )
     );
 
@@ -106,7 +106,7 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
     assert_eq!(
         regions.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt",
         )
     );
 
@@ -129,19 +129,19 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
     assert_eq!(
         plan.params["reference"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
         )
     );
     assert_eq!(
         plan.params["sites"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
         )
     );
     assert_eq!(
         plan.params["regions"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
         )
     );
     assert_eq!(
@@ -169,16 +169,16 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         .unwrap_or_else(|| panic!("bam.genotyping command template must contain a shell body"));
     assert!(
         command.contains(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
         )
             && command.contains(
-                "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
             )
             && command.contains(
-                "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
             )
             && command.contains(
-                "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
             )
             && command.contains("target/local-ready/bam.genotyping/genotyping.bcf")
             && command.contains("target/local-ready/bam.genotyping/genotyping.vcf.gz"),
@@ -215,14 +215,14 @@ min_call_rate = 0.5
 threads = 2
 output_dir = "target/local-ready/bam.genotyping"
 "#,
-            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
-            bai = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),
+            bam = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
+            bai = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),
             reference =
-                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta").display(),
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta").display(),
             sites =
-                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf").display(),
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf").display(),
             regions =
-                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt").display(),
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt").display(),
         ),
     )?;
 
@@ -253,14 +253,14 @@ min_call_rate = 0.5
 threads = 2
 output_dir = "target/local-ready/bam.genotyping"
 "#,
-            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
-            bai = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),
+            bam = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
+            bai = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),
             reference =
-                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta").display(),
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta").display(),
             sites =
-                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf").display(),
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf").display(),
             regions =
-                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt").display(),
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt").display(),
         ),
     )?;
 
@@ -294,14 +294,14 @@ min_call_rate = -0.1
 threads = 2
 output_dir = "target/local-ready/bam.genotyping"
 "#,
-            bam = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
-            bai = repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),
+            bam = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
+            bai = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),
             reference =
-                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta").display(),
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta").display(),
             sites =
-                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf").display(),
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf").display(),
             regions =
-                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt").display(),
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt").display(),
         ),
     )?;
 

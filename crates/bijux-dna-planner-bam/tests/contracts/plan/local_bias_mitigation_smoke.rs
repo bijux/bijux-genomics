@@ -13,7 +13,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn write_local_bias_mitigation_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-bias-mitigation.toml"), body)?;
     Ok(())
@@ -48,13 +48,13 @@ fn local_bias_mitigation_smoke_plans_use_governed_bam_reference_and_expectations
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
         )
     );
     assert_eq!(
         case.reference,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
         )
     );
     assert_eq!(case.window_size, 10);
@@ -70,13 +70,13 @@ fn local_bias_mitigation_smoke_plans_use_governed_bam_reference_and_expectations
     assert_eq!(
         case.plan.params["bam"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
         )
     );
     assert_eq!(
         case.plan.params["reference"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
         )
     );
     assert_eq!(case.plan.params["window_size"], serde_json::json!(10));
@@ -152,12 +152,12 @@ expected_post_mitigation_metric = 0.125
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam",
                 )
                 .display(),
             reference = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
                 )
                 .display(),
         ),
@@ -199,12 +199,12 @@ expected_post_mitigation_metric = 0.125
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam",
                 )
                 .display(),
             reference = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
                 )
                 .display(),
         ),
@@ -246,12 +246,12 @@ expected_post_mitigation_metric = 0.2
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam",
                 )
                 .display(),
             reference = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
                 )
                 .display(),
         ),
@@ -279,8 +279,8 @@ output_dir = "target/local-smoke/bam.bias_mitigation"
 
 [[cases]]
 sample_id = " "
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
-reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
 window_size = 10
 gc_bias_correction = true
 map_bias_correction = false
@@ -309,8 +309,8 @@ output_dir = "target/local-smoke/bam.bias_mitigation"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
-reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
 window_size = 10
 gc_bias_correction = true
 map_bias_correction = false
@@ -320,8 +320,8 @@ expected_post_mitigation_metric = 0.125
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
-reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
 window_size = 10
 gc_bias_correction = true
 map_bias_correction = false

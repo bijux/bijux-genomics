@@ -31,7 +31,7 @@ fn local_mapq_filter_smoke_plans_use_governed_threshold_fixture() -> Result<()> 
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
         )
     );
     assert_eq!(case.mapq_threshold, 30);
@@ -99,7 +99,7 @@ fn local_mapq_filter_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_mapq_filter_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-mapq-filter.toml"), body)?;
     Ok(())
@@ -125,7 +125,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = " "
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
 mapq_threshold = 30
 expected_input_reads = 4
 expected_kept_reads = 3
@@ -152,7 +152,7 @@ tool_id = "samtools"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
 mapq_threshold = 30
 expected_input_reads = 4
 expected_kept_reads = 3
@@ -162,7 +162,7 @@ expected_mapped_fraction_retained = 0.6666666666666666
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
 mapq_threshold = 30
 expected_input_reads = 4
 expected_kept_reads = 3
@@ -204,7 +204,7 @@ expected_mapped_fraction_retained = 0.6666666666666666
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
                 )
                 .display(),
         ),
@@ -242,7 +242,7 @@ expected_mapped_fraction_retained = 1.0
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
                 )
                 .display(),
         ),
@@ -280,7 +280,7 @@ expected_mapped_fraction_retained = 0.6666666666666666
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
                 )
                 .display(),
         ),
@@ -318,7 +318,7 @@ expected_mapped_fraction_retained = 1.5
 "#,
             bam = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam"
                 )
                 .display(),
         ),
@@ -342,7 +342,7 @@ fn mapq_filter_plan_accepts_bamtools_governed_planning_contract() -> Result<()> 
         &repo_root, &stage_id, &tool_id,
     )?;
     let bam = PathBuf::from(
-        "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam",
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam",
     );
     let params = bijux_dna_domain_bam::params::FilterEffectiveParams {
         mapq_threshold: 30,

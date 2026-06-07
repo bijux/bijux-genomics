@@ -28,7 +28,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
 }
 
 fn write_local_haplogroups_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-haplogroups.toml"), body)?;
     Ok(())
@@ -54,7 +54,7 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
     assert_eq!(
         bam.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam"
         )
     );
 
@@ -67,7 +67,7 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
     assert_eq!(
         bai.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai"
         )
     );
 
@@ -80,7 +80,7 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
     assert_eq!(
         reference.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
         )
     );
 
@@ -95,7 +95,7 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
     assert_eq!(
         reference_panel.path,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
         )
     );
 
@@ -114,13 +114,13 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
     assert_eq!(
         plan.params["reference_panel"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
         )
     );
     assert_eq!(
         plan.params["reference_fasta"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
         )
     );
     assert_eq!(plan.params["reference_build"], serde_json::json!("hg38"));
@@ -136,11 +136,11 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
         });
     assert!(
         command.contains(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam"
         ) && command.contains(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai"
         ) && command.contains(
-            "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
         )
             && command.contains("target/local-ready/bam.haplogroups/haplogroups")
             && command.contains("--reference_genome hg38"),
@@ -180,18 +180,18 @@ threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
                 .display(),
             bai = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
                 )
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
                 .display(),
         ),
     )?;
@@ -226,18 +226,18 @@ threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
                 .display(),
             bai = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
                 )
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
                 .display(),
         ),
     )?;
@@ -275,18 +275,18 @@ threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
                 .display(),
             bai = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
                 )
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
                 .display(),
         ),
     )?;
@@ -321,18 +321,18 @@ threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
                 .display(),
             bai = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
                 )
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
                 .display(),
         ),
     )?;
@@ -367,18 +367,18 @@ threads = 2
 output_dir = "target/local-ready/bam.haplogroups"
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam")
                 .display(),
             bai = repo_root
                 .join(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam.bai",
                 )
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             panel = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_y_haplogroup_panel.tsv")
                 .display(),
         ),
     )?;

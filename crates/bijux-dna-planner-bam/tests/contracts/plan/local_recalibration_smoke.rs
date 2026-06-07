@@ -11,7 +11,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn write_local_recalibration_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-recalibration.toml"), body)?;
     Ok(())
@@ -46,19 +46,19 @@ fn local_recalibration_smoke_plans_use_governed_skip_case() -> Result<()> {
     assert_eq!(
         case.bam,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam"
         )
     );
     assert_eq!(
         case.reference,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
         )
     );
     assert_eq!(
         case.known_sites,
         vec![PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"
         )]
     );
     assert_eq!(case.requested_mode, bijux_dna_domain_bam::params::BqsrMode::Standard);
@@ -77,17 +77,17 @@ fn local_recalibration_smoke_plans_use_governed_skip_case() -> Result<()> {
     );
     assert_eq!(
         case.plan.params["bam"],
-        serde_json::json!("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam")
+        serde_json::json!("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam")
     );
     assert_eq!(
         case.plan.params["reference"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
         )
     );
     assert_eq!(
         case.plan.params["known_sites"],
-        serde_json::json!(["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
+        serde_json::json!(["benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
     );
     assert_eq!(case.plan.params["requested_mode"], serde_json::json!("standard"));
     assert_eq!(case.plan.params["mode"], serde_json::json!("skip"));
@@ -165,9 +165,9 @@ output_dir = "target/local-smoke/bam.recalibration"
 
 [[cases]]
 sample_id = " "
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam"
-reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
-known_sites = ["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"]
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam"
+reference = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+known_sites = ["benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"]
 mode = "standard"
 min_mean_coverage = 0.2
 min_breadth_1x = 0.2
@@ -195,9 +195,9 @@ output_dir = "target/local-smoke/bam.recalibration"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam"
-reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
-known_sites = ["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"]
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam"
+reference = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+known_sites = ["benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"]
 mode = "standard"
 min_mean_coverage = 0.2
 min_breadth_1x = 0.2
@@ -206,9 +206,9 @@ expected_reason = "coverage_below_gate"
 
 [[cases]]
 sample_id = "duplicate-case"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam"
-reference = "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
-known_sites = ["tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"]
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam"
+reference = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+known_sites = ["benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"]
 mode = "standard"
 min_mean_coverage = 0.2
 min_breadth_1x = 0.2
@@ -252,13 +252,13 @@ expected_status = "ready_to_run"
 expected_reason = "coverage_below_gate"
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam")
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             known_sites =
-                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf").display(),
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf").display(),
         ),
     )?;
 
@@ -297,13 +297,13 @@ expected_status = "skipped"
 expected_reason = "requested_skip_mode"
 "#,
             bam = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam")
                 .display(),
             reference = repo_root
-                .join("tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
+                .join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta")
                 .display(),
             known_sites =
-                repo_root.join("tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf").display(),
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf").display(),
         ),
     )?;
 

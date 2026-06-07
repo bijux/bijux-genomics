@@ -28,7 +28,7 @@ fn local_detect_adapters_smoke_plans_use_governed_corpus_fixtures() -> Result<()
     assert_eq!(
         adapter_hit.r1,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_adapter_hit_R1.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_adapter_hit_R1.fastq.gz"
         )
     );
     assert_eq!(adapter_hit.r2, None);
@@ -45,7 +45,7 @@ fn local_detect_adapters_smoke_plans_use_governed_corpus_fixtures() -> Result<()
     assert_eq!(
         adapter_clear.r1,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz"
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz"
         )
     );
     assert_eq!(adapter_clear.r2, None);

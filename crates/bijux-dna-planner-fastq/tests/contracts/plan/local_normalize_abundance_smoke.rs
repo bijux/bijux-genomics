@@ -23,7 +23,7 @@ fn local_normalize_abundance_smoke_plans_use_governed_abundance_fixture() -> Res
     assert_eq!(
         case.abundance_table,
         PathBuf::from(
-            "tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv"
+            "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv"
         )
     );
     assert_eq!(

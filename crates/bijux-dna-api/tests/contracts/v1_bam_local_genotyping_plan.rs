@@ -50,19 +50,19 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
     assert_eq!(
         payload["params"]["reference"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
         )
     );
     assert_eq!(
         payload["params"]["sites"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
         )
     );
     assert_eq!(
         payload["params"]["regions"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
         )
     );
     assert_eq!(
@@ -89,7 +89,7 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
     assert_eq!(
         bam["path"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
         )
     );
     let bai = inputs
@@ -99,7 +99,7 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
     assert_eq!(
         bai["path"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
         )
     );
     let reference = inputs
@@ -109,7 +109,7 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
     assert_eq!(
         reference["path"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
         )
     );
     let sites = inputs
@@ -119,7 +119,7 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
     assert_eq!(
         sites["path"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
         )
     );
     let regions = inputs
@@ -129,7 +129,7 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
     assert_eq!(
         regions["path"],
         serde_json::json!(
-            "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
         )
     );
 
@@ -170,25 +170,25 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
         payload["command"]["template"].as_array().is_some_and(|command| command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
                 shell.contains(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
                 )
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
                 shell.contains(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
                 )
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
                 shell.contains(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
                 )
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
                 shell.contains(
-                    "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+                    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
                 )
             })
         ) && command.iter().any(
@@ -225,13 +225,13 @@ fn write_local_genotyping_plan_preserves_governed_command_metadata() -> Result<(
         .unwrap_or_else(|| panic!("local-ready genotyping plan must serialize a shell command"));
     assert!(
         command.contains(
-            "angsd -i tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
+            "angsd -i benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
         )
             && command.contains(
-                "-sites tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+                "-sites benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
             )
             && command.contains(
-                "-rf tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+                "-rf benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
             )
             && command.contains("target/local-ready/bam.genotyping/genotyping.summary.json")
             && command.contains("\"min_posterior\": 0.9")

@@ -4,9 +4,9 @@ use std::path::{Path, PathBuf};
 
 const GOVERNED_COVERAGE_SAMPLE_ID: &str = "human_like_target_window_coverage";
 const GOVERNED_COVERAGE_BAM_PATH: &str =
-    "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_target_window_coverage.sam";
+    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_target_window_coverage.sam";
 const GOVERNED_COVERAGE_REGIONS_PATH: &str =
-    "tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_target_window_coverage.bed";
+    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_target_window_coverage.bed";
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -89,7 +89,7 @@ fn local_coverage_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_coverage_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("configs/bench/local");
+    let config_dir = root.join("benchmarks/configs/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-coverage.toml"), body)?;
     Ok(())
