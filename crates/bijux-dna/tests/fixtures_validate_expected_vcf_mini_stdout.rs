@@ -37,6 +37,6 @@ fn fixtures_validate_expected_vcf_mini_prints_expected_dir() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "tests/fixtures/corpora/vcf-mini/expected"
+        "benchmarks/tests/fixtures/corpora/vcf-mini/expected"
     );
 }

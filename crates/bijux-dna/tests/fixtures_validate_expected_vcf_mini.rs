@@ -35,7 +35,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn fixtures_validate_expected_vcf_mini_reports_governed_truth_bundle() {
-    let payload = run_cli_json(&["fixtures", "validate-expected", "--corpus", "vcf-mini", "--json"]);
+    let payload =
+        run_cli_json(&["fixtures", "validate-expected", "--corpus", "vcf-mini", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -44,7 +45,7 @@ fn fixtures_validate_expected_vcf_mini_reports_governed_truth_bundle() {
     assert_eq!(payload.get("corpus_id").and_then(serde_json::Value::as_str), Some("vcf-mini"));
     assert_eq!(
         payload.get("expected_dir").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/vcf-mini/expected")
+        Some("benchmarks/tests/fixtures/corpora/vcf-mini/expected")
     );
     assert_eq!(payload.get("truth_file_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("cohort_sample_count").and_then(serde_json::Value::as_u64), Some(4));
@@ -59,7 +60,10 @@ fn fixtures_validate_expected_vcf_mini_reports_governed_truth_bundle() {
         .filter_map(serde_json::Value::as_str)
         .collect::<Vec<_>>();
     assert_eq!(checked_truth_files.len(), 8);
-    assert!(checked_truth_files.contains(&"tests/fixtures/corpora/vcf-mini/expected/variant_counts.json"));
-    assert!(checked_truth_files.contains(&"tests/fixtures/corpora/vcf-mini/expected/pca_expected.json"));
-    assert!(checked_truth_files.contains(&"tests/fixtures/corpora/vcf-mini/expected/ibd_expected.json"));
+    assert!(checked_truth_files
+        .contains(&"benchmarks/tests/fixtures/corpora/vcf-mini/expected/variant_counts.json"));
+    assert!(checked_truth_files
+        .contains(&"benchmarks/tests/fixtures/corpora/vcf-mini/expected/pca_expected.json"));
+    assert!(checked_truth_files
+        .contains(&"benchmarks/tests/fixtures/corpora/vcf-mini/expected/ibd_expected.json"));
 }

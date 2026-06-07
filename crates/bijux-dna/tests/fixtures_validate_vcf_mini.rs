@@ -44,14 +44,11 @@ fn fixtures_validate_vcf_mini_reports_governed_manifest_assets() {
     assert_eq!(payload.get("corpus_id").and_then(serde_json::Value::as_str), Some("vcf-mini"));
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("tests/fixtures/corpora/vcf-mini/manifest.toml")
+        Some("benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml")
     );
     assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(payload.get("population_count").and_then(serde_json::Value::as_u64), Some(4));
-    assert_eq!(
-        payload.get("target_interval_count").and_then(serde_json::Value::as_u64),
-        Some(4)
-    );
+    assert_eq!(payload.get("target_interval_count").and_then(serde_json::Value::as_u64), Some(4));
 
     let variant_sets = payload
         .get("variant_sets")

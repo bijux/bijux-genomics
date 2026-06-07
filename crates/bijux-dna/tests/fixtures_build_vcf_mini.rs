@@ -55,73 +55,55 @@ fn fixtures_build_vcf_mini_reports_regenerated_contract_counts() {
         Some("target/local-ready/vcf-mini-regeneration/manifest.json")
     );
     assert_eq!(
+        payload.get("source_manifest_path").and_then(serde_json::Value::as_str),
+        Some("benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml")
+    );
+    assert_eq!(
         payload.get("checksums_path").and_then(serde_json::Value::as_str),
         Some("target/local-ready/vcf-mini-regeneration/CHECKSUMS.sha256")
     );
     assert_eq!(
-        payload
-            .get("generated_fixture_file_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("generated_fixture_file_count").and_then(serde_json::Value::as_u64),
         Some(21)
     );
     assert_eq!(
-        payload
-            .get("governed_counts_match")
-            .and_then(serde_json::Value::as_bool),
+        payload.get("governed_counts_match").and_then(serde_json::Value::as_bool),
         Some(true)
     );
 
-    let generated_fixture_counts = payload
-        .get("generated_fixture_counts")
-        .expect("generated_fixture_counts");
+    let generated_fixture_counts =
+        payload.get("generated_fixture_counts").expect("generated_fixture_counts");
     assert_eq!(
-        generated_fixture_counts
-            .get("sample_count")
-            .and_then(serde_json::Value::as_u64),
+        generated_fixture_counts.get("sample_count").and_then(serde_json::Value::as_u64),
         Some(6)
     );
     assert_eq!(
-        generated_fixture_counts
-            .get("population_count")
-            .and_then(serde_json::Value::as_u64),
+        generated_fixture_counts.get("population_count").and_then(serde_json::Value::as_u64),
         Some(4)
     );
     assert_eq!(
-        generated_fixture_counts
-            .get("target_interval_count")
-            .and_then(serde_json::Value::as_u64),
+        generated_fixture_counts.get("target_interval_count").and_then(serde_json::Value::as_u64),
         Some(4)
     );
 
-    let generated_truth_counts = payload
-        .get("generated_truth_counts")
-        .expect("generated_truth_counts");
+    let generated_truth_counts =
+        payload.get("generated_truth_counts").expect("generated_truth_counts");
     assert_eq!(
-        generated_truth_counts
-            .get("truth_file_count")
-            .and_then(serde_json::Value::as_u64),
+        generated_truth_counts.get("truth_file_count").and_then(serde_json::Value::as_u64),
         Some(8)
     );
     assert_eq!(
-        generated_truth_counts
-            .get("cohort_sample_count")
-            .and_then(serde_json::Value::as_u64),
+        generated_truth_counts.get("cohort_sample_count").and_then(serde_json::Value::as_u64),
         Some(4)
     );
     assert_eq!(
-        generated_truth_counts
-            .get("pair_count")
-            .and_then(serde_json::Value::as_u64),
+        generated_truth_counts.get("pair_count").and_then(serde_json::Value::as_u64),
         Some(6)
     );
 
-    let fixture_validation = payload
-        .get("fixture_validation")
-        .expect("fixture_validation");
+    let fixture_validation = payload.get("fixture_validation").expect("fixture_validation");
     assert_eq!(
-        fixture_validation
-            .get("manifest_path")
-            .and_then(serde_json::Value::as_str),
+        fixture_validation.get("manifest_path").and_then(serde_json::Value::as_str),
         Some("target/local-ready/vcf-mini-regeneration/manifest.toml")
     );
 }

@@ -37,6 +37,6 @@ fn fixtures_validate_vcf_mini_prints_manifest_path() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "tests/fixtures/corpora/vcf-mini/manifest.toml"
+        "benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml"
     );
 }
