@@ -5,6 +5,8 @@ pub(crate) mod fastq_bench;
 pub(crate) mod local_all_domain_fake_failures;
 pub(crate) mod local_all_domain_fake_runs;
 pub(crate) mod local_all_domain_job_execution;
+pub(crate) mod local_all_domain_result_paths;
+pub(crate) mod local_all_domain_slurm_path_convention;
 pub(crate) mod local_all_domain_slurm_script_bodies;
 pub(crate) mod local_all_domain_slurm_scripts;
 pub(crate) mod local_all_domain_slurm_shell_syntax;

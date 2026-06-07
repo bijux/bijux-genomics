@@ -9,7 +9,9 @@ use super::local_all_domain_job_execution::{
     render_shell_command, rendered_benchmark_result_execution_argv,
     rendered_essential_pipeline_node_execution_argv,
 };
+use super::local_all_domain_result_paths::{benchmark_result_root, essential_pipeline_result_root};
 use super::local_pipeline_dag::{validate_pipeline_dag_path, LocalPipelineDagValidationNodeReport};
+use super::local_slurm_run_paths::load_fixture_sample_scope_map;
 use super::readiness::all_domain_expected_benchmark_results::{
     collect_all_domain_expected_benchmark_result_rows, AllDomainExpectedBenchmarkResultRow,
 };
@@ -90,7 +92,8 @@ struct SlurmResourceHint {
 
 #[derive(Debug, Clone)]
 struct ScriptArtifacts {
-    job_root: PathBuf,
+    control_root: PathBuf,
+    result_root: PathBuf,
     script_path: PathBuf,
     stdout_path: PathBuf,
     stderr_path: PathBuf,
@@ -142,6 +145,7 @@ pub(crate) fn render_all_domain_slurm_scripts(
         .into_iter()
         .map(|row| ((row.pipeline_id.clone(), row.node_id.clone()), row))
         .collect::<BTreeMap<_, _>>();
+    let fixture_sample_scopes = load_fixture_sample_scope_map(repo_root)?;
 
     let mut scripts = Vec::new();
     let mut benchmark_domain_counts = BTreeMap::<String, usize>::new();
@@ -153,7 +157,7 @@ pub(crate) fn render_all_domain_slurm_scripts(
             )
         })?;
         let resource_hint = benchmark_resource_hint(&resource_hints, expected, command);
-        let artifacts = benchmark_script_artifacts(&absolute_output_root, expected);
+        let artifacts = benchmark_script_artifacts(&absolute_output_root, expected)?;
         write_all_domain_slurm_script(
             repo_root,
             &artifacts,
@@ -209,13 +213,21 @@ pub(crate) fn render_all_domain_slurm_scripts(
             let resource_hint = essential_pipeline_resource_hint(&resource_hints, node, command);
             let artifacts = essential_pipeline_script_artifacts(
                 &absolute_output_root,
+                &command.domain,
                 pipeline_id,
                 &node.node_id,
+                &command.tool_id,
+                &dag_report.default_corpus_id,
+                fixture_sample_scopes
+                    .get(&dag_report.default_corpus_id)
+                    .map(String::as_str)
+                    .unwrap_or("sample-set"),
             );
             let entry = build_essential_pipeline_script_entry(
                 pipeline_id,
                 node,
                 command,
+                &dag_report.default_corpus_id,
                 &resource_hint,
                 repo_root,
                 &artifacts,
@@ -225,6 +237,7 @@ pub(crate) fn render_all_domain_slurm_scripts(
                 pipeline_id,
                 node,
                 command,
+                &dag_report.default_corpus_id,
                 &resource_hint,
                 &artifacts,
             );
@@ -377,33 +390,57 @@ fn default_resource_hint(domain: &str) -> SlurmResourceHint {
 fn benchmark_script_artifacts(
     output_root: &Path,
     expected: &AllDomainExpectedBenchmarkResultRow,
-) -> ScriptArtifacts {
-    let job_root = output_root
+) -> Result<ScriptArtifacts> {
+    let control_root = output_root
         .join("benchmark-results")
         .join(&expected.domain)
         .join(&expected.corpus_id)
         .join(&expected.stage_id)
         .join(&expected.asset_profile_id)
         .join(&expected.tool_id);
-    ScriptArtifacts {
-        script_path: job_root.join("job.sbatch"),
-        stdout_path: job_root.join("stdout.log"),
-        stderr_path: job_root.join("stderr.log"),
-        job_root,
-    }
+    let result_root = benchmark_result_root(
+        output_root,
+        &expected.domain,
+        &expected.stage_id,
+        &expected.tool_id,
+        &expected.corpus_id,
+        &expected.asset_profile_id,
+        &expected.result_id,
+    )?;
+    Ok(ScriptArtifacts {
+        script_path: control_root.join("job.sbatch"),
+        stdout_path: result_root.join("stdout.log"),
+        stderr_path: result_root.join("stderr.log"),
+        control_root,
+        result_root,
+    })
 }
 
 fn essential_pipeline_script_artifacts(
     output_root: &Path,
+    domain: &str,
     pipeline_id: &str,
     node_id: &str,
+    tool_id: &str,
+    corpus_id: &str,
+    sample_scope: &str,
 ) -> ScriptArtifacts {
-    let job_root = output_root.join("essential-pipelines").join(pipeline_id).join(node_id);
+    let control_root = output_root.join("essential-pipelines").join(pipeline_id).join(node_id);
+    let result_root = essential_pipeline_result_root(
+        output_root,
+        domain,
+        pipeline_id,
+        node_id,
+        tool_id,
+        corpus_id,
+        sample_scope,
+    );
     ScriptArtifacts {
-        script_path: job_root.join("job.sbatch"),
-        stdout_path: job_root.join("stdout.log"),
-        stderr_path: job_root.join("stderr.log"),
-        job_root,
+        script_path: control_root.join("job.sbatch"),
+        stdout_path: result_root.join("stdout.log"),
+        stderr_path: result_root.join("stderr.log"),
+        control_root,
+        result_root,
     }
 }
 
@@ -440,6 +477,7 @@ fn build_essential_pipeline_script_entry(
     pipeline_id: &str,
     node: &LocalPipelineDagValidationNodeReport,
     command: &EssentialPipelineRenderedCommandRow,
+    corpus_id: &str,
     resource_hint: &SlurmResourceHint,
     repo_root: &Path,
     artifacts: &ScriptArtifacts,
@@ -453,7 +491,7 @@ fn build_essential_pipeline_script_entry(
         domain: command.domain.clone(),
         stage_id: node.stage_id.clone(),
         tool_id: command.tool_id.clone(),
-        corpus_id: pipeline_id.to_string(),
+        corpus_id: corpus_id.to_string(),
         asset_profile_id: "pipeline_node".to_string(),
         dependency_count: node.depends_on.len(),
         cpus_per_task: resource_hint.cpus_per_task,
@@ -499,6 +537,7 @@ fn build_essential_pipeline_script_body(
     pipeline_id: &str,
     node: &LocalPipelineDagValidationNodeReport,
     command: &EssentialPipelineRenderedCommandRow,
+    corpus_id: &str,
     resource_hint: &SlurmResourceHint,
     artifacts: &ScriptArtifacts,
 ) -> String {
@@ -515,7 +554,7 @@ fn build_essential_pipeline_script_body(
         &command.domain,
         &node.stage_id,
         &command.tool_id,
-        pipeline_id,
+        corpus_id,
         "pipeline_node",
         &node.depends_on,
         resource_hint,
@@ -570,11 +609,11 @@ set -euo pipefail\n\
 # dependency_node_ids: {dependency_comment}\n\
 \n\
 REPO_ROOT={repo_root}\n\
-JOB_ROOT={job_root}\n\
+RESULT_ROOT={result_root}\n\
 STDOUT_PATH={stdout_path}\n\
 STDERR_PATH={stderr_path}\n\
 cd \"$REPO_ROOT\"\n\
-mkdir -p \"$JOB_ROOT\"\n",
+mkdir -p \"$RESULT_ROOT\"\n",
         job_name = shell_quote(&job_name),
         repo_root = shell_quote(&repo_root_absolute),
         cpus_per_task = resource_hint.cpus_per_task,
@@ -592,7 +631,7 @@ mkdir -p \"$JOB_ROOT\"\n",
         corpus_id = corpus_id,
         asset_profile_id = asset_profile_id,
         dependency_comment = dependency_comment,
-        job_root = shell_quote(&path_relative_to_repo(repo_root, &artifacts.job_root)),
+        result_root = shell_quote(&path_relative_to_repo(repo_root, &artifacts.result_root)),
     );
     for command in commands {
         rendered.push('\n');
@@ -608,8 +647,10 @@ fn write_all_domain_slurm_script(
     _entry: &BenchLocalAllDomainSlurmScriptEntry,
     body: String,
 ) -> Result<()> {
-    fs::create_dir_all(&artifacts.job_root)
-        .with_context(|| format!("create {}", artifacts.job_root.display()))?;
+    fs::create_dir_all(&artifacts.control_root)
+        .with_context(|| format!("create {}", artifacts.control_root.display()))?;
+    fs::create_dir_all(&artifacts.result_root)
+        .with_context(|| format!("create {}", artifacts.result_root.display()))?;
     fs::write(&artifacts.script_path, body)
         .with_context(|| format!("write {}", artifacts.script_path.display()))?;
     Ok(())

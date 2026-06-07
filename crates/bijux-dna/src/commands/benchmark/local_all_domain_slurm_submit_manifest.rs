@@ -5,11 +5,14 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
+use super::local_all_domain_fake_runs::{declared_output_ids, output_relative_path};
+use super::local_all_domain_result_paths::{
+    benchmark_result_root, essential_pipeline_result_root, LOCAL_ALL_DOMAIN_SLURM_RUN_ID,
+};
 use super::local_all_domain_slurm_scripts::{
     render_all_domain_slurm_scripts, BenchLocalAllDomainSlurmScriptEntry,
     DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT,
 };
-use super::local_all_domain_fake_runs::{declared_output_ids, output_relative_path};
 use super::local_pipeline_dag::{validate_pipeline_dag_path, LocalPipelineDagValidationNodeReport};
 use super::local_slurm_run_paths::load_fixture_sample_scope_map;
 use super::readiness::all_domain_output_declarations::{
@@ -21,7 +24,6 @@ use crate::commands::cli::render;
 
 const LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_VERSION: &str =
     "bijux.bench.local_all_domain_slurm_submit_manifest.v1";
-const LOCAL_ALL_DOMAIN_SLURM_RUN_ID: &str = "all-domain-benchmark-dry-run";
 
 pub(crate) const DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH: &str =
     "target/slurm-dry-run/all-domains/submit-manifest.json";
@@ -184,7 +186,7 @@ fn build_submit_job(
     validate_script_dependency_header_absence(repo_root, &entry.script_path)?;
     match entry.job_kind.as_str() {
         "benchmark_result" => {
-            build_benchmark_submit_job(entry, benchmark_outputs, all_job_ids)
+            build_benchmark_submit_job(repo_root, root_root, entry, benchmark_outputs, all_job_ids)
         }
         "essential_pipeline_node" => build_pipeline_submit_job(
             repo_root,
@@ -201,6 +203,8 @@ fn build_submit_job(
 }
 
 fn build_benchmark_submit_job(
+    repo_root: &Path,
+    root_root: &Path,
     entry: &BenchLocalAllDomainSlurmScriptEntry,
     benchmark_outputs: &BTreeMap<String, AllDomainOutputDeclarationRow>,
     all_job_ids: &BTreeSet<String>,
@@ -218,6 +222,8 @@ fn build_benchmark_submit_job(
         .get(&result_id)
         .ok_or_else(|| anyhow!("missing output declarations for benchmark result `{result_id}`"))?
         .clone();
+    let rendered_outputs =
+        benchmark_output_paths(repo_root, root_root, entry, &result_id, &outputs)?;
     Ok(BenchLocalAllDomainSlurmSubmitJob {
         job_id_local: entry.job_id_local.clone(),
         domain: entry.domain.clone(),
@@ -231,7 +237,7 @@ fn build_benchmark_submit_job(
         script_path: entry.script_path.clone(),
         stdout: entry.stdout_path.clone(),
         stderr: entry.stderr_path.clone(),
-        outputs: benchmark_output_paths(&outputs),
+        outputs: rendered_outputs,
         dependencies: Vec::new(),
         resources: BenchLocalAllDomainSlurmSubmitResources {
             cpus_per_task: entry.cpus_per_task,
@@ -292,7 +298,7 @@ fn build_pipeline_submit_job(
         .get(&context.default_corpus_id)
         .cloned()
         .unwrap_or_else(|| "sample-set".to_string());
-    let result_root = all_domain_result_root(
+    let result_root = essential_pipeline_result_root(
         root_root,
         &entry.domain,
         &pipeline_id,
@@ -331,9 +337,23 @@ fn build_pipeline_submit_job(
     })
 }
 
-fn benchmark_output_paths(row: &AllDomainOutputDeclarationRow) -> Vec<String> {
-    let result_root =
-        row.manifest.trim_end_matches("/stage-result.json").trim_end_matches('/').to_string();
+fn benchmark_output_paths(
+    repo_root: &Path,
+    root_root: &Path,
+    entry: &BenchLocalAllDomainSlurmScriptEntry,
+    result_id: &str,
+    row: &AllDomainOutputDeclarationRow,
+) -> Result<Vec<String>> {
+    let result_root = benchmark_result_root(
+        root_root,
+        &entry.domain,
+        &entry.stage_id,
+        &entry.tool_id,
+        &entry.corpus_id,
+        &entry.asset_profile_id,
+        result_id,
+    )?;
+    let result_root = path_relative_to_repo(repo_root, &result_root);
     let mut outputs = declared_output_ids(row)
         .into_iter()
         .map(|artifact_id| {
@@ -343,28 +363,8 @@ fn benchmark_output_paths(row: &AllDomainOutputDeclarationRow) -> Vec<String> {
             )
         })
         .collect::<Vec<_>>();
-    outputs.push(row.manifest.clone());
-    outputs
-}
-
-fn all_domain_result_root(
-    root_root: &Path,
-    domain: &str,
-    pipeline_id: &str,
-    node_id: &str,
-    tool_id: &str,
-    corpus_id: &str,
-    sample_scope: &str,
-) -> PathBuf {
-    root_root
-        .join("runs")
-        .join(LOCAL_ALL_DOMAIN_SLURM_RUN_ID)
-        .join(domain)
-        .join(pipeline_id)
-        .join(node_id)
-        .join(tool_id)
-        .join(corpus_id)
-        .join(sample_scope)
+    outputs.push(format!("{result_root}/stage-result.json"));
+    Ok(outputs)
 }
 
 fn validate_script_dependency_header_absence(repo_root: &Path, script_path: &str) -> Result<()> {
@@ -383,10 +383,7 @@ fn validate_script_dependency_header_absence(repo_root: &Path, script_path: &str
     Ok(())
 }
 
-fn parse_dependency_node_ids_comment(
-    repo_root: &Path,
-    script_path: &Path,
-) -> Result<Vec<String>> {
+fn parse_dependency_node_ids_comment(repo_root: &Path, script_path: &Path) -> Result<Vec<String>> {
     let absolute_script = repo_root.join(script_path);
     let body = fs::read_to_string(&absolute_script)
         .with_context(|| format!("read {}", absolute_script.display()))?;
