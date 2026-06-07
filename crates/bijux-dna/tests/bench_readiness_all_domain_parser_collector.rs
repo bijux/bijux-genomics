@@ -63,14 +63,8 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
         .get("source_kind_counts")
         .and_then(serde_json::Value::as_object)
         .expect("source kind counts");
-    assert_eq!(
-        source_kind_counts.get("fake_run").and_then(serde_json::Value::as_u64),
-        Some(120)
-    );
-    assert_eq!(
-        source_kind_counts.get("real_smoke").and_then(serde_json::Value::as_u64),
-        Some(3)
-    );
+    assert_eq!(source_kind_counts.get("fake_run").and_then(serde_json::Value::as_u64), Some(120));
+    assert_eq!(source_kind_counts.get("real_smoke").and_then(serde_json::Value::as_u64), Some(3));
 
     let domain_counts =
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
@@ -83,15 +77,19 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
 
     let fake_result_ids = rows
         .iter()
-        .filter(|row| row.get("source_kind").and_then(serde_json::Value::as_str) == Some("fake_run"))
+        .filter(|row| {
+            row.get("source_kind").and_then(serde_json::Value::as_str) == Some("fake_run")
+        })
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
     assert_eq!(fake_result_ids.len(), 120);
 
     let fastq_smoke = rows
         .iter()
-        .find(|row| row.get("record_id").and_then(serde_json::Value::as_str)
-            == Some("real-smoke:fastq.validate_reads"))
+        .find(|row| {
+            row.get("record_id").and_then(serde_json::Value::as_str)
+                == Some("real-smoke:fastq.validate_reads")
+        })
         .expect("fastq smoke row");
     assert_eq!(
         fastq_smoke.get("document_kind").and_then(serde_json::Value::as_str),
@@ -118,8 +116,10 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
 
     let bam_smoke = rows
         .iter()
-        .find(|row| row.get("record_id").and_then(serde_json::Value::as_str)
-            == Some("real-smoke:bam.validate"))
+        .find(|row| {
+            row.get("record_id").and_then(serde_json::Value::as_str)
+                == Some("real-smoke:bam.validate")
+        })
         .expect("bam smoke row");
     assert_eq!(
         bam_smoke.get("document_kind").and_then(serde_json::Value::as_str),
@@ -146,8 +146,9 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
 
     let vcf_smoke = rows
         .iter()
-        .find(|row| row.get("record_id").and_then(serde_json::Value::as_str)
-            == Some("real-smoke:vcf.stats"))
+        .find(|row| {
+            row.get("record_id").and_then(serde_json::Value::as_str) == Some("real-smoke:vcf.stats")
+        })
         .expect("vcf smoke row");
     assert_eq!(
         vcf_smoke.get("document_kind").and_then(serde_json::Value::as_str),

@@ -126,9 +126,7 @@ pub(crate) fn render_all_domain_parser_collector(
     let mut domain_counts = BTreeMap::<String, usize>::new();
     let mut document_kind_counts = BTreeMap::<String, usize>::new();
     for row in &rows {
-        *source_kind_counts
-            .entry(source_kind_label(row.source_kind).to_string())
-            .or_default() += 1;
+        *source_kind_counts.entry(source_kind_label(row.source_kind).to_string()).or_default() += 1;
         *domain_counts.entry(row.domain.clone()).or_default() += 1;
         *document_kind_counts.entry(row.document_kind.clone()).or_default() += 1;
     }
@@ -209,13 +207,17 @@ fn collect_real_smoke_rows(repo_root: &Path) -> Result<Vec<AllDomainParserCollec
         .context("materialize fastq.validate_reads real-smoke report")?;
     let bam_validate_path = materialize_local_stage(repo_root, "bam.validate")
         .context("materialize bam.validate real-smoke report")?;
-    let vcf_stats_report =
-        run_local_vcf_stats_smoke(repo_root, "bcftools").context("materialize vcf.stats real-smoke report")?;
+    let vcf_stats_report = run_local_vcf_stats_smoke(repo_root, "bcftools")
+        .context("materialize vcf.stats real-smoke report")?;
 
     Ok(vec![
         collect_fastq_validate_smoke_row(repo_root, &fastq_validate_path)?,
         collect_bam_validate_smoke_row(repo_root, &bam_validate_path)?,
-        collect_vcf_stats_smoke_row(repo_root, &vcf_stats_report.metrics_path, &vcf_stats_report.stage_result_manifest_path)?,
+        collect_vcf_stats_smoke_row(
+            repo_root,
+            &vcf_stats_report.metrics_path,
+            &vcf_stats_report.stage_result_manifest_path,
+        )?,
     ])
 }
 
@@ -246,7 +248,10 @@ fn collect_fastq_validate_smoke_row(
         manifest_path: None,
         manifest_status: None,
         manifest_exit_code: None,
-        declared_output_count: case_artifact_count(&report, &["validation_report", "validated_reads_manifest"]),
+        declared_output_count: case_artifact_count(
+            &report,
+            &["validation_report", "validated_reads_manifest"],
+        ),
         normalized_snapshot: BTreeMap::from([
             ("case_count".to_string(), Value::from(case_count)),
             ("all_cases_passed".to_string(), Value::from(all_cases_passed)),
@@ -294,7 +299,10 @@ fn collect_bam_validate_smoke_row(
         manifest_path: None,
         manifest_status: None,
         manifest_exit_code: None,
-        declared_output_count: case_artifact_count(&report, &["validation_report", "flagstat", "stage_metrics"]),
+        declared_output_count: case_artifact_count(
+            &report,
+            &["validation_report", "flagstat", "stage_metrics"],
+        ),
         normalized_snapshot: BTreeMap::from([
             ("case_count".to_string(), Value::from(json_u64_field(&report, "case_count")?)),
             (
@@ -549,8 +557,8 @@ mod tests {
     use serde_json::Value;
 
     use super::{
-        render_all_domain_parser_collector, DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH,
-        ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_VERSION,
+        render_all_domain_parser_collector, ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_VERSION,
+        DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH,
     };
 
     fn repo_root() -> PathBuf {
@@ -613,14 +621,8 @@ mod tests {
             .find(|row| row.record_id == "real-smoke:fastq.validate_reads")
             .expect("fastq smoke row");
         assert_eq!(fastq_smoke.document_kind, "fastq_local_smoke_report");
-        assert_eq!(
-            fastq_smoke.parsed_schema_version,
-            "bijux.fastq.validate.local_smoke.report.v1"
-        );
-        assert_eq!(
-            fastq_smoke.normalized_snapshot.get("case_count"),
-            Some(&Value::from(2_u64))
-        );
+        assert_eq!(fastq_smoke.parsed_schema_version, "bijux.fastq.validate.local_smoke.report.v1");
+        assert_eq!(fastq_smoke.normalized_snapshot.get("case_count"), Some(&Value::from(2_u64)));
         assert_eq!(
             fastq_smoke.normalized_snapshot.get("all_cases_passed"),
             Some(&Value::from(true))
@@ -632,14 +634,8 @@ mod tests {
             .find(|row| row.record_id == "real-smoke:bam.validate")
             .expect("bam smoke row");
         assert_eq!(bam_smoke.document_kind, "bam_local_smoke_report");
-        assert_eq!(
-            bam_smoke.parsed_schema_version,
-            "bijux.bam.validate.local_smoke.report.v1"
-        );
-        assert_eq!(
-            bam_smoke.normalized_snapshot.get("pass_case_count"),
-            Some(&Value::from(1_u64))
-        );
+        assert_eq!(bam_smoke.parsed_schema_version, "bijux.bam.validate.local_smoke.report.v1");
+        assert_eq!(bam_smoke.normalized_snapshot.get("pass_case_count"), Some(&Value::from(1_u64)));
         assert_eq!(
             bam_smoke.normalized_snapshot.get("refusal_case_count"),
             Some(&Value::from(1_u64))
@@ -651,18 +647,9 @@ mod tests {
             .find(|row| row.record_id == "real-smoke:vcf.stats")
             .expect("vcf smoke row");
         assert_eq!(vcf_smoke.document_kind, "vcf_local_smoke_metrics");
-        assert_eq!(
-            vcf_smoke.parsed_schema_version,
-            "bijux.bench.local_vcf_stats_smoke.metrics.v1"
-        );
-        assert_eq!(
-            vcf_smoke.normalized_snapshot.get("variant_count"),
-            Some(&Value::from(4_u64))
-        );
-        assert_eq!(
-            vcf_smoke.normalized_snapshot.get("ti_tv"),
-            Some(&Value::from(2.0_f64))
-        );
+        assert_eq!(vcf_smoke.parsed_schema_version, "bijux.bench.local_vcf_stats_smoke.metrics.v1");
+        assert_eq!(vcf_smoke.normalized_snapshot.get("variant_count"), Some(&Value::from(4_u64)));
+        assert_eq!(vcf_smoke.normalized_snapshot.get("ti_tv"), Some(&Value::from(2.0_f64)));
         assert_eq!(vcf_smoke.manifest_status.as_deref(), Some("succeeded"));
         assert_eq!(vcf_smoke.manifest_exit_code, Some(0));
 

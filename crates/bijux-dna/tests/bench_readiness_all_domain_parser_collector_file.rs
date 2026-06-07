@@ -36,27 +36,34 @@ fn run_cli_json_with_repo_root(args: &[&str]) -> (PathBuf, serde_json::Value) {
 
 #[test]
 fn bench_readiness_all_domain_parser_collector_writes_governed_report_and_fixture_paths() {
-    let (repo_root, payload) =
-        run_cli_json_with_repo_root(&["bench", "readiness", "render-all-domain-parser-collector", "--json"]);
+    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+        "bench",
+        "readiness",
+        "render-all-domain-parser-collector",
+        "--json",
+    ]);
 
     let report_path = repo_root.join("target/bench-readiness/parser-collector-all-domains.json");
     assert!(report_path.is_file(), "collector report must exist");
 
-    let persisted: serde_json::Value = serde_json::from_slice(
-        &std::fs::read(&report_path).expect("read parser collector report"),
-    )
-    .expect("parse parser collector report");
+    let persisted: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&report_path).expect("read parser collector report"))
+            .expect("parse parser collector report");
     assert_eq!(
         persisted.get("output_path").and_then(serde_json::Value::as_str),
         Some("target/bench-readiness/parser-collector-all-domains.json")
     );
     assert_eq!(persisted.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
 
-    let fixture_root = repo_root.join("target/bench-readiness/parser-collector-all-domains-fixture");
+    let fixture_root =
+        repo_root.join("target/bench-readiness/parser-collector-all-domains-fixture");
     assert!(fixture_root.is_dir(), "collector fixture root must exist");
     let fake_run_root = fixture_root.join("fake-runs");
     assert!(fake_run_root.is_dir(), "collector fake-run root must exist");
-    assert!(fake_run_root.join("manifest.json").is_file(), "collector fake-run manifest must exist");
+    assert!(
+        fake_run_root.join("manifest.json").is_file(),
+        "collector fake-run manifest must exist"
+    );
 
     let fake_metrics = repo_root.join(
         payload
