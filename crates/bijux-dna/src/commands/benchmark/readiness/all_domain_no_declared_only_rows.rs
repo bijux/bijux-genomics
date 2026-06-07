@@ -6,7 +6,8 @@ use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
 use super::all_domain_active_stage_tool_matrix::{
-    collect_all_domain_active_stage_tool_matrix_rows, collect_all_domain_adapter_status_by_binding,
+    collect_all_domain_adapter_status_by_binding,
+    collect_all_domain_executable_active_stage_tool_matrix_rows,
     collect_all_domain_lifecycle_active_stage_tool_matrix_rows, is_executable_adapter_status,
     AllDomainActiveStageToolMatrixRow,
 };
@@ -96,7 +97,7 @@ fn build_all_domain_no_declared_only_rows_report(
 ) -> Result<AllDomainNoDeclaredOnlyRowsReport> {
     let lifecycle_active_rows =
         collect_all_domain_lifecycle_active_stage_tool_matrix_rows(repo_root)?;
-    let active_rows = collect_all_domain_active_stage_tool_matrix_rows(repo_root)?;
+    let active_rows = collect_all_domain_executable_active_stage_tool_matrix_rows(repo_root)?;
     let adapter_status_by_binding = collect_all_domain_adapter_status_by_binding(repo_root)?;
 
     let lifecycle_active_rows = lifecycle_active_rows
