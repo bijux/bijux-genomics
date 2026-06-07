@@ -221,6 +221,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench local validate-stage-result",
     "bijux-dna bench local materialize-stage",
     "bijux-dna bench local fake-run-all-domains",
+    "bijux-dna bench local fake-run-all-domain-failures",
     "bijux-dna bench local fake-run-essential-pipelines",
     "bijux-dna bench local fake-run-failures",
     "bijux-dna bench local fake-run-stages",
