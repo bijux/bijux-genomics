@@ -22,5 +22,5 @@ products remain anchored under the active repository:
 - `benchmarks/readiness/`
 - `benchmarks/readiness/local-ready/`
 - `runs/bench/local-smoke/`
-- `target/local-fake-runs/`
+- `runs/bench/local-fake-runs/`
 - `target/slurm-dry-run/`

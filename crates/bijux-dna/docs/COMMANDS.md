@@ -1217,11 +1217,11 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local check-manifest-completion`
   `check-manifest-completion` writes `benchmarks/readiness/local-ready/manifest-completion-report.json` and
   marks a stage complete only when its fake-run `stage-result.json` exists under the selected
-  `target/local-fake-runs/stages/` tree.
+  `runs/bench/local-fake-runs/stages/` tree.
 - `bijux-dna bench local check-output-completion`
   `check-output-completion` writes `benchmarks/readiness/local-ready/output-completion-report.json` and marks a
   stage complete only when every declared fake-run output exists under the selected
-  `target/local-fake-runs/stages/` tree.
+  `runs/bench/local-fake-runs/stages/` tree.
 - `bijux-dna bench local collect-runtime-metrics`
   `collect-runtime-metrics` writes `benchmarks/readiness/local-ready/runtime-metrics.json` by reading validated
   fake-run `stage-result.json` manifests and extracting per-stage start, end, elapsed, exit, and
@@ -1246,14 +1246,14 @@ Visible aliases are part of the operator surface:
   execution slice grounded in real outputs.
 - `bijux-dna bench local fake-run-all-domains`
   `fake-run-all-domains` writes one governed fake-run tree under
-  `target/local-fake-runs/all-domains/` for every benchmark-ready FASTQ, BAM, and VCF result
+  `runs/bench/local-fake-runs/all-domains/` for every benchmark-ready FASTQ, BAM, and VCF result
   binding in the canonical 120-row all-domain slice. Each result keeps a real `command.sh`,
   `stdout.txt`, `stderr.txt`, `metrics.json`, and `stage-result.json`, plus materialized fake
   declared outputs under `declared-outputs/`, so unified expected-result, command, and
   output-declaration contracts can be exercised without stopping at report generation alone.
 - `bijux-dna bench local fake-run-all-domain-failures`
   `fake-run-all-domain-failures` writes one governed failure tree under
-  `target/local-fake-runs/all-domains-failures/` for every benchmark-ready FASTQ, BAM, and VCF
+  `runs/bench/local-fake-runs/all-domains-failures/` for every benchmark-ready FASTQ, BAM, and VCF
   result binding in the canonical 120-row all-domain slice. Each result keeps a real
   `command.sh`, `stderr.txt`, and `failure.json`, and the failure record enumerates the exact
   declared outputs that remained missing, so unified failure handling stays explicit instead of
@@ -1294,17 +1294,17 @@ Visible aliases are part of the operator surface:
   `.sbatch` jobs in the all-domain SLURM tree.
 - `bijux-dna bench local fake-run-essential-pipelines`
   `fake-run-essential-pipelines` writes one governed fake-run tree under
-  `target/local-fake-runs/pipelines/essential/` for every node in the essential ten-pipeline
+  `runs/bench/local-fake-runs/pipelines/essential/` for every node in the essential ten-pipeline
   slice. Each node keeps a real `command.sh`, `stdout.txt`, `stderr.txt`, `metrics.json`, and
   `stage-result.json`, plus materialized fake outputs under `declared-outputs/`, so essential
   pipeline validation does not stop at DAG structure or rendered commands.
 - `bijux-dna bench local fake-run-failures`
   `fake-run-failures` writes non-zero stage failure records under
-  `target/local-fake-runs/failures/`, including `stderr.txt` and the declared outputs that stayed
+  `runs/bench/local-fake-runs/failures/`, including `stderr.txt` and the declared outputs that stayed
   missing for each failed stage.
 - `bijux-dna bench local fake-run-stages`
   `fake-run-stages` mirrors every declared benchmark-stage output under
-  `target/local-fake-runs/stages/` and writes a fake-run manifest for all governed stages,
+  `runs/bench/local-fake-runs/stages/` and writes a fake-run manifest for all governed stages,
   including estimated `resource_metrics` derived from governed thread and memory ceilings.
 - `bijux-dna bench local render-slurm-scripts`
   `render-slurm-scripts` writes one governed `.sbatch` file per selected local benchmark stage
