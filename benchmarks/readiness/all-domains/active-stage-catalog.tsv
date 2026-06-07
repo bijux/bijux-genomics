@@ -33,17 +33,14 @@ fastq	fastq.detect_duplicates_premerge	smoke	1	1	1	1	true	1	benchmark_ready	biju
 fastq	fastq.extract_umis	smoke	1	1	1	1	true	1	benchmark_ready	umi_tools	umi_tools	read_cleanup
 fastq	fastq.filter_low_complexity	smoke	2	2	2	2	true	1	benchmark_ready	bbduk,prinseq	bbduk,prinseq	read_cleanup
 fastq	fastq.filter_reads	smoke	4	4	4	4	true	1	benchmark_ready	bbduk,fastp,prinseq,seqkit	bbduk,fastp,prinseq,seqkit	read_cleanup
-fastq	fastq.index_reference	dry_run	2	0	0	0	true	1	not_benchmark_ready	bowtie2_build,star	none	reference_preparation
 fastq	fastq.infer_asvs	smoke	1	1	1	1	true	1	benchmark_ready	dada2	dada2	amplicon_interpretation
 fastq	fastq.merge_pairs	smoke	6	6	6	6	true	1	benchmark_ready	adapterremoval,bbmerge,flash2,leehom,pear,vsearch	adapterremoval,bbmerge,flash2,leehom,pear,vsearch	read_cleanup
 fastq	fastq.normalize_abundance	smoke	1	1	1	1	true	1	benchmark_ready	seqkit	seqkit	amplicon_interpretation
 fastq	fastq.normalize_primers	smoke	1	1	1	1	true	1	benchmark_ready	cutadapt	cutadapt	amplicon_interpretation
-fastq	fastq.profile_overrepresented_sequences	smoke	3	0	0	0	true	1	not_benchmark_ready	fastq_scan,fastqc,seqkit	none	quality_profiling
 fastq	fastq.profile_read_lengths	smoke	4	4	4	4	true	1	benchmark_ready	fastp,prinseq,seqfu,seqkit_stats	fastp,prinseq,seqfu,seqkit_stats	quality_profiling
 fastq	fastq.profile_reads	smoke	3	3	3	3	true	1	benchmark_ready	seqfu,seqkit,seqkit_stats	seqfu,seqkit,seqkit_stats	quality_profiling
 fastq	fastq.remove_chimeras	smoke	1	1	1	1	true	1	benchmark_ready	vsearch	vsearch	amplicon_interpretation
 fastq	fastq.remove_duplicates	smoke	2	2	2	2	true	1	benchmark_ready	clumpify,fastuniq	clumpify,fastuniq	read_cleanup
-fastq	fastq.report_qc	smoke	1	0	0	0	true	1	not_benchmark_ready	multiqc	none	quality_profiling
 fastq	fastq.screen_taxonomy	dry_or_smoke	4	4	4	4	true	1	benchmark_ready	centrifuge,kaiju,kraken2,krakenuniq	centrifuge,kaiju,kraken2,krakenuniq	contamination_screening
 fastq	fastq.trim_polyg_tails	smoke	2	2	2	2	true	1	benchmark_ready	bbduk,fastp	bbduk,fastp	read_cleanup
 fastq	fastq.trim_reads	smoke	13	13	13	13	true	1	benchmark_ready	adapterremoval,alientrimmer,atropos,bbduk,cutadapt,fastp,fastx_clipper,leehom,prinseq,seqkit,skewer,trim_galore,trimmomatic	adapterremoval,alientrimmer,atropos,bbduk,cutadapt,fastp,fastx_clipper,leehom,prinseq,seqkit,skewer,trim_galore,trimmomatic	read_cleanup
