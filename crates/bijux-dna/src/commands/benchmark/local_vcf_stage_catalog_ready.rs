@@ -360,7 +360,7 @@ mod tests {
             LocalVcfStageCatalogReadyGoalCheck {
                 goal_id: 201,
                 surface: "vcf stage catalog".to_string(),
-                output_path: Some("configs/bench/local/vcf-stage-catalog.toml".to_string()),
+                output_path: Some("benchmarks/configs/local/vcf-stage-catalog.toml".to_string()),
                 ok: true,
                 detail: "ok".to_string(),
             },
@@ -395,14 +395,14 @@ mod tests {
             LocalVcfStageCatalogReadyGoalCheck {
                 goal_id: 201,
                 surface: "vcf stage catalog".to_string(),
-                output_path: Some("configs/bench/local/vcf-stage-catalog.toml".to_string()),
+                output_path: Some("benchmarks/configs/local/vcf-stage-catalog.toml".to_string()),
                 ok: true,
                 detail: "ok".to_string(),
             },
             LocalVcfStageCatalogReadyGoalCheck {
                 goal_id: 202,
                 surface: "vcf stage matrix".to_string(),
-                output_path: Some("configs/bench/local/vcf-stage-matrix.toml".to_string()),
+                output_path: Some("benchmarks/configs/local/vcf-stage-matrix.toml".to_string()),
                 ok: true,
                 detail: "ok".to_string(),
             },

@@ -20,7 +20,7 @@ use crate::commands::cli::render;
 
 const LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION: &str = "bijux.bench.local_stage_commands.v3";
 const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str = "target/local-ready/rendered-stage-commands.sh";
-const LOCAL_REPORT_QC_CONFIG_PATH: &str = "configs/bench/local/fastq-report-qc.toml";
+const LOCAL_REPORT_QC_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-report-qc.toml";
 const LOCAL_REPORT_QC_CONFIG_SCHEMA_VERSION: &str = "bijux.bench.fastq.local_report_qc.v1";
 const DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR: &str = "target/local-smoke/fastq.report_qc";
 

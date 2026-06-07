@@ -12,12 +12,12 @@ use serde::Deserialize;
 
 use crate::selection::{allowed_tools_for_stage, load_bam_domain_tool_execution_spec};
 
-const LOCAL_ALIGN_CONFIG_PATH: &str = "configs/bench/local/bam-align.toml";
-const LOCAL_CONTAMINATION_CONFIG_PATH: &str = "configs/bench/local/bam-contamination.toml";
+const LOCAL_ALIGN_CONFIG_PATH: &str = "benchmarks/configs/local/bam-align.toml";
+const LOCAL_CONTAMINATION_CONFIG_PATH: &str = "benchmarks/configs/local/bam-contamination.toml";
 #[cfg(feature = "bam_downstream")]
-const LOCAL_GENOTYPING_CONFIG_PATH: &str = "configs/bench/local/bam-genotyping.toml";
+const LOCAL_GENOTYPING_CONFIG_PATH: &str = "benchmarks/configs/local/bam-genotyping.toml";
 #[cfg(feature = "bam_downstream")]
-const LOCAL_HAPLOGROUPS_CONFIG_PATH: &str = "configs/bench/local/bam-haplogroups.toml";
+const LOCAL_HAPLOGROUPS_CONFIG_PATH: &str = "benchmarks/configs/local/bam-haplogroups.toml";
 const LOCAL_RUNTIME_PROFILE_PATH: &str = "configs/runtime/profiles/local.toml";
 const DEFAULT_LOCAL_ALIGN_OUTPUT_DIR: &str = "target/local-ready/bam.align";
 const DEFAULT_LOCAL_CONTAMINATION_OUTPUT_DIR: &str = "target/local-ready/bam.contamination";

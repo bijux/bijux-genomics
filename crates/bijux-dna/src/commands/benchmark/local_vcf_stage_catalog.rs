@@ -12,7 +12,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_STAGE_CATALOG_PATH: &str =
-    "configs/bench/local/vcf-stage-catalog.toml";
+    "benchmarks/configs/local/vcf-stage-catalog.toml";
 const LOCAL_VCF_STAGE_CATALOG_SCHEMA_VERSION: &str = "bijux.bench.vcf.local_stage_catalog.v1";
 const LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_stage_catalog.v1";

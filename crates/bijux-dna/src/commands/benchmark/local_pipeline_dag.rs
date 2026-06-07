@@ -2692,7 +2692,7 @@ fn load_pipeline_inventory_index(
 fn load_local_vcf_pipeline_inventory_index(
     repo_root: &Path,
 ) -> Result<BTreeMap<String, LocalStageReadinessKind>> {
-    let matrix_path = repo_root.join("configs/bench/local/vcf-stage-matrix.toml");
+    let matrix_path = repo_root.join("benchmarks/configs/local/vcf-stage-matrix.toml");
     let raw = fs::read_to_string(&matrix_path)
         .with_context(|| format!("read {}", matrix_path.display()))?;
     let matrix: LocalVcfStageMatrixConfig =
@@ -2716,7 +2716,7 @@ fn load_local_vcf_pipeline_inventory_index(
 fn load_local_vcf_stage_matrix_index(
     repo_root: &Path,
 ) -> Result<BTreeMap<String, VcfStageMatrixRow>> {
-    let matrix_path = repo_root.join("configs/bench/local/vcf-stage-matrix.toml");
+    let matrix_path = repo_root.join("benchmarks/configs/local/vcf-stage-matrix.toml");
     let raw = fs::read_to_string(&matrix_path)
         .with_context(|| format!("read {}", matrix_path.display()))?;
     let matrix: LocalVcfStageMatrixConfig =

@@ -41,8 +41,8 @@ impl BenchLocalDomain {
 
     fn matrix_relative_path(self) -> &'static str {
         match self {
-            Self::Fastq => "configs/bench/local/fastq-stage-matrix.toml",
-            Self::Bam => "configs/bench/local/bam-stage-matrix.toml",
+            Self::Fastq => "benchmarks/configs/local/fastq-stage-matrix.toml",
+            Self::Bam => "benchmarks/configs/local/bam-stage-matrix.toml",
             Self::Vcf => DEFAULT_VCF_STAGE_MATRIX_PATH,
         }
     }
@@ -297,7 +297,7 @@ mod tests {
             .expect("load FASTQ local stage inventory");
 
         assert_eq!(inventory.domain, "fastq");
-        assert_eq!(inventory.stage_matrix_path, "configs/bench/local/fastq-stage-matrix.toml");
+        assert_eq!(inventory.stage_matrix_path, "benchmarks/configs/local/fastq-stage-matrix.toml");
         assert_eq!(inventory.stage_count, 27);
         assert_eq!(inventory.stages.len(), 27);
         assert!(
@@ -313,7 +313,7 @@ mod tests {
             .expect("load BAM local stage inventory");
 
         assert_eq!(inventory.domain, "bam");
-        assert_eq!(inventory.stage_matrix_path, "configs/bench/local/bam-stage-matrix.toml");
+        assert_eq!(inventory.stage_matrix_path, "benchmarks/configs/local/bam-stage-matrix.toml");
         assert_eq!(inventory.stage_count, 24);
         assert_eq!(inventory.stages.len(), 24);
         assert!(

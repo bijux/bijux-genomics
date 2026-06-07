@@ -14,7 +14,7 @@ use super::local_vcf_stage_catalog::{build_vcf_stage_catalog_rows, VcfStageCatal
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_VCF_STAGE_MATRIX_PATH: &str = "configs/bench/local/vcf-stage-matrix.toml";
+pub(crate) const DEFAULT_VCF_STAGE_MATRIX_PATH: &str = "benchmarks/configs/local/vcf-stage-matrix.toml";
 const LOCAL_VCF_STAGE_MATRIX_SCHEMA_VERSION: &str = "bijux.bench.vcf.local_stage_matrix.v1";
 const LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_stage_matrix.v1";
 const VCF_STAGE_MATRIX_VALIDATION_SCHEMA_VERSION: &str = "bijux.bench.validate_matrix.v1";

@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH: &str =
-    "configs/bench/local/corpus-stage-compatibility.toml";
+    "benchmarks/configs/local/corpus-stage-compatibility.toml";
 pub(crate) const LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_VERSION: &str =
     "bijux.bench.local_corpus_stage_compatibility.v1";
 const LOCAL_CORPUS_STAGE_COMPATIBILITY_VALIDATION_SCHEMA_VERSION: &str =
