@@ -74,8 +74,9 @@ pub use self::publication::{
 };
 pub use self::readiness::{
     BenchReadinessCommand, BenchReadinessRenderAdapterMissingInputTestsArgs,
-    BenchReadinessRenderAllDomainActiveStageCatalogArgs, BenchReadinessRenderAllDomainCommandsArgs,
-    BenchReadinessRenderAllDomainCompletionCheckArgs,
+    BenchReadinessRenderAllDomainActiveStageCatalogArgs,
+    BenchReadinessRenderAllDomainActiveStageToolMatrixArgs,
+    BenchReadinessRenderAllDomainCommandsArgs, BenchReadinessRenderAllDomainCompletionCheckArgs,
     BenchReadinessRenderAllDomainExpectedBenchmarkResultsArgs,
     BenchReadinessRenderAllDomainFailureClassificationArgs,
     BenchReadinessRenderAllDomainHarnessReadyArgs,

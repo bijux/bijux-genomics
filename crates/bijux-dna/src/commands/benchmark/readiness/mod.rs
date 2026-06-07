@@ -2,6 +2,7 @@
 mod adapter_missing_input_contracts;
 pub(crate) mod adapter_missing_input_tests;
 pub(crate) mod all_domain_active_stage_catalog;
+pub(crate) mod all_domain_active_stage_tool_matrix;
 pub(crate) mod all_domain_completion_check;
 pub(crate) mod all_domain_expected_benchmark_results;
 pub(crate) mod all_domain_failure_classification;

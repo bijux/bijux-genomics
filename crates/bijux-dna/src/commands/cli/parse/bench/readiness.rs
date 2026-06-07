@@ -116,6 +116,8 @@ pub enum BenchReadinessCommand {
     RenderAllDomainCommands(BenchReadinessRenderAllDomainCommandsArgs),
     #[command(name = "render-all-domain-active-stage-catalog")]
     RenderAllDomainActiveStageCatalog(BenchReadinessRenderAllDomainActiveStageCatalogArgs),
+    #[command(name = "render-all-domain-active-stage-tool-matrix")]
+    RenderAllDomainActiveStageToolMatrix(BenchReadinessRenderAllDomainActiveStageToolMatrixArgs),
     #[command(name = "render-all-domain-retained-tools")]
     RenderAllDomainRetainedTools(BenchReadinessRenderAllDomainRetainedToolsArgs),
     #[command(name = "render-all-domain-stage-tool-table")]
@@ -792,6 +794,14 @@ pub struct BenchReadinessRenderAllDomainCommandsArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderAllDomainActiveStageCatalogArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderAllDomainActiveStageToolMatrixArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
