@@ -4,6 +4,7 @@ pub(crate) mod adapter_missing_input_tests;
 pub(crate) mod all_domain_completion_check;
 pub(crate) mod all_domain_expected_benchmark_results;
 pub(crate) mod all_domain_output_declarations;
+pub(crate) mod all_domain_parser_collector;
 pub(crate) mod all_domain_rendered_commands;
 pub(crate) mod all_domain_stage_tool_table;
 pub(crate) mod bam_adapter_output_contract;

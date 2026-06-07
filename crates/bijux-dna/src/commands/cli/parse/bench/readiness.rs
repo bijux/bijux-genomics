@@ -691,6 +691,14 @@ pub struct BenchReadinessRenderAllDomainCompletionCheckArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct BenchReadinessRenderAllDomainParserCollectorArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
 pub struct BenchReadinessRenderAllDomainOutputDeclarationsArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
