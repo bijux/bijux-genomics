@@ -186,6 +186,12 @@ Visible aliases are part of the operator surface:
   `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `expected_outputs`,
   `expected_metrics`, and `report_section` explicit, and the command fails closed unless result
   identities stay unique and stable across all governed benchmark-ready domains.
+- `bijux-dna bench readiness render-all-domain-output-declarations`
+  `render-all-domain-output-declarations` writes
+  `target/bench-readiness/output-declarations-all-domains.tsv` with one governed row per
+  benchmark-ready FASTQ, BAM, and VCF result binding. Each row keeps raw outputs, normalized
+  metrics outputs, logs, result manifest, and index outputs explicit, and the command fails closed
+  unless every governed result keeps complete output declarations.
 - `bijux-dna bench readiness render-missing-result-report`
   `render-missing-result-report` writes `target/bench-readiness/missing-result-report-test.json`
   with one governed row per expected FASTQ or BAM benchmark result, materializes a controlled
