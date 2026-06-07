@@ -5,10 +5,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
-use super::all_domain_active_stage_catalog::collect_all_domain_active_stage_catalog_rows;
-use super::all_domain_stage_tool_table::{
-    collect_all_domain_stage_tool_table_rows, AllDomainStageToolTableRow,
-};
+use super::all_domain_stage_tool_table::collect_all_domain_stage_tool_table_rows;
 use super::bam_command_adapter_coverage::{
     collect_bam_command_adapter_coverage_rows, BamBenchmarkStatus,
 };
@@ -26,10 +23,10 @@ pub(crate) const DEFAULT_ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_PATH: &str =
     "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv";
 const ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_active_stage_tool_matrix.v1";
-const STATUS_BENCHMARK_READY: &str = "benchmark_ready";
-const STATUS_NOT_BENCHMARK_READY: &str = "not_benchmark_ready";
-const STATUS_PLANNED: &str = "planned";
-const STATUS_FUTURE: &str = "future";
+pub(crate) const STATUS_BENCHMARK_READY: &str = "benchmark_ready";
+pub(crate) const STATUS_NOT_BENCHMARK_READY: &str = "not_benchmark_ready";
+pub(crate) const STATUS_PLANNED: &str = "planned";
+pub(crate) const STATUS_FUTURE: &str = "future";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct BindingKey {
@@ -123,6 +120,17 @@ pub(crate) fn render_all_domain_active_stage_tool_matrix(
 pub(crate) fn collect_all_domain_active_stage_tool_matrix_rows(
     repo_root: &Path,
 ) -> Result<Vec<AllDomainActiveStageToolMatrixRow>> {
+    let rows = collect_all_domain_active_stage_tool_matrix_candidate_rows(repo_root)?
+        .into_iter()
+        .filter(|row| is_active_scope_status(&row.status))
+        .collect::<Vec<_>>();
+    ensure_all_domain_active_stage_tool_matrix_contract(repo_root, &rows)?;
+    Ok(rows)
+}
+
+pub(crate) fn collect_all_domain_active_stage_tool_matrix_candidate_rows(
+    repo_root: &Path,
+) -> Result<Vec<AllDomainActiveStageToolMatrixRow>> {
     let base_rows = collect_all_domain_stage_tool_table_rows(repo_root)?;
     let status_by_binding = collect_status_by_binding(repo_root)?;
     let schema_id_by_stage = collect_schema_id_by_stage()?;
@@ -170,7 +178,6 @@ pub(crate) fn collect_all_domain_active_stage_tool_matrix_rows(
             .then_with(|| left.stage_id.cmp(&right.stage_id))
             .then_with(|| left.tool_id.cmp(&right.tool_id))
     });
-    ensure_all_domain_active_stage_tool_matrix_contract(repo_root, &base_rows, &rows)?;
     Ok(rows)
 }
 
@@ -219,7 +226,6 @@ fn collect_schema_id_by_stage() -> Result<BTreeMap<(String, String), String>> {
 
 fn ensure_all_domain_active_stage_tool_matrix_contract(
     repo_root: &Path,
-    base_rows: &[AllDomainStageToolTableRow],
     rows: &[AllDomainActiveStageToolMatrixRow],
 ) -> Result<()> {
     let row_keys = rows
@@ -232,25 +238,39 @@ fn ensure_all_domain_active_stage_tool_matrix_contract(
         ));
     }
 
-    let base_keys = base_rows
-        .iter()
+    let base_keys = collect_all_domain_active_stage_tool_matrix_candidate_rows(repo_root)?
+        .into_iter()
+        .filter(|row| is_active_scope_status(&row.status))
         .map(|row| binding_key(&row.domain, &row.stage_id, &row.tool_id))
         .collect::<BTreeSet<_>>();
     if row_keys != base_keys {
         return Err(anyhow!(
-            "all-domain active stage-tool matrix drifted from the governed all-domain stage-tool surface"
+            "all-domain active stage-tool matrix drifted from the governed active-scope stage-tool surface"
         ));
     }
 
-    let active_stage_keys = collect_all_domain_active_stage_catalog_rows(repo_root)?
+    let active_stage_keys = collect_all_domain_active_stage_tool_matrix_candidate_rows(repo_root)?
         .into_iter()
+        .filter(|row| is_active_scope_status(&row.status))
         .map(|row| (row.domain, row.stage_id))
         .collect::<BTreeSet<_>>();
     let matrix_stage_keys =
         rows.iter().map(|row| (row.domain.clone(), row.stage_id.clone())).collect::<BTreeSet<_>>();
     if matrix_stage_keys != active_stage_keys {
         return Err(anyhow!(
-            "all-domain active stage-tool matrix drifted from the governed all-domain active stage catalog"
+            "all-domain active stage-tool matrix drifted from the governed active-scope stage coverage"
+        ));
+    }
+
+    let active_tool_keys = collect_all_domain_active_stage_tool_matrix_candidate_rows(repo_root)?
+        .into_iter()
+        .filter(|row| is_active_scope_status(&row.status))
+        .map(|row| row.tool_id)
+        .collect::<BTreeSet<_>>();
+    let matrix_tool_keys = rows.iter().map(|row| row.tool_id.clone()).collect::<BTreeSet<_>>();
+    if matrix_tool_keys != active_tool_keys {
+        return Err(anyhow!(
+            "all-domain active stage-tool matrix drifted from the governed active-scope tool coverage"
         ));
     }
 
@@ -287,6 +307,10 @@ fn ensure_all_domain_active_stage_tool_matrix_contract(
     }
 
     Ok(())
+}
+
+pub(crate) fn is_active_scope_status(status: &str) -> bool {
+    matches!(status, STATUS_BENCHMARK_READY | STATUS_NOT_BENCHMARK_READY)
 }
 
 fn render_all_domain_active_stage_tool_matrix_tsv(
