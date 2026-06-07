@@ -20,9 +20,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_FAILURE_ISOLATION_REPORT_PATH: &str =
-    "target/bench-readiness/essential-pipeline-failure-isolation.json";
+    "benchmarks/readiness/essential-pipeline-failure-isolation.json";
 const DEFAULT_ESSENTIAL_PIPELINE_FAILURE_ISOLATION_SIMULATION_ROOT: &str =
-    "target/bench-readiness/essential-pipeline-failure-isolation-tree";
+    "benchmarks/readiness/essential-pipeline-failure-isolation-tree";
 const ESSENTIAL_PIPELINE_FAILURE_ISOLATION_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.essential_pipeline_failure_isolation.v1";
 const SEEDED_FAILED_PIPELINE_ID: &str = "relatedness-segments-vcf";

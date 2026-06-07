@@ -15,7 +15,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_ANGSD_ADAPTER_PATH: &str =
-    "target/bench-readiness/adapters/angsd.vcf.json";
+    "benchmarks/readiness/adapters/angsd.vcf.json";
 const VCF_ANGSD_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_angsd_adapter.v1";
 const GOVERNED_ANGSD_TOOL_ID: &str = "angsd";
 const GOVERNED_ANGSD_TOOL_STATUS: &str = "planned";
@@ -207,7 +207,7 @@ fn build_angsd_row(
     let parser_id = vcf_domain_stage_parser_id(stage)
         .ok_or_else(|| anyhow!("VCF angsd adapter row `{stage_id}` is missing parser id"))?;
     let output_root =
-        format!("target/bench-readiness/adapters/{}/{}", GOVERNED_ANGSD_TOOL_ID, stage_id);
+        format!("benchmarks/readiness/adapters/{}/{}", GOVERNED_ANGSD_TOOL_ID, stage_id);
     let bam_member_paths =
         if uses_bam_inputs(stage) { vec![GOVERNED_BAM_PATH.to_string()] } else { Vec::new() };
     let bam_list_path = if uses_bam_inputs(stage) {

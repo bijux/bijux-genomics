@@ -9,7 +9,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_RENDERED_COMMAND_ARGV_PATH: &str =
-    "target/bench-readiness/rendered-commands.argv.jsonl";
+    "benchmarks/readiness/rendered-commands.argv.jsonl";
 const RENDERED_COMMAND_ARGV_SCHEMA_VERSION: &str = "bijux.bench.readiness.rendered_command_argv.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -138,7 +138,7 @@ mod tests {
             .expect("render command argv");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.rendered_command_argv.v1");
-        assert_eq!(report.output_path, "target/bench-readiness/rendered-commands.argv.jsonl");
+        assert_eq!(report.output_path, "benchmarks/readiness/rendered-commands.argv.jsonl");
         assert_eq!(report.row_count, 112);
         assert_eq!(report.rows.len(), 112);
         assert!(report.rows.iter().all(|row| !row.argv.is_empty()));

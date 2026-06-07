@@ -18,7 +18,7 @@ fn render_adapter_missing_input_tests_reports_governed_probe_rows() {
     .expect("render adapter missing-input tests");
 
     assert_eq!(report.schema_version, "bijux.bench.readiness.adapter_missing_input_tests.v1");
-    assert_eq!(report.output_path, "target/bench-readiness/adapter-missing-input-tests.json");
+    assert_eq!(report.output_path, "benchmarks/readiness/adapter-missing-input-tests.json");
     assert_eq!(report.row_count, 33);
     assert_eq!(report.passed_row_count, 33);
     assert_eq!(report.failed_row_count, 0);

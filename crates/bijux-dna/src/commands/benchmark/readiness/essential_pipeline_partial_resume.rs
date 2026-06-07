@@ -20,9 +20,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_PARTIAL_RESUME_REPORT_PATH: &str =
-    "target/bench-readiness/essential-pipeline-partial-resume.json";
+    "benchmarks/readiness/essential-pipeline-partial-resume.json";
 const DEFAULT_ESSENTIAL_PIPELINE_PARTIAL_RESUME_SIMULATION_ROOT: &str =
-    "target/bench-readiness/essential-pipeline-partial-resume-tree";
+    "benchmarks/readiness/essential-pipeline-partial-resume-tree";
 const ESSENTIAL_PIPELINE_PARTIAL_RESUME_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.essential_pipeline_partial_resume.v1";
 const SEEDED_INVALID_PIPELINE_ID: &str = "relatedness-segments-vcf";

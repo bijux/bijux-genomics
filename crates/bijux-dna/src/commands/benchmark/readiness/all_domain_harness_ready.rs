@@ -50,7 +50,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_HARNESS_READY_PATH: &str =
-    "target/bench-readiness/ALL_DOMAIN_HARNESS_READY.json";
+    "benchmarks/readiness/ALL_DOMAIN_HARNESS_READY.json";
 const ALL_DOMAIN_HARNESS_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_harness_ready.v1";
 const CANONICAL_BENCHMARK_READY_RESULT_COUNT: usize = 120;

@@ -12,7 +12,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_TOOL_CENTRIC_REPORT_PATH: &str =
-    "target/bench-readiness/tool-centric-report.md";
+    "benchmarks/readiness/tool-centric-report.md";
 const TOOL_CENTRIC_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.tool_centric_report.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

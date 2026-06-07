@@ -13,7 +13,7 @@ use super::tool_serving_map::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_ORPHAN_TOOLS_PATH: &str = "target/bench-readiness/orphan-tools.tsv";
+pub(crate) const DEFAULT_ORPHAN_TOOLS_PATH: &str = "benchmarks/readiness/orphan-tools.tsv";
 const ORPHAN_TOOLS_SCHEMA_VERSION: &str = "bijux.bench.readiness.orphan_tools.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

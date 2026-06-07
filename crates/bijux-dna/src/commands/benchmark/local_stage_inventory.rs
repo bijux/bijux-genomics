@@ -14,7 +14,7 @@ const LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_VERSION: &str =
 const VCF_LOCAL_STAGE_READINESS_KIND: LocalStageReadinessKind = LocalStageReadinessKind::Smoke;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_STAGE_LIST_PATH: &str =
-    "target/bench-readiness/all-domain-stage-list.json";
+    "benchmarks/readiness/all-domain-stage-list.json";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum BenchLocalDomain {
@@ -359,7 +359,7 @@ mod tests {
         )
         .expect("render all-domain local stage inventory");
 
-        assert_eq!(report.output_path, "target/bench-readiness/all-domain-stage-list.json");
+        assert_eq!(report.output_path, "benchmarks/readiness/all-domain-stage-list.json");
         assert_eq!(
             report.selected_domains,
             vec!["fastq".to_string(), "bam".to_string(), "vcf".to_string()]

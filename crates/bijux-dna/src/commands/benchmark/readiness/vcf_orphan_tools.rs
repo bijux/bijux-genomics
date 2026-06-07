@@ -10,8 +10,7 @@ use crate::commands::benchmark::local_vcf_stage_matrix::build_vcf_stage_matrix_r
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_VCF_ORPHAN_TOOLS_PATH: &str =
-    "target/bench-readiness/vcf-orphan-tools.tsv";
+pub(crate) const DEFAULT_VCF_ORPHAN_TOOLS_PATH: &str = "benchmarks/readiness/vcf-orphan-tools.tsv";
 const VCF_ORPHAN_TOOLS_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_orphan_tools.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

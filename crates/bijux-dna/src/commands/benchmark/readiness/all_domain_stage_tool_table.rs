@@ -23,7 +23,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_STAGE_TOOL_TABLE_PATH: &str =
-    "target/bench-readiness/all-domain-stage-tool-table.tsv";
+    "benchmarks/readiness/all-domain-stage-tool-table.tsv";
 const ALL_DOMAIN_STAGE_TOOL_TABLE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_stage_tool_table.v1";
 const NOT_ASSIGNED: &str = "not_assigned";

@@ -22,7 +22,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_PATH: &str =
-    "target/bench-readiness/essential-pipelines-rendered-commands.sh";
+    "benchmarks/readiness/essential-pipelines-rendered-commands.sh";
 const ESSENTIAL_PIPELINE_RENDERED_COMMANDS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.essential_pipeline_rendered_commands.v1";
 
@@ -782,11 +782,11 @@ mod tests {
         );
         assert_eq!(
             report.output_path,
-            "target/bench-readiness/essential-pipelines-rendered-commands.sh"
+            "benchmarks/readiness/essential-pipelines-rendered-commands.sh"
         );
         assert_eq!(
             report.argv_output_path,
-            "target/bench-readiness/essential-pipelines-rendered-commands.argv.jsonl"
+            "benchmarks/readiness/essential-pipelines-rendered-commands.argv.jsonl"
         );
         assert_eq!(report.pipeline_count, 10);
         assert_eq!(report.row_count, report.rows.len());

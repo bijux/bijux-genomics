@@ -31,9 +31,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BENCHMARK_READINESS_DASHBOARD_MARKDOWN_PATH: &str =
-    "target/bench-readiness/FASTQ_BAM_BENCHMARK_READINESS.md";
+    "benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.md";
 pub(crate) const DEFAULT_BENCHMARK_READINESS_DASHBOARD_JSON_PATH: &str =
-    "target/bench-readiness/FASTQ_BAM_BENCHMARK_READINESS.json";
+    "benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.json";
 const BENCHMARK_READINESS_DASHBOARD_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.benchmark_readiness_dashboard.v1";
 
@@ -309,8 +309,8 @@ fn summarize_adapters(pair_rows: &[PairReadinessRow]) -> BenchmarkReadinessAdapt
         attention_required_pair_count,
         status_counts,
         output_paths: vec![
-            "target/bench-readiness/fastq-command-adapter-coverage.tsv".to_string(),
-            "target/bench-readiness/bam-command-adapter-coverage.tsv".to_string(),
+            "benchmarks/readiness/fastq-command-adapter-coverage.tsv".to_string(),
+            "benchmarks/readiness/bam-command-adapter-coverage.tsv".to_string(),
         ],
     }
 }
@@ -382,8 +382,8 @@ fn summarize_corpora(
         assigned_stage_count,
         status_counts,
         output_paths: vec![
-            "target/bench-readiness/fastq-corpus-assignment.tsv".to_string(),
-            "target/bench-readiness/bam-corpus-assignment.tsv".to_string(),
+            "benchmarks/readiness/fastq-corpus-assignment.tsv".to_string(),
+            "benchmarks/readiness/bam-corpus-assignment.tsv".to_string(),
             DEFAULT_CORPUS_CENTRIC_REPORT_PATH.to_string(),
         ],
     })
@@ -822,9 +822,9 @@ mod tests {
         assert!(markdown.contains("| Matrix | attention_required | all governed fastq and bam stage-tool pairs | 123 | 112 | 11 | stages=51, tools=67, gaps=corpus=6, none=112, support=5 |"));
         assert!(markdown.contains("| Corpora | attention_required | all governed fastq and bam stage-tool pairs | 123 | 117 | 6 | corpora=7, assigned stages=48, statuses=fixture:corpus-01-adna-bam-mini=7, fixture:corpus-01-adna-damage-mini=9, fixture:corpus-01-bam-mini=28, fixture:corpus-01-genotyping-mini=1, fixture:corpus-01-kinship-mini=2, fixture:corpus-01-mini=60, fixture:corpus-02-edna-mini=4, fixture:corpus-03-amplicon-mini=6, planner_only=6 |"));
         assert!(markdown.contains(
-            "| pair_readiness | target/bench-readiness/pair-readiness.tsv | 123 stage_tool_pairs |"
+            "| pair_readiness | benchmarks/readiness/pair-readiness.tsv | 123 stage_tool_pairs |"
         ));
-        assert!(markdown.contains("| corpus_centric_report | target/bench-readiness/corpus-centric-report.md | 7 corpus_sections |"));
+        assert!(markdown.contains("| corpus_centric_report | benchmarks/readiness/corpus-centric-report.md | 7 corpus_sections |"));
         assert!(markdown.contains("| fastq | fastq.index_reference | bowtie2_build | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | assigned |"));
         assert!(markdown.contains("| fastq | fastq.trim_reads | seqpurge | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |"));
         assert!(markdown.contains("| fastq | fastq.report_qc | multiqc | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |"));

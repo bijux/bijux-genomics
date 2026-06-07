@@ -11,7 +11,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_UNDERCOVERED_STAGES_PATH: &str =
-    "target/bench-readiness/vcf-undercovered-stages.tsv";
+    "benchmarks/readiness/vcf-undercovered-stages.tsv";
 const VCF_UNDERCOVERED_STAGES_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_undercovered_stages.v1";
 

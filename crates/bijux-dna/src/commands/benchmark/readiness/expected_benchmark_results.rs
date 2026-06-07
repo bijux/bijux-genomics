@@ -30,7 +30,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_EXPECTED_BENCHMARK_RESULTS_PATH: &str =
-    "target/bench-readiness/expected-benchmark-results.tsv";
+    "benchmarks/readiness/expected-benchmark-results.tsv";
 const EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.expected_benchmark_results.v1";
 

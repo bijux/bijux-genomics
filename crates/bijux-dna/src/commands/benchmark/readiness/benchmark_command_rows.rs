@@ -353,7 +353,7 @@ fn render_bam_stage_tool_argv(
 
 fn benchmark_command_out_dir(domain: &str, stage_id: &str, tool_id: &str) -> Result<PathBuf> {
     let stage_path = stage_id.replace('.', "/");
-    Ok(PathBuf::from("target/bench-readiness/stage-tool-commands")
+    Ok(PathBuf::from("benchmarks/readiness/stage-tool-commands")
         .join(domain)
         .join(stage_path)
         .join(tool_id))

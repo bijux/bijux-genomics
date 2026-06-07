@@ -17,9 +17,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH: &str =
-    "target/bench-readiness/parser-collector-all-domains.json";
+    "benchmarks/readiness/parser-collector-all-domains.json";
 const DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_FIXTURE_ROOT: &str =
-    "target/bench-readiness/parser-collector-all-domains-fixture";
+    "benchmarks/readiness/parser-collector-all-domains-fixture";
 const ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_parser_collector.v1";
 
@@ -600,11 +600,11 @@ mod tests {
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH);
         assert_eq!(
             report.fixture_root,
-            "target/bench-readiness/parser-collector-all-domains-fixture"
+            "benchmarks/readiness/parser-collector-all-domains-fixture"
         );
         assert_eq!(
             report.fake_run_root,
-            "target/bench-readiness/parser-collector-all-domains-fixture/fake-runs"
+            "benchmarks/readiness/parser-collector-all-domains-fixture/fake-runs"
         );
         assert_eq!(report.row_count, 123);
         assert_eq!(report.fake_run_row_count, 120);

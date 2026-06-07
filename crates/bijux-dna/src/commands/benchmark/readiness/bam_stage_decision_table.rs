@@ -16,7 +16,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_STAGE_DECISION_TABLE_PATH: &str =
-    "target/bench-readiness/bam-stage-decision-table.tsv";
+    "benchmarks/readiness/bam-stage-decision-table.tsv";
 const BAM_STAGE_DECISION_TABLE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_stage_decision_table.v1";
 

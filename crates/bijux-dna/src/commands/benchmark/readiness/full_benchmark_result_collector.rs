@@ -38,7 +38,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FULL_BENCHMARK_RESULT_COLLECTOR_PATH: &str =
-    "target/bench-readiness/full-result-collector-test.json";
+    "benchmarks/readiness/full-result-collector-test.json";
 const FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.full_benchmark_result_collector.v1";
 

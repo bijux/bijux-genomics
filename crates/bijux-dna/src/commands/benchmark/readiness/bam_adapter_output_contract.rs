@@ -16,7 +16,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_ADAPTER_OUTPUT_CONTRACT_PATH: &str =
-    "target/bench-readiness/bam-adapter-output-contract.tsv";
+    "benchmarks/readiness/bam-adapter-output-contract.tsv";
 const BAM_ADAPTER_OUTPUT_CONTRACT_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_adapter_output_contract.v1";
 

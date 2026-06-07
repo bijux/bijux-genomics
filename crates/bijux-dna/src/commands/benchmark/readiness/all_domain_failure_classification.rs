@@ -27,9 +27,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH: &str =
-    "target/bench-readiness/failure-classification-all-domains.json";
+    "benchmarks/readiness/failure-classification-all-domains.json";
 const DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_FIXTURE_ROOT: &str =
-    "target/bench-readiness/failure-classification-all-domains-fixture";
+    "benchmarks/readiness/failure-classification-all-domains-fixture";
 const ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_failure_classification.v1";
 const INSUFFICIENT_DATA_FIXTURE_PATH: &str =
@@ -567,7 +567,7 @@ mod tests {
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH);
         assert_eq!(
             report.fixture_root,
-            "target/bench-readiness/failure-classification-all-domains-fixture"
+            "benchmarks/readiness/failure-classification-all-domains-fixture"
         );
         assert_eq!(report.row_count, 7);
         assert_eq!(report.triggered_row_count, 7);

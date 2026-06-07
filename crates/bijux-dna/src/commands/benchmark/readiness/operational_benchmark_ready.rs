@@ -63,7 +63,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH: &str =
-    "target/bench-readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json";
+    "benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json";
 const OPERATIONAL_BENCHMARK_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.operational_benchmark_ready.v1";
 
@@ -1233,7 +1233,7 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.operational_benchmark_ready.v1");
         assert_eq!(
             report.output_path,
-            "target/bench-readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json"
+            "benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json"
         );
         assert_eq!(report.benchmark_ready_row_count, 120);
         assert_eq!(report.blocker_count, 0);

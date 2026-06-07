@@ -21,7 +21,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_CORPUS_ASSIGNMENT_PATH: &str =
-    "target/bench-readiness/fastq-corpus-assignment.tsv";
+    "benchmarks/readiness/fastq-corpus-assignment.tsv";
 const FASTQ_CORPUS_ASSIGNMENT_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_corpus_assignment.v1";
 

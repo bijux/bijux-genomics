@@ -9,7 +9,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_PARSER_COVERAGE_PATH: &str =
-    "target/bench-readiness/fastq-parser-coverage.tsv";
+    "benchmarks/readiness/fastq-parser-coverage.tsv";
 const FASTQ_PARSER_COVERAGE_SCHEMA_VERSION: &str = "bijux.bench.readiness.fastq_parser_coverage.v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

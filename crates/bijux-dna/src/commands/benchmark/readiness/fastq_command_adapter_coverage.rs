@@ -12,7 +12,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_COMMAND_ADAPTER_COVERAGE_PATH: &str =
-    "target/bench-readiness/fastq-command-adapter-coverage.tsv";
+    "benchmarks/readiness/fastq-command-adapter-coverage.tsv";
 const FASTQ_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_command_adapter_coverage.v1";
 

@@ -35,7 +35,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_CORPUS_INCOMPATIBILITY_PATH: &str =
-    "target/bench-readiness/corpus-incompatibility.tsv";
+    "benchmarks/readiness/corpus-incompatibility.tsv";
 const CORPUS_INCOMPATIBILITY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.corpus_incompatibility.v1";
 const NOT_APPLICABLE: &str = "not_applicable";

@@ -10,7 +10,7 @@ use super::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_VCF_REPORT_MAP_PATH: &str = "target/bench-readiness/vcf-report-map.tsv";
+pub(crate) const DEFAULT_VCF_REPORT_MAP_PATH: &str = "benchmarks/readiness/vcf-report-map.tsv";
 const VCF_REPORT_MAP_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_report_map.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

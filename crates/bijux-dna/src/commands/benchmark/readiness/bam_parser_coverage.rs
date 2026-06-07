@@ -12,7 +12,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_PARSER_COVERAGE_PATH: &str =
-    "target/bench-readiness/bam-parser-coverage.tsv";
+    "benchmarks/readiness/bam-parser-coverage.tsv";
 const BAM_PARSER_COVERAGE_SCHEMA_VERSION: &str = "bijux.bench.readiness.bam_parser_coverage.v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

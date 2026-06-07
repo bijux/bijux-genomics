@@ -34,7 +34,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_CORPUS_ASSIGNMENT_PATH: &str =
-    "target/bench-readiness/bam-corpus-assignment.tsv";
+    "benchmarks/readiness/bam-corpus-assignment.tsv";
 const BAM_CORPUS_ASSIGNMENT_SCHEMA_VERSION: &str = "bijux.bench.readiness.bam_corpus_assignment.v3";
 const DEFAULT_LOCAL_AUTHENTICITY_CONFIG_PATH: &str =
     "benchmarks/configs/local/bam-authenticity.toml";

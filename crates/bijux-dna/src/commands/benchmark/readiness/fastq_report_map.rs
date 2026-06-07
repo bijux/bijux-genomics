@@ -17,8 +17,7 @@ use crate::commands::benchmark::local_stage_inventory::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_FASTQ_REPORT_MAP_PATH: &str =
-    "target/bench-readiness/fastq-report-map.tsv";
+pub(crate) const DEFAULT_FASTQ_REPORT_MAP_PATH: &str = "benchmarks/readiness/fastq-report-map.tsv";
 const FASTQ_REPORT_MAP_SCHEMA_VERSION: &str = "bijux.bench.readiness.fastq_report_map.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

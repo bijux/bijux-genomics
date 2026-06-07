@@ -21,7 +21,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_IMPUTATION_FAMILY_ADAPTER_PATH: &str =
-    "target/bench-readiness/adapters/imputation-family.vcf.json";
+    "benchmarks/readiness/adapters/imputation-family.vcf.json";
 const VCF_IMPUTATION_FAMILY_ADAPTER_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_imputation_family_adapter.v1";
 const GOVERNED_IMPUTATION_STAGE_IDS: [&str; 2] = ["vcf.imputation", "vcf.impute"];
@@ -259,10 +259,8 @@ fn build_imputation_family_row(
     let asset_profile_id = matrix_row
         .map(|row| row.asset_profile_id.clone())
         .unwrap_or_else(|| "vcf_cohort_with_panel".to_string());
-    let output_root = format!(
-        "target/bench-readiness/adapters/imputation/{}/{}",
-        registry_tool.tool_id, stage_id
-    );
+    let output_root =
+        format!("benchmarks/readiness/adapters/imputation/{}/{}", registry_tool.tool_id, stage_id);
     let output_prefix = format!("{output_root}/imputed");
     let materialized_inputs = materialize_panel_inputs(repo_root, &output_root)?;
     let (target_vcf_path, target_vcf_index_path) = materialize_indexed_vcf_input(

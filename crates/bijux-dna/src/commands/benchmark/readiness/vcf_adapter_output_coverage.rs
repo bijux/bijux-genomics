@@ -31,7 +31,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_ADAPTER_OUTPUT_COVERAGE_PATH: &str =
-    "target/bench-readiness/vcf-adapter-output-coverage.tsv";
+    "benchmarks/readiness/vcf-adapter-output-coverage.tsv";
 const VCF_ADAPTER_OUTPUT_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_adapter_output_coverage.v1";
 

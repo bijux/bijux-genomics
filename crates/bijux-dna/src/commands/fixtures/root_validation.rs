@@ -9,7 +9,7 @@ use crate::commands::benchmark::local_taxonomy_database_fixture::TAXONOMY_DATABA
 use crate::commands::fixtures::expected::vcf::validate_vcf_expected_truth_manifest_path;
 
 pub(crate) const DEFAULT_BENCHMARK_FIXTURE_ROOT_VALIDATION_REPORT_PATH: &str =
-    "target/bench-readiness/benchmark-fixture-root-validation.json";
+    "benchmarks/readiness/benchmark-fixture-root-validation.json";
 const BENCHMARK_FIXTURE_ROOT_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.fixture_root_validation.v1";
 const PARSER_FIXTURE_DOMAINS: &[&str] = &["fastq", "bam", "vcf"];

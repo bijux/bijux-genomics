@@ -14,7 +14,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_CORPUS_CENTRIC_REPORT_PATH: &str =
-    "target/bench-readiness/corpus-centric-report.md";
+    "benchmarks/readiness/corpus-centric-report.md";
 const CORPUS_CENTRIC_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.corpus_centric_report.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

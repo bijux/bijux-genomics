@@ -15,7 +15,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_TOOL_SERVING_MAP_PATH: &str =
-    "target/bench-readiness/vcf-tool-serving-map.tsv";
+    "benchmarks/readiness/vcf-tool-serving-map.tsv";
 const VCF_TOOL_SERVING_MAP_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_tool_serving_map.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

@@ -20,9 +20,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH: &str =
-    "target/bench-readiness/missing-result-test-all-domains.json";
+    "benchmarks/readiness/missing-result-test-all-domains.json";
 const DEFAULT_ALL_DOMAIN_MISSING_RESULT_FIXTURE_ROOT: &str =
-    "target/bench-readiness/missing-result-test-all-domains-fixture";
+    "benchmarks/readiness/missing-result-test-all-domains-fixture";
 const ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_missing_result_test.v1";
 
@@ -475,7 +475,7 @@ mod tests {
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH);
         assert_eq!(
             report.fake_result_root,
-            "target/bench-readiness/missing-result-test-all-domains-fixture"
+            "benchmarks/readiness/missing-result-test-all-domains-fixture"
         );
         assert_eq!(report.expected_row_count, 120);
         assert_eq!(report.present_result_row_count, 117);

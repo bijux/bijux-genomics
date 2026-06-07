@@ -15,7 +15,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_PARSER_COMPLETENESS_GATE_PATH: &str =
-    "target/bench-readiness/gate-parser-complete.json";
+    "benchmarks/readiness/gate-parser-complete.json";
 const PARSER_COMPLETENESS_GATE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.parser_completeness_gate.v1";
 

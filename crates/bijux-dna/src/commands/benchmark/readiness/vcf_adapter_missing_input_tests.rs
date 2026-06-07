@@ -15,7 +15,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH: &str =
-    "target/bench-readiness/vcf-adapter-missing-input-tests.json";
+    "benchmarks/readiness/vcf-adapter-missing-input-tests.json";
 const VCF_ADAPTER_MISSING_INPUT_TESTS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_adapter_missing_input_tests.v1";
 

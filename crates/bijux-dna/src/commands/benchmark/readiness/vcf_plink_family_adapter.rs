@@ -20,9 +20,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_PLINK_ADAPTER_PATH: &str =
-    "target/bench-readiness/adapters/plink.vcf.json";
+    "benchmarks/readiness/adapters/plink.vcf.json";
 pub(crate) const DEFAULT_VCF_PLINK2_ADAPTER_PATH: &str =
-    "target/bench-readiness/adapters/plink2.vcf.json";
+    "benchmarks/readiness/adapters/plink2.vcf.json";
 const VCF_PLINK_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_plink_adapter.v1";
 const VCF_PLINK2_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_plink2_adapter.v1";
 const GOVERNED_COHORT_VCF_PATH: &str =
@@ -233,7 +233,7 @@ fn build_plink_family_row(
         .map(|row| row.asset_profile_id.clone())
         .unwrap_or_else(|| "vcf_cohort".to_string());
     let output_root =
-        format!("target/bench-readiness/adapters/{}/{}", registry_tool.tool_id, stage_id);
+        format!("benchmarks/readiness/adapters/{}/{}", registry_tool.tool_id, stage_id);
     let output_prefix = format!("{output_root}/{}", stage_output_name_hint(stage));
     let fixture_inputs = load_governed_vcf_fixture_inputs(repo_root)?;
     let required_inputs = governed_inputs_for_stage(stage, &fixture_inputs.sample_metadata_path);

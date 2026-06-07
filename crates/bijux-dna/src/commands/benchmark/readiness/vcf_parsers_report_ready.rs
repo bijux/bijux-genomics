@@ -30,7 +30,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_PARSERS_REPORT_READY_PATH: &str =
-    "target/bench-readiness/VCF_PARSERS_REPORT_READY.json";
+    "benchmarks/readiness/VCF_PARSERS_REPORT_READY.json";
 const VCF_PARSERS_REPORT_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_parsers_report_ready.v1";
 
@@ -636,7 +636,7 @@ mod tests {
             VcfParsersReportReadyGoalCheck {
                 goal_id: 246,
                 surface: "vcf normalized metrics schemas".to_string(),
-                output_path: Some("target/bench-readiness/vcf-schema-validation.json".to_string()),
+                output_path: Some("benchmarks/readiness/vcf-schema-validation.json".to_string()),
                 ok: true,
                 detail: "ok".to_string(),
             },

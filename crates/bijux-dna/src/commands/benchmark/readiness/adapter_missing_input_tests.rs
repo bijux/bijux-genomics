@@ -10,7 +10,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ADAPTER_MISSING_INPUT_TESTS_PATH: &str =
-    "target/bench-readiness/adapter-missing-input-tests.json";
+    "benchmarks/readiness/adapter-missing-input-tests.json";
 const ADAPTER_MISSING_INPUT_TESTS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.adapter_missing_input_tests.v1";
 const FASTQ_DOMAIN: &str = "fastq";
@@ -571,7 +571,7 @@ fn readiness_output_dir(
     tool_id: &str,
     missing_input_role: &str,
 ) -> String {
-    format!("target/bench-readiness/{probe_kind}/{stage_id}/{tool_id}/missing-{missing_input_role}")
+    format!("benchmarks/readiness/{probe_kind}/{stage_id}/{tool_id}/missing-{missing_input_role}")
 }
 
 fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {

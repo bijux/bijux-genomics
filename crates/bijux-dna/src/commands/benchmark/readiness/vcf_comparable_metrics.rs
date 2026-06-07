@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_COMPARABLE_METRICS_PATH: &str =
-    "target/bench-readiness/vcf-comparable-metrics.tsv";
+    "benchmarks/readiness/vcf-comparable-metrics.tsv";
 const VCF_COMPARABLE_METRICS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_comparable_metrics.v1";
 

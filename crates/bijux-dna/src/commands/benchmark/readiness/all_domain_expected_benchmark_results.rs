@@ -20,7 +20,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH: &str =
-    "target/bench-readiness/expected-benchmark-results-all-domains.tsv";
+    "benchmarks/readiness/expected-benchmark-results-all-domains.tsv";
 const ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_expected_benchmark_results.v1";
 

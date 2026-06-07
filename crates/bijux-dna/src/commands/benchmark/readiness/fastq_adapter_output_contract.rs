@@ -16,7 +16,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_ADAPTER_OUTPUT_CONTRACT_PATH: &str =
-    "target/bench-readiness/fastq-adapter-output-contract.tsv";
+    "benchmarks/readiness/fastq-adapter-output-contract.tsv";
 const FASTQ_ADAPTER_OUTPUT_CONTRACT_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_adapter_output_contract.v1";
 

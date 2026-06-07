@@ -12,7 +12,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_COMMAND_ADAPTER_COVERAGE_PATH: &str =
-    "target/bench-readiness/bam-command-adapter-coverage.tsv";
+    "benchmarks/readiness/bam-command-adapter-coverage.tsv";
 const BAM_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_command_adapter_coverage.v1";
 

@@ -41,7 +41,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_TOOL_BENCHMARK_READY_PATH: &str =
-    "target/bench-readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json";
+    "benchmarks/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json";
 const STAGE_TOOL_BENCHMARK_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_bam_stage_tool_benchmark_ready.v1";
 

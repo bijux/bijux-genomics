@@ -18,7 +18,7 @@ use crate::commands::benchmark::local_stage_inventory::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_BAM_REPORT_MAP_PATH: &str = "target/bench-readiness/bam-report-map.tsv";
+pub(crate) const DEFAULT_BAM_REPORT_MAP_PATH: &str = "benchmarks/readiness/bam-report-map.tsv";
 const BAM_REPORT_MAP_SCHEMA_VERSION: &str = "bijux.bench.readiness.bam_report_map.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

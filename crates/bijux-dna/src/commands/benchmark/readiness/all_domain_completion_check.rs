@@ -23,9 +23,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_PATH: &str =
-    "target/bench-readiness/completion-check-all-domains.json";
+    "benchmarks/readiness/completion-check-all-domains.json";
 const DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_FIXTURE_ROOT: &str =
-    "target/bench-readiness/completion-check-all-domains-fixture";
+    "benchmarks/readiness/completion-check-all-domains-fixture";
 const ALL_DOMAIN_COMPLETION_CHECK_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_completion_check.v1";
 

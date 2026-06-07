@@ -23,11 +23,11 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH: &str =
-    "target/bench-readiness/adapters/shapeit5.vcf.json";
+    "benchmarks/readiness/adapters/shapeit5.vcf.json";
 pub(crate) const DEFAULT_VCF_EAGLE_ADAPTER_PATH: &str =
-    "target/bench-readiness/adapters/eagle.vcf.json";
+    "benchmarks/readiness/adapters/eagle.vcf.json";
 pub(crate) const DEFAULT_VCF_BEAGLE_ADAPTER_PATH: &str =
-    "target/bench-readiness/adapters/beagle.vcf.json";
+    "benchmarks/readiness/adapters/beagle.vcf.json";
 const VCF_SHAPEIT5_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_shapeit5_adapter.v1";
 const VCF_EAGLE_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_eagle_adapter.v1";
 const VCF_BEAGLE_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_beagle_adapter.v1";
@@ -284,7 +284,7 @@ fn build_phasing_family_row(
         .map(|row| row.asset_profile_id.clone())
         .unwrap_or_else(|| "vcf_cohort_with_panel".to_string());
     let output_root =
-        format!("target/bench-readiness/adapters/{}/{}", registry_tool.tool_id, stage_id);
+        format!("benchmarks/readiness/adapters/{}/{}", registry_tool.tool_id, stage_id);
     let output_prefix = format!("{output_root}/phased");
     let materialized_inputs = materialize_panel_inputs(repo_root, &output_root)?;
     let fixture_inputs = load_governed_vcf_fixture_inputs(repo_root)?;

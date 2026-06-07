@@ -17,7 +17,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_CORPUS_ASSETS_PATH: &str =
-    "target/bench-readiness/essential-pipeline-corpus-assets.tsv";
+    "benchmarks/readiness/essential-pipeline-corpus-assets.tsv";
 const ESSENTIAL_PIPELINE_CORPUS_ASSETS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.essential_pipeline_corpus_assets.v1";
 pub(crate) const ESSENTIAL_PIPELINE_IDS: &[&str] = &[

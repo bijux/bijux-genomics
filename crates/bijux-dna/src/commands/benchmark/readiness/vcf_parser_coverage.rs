@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_PARSER_COVERAGE_PATH: &str =
-    "target/bench-readiness/vcf-parser-coverage.tsv";
+    "benchmarks/readiness/vcf-parser-coverage.tsv";
 const VCF_PARSER_COVERAGE_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_parser_coverage.v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -265,7 +265,9 @@ mod tests {
         assert_eq!(report.coverage_status_counts.get("covered"), Some(&8));
         assert!(report.rows.iter().all(|row| {
             row.tool_id == "bcftools"
-                && row.fixture_path.starts_with("benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/")
+                && row
+                    .fixture_path
+                    .starts_with("benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/")
                 && row.schema_id.starts_with("bijux.vcf.")
                 && coverage_status_label(row.coverage_status) == "covered"
         }));

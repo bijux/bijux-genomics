@@ -19,7 +19,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH: &str =
-    "target/bench-readiness/adapters/descent-family.vcf.json";
+    "benchmarks/readiness/adapters/descent-family.vcf.json";
 const VCF_DESCENT_FAMILY_ADAPTER_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_descent_family_adapter.v1";
 const GOVERNED_COHORT_VCF_PATH: &str =
@@ -223,7 +223,7 @@ fn build_descent_family_row(
             }
         });
     let output_root =
-        format!("target/bench-readiness/adapters/descent/{}/{}", registry_tool.tool_id, stage_id);
+        format!("benchmarks/readiness/adapters/descent/{}/{}", registry_tool.tool_id, stage_id);
     let (
         input_vcf_path,
         input_ibd_segments_path,

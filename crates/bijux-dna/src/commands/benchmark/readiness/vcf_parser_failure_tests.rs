@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH: &str =
-    "target/bench-readiness/vcf-parser-failure-tests.json";
+    "benchmarks/readiness/vcf-parser-failure-tests.json";
 const VCF_PARSER_FAILURE_TESTS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_parser_failure_tests.v1";
 
@@ -131,7 +131,8 @@ const VCF_PARSER_FAILURE_CASES: &[VcfParserFailureCase] = &[
         stage: VcfDomainStage::Ibd,
         tool_id: "germline",
         parser_id: "parse_germline_ibd_segment_metrics",
-        fixture_dir: "benchmarks/tests/fixtures/bench/parsers/vcf/segments/germline/vcf.ibd/complete",
+        fixture_dir:
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/germline/vcf.ibd/complete",
         failure_reason: VcfParserFailureReason::MalformedSegmentFile,
         probe_artifact: "raw.ibd_filtered_segments.tsv",
         expected_error_fragment: "must have 7 columns",

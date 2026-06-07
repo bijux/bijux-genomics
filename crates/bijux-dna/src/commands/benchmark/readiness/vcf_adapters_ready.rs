@@ -44,7 +44,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_ADAPTERS_READY_PATH: &str =
-    "target/bench-readiness/VCF_ADAPTERS_READY.json";
+    "benchmarks/readiness/VCF_ADAPTERS_READY.json";
 const VCF_ADAPTERS_READY_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_adapters_ready.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -284,7 +284,7 @@ pub(crate) fn render_vcf_adapters_ready(
         &mut checks,
         237,
         "vcf plink family adapters",
-        Some("target/bench-readiness/adapters/plink.vcf.json".to_string()),
+        Some("benchmarks/readiness/adapters/plink.vcf.json".to_string()),
         || {
             let plink_report = render_vcf_plink_family_adapter(
                 repo_root,
@@ -742,7 +742,7 @@ mod tests {
             VcfAdaptersReadyGoalCheck {
                 goal_id: 231,
                 surface: "vcf tool-serving map".to_string(),
-                output_path: Some("target/bench-readiness/vcf-tool-serving-map.tsv".to_string()),
+                output_path: Some("benchmarks/readiness/vcf-tool-serving-map.tsv".to_string()),
                 ok: true,
                 detail: "ok".to_string(),
             },

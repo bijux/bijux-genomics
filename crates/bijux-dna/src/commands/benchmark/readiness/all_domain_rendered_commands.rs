@@ -15,7 +15,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH: &str =
-    "target/bench-readiness/rendered-commands-all-domains.sh";
+    "benchmarks/readiness/rendered-commands-all-domains.sh";
 const ALL_DOMAIN_RENDERED_COMMANDS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_rendered_commands.v1";
 
@@ -549,10 +549,10 @@ mod tests {
         .expect("render all-domain commands");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.all_domain_rendered_commands.v1");
-        assert_eq!(report.output_path, "target/bench-readiness/rendered-commands-all-domains.sh");
+        assert_eq!(report.output_path, "benchmarks/readiness/rendered-commands-all-domains.sh");
         assert_eq!(
             report.argv_output_path,
-            "target/bench-readiness/rendered-commands-all-domains.argv.jsonl"
+            "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl"
         );
         assert_eq!(report.row_count, 120);
         assert_eq!(report.result_id_count, 120);

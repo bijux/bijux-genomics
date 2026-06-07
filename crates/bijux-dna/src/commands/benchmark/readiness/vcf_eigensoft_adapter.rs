@@ -20,7 +20,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_EIGENSOFT_ADAPTER_PATH: &str =
-    "target/bench-readiness/adapters/eigensoft.vcf.json";
+    "benchmarks/readiness/adapters/eigensoft.vcf.json";
 const VCF_EIGENSOFT_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_eigensoft_adapter.v1";
 const GOVERNED_COHORT_VCF_PATH: &str =
     "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
@@ -247,7 +247,7 @@ fn build_eigensoft_row(
         .map(|row| row.asset_profile_id.clone())
         .unwrap_or_else(|| "vcf_cohort".to_string());
     let output_root =
-        format!("target/bench-readiness/adapters/{}/{}", registry_tool.tool_id, stage_id);
+        format!("benchmarks/readiness/adapters/{}/{}", registry_tool.tool_id, stage_id);
     let output_prefix = format!("{output_root}/{}", stage_output_name_hint(stage));
     let fixture_inputs = load_governed_vcf_fixture_inputs(repo_root)?;
     let required_inputs = vec![

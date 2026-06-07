@@ -15,7 +15,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_PARSER_FAILURE_TESTS_PATH: &str =
-    "target/bench-readiness/parser-failure-tests.json";
+    "benchmarks/readiness/parser-failure-tests.json";
 const PARSER_FAILURE_TESTS_SCHEMA_VERSION: &str = "bijux.bench.readiness.parser_failure_tests.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
