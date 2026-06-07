@@ -1191,6 +1191,23 @@ Visible aliases are part of the operator surface:
   `stdout.log` and `stderr.log` paths beside each script. This is the owned cross-domain SLURM
   generation surface for the governed 120-result benchmark slice and the 93-node essential
   pipeline slice.
+- `bijux-dna bench local validate-all-domain-slurm-script-bodies`
+  `validate-all-domain-slurm-script-bodies` regenerates the governed all-domain SLURM tree under
+  `target/slurm-dry-run/all-domains/`, then writes
+  `target/slurm-dry-run/all-domains/no-placeholder-report.json`. The report fails closed if any
+  generated `.sbatch` body contains `placeholder`, `TODO`, `echo execute`, unconditional `rc=0`,
+  an empty executable body, or a missing `bijux-dna` invocation, so reviewers can prove the
+  all-domain SLURM surface calls owned repo commands instead of template text.
+- `bijux-dna bench local execute-all-domain-benchmark-result`
+  `execute-all-domain-benchmark-result` resolves one canonical all-domain benchmark-ready
+  `result_id` back to the owned rendered-command collector and executes the governed command list
+  from the repository root. The command exists so generated all-domain `.sbatch` jobs dispatch
+  through a stable `bijux-dna` operator surface instead of embedding raw adapter shell fragments.
+- `bijux-dna bench local execute-essential-pipeline-node`
+  `execute-essential-pipeline-node` resolves one governed essential-pipeline `pipeline_id` /
+  `node_id` pair back to the owned rendered-command collector and executes the rendered command
+  list from the repository root. The command is the stable execution target for essential-pipeline
+  `.sbatch` jobs in the all-domain SLURM tree.
 - `bijux-dna bench local fake-run-essential-pipelines`
   `fake-run-essential-pipelines` writes one governed fake-run tree under
   `target/local-fake-runs/pipelines/essential/` for every node in the essential ten-pipeline
