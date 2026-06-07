@@ -1125,6 +1125,13 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local validate-slurm-shell-syntax`
   `validate-slurm-shell-syntax` writes `target/slurm-dry-run/bash-n-report.json` and refuses any
   generated `.sbatch` file under the selected dry-run root that fails `bash -n`.
+- `bijux-dna bench local validate-all-domain-slurm-shell-syntax`
+  `validate-all-domain-slurm-shell-syntax` regenerates the governed all-domain SLURM tree under
+  `target/slurm-dry-run/all-domains/`, then writes
+  `target/slurm-dry-run/all-domains/bash-n-report.json`. The report refuses any generated
+  benchmark-result or essential-pipeline `.sbatch` file in that 213-script tree that fails
+  `bash -n`, so the all-domain SLURM surface is syntax-checked as one owned unit instead of
+  relying on partial domain roots.
 - `bijux-dna bench local validate-slurm-script-bodies`
   `validate-slurm-script-bodies` writes `target/slurm-dry-run/no-placeholder-report.json` and
   refuses generated `.sbatch` bodies that still contain placeholder markers, fake `echo execute`
