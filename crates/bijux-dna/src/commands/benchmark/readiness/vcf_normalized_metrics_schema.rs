@@ -4,13 +4,12 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
+use crate::commands::benchmark::schema_paths::{
+    DEFAULT_VCF_NORMALIZED_METRICS_SCHEMA_PATH, DEFAULT_VCF_NORMALIZED_METRICS_STAGE_DIR,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_VCF_NORMALIZED_METRICS_SCHEMA_PATH: &str =
-    "schemas/bench/vcf-normalized-metrics.v1.json";
-pub(crate) const DEFAULT_VCF_NORMALIZED_METRICS_STAGE_DIR: &str =
-    "schemas/bench/vcf-normalized-metrics";
 const VCF_NORMALIZED_METRICS_SCHEMA_REPORT_VERSION: &str =
     "bijux.bench.readiness.vcf_normalized_metrics_schema.v1";
 

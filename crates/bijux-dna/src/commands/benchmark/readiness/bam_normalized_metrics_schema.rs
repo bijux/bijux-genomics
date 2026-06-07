@@ -4,11 +4,10 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
+use crate::commands::benchmark::schema_paths::DEFAULT_BAM_NORMALIZED_METRICS_SCHEMA_PATH;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_BAM_NORMALIZED_METRICS_SCHEMA_PATH: &str =
-    "schemas/bench/bam-normalized-metrics.v1.json";
 const BAM_NORMALIZED_METRICS_SCHEMA_REPORT_VERSION: &str =
     "bijux.bench.readiness.bam_normalized_metrics_schema.v1";
 

@@ -112,14 +112,9 @@ pub(crate) fn handle_meta_commands(
                 }
                 BenchCommand::ValidateSchemas(args) => {
                     let cwd = std::env::current_dir()?;
-                    match args.domain {
-                        cli::BenchSchemaDomainArg::Vcf => {
-                            crate::commands::benchmark::vcf_schema_validation::run_validate_vcf_schemas(
-                                &cwd,
-                                args,
-                            )?;
-                        }
-                    }
+                    crate::commands::benchmark::schema_validation::run_validate_schemas(
+                        &cwd, args,
+                    )?;
                 }
                 BenchCommand::Paths { command } => match command {
                     cli::BenchPathsCommand::Validate(args) => {

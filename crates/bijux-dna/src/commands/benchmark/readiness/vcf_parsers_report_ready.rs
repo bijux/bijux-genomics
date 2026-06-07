@@ -14,16 +14,16 @@ use super::vcf_expected_benchmark_results::{
 use super::vcf_missing_result_report::{
     render_vcf_missing_result_report, DEFAULT_VCF_MISSING_RESULT_REPORT_TEST_PATH,
 };
-use super::vcf_normalized_metrics_schema::{
-    render_vcf_normalized_metrics_schema, DEFAULT_VCF_NORMALIZED_METRICS_SCHEMA_PATH,
-    DEFAULT_VCF_NORMALIZED_METRICS_STAGE_DIR,
-};
+use super::vcf_normalized_metrics_schema::render_vcf_normalized_metrics_schema;
 use super::vcf_parser_coverage::{render_vcf_parser_coverage, DEFAULT_VCF_PARSER_COVERAGE_PATH};
 use super::vcf_parser_failure_tests::{
     render_vcf_parser_failure_tests, DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH,
 };
 use super::vcf_report_map::{render_vcf_report_map, DEFAULT_VCF_REPORT_MAP_PATH};
-use crate::commands::benchmark::vcf_schema_validation::{
+use crate::commands::benchmark::schema_paths::{
+    DEFAULT_VCF_NORMALIZED_METRICS_SCHEMA_PATH, DEFAULT_VCF_NORMALIZED_METRICS_STAGE_DIR,
+};
+use crate::commands::benchmark::schema_validation::{
     validate_vcf_schemas, DEFAULT_VCF_SCHEMA_VALIDATION_REPORT_PATH,
 };
 use crate::commands::cli::parse;
