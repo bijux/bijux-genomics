@@ -67,17 +67,6 @@ configs/domain/external_tools.toml
 configs/domain/index.md
 configs/domain/shared_tools.toml
 configs/hpc/benchmark_sync_profiles.toml
-configs/hpc/campaign/README.md
-configs/hpc/campaign/cross-mini.toml
-configs/hpc/campaign/generic-small.toml
-configs/hpc/campaign/lunarc-fastq-bam-local-ready.toml
-configs/hpc/campaign/lunarc-fastq-bam-vcf-local-ready.toml
-configs/hpc/campaign/lunarc-small.toml
-configs/hpc/campaign/sharing/README.md
-configs/hpc/campaign/sharing/collaborator-a.toml
-configs/hpc/campaign/site-profiles/generic.toml
-configs/hpc/campaign/site-profiles/lunarc.toml
-configs/hpc/campaign/user.policy.toml
 configs/hpc/index.md
 configs/hpc/rsync/index.md
 configs/hpc/rsync/pull-full-excludes.txt
