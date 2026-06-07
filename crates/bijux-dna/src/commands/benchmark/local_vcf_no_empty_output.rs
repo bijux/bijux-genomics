@@ -376,6 +376,9 @@ fn expected_output_spec(artifact_id: &str) -> Result<DeclaredVcfOutputSpec> {
         }
         "phased_vcf" => ("artifacts/phased.vcf.gz", "vcf_output", LocalVcfNoEmptyOutputKind::Vcf),
         "imputed_vcf" => ("artifacts/imputed.vcf.gz", "vcf_output", LocalVcfNoEmptyOutputKind::Vcf),
+        "imputation_metrics_json" => {
+            ("imputation_metrics.json", "report_output", LocalVcfNoEmptyOutputKind::Json)
+        }
         "postprocess_vcf" => {
             ("artifacts/postprocess.vcf.gz", "vcf_output", LocalVcfNoEmptyOutputKind::Vcf)
         }

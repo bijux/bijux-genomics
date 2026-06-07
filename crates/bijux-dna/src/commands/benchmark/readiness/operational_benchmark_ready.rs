@@ -1145,7 +1145,9 @@ fn benchmark_asset_profile_id_for_resource_row(
         "vcf" => match row.stage_id.as_str() {
             "vcf.call" | "vcf.filter" | "vcf.stats" | "vcf.qc" => "vcf_cohort".to_string(),
             "vcf.prepare_reference_panel" => "vcf_reference_panel".to_string(),
-            "vcf.phasing" | "vcf.impute" | "vcf.imputation" => "vcf_cohort_with_panel".to_string(),
+            "vcf.phasing" | "vcf.impute" | "vcf.imputation_metrics" => {
+                "vcf_cohort_with_panel".to_string()
+            }
             _ => "vcf_cohort".to_string(),
         },
         _ => "benchmark_ready".to_string(),

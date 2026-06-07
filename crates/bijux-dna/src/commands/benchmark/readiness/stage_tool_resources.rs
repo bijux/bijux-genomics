@@ -277,7 +277,7 @@ fn fastq_walltime_minutes(stage_id: &str, tool_id: &str) -> u32 {
 
 fn vcf_walltime_minutes(stage: VcfDomainStage) -> u32 {
     match stage {
-        VcfDomainStage::Phasing | VcfDomainStage::Impute | VcfDomainStage::Imputation => {
+        VcfDomainStage::Phasing | VcfDomainStage::Impute | VcfDomainStage::ImputationMetrics => {
             VCF_MINUTES_PANEL_WORKFLOW
         }
         VcfDomainStage::PrepareReferencePanel => VCF_MINUTES_PREPARE_PANEL,

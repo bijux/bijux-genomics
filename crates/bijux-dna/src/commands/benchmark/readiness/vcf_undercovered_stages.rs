@@ -289,7 +289,7 @@ fn ensure_vcf_undercovered_stage_contract(rows: &[VcfUndercoveredStageRow]) -> R
             "future_not_benchmark_ready",
         ),
         (
-            "vcf.imputation",
+            "vcf.imputation_metrics",
             &["imputation", "phasing", "variant_processing"][..],
             &["beagle"][..],
             &["bcftools", "beagle-imputation", "glimpse", "impute5", "minimac4"][..],

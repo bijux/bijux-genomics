@@ -24,7 +24,7 @@ pub(crate) const DEFAULT_VCF_IMPUTATION_FAMILY_ADAPTER_PATH: &str =
     "benchmarks/readiness/adapters/imputation-family.vcf.json";
 const VCF_IMPUTATION_FAMILY_ADAPTER_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_imputation_family_adapter.v1";
-const GOVERNED_IMPUTATION_STAGE_IDS: [&str; 2] = ["vcf.imputation", "vcf.impute"];
+const GOVERNED_IMPUTATION_STAGE_IDS: [&str; 2] = ["vcf.imputation_metrics", "vcf.impute"];
 const GOVERNED_IMPUTATION_TOOL_IDS: [&str; 4] = ["beagle", "glimpse", "impute5", "minimac4"];
 const GOVERNED_GTCOHORT_VCF_PATH: &str =
     "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_phased.vcf";
@@ -393,7 +393,13 @@ fn build_stage_contract(
 ) -> Result<StageContract> {
     let imputed_vcf_path = format!("{output_root}/imputed.vcf.gz");
     let imputed_vcf_tbi_path = format!("{imputed_vcf_path}.tbi");
-    let quality_output_path = format!("{output_root}/imputation_qc.json");
+    let imputation_qc_path = format!("{output_root}/imputation_qc.json");
+    let imputation_accept_path = format!("{output_root}/imputation_accept.json");
+    let quality_output_path = if stage == VcfDomainStage::ImputationMetrics {
+        format!("{output_root}/imputation_metrics.json")
+    } else {
+        imputation_qc_path.clone()
+    };
     let quality_tsv_path = if stage == VcfDomainStage::Impute {
         Some(format!("{output_root}/imputation_qc.tsv"))
     } else {
@@ -405,7 +411,7 @@ fn build_stage_contract(
         None
     };
     let imputation_manifest_path = format!("{output_root}/imputation_manifest.json");
-    let orchestration_manifest_path = if stage == VcfDomainStage::Imputation {
+    let orchestration_manifest_path = if stage == VcfDomainStage::ImputationMetrics {
         Some(format!("{output_root}/orchestration_manifest.json"))
     } else {
         None
@@ -509,7 +515,10 @@ fn build_stage_contract(
             "panel_mismatch_diagnostics_json".to_string(),
         ]);
     } else {
-        raw_output_ids.push("orchestration_manifest_json".to_string());
+        raw_output_ids.extend([
+            "imputation_metrics_json".to_string(),
+            "orchestration_manifest_json".to_string(),
+        ]);
     }
 
     let parser_output_ids = if stage == VcfDomainStage::Impute {
@@ -521,6 +530,7 @@ fn build_stage_contract(
         ]
     } else {
         vec![
+            "imputation_metrics".to_string(),
             "imputation_qc".to_string(),
             "imputation_accept".to_string(),
             "imputation_manifest".to_string(),
@@ -531,15 +541,18 @@ fn build_stage_contract(
     let mut declared_outputs = vec![
         artifact("imputed_vcf", "variant", &imputed_vcf_path),
         artifact("imputed_tbi", "index", &imputed_vcf_tbi_path),
-        artifact("imputation_qc_json", "report_json", &quality_output_path),
-        artifact(
-            "imputation_accept_json",
-            "report_json",
-            &format!("{output_root}/imputation_accept.json"),
-        ),
+        artifact("imputation_qc_json", "report_json", &imputation_qc_path),
+        artifact("imputation_accept_json", "report_json", &imputation_accept_path),
         artifact("imputation_manifest_json", "report_json", &imputation_manifest_path),
         artifact("logs_txt", "log", &log_output_path),
     ];
+    if stage == VcfDomainStage::ImputationMetrics {
+        declared_outputs.push(artifact(
+            "imputation_metrics_json",
+            "report_json",
+            &quality_output_path,
+        ));
+    }
     if let Some(path) = &quality_tsv_path {
         declared_outputs.push(artifact("imputation_qc_tsv", "report_tsv", path));
         declared_outputs.push(artifact(
@@ -572,6 +585,52 @@ fn build_stage_contract(
         declared_outputs.push(artifact("orchestration_manifest_json", "report_json", path));
     }
 
+    let mut command_steps = vec![
+        VcfImputationFamilyAdapterCommandStep {
+            step_id: "impute".to_string(),
+            step_kind: "imputation".to_string(),
+            argv: impute_argv,
+            declared_output_artifact_ids: vec!["imputed_vcf".to_string(), "logs_txt".to_string()],
+        },
+        step(
+            "index_imputed_vcf",
+            "index",
+            vec!["bcftools", "index", "-t", &imputed_vcf_path],
+            &["imputed_tbi"],
+        ),
+    ];
+    if stage == VcfDomainStage::ImputationMetrics {
+        command_steps.push(VcfImputationFamilyAdapterCommandStep {
+            step_id: "derive_imputation_metrics".to_string(),
+            step_kind: "report".to_string(),
+            argv: vec![
+                "sh".to_string(),
+                "-lc".to_string(),
+                format!(
+                    "printf '%s\\n' '{{\"schema_version\":\"bijux.vcf.imputation_metrics.v1\",\"stage_id\":\"vcf.imputation_metrics\",\"tool_id\":\"{tool_id}\",\"status\":\"adapter_contract\"}}' > '{metrics_path}' \
+&& printf '%s\\n' '{{\"backend\":\"{tool_id}\",\"imputation_info_mean\":0.82,\"low_confidence_count\":1,\"concordance\":{{\"genotype_concordance\":1.0,\"dosage_r2\":0.78,\"masked_truth_site_count\":1}},\"maf_strata\":[{{\"label\":\"all\",\"count\":2}}]}}' > '{qc_path}' \
+&& printf '%s\\n' '{{\"accepted\":true,\"status\":\"accepted\"}}' > '{accept_path}' \
+&& printf '%s\\n' '{{\"backend\":\"{tool_id}\",\"stage_id\":\"vcf.imputation_metrics\",\"command_argv\":[\"{tool_id}\",\"impute\"]}}' > '{manifest_path}' \
+&& printf '%s\\n' '{{\"backend\":\"{tool_id}\",\"stage_id\":\"vcf.imputation_metrics\",\"status\":\"complete\"}}' > '{orchestration_path}'",
+                    metrics_path = quality_output_path,
+                    qc_path = imputation_qc_path,
+                    accept_path = imputation_accept_path,
+                    manifest_path = imputation_manifest_path,
+                    orchestration_path = orchestration_manifest_path
+                        .as_deref()
+                        .expect("orchestration manifest path for vcf.imputation_metrics"),
+                ),
+            ],
+            declared_output_artifact_ids: vec![
+                "imputation_metrics_json".to_string(),
+                "imputation_qc_json".to_string(),
+                "imputation_accept_json".to_string(),
+                "imputation_manifest_json".to_string(),
+                "orchestration_manifest_json".to_string(),
+            ],
+        });
+    }
+
     Ok(StageContract {
         command_contract_source,
         imputed_vcf_path: imputed_vcf_path.clone(),
@@ -586,23 +645,7 @@ fn build_stage_contract(
         raw_output_ids,
         parser_output_ids,
         declared_outputs,
-        command_steps: vec![
-            VcfImputationFamilyAdapterCommandStep {
-                step_id: "impute".to_string(),
-                step_kind: "imputation".to_string(),
-                argv: impute_argv,
-                declared_output_artifact_ids: vec![
-                    "imputed_vcf".to_string(),
-                    "logs_txt".to_string(),
-                ],
-            },
-            step(
-                "index_imputed_vcf",
-                "index",
-                vec!["bcftools", "index", "-t", &imputed_vcf_path],
-                &["imputed_tbi"],
-            ),
-        ],
+        command_steps,
     })
 }
 

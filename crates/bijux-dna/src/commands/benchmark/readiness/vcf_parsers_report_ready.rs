@@ -226,7 +226,7 @@ pub(crate) fn render_vcf_parsers_report_ready(
             validate_parser_fixture_family(
                 repo_root,
                 tool_id,
-                &[VcfDomainStage::Impute, VcfDomainStage::Imputation],
+                &[VcfDomainStage::Impute, VcfDomainStage::ImputationMetrics],
                 "validated governed VCF imputation parser fixture rows",
             )?;
         }
