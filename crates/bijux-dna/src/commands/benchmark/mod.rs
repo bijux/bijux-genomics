@@ -8,6 +8,7 @@ pub(crate) mod local_all_domain_job_execution;
 pub(crate) mod local_all_domain_slurm_script_bodies;
 pub(crate) mod local_all_domain_slurm_scripts;
 pub(crate) mod local_all_domain_slurm_shell_syntax;
+pub(crate) mod local_all_domain_slurm_submit_manifest;
 pub(crate) mod local_benchmark_summary;
 pub(crate) mod local_corpus_fixture;
 pub(crate) mod local_corpus_skip_report;

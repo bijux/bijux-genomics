@@ -105,6 +105,8 @@ pub enum BenchLocalCommand {
     ValidateSlurmScriptBodies(BenchLocalValidateSlurmScriptBodiesArgs),
     #[command(name = "validate-all-domain-slurm-script-bodies")]
     ValidateAllDomainSlurmScriptBodies(BenchLocalValidateAllDomainSlurmScriptBodiesArgs),
+    #[command(name = "render-all-domain-slurm-submit-manifest")]
+    RenderAllDomainSlurmSubmitManifest(BenchLocalRenderAllDomainSlurmSubmitManifestArgs),
     #[command(name = "render-slurm-submit-manifest")]
     RenderSlurmSubmitManifest(BenchLocalRenderSlurmSubmitManifestArgs),
     #[command(name = "render-benchmark-summary")]
@@ -503,6 +505,16 @@ pub struct BenchLocalValidateAllDomainSlurmScriptBodiesArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalRenderSlurmSubmitManifestArgs {
+    #[arg(long)]
+    pub root: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderAllDomainSlurmSubmitManifestArgs {
     #[arg(long)]
     pub root: Option<std::path::PathBuf>,
     #[arg(long)]
