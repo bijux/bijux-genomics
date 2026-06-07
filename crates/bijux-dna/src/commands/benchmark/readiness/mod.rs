@@ -43,6 +43,7 @@ pub(crate) mod full_benchmark_report;
 pub(crate) mod full_benchmark_result_collector;
 pub(crate) mod missing_benchmark_pairs;
 pub(crate) mod missing_result_report;
+pub(crate) mod operational_benchmark_ready;
 pub(crate) mod orphan_tools;
 pub(crate) mod pair_readiness;
 pub(crate) mod parser_completeness_gate;
