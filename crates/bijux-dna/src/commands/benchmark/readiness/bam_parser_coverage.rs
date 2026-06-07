@@ -105,7 +105,7 @@ pub(crate) fn render_bam_parser_coverage(
     })
 }
 
-fn collect_bam_parser_coverage_rows(
+pub(crate) fn collect_bam_parser_coverage_rows(
     repo_root: &Path,
 ) -> Result<(usize, usize, Vec<BamParserCoverageRow>, BTreeMap<String, usize>)> {
     let (stage_count, tool_count, rows) = collect_bam_command_adapter_coverage_rows(repo_root)?;

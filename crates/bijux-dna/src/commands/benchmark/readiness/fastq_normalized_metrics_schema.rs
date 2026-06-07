@@ -74,6 +74,12 @@ pub(crate) fn render_fastq_normalized_metrics_schema(
     })
 }
 
+pub(crate) fn collect_fastq_normalized_metrics_schema_report_rows(
+) -> Result<Vec<FastqNormalizedMetricsSchemaRow>> {
+    let schema = bijux_dna_api::v1::api::bench::render_fastq_normalized_metrics_schema();
+    collect_fastq_normalized_metrics_schema_rows(&schema)
+}
+
 fn collect_fastq_normalized_metrics_schema_rows(
     schema: &serde_json::Value,
 ) -> Result<Vec<FastqNormalizedMetricsSchemaRow>> {

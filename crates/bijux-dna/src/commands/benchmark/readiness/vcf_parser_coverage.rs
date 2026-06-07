@@ -123,7 +123,7 @@ pub(crate) fn render_vcf_parser_coverage(
     })
 }
 
-fn collect_vcf_parser_coverage_rows(
+pub(crate) fn collect_vcf_parser_coverage_rows(
     repo_root: &Path,
 ) -> Result<(usize, usize, Vec<VcfParserCoverageRow>)> {
     let benchmark_ready_rows = collect_vcf_tool_serving_map_rows()?

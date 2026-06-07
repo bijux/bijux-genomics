@@ -101,6 +101,24 @@ pub(crate) fn render_vcf_normalized_metrics_schema(
     })
 }
 
+pub(crate) fn collect_vcf_normalized_metrics_schema_report_rows(
+) -> Result<Vec<VcfNormalizedMetricsSchemaRow>> {
+    let mut rows =
+        bijux_dna_api::v1::api::bench::vcf_normalized_metrics_stage_schema_descriptors()?
+            .into_iter()
+            .map(|descriptor| VcfNormalizedMetricsSchemaRow {
+                stage_id: descriptor.stage_id,
+                schema_version: descriptor.schema_version,
+                schema_id: descriptor.schema_id,
+                file_name: descriptor.file_name,
+                extension_id: descriptor.extension_id,
+                required_key_count: descriptor.required_key_count,
+            })
+            .collect::<Vec<_>>();
+    rows.sort_by(|left, right| left.stage_id.cmp(&right.stage_id));
+    Ok(rows)
+}
+
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
     if candidate.is_absolute() {
         candidate.to_path_buf()

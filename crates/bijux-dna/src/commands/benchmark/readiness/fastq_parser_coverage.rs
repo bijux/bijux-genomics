@@ -96,7 +96,7 @@ pub(crate) fn render_fastq_parser_coverage(
     })
 }
 
-fn collect_fastq_parser_coverage_rows(
+pub(crate) fn collect_fastq_parser_coverage_rows(
     repo_root: &Path,
 ) -> Result<(usize, usize, Vec<FastqParserCoverageRow>)> {
     let (stage_count, tool_count, rows) = collect_fastq_command_adapter_coverage_rows(repo_root)?;
