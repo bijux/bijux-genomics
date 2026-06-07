@@ -194,6 +194,12 @@ Visible aliases are part of the operator surface:
   proves a result is complete only when execution succeeded, the stage manifest is present and
   valid, declared outputs are present, normalized metrics are present, and required run files are
   non-empty.
+- `bijux-dna bench readiness render-all-domain-missing-result-test`
+  `render-all-domain-missing-result-test` writes
+  `target/bench-readiness/missing-result-test-all-domains.json` and materializes a governed
+  fixture tree under `target/bench-readiness/missing-result-test-all-domains-fixture/`. It
+  removes one governed fake-run manifest from FASTQ, BAM, and VCF, then proves the final table
+  still carries exactly three `missing_result` rows instead of dropping those benchmark bindings.
 - `bijux-dna bench readiness render-all-domain-output-declarations`
   `render-all-domain-output-declarations` writes
   `target/bench-readiness/output-declarations-all-domains.tsv` with one governed row per
