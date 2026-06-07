@@ -118,4 +118,5 @@ vcf	vcf.call_pseudohaploid	bcftools	vcf_production_regression	bam_bundle	vcf.ada
 vcf	vcf.damage_filter	bcftools	vcf_production_regression	vcf_single_sample	vcf.adapter.transform	vcf.parser.vcf_output	bijux.schemas.bench.vcf-normalized-metrics.damage-filter.v1	benchmark_ready
 vcf	vcf.filter	bcftools	vcf_production_regression	vcf_single_sample	vcf.adapter.transform	vcf.parser.vcf_output	bijux.schemas.bench.vcf-normalized-metrics.filter.v1	benchmark_ready
 vcf	vcf.gl_propagation	bcftools	vcf_production_regression	vcf_single_sample	vcf.adapter.transform	vcf.parser.vcf_output	bijux.schemas.bench.vcf-normalized-metrics.gl-propagation.v1	benchmark_ready
+vcf	vcf.postprocess	bcftools	vcf_production_regression	vcf_single_sample	vcf.adapter.transform	vcf.parser.vcf_output	bijux.schemas.bench.vcf-normalized-metrics.postprocess.v1	benchmark_ready
 vcf	vcf.stats	bcftools	vcf_production_regression	vcf_cohort	vcf.adapter.quality_control	vcf.parser.stats_report	bijux.schemas.bench.vcf-normalized-metrics.stats.v1	benchmark_ready

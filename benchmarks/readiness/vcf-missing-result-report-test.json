@@ -1,0 +1,269 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_missing_result_report.v1",
+  "output_path": "benchmarks/readiness/vcf-missing-result-report-test.json",
+  "fake_result_root": "benchmarks/readiness/vcf-missing-result-report-fixture",
+  "expected_row_count": 9,
+  "present_result_row_count": 8,
+  "missing_result_row_count": 1,
+  "passes_behavior_test": true,
+  "removed_result_row_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
+  "removed_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.stats/vcf_cohort/bcftools/stage-result.json",
+  "report_section_counts": {
+    "damage_aware_filtering": 1,
+    "likelihood_postprocess": 1,
+    "normalization": 1,
+    "quality_control": 2,
+    "variant_calling": 4
+  },
+  "rows": [
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.call",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "called_vcf"
+      ],
+      "observed_output_artifact_ids": [
+        "called_vcf"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "snp_count",
+        "indel_count",
+        "sample_count"
+      ],
+      "report_section": "variant_calling",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.call_diploid:bam_bundle:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.call_diploid",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.call_diploid/bam_bundle/bcftools/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.call_diploid/bam_bundle/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "diploid_vcf"
+      ],
+      "observed_output_artifact_ids": [
+        "diploid_vcf"
+      ],
+      "expected_metrics": [
+        "ploidy",
+        "called_genotypes",
+        "heterozygous_count",
+        "homozygous_ref_count",
+        "homozygous_alt_count",
+        "missing_count",
+        "sample_count"
+      ],
+      "report_section": "variant_calling",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.call_diploid:bam_bundle:bcftools` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.call_gl:bam_bundle:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.call_gl",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.call_gl/bam_bundle/bcftools/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.call_gl/bam_bundle/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "gl_sites_vcf"
+      ],
+      "observed_output_artifact_ids": [
+        "gl_sites_vcf"
+      ],
+      "expected_metrics": [
+        "likelihood_field",
+        "sites_with_likelihoods",
+        "samples_with_likelihoods",
+        "missing_likelihoods",
+        "sample_count"
+      ],
+      "report_section": "variant_calling",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.call_gl:bam_bundle:bcftools` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.call_pseudohaploid:bam_bundle:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.call_pseudohaploid",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.call_pseudohaploid/bam_bundle/bcftools/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.call_pseudohaploid/bam_bundle/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "pseudohaploid_vcf"
+      ],
+      "observed_output_artifact_ids": [
+        "pseudohaploid_vcf"
+      ],
+      "expected_metrics": [
+        "target_sites",
+        "covered_sites",
+        "called_sites",
+        "missing_sites",
+        "sampling_policy",
+        "random_seed",
+        "sample_count"
+      ],
+      "report_section": "variant_calling",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.call_pseudohaploid:bam_bundle:bcftools` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.damage_filter:vcf_single_sample:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.damage_filter",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.damage_filter/vcf_single_sample/bcftools/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.damage_filter/vcf_single_sample/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "damage_filtered_vcf"
+      ],
+      "observed_output_artifact_ids": [
+        "damage_filtered_vcf"
+      ],
+      "expected_metrics": [
+        "input_variants",
+        "removed_variants",
+        "retained_variants",
+        "low_quality_filtered_variants",
+        "damage_ratio_filtered_variants",
+        "terminal_damage_filtered_variants",
+        "damage_context_rule",
+        "terminal_context_count",
+        "sample_count"
+      ],
+      "report_section": "damage_aware_filtering",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.damage_filter:vcf_single_sample:bcftools` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.filter",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.filter/vcf_single_sample/bcftools/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.filter/vcf_single_sample/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_vcf"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_vcf"
+      ],
+      "expected_metrics": [
+        "input_variants",
+        "pass_variants",
+        "failed_variants",
+        "filter_ids",
+        "depth_threshold",
+        "quality_threshold",
+        "missingness_threshold",
+        "sample_count"
+      ],
+      "report_section": "quality_control",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.gl_propagation:vcf_single_sample:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.gl_propagation",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.gl_propagation/vcf_single_sample/bcftools/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.gl_propagation/vcf_single_sample/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "gl_propagated_vcf"
+      ],
+      "observed_output_artifact_ids": [
+        "gl_propagated_vcf"
+      ],
+      "expected_metrics": [
+        "input_likelihood_fields",
+        "output_likelihood_fields",
+        "lost_fields",
+        "site_count_before",
+        "site_count_after",
+        "sample_count"
+      ],
+      "report_section": "likelihood_postprocess",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.gl_propagation:vcf_single_sample:bcftools` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.postprocess",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.postprocess/vcf_single_sample/bcftools/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.postprocess/vcf_single_sample/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "postprocess_vcf"
+      ],
+      "observed_output_artifact_ids": [
+        "postprocess_vcf"
+      ],
+      "expected_metrics": [
+        "readable_vcf",
+        "tabix_present",
+        "contigs_consistent_with_species_context",
+        "left_align_applied",
+        "multiallelic_records_split",
+        "indels_normalized",
+        "variant_ids_normalized",
+        "invalid_records_removed",
+        "filter_standardized_to_pass"
+      ],
+      "report_section": "normalization",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.stats",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.stats/vcf_cohort/bcftools/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.stats/vcf_cohort/bcftools/stage-result.json",
+      "result_status": "missing_result",
+      "expected_output_artifact_ids": [
+        "stats_json"
+      ],
+      "observed_output_artifact_ids": [],
+      "expected_metrics": [
+        "variant_count",
+        "snp_count",
+        "indel_count",
+        "transition_count",
+        "transversion_count",
+        "ti_tv",
+        "sample_count"
+      ],
+      "report_section": "quality_control",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools` remains visible even though its manifest is missing"
+    }
+  ]
+}

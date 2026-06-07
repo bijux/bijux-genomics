@@ -1,0 +1,10 @@
+stage_id	tool_id	parser_id	fixture_path	schema_id	coverage_status
+vcf.call	bcftools	parse_bcftools_call_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call	bijux.vcf.call.v1	covered
+vcf.call_diploid	bcftools	parse_bcftools_call_diploid_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_diploid	bijux.vcf.call_diploid.v1	covered
+vcf.call_gl	bcftools	parse_bcftools_call_gl_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_gl	bijux.vcf.call_gl.v1	covered
+vcf.call_pseudohaploid	bcftools	parse_bcftools_call_pseudohaploid_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_pseudohaploid	bijux.vcf.call_pseudohaploid.v1	covered
+vcf.damage_filter	bcftools	parse_bcftools_damage_filter_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter	bijux.vcf.damage_filter.v1	covered
+vcf.filter	bcftools	parse_bcftools_filter_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.filter	bijux.vcf.filter.v1	covered
+vcf.gl_propagation	bcftools	parse_bcftools_gl_propagation_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.gl_propagation	bijux.vcf.gl_propagation.v1	covered
+vcf.postprocess	bcftools	parse_bcftools_postprocess_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.postprocess	bijux.vcf.postprocess.v1	covered
+vcf.stats	bcftools	parse_bcftools_stats_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.stats	bijux.vcf.stats.v1	covered

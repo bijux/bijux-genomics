@@ -1,0 +1,121 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_parsers_report_ready.v1",
+  "output_path": "benchmarks/readiness/VCF_PARSERS_REPORT_READY.json",
+  "checked_goal_count": 15,
+  "passed_goal_count": 15,
+  "failed_goal_count": 0,
+  "failing_goal_ids": [],
+  "parser_fixture_row_count": 38,
+  "benchmark_ready_parser_row_count": 9,
+  "expected_result_row_count": 9,
+  "report_map_row_count": 9,
+  "comparable_metric_row_count": 33,
+  "ok": true,
+  "checks": [
+    {
+      "goal_id": 246,
+      "surface": "vcf normalized metrics schemas",
+      "output_path": "benchmarks/readiness/vcf-schema-validation.json",
+      "ok": true,
+      "detail": "validated the governed shared and stage-specific VCF normalized metrics schemas"
+    },
+    {
+      "goal_id": 247,
+      "surface": "vcf bcftools parser fixtures",
+      "output_path": null,
+      "ok": true,
+      "detail": "validated 10 governed bcftools VCF parser fixture rows"
+    },
+    {
+      "goal_id": 248,
+      "surface": "vcf angsd parser fixtures",
+      "output_path": null,
+      "ok": true,
+      "detail": "validated 4 governed ANGSD VCF parser fixture rows"
+    },
+    {
+      "goal_id": 249,
+      "surface": "vcf plink family parser fixtures",
+      "output_path": null,
+      "ok": true,
+      "detail": "validated 7 governed PLINK-family VCF parser fixture rows"
+    },
+    {
+      "goal_id": 250,
+      "surface": "vcf eigensoft parser fixtures",
+      "output_path": null,
+      "ok": true,
+      "detail": "validated 2 governed EIGENSOFT VCF parser fixture rows"
+    },
+    {
+      "goal_id": 251,
+      "surface": "vcf phasing parser fixtures",
+      "output_path": null,
+      "ok": true,
+      "detail": "validated 3 governed VCF phasing parser fixture rows"
+    },
+    {
+      "goal_id": 252,
+      "surface": "vcf imputation parser fixtures",
+      "output_path": null,
+      "ok": true,
+      "detail": "validated 8 governed VCF imputation parser fixture rows"
+    },
+    {
+      "goal_id": 253,
+      "surface": "vcf segment parser fixtures",
+      "output_path": null,
+      "ok": true,
+      "detail": "validated 5 governed VCF segment parser fixture rows"
+    },
+    {
+      "goal_id": 254,
+      "surface": "vcf parser failure tests",
+      "output_path": "benchmarks/readiness/vcf-parser-failure-tests.json",
+      "ok": true,
+      "detail": "validated 7 governed malformed-output VCF parser failure cases"
+    },
+    {
+      "goal_id": 255,
+      "surface": "vcf comparable metrics",
+      "output_path": "benchmarks/readiness/vcf-comparable-metrics.tsv",
+      "ok": true,
+      "detail": "validated governed comparable metrics across the retained multi-tool VCF stage slice"
+    },
+    {
+      "goal_id": 256,
+      "surface": "vcf parser coverage",
+      "output_path": "benchmarks/readiness/vcf-parser-coverage.tsv",
+      "ok": true,
+      "detail": "validated full parser coverage across the 9 benchmark-ready VCF rows"
+    },
+    {
+      "goal_id": 257,
+      "surface": "vcf expected benchmark results",
+      "output_path": "benchmarks/readiness/vcf-expected-benchmark-results.tsv",
+      "ok": true,
+      "detail": "validated 9 governed expected benchmark-ready VCF result rows"
+    },
+    {
+      "goal_id": 258,
+      "surface": "vcf missing-result report",
+      "output_path": "benchmarks/readiness/vcf-missing-result-report-test.json",
+      "ok": true,
+      "detail": "validated governed missing-result behavior with one retained missing_result row"
+    },
+    {
+      "goal_id": 259,
+      "surface": "vcf report map",
+      "output_path": "benchmarks/readiness/vcf-report-map.tsv",
+      "ok": true,
+      "detail": "validated governed report-map coverage across the expected benchmark-ready VCF rows"
+    },
+    {
+      "goal_id": 260,
+      "surface": "vcf parser/report ready pair completeness",
+      "output_path": "benchmarks/readiness/VCF_PARSERS_REPORT_READY.json",
+      "ok": true,
+      "detail": "validated 9 benchmark-ready VCF rows across parser coverage, expected results, and report-map coverage"
+    }
+  ]
+}

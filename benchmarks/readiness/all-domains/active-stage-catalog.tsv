@@ -53,4 +53,5 @@ vcf	vcf.call_pseudohaploid	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftool
 vcf	vcf.damage_filter	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	damage_aware_filtering
 vcf	vcf.filter	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	quality_control
 vcf	vcf.gl_propagation	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	likelihood_postprocess
+vcf	vcf.postprocess	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	normalization
 vcf	vcf.stats	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	quality_control

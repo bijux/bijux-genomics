@@ -1,14 +1,14 @@
 {
   "schema_version": "bijux.bench.readiness.all_domain_no_planned_rows.v1",
   "output_path": "benchmarks/readiness/all-domains/no-planned-rows.json",
-  "active_row_count": 126,
-  "active_stage_count": 58,
-  "active_tool_count": 66,
-  "removed_row_count": 17,
-  "removed_stage_count": 16,
+  "active_row_count": 121,
+  "active_stage_count": 56,
+  "active_tool_count": 64,
+  "removed_row_count": 16,
+  "removed_stage_count": 15,
   "removed_tool_count": 11,
   "removed_status_counts": {
-    "planned": 17
+    "planned": 16
   },
   "violation_count": 0,
   "ok": true,
@@ -103,13 +103,13 @@
     },
     {
       "domain": "vcf",
-      "stage_id": "vcf.imputation",
+      "stage_id": "vcf.imputation_metrics",
       "tool_id": "beagle",
       "corpus_id": "vcf_production_regression",
       "asset_profile_id": "vcf_cohort_with_panel",
       "adapter_id": "vcf.adapter.panel_workflow",
-      "parser_id": "vcf.parser.vcf_output",
-      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.imputation.v1",
+      "parser_id": "vcf.parser.report_json",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.imputation-metrics.v1",
       "status": "planned"
     },
     {
@@ -154,17 +154,6 @@
       "adapter_id": "vcf.adapter.population_structure",
       "parser_id": "vcf.parser.report_json",
       "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.population-structure.v1",
-      "status": "planned"
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.postprocess",
-      "tool_id": "bcftools",
-      "corpus_id": "vcf_production_regression",
-      "asset_profile_id": "vcf_single_sample",
-      "adapter_id": "vcf.adapter.transform",
-      "parser_id": "vcf.parser.vcf_output",
-      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.postprocess.v1",
       "status": "planned"
     },
     {
