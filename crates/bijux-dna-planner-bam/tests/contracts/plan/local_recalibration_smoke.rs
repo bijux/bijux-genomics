@@ -72,7 +72,7 @@ fn local_recalibration_smoke_plans_use_governed_skip_case() -> Result<()> {
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk"
+            "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk"
         )
     );
     assert_eq!(
@@ -127,7 +127,7 @@ fn local_recalibration_smoke_plans_use_governed_skip_case() -> Result<()> {
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.summary.json"
+            "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.summary.json"
         )
     );
 
@@ -161,7 +161,7 @@ fn local_recalibration_smoke_plans_reject_empty_sample_ids() -> Result<()> {
 schema_version = "bijux.bench.bam.local_recalibration.v1"
 tool_id = "gatk"
 threads = 2
-output_dir = "target/local-smoke/bam.recalibration"
+output_dir = "runs/bench/local-smoke/bam.recalibration"
 
 [[cases]]
 sample_id = " "
@@ -191,7 +191,7 @@ fn local_recalibration_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
 schema_version = "bijux.bench.bam.local_recalibration.v1"
 tool_id = "gatk"
 threads = 2
-output_dir = "target/local-smoke/bam.recalibration"
+output_dir = "runs/bench/local-smoke/bam.recalibration"
 
 [[cases]]
 sample_id = "duplicate-case"
@@ -238,7 +238,7 @@ fn local_recalibration_smoke_plans_require_expected_status_to_match_governed_dec
 schema_version = "bijux.bench.bam.local_recalibration.v1"
 tool_id = "gatk"
 threads = 2
-output_dir = "target/local-smoke/bam.recalibration"
+output_dir = "runs/bench/local-smoke/bam.recalibration"
 
 [[cases]]
 sample_id = "wrong-status"
@@ -283,7 +283,7 @@ fn local_recalibration_smoke_plans_require_expected_reason_to_match_governed_dec
 schema_version = "bijux.bench.bam.local_recalibration.v1"
 tool_id = "gatk"
 threads = 2
-output_dir = "target/local-smoke/bam.recalibration"
+output_dir = "runs/bench/local-smoke/bam.recalibration"
 
 [[cases]]
 sample_id = "wrong-reason"

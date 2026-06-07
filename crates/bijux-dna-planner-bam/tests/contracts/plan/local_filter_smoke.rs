@@ -44,7 +44,9 @@ fn local_filter_smoke_plans_use_governed_mixed_constraint_fixture() -> Result<()
     );
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools")
+        PathBuf::from(
+            "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools"
+        )
     );
     assert_eq!(case.plan.params["mapq_threshold"], serde_json::json!(20));
     assert_eq!(case.plan.params["exclude_flags"], serde_json::json!([4]));
@@ -82,7 +84,7 @@ fn local_filter_smoke_plans_use_governed_mixed_constraint_fixture() -> Result<()
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filter.summary.json"
+            "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filter.summary.json"
         )
     );
 
@@ -374,7 +376,7 @@ fn filter_plan_accepts_bamtools_and_bedtools_governed_planning_contracts() -> Re
             base_quality_threshold: 20,
         };
         let out_dir = PathBuf::from(format!(
-            "target/local-smoke/bam.filter/human_like_mixed_filter_constraints/{tool}"
+            "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/{tool}"
         ));
         let plan = bijux_dna_planner_bam::tool_adapters::stages_pre::filter::plan(
             &tool_spec, &bam, &out_dir, &params,
@@ -392,7 +394,7 @@ fn filter_plan_accepts_bamtools_and_bedtools_governed_planning_contracts() -> Re
         assert_eq!(
             summary_output.path,
             PathBuf::from(format!(
-                "target/local-smoke/bam.filter/human_like_mixed_filter_constraints/{tool}/filter.summary.json"
+                "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/{tool}/filter.summary.json"
             ))
         );
 

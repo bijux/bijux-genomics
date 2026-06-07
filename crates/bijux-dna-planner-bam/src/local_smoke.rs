@@ -18,57 +18,79 @@ use serde::Deserialize;
 use crate::selection::{allowed_tools_for_stage, load_bam_domain_tool_planning_spec};
 
 const LOCAL_VALIDATE_CONFIG_PATH: &str = "benchmarks/configs/local/bam-validate.toml";
-const DEFAULT_LOCAL_VALIDATE_OUTPUT_DIR: &str = "target/local-smoke/bam.validate";
+const DEFAULT_LOCAL_VALIDATE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.validate";
 const LOCAL_QC_PRE_CONFIG_PATH: &str = "benchmarks/configs/local/bam-qc-pre.toml";
-const DEFAULT_LOCAL_QC_PRE_OUTPUT_DIR: &str = "target/local-smoke/bam.qc_pre";
+const DEFAULT_LOCAL_QC_PRE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.qc_pre";
 const LOCAL_MAPPING_SUMMARY_CONFIG_PATH: &str = "benchmarks/configs/local/bam-mapping-summary.toml";
-const DEFAULT_LOCAL_MAPPING_SUMMARY_OUTPUT_DIR: &str = "target/local-smoke/bam.mapping_summary";
+const DEFAULT_LOCAL_MAPPING_SUMMARY_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.mapping_summary";
 const LOCAL_FILTER_CONFIG_PATH: &str = "benchmarks/configs/local/bam-filter.toml";
-const DEFAULT_LOCAL_FILTER_OUTPUT_DIR: &str = "target/local-smoke/bam.filter";
+const DEFAULT_LOCAL_FILTER_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.filter";
 const LOCAL_MAPQ_FILTER_CONFIG_PATH: &str = "benchmarks/configs/local/bam-mapq-filter.toml";
-const DEFAULT_LOCAL_MAPQ_FILTER_OUTPUT_DIR: &str = "target/local-smoke/bam.mapq_filter";
+const DEFAULT_LOCAL_MAPQ_FILTER_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.mapq_filter";
 const LOCAL_LENGTH_FILTER_CONFIG_PATH: &str = "benchmarks/configs/local/bam-length-filter.toml";
-const DEFAULT_LOCAL_LENGTH_FILTER_OUTPUT_DIR: &str = "target/local-smoke/bam.length_filter";
+const DEFAULT_LOCAL_LENGTH_FILTER_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.length_filter";
 const LOCAL_MARKDUP_CONFIG_PATH: &str = "benchmarks/configs/local/bam-markdup.toml";
-const DEFAULT_LOCAL_MARKDUP_OUTPUT_DIR: &str = "target/local-smoke/bam.markdup";
+const DEFAULT_LOCAL_MARKDUP_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.markdup";
 const LOCAL_DUPLICATION_METRICS_CONFIG_PATH: &str =
     "benchmarks/configs/local/bam-duplication-metrics.toml";
 const DEFAULT_LOCAL_DUPLICATION_METRICS_OUTPUT_DIR: &str =
-    "target/local-smoke/bam.duplication_metrics";
+    "runs/bench/local-smoke/bam.duplication_metrics";
 const LOCAL_COMPLEXITY_CONFIG_PATH: &str = "benchmarks/configs/local/bam-complexity.toml";
-const DEFAULT_LOCAL_COMPLEXITY_OUTPUT_DIR: &str = "target/local-smoke/bam.complexity";
+const DEFAULT_LOCAL_COMPLEXITY_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.complexity";
 const LOCAL_COVERAGE_CONFIG_PATH: &str = "benchmarks/configs/local/bam-coverage.toml";
-const DEFAULT_LOCAL_COVERAGE_OUTPUT_DIR: &str = "target/local-smoke/bam.coverage";
+const DEFAULT_LOCAL_COVERAGE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.coverage";
 const LOCAL_INSERT_SIZE_CONFIG_PATH: &str = "benchmarks/configs/local/bam-insert-size.toml";
-const DEFAULT_LOCAL_INSERT_SIZE_OUTPUT_DIR: &str = "target/local-smoke/bam.insert_size";
+const DEFAULT_LOCAL_INSERT_SIZE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.insert_size";
 const LOCAL_GC_BIAS_CONFIG_PATH: &str = "benchmarks/configs/local/bam-gc-bias.toml";
-const DEFAULT_LOCAL_GC_BIAS_OUTPUT_DIR: &str = "target/local-smoke/bam.gc_bias";
+const DEFAULT_LOCAL_GC_BIAS_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.gc_bias";
 #[cfg(feature = "bam_downstream")]
 const LOCAL_BIAS_MITIGATION_CONFIG_PATH: &str = "benchmarks/configs/local/bam-bias-mitigation.toml";
 #[cfg(feature = "bam_downstream")]
-const DEFAULT_LOCAL_BIAS_MITIGATION_OUTPUT_DIR: &str = "target/local-smoke/bam.bias_mitigation";
+const DEFAULT_LOCAL_BIAS_MITIGATION_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.bias_mitigation";
 const LOCAL_RECALIBRATION_CONFIG_PATH: &str = "benchmarks/configs/local/bam-recalibration.toml";
-const DEFAULT_LOCAL_RECALIBRATION_OUTPUT_DIR: &str = "target/local-smoke/bam.recalibration";
+const DEFAULT_LOCAL_RECALIBRATION_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.recalibration";
 const LOCAL_ENDOGENOUS_CONTENT_CONFIG_PATH: &str =
     "benchmarks/configs/local/bam-endogenous-content.toml";
 const DEFAULT_LOCAL_ENDOGENOUS_CONTENT_OUTPUT_DIR: &str =
-    "target/local-smoke/bam.endogenous_content";
+    "runs/bench/local-smoke/bam.endogenous_content";
 const LOCAL_OVERLAP_CORRECTION_CONFIG_PATH: &str =
     "benchmarks/configs/local/bam-overlap-correction.toml";
 const DEFAULT_LOCAL_OVERLAP_CORRECTION_OUTPUT_DIR: &str =
-    "target/local-smoke/bam.overlap_correction";
+    "runs/bench/local-smoke/bam.overlap_correction";
 const LOCAL_DAMAGE_CONFIG_PATH: &str = "benchmarks/configs/local/bam-damage.toml";
-const DEFAULT_LOCAL_DAMAGE_OUTPUT_DIR: &str = "target/local-smoke/bam.damage";
+const DEFAULT_LOCAL_DAMAGE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.damage";
 const LOCAL_AUTHENTICITY_CONFIG_PATH: &str = "benchmarks/configs/local/bam-authenticity.toml";
-const DEFAULT_LOCAL_AUTHENTICITY_OUTPUT_DIR: &str = "target/local-smoke/bam.authenticity";
+const DEFAULT_LOCAL_AUTHENTICITY_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.authenticity";
 const LOCAL_AUTHENTICITY_EXPECTED_METRIC_IDS: [&str; 5] =
     ["damage", "contamination", "complexity", "coverage", "mapping"];
 const LOCAL_SEX_CONFIG_PATH: &str = "benchmarks/configs/local/bam-sex.toml";
-const DEFAULT_LOCAL_SEX_OUTPUT_DIR: &str = "target/local-smoke/bam.sex";
+const DEFAULT_LOCAL_SEX_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.sex";
 #[cfg(feature = "bam_downstream")]
 const LOCAL_KINSHIP_CONFIG_PATH: &str = "benchmarks/configs/local/bam-kinship.toml";
 #[cfg(feature = "bam_downstream")]
-const DEFAULT_LOCAL_KINSHIP_OUTPUT_DIR: &str = "target/local-smoke/bam.kinship";
+const DEFAULT_LOCAL_KINSHIP_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.kinship";
+const BENCHMARK_READINESS_ROOT_RELATIVE: &str = "benchmarks/readiness";
+
+fn local_smoke_case_output_dir(
+    repo_root: &Path,
+    output_root: &Path,
+    sample_id: &str,
+    tool_id: &str,
+) -> Result<PathBuf> {
+    let resolved_root = if output_root.is_absolute() {
+        output_root.to_path_buf()
+    } else {
+        repo_root.join(output_root)
+    };
+    let readiness_root = repo_root.join(BENCHMARK_READINESS_ROOT_RELATIVE);
+    if resolved_root == readiness_root || resolved_root.starts_with(&readiness_root) {
+        return Err(anyhow!(
+            "local-smoke output_dir must remain disposable under `runs/bench/local-smoke` and must not resolve inside `{}`",
+            BENCHMARK_READINESS_ROOT_RELATIVE
+        ));
+    }
+    Ok(output_root.join(sample_id).join(tool_id))
+}
 
 #[derive(Debug, Clone)]
 pub struct LocalValidateSmokeCasePlan {
@@ -1546,7 +1568,12 @@ fn build_local_validate_smoke_case(
         ));
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = crate::tool_adapters::bam::validate::plan(
         tool_spec,
         &case.bam,
@@ -1593,7 +1620,12 @@ fn build_local_qc_pre_smoke_case(
         ));
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = crate::tool_adapters::bam::qc_pre::plan(tool_spec, &case.bam, &out_dir)?;
 
     Ok(LocalQcPreSmokeCasePlan {
@@ -1651,7 +1683,12 @@ fn build_local_mapping_summary_smoke_case(
         ));
     }
 
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = crate::tool_adapters::bam::mapping_summary::plan(tool_spec, &case.bam, &out_dir)?;
 
     Ok(LocalMappingSummarySmokeCasePlan {
@@ -1723,7 +1760,12 @@ fn build_local_filter_smoke_case(
         remove_duplicates: case.remove_duplicates,
         base_quality_threshold: case.base_quality_threshold,
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = crate::tool_adapters::bam::filter::plan(tool_spec, &case.bam, &out_dir, &params)?;
 
     Ok(LocalFilterSmokeCasePlan {
@@ -1785,7 +1827,12 @@ fn build_local_mapq_filter_smoke_case(
         remove_duplicates: false,
         base_quality_threshold: 20,
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan =
         crate::tool_adapters::bam::mapq_filter::plan(tool_spec, &case.bam, &out_dir, &params)?;
 
@@ -1856,7 +1903,12 @@ fn build_local_length_filter_smoke_case(
         remove_duplicates: false,
         base_quality_threshold: 20,
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan =
         crate::tool_adapters::bam::length_filter::plan(tool_spec, &case.bam, &out_dir, &params)?;
 
@@ -1959,7 +2011,12 @@ fn build_local_markdup_smoke_case(
         umi_policy: case.umi_policy,
         duplicate_action: case.duplicate_action,
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = crate::tool_adapters::bam::markdup::plan(tool_spec, &case.bam, &out_dir, &params)?;
 
     Ok(LocalMarkdupSmokeCasePlan {
@@ -2032,7 +2089,12 @@ fn build_local_duplication_metrics_smoke_case(
         umi_policy: case.umi_policy,
         duplicate_action: case.duplicate_action,
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = crate::tool_adapters::bam::duplication_metrics::plan(
         tool_spec, &case.bam, &out_dir, &params,
     )?;
@@ -2120,7 +2182,12 @@ fn build_local_complexity_smoke_case(
         min_reads: case.min_reads,
         projection_points: case.projection_points.clone(),
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan =
         crate::tool_adapters::bam::complexity::plan(tool_spec, &case.bam, &out_dir, &params)?;
 
@@ -2240,7 +2307,12 @@ fn build_local_coverage_smoke_case(
         depth_thresholds: case.depth_thresholds.clone(),
         regime_mode: "advisory_and_enforced".to_string(),
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = crate::tool_adapters::bam::coverage::plan(tool_spec, &case.bam, &out_dir, &params)?;
 
     Ok(LocalCoverageSmokeCasePlan {
@@ -2307,7 +2379,12 @@ fn build_local_insert_size_smoke_case(
         depth_thresholds: vec![1],
         regime_mode: "advisory_and_enforced".to_string(),
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan =
         crate::tool_adapters::bam::insert_size::plan(tool_spec, &case.bam, &out_dir, &params)?;
 
@@ -2356,7 +2433,12 @@ fn build_local_gc_bias_smoke_case(
         depth_thresholds: vec![1],
         regime_mode: "advisory_and_enforced".to_string(),
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let mut plan = crate::tool_adapters::bam::gc_bias::plan(
         tool_spec,
         &case.bam,
@@ -2480,7 +2562,12 @@ fn build_local_endogenous_content_smoke_case(
         host_reference_digest: None,
         refuse_without_host_reference: true,
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = crate::tool_adapters::bam::endogenous_content::plan(
         tool_spec, &case.bam, &out_dir, &params,
     )?;
@@ -2543,7 +2630,12 @@ fn build_local_overlap_correction_smoke_case(
         remove_duplicates: false,
         base_quality_threshold: 20,
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = crate::tool_adapters::bam::overlap_correction::plan(
         tool_spec, &case.bam, &out_dir, &params,
     )?;
@@ -2631,7 +2723,12 @@ fn build_local_damage_smoke_case(
         damage_tool_profile: Some("ancient_dna_evidence".to_string()),
         evidence_only: true,
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = crate::tool_adapters::bam::damage::plan(tool_spec, &case.bam, &out_dir, &params)?;
 
     Ok(LocalDamageSmokeCasePlan {
@@ -2764,7 +2861,12 @@ fn build_local_authenticity_smoke_case(
         evidence_only: true,
         disallow_certification: true,
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan =
         crate::tool_adapters::bam::authenticity::plan(tool_spec, &case.bam, &out_dir, &params)?;
 
@@ -2902,7 +3004,12 @@ fn build_local_sex_smoke_case(
         minimum_y_sites: Some(case.minimum_y_sites),
         refuse_without_context: true,
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let mut plan = crate::tool_adapters::bam::sex::plan(tool_spec, &case.bam, &out_dir, &params)?;
     plan.io.inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
         ArtifactId::from_static("reference"),
@@ -3087,7 +3194,12 @@ fn build_local_kinship_smoke_case(
         min_overlap_snps: case.min_overlap_snps,
         requires_cohort_context: case.requires_cohort_context,
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let plan = crate::tool_adapters::bam::kinship::plan(tool_spec, &case.bam, &out_dir, &params)?;
 
     Ok(LocalKinshipSmokeCasePlan {
@@ -3194,7 +3306,12 @@ fn build_local_bias_mitigation_smoke_case(
         gc_bias_correction: case.gc_bias_correction,
         map_bias_correction: case.map_bias_correction,
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let mut plan =
         crate::tool_adapters::bam::bias_mitigation::plan(tool_spec, &case.bam, &out_dir, &params)?;
     plan.io.inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
@@ -3308,7 +3425,12 @@ fn build_local_recalibration_smoke_case(
             min_breadth_1x: case.min_breadth_1x,
         },
     };
-    let out_dir = output_root.join(&case.sample_id).join(tool_spec.tool_id.as_str());
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
     let mut plan = crate::tool_adapters::bam::recalibration::plan(
         tool_spec,
         &case.bam,
@@ -4044,7 +4166,9 @@ fn load_local_kinship_smoke_config(repo_root: &Path) -> Result<LocalKinshipSmoke
 
 #[cfg(test)]
 mod tests {
-    use super::LocalValidateSmokeConfig;
+    use std::path::Path;
+
+    use super::{local_smoke_case_output_dir, LocalValidateSmokeConfig};
 
     #[test]
     fn local_validate_smoke_config_rejects_sam_text_proxy_fixtures() {
@@ -4065,6 +4189,22 @@ required_refusal_codes = ["malformed_alignment_record"]
         assert!(
             error.to_string().contains("unknown variant `sam_text_proxy`"),
             "unexpected deserialize error: {error}"
+        );
+    }
+
+    #[test]
+    fn local_smoke_case_output_dir_rejects_readiness_root() {
+        let error = local_smoke_case_output_dir(
+            Path::new("/workspace/repo"),
+            Path::new("benchmarks/readiness/local-ready/bam.validate"),
+            "core-v1-coordinate-pass",
+            "samtools",
+        )
+        .expect_err("readiness-root smoke outputs must be refused");
+
+        assert!(
+            error.to_string().contains("local-smoke output_dir must remain disposable"),
+            "unexpected error: {error}"
         );
     }
 }

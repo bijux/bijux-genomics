@@ -64,7 +64,7 @@ fn local_bias_mitigation_smoke_plans_use_governed_bam_reference_and_expectations
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2"
+            "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2"
         )
     );
     assert_eq!(
@@ -110,7 +110,7 @@ fn local_bias_mitigation_smoke_plans_use_governed_bam_reference_and_expectations
         .unwrap_or_else(|| panic!("bias-mitigation summary output missing from BAM plan"));
     assert_eq!(
         summary_output.path,
-        PathBuf::from("target/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.summary.json")
+        PathBuf::from("runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.summary.json")
     );
 
     Ok(())
@@ -137,7 +137,7 @@ fn local_bias_mitigation_smoke_plans_require_expected_metric_name_to_match_gover
 schema_version = "bijux.bench.bam.local_bias_mitigation.v1"
 tool_id = "mapdamage2"
 threads = 2
-output_dir = "target/local-smoke/bam.bias_mitigation"
+output_dir = "runs/bench/local-smoke/bam.bias_mitigation"
 
 [[cases]]
 sample_id = "wrong-metric-name"
@@ -184,7 +184,7 @@ fn local_bias_mitigation_smoke_plans_require_expected_pre_metric_to_match_govern
 schema_version = "bijux.bench.bam.local_bias_mitigation.v1"
 tool_id = "mapdamage2"
 threads = 2
-output_dir = "target/local-smoke/bam.bias_mitigation"
+output_dir = "runs/bench/local-smoke/bam.bias_mitigation"
 
 [[cases]]
 sample_id = "wrong-pre-metric"
@@ -231,7 +231,7 @@ fn local_bias_mitigation_smoke_plans_require_expected_post_metric_to_match_gover
 schema_version = "bijux.bench.bam.local_bias_mitigation.v1"
 tool_id = "mapdamage2"
 threads = 2
-output_dir = "target/local-smoke/bam.bias_mitigation"
+output_dir = "runs/bench/local-smoke/bam.bias_mitigation"
 
 [[cases]]
 sample_id = "wrong-post-metric"
@@ -275,7 +275,7 @@ fn local_bias_mitigation_smoke_plans_reject_empty_sample_ids() -> Result<()> {
 schema_version = "bijux.bench.bam.local_bias_mitigation.v1"
 tool_id = "mapdamage2"
 threads = 2
-output_dir = "target/local-smoke/bam.bias_mitigation"
+output_dir = "runs/bench/local-smoke/bam.bias_mitigation"
 
 [[cases]]
 sample_id = " "
@@ -305,7 +305,7 @@ fn local_bias_mitigation_smoke_plans_reject_duplicate_sample_ids() -> Result<()>
 schema_version = "bijux.bench.bam.local_bias_mitigation.v1"
 tool_id = "mapdamage2"
 threads = 2
-output_dir = "target/local-smoke/bam.bias_mitigation"
+output_dir = "runs/bench/local-smoke/bam.bias_mitigation"
 
 [[cases]]
 sample_id = "duplicate-case"

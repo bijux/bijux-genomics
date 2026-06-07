@@ -57,7 +57,7 @@ fn local_authenticity_smoke_plans_use_governed_bam_fixture() -> Result<()> {
     );
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct")
+        PathBuf::from("runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct")
     );
     assert_eq!(
         case.plan.params["bam"],
@@ -89,7 +89,7 @@ fn local_authenticity_smoke_plans_use_governed_bam_fixture() -> Result<()> {
     assert_eq!(
         authenticity_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.json"
+            "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.json"
         )
     );
 

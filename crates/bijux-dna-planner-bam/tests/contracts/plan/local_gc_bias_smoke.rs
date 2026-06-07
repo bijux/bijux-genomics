@@ -65,7 +65,7 @@ fn local_gc_bias_smoke_plans_use_governed_reference_and_bam() -> Result<()> {
     );
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard")
+        PathBuf::from("runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard")
     );
     assert_eq!(
         case.plan.params["bam"],
@@ -100,7 +100,7 @@ fn local_gc_bias_smoke_plans_use_governed_reference_and_bam() -> Result<()> {
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.summary.json"
+            "runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.summary.json"
         )
     );
 

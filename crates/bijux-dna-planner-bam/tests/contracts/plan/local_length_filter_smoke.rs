@@ -43,7 +43,7 @@ fn local_length_filter_smoke_plans_use_governed_threshold_fixture() -> Result<()
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools"
+            "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools"
         )
     );
     assert_eq!(case.plan.params["action"], serde_json::json!("length_filter"));
@@ -81,7 +81,7 @@ fn local_length_filter_smoke_plans_use_governed_threshold_fixture() -> Result<()
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/length_filter.summary.json"
+            "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/length_filter.summary.json"
         )
     );
 
@@ -390,7 +390,7 @@ fn length_filter_plan_accepts_picard_governed_planning_contract() -> Result<()> 
         base_quality_threshold: 20,
     };
     let out_dir = PathBuf::from(
-        "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/picard",
+        "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/picard",
     );
     let plan = bijux_dna_planner_bam::tool_adapters::stages_pre::length_filter::plan(
         &tool_spec, &bam, &out_dir, &params,
@@ -432,7 +432,7 @@ fn length_filter_plan_accepts_picard_governed_planning_contract() -> Result<()> 
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/picard/length_filter.summary.json"
+            "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/picard/length_filter.summary.json"
         )
     );
 

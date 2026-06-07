@@ -43,7 +43,7 @@ fn local_mapq_filter_smoke_plans_use_governed_threshold_fixture() -> Result<()> 
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools"
+            "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools"
         )
     );
     assert_eq!(case.plan.params["action"], serde_json::json!("mapq_filter"));
@@ -82,7 +82,7 @@ fn local_mapq_filter_smoke_plans_use_governed_threshold_fixture() -> Result<()> 
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/mapq_filter.summary.json"
+            "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/mapq_filter.summary.json"
         )
     );
 
@@ -353,7 +353,7 @@ fn mapq_filter_plan_accepts_bamtools_governed_planning_contract() -> Result<()> 
         base_quality_threshold: 20,
     };
     let out_dir = PathBuf::from(
-        "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/bamtools",
+        "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/bamtools",
     );
     let plan = bijux_dna_planner_bam::tool_adapters::stages_pre::mapq_filter::plan(
         &tool_spec, &bam, &out_dir, &params,
@@ -396,7 +396,7 @@ fn mapq_filter_plan_accepts_bamtools_governed_planning_contract() -> Result<()> 
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/bamtools/mapq_filter.summary.json"
+            "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/bamtools/mapq_filter.summary.json"
         )
     );
 

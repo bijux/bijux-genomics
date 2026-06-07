@@ -40,7 +40,9 @@ fn local_insert_size_smoke_plans_use_governed_paired_fixture() -> Result<()> {
     assert_eq!(case.expected_max_insert_size, 30);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard")
+        PathBuf::from(
+            "runs/bench/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard"
+        )
     );
     assert_eq!(
         case.plan.params["bam"],
@@ -71,7 +73,7 @@ fn local_insert_size_smoke_plans_use_governed_paired_fixture() -> Result<()> {
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/insert_size.summary.json"
+            "runs/bench/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/insert_size.summary.json"
         )
     );
 

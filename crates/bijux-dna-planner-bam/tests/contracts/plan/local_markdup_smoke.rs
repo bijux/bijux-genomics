@@ -43,7 +43,7 @@ fn local_markdup_smoke_plans_use_governed_duplicate_fixture() -> Result<()> {
     assert_eq!(case.expected_newly_marked_reads, 1);
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("target/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools")
+        PathBuf::from("runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools")
     );
     assert_eq!(case.plan.params["duplicate_action"], serde_json::json!("mark"));
     assert_eq!(case.plan.params["optical_duplicates"], serde_json::json!("mark_only"));
@@ -80,7 +80,7 @@ fn local_markdup_smoke_plans_use_governed_duplicate_fixture() -> Result<()> {
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/markdup.summary.json"
+            "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/markdup.summary.json"
         )
     );
 
@@ -446,7 +446,7 @@ fn markdup_plan_accepts_picard_governed_planning_contract() -> Result<()> {
         duplicate_action: bijux_dna_domain_bam::params::DuplicateAction::Mark,
     };
     let out_dir =
-        PathBuf::from("target/local-smoke/bam.markdup/human_like_duplicate_cluster/picard");
+        PathBuf::from("runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/picard");
     let plan = bijux_dna_planner_bam::tool_adapters::bam::markdup::plan(
         &tool_spec, &bam, &out_dir, &params,
     )?;
@@ -487,7 +487,7 @@ fn markdup_plan_accepts_picard_governed_planning_contract() -> Result<()> {
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.markdup/human_like_duplicate_cluster/picard/markdup.summary.json"
+            "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/picard/markdup.summary.json"
         )
     );
 

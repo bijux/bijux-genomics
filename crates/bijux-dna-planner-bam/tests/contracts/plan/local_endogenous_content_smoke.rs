@@ -47,7 +47,7 @@ fn local_endogenous_content_smoke_plans_use_governed_bam_and_host_scope() -> Res
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "target/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools"
+            "runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools"
         )
     );
     assert_eq!(
@@ -77,7 +77,7 @@ fn local_endogenous_content_smoke_plans_use_governed_bam_and_host_scope() -> Res
     assert_eq!(
         report_output.path,
         PathBuf::from(
-            "target/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/endogenous.content.json"
+            "runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/endogenous.content.json"
         )
     );
 
