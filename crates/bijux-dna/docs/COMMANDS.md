@@ -139,8 +139,11 @@ Visible aliases are part of the operator surface:
   `paths validate --strict` writes `target/bench-readiness/benchmark-paths-validation.json` and
   proves that the tracked `benchmarks/`, `benchmarks/configs/`, `benchmarks/schemas/`,
   `benchmarks/tests/`, and `benchmarks/readiness/` roots exist, are not ignored by git, and each
-  carries a tracked marker file. It fails closed when any benchmark root is missing, ignored, or
-  only present as an untracked local directory.
+  carries a tracked marker file. It also proves that the repository-root `tests/` tree has been
+  reduced to `tests/README.md` plus a compatibility symlink at
+  `tests/fixtures -> ../benchmarks/tests/fixtures`. It fails closed when any benchmark root is
+  missing, ignored, or only present as an untracked local directory, or when the retired root
+  fixture path drifts back into a stored directory tree.
 - `bijux-dna bench run`
 - `bijux-dna bench status`
 - `bijux-dna bench workspace-value`
