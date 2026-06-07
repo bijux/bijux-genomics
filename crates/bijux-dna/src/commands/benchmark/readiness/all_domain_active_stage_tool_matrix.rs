@@ -27,6 +27,8 @@ pub(crate) const STATUS_BENCHMARK_READY: &str = "benchmark_ready";
 pub(crate) const STATUS_NOT_BENCHMARK_READY: &str = "not_benchmark_ready";
 pub(crate) const STATUS_PLANNED: &str = "planned";
 pub(crate) const STATUS_FUTURE: &str = "future";
+pub(crate) const ADAPTER_STATUS_RUNNABLE: &str = "runnable";
+pub(crate) const ADAPTER_STATUS_PLANNABLE: &str = "plannable";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct BindingKey {
@@ -120,12 +122,26 @@ pub(crate) fn render_all_domain_active_stage_tool_matrix(
 pub(crate) fn collect_all_domain_active_stage_tool_matrix_rows(
     repo_root: &Path,
 ) -> Result<Vec<AllDomainActiveStageToolMatrixRow>> {
-    let rows = collect_all_domain_active_stage_tool_matrix_candidate_rows(repo_root)?
-        .into_iter()
-        .filter(|row| is_active_scope_status(&row.status))
-        .collect::<Vec<_>>();
+    let lifecycle_active_rows =
+        collect_all_domain_lifecycle_active_stage_tool_matrix_rows(repo_root)?;
+    let adapter_status_by_binding = collect_all_domain_adapter_status_by_binding(repo_root)?;
+    let mut rows = Vec::with_capacity(lifecycle_active_rows.len());
+    for row in lifecycle_active_rows {
+        if row_has_executable_adapter(&row, &adapter_status_by_binding)? {
+            rows.push(row);
+        }
+    }
     ensure_all_domain_active_stage_tool_matrix_contract(repo_root, &rows)?;
     Ok(rows)
+}
+
+pub(crate) fn collect_all_domain_lifecycle_active_stage_tool_matrix_rows(
+    repo_root: &Path,
+) -> Result<Vec<AllDomainActiveStageToolMatrixRow>> {
+    Ok(collect_all_domain_active_stage_tool_matrix_candidate_rows(repo_root)?
+        .into_iter()
+        .filter(|row| is_active_scope_status(&row.status))
+        .collect::<Vec<_>>())
 }
 
 pub(crate) fn collect_all_domain_active_stage_tool_matrix_candidate_rows(
@@ -208,6 +224,29 @@ fn collect_status_by_binding(repo_root: &Path) -> Result<BTreeMap<BindingKey, St
     Ok(rows)
 }
 
+pub(crate) fn collect_all_domain_adapter_status_by_binding(
+    repo_root: &Path,
+) -> Result<BTreeMap<(String, String, String), String>> {
+    let mut rows = BTreeMap::<(String, String, String), String>::new();
+
+    for row in collect_fastq_command_adapter_coverage_rows(repo_root)?.2 {
+        rows.insert(
+            binding_tuple("fastq", &row.stage_id, &row.tool_id),
+            row.adapter_status.clone(),
+        );
+    }
+
+    for row in collect_bam_command_adapter_coverage_rows(repo_root)?.2 {
+        rows.insert(binding_tuple("bam", &row.stage_id, &row.tool_id), row.adapter_status.clone());
+    }
+
+    for row in collect_vcf_tool_serving_map_rows()? {
+        rows.insert(binding_tuple("vcf", &row.stage_id, &row.tool_id), row.adapter_status.clone());
+    }
+
+    Ok(rows)
+}
+
 fn collect_schema_id_by_stage() -> Result<BTreeMap<(String, String), String>> {
     let mut rows = BTreeMap::<(String, String), String>::new();
 
@@ -228,6 +267,9 @@ fn ensure_all_domain_active_stage_tool_matrix_contract(
     repo_root: &Path,
     rows: &[AllDomainActiveStageToolMatrixRow],
 ) -> Result<()> {
+    let lifecycle_active_rows =
+        collect_all_domain_lifecycle_active_stage_tool_matrix_rows(repo_root)?;
+    let adapter_status_by_binding = collect_all_domain_adapter_status_by_binding(repo_root)?;
     let row_keys = rows
         .iter()
         .map(|row| binding_key(&row.domain, &row.stage_id, &row.tool_id))
@@ -238,22 +280,24 @@ fn ensure_all_domain_active_stage_tool_matrix_contract(
         ));
     }
 
-    let base_keys = collect_all_domain_active_stage_tool_matrix_candidate_rows(repo_root)?
-        .into_iter()
-        .filter(|row| is_active_scope_status(&row.status))
-        .map(|row| binding_key(&row.domain, &row.stage_id, &row.tool_id))
-        .collect::<BTreeSet<_>>();
+    let mut base_keys = BTreeSet::<BindingKey>::new();
+    for row in &lifecycle_active_rows {
+        if row_has_executable_adapter(row, &adapter_status_by_binding)? {
+            base_keys.insert(binding_key(&row.domain, &row.stage_id, &row.tool_id));
+        }
+    }
     if row_keys != base_keys {
         return Err(anyhow!(
             "all-domain active stage-tool matrix drifted from the governed active-scope stage-tool surface"
         ));
     }
 
-    let active_stage_keys = collect_all_domain_active_stage_tool_matrix_candidate_rows(repo_root)?
-        .into_iter()
-        .filter(|row| is_active_scope_status(&row.status))
-        .map(|row| (row.domain, row.stage_id))
-        .collect::<BTreeSet<_>>();
+    let mut active_stage_keys = BTreeSet::<(String, String)>::new();
+    for row in &lifecycle_active_rows {
+        if row_has_executable_adapter(row, &adapter_status_by_binding)? {
+            active_stage_keys.insert((row.domain.clone(), row.stage_id.clone()));
+        }
+    }
     let matrix_stage_keys =
         rows.iter().map(|row| (row.domain.clone(), row.stage_id.clone())).collect::<BTreeSet<_>>();
     if matrix_stage_keys != active_stage_keys {
@@ -262,11 +306,12 @@ fn ensure_all_domain_active_stage_tool_matrix_contract(
         ));
     }
 
-    let active_tool_keys = collect_all_domain_active_stage_tool_matrix_candidate_rows(repo_root)?
-        .into_iter()
-        .filter(|row| is_active_scope_status(&row.status))
-        .map(|row| row.tool_id)
-        .collect::<BTreeSet<_>>();
+    let mut active_tool_keys = BTreeSet::<String>::new();
+    for row in &lifecycle_active_rows {
+        if row_has_executable_adapter(row, &adapter_status_by_binding)? {
+            active_tool_keys.insert(row.tool_id.clone());
+        }
+    }
     let matrix_tool_keys = rows.iter().map(|row| row.tool_id.clone()).collect::<BTreeSet<_>>();
     if matrix_tool_keys != active_tool_keys {
         return Err(anyhow!(
@@ -304,6 +349,14 @@ fn ensure_all_domain_active_stage_tool_matrix_contract(
                 row.status
             ));
         }
+        if !row_has_executable_adapter(row, &adapter_status_by_binding)? {
+            return Err(anyhow!(
+                "all-domain active stage-tool matrix row `{}` / `{}` / `{}` lacks an executable adapter contract",
+                row.domain,
+                row.stage_id,
+                row.tool_id
+            ));
+        }
     }
 
     Ok(())
@@ -311,6 +364,10 @@ fn ensure_all_domain_active_stage_tool_matrix_contract(
 
 pub(crate) fn is_active_scope_status(status: &str) -> bool {
     matches!(status, STATUS_BENCHMARK_READY | STATUS_NOT_BENCHMARK_READY)
+}
+
+pub(crate) fn is_executable_adapter_status(adapter_status: &str) -> bool {
+    matches!(adapter_status, ADAPTER_STATUS_RUNNABLE | ADAPTER_STATUS_PLANNABLE)
 }
 
 fn render_all_domain_active_stage_tool_matrix_tsv(
@@ -381,6 +438,27 @@ fn binding_key(domain: &str, stage_id: &str, tool_id: &str) -> BindingKey {
         stage_id: stage_id.to_string(),
         tool_id: tool_id.to_string(),
     }
+}
+
+fn binding_tuple(domain: &str, stage_id: &str, tool_id: &str) -> (String, String, String) {
+    (domain.to_string(), stage_id.to_string(), tool_id.to_string())
+}
+
+fn row_has_executable_adapter(
+    row: &AllDomainActiveStageToolMatrixRow,
+    adapter_status_by_binding: &BTreeMap<(String, String, String), String>,
+) -> Result<bool> {
+    let adapter_status = adapter_status_by_binding
+        .get(&binding_tuple(&row.domain, &row.stage_id, &row.tool_id))
+        .ok_or_else(|| {
+            anyhow!(
+                "all-domain active stage-tool matrix is missing adapter status coverage for `{}` / `{}` / `{}`",
+                row.domain,
+                row.stage_id,
+                row.tool_id
+            )
+        })?;
+    Ok(is_executable_adapter_status(adapter_status))
 }
 
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
