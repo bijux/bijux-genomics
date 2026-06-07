@@ -46,11 +46,11 @@ fn bench_local_validate_all_domain_slurm_script_bodies_reports_clean_governed_tr
     );
     assert_eq!(
         payload.get("root_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run/all-domains")
+        Some("runs/bench/slurm-dry-run/all-domains")
     );
     assert_eq!(
         payload.get("report_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run/all-domains/no-placeholder-report.json")
+        Some("runs/bench/slurm-dry-run/all-domains/no-placeholder-report.json")
     );
     assert_eq!(payload.get("script_count").and_then(serde_json::Value::as_u64), Some(213));
     assert_eq!(payload.get("findings_count").and_then(serde_json::Value::as_u64), Some(0));

@@ -29,10 +29,14 @@ use super::readiness::stage_tool_resources::{
     StageToolResourcesConfig, DEFAULT_STAGE_TOOL_RESOURCES_PATH,
     LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION,
 };
+use crate::commands::benchmark::path_resolution::{
+    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT: &str = "target/slurm-dry-run/all-domains";
+pub(crate) const DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT: &str =
+    "runs/bench/slurm-dry-run/all-domains";
 const LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_VERSION: &str =
     "bijux.bench.local_all_domain_slurm_scripts.v1";
 const DEFAULT_TIME_LIMIT: &str = "00:20:00";
@@ -106,11 +110,12 @@ pub(crate) fn run_render_all_domain_slurm_scripts(
     args: &parse::BenchLocalRenderAllDomainSlurmScriptsArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
     let report = render_all_domain_slurm_scripts(
         &repo_root,
         args.output_root
             .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT)),
+            .unwrap_or_else(|| benchmark_paths.benchmark_slurm_dry_run_root().join("all-domains")),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -125,6 +130,11 @@ pub(crate) fn render_all_domain_slurm_scripts(
     output_root: PathBuf,
 ) -> Result<BenchLocalAllDomainSlurmScriptsReport> {
     let absolute_output_root = repo_relative_path(repo_root, &output_root);
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &absolute_output_root,
+        "all-domain slurm dry-run output",
+    )?;
     fs::create_dir_all(&absolute_output_root)
         .with_context(|| format!("create {}", absolute_output_root.display()))?;
 

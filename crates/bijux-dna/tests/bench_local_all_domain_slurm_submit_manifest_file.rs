@@ -33,7 +33,7 @@ fn bench_local_render_all_domain_slurm_submit_manifest_writes_governed_manifest_
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "target/slurm-dry-run/all-domains/submit-manifest.json");
+    assert_eq!(rendered_path.trim(), "runs/bench/slurm-dry-run/all-domains/submit-manifest.json");
 
     let manifest_path = repo_root.join(rendered_path.trim());
     assert!(manifest_path.is_file(), "all-domain submit manifest must exist");
@@ -60,14 +60,15 @@ fn bench_local_render_all_domain_slurm_submit_manifest_writes_governed_manifest_
     assert_eq!(
         benchmark_job.get("stdout").and_then(serde_json::Value::as_str),
         Some(
-            "target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stdout.log"
+            "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stdout.log"
         )
     );
     assert!(benchmark_job.get("outputs").and_then(serde_json::Value::as_array).is_some_and(
         |outputs| {
             outputs.iter().any(|value| {
                 value.as_str().is_some_and(|path| {
-                    path.contains("/declared-outputs/") && path.starts_with("target/slurm-dry-run/")
+                    path.contains("/declared-outputs/")
+                        && path.starts_with("runs/bench/slurm-dry-run/")
                 })
             }) && outputs
                 .iter()
@@ -96,7 +97,7 @@ fn bench_local_render_all_domain_slurm_submit_manifest_writes_governed_manifest_
     assert_eq!(
         pipeline_job.get("stdout").and_then(serde_json::Value::as_str),
         Some(
-            "target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/relatedness-segments-vcf/vcf.demography/ibdne/vcf_production_regression/sample-set/stdout.log"
+            "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/relatedness-segments-vcf/vcf.demography/ibdne/vcf_production_regression/sample-set/stdout.log"
         )
     );
     assert!(

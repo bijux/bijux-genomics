@@ -5,10 +5,11 @@ use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
 use super::local_all_domain_result_paths::LOCAL_ALL_DOMAIN_SLURM_RUN_ID;
-use super::local_all_domain_slurm_scripts::DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT;
 use super::local_all_domain_slurm_submit_manifest::{
     render_all_domain_slurm_submit_manifest, BenchLocalAllDomainSlurmSubmitJob,
-    DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH,
+};
+use crate::commands::benchmark::path_resolution::{
+    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -16,7 +17,7 @@ use crate::commands::cli::render;
 const LOCAL_ALL_DOMAIN_SLURM_PATH_CONVENTION_SCHEMA_VERSION: &str =
     "bijux.bench.local_all_domain_slurm_path_convention.v1";
 const DEFAULT_ALL_DOMAIN_SLURM_PATH_CONVENTION_REPORT_PATH: &str =
-    "target/slurm-dry-run/all-domains/path-convention-check.json";
+    "runs/bench/slurm-dry-run/all-domains/path-convention-check.json";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct BenchLocalAllDomainSlurmPathConventionReport {
@@ -49,16 +50,19 @@ pub(crate) fn run_validate_all_domain_slurm_result_paths(
     args: &parse::BenchLocalValidateAllDomainSlurmResultPathsArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let root_path =
-        args.root.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT));
-    let manifest_path = args
-        .manifest
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
+    let root_path = args
+        .root
         .clone()
-        .unwrap_or_else(|| PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH));
-    let report_path = args
-        .output
-        .clone()
-        .unwrap_or_else(|| PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_PATH_CONVENTION_REPORT_PATH));
+        .unwrap_or_else(|| benchmark_paths.benchmark_slurm_dry_run_root().join("all-domains"));
+    let manifest_path = args.manifest.clone().unwrap_or_else(|| {
+        benchmark_paths.benchmark_slurm_dry_run_root().join("all-domains/submit-manifest.json")
+    });
+    let report_path = args.output.clone().unwrap_or_else(|| {
+        benchmark_paths
+            .benchmark_slurm_dry_run_root()
+            .join("all-domains/path-convention-check.json")
+    });
     let report =
         validate_all_domain_slurm_result_paths(&repo_root, root_path, manifest_path, report_path)?;
     if args.json {
@@ -78,6 +82,21 @@ pub(crate) fn validate_all_domain_slurm_result_paths(
     let absolute_root = repo_relative_path(repo_root, &root_path);
     let absolute_manifest = repo_relative_path(repo_root, &manifest_path);
     let absolute_report = repo_relative_path(repo_root, &report_path);
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &absolute_root,
+        "all-domain slurm dry-run root",
+    )?;
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &absolute_manifest,
+        "all-domain slurm submit manifest output",
+    )?;
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &absolute_report,
+        "all-domain slurm path convention report output",
+    )?;
 
     let manifest = render_all_domain_slurm_submit_manifest(
         repo_root,
@@ -210,7 +229,7 @@ fn parse_run_path(
     findings: &mut Vec<String>,
 ) -> Result<ParsedRunPath> {
     let expected_prefix =
-        format!("target/slurm-dry-run/all-domains/runs/{LOCAL_ALL_DOMAIN_SLURM_RUN_ID}/");
+        format!("runs/bench/slurm-dry-run/all-domains/runs/{LOCAL_ALL_DOMAIN_SLURM_RUN_ID}/");
     if !path.starts_with(&expected_prefix) {
         findings.push(format!(
             "{kind} path for `{}` must start with `{expected_prefix}`, found `{path}`",

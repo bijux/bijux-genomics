@@ -11,7 +11,6 @@ use super::local_all_domain_result_paths::{
 };
 use super::local_all_domain_slurm_scripts::{
     render_all_domain_slurm_scripts, BenchLocalAllDomainSlurmScriptEntry,
-    DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT,
 };
 use super::local_pipeline_dag::{validate_pipeline_dag_path, LocalPipelineDagValidationNodeReport};
 use super::local_slurm_run_paths::load_fixture_sample_scope_map;
@@ -19,6 +18,9 @@ use super::readiness::all_domain_output_declarations::{
     collect_all_domain_output_declaration_rows, AllDomainOutputDeclarationRow,
 };
 use super::readiness::essential_pipeline_corpus_assets::ESSENTIAL_PIPELINE_IDS;
+use crate::commands::benchmark::path_resolution::{
+    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -26,7 +28,7 @@ const LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_VERSION: &str =
     "bijux.bench.local_all_domain_slurm_submit_manifest.v1";
 
 pub(crate) const DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH: &str =
-    "target/slurm-dry-run/all-domains/submit-manifest.json";
+    "runs/bench/slurm-dry-run/all-domains/submit-manifest.json";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct BenchLocalAllDomainSlurmSubmitManifest {
@@ -76,12 +78,14 @@ pub(crate) fn run_render_all_domain_slurm_submit_manifest(
     args: &parse::BenchLocalRenderAllDomainSlurmSubmitManifestArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let root_path =
-        args.root.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT));
-    let output_path = args
-        .output
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
+    let root_path = args
+        .root
         .clone()
-        .unwrap_or_else(|| PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH));
+        .unwrap_or_else(|| benchmark_paths.benchmark_slurm_dry_run_root().join("all-domains"));
+    let output_path = args.output.clone().unwrap_or_else(|| {
+        benchmark_paths.benchmark_slurm_dry_run_root().join("all-domains/submit-manifest.json")
+    });
     let manifest = render_all_domain_slurm_submit_manifest(&repo_root, root_path, output_path)?;
     if args.json {
         render::json::print_pretty(&manifest)?;
@@ -99,6 +103,16 @@ pub(crate) fn render_all_domain_slurm_submit_manifest(
     let absolute_root = if root_path.is_absolute() { root_path } else { repo_root.join(root_path) };
     let absolute_output =
         if output_path.is_absolute() { output_path } else { repo_root.join(output_path) };
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &absolute_root,
+        "all-domain slurm dry-run root",
+    )?;
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &absolute_output,
+        "all-domain slurm submit manifest output",
+    )?;
     fs::create_dir_all(&absolute_root)
         .with_context(|| format!("create {}", absolute_root.display()))?;
 

@@ -46,11 +46,11 @@ fn bench_local_render_all_domain_slurm_submit_manifest_reports_governed_job_slic
     );
     assert_eq!(
         payload.get("root_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run/all-domains")
+        Some("runs/bench/slurm-dry-run/all-domains")
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run/all-domains/submit-manifest.json")
+        Some("runs/bench/slurm-dry-run/all-domains/submit-manifest.json")
     );
     assert_eq!(
         payload.get("run_id").and_then(serde_json::Value::as_str),
@@ -73,16 +73,16 @@ fn bench_local_render_all_domain_slurm_submit_manifest_reports_governed_job_slic
             && job.get("corpus_id").and_then(serde_json::Value::as_str).is_some()
             && job.get("asset_profile_id").and_then(serde_json::Value::as_str).is_some()
             && job.get("script_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
-                path.starts_with("target/slurm-dry-run/all-domains/") && path.ends_with(".sbatch")
+                path.starts_with("runs/bench/slurm-dry-run/all-domains/") && path.ends_with(".sbatch")
             })
             && job.get("stdout").and_then(serde_json::Value::as_str).is_some_and(|path| {
                 path.starts_with(
-                    "target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/",
+                    "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/",
                 )
             })
             && job.get("stderr").and_then(serde_json::Value::as_str).is_some_and(|path| {
                 path.starts_with(
-                    "target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/",
+                    "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/",
                 )
             })
             && job.get("outputs").and_then(serde_json::Value::as_array).is_some_and(|outputs| {
@@ -90,7 +90,7 @@ fn bench_local_render_all_domain_slurm_submit_manifest_reports_governed_job_slic
                     && outputs.iter().all(|value| {
                         value.as_str().is_some_and(|path| {
                             path.starts_with(
-                            "target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/",
+                            "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/",
                         )
                         })
                     })

@@ -46,11 +46,11 @@ fn bench_local_validate_all_domain_slurm_shell_syntax_reports_clean_governed_tre
     );
     assert_eq!(
         payload.get("root_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run/all-domains")
+        Some("runs/bench/slurm-dry-run/all-domains")
     );
     assert_eq!(
         payload.get("report_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run/all-domains/bash-n-report.json")
+        Some("runs/bench/slurm-dry-run/all-domains/bash-n-report.json")
     );
     assert_eq!(payload.get("script_count").and_then(serde_json::Value::as_u64), Some(213));
     assert_eq!(payload.get("findings_count").and_then(serde_json::Value::as_u64), Some(0));
@@ -62,7 +62,8 @@ fn bench_local_validate_all_domain_slurm_shell_syntax_reports_clean_governed_tre
     assert!(scripts.iter().all(|entry| {
         entry.get("ok").and_then(serde_json::Value::as_bool) == Some(true)
             && entry.get("script_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
-                path.starts_with("target/slurm-dry-run/all-domains/") && path.ends_with(".sbatch")
+                path.starts_with("runs/bench/slurm-dry-run/all-domains/")
+                    && path.ends_with(".sbatch")
             })
     }));
 }

@@ -46,15 +46,15 @@ fn bench_local_validate_all_domain_slurm_result_paths_reports_governed_run_root(
     );
     assert_eq!(
         payload.get("root_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run/all-domains")
+        Some("runs/bench/slurm-dry-run/all-domains")
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run/all-domains/submit-manifest.json")
+        Some("runs/bench/slurm-dry-run/all-domains/submit-manifest.json")
     );
     assert_eq!(
         payload.get("report_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run/all-domains/path-convention-check.json")
+        Some("runs/bench/slurm-dry-run/all-domains/path-convention-check.json")
     );
     assert_eq!(payload.get("job_count").and_then(serde_json::Value::as_u64), Some(213));
     assert_eq!(payload.get("finding_count").and_then(serde_json::Value::as_u64), Some(0));
