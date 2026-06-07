@@ -186,6 +186,14 @@ Visible aliases are part of the operator surface:
   `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `expected_outputs`,
   `expected_metrics`, and `report_section` explicit, and the command fails closed unless result
   identities stay unique and stable across all governed benchmark-ready domains.
+- `bijux-dna bench readiness render-all-domain-harness-ready`
+  `render-all-domain-harness-ready` writes
+  `target/bench-readiness/ALL_DOMAIN_HARNESS_READY.json` and fail-closes across Goals 278–289.
+  The gate reruns the governed all-domain stage inventory, stage-tool table, expected-result
+  table, rendered commands, output declarations, fake-runner, fake failures, completion checker,
+  parser collector, missing-result behavior, failure classification, and real-smoke subset, then
+  reconciles the shared 120-result all-domain harness slice so identity drift cannot pass
+  silently between surfaces.
 - `bijux-dna bench readiness render-all-domain-failure-classification`
   `render-all-domain-failure-classification` writes
   `target/bench-readiness/failure-classification-all-domains.json` and materializes a governed
