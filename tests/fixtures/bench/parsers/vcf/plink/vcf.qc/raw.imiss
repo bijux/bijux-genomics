@@ -1,4 +1,0 @@
-FID IID MISS_PHENO N_MISS N_GENO F_MISS
-0 qc_balanced 0 1 4 0.25
-0 qc_ref 0 0 4 0.0
-0 qc_sparse 0 3 4 0.75

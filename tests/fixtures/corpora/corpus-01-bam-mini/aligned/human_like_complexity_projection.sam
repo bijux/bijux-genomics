@@ -1,9 +1,0 @@
-@HD	VN:1.6	SO:coordinate
-@SQ	SN:chr1	LN:100
-@RG	ID:rg-complexity-human-like	SM:human_like_complexity_projection
-complexity_dup_a	0	chr1	5	60	8M	*	0	0	ACGTACGT	FFFFFFFF	RG:Z:rg-complexity-human-like
-complexity_dup_b	0	chr1	5	60	8M	*	0	0	ACGTACGT	FFFFFFFF	RG:Z:rg-complexity-human-like
-complexity_dup_c	0	chr1	18	60	8M	*	0	0	TGCATGCA	FFFFFFFF	RG:Z:rg-complexity-human-like
-complexity_dup_d	0	chr1	18	60	8M	*	0	0	TGCATGCA	FFFFFFFF	RG:Z:rg-complexity-human-like
-complexity_unique_e	0	chr1	34	60	8M	*	0	0	GATTACAG	FFFFFFFF	RG:Z:rg-complexity-human-like
-complexity_unique_f	0	chr1	48	60	8M	*	0	0	CCGTAAGT	FFFFFFFF	RG:Z:rg-complexity-human-like

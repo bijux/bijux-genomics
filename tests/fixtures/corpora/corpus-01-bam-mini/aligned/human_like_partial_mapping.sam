@@ -1,6 +1,0 @@
-@HD	VN:1.6	SO:coordinate
-@SQ	SN:chr1	LN:100
-@RG	ID:rg-mapping-summary-human-like	SM:human_like_partial_mapping
-r001	0	chr1	1	45	6M	*	0	0	ACGTAC	FFFFFF	RG:Z:rg-mapping-summary-human-like
-r002	0	chr1	10	20	6M	*	0	0	TGCATG	FFFFFF	RG:Z:rg-mapping-summary-human-like
-r003	4	*	0	0	*	*	0	0	NNNNNN	FFFFFF	RG:Z:rg-mapping-summary-human-like

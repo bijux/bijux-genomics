@@ -1,9 +1,0 @@
-{
-  "tool_id": "ibdhap",
-  "stage_id": "vcf.ibd",
-  "argv": [
-    "sh",
-    "-lc",
-    "ibdhap --vcf 'cohort.vcf.gz' --out 'ibdhap.segments.tsv' > 'raw.log' 2>&1"
-  ]
-}

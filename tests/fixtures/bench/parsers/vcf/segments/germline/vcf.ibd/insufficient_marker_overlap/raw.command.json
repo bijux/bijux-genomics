@@ -1,9 +1,0 @@
-{
-  "tool_id": "germline",
-  "stage_id": "vcf.ibd",
-  "argv": [
-    "sh",
-    "-lc",
-    "plink2 --vcf 'cohort.vcf.gz' --double-id --allow-extra-chr --make-bed --out 'cohort' >/dev/null 2>&1 && germline -input 'cohort' -bits 128 -min_m 3 -err_hom 2 -err_het 1 -output 'ibd_segments' > 'raw.log' 2>&1"
-  ]
-}

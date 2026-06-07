@@ -1,7 +1,0 @@
-panel_id	contig	position	ref	alt	population_scope
-human_like_relatedness_panel	chr1	1	A	C	human_diploid_panel
-human_like_relatedness_panel	chr1	2	C	G	human_diploid_panel
-human_like_relatedness_panel	chr1	3	G	T	human_diploid_panel
-human_like_relatedness_panel	chr1	4	T	A	human_diploid_panel
-human_like_relatedness_panel	chr1	5	A	C	human_diploid_panel
-human_like_relatedness_panel	chr1	6	C	T	human_diploid_panel

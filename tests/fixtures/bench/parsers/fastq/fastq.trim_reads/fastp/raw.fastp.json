@@ -1,8 +1,0 @@
-{
-  "filtering_result": {
-    "passed_filter_reads": 960,
-    "low_quality_reads": 20,
-    "too_many_N_reads": 8,
-    "too_short_reads": 12
-  }
-}

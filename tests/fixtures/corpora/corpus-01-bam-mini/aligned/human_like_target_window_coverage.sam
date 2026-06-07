@@ -1,7 +1,0 @@
-@HD	VN:1.6	SO:coordinate
-@SQ	SN:chr1	LN:12
-@SQ	SN:chr2	LN:8
-@RG	ID:rg-coverage-human-like	SM:human_like_target_window_coverage
-r001	0	chr1	1	60	4M	*	0	0	ACGT	FFFF	RG:Z:rg-coverage-human-like
-r002	0	chr1	3	60	4M	*	0	0	TTAA	FFFF	RG:Z:rg-coverage-human-like
-r003	0	chr2	2	60	3M	*	0	0	GGA	FFF	RG:Z:rg-coverage-human-like

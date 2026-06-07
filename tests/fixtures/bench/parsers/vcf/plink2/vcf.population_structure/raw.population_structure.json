@@ -1,7 +1,0 @@
-{
-  "schema_version": "bijux.vcf.population_structure.v1",
-  "status": "complete",
-  "metrics": {
-    "variants_passing_after_pruning": 2
-  }
-}

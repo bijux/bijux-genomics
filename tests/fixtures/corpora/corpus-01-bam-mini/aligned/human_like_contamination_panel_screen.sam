@@ -1,6 +1,0 @@
-@HD	VN:1.6	SO:coordinate
-@SQ	SN:chr1	LN:50
-@RG	ID:rg-contamination-human-like	SM:human_like_contamination_panel_screen
-r001	99	chr1	1	60	6M	=	7	0	ACGTAC	FFFFFF	RG:Z:rg-contamination-human-like
-r001	147	chr1	7	60	6M	=	1	0	TTAACT	FFFFFF	RG:Z:rg-contamination-human-like
-r002	0	chr1	15	45	6M	*	0	0	GGTACC	FFFFFF	RG:Z:rg-contamination-human-like

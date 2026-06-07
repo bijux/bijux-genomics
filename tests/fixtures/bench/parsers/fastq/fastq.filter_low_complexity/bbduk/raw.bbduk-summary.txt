@@ -1,3 +1,0 @@
-#File	reads.fastq.gz
-#Total	12282618
-#Matched	0	0.00000%

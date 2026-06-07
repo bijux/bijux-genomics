@@ -1,9 +1,0 @@
-{
-  "tool_id": "ibdne",
-  "stage_id": "vcf.demography",
-  "argv": [
-    "sh",
-    "-lc",
-    "ibdne --ibd 'filtered_segments.tsv' --out 'demography_report' > 'raw.log' 2>&1"
-  ]
-}

@@ -1,5 +1,0 @@
-{
-  "backend": "impute5",
-  "stage_id": "vcf.imputation",
-  "status": "complete"
-}

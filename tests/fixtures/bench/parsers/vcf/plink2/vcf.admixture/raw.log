@@ -1,5 +1,0 @@
-toolchain=plink2
-execution_mode=fallback_proxy
-tool_success=false
-selected_k=2
-status=complete

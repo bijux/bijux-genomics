@@ -1,2 +1,0 @@
-file	format	type	num_seqs	sum_len	min_len	avg_len	max_len	Q1	Q2	Q3	sum_gap	N50	Q20(%)	Q30(%)	AvgQual	GC(%)
-reads.fastq.gz	FASTQ	DNA	1000	100000	100	100	100	100	100	100	0	100	95.1	90.2	36.4	42.1

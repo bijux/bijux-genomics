@@ -1,5 +1,0 @@
-{
-  "readable_vcf": true,
-  "tabix_present": true,
-  "contigs_consistent_with_species_context": true
-}

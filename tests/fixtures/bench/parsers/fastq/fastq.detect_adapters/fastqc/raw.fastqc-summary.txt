@@ -1,2 +1,0 @@
-Total Sequences	1000
-%GC	42

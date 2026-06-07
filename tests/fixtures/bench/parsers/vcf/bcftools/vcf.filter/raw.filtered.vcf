@@ -1,7 +1,0 @@
-##fileformat=VCFv4.2
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1
-chr1	10	.	A	G	60	PASS	.	GT:DP	0/1:14
-chr1	20	.	C	T	10	LOWQUAL	.	GT:DP	0/1:12
-chr1	30	.	G	A	40	LOW_DP	.	GT:DP	0/1:3
-chr1	40	.	T	C	40	LOW_MQ	.	GT:DP	1/1:11
-chr1	50	.	A	C	40	HIGH_MISSING	.	GT:DP	./.:.

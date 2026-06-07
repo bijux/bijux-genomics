@@ -1,7 +1,0 @@
-variant_count	4
-snp_count	3
-indel_count	1
-transition_count	2
-transversion_count	1
-ti_tv	2.0
-sample_count	2

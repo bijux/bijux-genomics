@@ -1,4 +1,0 @@
-##fileformat=VCFv4.3
-##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	masked_sample
-chr1	10	.	A	G	60	PASS	.	GT	0/1

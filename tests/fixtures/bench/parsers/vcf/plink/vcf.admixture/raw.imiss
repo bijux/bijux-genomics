@@ -1,5 +1,0 @@
-FID IID MISS_PHENO N_MISS N_GENO F_MISS
-cohort_alpha sample_a 0 0 2 0.0
-cohort_alpha sample_b 0 0 2 0.0
-cohort_beta sample_c 0 0 2 0.0
-cohort_beta sample_d 0 0 2 0.0

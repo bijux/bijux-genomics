@@ -1,9 +1,0 @@
-@HD	VN:1.6	SO:coordinate
-@SQ	SN:chr1	LN:120
-@RG	ID:rg-insert-size-human-like	SM:human_like_insert_size_triplet
-pair001	99	chr1	1	60	5M	=	16	20	ACGTA	FFFFF	RG:Z:rg-insert-size-human-like
-pair001	147	chr1	16	60	5M	=	1	-20	TGCAT	FFFFF	RG:Z:rg-insert-size-human-like
-pair002	99	chr1	30	60	5M	=	40	15	CCCCC	FFFFF	RG:Z:rg-insert-size-human-like
-pair002	147	chr1	40	60	5M	=	30	-15	GGGGG	FFFFF	RG:Z:rg-insert-size-human-like
-pair003	99	chr1	60	60	5M	=	85	30	TTTTT	FFFFF	RG:Z:rg-insert-size-human-like
-pair003	147	chr1	85	60	5M	=	60	-30	AAAAA	FFFFF	RG:Z:rg-insert-size-human-like

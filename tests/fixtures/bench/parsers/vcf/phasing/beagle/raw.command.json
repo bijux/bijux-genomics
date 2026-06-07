@@ -1,9 +1,0 @@
-{
-  "tool_id": "beagle",
-  "stage_id": "vcf.phasing",
-  "argv": [
-    "sh",
-    "-lc",
-    "beagle gt=input.vcf ref=panel.vcf.gz map=map.tsv.gz out=phased nthreads=8 seed=42 > logs.txt 2>&1 && bcftools index -t phased.vcf.gz"
-  ]
-}

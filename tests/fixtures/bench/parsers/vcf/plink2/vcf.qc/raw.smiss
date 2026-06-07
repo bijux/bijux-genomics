@@ -1,4 +1,0 @@
-#IID MISS_CT OBS_CT F_MISS
-qc_balanced 1 4 0.25
-qc_ref 0 4 0.0
-qc_sparse 3 4 0.75

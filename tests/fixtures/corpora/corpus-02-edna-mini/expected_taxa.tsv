@@ -1,7 +1,0 @@
-sample_id	taxon_id	name	rank	expected_presence
-mock_community_sample_a	561	Escherichia coli	species	present
-mock_community_sample_a	28901	Salmonella enterica	species	present
-mock_community_sample_a	28890	Halobacterium salinarum	species	absent
-mock_community_sample_b	561	Escherichia coli	species	absent
-mock_community_sample_b	28901	Salmonella enterica	species	absent
-mock_community_sample_b	28890	Halobacterium salinarum	species	present

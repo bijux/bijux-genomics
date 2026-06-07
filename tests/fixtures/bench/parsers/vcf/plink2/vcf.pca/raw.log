@@ -1,5 +1,0 @@
-toolchain=plink2
-execution_mode=fallback_proxy
-variants_passing=2
-ld_pruning_policy=plink2_indep_pairwise
-tool_success=false

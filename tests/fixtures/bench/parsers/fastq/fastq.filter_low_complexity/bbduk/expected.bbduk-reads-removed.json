@@ -1,9 +1,0 @@
-{
-  "schema_version": "bijux.fixture.fastq_raw_parser.v1",
-  "stage_id": "fastq.filter_low_complexity",
-  "tool_id": "bbduk",
-  "parser_id": "parse_bbduk_reads_removed",
-  "normalized": {
-    "reads_removed": 0
-  }
-}

@@ -1,9 +1,0 @@
-{
-  "method": "schmutzi",
-  "estimate": 0.12,
-  "ci_low": 0.08,
-  "ci_high": 0.16,
-  "assumptions": [
-    "mt_reference_panel"
-  ]
-}

@@ -1,7 +1,0 @@
-@HD	VN:1.6	SO:coordinate
-@SQ	SN:chr1	LN:100
-@RG	ID:rg-overlap-correction-human-like	SM:human_like_paired_overlap_control
-pair_overlap	99	chr1	10	60	12M	=	15	17	ACGTACGTACGT	FFFFFFFFFFFF	RG:Z:rg-overlap-correction-human-like
-pair_overlap	147	chr1	15	60	12M	=	10	-17	TTTTCCCCAAAA	FFFFFFFFFFFF	RG:Z:rg-overlap-correction-human-like
-pair_spaced	99	chr1	40	60	10M	=	55	25	GGGGAAAACC	FFFFFFFFFF	RG:Z:rg-overlap-correction-human-like
-pair_spaced	147	chr1	55	60	10M	=	40	-25	CCCCAAAAGG	FFFFFFFFFF	RG:Z:rg-overlap-correction-human-like
