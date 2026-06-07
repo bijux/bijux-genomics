@@ -7,5 +7,5 @@ output_dir = "target/local-smoke/fastq.remove_duplicates"
 
 [[cases]]
 sample_id = "human_like_pe_duplicate_signals"
-r1 = "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz"
-r2 = "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz"
+r2 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz"

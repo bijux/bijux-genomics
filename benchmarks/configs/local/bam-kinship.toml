@@ -12,7 +12,7 @@ output_dir = "target/local-smoke/bam.kinship"
 
 [[cases]]
 sample_id = "human_like_kinship_low_overlap_pair"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
 reference_panel = "human_like_relatedness_panel"
 reference_build = "grch38"
 population_scope = "human_diploid_panel"
@@ -24,7 +24,7 @@ expected_insufficiency_reason = "insufficient_overlap_snps"
 
 [[cases]]
 sample_id = "human_like_kinship_related_pair"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam"
 reference_panel = "human_like_relatedness_panel"
 reference_build = "grch38"
 population_scope = "human_diploid_panel"

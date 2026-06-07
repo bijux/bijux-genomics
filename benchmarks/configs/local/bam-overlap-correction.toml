@@ -12,7 +12,7 @@ output_dir = "target/local-smoke/bam.overlap_correction"
 
 [[cases]]
 sample_id = "human_like_paired_overlap_control"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam"
 expected_pair_count = 2
 expected_corrected_pairs = 1
 expected_corrected_overlap_bases = 7

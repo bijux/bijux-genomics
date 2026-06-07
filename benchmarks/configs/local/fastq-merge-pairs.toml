@@ -8,5 +8,5 @@ output_dir = "target/local-smoke/fastq.merge_pairs"
 
 [[cases]]
 sample_id = "human_like_pe_merge_overlap"
-r1 = "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R1.fastq.gz"
-r2 = "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R2.fastq.gz"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R1.fastq.gz"
+r2 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R2.fastq.gz"

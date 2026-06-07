@@ -12,7 +12,7 @@ output_dir = "target/local-smoke/bam.authenticity"
 
 [[cases]]
 sample_id = "adna_damage_non_udg"
-bam = "tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
 damage_terminal_c_to_t_5p = 0.18
 damage_terminal_g_to_a_3p = 0.11
 contamination_method = "mitochondrial_panel_screen"

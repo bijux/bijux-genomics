@@ -12,8 +12,8 @@ output_dir = "target/local-smoke/bam.sex"
 
 [[cases]]
 sample_id = "adna_xy_autosome_coverage"
-bam = "tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_xy_autosome_coverage.sam"
-reference = "tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_xy_autosome_coverage.sam"
+reference = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
 chromosome_system = "xy"
 minimum_y_sites = 5
 expected_method = "rxy"

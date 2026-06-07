@@ -12,7 +12,7 @@ output_dir = "target/local-smoke/bam.insert_size"
 
 [[cases]]
 sample_id = "human_like_insert_size_triplet"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam"
 expected_read_pairs = 3
 expected_median_insert_size = 20.0
 expected_mean_insert_size = 21.666666666666668

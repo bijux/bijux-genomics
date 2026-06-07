@@ -10,49 +10,49 @@ schema_version = "bijux.bench.local_corpus_stage_compatibility.v1"
 [[fixtures]]
 corpus_family_id = "corpus-01"
 fixture_id = "corpus-01-mini"
-fixture_manifest = "tests/fixtures/corpora/corpus-01-mini/manifest.toml"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-01-mini/manifest.toml"
 summary = "General FASTQ corpus with governed single-end and paired-end human-like and aDNA-like reads."
 
 [[fixtures]]
 corpus_family_id = "corpus-01-bam"
 fixture_id = "corpus-01-bam-mini"
-fixture_manifest = "tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml"
 summary = "General BAM-stage proxy corpus with governed validation, duplicate-flagged qc-pre, and aDNA-like tiny alignment fixtures."
 
 [[fixtures]]
 corpus_family_id = "corpus-01-adna-bam"
 fixture_id = "corpus-01-adna-damage-mini"
-fixture_manifest = "tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml"
 summary = "Ancient-like BAM-stage proxy fixture with governed terminal-damage expectations."
 
 [[fixtures]]
 corpus_family_id = "corpus-01-adna-bam"
 fixture_id = "corpus-01-adna-bam-mini"
-fixture_manifest = "tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml"
 summary = "Ancient-like BAM-stage proxy corpus with governed contamination, sex, and haplogroup support fixtures plus the shared non-UDG reference contract."
 
 [[fixtures]]
 corpus_family_id = "corpus-01-genotyping"
 fixture_id = "corpus-01-genotyping-mini"
-fixture_manifest = "tests/fixtures/corpora/corpus-01-genotyping-mini/manifest.toml"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-01-genotyping-mini/manifest.toml"
 summary = "Genotyping-focused BAM corpus with governed candidate-sites, target-regions, and human-like variant-read coverage."
 
 [[fixtures]]
 corpus_family_id = "corpus-01-kinship"
 fixture_id = "corpus-01-kinship-mini"
-fixture_manifest = "tests/fixtures/corpora/corpus-01-kinship-mini/manifest.toml"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-01-kinship-mini/manifest.toml"
 summary = "Kinship-focused BAM corpus with governed low-overlap and related-pair samples plus the shared relatedness panel."
 
 [[fixtures]]
 corpus_family_id = "corpus-02"
 fixture_id = "corpus-02-edna-mini"
-fixture_manifest = "tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml"
 summary = "Mock-community eDNA FASTQ corpus with governed expected taxonomy outputs."
 
 [[fixtures]]
 corpus_family_id = "corpus-03"
 fixture_id = "corpus-03-amplicon-mini"
-fixture_manifest = "tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml"
 summary = "Amplicon FASTQ corpus with governed primer, ASV, and chimera-control contracts."
 
 [[mappings]]

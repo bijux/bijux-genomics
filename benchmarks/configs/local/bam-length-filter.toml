@@ -12,7 +12,7 @@ output_dir = "target/local-smoke/bam.length_filter"
 
 [[cases]]
 sample_id = "human_like_length_threshold_ladder"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam"
 min_length = 8
 expected_input_reads = 4
 expected_kept_reads = 3

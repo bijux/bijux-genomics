@@ -12,7 +12,7 @@ output_dir = "target/local-smoke/bam.duplication_metrics"
 
 [[cases]]
 sample_id = "human_like_duplicate_cluster"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam"
 optical_duplicates = "mark_only"
 umi_policy = "ignore"
 duplicate_action = "mark"

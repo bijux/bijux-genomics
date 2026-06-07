@@ -7,4 +7,4 @@ output_dir = "target/local-smoke/fastq.filter_low_complexity"
 
 [[cases]]
 sample_id = "human_like_se_filter_signals"
-r1 = "tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz"

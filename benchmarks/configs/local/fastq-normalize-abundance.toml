@@ -6,4 +6,4 @@ output_dir = "target/local-smoke/fastq.normalize_abundance"
 
 [[cases]]
 sample_id = "corpus-03-otu-abundance-table"
-abundance_table = "tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv"
+abundance_table = "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv"

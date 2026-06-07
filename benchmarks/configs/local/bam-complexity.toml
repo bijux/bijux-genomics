@@ -7,7 +7,7 @@ output_dir = "target/local-smoke/bam.complexity"
 
 [[cases]]
 sample_id = "human_like_complexity_projection"
-bam = "tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_complexity_projection.sam"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_complexity_projection.sam"
 min_reads = 3
 projection_points = [12, 18]
 expected_observed_total_reads = 6
