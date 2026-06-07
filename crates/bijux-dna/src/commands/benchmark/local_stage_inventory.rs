@@ -6,6 +6,7 @@ use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
 use super::local_vcf_stage_matrix::{LocalVcfStageMatrixConfig, DEFAULT_VCF_STAGE_MATRIX_PATH};
+use super::path_resolution::BenchmarkPathResolver;
 
 const LOCAL_STAGE_INVENTORY_SCHEMA_VERSION: &str = "bijux.bench.local_stage_inventory.v1";
 const LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_VERSION: &str =
@@ -166,7 +167,16 @@ fn load_matrix_backed_stage_inventory(
     cwd: &Path,
     domain: BenchLocalDomain,
 ) -> Result<BenchLocalStageInventory> {
-    let matrix_path = cwd.join(domain.matrix_relative_path());
+    let benchmark_paths = BenchmarkPathResolver::new(cwd, None);
+    let matrix_path = match domain {
+        BenchLocalDomain::Fastq => {
+            benchmark_paths.benchmark_local_config_root().join("fastq-stage-matrix.toml")
+        }
+        BenchLocalDomain::Bam => {
+            benchmark_paths.benchmark_local_config_root().join("bam-stage-matrix.toml")
+        }
+        BenchLocalDomain::Vcf => cwd.join(domain.matrix_relative_path()),
+    };
     let raw = fs::read_to_string(&matrix_path)
         .with_context(|| format!("read {}", matrix_path.display()))?;
     let matrix: LocalStageMatrix =

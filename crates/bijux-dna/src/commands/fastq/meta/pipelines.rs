@@ -1,3 +1,4 @@
+use crate::commands::benchmark::path_resolution::BenchmarkPathResolver;
 use crate::commands::fastq::api_bridge::resolve_profile_alias;
 use crate::commands::support::prelude::{
     anyhow, cli, load_manifests, render, PipelinesCommand, Result,
@@ -99,11 +100,11 @@ pub(crate) fn handle_pipelines_command(
         }
         PipelinesCommand::Validate { id, all, benchmark_root, strict, output, json } => {
             let repo_root = std::env::current_dir()?;
-            let benchmark_root = resolve_benchmark_root(&repo_root, benchmark_root.as_deref());
+            let benchmark_paths = BenchmarkPathResolver::new(&repo_root, benchmark_root.as_deref());
             if *all {
                 let report = validate_all_local_pipelines(
                     &repo_root,
-                    &benchmark_root,
+                    &benchmark_paths,
                     *strict,
                     output.as_deref(),
                 )?;
@@ -116,7 +117,10 @@ pub(crate) fn handle_pipelines_command(
                 let pipeline_id = id
                     .as_deref()
                     .ok_or_else(|| anyhow!("pipeline id is required unless `--all` is passed"))?;
-                let config_path = local_pipeline_config_path(&benchmark_root, pipeline_id)?;
+                let config_path = local_pipeline_config_path(
+                    benchmark_paths.benchmark_pipeline_config_root().as_path(),
+                    pipeline_id,
+                )?;
                 let output_path = output.clone().unwrap_or_else(|| {
                     PathBuf::from("target/local-ready/pipeline-dag")
                         .join(format!("{pipeline_id}.json"))
@@ -125,7 +129,7 @@ pub(crate) fn handle_pipelines_command(
                     crate::commands::benchmark::local_pipeline_dag::validate_pipeline_dag_path(
                         &repo_root,
                         &config_path,
-                        &absolute_or_repo_relative(&repo_root, &output_path),
+                        &benchmark_paths.resolve_repo_relative(&output_path),
                     )?;
 
                 if *strict {
@@ -266,19 +270,7 @@ fn absolute_or_repo_relative(repo_root: &Path, path: &Path) -> PathBuf {
     }
 }
 
-fn resolve_benchmark_root(repo_root: &Path, benchmark_root: Option<&Path>) -> PathBuf {
-    match benchmark_root {
-        Some(path) if path.is_absolute() => path.to_path_buf(),
-        Some(path) => repo_root.join(path),
-        None => repo_root.join("benchmarks"),
-    }
-}
-
-fn benchmark_pipeline_config_root(benchmark_root: &Path) -> PathBuf {
-    benchmark_root.join("configs/pipelines/local")
-}
-
-fn local_pipeline_config_path(benchmark_root: &Path, pipeline_id: &str) -> Result<PathBuf> {
+fn local_pipeline_config_path(pipeline_config_root: &Path, pipeline_id: &str) -> Result<PathBuf> {
     if pipeline_id.trim().is_empty() {
         return Err(anyhow!("pipeline id must be non-empty"));
     }
@@ -287,16 +279,16 @@ fn local_pipeline_config_path(benchmark_root: &Path, pipeline_id: &str) -> Resul
             "pipeline id `{pipeline_id}` must be a governed local pipeline id, not a path"
         ));
     }
-    Ok(benchmark_pipeline_config_root(benchmark_root).join(format!("{pipeline_id}.toml")))
+    Ok(pipeline_config_root.join(format!("{pipeline_id}.toml")))
 }
 
 fn validate_all_local_pipelines(
     repo_root: &Path,
-    benchmark_root: &Path,
+    benchmark_paths: &BenchmarkPathResolver,
     strict: bool,
     output: Option<&Path>,
 ) -> Result<LocalPipelineDagValidationSetReport> {
-    let config_root = benchmark_pipeline_config_root(benchmark_root);
+    let config_root = benchmark_paths.benchmark_pipeline_config_root();
     let config_paths = discover_local_pipeline_config_paths(&config_root)?;
     if config_paths.is_empty() {
         return Err(anyhow!(
@@ -333,7 +325,7 @@ fn validate_all_local_pipelines(
     let valid_pipeline_count = pipelines.iter().filter(|report| report.valid).count();
     let report = LocalPipelineDagValidationSetReport {
         schema_version: LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_VERSION,
-        benchmark_root: path_relative_to_repo(repo_root, benchmark_root),
+        benchmark_root: path_relative_to_repo(repo_root, benchmark_paths.benchmark_root()),
         config_root: path_relative_to_repo(repo_root, &config_root),
         output_path: path_relative_to_repo(repo_root, &output_path),
         pipeline_count: pipelines.len(),
