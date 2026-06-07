@@ -373,6 +373,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderAllDomainHarnessReady(args) => {
+                        crate::commands::benchmark::readiness::all_domain_harness_ready::run_render_all_domain_harness_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderAllDomainFailureClassification(args) => {
                         crate::commands::benchmark::readiness::all_domain_failure_classification::run_render_all_domain_failure_classification(
                             args,
