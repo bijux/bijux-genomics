@@ -467,6 +467,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderRemovedFromScope(args) => {
+                        crate::commands::benchmark::readiness::removed_from_scope::run_render_removed_from_scope(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderAllDomainStageToolTable(args) => {
                         crate::commands::benchmark::readiness::all_domain_stage_tool_table::run_render_all_domain_stage_tool_table(
                             args,

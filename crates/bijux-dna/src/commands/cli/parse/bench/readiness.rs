@@ -128,6 +128,8 @@ pub enum BenchReadinessCommand {
     RenderAllDomainNoPlannedRows(BenchReadinessRenderAllDomainNoPlannedRowsArgs),
     #[command(name = "render-all-domain-retained-tools")]
     RenderAllDomainRetainedTools(BenchReadinessRenderAllDomainRetainedToolsArgs),
+    #[command(name = "render-removed-from-scope")]
+    RenderRemovedFromScope(BenchReadinessRenderRemovedFromScopeArgs),
     #[command(name = "render-all-domain-stage-tool-table")]
     RenderAllDomainStageToolTable(BenchReadinessRenderAllDomainStageToolTableArgs),
     #[command(name = "render-vcf-comparable-metrics")]
@@ -842,6 +844,14 @@ pub struct BenchReadinessRenderAllDomainNoPlannedRowsArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderAllDomainRetainedToolsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderRemovedFromScopeArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
