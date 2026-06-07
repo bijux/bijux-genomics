@@ -36,11 +36,11 @@ fn bench_local_validate_vcf_smoke_suite_ready_writes_governed_json_file() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/VCF_SMOKE_SUITE_READY.json"
+        "runs/bench/local-smoke/VCF_SMOKE_SUITE_READY.json"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let report_path = repo_root.join("target/local-smoke/VCF_SMOKE_SUITE_READY.json");
+    let report_path = repo_root.join("runs/bench/local-smoke/VCF_SMOKE_SUITE_READY.json");
     let raw = std::fs::read_to_string(&report_path).expect("read report");
     let parsed: serde_json::Value = serde_json::from_str(&raw).expect("parse report");
 

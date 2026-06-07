@@ -46,11 +46,11 @@ fn bench_local_vcf_smoke_root_reports_governed_stage_tool_paths() {
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf/SMOKE_ROOT.json")
+        Some("runs/bench/local-smoke/vcf/SMOKE_ROOT.json")
     );
     assert_eq!(
         payload.get("root_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf")
+        Some("runs/bench/local-smoke/vcf")
     );
     assert_eq!(
         payload.get("command").and_then(serde_json::Value::as_str),
@@ -112,15 +112,15 @@ fn bench_local_vcf_smoke_root_reports_governed_stage_tool_paths() {
     );
     assert_eq!(
         prepare_reference_panel.get("pair_root").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf/vcf.prepare_reference_panel/bcftools")
+        Some("runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools")
     );
     assert_eq!(
         prepare_reference_panel.get("artifacts_root").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts")
+        Some("runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts")
     );
     assert_eq!(
         prepare_reference_panel.get("result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/stage-result.json")
+        Some("runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/stage-result.json")
     );
 
     let phasing = rows

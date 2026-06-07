@@ -36,32 +36,32 @@ fn bench_local_vcf_prepare_reference_panel_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz"
+        "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz"
     );
 
     let repo_root = support::repo_root().expect("repo root");
     let output_vcf =
-        repo_root.join("target/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz");
-    let output_tbi =
-        repo_root.join("target/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz.tbi");
+        repo_root.join("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz");
+    let output_tbi = repo_root
+        .join("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz.tbi");
     let metrics_path =
-        repo_root.join("target/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json");
+        repo_root.join("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json");
     let panel_manifest_path = repo_root
-        .join("target/local-smoke/vcf.prepare_reference_panel/bcftools/panel_manifest.json");
+        .join("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel_manifest.json");
     let overlap_path =
-        repo_root.join("target/local-smoke/vcf.prepare_reference_panel/bcftools/overlap.json");
+        repo_root.join("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/overlap.json");
     let panel_overlap_path = repo_root
-        .join("target/local-smoke/vcf.prepare_reference_panel/bcftools/panel_overlap.json");
-    let panel_files_path =
-        repo_root.join("target/local-smoke/vcf.prepare_reference_panel/bcftools/panel_files.json");
+        .join("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel_overlap.json");
+    let panel_files_path = repo_root
+        .join("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel_files.json");
     let overlap_tsv_path =
-        repo_root.join("target/local-smoke/vcf.prepare_reference_panel/bcftools/overlap.tsv");
+        repo_root.join("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/overlap.tsv");
     let chunks_path =
-        repo_root.join("target/local-smoke/vcf.prepare_reference_panel/bcftools/chunks.json");
-    let manifest_path =
-        repo_root.join("target/local-smoke/vcf.prepare_reference_panel/bcftools/stage-result.json");
+        repo_root.join("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/chunks.json");
+    let manifest_path = repo_root
+        .join("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/stage-result.json");
     let input_vcf = repo_root.join(
-        "target/local-smoke/vcf.prepare_reference_panel/bcftools/artifacts/input/prepare_reference_panel_input.vcf",
+        "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/artifacts/input/prepare_reference_panel_input.vcf",
     );
 
     assert!(output_vcf.is_file(), "expected output VCF at {}", output_vcf.display());
@@ -143,13 +143,13 @@ fn bench_local_vcf_prepare_reference_panel_smoke_writes_governed_files() {
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("prepared_panel_vcf")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz")
+                == Some("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz")
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("panel_manifest_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
                 == Some(
-                    "target/local-smoke/vcf.prepare_reference_panel/bcftools/panel_manifest.json",
+                    "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel_manifest.json",
                 )
     }));
 }

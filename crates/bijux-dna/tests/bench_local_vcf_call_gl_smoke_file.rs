@@ -36,19 +36,20 @@ fn bench_local_vcf_call_gl_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz"
+        "runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let output_vcf = repo_root.join("target/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz");
-    let output_tbi = repo_root.join("target/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz.tbi");
-    let metrics_path = repo_root.join("target/local-smoke/vcf.call_gl/bcftools/metrics.json");
-    let manifest_path = repo_root.join("target/local-smoke/vcf.call_gl/bcftools/stage-result.json");
+    let output_vcf = repo_root.join("runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz");
+    let output_tbi = repo_root.join("runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz.tbi");
+    let metrics_path = repo_root.join("runs/bench/local-smoke/vcf.call_gl/bcftools/metrics.json");
+    let manifest_path =
+        repo_root.join("runs/bench/local-smoke/vcf.call_gl/bcftools/stage-result.json");
     let materialized_reference = repo_root.join(
-        "target/local-smoke/vcf.call_gl/bcftools/artifacts/reference/corpus_01_bam_reference.fasta",
+        "runs/bench/local-smoke/vcf.call_gl/bcftools/artifacts/reference/corpus_01_bam_reference.fasta",
     );
     let materialized_reference_fai = repo_root.join(
-        "target/local-smoke/vcf.call_gl/bcftools/artifacts/reference/corpus_01_bam_reference.fasta.fai",
+        "runs/bench/local-smoke/vcf.call_gl/bcftools/artifacts/reference/corpus_01_bam_reference.fasta.fai",
     );
     let governed_reference_fai = repo_root.join(
         "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta.fai",
@@ -106,11 +107,11 @@ fn bench_local_vcf_call_gl_smoke_writes_governed_files() {
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("gl_sites_vcf")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz")
+                == Some("runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz")
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("metrics_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.call_gl/bcftools/metrics.json")
+                == Some("runs/bench/local-smoke/vcf.call_gl/bcftools/metrics.json")
     }));
 }

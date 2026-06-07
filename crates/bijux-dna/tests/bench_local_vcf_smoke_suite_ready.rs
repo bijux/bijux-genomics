@@ -43,7 +43,7 @@ fn bench_local_validate_vcf_smoke_suite_ready_reports_governed_goal_slice() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/VCF_SMOKE_SUITE_READY.json")
+        Some("runs/bench/local-smoke/VCF_SMOKE_SUITE_READY.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(19));
@@ -69,7 +69,7 @@ fn bench_local_validate_vcf_smoke_suite_ready_reports_governed_goal_slice() {
     assert_eq!(goal_211.get("surface").and_then(serde_json::Value::as_str), Some("vcf.call smoke"));
     assert_eq!(
         goal_211.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.call/bcftools/calls.vcf.gz")
+        Some("runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz")
     );
 
     let goal_222 = checks
@@ -91,7 +91,7 @@ fn bench_local_validate_vcf_smoke_suite_ready_reports_governed_goal_slice() {
         .expect("goal 229 check");
     assert_eq!(
         goal_229.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.demography/ibdne/demography.json")
+        Some("runs/bench/local-smoke/vcf.demography/ibdne/demography.json")
     );
     assert!(goal_229
         .get("detail")

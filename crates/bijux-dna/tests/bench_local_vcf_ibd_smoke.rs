@@ -57,15 +57,15 @@ fn bench_local_vcf_ibd_smoke_reports_pair_rows_and_localized_probe() {
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.ibd/germline")
+        Some("runs/bench/local-smoke/vcf.ibd/germline")
     );
     assert_eq!(
         payload.get("ibd_tsv_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.ibd/germline/ibd.tsv")
+        Some("runs/bench/local-smoke/vcf.ibd/germline/ibd.tsv")
     );
     assert_eq!(
         payload.get("ibd_json_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.ibd/germline/ibd.json")
+        Some("runs/bench/local-smoke/vcf.ibd/germline/ibd.json")
     );
     assert_eq!(payload.get("status").and_then(serde_json::Value::as_str), Some("complete"));
 
@@ -104,7 +104,7 @@ fn bench_local_vcf_ibd_smoke_reports_pair_rows_and_localized_probe() {
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let persisted_path = repo_root.join("target/local-smoke/vcf.ibd/germline/ibd.json");
+    let persisted_path = repo_root.join("runs/bench/local-smoke/vcf.ibd/germline/ibd.json");
     let persisted_raw = std::fs::read_to_string(&persisted_path).expect("read persisted report");
     let persisted: serde_json::Value = serde_json::from_str(&persisted_raw).expect("parse report");
     assert_eq!(

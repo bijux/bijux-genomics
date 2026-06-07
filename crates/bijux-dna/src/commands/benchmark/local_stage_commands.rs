@@ -23,7 +23,7 @@ const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str =
     "benchmarks/readiness/local-ready/rendered-stage-commands.sh";
 const LOCAL_REPORT_QC_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-report-qc.toml";
 const LOCAL_REPORT_QC_CONFIG_SCHEMA_VERSION: &str = "bijux.bench.fastq.local_report_qc.v1";
-const DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR: &str = "target/local-smoke/fastq.report_qc";
+const DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.report_qc";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 pub(crate) struct BenchLocalStageArtifactEntry {
@@ -763,6 +763,11 @@ fn materialize_local_report_qc_smoke_report(repo_root: &Path) -> Result<PathBuf>
     let output_root = repo_root.join(
         config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR)),
     );
+    crate::commands::benchmark::path_resolution::ensure_path_stays_outside_benchmark_readiness_root(
+        repo_root,
+        &output_root,
+        "local fastq.report_qc smoke output",
+    )?;
     let contributors_dir = output_root.join("contributors");
     let multiqc_data_dir = output_root.join("multiqc_data");
     fs::create_dir_all(&contributors_dir)
@@ -1056,14 +1061,14 @@ mod tests {
 
         assert_eq!(
             report_path.strip_prefix(&root).expect("relative report path").display().to_string(),
-            "target/local-smoke/fastq.report_qc/report.json"
+            "runs/bench/local-smoke/fastq.report_qc/report.json"
         );
         assert!(root
-            .join("target/local-smoke/fastq.report_qc/governed_qc_inputs_manifest.json")
+            .join("runs/bench/local-smoke/fastq.report_qc/governed_qc_inputs_manifest.json")
             .is_file());
-        assert!(root.join("target/local-smoke/fastq.report_qc/multiqc_report.html").is_file());
+        assert!(root.join("runs/bench/local-smoke/fastq.report_qc/multiqc_report.html").is_file());
         assert!(root
-            .join("target/local-smoke/fastq.report_qc/multiqc_data/multiqc_data.json")
+            .join("runs/bench/local-smoke/fastq.report_qc/multiqc_data/multiqc_data.json")
             .is_file());
     }
 }

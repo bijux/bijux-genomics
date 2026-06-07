@@ -68,27 +68,31 @@ fn bench_local_vcf_imputation_metrics_smoke_reports_quality_contract() {
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.imputation_metrics/beagle")
+        Some("runs/bench/local-smoke/vcf.imputation_metrics/beagle")
     );
     assert_eq!(
         payload.get("imputation_metrics_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json")
+        Some("runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json")
     );
     assert_eq!(
         payload.get("source_imputation_qc_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.imputation_metrics/beagle/source_imputation_qc.json")
+        Some("runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_imputation_qc.json")
     );
     assert_eq!(
         payload.get("source_impute_smoke_metrics_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.imputation_metrics/beagle/source_impute_smoke_metrics.json")
+        Some(
+            "runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_impute_smoke_metrics.json"
+        )
     );
     assert_eq!(
         payload.get("source_imputation_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.imputation_metrics/beagle/source_imputation_manifest.json")
+        Some(
+            "runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_imputation_manifest.json"
+        )
     );
     assert_eq!(
         payload.get("stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.imputation_metrics/beagle/stage-result.json")
+        Some("runs/bench/local-smoke/vcf.imputation_metrics/beagle/stage-result.json")
     );
     assert_eq!(payload.get("exit_code").and_then(serde_json::Value::as_i64), Some(0));
     assert_eq!(payload.get("concordance").and_then(serde_json::Value::as_f64), Some(1.0));
@@ -128,8 +132,8 @@ fn bench_local_vcf_imputation_metrics_smoke_reports_quality_contract() {
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let metrics_path =
-        repo_root.join("target/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json");
+    let metrics_path = repo_root
+        .join("runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json");
     let raw = std::fs::read_to_string(&metrics_path).expect("read metrics");
     let metrics: serde_json::Value = serde_json::from_str(&raw).expect("parse metrics");
     assert_eq!(

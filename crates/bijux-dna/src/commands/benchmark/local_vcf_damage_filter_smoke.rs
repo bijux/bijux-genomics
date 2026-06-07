@@ -22,7 +22,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 use crate::commands::router::runtime::ProcessEnvGuard;
 
-const DEFAULT_VCF_DAMAGE_FILTER_SMOKE_ROOT: &str = "target/local-smoke/vcf.damage_filter";
+const DEFAULT_VCF_DAMAGE_FILTER_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.damage_filter";
 const LOCAL_VCF_DAMAGE_FILTER_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_damage_filter_smoke.v1";
 const LOCAL_VCF_DAMAGE_FILTER_SMOKE_METRICS_SCHEMA_VERSION: &str =
@@ -574,8 +574,9 @@ mod tests {
     #[test]
     fn parse_vcf_record_count_reads_governed_single_sample_fixture() {
         let repo_root = repo_root();
-        let fixture_vcf = repo_root
-            .join("benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf");
+        let fixture_vcf = repo_root.join(
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf",
+        );
         let record_count = parse_vcf_record_count(&fixture_vcf).expect("count fixture records");
         assert_eq!(record_count, 2);
     }

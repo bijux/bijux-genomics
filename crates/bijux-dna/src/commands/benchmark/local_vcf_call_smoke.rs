@@ -20,7 +20,7 @@ use super::local_vcf_call_bam_smoke_support::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_CALL_SMOKE_ROOT: &str = "target/local-smoke/vcf.call";
+const DEFAULT_VCF_CALL_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.call";
 const LOCAL_VCF_CALL_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_call_smoke.v1";
 const LOCAL_VCF_CALL_SMOKE_METRICS_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_call_smoke.metrics.v1";
@@ -322,8 +322,8 @@ mod tests {
     #[test]
     fn parse_output_sample_count_reads_governed_fixture_vcf() {
         let repo_root = repo_root();
-        let fixture_vcf =
-            repo_root.join("benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf");
+        let fixture_vcf = repo_root
+            .join("benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf");
         let sample_count = parse_output_sample_count(&fixture_vcf).expect("parse sample count");
         assert_eq!(sample_count, 4);
     }

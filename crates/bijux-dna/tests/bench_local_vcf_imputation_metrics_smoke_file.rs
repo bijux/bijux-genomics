@@ -36,20 +36,22 @@ fn bench_local_vcf_imputation_metrics_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json"
+        "runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let report_path =
-        repo_root.join("target/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json");
+    let report_path = repo_root
+        .join("runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json");
     let source_imputation_qc_path = repo_root
-        .join("target/local-smoke/vcf.imputation_metrics/beagle/source_imputation_qc.json");
-    let source_impute_smoke_metrics_path = repo_root
-        .join("target/local-smoke/vcf.imputation_metrics/beagle/source_impute_smoke_metrics.json");
-    let source_imputation_manifest_path = repo_root
-        .join("target/local-smoke/vcf.imputation_metrics/beagle/source_imputation_manifest.json");
+        .join("runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_imputation_qc.json");
+    let source_impute_smoke_metrics_path = repo_root.join(
+        "runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_impute_smoke_metrics.json",
+    );
+    let source_imputation_manifest_path = repo_root.join(
+        "runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_imputation_manifest.json",
+    );
     let stage_result_path =
-        repo_root.join("target/local-smoke/vcf.imputation_metrics/beagle/stage-result.json");
+        repo_root.join("runs/bench/local-smoke/vcf.imputation_metrics/beagle/stage-result.json");
 
     assert!(report_path.is_file(), "expected report at {}", report_path.display());
     assert!(
@@ -130,14 +132,16 @@ fn bench_local_vcf_imputation_metrics_smoke_writes_governed_files() {
         row.get("artifact_id").and_then(serde_json::Value::as_str)
             == Some("imputation_metrics_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json")
+                == Some(
+                    "runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json",
+                )
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str)
             == Some("source_imputation_qc_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
                 == Some(
-                    "target/local-smoke/vcf.imputation_metrics/beagle/source_imputation_qc.json",
+                    "runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_imputation_qc.json",
                 )
     }));
 }

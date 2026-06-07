@@ -36,25 +36,27 @@ fn bench_local_vcf_roh_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf.roh/plink2/roh.json"
+        "runs/bench/local-smoke/vcf.roh/plink2/roh.json"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let report_path = repo_root.join("target/local-smoke/vcf.roh/plink2/roh.json");
-    let roh_tsv_path = repo_root.join("target/local-smoke/vcf.roh/plink2/roh.tsv");
+    let report_path = repo_root.join("runs/bench/local-smoke/vcf.roh/plink2/roh.json");
+    let roh_tsv_path = repo_root.join("runs/bench/local-smoke/vcf.roh/plink2/roh.tsv");
     let source_segments_path =
-        repo_root.join("target/local-smoke/vcf.roh/plink2/source_roh_segments.tsv");
+        repo_root.join("runs/bench/local-smoke/vcf.roh/plink2/source_roh_segments.tsv");
     let source_per_sample_path =
-        repo_root.join("target/local-smoke/vcf.roh/plink2/source_roh_per_sample.tsv");
-    let source_report_path = repo_root.join("target/local-smoke/vcf.roh/plink2/source_roh.json");
+        repo_root.join("runs/bench/local-smoke/vcf.roh/plink2/source_roh_per_sample.tsv");
+    let source_report_path =
+        repo_root.join("runs/bench/local-smoke/vcf.roh/plink2/source_roh.json");
     let source_metrics_path =
-        repo_root.join("target/local-smoke/vcf.roh/plink2/source_metrics.json");
+        repo_root.join("runs/bench/local-smoke/vcf.roh/plink2/source_metrics.json");
     let source_summary_path =
-        repo_root.join("target/local-smoke/vcf.roh/plink2/source_roh_summary.json");
+        repo_root.join("runs/bench/local-smoke/vcf.roh/plink2/source_roh_summary.json");
     let source_roh_metrics_path =
-        repo_root.join("target/local-smoke/vcf.roh/plink2/source_roh_metrics.json");
-    let source_logs_path = repo_root.join("target/local-smoke/vcf.roh/plink2/source_logs.txt");
-    let stage_result_path = repo_root.join("target/local-smoke/vcf.roh/plink2/stage-result.json");
+        repo_root.join("runs/bench/local-smoke/vcf.roh/plink2/source_roh_metrics.json");
+    let source_logs_path = repo_root.join("runs/bench/local-smoke/vcf.roh/plink2/source_logs.txt");
+    let stage_result_path =
+        repo_root.join("runs/bench/local-smoke/vcf.roh/plink2/stage-result.json");
 
     for path in [
         &report_path,
@@ -129,6 +131,6 @@ fn bench_local_vcf_roh_smoke_writes_governed_files() {
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("roh_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.roh/plink2/roh.json")
+                == Some("runs/bench/local-smoke/vcf.roh/plink2/roh.json")
     }));
 }

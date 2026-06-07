@@ -17,7 +17,7 @@ use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_DEMOGRAPHY_SMOKE_ROOT: &str = "target/local-smoke/vcf.demography";
+const DEFAULT_VCF_DEMOGRAPHY_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.demography";
 const LOCAL_VCF_DEMOGRAPHY_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_demography_smoke.v1";
 const LOCAL_VCF_DEMOGRAPHY_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-demography-smoke";
 const GOVERNED_VCF_DEMOGRAPHY_STAGE_ID: &str = "vcf.demography";

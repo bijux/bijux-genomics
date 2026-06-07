@@ -36,11 +36,11 @@ fn bench_local_vcf_smoke_root_writes_governed_json_file() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf/SMOKE_ROOT.json"
+        "runs/bench/local-smoke/vcf/SMOKE_ROOT.json"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let manifest_path = repo_root.join("target/local-smoke/vcf/SMOKE_ROOT.json");
+    let manifest_path = repo_root.join("runs/bench/local-smoke/vcf/SMOKE_ROOT.json");
     let raw = std::fs::read_to_string(&manifest_path).expect("read manifest");
     let parsed: serde_json::Value = serde_json::from_str(&raw).expect("parse manifest");
 
@@ -63,11 +63,11 @@ fn bench_local_vcf_smoke_root_writes_governed_json_file() {
             && row
                 .get("pair_root")
                 .and_then(serde_json::Value::as_str)
-                .is_some_and(|value| value.starts_with("target/local-smoke/vcf/"))
+                .is_some_and(|value| value.starts_with("runs/bench/local-smoke/vcf/"))
             && row
                 .get("artifacts_root")
                 .and_then(serde_json::Value::as_str)
-                .is_some_and(|value| value.starts_with("target/local-smoke/vcf/"))
+                .is_some_and(|value| value.starts_with("runs/bench/local-smoke/vcf/"))
             && row
                 .get("result_manifest_path")
                 .and_then(serde_json::Value::as_str)
@@ -90,6 +90,6 @@ fn bench_local_vcf_smoke_root_writes_governed_json_file() {
     );
     assert_eq!(
         stats.get("result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf/vcf.stats/bcftools/stage-result.json")
+        Some("runs/bench/local-smoke/vcf/vcf.stats/bcftools/stage-result.json")
     );
 }

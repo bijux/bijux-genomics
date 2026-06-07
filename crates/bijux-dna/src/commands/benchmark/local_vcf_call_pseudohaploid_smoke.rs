@@ -19,7 +19,8 @@ use super::local_vcf_call_bam_smoke_support::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_CALL_PSEUDOHAPLOID_SMOKE_ROOT: &str = "target/local-smoke/vcf.call_pseudohaploid";
+const DEFAULT_VCF_CALL_PSEUDOHAPLOID_SMOKE_ROOT: &str =
+    "runs/bench/local-smoke/vcf.call_pseudohaploid";
 const LOCAL_VCF_CALL_PSEUDOHAPLOID_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_call_pseudohaploid_smoke.v1";
 const LOCAL_VCF_CALL_PSEUDOHAPLOID_SMOKE_METRICS_SCHEMA_VERSION: &str =

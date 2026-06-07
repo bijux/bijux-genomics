@@ -36,17 +36,18 @@ fn bench_local_vcf_stats_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf.stats/bcftools/stats.json"
+        "runs/bench/local-smoke/vcf.stats/bcftools/stats.json"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let stats_json_path = repo_root.join("target/local-smoke/vcf.stats/bcftools/stats.json");
+    let stats_json_path = repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/stats.json");
     let bcftools_stats_path =
-        repo_root.join("target/local-smoke/vcf.stats/bcftools/bcftools_stats.txt");
-    let metrics_path = repo_root.join("target/local-smoke/vcf.stats/bcftools/metrics.json");
-    let manifest_path = repo_root.join("target/local-smoke/vcf.stats/bcftools/stage-result.json");
+        repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/bcftools_stats.txt");
+    let metrics_path = repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/metrics.json");
+    let manifest_path =
+        repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/stage-result.json");
     let input_vcf_path =
-        repo_root.join("target/local-smoke/vcf.stats/bcftools/artifacts/input/stats_input.vcf");
+        repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/artifacts/input/stats_input.vcf");
 
     assert!(stats_json_path.is_file(), "expected stats json at {}", stats_json_path.display());
     assert!(
@@ -97,11 +98,11 @@ fn bench_local_vcf_stats_smoke_writes_governed_files() {
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("stats_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.stats/bcftools/stats.json")
+                == Some("runs/bench/local-smoke/vcf.stats/bcftools/stats.json")
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("bcftools_stats_txt")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.stats/bcftools/bcftools_stats.txt")
+                == Some("runs/bench/local-smoke/vcf.stats/bcftools/bcftools_stats.txt")
     }));
 }

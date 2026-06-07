@@ -36,20 +36,22 @@ fn bench_local_vcf_qc_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf.qc/plink2/qc.json"
+        "runs/bench/local-smoke/vcf.qc/plink2/qc.json"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let qc_json_path = repo_root.join("target/local-smoke/vcf.qc/plink2/qc.json");
-    let qc_summary_path = repo_root.join("target/local-smoke/vcf.qc/plink2/qc_summary.json");
-    let qc_tables_path = repo_root.join("target/local-smoke/vcf.qc/plink2/qc_tables.tsv");
-    let imputation_qc_path = repo_root.join("target/local-smoke/vcf.qc/plink2/imputation_qc.tsv");
-    let warnings_path = repo_root.join("target/local-smoke/vcf.qc/plink2/warnings.json");
-    let qc_histograms_path = repo_root.join("target/local-smoke/vcf.qc/plink2/qc_histograms.json");
-    let metrics_path = repo_root.join("target/local-smoke/vcf.qc/plink2/metrics.json");
-    let manifest_path = repo_root.join("target/local-smoke/vcf.qc/plink2/stage-result.json");
+    let qc_json_path = repo_root.join("runs/bench/local-smoke/vcf.qc/plink2/qc.json");
+    let qc_summary_path = repo_root.join("runs/bench/local-smoke/vcf.qc/plink2/qc_summary.json");
+    let qc_tables_path = repo_root.join("runs/bench/local-smoke/vcf.qc/plink2/qc_tables.tsv");
+    let imputation_qc_path =
+        repo_root.join("runs/bench/local-smoke/vcf.qc/plink2/imputation_qc.tsv");
+    let warnings_path = repo_root.join("runs/bench/local-smoke/vcf.qc/plink2/warnings.json");
+    let qc_histograms_path =
+        repo_root.join("runs/bench/local-smoke/vcf.qc/plink2/qc_histograms.json");
+    let metrics_path = repo_root.join("runs/bench/local-smoke/vcf.qc/plink2/metrics.json");
+    let manifest_path = repo_root.join("runs/bench/local-smoke/vcf.qc/plink2/stage-result.json");
     let input_vcf_path =
-        repo_root.join("target/local-smoke/vcf.qc/plink2/artifacts/input/qc_input.vcf");
+        repo_root.join("runs/bench/local-smoke/vcf.qc/plink2/artifacts/input/qc_input.vcf");
 
     assert!(qc_json_path.is_file(), "expected QC report at {}", qc_json_path.display());
     assert!(qc_summary_path.is_file(), "expected QC summary at {}", qc_summary_path.display());
@@ -130,11 +132,11 @@ fn bench_local_vcf_qc_smoke_writes_governed_files() {
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("qc_report_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.qc/plink2/qc.json")
+                == Some("runs/bench/local-smoke/vcf.qc/plink2/qc.json")
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("qc_summary_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.qc/plink2/qc_summary.json")
+                == Some("runs/bench/local-smoke/vcf.qc/plink2/qc_summary.json")
     }));
 }

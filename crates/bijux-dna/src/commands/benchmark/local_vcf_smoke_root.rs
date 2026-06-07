@@ -12,8 +12,7 @@ use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_VCF_SMOKE_ROOT_PATH: &str = "target/local-smoke/vcf/SMOKE_ROOT.json";
-const DEFAULT_VCF_SMOKE_ROOT_DIR: &str = "target/local-smoke/vcf";
+pub(crate) const DEFAULT_VCF_SMOKE_ROOT_PATH: &str = "runs/bench/local-smoke/vcf/SMOKE_ROOT.json";
 const LOCAL_VCF_SMOKE_ROOT_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_smoke_root.v1";
 const LOCAL_VCF_SMOKE_ROOT_COMMAND: &str = "bijux-dna bench local render-vcf-smoke-root";
 
@@ -70,8 +69,20 @@ pub(crate) fn render_vcf_smoke_root(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<LocalVcfSmokeRootReport> {
+    let benchmark_paths =
+        crate::commands::benchmark::path_resolution::BenchmarkPathResolver::new(repo_root, None);
     let output_path = repo_relative_path(repo_root, &output_path);
-    let smoke_root = repo_root.join(DEFAULT_VCF_SMOKE_ROOT_DIR);
+    let smoke_root = benchmark_paths.benchmark_local_smoke_root().join("vcf");
+    crate::commands::benchmark::path_resolution::ensure_path_stays_outside_benchmark_readiness_root(
+        repo_root,
+        &output_path,
+        "local VCF smoke manifest output",
+    )?;
+    crate::commands::benchmark::path_resolution::ensure_path_stays_outside_benchmark_readiness_root(
+        repo_root,
+        &smoke_root,
+        "local VCF smoke output root",
+    )?;
     fs::create_dir_all(&smoke_root).with_context(|| format!("create {}", smoke_root.display()))?;
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -244,7 +255,7 @@ mod tests {
 
         assert_eq!(report.schema_version, LOCAL_VCF_SMOKE_ROOT_SCHEMA_VERSION);
         assert_eq!(report.manifest_path, DEFAULT_VCF_SMOKE_ROOT_PATH);
-        assert_eq!(report.root_path, "target/local-smoke/vcf");
+        assert_eq!(report.root_path, "runs/bench/local-smoke/vcf");
         assert_eq!(report.command, LOCAL_VCF_SMOKE_ROOT_COMMAND);
         assert_eq!(report.corpus_id, "vcf_production_regression");
         assert_eq!(report.stage_count, 20);
@@ -262,15 +273,15 @@ mod tests {
         assert_eq!(prepare_reference_panel.asset_profile_id, "vcf_reference_panel");
         assert_eq!(
             prepare_reference_panel.pair_root,
-            "target/local-smoke/vcf/vcf.prepare_reference_panel/bcftools"
+            "runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools"
         );
         assert_eq!(
             prepare_reference_panel.artifacts_root,
-            "target/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts"
+            "runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts"
         );
         assert_eq!(
             prepare_reference_panel.result_manifest_path,
-            "target/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/stage-result.json"
+            "runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/stage-result.json"
         );
 
         let phasing =
@@ -291,7 +302,25 @@ mod tests {
         .expect("render VCF smoke root with redirected manifest");
 
         assert_eq!(report.manifest_path, "artifacts/test-output/local-vcf-smoke-root.json");
-        assert_eq!(report.root_path, "target/local-smoke/vcf");
-        assert!(report.rows.iter().all(|row| row.pair_root.starts_with("target/local-smoke/vcf/")));
+        assert_eq!(report.root_path, "runs/bench/local-smoke/vcf");
+        assert!(report
+            .rows
+            .iter()
+            .all(|row| row.pair_root.starts_with("runs/bench/local-smoke/vcf/")));
+    }
+
+    #[test]
+    fn vcf_smoke_root_rejects_manifest_paths_under_readiness_root() {
+        let repo_root = repo_root();
+        let error = render_vcf_smoke_root(
+            &repo_root,
+            PathBuf::from("benchmarks/readiness/local-ready/vcf-smoke-root.json"),
+        )
+        .expect_err("readiness-root smoke manifests must be refused");
+
+        assert!(
+            error.to_string().contains("must remain disposable and must not resolve inside"),
+            "unexpected error: {error}"
+        );
     }
 }

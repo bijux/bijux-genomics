@@ -58,27 +58,27 @@ fn bench_local_vcf_qc_smoke_reports_real_governed_outputs() {
     assert_eq!(payload.get("sample_name").and_then(serde_json::Value::as_str), Some("qc_cohort"));
     assert_eq!(
         payload.get("input_vcf_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.qc/plink2/artifacts/input/qc_input.vcf")
+        Some("runs/bench/local-smoke/vcf.qc/plink2/artifacts/input/qc_input.vcf")
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.qc/plink2")
+        Some("runs/bench/local-smoke/vcf.qc/plink2")
     );
     assert_eq!(
         payload.get("qc_json_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.qc/plink2/qc.json")
+        Some("runs/bench/local-smoke/vcf.qc/plink2/qc.json")
     );
     assert_eq!(
         payload.get("qc_summary_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.qc/plink2/qc_summary.json")
+        Some("runs/bench/local-smoke/vcf.qc/plink2/qc_summary.json")
     );
     assert_eq!(
         payload.get("metrics_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.qc/plink2/metrics.json")
+        Some("runs/bench/local-smoke/vcf.qc/plink2/metrics.json")
     );
     assert_eq!(
         payload.get("stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.qc/plink2/stage-result.json")
+        Some("runs/bench/local-smoke/vcf.qc/plink2/stage-result.json")
     );
     assert_eq!(payload.get("exit_code").and_then(serde_json::Value::as_i64), Some(0));
     assert_eq!(
@@ -140,7 +140,7 @@ fn bench_local_vcf_qc_smoke_reports_real_governed_outputs() {
     assert_eq!(heterozygosity.get("het_hom_ratio").and_then(serde_json::Value::as_f64), Some(2.0));
 
     let repo_root = support::repo_root().expect("repo root");
-    let qc_json_path = repo_root.join("target/local-smoke/vcf.qc/plink2/qc.json");
+    let qc_json_path = repo_root.join("runs/bench/local-smoke/vcf.qc/plink2/qc.json");
     let raw = std::fs::read_to_string(&qc_json_path).expect("read qc report");
     let qc_report: serde_json::Value = serde_json::from_str(&raw).expect("parse qc report");
     assert_eq!(

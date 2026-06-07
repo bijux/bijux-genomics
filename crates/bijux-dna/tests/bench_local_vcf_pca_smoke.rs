@@ -61,51 +61,51 @@ fn bench_local_vcf_pca_smoke_reports_complete_cohort_contract() {
     );
     assert_eq!(
         payload.get("input_vcf_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.pca/plink2/artifacts/input/pca_input.vcf")
+        Some("runs/bench/local-smoke/vcf.pca/plink2/artifacts/input/pca_input.vcf")
     );
     assert_eq!(
         payload.get("sample_metadata_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.pca/plink2/artifacts/input/sample_metadata.tsv")
+        Some("runs/bench/local-smoke/vcf.pca/plink2/artifacts/input/sample_metadata.tsv")
     );
     assert_eq!(
         payload.get("population_metadata_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.pca/plink2/artifacts/input/population_metadata.tsv")
+        Some("runs/bench/local-smoke/vcf.pca/plink2/artifacts/input/population_metadata.tsv")
     );
     assert_eq!(
         payload.get("population_labels_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.pca/plink2/artifacts/input/population_labels.json")
+        Some("runs/bench/local-smoke/vcf.pca/plink2/artifacts/input/population_labels.json")
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.pca/plink2")
+        Some("runs/bench/local-smoke/vcf.pca/plink2")
     );
     assert_eq!(
         payload.get("pca_tsv_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.pca/plink2/pca.tsv")
+        Some("runs/bench/local-smoke/vcf.pca/plink2/pca.tsv")
     );
     assert_eq!(
         payload.get("pca_json_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.pca/plink2/pca.json")
+        Some("runs/bench/local-smoke/vcf.pca/plink2/pca.json")
     );
     assert_eq!(
         payload.get("source_eigenvec_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.pca/plink2/source_eigenvec.tsv")
+        Some("runs/bench/local-smoke/vcf.pca/plink2/source_eigenvec.tsv")
     );
     assert_eq!(
         payload.get("source_eigenval_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.pca/plink2/source_eigenval.tsv")
+        Some("runs/bench/local-smoke/vcf.pca/plink2/source_eigenval.tsv")
     );
     assert_eq!(
         payload.get("source_pca_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.pca/plink2/source_pca_manifest.json")
+        Some("runs/bench/local-smoke/vcf.pca/plink2/source_pca_manifest.json")
     );
     assert_eq!(
         payload.get("source_logs_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.pca/plink2/source_logs.txt")
+        Some("runs/bench/local-smoke/vcf.pca/plink2/source_logs.txt")
     );
     assert_eq!(
         payload.get("stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.pca/plink2/stage-result.json")
+        Some("runs/bench/local-smoke/vcf.pca/plink2/stage-result.json")
     );
     assert_eq!(payload.get("exit_code").and_then(serde_json::Value::as_i64), Some(0));
     assert_eq!(payload.get("variant_count").and_then(serde_json::Value::as_u64), Some(2));
@@ -160,7 +160,7 @@ fn bench_local_vcf_pca_smoke_reports_complete_cohort_contract() {
     assert!(rows.iter().all(|row| row.get("pc2").and_then(serde_json::Value::as_f64).is_some()));
 
     let repo_root = support::repo_root().expect("repo root");
-    let persisted_path = repo_root.join("target/local-smoke/vcf.pca/plink2/pca.json");
+    let persisted_path = repo_root.join("runs/bench/local-smoke/vcf.pca/plink2/pca.json");
     let persisted_raw = std::fs::read_to_string(&persisted_path).expect("read persisted report");
     let persisted: serde_json::Value = serde_json::from_str(&persisted_raw).expect("parse report");
     assert_eq!(

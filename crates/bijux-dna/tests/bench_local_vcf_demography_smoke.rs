@@ -57,11 +57,11 @@ fn bench_local_vcf_demography_smoke_reports_main_run_and_probe() {
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.demography/ibdne")
+        Some("runs/bench/local-smoke/vcf.demography/ibdne")
     );
     assert_eq!(
         payload.get("demography_json_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.demography/ibdne/demography.json")
+        Some("runs/bench/local-smoke/vcf.demography/ibdne/demography.json")
     );
     assert_eq!(payload.get("method").and_then(serde_json::Value::as_str), Some("ibdne"));
     assert_eq!(payload.get("status").and_then(serde_json::Value::as_str), Some("complete"));
@@ -87,7 +87,8 @@ fn bench_local_vcf_demography_smoke_reports_main_run_and_probe() {
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let persisted_path = repo_root.join("target/local-smoke/vcf.demography/ibdne/demography.json");
+    let persisted_path =
+        repo_root.join("runs/bench/local-smoke/vcf.demography/ibdne/demography.json");
     let persisted_raw = std::fs::read_to_string(&persisted_path).expect("read persisted report");
     let persisted: serde_json::Value = serde_json::from_str(&persisted_raw).expect("parse report");
     assert_eq!(

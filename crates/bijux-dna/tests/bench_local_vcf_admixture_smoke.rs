@@ -61,47 +61,47 @@ fn bench_local_vcf_admixture_smoke_reports_complete_cohort_contract() {
     );
     assert_eq!(
         payload.get("input_vcf_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.admixture/plink2/artifacts/input/admixture_input.vcf")
+        Some("runs/bench/local-smoke/vcf.admixture/plink2/artifacts/input/admixture_input.vcf")
     );
     assert_eq!(
         payload.get("sample_metadata_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.admixture/plink2/artifacts/input/sample_metadata.tsv")
+        Some("runs/bench/local-smoke/vcf.admixture/plink2/artifacts/input/sample_metadata.tsv")
     );
     assert_eq!(
         payload.get("population_metadata_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.admixture/plink2/artifacts/input/population_metadata.tsv")
+        Some("runs/bench/local-smoke/vcf.admixture/plink2/artifacts/input/population_metadata.tsv")
     );
     assert_eq!(
         payload.get("population_labels_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.admixture/plink2/artifacts/input/population_labels.json")
+        Some("runs/bench/local-smoke/vcf.admixture/plink2/artifacts/input/population_labels.json")
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.admixture/plink2")
+        Some("runs/bench/local-smoke/vcf.admixture/plink2")
     );
     assert_eq!(
         payload.get("admixture_tsv_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.admixture/plink2/admixture.tsv")
+        Some("runs/bench/local-smoke/vcf.admixture/plink2/admixture.tsv")
     );
     assert_eq!(
         payload.get("admixture_json_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.admixture/plink2/admixture.json")
+        Some("runs/bench/local-smoke/vcf.admixture/plink2/admixture.json")
     );
     assert_eq!(
         payload.get("source_q_matrix_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.admixture/plink2/source_admixture_q_matrix.tsv")
+        Some("runs/bench/local-smoke/vcf.admixture/plink2/source_admixture_q_matrix.tsv")
     );
     assert_eq!(
         payload.get("source_k_selection_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.admixture/plink2/source_admixture_k_selection.json")
+        Some("runs/bench/local-smoke/vcf.admixture/plink2/source_admixture_k_selection.json")
     );
     assert_eq!(
         payload.get("source_logs_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.admixture/plink2/source_logs.txt")
+        Some("runs/bench/local-smoke/vcf.admixture/plink2/source_logs.txt")
     );
     assert_eq!(
         payload.get("stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.admixture/plink2/stage-result.json")
+        Some("runs/bench/local-smoke/vcf.admixture/plink2/stage-result.json")
     );
     assert_eq!(payload.get("selected_k").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(4));
@@ -145,7 +145,8 @@ fn bench_local_vcf_admixture_smoke_reports_complete_cohort_contract() {
     }
 
     let repo_root = support::repo_root().expect("repo root");
-    let persisted_path = repo_root.join("target/local-smoke/vcf.admixture/plink2/admixture.json");
+    let persisted_path =
+        repo_root.join("runs/bench/local-smoke/vcf.admixture/plink2/admixture.json");
     let persisted_raw = std::fs::read_to_string(&persisted_path).expect("read persisted report");
     let persisted: serde_json::Value = serde_json::from_str(&persisted_raw).expect("parse report");
     assert_eq!(

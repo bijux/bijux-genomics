@@ -36,35 +36,36 @@ fn bench_local_vcf_impute_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf.impute/beagle/imputed.vcf.gz"
+        "runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let output_vcf = repo_root.join("target/local-smoke/vcf.impute/beagle/imputed.vcf.gz");
-    let output_tbi = repo_root.join("target/local-smoke/vcf.impute/beagle/imputed.vcf.gz.tbi");
+    let output_vcf = repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz");
+    let output_tbi = repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz.tbi");
     let panel_assets_path =
-        repo_root.join("target/local-smoke/vcf.impute/beagle/panel_assets.json");
+        repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/panel_assets.json");
     let imputation_qc_path =
-        repo_root.join("target/local-smoke/vcf.impute/beagle/imputation_qc.json");
+        repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/imputation_qc.json");
     let imputation_qc_tsv_path =
-        repo_root.join("target/local-smoke/vcf.impute/beagle/imputation_qc.tsv");
+        repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/imputation_qc.tsv");
     let imputation_manifest_path =
-        repo_root.join("target/local-smoke/vcf.impute/beagle/imputation_manifest.json");
+        repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/imputation_manifest.json");
     let overlap_stats_path =
-        repo_root.join("target/local-smoke/vcf.impute/beagle/overlap_stats.json");
-    let warnings_path = repo_root.join("target/local-smoke/vcf.impute/beagle/warnings.json");
+        repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/overlap_stats.json");
+    let warnings_path = repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/warnings.json");
     let imputation_accept_path =
-        repo_root.join("target/local-smoke/vcf.impute/beagle/imputation_accept.json");
+        repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/imputation_accept.json");
     let panel_mismatch_path =
-        repo_root.join("target/local-smoke/vcf.impute/beagle/panel_mismatch_diagnostics.json");
-    let maf_bins_path = repo_root.join("target/local-smoke/vcf.impute/beagle/maf_bins.tsv");
-    let logs_path = repo_root.join("target/local-smoke/vcf.impute/beagle/logs.txt");
-    let metrics_path = repo_root.join("target/local-smoke/vcf.impute/beagle/metrics.json");
-    let manifest_path = repo_root.join("target/local-smoke/vcf.impute/beagle/stage-result.json");
+        repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/panel_mismatch_diagnostics.json");
+    let maf_bins_path = repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/maf_bins.tsv");
+    let logs_path = repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/logs.txt");
+    let metrics_path = repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/metrics.json");
+    let manifest_path =
+        repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/stage-result.json");
     let input_vcf =
-        repo_root.join("target/local-smoke/vcf.impute/beagle/artifacts/input/impute_input.vcf");
+        repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/artifacts/input/impute_input.vcf");
     let truth_vcf =
-        repo_root.join("target/local-smoke/vcf.impute/beagle/artifacts/input/impute_truth.vcf");
+        repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/artifacts/input/impute_truth.vcf");
 
     assert!(output_vcf.is_file(), "expected output VCF at {}", output_vcf.display());
     assert!(output_tbi.is_file(), "expected output index at {}", output_tbi.display());
@@ -173,11 +174,11 @@ fn bench_local_vcf_impute_smoke_writes_governed_files() {
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("imputed_vcf")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.impute/beagle/imputed.vcf.gz")
+                == Some("runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz")
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("imputation_qc_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.impute/beagle/imputation_qc.json")
+                == Some("runs/bench/local-smoke/vcf.impute/beagle/imputation_qc.json")
     }));
 }

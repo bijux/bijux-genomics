@@ -19,7 +19,7 @@ use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_GL_PROPAGATION_SMOKE_ROOT: &str = "target/local-smoke/vcf.gl_propagation";
+const DEFAULT_VCF_GL_PROPAGATION_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.gl_propagation";
 const LOCAL_VCF_GL_PROPAGATION_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_gl_propagation_smoke.v1";
 const LOCAL_VCF_GL_PROPAGATION_SMOKE_METRICS_SCHEMA_VERSION: &str =
@@ -483,8 +483,9 @@ mod tests {
     #[test]
     fn summarize_likelihood_fields_reads_governed_single_sample_fixture() {
         let repo_root = repo_root();
-        let fixture_vcf = repo_root
-            .join("benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf");
+        let fixture_vcf = repo_root.join(
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf",
+        );
         let summary = summarize_likelihood_fields(&fixture_vcf).expect("summarize fixture fields");
         assert_eq!(summary.site_count, 2);
         assert!(summary.fields.is_empty());

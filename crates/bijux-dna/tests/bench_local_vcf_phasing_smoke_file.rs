@@ -36,26 +36,29 @@ fn bench_local_vcf_phasing_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz"
+        "runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let output_vcf = repo_root.join("target/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz");
-    let output_tbi = repo_root.join("target/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz.tbi");
+    let output_vcf = repo_root.join("runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz");
+    let output_tbi =
+        repo_root.join("runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz.tbi");
     let panel_assets_path =
-        repo_root.join("target/local-smoke/vcf.phasing/shapeit5/panel_assets.json");
-    let phasing_qc_path = repo_root.join("target/local-smoke/vcf.phasing/shapeit5/phasing_qc.json");
+        repo_root.join("runs/bench/local-smoke/vcf.phasing/shapeit5/panel_assets.json");
+    let phasing_qc_path =
+        repo_root.join("runs/bench/local-smoke/vcf.phasing/shapeit5/phasing_qc.json");
     let phasing_manifest_path =
-        repo_root.join("target/local-smoke/vcf.phasing/shapeit5/phasing_manifest.json");
+        repo_root.join("runs/bench/local-smoke/vcf.phasing/shapeit5/phasing_manifest.json");
     let phase_block_stats_path =
-        repo_root.join("target/local-smoke/vcf.phasing/shapeit5/phase_block_stats.tsv");
+        repo_root.join("runs/bench/local-smoke/vcf.phasing/shapeit5/phase_block_stats.tsv");
     let switch_error_proxy_path =
-        repo_root.join("target/local-smoke/vcf.phasing/shapeit5/switch_error_proxy.tsv");
-    let logs_path = repo_root.join("target/local-smoke/vcf.phasing/shapeit5/logs.txt");
-    let metrics_path = repo_root.join("target/local-smoke/vcf.phasing/shapeit5/metrics.json");
-    let manifest_path = repo_root.join("target/local-smoke/vcf.phasing/shapeit5/stage-result.json");
-    let input_vcf =
-        repo_root.join("target/local-smoke/vcf.phasing/shapeit5/artifacts/input/phasing_input.vcf");
+        repo_root.join("runs/bench/local-smoke/vcf.phasing/shapeit5/switch_error_proxy.tsv");
+    let logs_path = repo_root.join("runs/bench/local-smoke/vcf.phasing/shapeit5/logs.txt");
+    let metrics_path = repo_root.join("runs/bench/local-smoke/vcf.phasing/shapeit5/metrics.json");
+    let manifest_path =
+        repo_root.join("runs/bench/local-smoke/vcf.phasing/shapeit5/stage-result.json");
+    let input_vcf = repo_root
+        .join("runs/bench/local-smoke/vcf.phasing/shapeit5/artifacts/input/phasing_input.vcf");
 
     assert!(output_vcf.is_file(), "expected output VCF at {}", output_vcf.display());
     assert!(output_tbi.is_file(), "expected output index at {}", output_tbi.display());
@@ -139,11 +142,11 @@ fn bench_local_vcf_phasing_smoke_writes_governed_files() {
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("phased_vcf")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz")
+                == Some("runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz")
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("panel_assets_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.phasing/shapeit5/panel_assets.json")
+                == Some("runs/bench/local-smoke/vcf.phasing/shapeit5/panel_assets.json")
     }));
 }

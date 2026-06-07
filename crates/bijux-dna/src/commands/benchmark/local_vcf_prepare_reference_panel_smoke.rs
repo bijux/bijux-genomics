@@ -21,7 +21,8 @@ use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_PREPARE_PANEL_SMOKE_ROOT: &str = "target/local-smoke/vcf.prepare_reference_panel";
+const DEFAULT_VCF_PREPARE_PANEL_SMOKE_ROOT: &str =
+    "runs/bench/local-smoke/vcf.prepare_reference_panel";
 const LOCAL_VCF_PREPARE_PANEL_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_prepare_reference_panel_smoke.v1";
 const LOCAL_VCF_PREPARE_PANEL_SMOKE_METRICS_SCHEMA_VERSION: &str =

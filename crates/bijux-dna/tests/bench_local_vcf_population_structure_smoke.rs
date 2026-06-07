@@ -60,42 +60,42 @@ fn bench_local_vcf_population_structure_smoke_reports_consumed_upstream_contract
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.population_structure/plink2")
+        Some("runs/bench/local-smoke/vcf.population_structure/plink2")
     );
     assert_eq!(
         payload.get("population_structure_json_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.population_structure/plink2/population_structure.json")
+        Some("runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json")
     );
     assert_eq!(
         payload.get("source_population_structure_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.population_structure/plink2/source_population_structure.json")
+        Some("runs/bench/local-smoke/vcf.population_structure/plink2/source_population_structure.json")
     );
     assert_eq!(
         payload.get("source_pruned_variants_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.population_structure/plink2/source_pruned_variants.tsv")
+        Some("runs/bench/local-smoke/vcf.population_structure/plink2/source_pruned_variants.tsv")
     );
     assert_eq!(
         payload.get("source_logs_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.population_structure/plink2/source_logs.txt")
+        Some("runs/bench/local-smoke/vcf.population_structure/plink2/source_logs.txt")
     );
     assert_eq!(
         payload.get("source_pca_report_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.population_structure/plink2/source_pca.json")
+        Some("runs/bench/local-smoke/vcf.population_structure/plink2/source_pca.json")
     );
     assert_eq!(
         payload.get("source_admixture_report_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.population_structure/plink2/source_admixture.json")
+        Some("runs/bench/local-smoke/vcf.population_structure/plink2/source_admixture.json")
     );
     assert_eq!(
         payload.get("stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.population_structure/plink2/stage-result.json")
+        Some("runs/bench/local-smoke/vcf.population_structure/plink2/stage-result.json")
     );
     assert_eq!(payload.get("status").and_then(serde_json::Value::as_str), Some("complete"));
 
     let consumed_pca = payload.get("consumed_pca").expect("consumed pca");
     assert_eq!(
         consumed_pca.get("report_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.population_structure/plink2/source_pca.json")
+        Some("runs/bench/local-smoke/vcf.population_structure/plink2/source_pca.json")
     );
     assert_eq!(consumed_pca.get("sample_count").and_then(serde_json::Value::as_u64), Some(4));
     assert!(matches!(
@@ -106,7 +106,7 @@ fn bench_local_vcf_population_structure_smoke_reports_consumed_upstream_contract
     let consumed_admixture = payload.get("consumed_admixture").expect("consumed admixture");
     assert_eq!(
         consumed_admixture.get("report_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.population_structure/plink2/source_admixture.json")
+        Some("runs/bench/local-smoke/vcf.population_structure/plink2/source_admixture.json")
     );
     assert_eq!(consumed_admixture.get("sample_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(consumed_admixture.get("selected_k").and_then(serde_json::Value::as_u64), Some(2));
@@ -149,7 +149,7 @@ fn bench_local_vcf_population_structure_smoke_reports_consumed_upstream_contract
 
     let repo_root = support::repo_root().expect("repo root");
     let persisted_path = repo_root
-        .join("target/local-smoke/vcf.population_structure/plink2/population_structure.json");
+        .join("runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json");
     let persisted_raw = std::fs::read_to_string(&persisted_path).expect("read persisted report");
     let persisted: serde_json::Value = serde_json::from_str(&persisted_raw).expect("parse report");
     assert_eq!(

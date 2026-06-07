@@ -17,7 +17,7 @@ use super::local_vcf_call_bam_smoke_support::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_CALL_GL_SMOKE_ROOT: &str = "target/local-smoke/vcf.call_gl";
+const DEFAULT_VCF_CALL_GL_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.call_gl";
 const LOCAL_VCF_CALL_GL_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_call_gl_smoke.v1";
 const LOCAL_VCF_CALL_GL_SMOKE_METRICS_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_call_gl_smoke.metrics.v1";

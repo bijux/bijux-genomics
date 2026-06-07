@@ -21,7 +21,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const DEFAULT_VCF_POPULATION_STRUCTURE_SMOKE_ROOT: &str =
-    "target/local-smoke/vcf.population_structure";
+    "runs/bench/local-smoke/vcf.population_structure";
 const LOCAL_VCF_POPULATION_STRUCTURE_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_population_structure_smoke.v1";
 const LOCAL_VCF_POPULATION_STRUCTURE_SMOKE_COMMAND: &str =

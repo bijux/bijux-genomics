@@ -36,39 +36,39 @@ fn bench_local_vcf_demography_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf.demography/ibdne/demography.json"
+        "runs/bench/local-smoke/vcf.demography/ibdne/demography.json"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let report_path = repo_root.join("target/local-smoke/vcf.demography/ibdne/demography.json");
+    let report_path = repo_root.join("runs/bench/local-smoke/vcf.demography/ibdne/demography.json");
     let source_upstream_report_path =
-        repo_root.join("target/local-smoke/vcf.demography/ibdne/source_ibd_smoke.json");
-    let source_upstream_filtered_segments_path =
-        repo_root.join("target/local-smoke/vcf.demography/ibdne/source_ibd_filtered_segments.tsv");
+        repo_root.join("runs/bench/local-smoke/vcf.demography/ibdne/source_ibd_smoke.json");
+    let source_upstream_filtered_segments_path = repo_root
+        .join("runs/bench/local-smoke/vcf.demography/ibdne/source_ibd_filtered_segments.tsv");
     let source_ne_trajectory_path =
-        repo_root.join("target/local-smoke/vcf.demography/ibdne/source_ne_trajectory.tsv");
-    let source_demography_contract_path =
-        repo_root.join("target/local-smoke/vcf.demography/ibdne/source_demography_contract.json");
-    let source_demography_metrics_path =
-        repo_root.join("target/local-smoke/vcf.demography/ibdne/source_demography_metrics.json");
+        repo_root.join("runs/bench/local-smoke/vcf.demography/ibdne/source_ne_trajectory.tsv");
+    let source_demography_contract_path = repo_root
+        .join("runs/bench/local-smoke/vcf.demography/ibdne/source_demography_contract.json");
+    let source_demography_metrics_path = repo_root
+        .join("runs/bench/local-smoke/vcf.demography/ibdne/source_demography_metrics.json");
     let source_logs_path =
-        repo_root.join("target/local-smoke/vcf.demography/ibdne/source_logs.txt");
+        repo_root.join("runs/bench/local-smoke/vcf.demography/ibdne/source_logs.txt");
     let probe_input_ibd_path = repo_root.join(
-        "target/local-smoke/vcf.demography/ibdne/artifacts/probe/probe_input_ibd_segments.tsv",
+        "runs/bench/local-smoke/vcf.demography/ibdne/artifacts/probe/probe_input_ibd_segments.tsv",
     );
     let probe_ne_trajectory_path = repo_root.join(
-        "target/local-smoke/vcf.demography/ibdne/artifacts/probe/probe_source_ne_trajectory.tsv",
+        "runs/bench/local-smoke/vcf.demography/ibdne/artifacts/probe/probe_source_ne_trajectory.tsv",
     );
     let probe_demography_contract_path = repo_root.join(
-        "target/local-smoke/vcf.demography/ibdne/artifacts/probe/probe_source_demography_contract.json",
+        "runs/bench/local-smoke/vcf.demography/ibdne/artifacts/probe/probe_source_demography_contract.json",
     );
     let probe_demography_metrics_path = repo_root.join(
-        "target/local-smoke/vcf.demography/ibdne/artifacts/probe/probe_source_demography_metrics.json",
+        "runs/bench/local-smoke/vcf.demography/ibdne/artifacts/probe/probe_source_demography_metrics.json",
     );
     let probe_logs_path = repo_root
-        .join("target/local-smoke/vcf.demography/ibdne/artifacts/probe/probe_source_logs.txt");
+        .join("runs/bench/local-smoke/vcf.demography/ibdne/artifacts/probe/probe_source_logs.txt");
     let stage_result_path =
-        repo_root.join("target/local-smoke/vcf.demography/ibdne/stage-result.json");
+        repo_root.join("runs/bench/local-smoke/vcf.demography/ibdne/stage-result.json");
 
     for path in [
         &report_path,

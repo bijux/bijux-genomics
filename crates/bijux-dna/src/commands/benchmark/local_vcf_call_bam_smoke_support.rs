@@ -237,8 +237,8 @@ mod tests {
     #[test]
     fn parse_output_sample_count_reads_governed_fixture_vcf() {
         let repo_root = repo_root();
-        let fixture_vcf =
-            repo_root.join("benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf");
+        let fixture_vcf = repo_root
+            .join("benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf");
         let sample_count = parse_output_sample_count(&fixture_vcf).expect("parse sample count");
         assert_eq!(sample_count, 4);
     }

@@ -17,7 +17,7 @@ use super::local_vcf_call_bam_smoke_support::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_CALL_DIPLOID_SMOKE_ROOT: &str = "target/local-smoke/vcf.call_diploid";
+const DEFAULT_VCF_CALL_DIPLOID_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.call_diploid";
 const LOCAL_VCF_CALL_DIPLOID_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_call_diploid_smoke.v1";
 const LOCAL_VCF_CALL_DIPLOID_SMOKE_METRICS_SCHEMA_VERSION: &str =
@@ -360,8 +360,9 @@ mod tests {
     #[test]
     fn diploid_genotype_summary_reads_governed_fixture() {
         let repo_root = repo_root();
-        let fixture_vcf = repo_root
-            .join("benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf");
+        let fixture_vcf = repo_root.join(
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf",
+        );
         let summary =
             summarize_diploid_genotypes(&fixture_vcf).expect("summarize fixture genotypes");
 

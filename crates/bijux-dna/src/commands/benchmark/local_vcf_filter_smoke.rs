@@ -20,7 +20,7 @@ use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_FILTER_SMOKE_ROOT: &str = "target/local-smoke/vcf.filter";
+const DEFAULT_VCF_FILTER_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.filter";
 const LOCAL_VCF_FILTER_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_filter_smoke.v1";
 const LOCAL_VCF_FILTER_SMOKE_METRICS_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_filter_smoke.metrics.v1";

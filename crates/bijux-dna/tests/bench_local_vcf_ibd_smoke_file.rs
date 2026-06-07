@@ -36,34 +36,39 @@ fn bench_local_vcf_ibd_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf.ibd/germline/ibd.json"
+        "runs/bench/local-smoke/vcf.ibd/germline/ibd.json"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let report_path = repo_root.join("target/local-smoke/vcf.ibd/germline/ibd.json");
-    let ibd_tsv_path = repo_root.join("target/local-smoke/vcf.ibd/germline/ibd.tsv");
+    let report_path = repo_root.join("runs/bench/local-smoke/vcf.ibd/germline/ibd.json");
+    let ibd_tsv_path = repo_root.join("runs/bench/local-smoke/vcf.ibd/germline/ibd.tsv");
     let source_input_path =
-        repo_root.join("target/local-smoke/vcf.ibd/germline/source_ibd_input.tsv");
+        repo_root.join("runs/bench/local-smoke/vcf.ibd/germline/source_ibd_input.tsv");
     let source_segments_path =
-        repo_root.join("target/local-smoke/vcf.ibd/germline/source_ibd_segments.tsv");
+        repo_root.join("runs/bench/local-smoke/vcf.ibd/germline/source_ibd_segments.tsv");
     let source_merged_segments_path =
-        repo_root.join("target/local-smoke/vcf.ibd/germline/source_ibd_merged_segments.tsv");
+        repo_root.join("runs/bench/local-smoke/vcf.ibd/germline/source_ibd_merged_segments.tsv");
     let source_filtered_segments_path =
-        repo_root.join("target/local-smoke/vcf.ibd/germline/source_ibd_filtered_segments.tsv");
+        repo_root.join("runs/bench/local-smoke/vcf.ibd/germline/source_ibd_filtered_segments.tsv");
     let source_summary_path =
-        repo_root.join("target/local-smoke/vcf.ibd/germline/source_ibd_summary.json");
+        repo_root.join("runs/bench/local-smoke/vcf.ibd/germline/source_ibd_summary.json");
     let source_metrics_path =
-        repo_root.join("target/local-smoke/vcf.ibd/germline/source_ibd_metrics.json");
-    let source_logs_path = repo_root.join("target/local-smoke/vcf.ibd/germline/source_logs.txt");
-    let probe_summary_path = repo_root
-        .join("target/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_ibd_summary.json");
+        repo_root.join("runs/bench/local-smoke/vcf.ibd/germline/source_ibd_metrics.json");
+    let source_logs_path =
+        repo_root.join("runs/bench/local-smoke/vcf.ibd/germline/source_logs.txt");
+    let probe_summary_path = repo_root.join(
+        "runs/bench/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_ibd_summary.json",
+    );
     let probe_filtered_path = repo_root
-        .join("target/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_ibd_filtered_segments.tsv");
-    let probe_roh_summary_path = repo_root
-        .join("target/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_roh_summary.json");
-    let probe_roh_segments_path = repo_root
-        .join("target/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_roh_segments.tsv");
-    let stage_result_path = repo_root.join("target/local-smoke/vcf.ibd/germline/stage-result.json");
+        .join("runs/bench/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_ibd_filtered_segments.tsv");
+    let probe_roh_summary_path = repo_root.join(
+        "runs/bench/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_roh_summary.json",
+    );
+    let probe_roh_segments_path = repo_root.join(
+        "runs/bench/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_roh_segments.tsv",
+    );
+    let stage_result_path =
+        repo_root.join("runs/bench/local-smoke/vcf.ibd/germline/stage-result.json");
 
     for path in [
         &report_path,

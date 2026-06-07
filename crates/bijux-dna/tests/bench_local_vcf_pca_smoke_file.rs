@@ -36,20 +36,21 @@ fn bench_local_vcf_pca_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf.pca/plink2/pca.json"
+        "runs/bench/local-smoke/vcf.pca/plink2/pca.json"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let pca_tsv_path = repo_root.join("target/local-smoke/vcf.pca/plink2/pca.tsv");
-    let pca_json_path = repo_root.join("target/local-smoke/vcf.pca/plink2/pca.json");
+    let pca_tsv_path = repo_root.join("runs/bench/local-smoke/vcf.pca/plink2/pca.tsv");
+    let pca_json_path = repo_root.join("runs/bench/local-smoke/vcf.pca/plink2/pca.json");
     let source_eigenvec_path =
-        repo_root.join("target/local-smoke/vcf.pca/plink2/source_eigenvec.tsv");
+        repo_root.join("runs/bench/local-smoke/vcf.pca/plink2/source_eigenvec.tsv");
     let source_eigenval_path =
-        repo_root.join("target/local-smoke/vcf.pca/plink2/source_eigenval.tsv");
+        repo_root.join("runs/bench/local-smoke/vcf.pca/plink2/source_eigenval.tsv");
     let source_pca_manifest_path =
-        repo_root.join("target/local-smoke/vcf.pca/plink2/source_pca_manifest.json");
-    let source_logs_path = repo_root.join("target/local-smoke/vcf.pca/plink2/source_logs.txt");
-    let stage_result_path = repo_root.join("target/local-smoke/vcf.pca/plink2/stage-result.json");
+        repo_root.join("runs/bench/local-smoke/vcf.pca/plink2/source_pca_manifest.json");
+    let source_logs_path = repo_root.join("runs/bench/local-smoke/vcf.pca/plink2/source_logs.txt");
+    let stage_result_path =
+        repo_root.join("runs/bench/local-smoke/vcf.pca/plink2/stage-result.json");
 
     for path in [
         &pca_tsv_path,
@@ -122,11 +123,11 @@ fn bench_local_vcf_pca_smoke_writes_governed_files() {
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("pca_tsv")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.pca/plink2/pca.tsv")
+                == Some("runs/bench/local-smoke/vcf.pca/plink2/pca.tsv")
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("pca_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.pca/plink2/pca.json")
+                == Some("runs/bench/local-smoke/vcf.pca/plink2/pca.json")
     }));
 }

@@ -21,7 +21,7 @@ use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_ROH_SMOKE_ROOT: &str = "target/local-smoke/vcf.roh";
+const DEFAULT_VCF_ROH_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.roh";
 const LOCAL_VCF_ROH_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_roh_smoke.v1";
 const LOCAL_VCF_ROH_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-roh-smoke";
 const GOVERNED_VCF_ROH_STAGE_ID: &str = "vcf.roh";

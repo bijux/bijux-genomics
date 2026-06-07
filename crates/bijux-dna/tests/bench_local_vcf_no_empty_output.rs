@@ -47,11 +47,11 @@ fn bench_local_validate_vcf_no_empty_output_reports_governed_outputs() {
     );
     assert_eq!(
         payload.get("smoke_root_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf/SMOKE_ROOT.json")
+        Some("runs/bench/local-smoke/vcf/SMOKE_ROOT.json")
     );
     assert_eq!(
         payload.get("smoke_root_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf")
+        Some("runs/bench/local-smoke/vcf")
     );
     assert_eq!(
         payload.get("refreshed_smoke_outputs").and_then(serde_json::Value::as_bool),
@@ -91,7 +91,7 @@ fn bench_local_validate_vcf_no_empty_output_reports_governed_outputs() {
     );
     assert_eq!(
         prepare_panel_vcf.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts/prepared_panel.vcf.gz")
+        Some("runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts/prepared_panel.vcf.gz")
     );
     assert!(prepare_panel_vcf
         .get("bytes")
@@ -122,6 +122,6 @@ fn bench_local_validate_vcf_no_empty_output_reports_governed_outputs() {
     assert_eq!(stderr_log.get("output_kind").and_then(serde_json::Value::as_str), Some("log"));
     assert_eq!(
         stderr_log.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf/vcf.stats/bcftools/artifacts/stderr.log")
+        Some("runs/bench/local-smoke/vcf/vcf.stats/bcftools/artifacts/stderr.log")
     );
 }

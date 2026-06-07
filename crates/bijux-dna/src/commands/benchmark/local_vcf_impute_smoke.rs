@@ -20,7 +20,7 @@ use super::local_vcf_panel_workflow_smoke_support::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_IMPUTE_SMOKE_ROOT: &str = "target/local-smoke/vcf.impute";
+const DEFAULT_VCF_IMPUTE_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.impute";
 const LOCAL_VCF_IMPUTE_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_impute_smoke.v1";
 const LOCAL_VCF_IMPUTE_SMOKE_METRICS_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_impute_smoke.metrics.v1";

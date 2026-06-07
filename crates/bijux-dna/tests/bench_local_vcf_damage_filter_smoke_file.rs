@@ -36,27 +36,28 @@ fn bench_local_vcf_damage_filter_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz"
+        "runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz"
     );
 
     let repo_root = support::repo_root().expect("repo root");
     let output_vcf =
-        repo_root.join("target/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz");
-    let output_tbi =
-        repo_root.join("target/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz.tbi");
-    let metrics_path = repo_root.join("target/local-smoke/vcf.damage_filter/bcftools/metrics.json");
-    let summary_path =
-        repo_root.join("target/local-smoke/vcf.damage_filter/bcftools/damage_filter_summary.json");
-    let counts_path =
-        repo_root.join("target/local-smoke/vcf.damage_filter/bcftools/damage_filter_counts.json");
+        repo_root.join("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz");
+    let output_tbi = repo_root
+        .join("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz.tbi");
+    let metrics_path =
+        repo_root.join("runs/bench/local-smoke/vcf.damage_filter/bcftools/metrics.json");
+    let summary_path = repo_root
+        .join("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filter_summary.json");
+    let counts_path = repo_root
+        .join("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filter_counts.json");
     let warnings_path =
-        repo_root.join("target/local-smoke/vcf.damage_filter/bcftools/warnings.json");
+        repo_root.join("runs/bench/local-smoke/vcf.damage_filter/bcftools/warnings.json");
     let damage_manifest_path = repo_root
-        .join("target/local-smoke/vcf.damage_filter/bcftools/damage_genotype_manifest.json");
+        .join("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_genotype_manifest.json");
     let manifest_path =
-        repo_root.join("target/local-smoke/vcf.damage_filter/bcftools/stage-result.json");
+        repo_root.join("runs/bench/local-smoke/vcf.damage_filter/bcftools/stage-result.json");
     let input_vcf = repo_root
-        .join("target/local-smoke/vcf.damage_filter/bcftools/artifacts/input/damage_input.vcf");
+        .join("runs/bench/local-smoke/vcf.damage_filter/bcftools/artifacts/input/damage_input.vcf");
 
     assert!(output_vcf.is_file(), "expected output VCF at {}", output_vcf.display());
     assert!(output_tbi.is_file(), "expected output index at {}", output_tbi.display());
@@ -120,11 +121,11 @@ fn bench_local_vcf_damage_filter_smoke_writes_governed_files() {
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("damage_filtered_vcf")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz")
+                == Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz")
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("metrics_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.damage_filter/bcftools/metrics.json")
+                == Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/metrics.json")
     }));
 }

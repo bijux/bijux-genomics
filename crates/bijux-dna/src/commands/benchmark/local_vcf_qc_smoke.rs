@@ -18,7 +18,7 @@ use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_QC_SMOKE_ROOT: &str = "target/local-smoke/vcf.qc";
+const DEFAULT_VCF_QC_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.qc";
 const LOCAL_VCF_QC_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_qc_smoke.v1";
 const LOCAL_VCF_QC_SMOKE_METRICS_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_qc_smoke.metrics.v1";
 const LOCAL_VCF_QC_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-qc-smoke";

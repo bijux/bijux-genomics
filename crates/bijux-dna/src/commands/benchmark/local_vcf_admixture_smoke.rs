@@ -21,7 +21,7 @@ use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_ADMIXTURE_SMOKE_ROOT: &str = "target/local-smoke/vcf.admixture";
+const DEFAULT_VCF_ADMIXTURE_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.admixture";
 const LOCAL_VCF_ADMIXTURE_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_admixture_smoke.v1";
 const LOCAL_VCF_ADMIXTURE_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-admixture-smoke";
 const GOVERNED_VCF_ADMIXTURE_STAGE_ID: &str = "vcf.admixture";

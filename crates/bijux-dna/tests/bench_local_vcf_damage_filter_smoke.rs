@@ -61,43 +61,43 @@ fn bench_local_vcf_damage_filter_smoke_reports_real_governed_outputs() {
     assert_eq!(payload.get("sample_name").and_then(serde_json::Value::as_str), Some("sample_a"));
     assert_eq!(
         payload.get("input_vcf_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.damage_filter/bcftools/artifacts/input/damage_input.vcf")
+        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/artifacts/input/damage_input.vcf")
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.damage_filter/bcftools")
+        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools")
     );
     assert_eq!(
         payload.get("output_vcf_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz")
+        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz")
     );
     assert_eq!(
         payload.get("output_tbi_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz.tbi")
+        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz.tbi")
     );
     assert_eq!(
         payload.get("metrics_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.damage_filter/bcftools/metrics.json")
+        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/metrics.json")
     );
     assert_eq!(
         payload.get("summary_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.damage_filter/bcftools/damage_filter_summary.json")
+        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filter_summary.json")
     );
     assert_eq!(
         payload.get("counts_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.damage_filter/bcftools/damage_filter_counts.json")
+        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filter_counts.json")
     );
     assert_eq!(
         payload.get("warnings_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.damage_filter/bcftools/warnings.json")
+        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/warnings.json")
     );
     assert_eq!(
         payload.get("damage_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.damage_filter/bcftools/damage_genotype_manifest.json")
+        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_genotype_manifest.json")
     );
     assert_eq!(
         payload.get("stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.damage_filter/bcftools/stage-result.json")
+        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/stage-result.json")
     );
     assert_eq!(payload.get("exit_code").and_then(serde_json::Value::as_i64), Some(0));
     assert_eq!(payload.get("input_variants").and_then(serde_json::Value::as_u64), Some(4));
@@ -136,7 +136,8 @@ fn bench_local_vcf_damage_filter_smoke_reports_real_governed_outputs() {
     assert_eq!(checks.get("sample_ids_valid").and_then(serde_json::Value::as_bool), Some(true));
 
     let repo_root = support::repo_root().expect("repo root");
-    let metrics_path = repo_root.join("target/local-smoke/vcf.damage_filter/bcftools/metrics.json");
+    let metrics_path =
+        repo_root.join("runs/bench/local-smoke/vcf.damage_filter/bcftools/metrics.json");
     let raw = std::fs::read_to_string(&metrics_path).expect("read metrics");
     let metrics: serde_json::Value = serde_json::from_str(&raw).expect("parse metrics");
     assert_eq!(

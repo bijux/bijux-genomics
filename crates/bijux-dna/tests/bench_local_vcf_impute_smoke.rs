@@ -65,35 +65,35 @@ fn bench_local_vcf_impute_smoke_reports_masked_truth_contract() {
     );
     assert_eq!(
         payload.get("input_vcf_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.impute/beagle/artifacts/input/impute_input.vcf")
+        Some("runs/bench/local-smoke/vcf.impute/beagle/artifacts/input/impute_input.vcf")
     );
     assert_eq!(
         payload.get("truth_vcf_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.impute/beagle/artifacts/input/impute_truth.vcf")
+        Some("runs/bench/local-smoke/vcf.impute/beagle/artifacts/input/impute_truth.vcf")
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.impute/beagle")
+        Some("runs/bench/local-smoke/vcf.impute/beagle")
     );
     assert_eq!(
         payload.get("output_vcf_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.impute/beagle/imputed.vcf.gz")
+        Some("runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz")
     );
     assert_eq!(
         payload.get("output_tbi_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.impute/beagle/imputed.vcf.gz.tbi")
+        Some("runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz.tbi")
     );
     assert_eq!(
         payload.get("panel_assets_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.impute/beagle/panel_assets.json")
+        Some("runs/bench/local-smoke/vcf.impute/beagle/panel_assets.json")
     );
     assert_eq!(
         payload.get("metrics_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.impute/beagle/metrics.json")
+        Some("runs/bench/local-smoke/vcf.impute/beagle/metrics.json")
     );
     assert_eq!(
         payload.get("stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.impute/beagle/stage-result.json")
+        Some("runs/bench/local-smoke/vcf.impute/beagle/stage-result.json")
     );
     assert_eq!(payload.get("exit_code").and_then(serde_json::Value::as_i64), Some(0));
     assert_eq!(payload.get("variant_count").and_then(serde_json::Value::as_u64), Some(2));
@@ -140,7 +140,7 @@ fn bench_local_vcf_impute_smoke_reports_masked_truth_contract() {
     assert_eq!(checks.get("sample_ids_valid").and_then(serde_json::Value::as_bool), Some(true));
 
     let repo_root = support::repo_root().expect("repo root");
-    let metrics_path = repo_root.join("target/local-smoke/vcf.impute/beagle/metrics.json");
+    let metrics_path = repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/metrics.json");
     let raw = std::fs::read_to_string(&metrics_path).expect("read metrics");
     let metrics: serde_json::Value = serde_json::from_str(&raw).expect("parse metrics");
     assert_eq!(

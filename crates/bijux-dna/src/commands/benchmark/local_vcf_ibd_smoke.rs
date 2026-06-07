@@ -23,7 +23,7 @@ use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_IBD_SMOKE_ROOT: &str = "target/local-smoke/vcf.ibd";
+const DEFAULT_VCF_IBD_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.ibd";
 const LOCAL_VCF_IBD_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_ibd_smoke.v1";
 const LOCAL_VCF_IBD_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-ibd-smoke";
 const GOVERNED_VCF_IBD_STAGE_ID: &str = "vcf.ibd";

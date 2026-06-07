@@ -36,22 +36,22 @@ fn bench_local_vcf_admixture_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf.admixture/plink2/admixture.json"
+        "runs/bench/local-smoke/vcf.admixture/plink2/admixture.json"
     );
 
     let repo_root = support::repo_root().expect("repo root");
     let admixture_tsv_path =
-        repo_root.join("target/local-smoke/vcf.admixture/plink2/admixture.tsv");
+        repo_root.join("runs/bench/local-smoke/vcf.admixture/plink2/admixture.tsv");
     let admixture_json_path =
-        repo_root.join("target/local-smoke/vcf.admixture/plink2/admixture.json");
+        repo_root.join("runs/bench/local-smoke/vcf.admixture/plink2/admixture.json");
     let source_q_matrix_path =
-        repo_root.join("target/local-smoke/vcf.admixture/plink2/source_admixture_q_matrix.tsv");
-    let source_k_selection_path =
-        repo_root.join("target/local-smoke/vcf.admixture/plink2/source_admixture_k_selection.json");
+        repo_root.join("runs/bench/local-smoke/vcf.admixture/plink2/source_admixture_q_matrix.tsv");
+    let source_k_selection_path = repo_root
+        .join("runs/bench/local-smoke/vcf.admixture/plink2/source_admixture_k_selection.json");
     let source_logs_path =
-        repo_root.join("target/local-smoke/vcf.admixture/plink2/source_logs.txt");
+        repo_root.join("runs/bench/local-smoke/vcf.admixture/plink2/source_logs.txt");
     let stage_result_path =
-        repo_root.join("target/local-smoke/vcf.admixture/plink2/stage-result.json");
+        repo_root.join("runs/bench/local-smoke/vcf.admixture/plink2/stage-result.json");
 
     for path in [
         &admixture_tsv_path,
@@ -125,11 +125,11 @@ fn bench_local_vcf_admixture_smoke_writes_governed_files() {
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("admixture_tsv")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.admixture/plink2/admixture.tsv")
+                == Some("runs/bench/local-smoke/vcf.admixture/plink2/admixture.tsv")
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("admixture_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.admixture/plink2/admixture.json")
+                == Some("runs/bench/local-smoke/vcf.admixture/plink2/admixture.json")
     }));
 }

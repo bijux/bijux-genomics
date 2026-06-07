@@ -61,27 +61,27 @@ fn bench_local_vcf_stats_smoke_reports_normalized_governed_metrics() {
     );
     assert_eq!(
         payload.get("input_vcf_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.stats/bcftools/artifacts/input/stats_input.vcf")
+        Some("runs/bench/local-smoke/vcf.stats/bcftools/artifacts/input/stats_input.vcf")
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.stats/bcftools")
+        Some("runs/bench/local-smoke/vcf.stats/bcftools")
     );
     assert_eq!(
         payload.get("stats_json_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.stats/bcftools/stats.json")
+        Some("runs/bench/local-smoke/vcf.stats/bcftools/stats.json")
     );
     assert_eq!(
         payload.get("bcftools_stats_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.stats/bcftools/bcftools_stats.txt")
+        Some("runs/bench/local-smoke/vcf.stats/bcftools/bcftools_stats.txt")
     );
     assert_eq!(
         payload.get("metrics_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.stats/bcftools/metrics.json")
+        Some("runs/bench/local-smoke/vcf.stats/bcftools/metrics.json")
     );
     assert_eq!(
         payload.get("stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.stats/bcftools/stage-result.json")
+        Some("runs/bench/local-smoke/vcf.stats/bcftools/stage-result.json")
     );
     assert_eq!(payload.get("exit_code").and_then(serde_json::Value::as_i64), Some(0));
     assert_eq!(payload.get("variant_count").and_then(serde_json::Value::as_u64), Some(4));
@@ -93,7 +93,7 @@ fn bench_local_vcf_stats_smoke_reports_normalized_governed_metrics() {
     assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(2));
 
     let repo_root = support::repo_root().expect("repo root");
-    let stats_json_path = repo_root.join("target/local-smoke/vcf.stats/bcftools/stats.json");
+    let stats_json_path = repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/stats.json");
     let raw = std::fs::read_to_string(&stats_json_path).expect("read stats json");
     let stats: serde_json::Value = serde_json::from_str(&raw).expect("parse stats json");
     assert_eq!(

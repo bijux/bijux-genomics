@@ -70,34 +70,34 @@ fn bench_local_vcf_prepare_reference_panel_smoke_reports_real_governed_outputs()
     assert_eq!(
         payload.get("input_vcf_path").and_then(serde_json::Value::as_str),
         Some(
-            "target/local-smoke/vcf.prepare_reference_panel/bcftools/artifacts/input/prepare_reference_panel_input.vcf",
+            "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/artifacts/input/prepare_reference_panel_input.vcf",
         )
     );
     assert_eq!(
         payload.get("raw_panel_path").and_then(serde_json::Value::as_str),
         Some(
-            "target/local-smoke/vcf.prepare_reference_panel/bcftools/artifacts/input/panel_store/hsapiens_grch38_mini/local-reference-panel/raw/panel.vcf.gz",
+            "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/artifacts/input/panel_store/hsapiens_grch38_mini/local-reference-panel/raw/panel.vcf.gz",
         )
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.prepare_reference_panel/bcftools")
+        Some("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools")
     );
     assert_eq!(
         payload.get("panel_vcf_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz")
+        Some("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz")
     );
     assert_eq!(
         payload.get("panel_tbi_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz.tbi")
+        Some("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz.tbi")
     );
     assert_eq!(
         payload.get("metrics_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json")
+        Some("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json")
     );
     assert_eq!(
         payload.get("stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.prepare_reference_panel/bcftools/stage-result.json")
+        Some("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/stage-result.json")
     );
     assert_eq!(payload.get("exit_code").and_then(serde_json::Value::as_i64), Some(0));
     assert_eq!(payload.get("input_variants").and_then(serde_json::Value::as_u64), Some(5));
@@ -119,7 +119,7 @@ fn bench_local_vcf_prepare_reference_panel_smoke_reports_real_governed_outputs()
     );
     assert_eq!(
         payload.get("index_path").and_then(serde_json::Value::as_str),
-        Some("target/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz.tbi")
+        Some("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz.tbi")
     );
     assert_eq!(payload.get("parseable").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(payload.get("gt_present").and_then(serde_json::Value::as_bool), Some(true));
@@ -137,7 +137,7 @@ fn bench_local_vcf_prepare_reference_panel_smoke_reports_real_governed_outputs()
 
     let repo_root = support::repo_root().expect("repo root");
     let metrics_path =
-        repo_root.join("target/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json");
+        repo_root.join("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json");
     let raw = std::fs::read_to_string(&metrics_path).expect("read metrics");
     let metrics: serde_json::Value = serde_json::from_str(&raw).expect("parse metrics");
     assert_eq!(

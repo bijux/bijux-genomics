@@ -36,22 +36,24 @@ fn bench_local_vcf_filter_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-smoke/vcf.filter/bcftools/filtered.vcf.gz"
+        "runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let output_vcf = repo_root.join("target/local-smoke/vcf.filter/bcftools/filtered.vcf.gz");
-    let output_tbi = repo_root.join("target/local-smoke/vcf.filter/bcftools/filtered.vcf.gz.tbi");
-    let metrics_path = repo_root.join("target/local-smoke/vcf.filter/bcftools/metrics.json");
+    let output_vcf = repo_root.join("runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz");
+    let output_tbi =
+        repo_root.join("runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz.tbi");
+    let metrics_path = repo_root.join("runs/bench/local-smoke/vcf.filter/bcftools/metrics.json");
     let filter_breakdown_path =
-        repo_root.join("target/local-smoke/vcf.filter/bcftools/filter_breakdown.json");
+        repo_root.join("runs/bench/local-smoke/vcf.filter/bcftools/filter_breakdown.json");
     let filter_breakdown_tsv_path =
-        repo_root.join("target/local-smoke/vcf.filter/bcftools/filter_breakdown.tsv");
+        repo_root.join("runs/bench/local-smoke/vcf.filter/bcftools/filter_breakdown.tsv");
     let filter_explain_path =
-        repo_root.join("target/local-smoke/vcf.filter/bcftools/filter_explain.json");
-    let manifest_path = repo_root.join("target/local-smoke/vcf.filter/bcftools/stage-result.json");
-    let input_vcf =
-        repo_root.join("target/local-smoke/vcf.filter/bcftools/artifacts/input/filter_input.vcf");
+        repo_root.join("runs/bench/local-smoke/vcf.filter/bcftools/filter_explain.json");
+    let manifest_path =
+        repo_root.join("runs/bench/local-smoke/vcf.filter/bcftools/stage-result.json");
+    let input_vcf = repo_root
+        .join("runs/bench/local-smoke/vcf.filter/bcftools/artifacts/input/filter_input.vcf");
 
     assert!(output_vcf.is_file(), "expected output VCF at {}", output_vcf.display());
     assert!(output_tbi.is_file(), "expected output index at {}", output_tbi.display());
@@ -122,11 +124,11 @@ fn bench_local_vcf_filter_smoke_writes_governed_files() {
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("filtered_vcf")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.filter/bcftools/filtered.vcf.gz")
+                == Some("runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz")
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("filter_explain_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("target/local-smoke/vcf.filter/bcftools/filter_explain.json")
+                == Some("runs/bench/local-smoke/vcf.filter/bcftools/filter_explain.json")
     }));
 }

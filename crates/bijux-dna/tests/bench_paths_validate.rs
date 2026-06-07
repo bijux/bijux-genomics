@@ -103,8 +103,7 @@ fn bench_paths_validate_reports_tracked_benchmark_roots() {
         |snapshots| snapshots.iter().any(|value| {
             value.as_str() == Some("benchmarks/readiness/all-domain-stage-tool-table.tsv")
         }) && snapshots.iter().any(|value| {
-            value.as_str()
-                == Some("benchmarks/readiness/local-ready/rendered-stage-commands.json")
+            value.as_str() == Some("benchmarks/readiness/local-ready/rendered-stage-commands.json")
         })
     ));
 }

@@ -15,7 +15,8 @@ use super::local_vcf_impute_smoke::run_local_vcf_impute_smoke;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_IMPUTATION_METRICS_SMOKE_ROOT: &str = "target/local-smoke/vcf.imputation_metrics";
+const DEFAULT_VCF_IMPUTATION_METRICS_SMOKE_ROOT: &str =
+    "runs/bench/local-smoke/vcf.imputation_metrics";
 const LOCAL_VCF_IMPUTATION_METRICS_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_imputation_metrics_smoke.v1";
 const LOCAL_VCF_IMPUTATION_METRICS_COMMAND: &str =

@@ -19,7 +19,7 @@ use super::local_vcf_panel_workflow_smoke_support::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_PHASING_SMOKE_ROOT: &str = "target/local-smoke/vcf.phasing";
+const DEFAULT_VCF_PHASING_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.phasing";
 const LOCAL_VCF_PHASING_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_phasing_smoke.v1";
 const LOCAL_VCF_PHASING_SMOKE_METRICS_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_phasing_smoke.metrics.v1";
