@@ -436,7 +436,7 @@ fn render_all_domain_commands_shell_script(rows: &[AllDomainRenderedCommandRow])
     let mut rendered = String::from("#!/usr/bin/env bash\nset -euo pipefail\n");
     rendered.push_str("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../..\" && pwd)\"\n");
     rendered.push_str("cd \"$repo_root\"\n\n");
-    for row in rows {
+    for (index, row) in rows.iter().enumerate() {
         rendered.push_str(&format!(
             "# {} / {} / {} / {}\n",
             row.result_id, row.domain, row.stage_id, row.tool_id
@@ -445,7 +445,9 @@ fn render_all_domain_commands_shell_script(rows: &[AllDomainRenderedCommandRow])
             rendered.push_str(command);
             rendered.push('\n');
         }
-        rendered.push('\n');
+        if index + 1 < rows.len() {
+            rendered.push('\n');
+        }
     }
     rendered
 }

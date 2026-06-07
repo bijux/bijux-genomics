@@ -37,4 +37,3 @@ bcftools index -t benchmarks/readiness/adapters/bcftools/vcf.postprocess/postpro
 
 # vcf.stats / bcftools
 bcftools stats -s - -o benchmarks/readiness/adapters/bcftools/vcf.stats/bcftools_stats.txt benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf
-
