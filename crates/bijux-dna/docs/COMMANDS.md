@@ -1180,31 +1180,31 @@ Visible aliases are part of the operator surface:
   lineage-table consistency, per-classifier backend index paths, classifier-compatibility claims,
   source-manifest integrity, and backend bundle shape.
 - `bijux-dna bench local validate-slurm-dependencies`
-  `validate-slurm-dependencies` writes `target/slurm-dry-run/dependency-check.json` and refuses
+  `validate-slurm-dependencies` writes `runs/bench/slurm-dry-run/dependency-check.json` and refuses
   any dry-run job whose dependencies are split or duplicated across both the submit manifest and
   the generated `.sbatch` header.
 - `bijux-dna bench local validate-slurm-shell-syntax`
-  `validate-slurm-shell-syntax` writes `target/slurm-dry-run/bash-n-report.json` and refuses any
+  `validate-slurm-shell-syntax` writes `runs/bench/slurm-dry-run/bash-n-report.json` and refuses any
   generated `.sbatch` file under the selected dry-run root that fails `bash -n`.
 - `bijux-dna bench local validate-all-domain-slurm-shell-syntax`
   `validate-all-domain-slurm-shell-syntax` regenerates the governed all-domain SLURM tree under
-  `target/slurm-dry-run/all-domains/`, then writes
-  `target/slurm-dry-run/all-domains/bash-n-report.json`. The report refuses any generated
+  `runs/bench/slurm-dry-run/all-domains/`, then writes
+  `runs/bench/slurm-dry-run/all-domains/bash-n-report.json`. The report refuses any generated
   benchmark-result or essential-pipeline `.sbatch` file in that 213-script tree that fails
   `bash -n`, so the all-domain SLURM surface is syntax-checked as one owned unit instead of
   relying on partial domain roots.
 - `bijux-dna bench local validate-slurm-script-bodies`
-  `validate-slurm-script-bodies` writes `target/slurm-dry-run/no-placeholder-report.json` and
+  `validate-slurm-script-bodies` writes `runs/bench/slurm-dry-run/no-placeholder-report.json` and
   refuses generated `.sbatch` bodies that still contain placeholder markers, fake `echo execute`
   payloads, unconditional `rc=0`, or missing `bijux-dna` command lines.
 - `bijux-dna bench local render-slurm-submit-manifest`
-  `render-slurm-submit-manifest` writes `target/slurm-dry-run/submit-manifest.json`, rendering the
+  `render-slurm-submit-manifest` writes `runs/bench/slurm-dry-run/submit-manifest.json`, rendering the
   governed FASTQ and BAM dry-run script slices first and then recording per-job job names, domain,
   stage ownership, corpus and sample scope, resources, script path, log paths, declared outputs,
   and derived dependencies.
 - `bijux-dna bench local render-all-domain-slurm-submit-manifest`
   `render-all-domain-slurm-submit-manifest` writes
-  `target/slurm-dry-run/all-domains/submit-manifest.json` for the governed 213-job all-domain
+  `runs/bench/slurm-dry-run/all-domains/submit-manifest.json` for the governed 213-job all-domain
   SLURM tree. The manifest keeps one row per benchmark-result or essential-pipeline job with
   `job_id_local`, domain, stage, pipeline or node identity where applicable, tool, corpus,
   asset-profile, script path, stdout, stderr, declared outputs, manifest-only dependencies, and
@@ -1260,27 +1260,27 @@ Visible aliases are part of the operator surface:
   collapsing into raw stderr alone.
 - `bijux-dna bench local render-all-domain-slurm-scripts`
   `render-all-domain-slurm-scripts` writes one governed `.sbatch` file per canonical all-domain
-  benchmark result plus one per essential pipeline node under `target/slurm-dry-run/all-domains/`.
+  benchmark result plus one per essential pipeline node under `runs/bench/slurm-dry-run/all-domains/`.
   The generated tree keeps benchmark-ready FASTQ, BAM, and VCF jobs under
   `benchmark-results/<domain>/<corpus>/<stage>/<asset-profile>/<tool>/job.sbatch` and essential
   pipeline jobs under `essential-pipelines/<pipeline-id>/<node-id>/job.sbatch`, while `stdout`,
   `stderr`, and declared outputs resolve under the canonical run root
-  `target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/`. This is the owned
+  `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/`. This is the owned
   cross-domain SLURM generation surface for the governed 120-result benchmark slice and the
   93-node essential pipeline slice.
 - `bijux-dna bench local validate-all-domain-slurm-script-bodies`
   `validate-all-domain-slurm-script-bodies` regenerates the governed all-domain SLURM tree under
-  `target/slurm-dry-run/all-domains/`, then writes
-  `target/slurm-dry-run/all-domains/no-placeholder-report.json`. The report fails closed if any
+  `runs/bench/slurm-dry-run/all-domains/`, then writes
+  `runs/bench/slurm-dry-run/all-domains/no-placeholder-report.json`. The report fails closed if any
   generated `.sbatch` body contains `placeholder`, `TODO`, `echo execute`, unconditional `rc=0`,
   an empty executable body, or a missing `bijux-dna` invocation, so reviewers can prove the
   all-domain SLURM surface calls owned repo commands instead of template text.
 - `bijux-dna bench local validate-all-domain-slurm-result-paths`
   `validate-all-domain-slurm-result-paths` regenerates the governed all-domain submit manifest and
-  writes `target/slurm-dry-run/all-domains/path-convention-check.json`. The report fails closed
+  writes `runs/bench/slurm-dry-run/all-domains/path-convention-check.json`. The report fails closed
   unless every benchmark-result and essential-pipeline `stdout`, `stderr`, and declared output
   path lives under the canonical run root
-  `target/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/` and keeps stable path
+  `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/` and keeps stable path
   ownership by domain, stage or pipeline node, tool, corpus, and sample scope where applicable.
 - `bijux-dna bench local execute-all-domain-benchmark-result`
   `execute-all-domain-benchmark-result` resolves one canonical all-domain benchmark-ready
@@ -1308,12 +1308,12 @@ Visible aliases are part of the operator surface:
   including estimated `resource_metrics` derived from governed thread and memory ceilings.
 - `bijux-dna bench local render-slurm-scripts`
   `render-slurm-scripts` writes one governed `.sbatch` file per selected local benchmark stage
-  under `target/slurm-dry-run/<domain>/`, using the real stage materialization command,
+  under `runs/bench/slurm-dry-run/<domain>/`, using the real stage materialization command,
   governed thread and memory ceilings, and a domain-scoped stage inventory slice such as the
   27-stage FASTQ local benchmark matrix or the 24-stage BAM local benchmark matrix. Each script
   now resolves `#SBATCH --output`, `#SBATCH --error`, `RESULT_ROOT`, and
   `STAGE_RESULT_MANIFEST_PATH` under
-  `target/slurm-dry-run/runs/local-benchmark-dry-run/<corpus-or-planner-only>/<stage-id-or-pipeline-id>/<sample-id-or-sample-set>/<tool-id>/`.
+  `runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/<corpus-or-planner-only>/<stage-id-or-pipeline-id>/<sample-id-or-sample-set>/<tool-id>/`.
   Rendering the BAM slice requires `cargo run -p bijux-dna --features bam_downstream -- bench local
   render-slurm-scripts --domain bam`.
 - `bijux-dna bench local render-stage-commands`
