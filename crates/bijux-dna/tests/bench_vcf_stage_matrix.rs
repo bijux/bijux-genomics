@@ -47,8 +47,8 @@ fn bench_vcf_stage_matrix_matches_owned_vcf_contracts() {
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("supported_stage_count").and_then(serde_json::Value::as_u64), Some(8));
-    assert_eq!(payload.get("planned_stage_count").and_then(serde_json::Value::as_u64), Some(12));
+    assert_eq!(payload.get("supported_stage_count").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(payload.get("planned_stage_count").and_then(serde_json::Value::as_u64), Some(11));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 20);

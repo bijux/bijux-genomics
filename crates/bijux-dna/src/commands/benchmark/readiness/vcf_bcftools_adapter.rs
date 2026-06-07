@@ -884,8 +884,8 @@ mod tests {
         assert_eq!(report.domain, "vcf");
         assert_eq!(report.tool_id, "bcftools");
         assert_eq!(report.row_count, 10);
-        assert_eq!(report.supported_row_count, 8);
-        assert_eq!(report.planned_row_count, 2);
+        assert_eq!(report.supported_row_count, 9);
+        assert_eq!(report.planned_row_count, 1);
         assert_eq!(report.argv_valid_row_count, 10);
         assert_eq!(report.missing_input_test_passed_row_count, 10);
         assert_eq!(report.indexed_row_count, 9);

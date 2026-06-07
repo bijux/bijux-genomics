@@ -186,7 +186,7 @@ local_smoke_mode = "vcf_cohort_with_panel"
 [[rows]]
 stage_id = "vcf.postprocess"
 stage_name = "VCF Postprocess Normalization"
-support_status = "planned"
+support_status = "supported"
 default_tool_id = "bcftools"
 metrics_schema_id = "bijux.vcf.postprocess.v1"
 input_types = ["vcf"]

@@ -259,9 +259,9 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "VCF expected-result table must keep one row per benchmark-ready stage-tool-corpus-asset binding"
         ));
     }
-    if rows.len() != 8 {
+    if rows.len() != 9 {
         return Err(anyhow!(
-            "VCF expected-result table must retain exactly 8 benchmark-ready rows, found {}",
+            "VCF expected-result table must retain exactly 9 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -296,6 +296,15 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "gl_propagated_vcf",
             "lost_fields",
             "likelihood_postprocess",
+        ),
+        (
+            "vcf.postprocess",
+            "bcftools",
+            "vcf_production_regression",
+            "vcf_single_sample",
+            "postprocess_vcf",
+            "readable_vcf",
+            "normalization",
         ),
         (
             "vcf.stats",
@@ -368,13 +377,14 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH);
-        assert_eq!(report.row_count, 8);
-        assert_eq!(report.stage_count, 8);
+        assert_eq!(report.row_count, 9);
+        assert_eq!(report.stage_count, 9);
         assert_eq!(report.tool_count, 1);
         assert_eq!(report.corpus_count, 1);
         assert_eq!(report.asset_profile_count, 3);
         assert_eq!(report.report_section_counts.get("variant_calling"), Some(&4));
         assert_eq!(report.report_section_counts.get("quality_control"), Some(&2));
+        assert_eq!(report.report_section_counts.get("normalization"), Some(&1));
 
         assert!(report.rows.iter().all(|row| {
             row.domain == "vcf"

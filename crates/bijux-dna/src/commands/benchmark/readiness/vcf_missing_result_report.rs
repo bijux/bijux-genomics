@@ -346,21 +346,21 @@ fn collect_vcf_missing_result_report_rows(
 fn ensure_vcf_missing_result_report_contract(
     mut report: VcfMissingResultReport,
 ) -> Result<VcfMissingResultReport> {
-    if report.rows.len() != 8 {
+    if report.rows.len() != 9 {
         return Err(anyhow!(
-            "VCF missing-result report must retain exactly 8 expected benchmark rows, found {}",
+            "VCF missing-result report must retain exactly 9 expected benchmark rows, found {}",
             report.rows.len()
         ));
     }
-    if report.expected_row_count != 8 {
+    if report.expected_row_count != 9 {
         return Err(anyhow!(
-            "VCF missing-result report must track exactly 8 expected rows, found {}",
+            "VCF missing-result report must track exactly 9 expected rows, found {}",
             report.expected_row_count
         ));
     }
-    if report.present_result_row_count != 7 {
+    if report.present_result_row_count != 8 {
         return Err(anyhow!(
-            "VCF missing-result report must retain exactly 7 present benchmark rows after removing one result, found {}",
+            "VCF missing-result report must retain exactly 8 present benchmark rows after removing one result, found {}",
             report.present_result_row_count
         ));
     }
@@ -463,8 +463,8 @@ mod tests {
             report.fake_result_root,
             "benchmarks/readiness/vcf-missing-result-report-fixture"
         );
-        assert_eq!(report.expected_row_count, 8);
-        assert_eq!(report.present_result_row_count, 7);
+        assert_eq!(report.expected_row_count, 9);
+        assert_eq!(report.present_result_row_count, 8);
         assert_eq!(report.missing_result_row_count, 1);
         assert!(report.passes_behavior_test);
         assert_eq!(report.report_section_counts.get("variant_calling").copied(), Some(4));

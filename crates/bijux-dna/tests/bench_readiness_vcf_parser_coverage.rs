@@ -45,10 +45,10 @@ fn bench_readiness_vcf_parser_coverage_reports_benchmark_ready_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-parser-coverage.tsv")
     );
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(8));
-    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("missing_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("parser_coverage_percent").and_then(serde_json::Value::as_f64),
@@ -56,7 +56,7 @@ fn bench_readiness_vcf_parser_coverage_reports_benchmark_ready_rows() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 8);
+    assert_eq!(rows.len(), 9);
 
     assert!(rows.iter().all(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
@@ -82,6 +82,13 @@ fn bench_readiness_vcf_parser_coverage_reports_benchmark_ready_rows() {
                 == Some("parse_bcftools_call_gl_metrics")
             && row.get("schema_id").and_then(serde_json::Value::as_str)
                 == Some("bijux.vcf.call_gl.v1")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.postprocess")
+            && row.get("parser_id").and_then(serde_json::Value::as_str)
+                == Some("parse_bcftools_postprocess_metrics")
+            && row.get("schema_id").and_then(serde_json::Value::as_str)
+                == Some("bijux.vcf.postprocess.v1")
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.stats")

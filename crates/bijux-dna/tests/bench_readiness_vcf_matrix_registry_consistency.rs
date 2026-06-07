@@ -53,7 +53,7 @@ fn bench_readiness_vcf_matrix_registry_consistency_reports_governed_pass_state()
     assert_eq!(payload.get("registry_pair_count").and_then(serde_json::Value::as_u64), Some(48));
     assert_eq!(
         payload.get("benchmark_ready_registry_pair_count").and_then(serde_json::Value::as_u64),
-        Some(8)
+        Some(9)
     );
     assert_eq!(
         payload.get("unregistered_matrix_pair_count").and_then(serde_json::Value::as_u64),

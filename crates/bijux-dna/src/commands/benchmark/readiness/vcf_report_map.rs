@@ -219,9 +219,9 @@ fn ensure_vcf_report_map_contract(rows: &[VcfReportMapRow]) -> Result<()> {
             "VCF report map must keep one row per expected VCF stage-tool result binding"
         ));
     }
-    if rows.len() != 8 {
+    if rows.len() != 9 {
         return Err(anyhow!(
-            "VCF report map must retain exactly 8 benchmark-ready rows, found {}",
+            "VCF report map must retain exactly 9 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -244,9 +244,9 @@ fn ensure_vcf_report_map_contract(rows: &[VcfReportMapRow]) -> Result<()> {
         rows.iter().map(|row| row.section_id.as_str()).collect::<BTreeSet<_>>().len();
     let summary_table_count =
         rows.iter().map(|row| row.summary_table.as_str()).collect::<BTreeSet<_>>().len();
-    if section_count != 4 || summary_table_count != 4 {
+    if section_count != 5 || summary_table_count != 5 {
         return Err(anyhow!(
-            "VCF report map must retain 4 sections and 4 summary tables for the governed ready slice, found {section_count} sections and {summary_table_count} tables"
+            "VCF report map must retain 5 sections and 5 summary tables for the governed ready slice, found {section_count} sections and {summary_table_count} tables"
         ));
     }
 
@@ -277,6 +277,13 @@ fn ensure_vcf_report_map_contract(rows: &[VcfReportMapRow]) -> Result<()> {
         "bcftools",
         "likelihood_postprocess",
         "likelihood_postprocess_metrics",
+    )?;
+    require_row_mapping(
+        rows,
+        "vcf.postprocess",
+        "bcftools",
+        "normalization",
+        "normalization_metrics",
     )?;
 
     Ok(())
@@ -358,13 +365,14 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_REPORT_MAP_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_REPORT_MAP_PATH);
-        assert_eq!(report.row_count, 8);
-        assert_eq!(report.stage_count, 8);
+        assert_eq!(report.row_count, 9);
+        assert_eq!(report.stage_count, 9);
         assert_eq!(report.tool_count, 1);
-        assert_eq!(report.section_count, 4);
-        assert_eq!(report.summary_table_count, 4);
+        assert_eq!(report.section_count, 5);
+        assert_eq!(report.summary_table_count, 5);
         assert_eq!(report.section_counts.get("variant_calling"), Some(&4));
         assert_eq!(report.section_counts.get("quality_control"), Some(&2));
+        assert_eq!(report.section_counts.get("normalization"), Some(&1));
 
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.call"

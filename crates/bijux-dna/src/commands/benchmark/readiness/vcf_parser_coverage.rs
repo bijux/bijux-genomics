@@ -256,13 +256,13 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_PARSER_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_PARSER_COVERAGE_PATH);
-        assert_eq!(report.stage_count, 8);
+        assert_eq!(report.stage_count, 9);
         assert_eq!(report.tool_count, 1);
-        assert_eq!(report.row_count, 8);
-        assert_eq!(report.covered_row_count, 8);
+        assert_eq!(report.row_count, 9);
+        assert_eq!(report.covered_row_count, 9);
         assert_eq!(report.missing_row_count, 0);
         assert_eq!(report.parser_coverage_percent, 100.0);
-        assert_eq!(report.coverage_status_counts.get("covered"), Some(&8));
+        assert_eq!(report.coverage_status_counts.get("covered"), Some(&9));
         assert!(report.rows.iter().all(|row| {
             row.tool_id == "bcftools"
                 && row
@@ -280,6 +280,11 @@ mod tests {
             row.stage_id == "vcf.call_gl"
                 && row.parser_id == "parse_bcftools_call_gl_metrics"
                 && row.schema_id == "bijux.vcf.call_gl.v1"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.postprocess"
+                && row.parser_id == "parse_bcftools_postprocess_metrics"
+                && row.schema_id == "bijux.vcf.postprocess.v1"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.stats"

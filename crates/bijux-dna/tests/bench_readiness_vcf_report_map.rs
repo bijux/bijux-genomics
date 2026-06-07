@@ -45,11 +45,11 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-report-map.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(8));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(4));
-    assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(
         payload
             .get("section_counts")
@@ -66,7 +66,7 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 8);
+    assert_eq!(rows.len(), 9);
 
     let call = rows
         .iter()
@@ -121,4 +121,19 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
         .get("failure_columns")
         .and_then(serde_json::Value::as_array)
         .is_some_and(|items| items.iter().any(|item| item.as_str() == Some("observed_error"))));
+
+    let postprocess = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.postprocess")
+        })
+        .expect("vcf.postprocess row");
+    assert_eq!(
+        postprocess.get("section_id").and_then(serde_json::Value::as_str),
+        Some("normalization")
+    );
+    assert_eq!(
+        postprocess.get("summary_table").and_then(serde_json::Value::as_str),
+        Some("normalization_metrics")
+    );
 }

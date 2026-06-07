@@ -46,14 +46,14 @@ fn bench_readiness_vcf_expected_benchmark_results_tracks_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-expected-benchmark-results.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(8));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(3));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 8);
+    assert_eq!(rows.len(), 9);
     assert!(rows.iter().all(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
@@ -99,6 +99,20 @@ fn bench_readiness_vcf_expected_benchmark_results_tracks_governed_rows() {
                 .is_some_and(|items| items.iter().any(|item| item.as_str() == Some("lost_fields")))
             && row.get("report_section").and_then(serde_json::Value::as_str)
                 == Some("likelihood_postprocess")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.postprocess")
+            && row.get("asset_profile_id").and_then(serde_json::Value::as_str)
+                == Some("vcf_single_sample")
+            && row.get("expected_outputs").and_then(serde_json::Value::as_array).is_some_and(
+                |items| items.iter().any(|item| item.as_str() == Some("postprocess_vcf")),
+            )
+            && row
+                .get("expected_metrics")
+                .and_then(serde_json::Value::as_array)
+                .is_some_and(|items| items.iter().any(|item| item.as_str() == Some("readable_vcf")))
+            && row.get("report_section").and_then(serde_json::Value::as_str)
+                == Some("normalization")
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.stats")

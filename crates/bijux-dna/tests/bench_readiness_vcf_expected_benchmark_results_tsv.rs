@@ -44,7 +44,7 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 8);
+    assert_eq!(rows.len(), 9);
     assert!(
         rows.iter().any(|row| {
             row == &"vcf\tvcf.call\tbcftools\tvcf_production_regression\tbam_bundle\tcalled_vcf\tvariant_count,snp_count,indel_count,sample_count\tvariant_calling"
@@ -56,6 +56,12 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
             row == &"vcf\tvcf.gl_propagation\tbcftools\tvcf_production_regression\tvcf_single_sample\tgl_propagated_vcf\tinput_likelihood_fields,output_likelihood_fields,lost_fields,site_count_before,site_count_after,sample_count\tlikelihood_postprocess"
         }),
         "TSV must retain the governed VCF GL propagation expected-result row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"vcf\tvcf.postprocess\tbcftools\tvcf_production_regression\tvcf_single_sample\tpostprocess_vcf\treadable_vcf,tabix_present,contigs_consistent_with_species_context,left_align_applied,multiallelic_records_split,indels_normalized,variant_ids_normalized,invalid_records_removed,filter_standardized_to_pass\tnormalization"
+        }),
+        "TSV must retain the governed VCF postprocess expected-result row"
     );
     assert!(
         rows.iter().any(|row| {

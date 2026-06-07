@@ -48,11 +48,11 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(38));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(8)
+        Some(9)
     );
     assert_eq!(
         payload.get("benchmark_ready_complete_row_count").and_then(serde_json::Value::as_u64),
-        Some(8)
+        Some(9)
     );
     assert_eq!(
         payload.get("benchmark_ready_incomplete_row_count").and_then(serde_json::Value::as_u64),
@@ -116,6 +116,29 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
             .filter_map(serde_json::Value::as_str)
             .any(|entry| entry.starts_with("stats_json=")),
         "stats row must keep the normalized stats artifact explicit"
+    );
+
+    let postprocess = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.postprocess")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
+        })
+        .expect("bcftools postprocess row");
+    assert_eq!(
+        postprocess.get("benchmark_status").and_then(serde_json::Value::as_str),
+        Some("benchmark_ready")
+    );
+    assert_eq!(postprocess.get("status").and_then(serde_json::Value::as_str), Some("complete"));
+    assert!(
+        postprocess
+            .get("normalized_metrics")
+            .and_then(serde_json::Value::as_array)
+            .expect("postprocess normalized metrics")
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .any(|entry| entry.starts_with("postprocess_vcf=")),
+        "postprocess row must keep the normalized VCF output explicit"
     );
 
     let phasing = rows

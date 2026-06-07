@@ -391,7 +391,7 @@ mod tests {
         assert_eq!(report.schema_version, LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_VERSION);
         assert_eq!(report.config_path, DEFAULT_VCF_STAGE_CATALOG_PATH);
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.supported_stage_count, 8);
-        assert_eq!(report.planned_stage_count, 12);
+        assert_eq!(report.supported_stage_count, 9);
+        assert_eq!(report.planned_stage_count, 11);
     }
 }

@@ -178,7 +178,7 @@ mod tests {
             report.argv_output_path,
             "benchmarks/readiness/vcf-rendered-commands.argv.jsonl"
         );
-        assert_eq!(report.row_count, 8);
+        assert_eq!(report.row_count, 9);
         assert!(report.rows.iter().all(|row| row.tool_id == "bcftools"));
     }
 }
