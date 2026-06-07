@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod adapter_missing_input_contracts;
 pub(crate) mod adapter_missing_input_tests;
+pub(crate) mod all_domain_expected_benchmark_results;
 pub(crate) mod all_domain_stage_tool_table;
 pub(crate) mod bam_adapter_output_contract;
 pub(crate) mod bam_command_adapter_coverage;

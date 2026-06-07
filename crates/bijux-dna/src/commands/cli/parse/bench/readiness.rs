@@ -88,6 +88,10 @@ pub enum BenchReadinessCommand {
     RenderBamToolServingMap(BenchReadinessRenderBamToolServingMapArgs),
     #[command(name = "render-vcf-tool-serving-map")]
     RenderVcfToolServingMap(BenchReadinessRenderVcfToolServingMapArgs),
+    #[command(name = "render-all-domain-expected-benchmark-results")]
+    RenderAllDomainExpectedBenchmarkResults(
+        BenchReadinessRenderAllDomainExpectedBenchmarkResultsArgs,
+    ),
     #[command(name = "render-all-domain-stage-tool-table")]
     RenderAllDomainStageToolTable(BenchReadinessRenderAllDomainStageToolTableArgs),
     #[command(name = "render-vcf-comparable-metrics")]
@@ -658,6 +662,14 @@ pub struct BenchReadinessRenderBamToolServingMapArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfToolServingMapArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderAllDomainExpectedBenchmarkResultsArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
