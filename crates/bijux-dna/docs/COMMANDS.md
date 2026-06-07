@@ -1152,6 +1152,14 @@ Visible aliases are part of the operator surface:
   `command`, `tool`, `runtime`, `resource_metrics`, and `outputs` contract fields are present and
   valid. `resource_metrics.source` must be one of `measured`, `estimated`, or `not_available`.
 - `bijux-dna bench local materialize-stage`
+- `bijux-dna bench local run-real-smoke-core-subset`
+  `run-real-smoke-core-subset` writes
+  `target/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json` and records one governed real
+  FASTQ smoke stage, one governed real BAM smoke stage, one governed real `vcf.stats` smoke
+  stage, and one governed BAM-to-VCF bridge execution through `vcf.call`. Each row keeps the
+  parsed evidence path, normalized metrics, and validated `stage-result.json` identity where a
+  manifest-backed real execution exists, so the all-domain harness keeps at least one non-fake
+  execution slice grounded in real outputs.
 - `bijux-dna bench local fake-run-all-domains`
   `fake-run-all-domains` writes one governed fake-run tree under
   `target/local-fake-runs/all-domains/` for every benchmark-ready FASTQ, BAM, and VCF result
