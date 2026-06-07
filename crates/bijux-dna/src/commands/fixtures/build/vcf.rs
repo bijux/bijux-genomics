@@ -15,7 +15,7 @@ use crate::commands::fixtures::expected::vcf::{
 };
 
 pub(crate) const DEFAULT_VCF_MINI_REGENERATION_ROOT: &str =
-    "target/local-ready/vcf-mini-regeneration";
+    "artifacts/fixtures/vcf-mini-regeneration";
 const VCF_FIXTURE_BUILD_SCHEMA_VERSION: &str = "bijux.bench.vcf_fixture_build.v1";
 const CORPUS_ID: &str = "vcf-mini";
 const REFERENCE_ID: &str = "vcf-mini-reference";

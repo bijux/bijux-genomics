@@ -28,7 +28,7 @@ fn run_cli(args: &[&str]) -> (std::path::PathBuf, std::process::Output) {
 
 #[test]
 fn fixtures_build_vcf_mini_writes_manifest_report_and_fixture_assets() {
-    let output_root = "target/local-ready/vcf-mini-regeneration-check";
+    let output_root = "artifacts/fixtures/vcf-mini-regeneration-check";
     let (repo_root, output) =
         run_cli(&["fixtures", "build", "--corpus", "vcf-mini", "--out", output_root]);
 
@@ -41,7 +41,7 @@ fn fixtures_build_vcf_mini_writes_manifest_report_and_fixture_assets() {
     );
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert_eq!(stdout.trim(), "target/local-ready/vcf-mini-regeneration-check/manifest.json");
+    assert_eq!(stdout.trim(), "artifacts/fixtures/vcf-mini-regeneration-check/manifest.json");
 
     let manifest_report_path = repo_root.join(output_root).join("manifest.json");
     let manifest_report_raw =

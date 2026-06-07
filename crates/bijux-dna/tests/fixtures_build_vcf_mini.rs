@@ -44,15 +44,15 @@ fn fixtures_build_vcf_mini_reports_regenerated_contract_counts() {
     assert_eq!(payload.get("corpus_id").and_then(serde_json::Value::as_str), Some("vcf-mini"));
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/vcf-mini-regeneration")
+        Some("artifacts/fixtures/vcf-mini-regeneration")
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/vcf-mini-regeneration/manifest.toml")
+        Some("artifacts/fixtures/vcf-mini-regeneration/manifest.toml")
     );
     assert_eq!(
         payload.get("report_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/vcf-mini-regeneration/manifest.json")
+        Some("artifacts/fixtures/vcf-mini-regeneration/manifest.json")
     );
     assert_eq!(
         payload.get("source_manifest_path").and_then(serde_json::Value::as_str),
@@ -60,7 +60,7 @@ fn fixtures_build_vcf_mini_reports_regenerated_contract_counts() {
     );
     assert_eq!(
         payload.get("checksums_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/vcf-mini-regeneration/CHECKSUMS.sha256")
+        Some("artifacts/fixtures/vcf-mini-regeneration/CHECKSUMS.sha256")
     );
     assert_eq!(
         payload.get("generated_fixture_file_count").and_then(serde_json::Value::as_u64),
@@ -104,6 +104,6 @@ fn fixtures_build_vcf_mini_reports_regenerated_contract_counts() {
     let fixture_validation = payload.get("fixture_validation").expect("fixture_validation");
     assert_eq!(
         fixture_validation.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/vcf-mini-regeneration/manifest.toml")
+        Some("artifacts/fixtures/vcf-mini-regeneration/manifest.toml")
     );
 }
