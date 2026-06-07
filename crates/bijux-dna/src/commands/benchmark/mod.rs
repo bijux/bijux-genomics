@@ -65,6 +65,7 @@ pub(crate) mod local_vcf_stage_catalog;
 pub(crate) mod local_vcf_stage_catalog_ready;
 pub(crate) mod local_vcf_stage_matrix;
 pub(crate) mod local_vcf_stats_smoke;
+pub(crate) mod path_resolution;
 pub(crate) mod paths;
 pub(crate) mod publication;
 pub(crate) mod readiness;
