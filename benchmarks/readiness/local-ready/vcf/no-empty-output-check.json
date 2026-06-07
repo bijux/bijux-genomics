@@ -1,8 +1,8 @@
 {
   "schema_version": "bijux.bench.local_vcf_no_empty_output_check.v1",
   "report_output_path": "benchmarks/readiness/local-ready/vcf/no-empty-output-check.json",
-  "smoke_root_manifest_path": "target/local-smoke/vcf/SMOKE_ROOT.json",
-  "smoke_root_path": "target/local-smoke/vcf",
+  "smoke_root_manifest_path": "runs/bench/local-smoke/vcf/SMOKE_ROOT.json",
+  "smoke_root_path": "runs/bench/local-smoke/vcf",
   "refreshed_smoke_outputs": true,
   "corpus_id": "vcf_production_regression",
   "stage_count": 20,
@@ -20,7 +20,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "admixture_report",
       "output_kind": "json",
-      "output_path": "target/local-smoke/vcf/vcf.admixture/plink2/artifacts/admixture.json",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.admixture/plink2/artifacts/admixture.json",
       "bytes": 236,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -31,7 +31,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.admixture/plink2/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.admixture/plink2/artifacts/stderr.log",
       "bytes": 62,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -42,7 +42,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.admixture/plink2/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.admixture/plink2/artifacts/stdout.log",
       "bytes": 62,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -53,7 +53,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "called_vcf",
       "output_kind": "vcf",
-      "output_path": "target/local-smoke/vcf/vcf.call/bcftools/artifacts/calls.vcf.gz",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.call/bcftools/artifacts/calls.vcf.gz",
       "bytes": 230,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -64,7 +64,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.call/bcftools/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.call/bcftools/artifacts/stderr.log",
       "bytes": 59,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -75,7 +75,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.call/bcftools/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.call/bcftools/artifacts/stdout.log",
       "bytes": 59,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -86,7 +86,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "diploid_vcf",
       "output_kind": "vcf",
-      "output_path": "target/local-smoke/vcf/vcf.call_diploid/bcftools/artifacts/diploid.vcf.gz",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.call_diploid/bcftools/artifacts/diploid.vcf.gz",
       "bytes": 234,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -97,7 +97,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.call_diploid/bcftools/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.call_diploid/bcftools/artifacts/stderr.log",
       "bytes": 67,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -108,7 +108,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.call_diploid/bcftools/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.call_diploid/bcftools/artifacts/stdout.log",
       "bytes": 67,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -119,7 +119,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "gl_sites_vcf",
       "output_kind": "vcf",
-      "output_path": "target/local-smoke/vcf/vcf.call_gl/bcftools/artifacts/gl_sites.vcf.gz",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.call_gl/bcftools/artifacts/gl_sites.vcf.gz",
       "bytes": 233,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -130,7 +130,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.call_gl/bcftools/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.call_gl/bcftools/artifacts/stderr.log",
       "bytes": 62,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -141,7 +141,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.call_gl/bcftools/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.call_gl/bcftools/artifacts/stdout.log",
       "bytes": 62,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -152,7 +152,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "pseudohaploid_vcf",
       "output_kind": "vcf",
-      "output_path": "target/local-smoke/vcf/vcf.call_pseudohaploid/bcftools/artifacts/pseudohaploid.vcf.gz",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.call_pseudohaploid/bcftools/artifacts/pseudohaploid.vcf.gz",
       "bytes": 240,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -163,7 +163,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.call_pseudohaploid/bcftools/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.call_pseudohaploid/bcftools/artifacts/stderr.log",
       "bytes": 73,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -174,7 +174,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.call_pseudohaploid/bcftools/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.call_pseudohaploid/bcftools/artifacts/stdout.log",
       "bytes": 73,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -185,7 +185,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "damage_filtered_vcf",
       "output_kind": "vcf",
-      "output_path": "target/local-smoke/vcf/vcf.damage_filter/bcftools/artifacts/damage_filtered.vcf.gz",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.damage_filter/bcftools/artifacts/damage_filtered.vcf.gz",
       "bytes": 237,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -196,7 +196,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.damage_filter/bcftools/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.damage_filter/bcftools/artifacts/stderr.log",
       "bytes": 68,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -207,7 +207,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.damage_filter/bcftools/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.damage_filter/bcftools/artifacts/stdout.log",
       "bytes": 68,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -218,7 +218,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "demography_report",
       "output_kind": "json",
-      "output_path": "target/local-smoke/vcf/vcf.demography/ibdne/artifacts/demography.json",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.demography/ibdne/artifacts/demography.json",
       "bytes": 244,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -229,7 +229,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.demography/ibdne/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.demography/ibdne/artifacts/stderr.log",
       "bytes": 62,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -240,7 +240,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.demography/ibdne/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.demography/ibdne/artifacts/stdout.log",
       "bytes": 62,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -251,7 +251,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "filtered_vcf",
       "output_kind": "vcf",
-      "output_path": "target/local-smoke/vcf/vcf.filter/bcftools/artifacts/filtered.vcf.gz",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.filter/bcftools/artifacts/filtered.vcf.gz",
       "bytes": 231,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -262,7 +262,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.filter/bcftools/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.filter/bcftools/artifacts/stderr.log",
       "bytes": 61,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -273,7 +273,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.filter/bcftools/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.filter/bcftools/artifacts/stdout.log",
       "bytes": 61,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -284,7 +284,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "gl_propagated_vcf",
       "output_kind": "vcf",
-      "output_path": "target/local-smoke/vcf/vcf.gl_propagation/bcftools/artifacts/gl_propagated.vcf.gz",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.gl_propagation/bcftools/artifacts/gl_propagated.vcf.gz",
       "bytes": 237,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -295,7 +295,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.gl_propagation/bcftools/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.gl_propagation/bcftools/artifacts/stderr.log",
       "bytes": 69,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -306,7 +306,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.gl_propagation/bcftools/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.gl_propagation/bcftools/artifacts/stdout.log",
       "bytes": 69,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -317,7 +317,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "ibd_segments",
       "output_kind": "tsv",
-      "output_path": "target/local-smoke/vcf/vcf.ibd/germline/artifacts/ibd_segments.tsv",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.ibd/germline/artifacts/ibd_segments.tsv",
       "bytes": 67,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -328,7 +328,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.ibd/germline/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.ibd/germline/artifacts/stderr.log",
       "bytes": 58,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -339,7 +339,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.ibd/germline/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.ibd/germline/artifacts/stdout.log",
       "bytes": 58,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -350,7 +350,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "imputed_vcf",
       "output_kind": "vcf",
-      "output_path": "target/local-smoke/vcf/vcf.imputation/beagle/artifacts/imputed.vcf.gz",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.imputation/beagle/artifacts/imputed.vcf.gz",
       "bytes": 232,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -361,7 +361,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.imputation/beagle/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.imputation/beagle/artifacts/stderr.log",
       "bytes": 63,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -372,7 +372,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.imputation/beagle/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.imputation/beagle/artifacts/stdout.log",
       "bytes": 63,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -383,7 +383,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "imputed_vcf",
       "output_kind": "vcf",
-      "output_path": "target/local-smoke/vcf/vcf.impute/beagle/artifacts/imputed.vcf.gz",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.impute/beagle/artifacts/imputed.vcf.gz",
       "bytes": 230,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -394,7 +394,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.impute/beagle/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.impute/beagle/artifacts/stderr.log",
       "bytes": 59,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -405,7 +405,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.impute/beagle/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.impute/beagle/artifacts/stdout.log",
       "bytes": 59,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -416,7 +416,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "pca_report",
       "output_kind": "json",
-      "output_path": "target/local-smoke/vcf/vcf.pca/plink2/artifacts/pca.json",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.pca/plink2/artifacts/pca.json",
       "bytes": 224,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -427,7 +427,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.pca/plink2/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.pca/plink2/artifacts/stderr.log",
       "bytes": 56,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -438,7 +438,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.pca/plink2/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.pca/plink2/artifacts/stdout.log",
       "bytes": 56,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -449,7 +449,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "phased_vcf",
       "output_kind": "vcf",
-      "output_path": "target/local-smoke/vcf/vcf.phasing/shapeit5/artifacts/phased.vcf.gz",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.phasing/shapeit5/artifacts/phased.vcf.gz",
       "bytes": 233,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -460,7 +460,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.phasing/shapeit5/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.phasing/shapeit5/artifacts/stderr.log",
       "bytes": 62,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -471,7 +471,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.phasing/shapeit5/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.phasing/shapeit5/artifacts/stdout.log",
       "bytes": 62,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -482,7 +482,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "population_structure_report",
       "output_kind": "json",
-      "output_path": "target/local-smoke/vcf/vcf.population_structure/plink2/artifacts/population_structure.json",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.population_structure/plink2/artifacts/population_structure.json",
       "bytes": 258,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -493,7 +493,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.population_structure/plink2/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.population_structure/plink2/artifacts/stderr.log",
       "bytes": 73,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -504,7 +504,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.population_structure/plink2/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.population_structure/plink2/artifacts/stdout.log",
       "bytes": 73,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -515,7 +515,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "postprocess_vcf",
       "output_kind": "vcf",
-      "output_path": "target/local-smoke/vcf/vcf.postprocess/bcftools/artifacts/postprocess.vcf.gz",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.postprocess/bcftools/artifacts/postprocess.vcf.gz",
       "bytes": 234,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -526,7 +526,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.postprocess/bcftools/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.postprocess/bcftools/artifacts/stderr.log",
       "bytes": 66,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -537,7 +537,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.postprocess/bcftools/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.postprocess/bcftools/artifacts/stdout.log",
       "bytes": 66,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -548,7 +548,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "chunks_json",
       "output_kind": "json",
-      "output_path": "target/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts/chunks.json",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts/chunks.json",
       "bytes": 256,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -559,7 +559,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "prepared_panel",
       "output_kind": "vcf",
-      "output_path": "target/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts/prepared_panel.vcf.gz",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts/prepared_panel.vcf.gz",
       "bytes": 239,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -570,7 +570,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts/stderr.log",
       "bytes": 78,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -581,7 +581,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts/stdout.log",
       "bytes": 78,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -592,7 +592,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "qc_report",
       "output_kind": "json",
-      "output_path": "target/local-smoke/vcf/vcf.qc/plink2/artifacts/qc_report.json",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.qc/plink2/artifacts/qc_report.json",
       "bytes": 222,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -603,7 +603,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.qc/plink2/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.qc/plink2/artifacts/stderr.log",
       "bytes": 55,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -614,7 +614,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.qc/plink2/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.qc/plink2/artifacts/stdout.log",
       "bytes": 55,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -625,7 +625,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "roh_report",
       "output_kind": "json",
-      "output_path": "target/local-smoke/vcf/vcf.roh/plink2/artifacts/roh.json",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.roh/plink2/artifacts/roh.json",
       "bytes": 224,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -636,7 +636,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.roh/plink2/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.roh/plink2/artifacts/stderr.log",
       "bytes": 56,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -647,7 +647,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.roh/plink2/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.roh/plink2/artifacts/stdout.log",
       "bytes": 56,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -658,7 +658,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stats_json",
       "output_kind": "json",
-      "output_path": "target/local-smoke/vcf/vcf.stats/bcftools/artifacts/stats.json",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.stats/bcftools/artifacts/stats.json",
       "bytes": 228,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -669,7 +669,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stderr_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.stats/bcftools/artifacts/stderr.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.stats/bcftools/artifacts/stderr.log",
       "bytes": 60,
       "status": "non_empty",
       "allow_empty_reason": null
@@ -680,7 +680,7 @@
       "corpus_id": "vcf_production_regression",
       "output_id": "stdout_log",
       "output_kind": "log",
-      "output_path": "target/local-smoke/vcf/vcf.stats/bcftools/artifacts/stdout.log",
+      "output_path": "runs/bench/local-smoke/vcf/vcf.stats/bcftools/artifacts/stdout.log",
       "bytes": 60,
       "status": "non_empty",
       "allow_empty_reason": null

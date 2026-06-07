@@ -40,89 +40,89 @@
       "goal_id": 3,
       "category": "local_smokes",
       "surface": "fastq.validate_reads local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.validate_reads/report.json",
+      "output_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.validate_reads/report.json` under `target/local-smoke/fastq.validate_reads`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.validate_reads/report.json` under `runs/bench/local-smoke/fastq.validate_reads`"
     },
     {
       "goal_id": 4,
       "category": "local_smokes",
       "surface": "fastq.profile_read_lengths local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.profile_read_lengths/read_lengths.tsv",
+      "output_path": "runs/bench/local-smoke/fastq.profile_read_lengths/read_lengths.tsv",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.profile_read_lengths/read_lengths.tsv` under `target/local-smoke/fastq.profile_read_lengths`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.profile_read_lengths/read_lengths.tsv` under `runs/bench/local-smoke/fastq.profile_read_lengths`"
     },
     {
       "goal_id": 5,
       "category": "local_smokes",
       "surface": "fastq.detect_adapters local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.detect_adapters/adapters.json",
+      "output_path": "runs/bench/local-smoke/fastq.detect_adapters/adapters.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.detect_adapters/adapters.json` under `target/local-smoke/fastq.detect_adapters`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.detect_adapters/adapters.json` under `runs/bench/local-smoke/fastq.detect_adapters`"
     },
     {
       "goal_id": 6,
       "category": "local_smokes",
       "surface": "fastq.detect_duplicates_premerge local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.detect_duplicates_premerge/duplicates.json",
+      "output_path": "runs/bench/local-smoke/fastq.detect_duplicates_premerge/duplicates.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.detect_duplicates_premerge/duplicates.json` under `target/local-smoke/fastq.detect_duplicates_premerge`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.detect_duplicates_premerge/duplicates.json` under `runs/bench/local-smoke/fastq.detect_duplicates_premerge`"
     },
     {
       "goal_id": 7,
       "category": "local_smokes",
       "surface": "fastq.estimate_library_complexity_prealign local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json",
+      "output_path": "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json` under `target/local-smoke/fastq.estimate_library_complexity_prealign`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json` under `runs/bench/local-smoke/fastq.estimate_library_complexity_prealign`"
     },
     {
       "goal_id": 8,
       "category": "local_smokes",
       "surface": "fastq.trim_terminal_damage local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.trim_terminal_damage/metrics.json",
+      "output_path": "runs/bench/local-smoke/fastq.trim_terminal_damage/metrics.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.trim_terminal_damage/metrics.json` under `target/local-smoke/fastq.trim_terminal_damage`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.trim_terminal_damage/metrics.json` under `runs/bench/local-smoke/fastq.trim_terminal_damage`"
     },
     {
       "goal_id": 9,
       "category": "local_smokes",
       "surface": "fastq.normalize_primers local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.normalize_primers/report.json",
+      "output_path": "runs/bench/local-smoke/fastq.normalize_primers/report.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.normalize_primers/report.json` under `target/local-smoke/fastq.normalize_primers`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.normalize_primers/report.json` under `runs/bench/local-smoke/fastq.normalize_primers`"
     },
     {
       "goal_id": 10,
       "category": "local_smokes",
       "surface": "fastq.trim_polyg_tails local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.trim_polyg_tails/metrics.json",
+      "output_path": "runs/bench/local-smoke/fastq.trim_polyg_tails/metrics.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.trim_polyg_tails/metrics.json` under `target/local-smoke/fastq.trim_polyg_tails`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.trim_polyg_tails/metrics.json` under `runs/bench/local-smoke/fastq.trim_polyg_tails`"
     },
     {
       "goal_id": 11,
       "category": "local_smokes",
       "surface": "fastq.trim_reads local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.trim_reads/report.json",
+      "output_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.trim_reads/report.json` under `target/local-smoke/fastq.trim_reads`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.trim_reads/report.json` under `runs/bench/local-smoke/fastq.trim_reads`"
     },
     {
       "goal_id": 12,
       "category": "local_smokes",
       "surface": "fastq.filter_reads local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.filter_reads/report.json",
+      "output_path": "runs/bench/local-smoke/fastq.filter_reads/report.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.filter_reads/report.json` under `target/local-smoke/fastq.filter_reads`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.filter_reads/report.json` under `runs/bench/local-smoke/fastq.filter_reads`"
     },
     {
       "goal_id": 13,
       "category": "local_smokes",
       "surface": "fastq.profile_reads local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.profile_reads/profile.json",
+      "output_path": "runs/bench/local-smoke/fastq.profile_reads/profile.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.profile_reads/profile.json` under `target/local-smoke/fastq.profile_reads`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.profile_reads/profile.json` under `runs/bench/local-smoke/fastq.profile_reads`"
     },
     {
       "goal_id": 14,
@@ -136,25 +136,25 @@
       "goal_id": 15,
       "category": "local_smokes",
       "surface": "fastq.merge_pairs local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.merge_pairs/report.json",
+      "output_path": "runs/bench/local-smoke/fastq.merge_pairs/report.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.merge_pairs/report.json` under `target/local-smoke/fastq.merge_pairs`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.merge_pairs/report.json` under `runs/bench/local-smoke/fastq.merge_pairs`"
     },
     {
       "goal_id": 16,
       "category": "local_smokes",
       "surface": "fastq.remove_duplicates local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.remove_duplicates/report.json",
+      "output_path": "runs/bench/local-smoke/fastq.remove_duplicates/report.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.remove_duplicates/report.json` under `target/local-smoke/fastq.remove_duplicates`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.remove_duplicates/report.json` under `runs/bench/local-smoke/fastq.remove_duplicates`"
     },
     {
       "goal_id": 17,
       "category": "local_smokes",
       "surface": "fastq.filter_low_complexity local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.filter_low_complexity/report.json",
+      "output_path": "runs/bench/local-smoke/fastq.filter_low_complexity/report.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.filter_low_complexity/report.json` under `target/local-smoke/fastq.filter_low_complexity`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.filter_low_complexity/report.json` under `runs/bench/local-smoke/fastq.filter_low_complexity`"
     },
     {
       "goal_id": 18,
@@ -176,57 +176,57 @@
       "goal_id": 20,
       "category": "local_smokes",
       "surface": "fastq.correct_errors local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.correct_errors/plan.json",
+      "output_path": "runs/bench/local-smoke/fastq.correct_errors/plan.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.correct_errors/plan.json` under `target/local-smoke/fastq.correct_errors`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.correct_errors/plan.json` under `runs/bench/local-smoke/fastq.correct_errors`"
     },
     {
       "goal_id": 21,
       "category": "local_smokes",
       "surface": "fastq.extract_umis local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.extract_umis/report.json",
+      "output_path": "runs/bench/local-smoke/fastq.extract_umis/report.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.extract_umis/report.json` under `target/local-smoke/fastq.extract_umis`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.extract_umis/report.json` under `runs/bench/local-smoke/fastq.extract_umis`"
     },
     {
       "goal_id": 22,
       "category": "local_smokes",
       "surface": "fastq.profile_overrepresented_sequences local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv",
+      "output_path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv` under `target/local-smoke/fastq.profile_overrepresented_sequences`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv` under `runs/bench/local-smoke/fastq.profile_overrepresented_sequences`"
     },
     {
       "goal_id": 23,
       "category": "local_smokes",
       "surface": "fastq.remove_chimeras local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.remove_chimeras/non_chimeric.fasta",
+      "output_path": "runs/bench/local-smoke/fastq.remove_chimeras/non_chimeric.fasta",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.remove_chimeras/non_chimeric.fasta` under `target/local-smoke/fastq.remove_chimeras`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.remove_chimeras/non_chimeric.fasta` under `runs/bench/local-smoke/fastq.remove_chimeras`"
     },
     {
       "goal_id": 24,
       "category": "local_smokes",
       "surface": "fastq.infer_asvs local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.infer_asvs/asv_table.tsv",
+      "output_path": "runs/bench/local-smoke/fastq.infer_asvs/asv_table.tsv",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.infer_asvs/asv_table.tsv` under `target/local-smoke/fastq.infer_asvs`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.infer_asvs/asv_table.tsv` under `runs/bench/local-smoke/fastq.infer_asvs`"
     },
     {
       "goal_id": 25,
       "category": "local_smokes",
       "surface": "fastq.cluster_otus local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.cluster_otus/otu_table.tsv",
+      "output_path": "runs/bench/local-smoke/fastq.cluster_otus/otu_table.tsv",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.cluster_otus/otu_table.tsv` under `target/local-smoke/fastq.cluster_otus`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.cluster_otus/otu_table.tsv` under `runs/bench/local-smoke/fastq.cluster_otus`"
     },
     {
       "goal_id": 26,
       "category": "local_smokes",
       "surface": "fastq.normalize_abundance local artifact materializes under governed target",
-      "output_path": "target/local-smoke/fastq.normalize_abundance/normalized_abundance.tsv",
+      "output_path": "runs/bench/local-smoke/fastq.normalize_abundance/normalized_abundance.tsv",
       "ok": true,
-      "detail": "materialized `target/local-smoke/fastq.normalize_abundance/normalized_abundance.tsv` under `target/local-smoke/fastq.normalize_abundance`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.normalize_abundance/normalized_abundance.tsv` under `runs/bench/local-smoke/fastq.normalize_abundance`"
     },
     {
       "goal_id": 27,
@@ -248,129 +248,129 @@
       "goal_id": 30,
       "category": "local_smokes",
       "surface": "bam.validate local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.validate/validation.json",
+      "output_path": "runs/bench/local-smoke/bam.validate/validation.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.validate/validation.json` under `target/local-smoke/bam.validate`"
+      "detail": "materialized `runs/bench/local-smoke/bam.validate/validation.json` under `runs/bench/local-smoke/bam.validate`"
     },
     {
       "goal_id": 31,
       "category": "local_smokes",
       "surface": "bam.qc_pre local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.qc_pre/qc_pre.json",
+      "output_path": "runs/bench/local-smoke/bam.qc_pre/qc_pre.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.qc_pre/qc_pre.json` under `target/local-smoke/bam.qc_pre`"
+      "detail": "materialized `runs/bench/local-smoke/bam.qc_pre/qc_pre.json` under `runs/bench/local-smoke/bam.qc_pre`"
     },
     {
       "goal_id": 32,
       "category": "local_smokes",
       "surface": "bam.mapping_summary local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.mapping_summary/mapping_summary.tsv",
+      "output_path": "runs/bench/local-smoke/bam.mapping_summary/mapping_summary.tsv",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.mapping_summary/mapping_summary.tsv` under `target/local-smoke/bam.mapping_summary`"
+      "detail": "materialized `runs/bench/local-smoke/bam.mapping_summary/mapping_summary.tsv` under `runs/bench/local-smoke/bam.mapping_summary`"
     },
     {
       "goal_id": 33,
       "category": "local_smokes",
       "surface": "bam.filter local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.filter/filter_metrics.json",
+      "output_path": "runs/bench/local-smoke/bam.filter/filter_metrics.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.filter/filter_metrics.json` under `target/local-smoke/bam.filter`"
+      "detail": "materialized `runs/bench/local-smoke/bam.filter/filter_metrics.json` under `runs/bench/local-smoke/bam.filter`"
     },
     {
       "goal_id": 34,
       "category": "local_smokes",
       "surface": "bam.mapq_filter local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.mapq_filter/mapq_filter.json",
+      "output_path": "runs/bench/local-smoke/bam.mapq_filter/mapq_filter.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.mapq_filter/mapq_filter.json` under `target/local-smoke/bam.mapq_filter`"
+      "detail": "materialized `runs/bench/local-smoke/bam.mapq_filter/mapq_filter.json` under `runs/bench/local-smoke/bam.mapq_filter`"
     },
     {
       "goal_id": 35,
       "category": "local_smokes",
       "surface": "bam.length_filter local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.length_filter/length_filter.json",
+      "output_path": "runs/bench/local-smoke/bam.length_filter/length_filter.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.length_filter/length_filter.json` under `target/local-smoke/bam.length_filter`"
+      "detail": "materialized `runs/bench/local-smoke/bam.length_filter/length_filter.json` under `runs/bench/local-smoke/bam.length_filter`"
     },
     {
       "goal_id": 36,
       "category": "local_smokes",
       "surface": "bam.markdup local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.markdup/duplicates.json",
+      "output_path": "runs/bench/local-smoke/bam.markdup/duplicates.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.markdup/duplicates.json` under `target/local-smoke/bam.markdup`"
+      "detail": "materialized `runs/bench/local-smoke/bam.markdup/duplicates.json` under `runs/bench/local-smoke/bam.markdup`"
     },
     {
       "goal_id": 37,
       "category": "local_smokes",
       "surface": "bam.duplication_metrics local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.duplication_metrics/duplication_metrics.json",
+      "output_path": "runs/bench/local-smoke/bam.duplication_metrics/duplication_metrics.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.duplication_metrics/duplication_metrics.json` under `target/local-smoke/bam.duplication_metrics`"
+      "detail": "materialized `runs/bench/local-smoke/bam.duplication_metrics/duplication_metrics.json` under `runs/bench/local-smoke/bam.duplication_metrics`"
     },
     {
       "goal_id": 38,
       "category": "local_smokes",
       "surface": "bam.complexity local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.complexity/complexity.json",
+      "output_path": "runs/bench/local-smoke/bam.complexity/complexity.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.complexity/complexity.json` under `target/local-smoke/bam.complexity`"
+      "detail": "materialized `runs/bench/local-smoke/bam.complexity/complexity.json` under `runs/bench/local-smoke/bam.complexity`"
     },
     {
       "goal_id": 39,
       "category": "local_smokes",
       "surface": "bam.coverage local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.coverage/coverage.tsv",
+      "output_path": "runs/bench/local-smoke/bam.coverage/coverage.tsv",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.coverage/coverage.tsv` under `target/local-smoke/bam.coverage`"
+      "detail": "materialized `runs/bench/local-smoke/bam.coverage/coverage.tsv` under `runs/bench/local-smoke/bam.coverage`"
     },
     {
       "goal_id": 40,
       "category": "local_smokes",
       "surface": "bam.insert_size local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.insert_size/insert_size.json",
+      "output_path": "runs/bench/local-smoke/bam.insert_size/insert_size.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.insert_size/insert_size.json` under `target/local-smoke/bam.insert_size`"
+      "detail": "materialized `runs/bench/local-smoke/bam.insert_size/insert_size.json` under `runs/bench/local-smoke/bam.insert_size`"
     },
     {
       "goal_id": 41,
       "category": "local_smokes",
       "surface": "bam.gc_bias local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.gc_bias/gc_bias.tsv",
+      "output_path": "runs/bench/local-smoke/bam.gc_bias/gc_bias.tsv",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.gc_bias/gc_bias.tsv` under `target/local-smoke/bam.gc_bias`"
+      "detail": "materialized `runs/bench/local-smoke/bam.gc_bias/gc_bias.tsv` under `runs/bench/local-smoke/bam.gc_bias`"
     },
     {
       "goal_id": 42,
       "category": "local_smokes",
       "surface": "bam.endogenous_content local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.endogenous_content/endogenous_content.json",
+      "output_path": "runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.endogenous_content/endogenous_content.json` under `target/local-smoke/bam.endogenous_content`"
+      "detail": "materialized `runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json` under `runs/bench/local-smoke/bam.endogenous_content`"
     },
     {
       "goal_id": 43,
       "category": "local_smokes",
       "surface": "bam.overlap_correction local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.overlap_correction/overlap_correction.json",
+      "output_path": "runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.overlap_correction/overlap_correction.json` under `target/local-smoke/bam.overlap_correction`"
+      "detail": "materialized `runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json` under `runs/bench/local-smoke/bam.overlap_correction`"
     },
     {
       "goal_id": 44,
       "category": "local_smokes",
       "surface": "bam.damage local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.damage/damage.json",
+      "output_path": "runs/bench/local-smoke/bam.damage/damage.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.damage/damage.json` under `target/local-smoke/bam.damage`"
+      "detail": "materialized `runs/bench/local-smoke/bam.damage/damage.json` under `runs/bench/local-smoke/bam.damage`"
     },
     {
       "goal_id": 45,
       "category": "local_smokes",
       "surface": "bam.authenticity local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.authenticity/authenticity.json",
+      "output_path": "runs/bench/local-smoke/bam.authenticity/authenticity.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.authenticity/authenticity.json` under `target/local-smoke/bam.authenticity`"
+      "detail": "materialized `runs/bench/local-smoke/bam.authenticity/authenticity.json` under `runs/bench/local-smoke/bam.authenticity`"
     },
     {
       "goal_id": 46,
@@ -384,25 +384,25 @@
       "goal_id": 47,
       "category": "local_smokes",
       "surface": "bam.sex local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.sex/sex.json",
+      "output_path": "runs/bench/local-smoke/bam.sex/sex.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.sex/sex.json` under `target/local-smoke/bam.sex`"
+      "detail": "materialized `runs/bench/local-smoke/bam.sex/sex.json` under `runs/bench/local-smoke/bam.sex`"
     },
     {
       "goal_id": 48,
       "category": "local_smokes",
       "surface": "bam.bias_mitigation local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.bias_mitigation/bias_mitigation.json",
+      "output_path": "runs/bench/local-smoke/bam.bias_mitigation/bias_mitigation.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.bias_mitigation/bias_mitigation.json` under `target/local-smoke/bam.bias_mitigation`"
+      "detail": "materialized `runs/bench/local-smoke/bam.bias_mitigation/bias_mitigation.json` under `runs/bench/local-smoke/bam.bias_mitigation`"
     },
     {
       "goal_id": 49,
       "category": "local_smokes",
       "surface": "bam.recalibration local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.recalibration/recalibration.json",
+      "output_path": "runs/bench/local-smoke/bam.recalibration/recalibration.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.recalibration/recalibration.json` under `target/local-smoke/bam.recalibration`"
+      "detail": "materialized `runs/bench/local-smoke/bam.recalibration/recalibration.json` under `runs/bench/local-smoke/bam.recalibration`"
     },
     {
       "goal_id": 50,
@@ -424,9 +424,9 @@
       "goal_id": 52,
       "category": "local_smokes",
       "surface": "bam.kinship local artifact materializes under governed target",
-      "output_path": "target/local-smoke/bam.kinship/kinship.json",
+      "output_path": "runs/bench/local-smoke/bam.kinship/kinship.json",
       "ok": true,
-      "detail": "materialized `target/local-smoke/bam.kinship/kinship.json` under `target/local-smoke/bam.kinship`"
+      "detail": "materialized `runs/bench/local-smoke/bam.kinship/kinship.json` under `runs/bench/local-smoke/bam.kinship`"
     },
     {
       "goal_id": 53,

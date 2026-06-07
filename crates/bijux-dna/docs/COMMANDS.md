@@ -824,16 +824,16 @@ Visible aliases are part of the operator surface:
   `expected_outputs` explicit so every catalog stage stays benchmark-addressable through a real
   local contract row.
 - `bijux-dna bench local render-vcf-smoke-root`
-  `render-vcf-smoke-root` writes `target/local-smoke/vcf/SMOKE_ROOT.json`, deriving the governed
+  `render-vcf-smoke-root` writes `runs/bench/local-smoke/vcf/SMOKE_ROOT.json`, deriving the governed
   local VCF smoke root from the owned VCF stage catalog, benchmark matrix, and current `HEAD`
   revision. The manifest keeps `run_id`, `repo_revision`, `corpus_id`, `created_at`, `command`,
   `stage_count`, `tool_pair_count`, and one explicit row per stage-tool pair with deterministic
   `pair_root`, `artifacts_root`, and `result_manifest_path` values so repeated local smoke runs
   cannot drift onto random temp paths.
 - `bijux-dna bench local run-vcf-call-smoke`
-  `run-vcf-call-smoke` writes `target/local-smoke/vcf.call/bcftools/calls.vcf.gz`,
-  `target/local-smoke/vcf.call/bcftools/calls.vcf.gz.tbi`, and
-  `target/local-smoke/vcf.call/bcftools/metrics.json` from the governed `vcf.call` matrix row and
+  `run-vcf-call-smoke` writes `runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz`,
+  `runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz.tbi`, and
+  `runs/bench/local-smoke/vcf.call/bcftools/metrics.json` from the governed `vcf.call` matrix row and
   the real `human_like_validation` BAM fixture in `corpus-01-bam-mini`. The command uses the
   retained `bcftools` caller, resolves the alias onto the diploid BAM calling flow, materializes a
   private reference copy under `artifacts/reference`, and writes a `stage-result.json` manifest
@@ -841,9 +841,9 @@ Visible aliases are part of the operator surface:
   variant counts, and parseability checks for the real local smoke without mutating the governed
   fixture tree.
 - `bijux-dna bench local run-vcf-call-diploid-smoke`
-  `run-vcf-call-diploid-smoke` writes `target/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz`,
-  `target/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz.tbi`, and
-  `target/local-smoke/vcf.call_diploid/bcftools/metrics.json` from the governed
+  `run-vcf-call-diploid-smoke` writes `runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz`,
+  `runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz.tbi`, and
+  `runs/bench/local-smoke/vcf.call_diploid/bcftools/metrics.json` from the governed
   `vcf.call_diploid` matrix row and the real `human_like_validation` BAM fixture in
   `corpus-01-bam-mini`. The command uses the retained `bcftools` caller, materializes a private
   reference copy under `artifacts/reference`, validates that GT-bearing output stays parseable and
@@ -852,9 +852,9 @@ Visible aliases are part of the operator surface:
   `homozygous_alt_count`, and `missing_count`) so diploid genotype representation is proved by a
   real local smoke instead of inferred from the generic calling alias.
 - `bijux-dna bench local run-vcf-call-gl-smoke`
-  `run-vcf-call-gl-smoke` writes `target/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz`,
-  `target/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz.tbi`, and
-  `target/local-smoke/vcf.call_gl/bcftools/metrics.json` from the governed `vcf.call_gl` matrix
+  `run-vcf-call-gl-smoke` writes `runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz`,
+  `runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz.tbi`, and
+  `runs/bench/local-smoke/vcf.call_gl/bcftools/metrics.json` from the governed `vcf.call_gl` matrix
   row and the real `human_like_validation` BAM fixture in `corpus-01-bam-mini`. The command
   materializes a private reference copy under `artifacts/reference`, emits the real retained
   `bcftools` likelihood representation, validates that the output remains indexed and parseable
@@ -863,9 +863,9 @@ Visible aliases are part of the operator surface:
   a `stage-result.json` manifest so GL-bearing local smoke evidence stays reviewer-visible.
 - `bijux-dna bench local run-vcf-damage-filter-smoke`
   `run-vcf-damage-filter-smoke` writes
-  `target/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz`,
-  `target/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz.tbi`, and
-  `target/local-smoke/vcf.damage_filter/bcftools/metrics.json` from the governed
+  `runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz`,
+  `runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz.tbi`, and
+  `runs/bench/local-smoke/vcf.damage_filter/bcftools/metrics.json` from the governed
   `vcf.damage_filter` matrix row. The command materializes a deterministic single-sample synthetic
   VCF with PL-bearing genotype likelihoods plus explicit `CT_GA_DAMAGE_RATIO`, `DEAM5P`,
   `DEAM3P`, and `PMD_SCORE` evidence, runs the real retained `bcftools` damage-filter stage,
@@ -874,9 +874,9 @@ Visible aliases are part of the operator surface:
   `terminal_context_count`) so the local smoke proves real damage filtering instead of a fixture
   copy.
 - `bijux-dna bench local run-vcf-filter-smoke`
-  `run-vcf-filter-smoke` writes `target/local-smoke/vcf.filter/bcftools/filtered.vcf.gz`,
-  `target/local-smoke/vcf.filter/bcftools/filtered.vcf.gz.tbi`, and
-  `target/local-smoke/vcf.filter/bcftools/metrics.json` from the governed `vcf.filter` matrix
+  `run-vcf-filter-smoke` writes `runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz`,
+  `runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz.tbi`, and
+  `runs/bench/local-smoke/vcf.filter/bcftools/metrics.json` from the governed `vcf.filter` matrix
   row. The command materializes a deterministic single-sample site-filter fixture with known
   `LOWQUAL`, `LOW_DP`, `LOW_MQ`, and `HIGH_MISSING` rows, runs the real retained `bcftools`
   filter stage with tagged-record retention, keeps the breakdown and explain artifacts visible,
@@ -884,9 +884,9 @@ Visible aliases are part of the operator surface:
   `filter_ids`, `depth_threshold`, `quality_threshold`, and `missingness_threshold`) so reviewer
   evidence comes from the repo command instead of an implied threshold contract.
 - `bijux-dna bench local run-vcf-qc-smoke`
-  `run-vcf-qc-smoke` writes `target/local-smoke/vcf.qc/plink2/qc.json`,
-  `target/local-smoke/vcf.qc/plink2/qc_summary.json`, and
-  `target/local-smoke/vcf.qc/plink2/metrics.json` from the governed `vcf.qc` matrix row. The
+  `run-vcf-qc-smoke` writes `runs/bench/local-smoke/vcf.qc/plink2/qc.json`,
+  `runs/bench/local-smoke/vcf.qc/plink2/qc_summary.json`, and
+  `runs/bench/local-smoke/vcf.qc/plink2/metrics.json` from the governed `vcf.qc` matrix row. The
   command materializes a deterministic three-sample cohort VCF with one known high-missingness
   sample and one known high-missingness variant, runs the real retained `plink2`-owned QC stage,
   keeps the copied summary, warnings, histogram, and table artifacts visible, and records exact
@@ -894,8 +894,8 @@ Visible aliases are part of the operator surface:
   `excluded_samples`, and `excluded_variants`) so reviewer evidence comes from the repo command
   instead of an implied parser contract.
 - `bijux-dna bench local run-vcf-admixture-smoke`
-  `run-vcf-admixture-smoke` writes `target/local-smoke/vcf.admixture/plink2/admixture.tsv` and
-  `target/local-smoke/vcf.admixture/plink2/admixture.json` from the governed `vcf.admixture`
+  `run-vcf-admixture-smoke` writes `runs/bench/local-smoke/vcf.admixture/plink2/admixture.tsv` and
+  `runs/bench/local-smoke/vcf.admixture/plink2/admixture.json` from the governed `vcf.admixture`
   matrix row. The command materializes the owned `vcf-mini` multisample cohort plus population
   metadata contracts, runs the retained admixture stage, keeps the source Q-matrix and stage
   manifest visible, and records exact smoke evidence (`sample_id`, `K`, `cluster_1`, `cluster_2`,
@@ -903,7 +903,7 @@ Visible aliases are part of the operator surface:
   reviewer-visible whether the local run used a real tool path or the governed fallback proxy.
 - `bijux-dna bench local run-vcf-population-structure-smoke`
   `run-vcf-population-structure-smoke` writes
-  `target/local-smoke/vcf.population_structure/plink2/population_structure.json` from the
+  `runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json` from the
   governed `vcf.population_structure` matrix row. The command reruns the owned PCA and admixture
   smoke commands first, fails if their persisted reports are missing, runs the retained population
   structure stage on the governed cohort contract, keeps the source stage JSON, pruned variants,
@@ -911,8 +911,8 @@ Visible aliases are part of the operator surface:
   (`consumed_pca`, `consumed_admixture`, `sample_groups`, `distance_summary`, and `status`) so
   the final report is grounded in real upstream local-smoke outputs instead of an invented join.
 - `bijux-dna bench local run-vcf-ibd-smoke`
-  `run-vcf-ibd-smoke` writes `target/local-smoke/vcf.ibd/germline/ibd.tsv` and
-  `target/local-smoke/vcf.ibd/germline/ibd.json` from the governed `vcf.ibd` matrix row. The
+  `run-vcf-ibd-smoke` writes `runs/bench/local-smoke/vcf.ibd/germline/ibd.tsv` and
+  `runs/bench/local-smoke/vcf.ibd/germline/ibd.json` from the governed `vcf.ibd` matrix row. The
   command materializes the owned `vcf-mini` multisample cohort plus sample metadata contract, runs
   the retained IBD stage, keeps the source input, segment, merged, filtered, summary, metrics, and
   log artifacts visible, and records exact normalized pair evidence (`sample_a`, `sample_b`,
@@ -921,7 +921,7 @@ Visible aliases are part of the operator surface:
   run on the same sparse input still succeeds, so the suite-local block remains reviewer-visible
   instead of collapsing into a generic command failure.
 - `bijux-dna bench local run-vcf-demography-smoke`
-  `run-vcf-demography-smoke` writes `target/local-smoke/vcf.demography/ibdne/demography.json`
+  `run-vcf-demography-smoke` writes `runs/bench/local-smoke/vcf.demography/ibdne/demography.json`
   from the governed `vcf.demography` matrix row. The command reruns the owned IBD smoke first,
   consumes the governed filtered-segment artifact as its real upstream input, runs the retained
   demography stage, keeps the upstream IBD report plus the source Ne trajectory, contract, metrics,
@@ -930,25 +930,25 @@ Visible aliases are part of the operator surface:
   the built-in sparse-overlap IBD probe and requires an explicit `insufficient_data` result instead
   of a stderr-only failure, so missing IBD support stays reviewer-visible as structured output.
 - `bijux-dna bench local run-vcf-roh-smoke`
-  `run-vcf-roh-smoke` writes `target/local-smoke/vcf.roh/plink2/roh.tsv` and
-  `target/local-smoke/vcf.roh/plink2/roh.json` from the governed `vcf.roh` matrix row. The
+  `run-vcf-roh-smoke` writes `runs/bench/local-smoke/vcf.roh/plink2/roh.tsv` and
+  `runs/bench/local-smoke/vcf.roh/plink2/roh.json` from the governed `vcf.roh` matrix row. The
   command materializes the owned `vcf-mini` multisample cohort plus sample metadata contract, runs
   the retained ROH stage, keeps the source segment table, per-sample summary, source report,
   metrics, and logs visible, and records exact normalized smoke evidence (`sample_id`, `contig`,
   `start`, `end`, `length`, `variant_count`, `segment_count`, and `total_length`) so reviewer
   evidence comes from the repo command instead of a raw PLINK-shaped artifact.
 - `bijux-dna bench local run-vcf-pca-smoke`
-  `run-vcf-pca-smoke` writes `target/local-smoke/vcf.pca/plink2/pca.tsv` and
-  `target/local-smoke/vcf.pca/plink2/pca.json` from the governed `vcf.pca` matrix row. The
+  `run-vcf-pca-smoke` writes `runs/bench/local-smoke/vcf.pca/plink2/pca.tsv` and
+  `runs/bench/local-smoke/vcf.pca/plink2/pca.json` from the governed `vcf.pca` matrix row. The
   command materializes the owned `vcf-mini` multisample cohort plus metadata contracts, runs the
   retained PCA stage, keeps the source eigen tables and stage manifest visible, and records exact
   smoke evidence (`sample_id`, `pc1`, `pc2`, `eigenvalues`, `variant_count`, `excluded_samples`,
   and `execution_mode`) so sample-to-metadata coverage stays explicit whether the local run used
   `plink2` directly or the governed fallback proxy.
 - `bijux-dna bench local run-vcf-stats-smoke`
-  `run-vcf-stats-smoke` writes `target/local-smoke/vcf.stats/bcftools/stats.json`,
-  `target/local-smoke/vcf.stats/bcftools/bcftools_stats.txt`, and
-  `target/local-smoke/vcf.stats/bcftools/metrics.json` from the governed `vcf.stats` matrix row.
+  `run-vcf-stats-smoke` writes `runs/bench/local-smoke/vcf.stats/bcftools/stats.json`,
+  `runs/bench/local-smoke/vcf.stats/bcftools/bcftools_stats.txt`, and
+  `runs/bench/local-smoke/vcf.stats/bcftools/metrics.json` from the governed `vcf.stats` matrix row.
   The command materializes a deterministic two-sample cohort VCF with a known 2:1
   transition/transversion mix, runs the real retained `bcftools` stats stage, fails closed unless
   the persisted `stats.json` stays normalized, and records exact smoke metrics (`variant_count`,
@@ -957,9 +957,9 @@ Visible aliases are part of the operator surface:
   raw tool text.
 - `bijux-dna bench local run-vcf-gl-propagation-smoke`
   `run-vcf-gl-propagation-smoke` writes
-  `target/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz`,
-  `target/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf`, and
-  `target/local-smoke/vcf.gl_propagation/bcftools/metrics.json` from the governed
+  `runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz`,
+  `runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf`, and
+  `runs/bench/local-smoke/vcf.gl_propagation/bcftools/metrics.json` from the governed
   `vcf.gl_propagation` matrix row. The command materializes a deterministic single-sample GL/PL/GP
   input VCF, runs the real retained `bcftools` propagation stage, keeps the normalized VCF, BCF,
   CSI, and stage report visible, and records exact smoke metrics
@@ -968,9 +968,9 @@ Visible aliases are part of the operator surface:
   inferred from policy files.
 - `bijux-dna bench local run-vcf-prepare-reference-panel-smoke`
   `run-vcf-prepare-reference-panel-smoke` writes
-  `target/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz`,
-  `target/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz.tbi`, and
-  `target/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json` from the governed
+  `runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz`,
+  `runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz.tbi`, and
+  `runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json` from the governed
   `vcf.prepare_reference_panel` matrix row. The command materializes a deterministic single-sample
   input VCF plus an unsorted duplicate-bearing raw panel fixture, runs the real retained
   `bcftools` panel-preparation stage, keeps the overlap, chunk, and panel manifests visible, and
@@ -979,9 +979,9 @@ Visible aliases are part of the operator surface:
   the output panel is sorted, indexed, normalized, and sample-consistent instead of only copying a
   panel fixture.
 - `bijux-dna bench local run-vcf-phasing-smoke`
-  `run-vcf-phasing-smoke` writes `target/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz`,
-  `target/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz.tbi`, and
-  `target/local-smoke/vcf.phasing/shapeit5/metrics.json` from the governed `vcf.phasing` matrix
+  `run-vcf-phasing-smoke` writes `runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz`,
+  `runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz.tbi`, and
+  `runs/bench/local-smoke/vcf.phasing/shapeit5/metrics.json` from the governed `vcf.phasing` matrix
   row. The command materializes a deterministic two-sample unphased cohort VCF plus the owned
   panel/map lock assets, runs the real retained `shapeit5` phasing stage, keeps the phasing QC,
   manifest, phase-block, switch-proxy, and panel-asset reports visible, and records exact smoke
@@ -989,9 +989,9 @@ Visible aliases are part of the operator surface:
   `tool_id`) so reviewer evidence proves phased separators are emitted instead of only inferring
   phasing readiness from the stage catalog.
 - `bijux-dna bench local run-vcf-impute-smoke`
-  `run-vcf-impute-smoke` writes `target/local-smoke/vcf.impute/beagle/imputed.vcf.gz`,
-  `target/local-smoke/vcf.impute/beagle/imputed.vcf.gz.tbi`, and
-  `target/local-smoke/vcf.impute/beagle/metrics.json` from the governed `vcf.impute` matrix row.
+  `run-vcf-impute-smoke` writes `runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz`,
+  `runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz.tbi`, and
+  `runs/bench/local-smoke/vcf.impute/beagle/metrics.json` from the governed `vcf.impute` matrix row.
   The command materializes a deterministic two-sample masked-truth cohort plus the owned
   panel/map lock assets, runs the real retained `beagle` imputation stage, keeps the imputation
   QC, manifest, overlap, warning, acceptance, and panel-mismatch artifacts visible, and records
@@ -1001,7 +1001,7 @@ Visible aliases are part of the operator surface:
   surfaced with an explicit unresolved reason instead of being hidden by wrapper logic.
 - `bijux-dna bench local run-vcf-imputation-metrics-smoke`
   `run-vcf-imputation-metrics-smoke` writes
-  `target/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json` from the governed
+  `runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json` from the governed
   `vcf.impute` smoke outputs. The command reruns the real local `beagle` imputation smoke, copies
   the persisted QC, metrics, and manifest artifacts into a dedicated reviewer-facing root, and
   records exact quality evidence (`concordance`, `mean_info_score`, `r2_available`,
@@ -1009,9 +1009,9 @@ Visible aliases are part of the operator surface:
   explicit in `missing_quality_fields` instead of silently disappearing from the report surface.
 - `bijux-dna bench local run-vcf-call-pseudohaploid-smoke`
   `run-vcf-call-pseudohaploid-smoke` writes
-  `target/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz`,
-  `target/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz.tbi`, and
-  `target/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json` from the governed
+  `runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz`,
+  `runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz.tbi`, and
+  `runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json` from the governed
   `vcf.call_pseudohaploid` matrix row and the real `human_like_validation` BAM fixture in
   `corpus-01-bam-mini`. The command records explicit pseudohaploid site metrics
   (`target_sites`, `covered_sites`, `called_sites`, `missing_sites`), the governed sampling
@@ -1020,7 +1020,7 @@ Visible aliases are part of the operator surface:
   headers while still surfacing the raw header drift.
 - `bijux-dna bench local validate-vcf-no-empty-output`
   `validate-vcf-no-empty-output` writes `benchmarks/readiness/local-ready/vcf/no-empty-output-check.json`,
-  refreshes the governed VCF smoke-output fixture tree under `target/local-smoke/vcf`, and fails
+  refreshes the governed VCF smoke-output fixture tree under `runs/bench/local-smoke/vcf`, and fails
   closed unless every declared `.vcf.gz`, `.json`, `.tsv`, and `.log` artifact remains present
   and non-empty. The report keeps one explicit row per checked output with `stage_id`, `tool_id`,
   `output_id`, `output_kind`, `output_path`, `bytes`, `status`, and `allow_empty_reason`, and the
@@ -1034,7 +1034,7 @@ Visible aliases are part of the operator surface:
   `goal_id`, `surface`, `output_path`, `ok`, and `detail` so any drift stays visible in a single
   reviewer-facing local-ready report.
 - `bijux-dna bench local validate-vcf-smoke-suite-ready`
-  `validate-vcf-smoke-suite-ready` writes `target/local-smoke/VCF_SMOKE_SUITE_READY.json` and
+  `validate-vcf-smoke-suite-ready` writes `runs/bench/local-smoke/VCF_SMOKE_SUITE_READY.json` and
   fail-closes across the governed VCF Goal 211-229 slice. The gate reruns every owned VCF local
   smoke surface in goal order, from `vcf.call` through `vcf.demography`, and records one explicit
   row per goal with `goal_id`, `surface`, `output_path`, `ok`, and `detail` so missing outputs,

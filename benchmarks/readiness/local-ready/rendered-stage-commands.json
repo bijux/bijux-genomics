@@ -71,25 +71,25 @@
       "outputs": [
         {
           "artifact_id": "validated_reads_manifest",
-          "path": "target/local-smoke/fastq.validate_reads/toy-pe/fastqvalidator/validated_reads_manifest.json",
+          "path": "runs/bench/local-smoke/fastq.validate_reads/toy-pe/fastqvalidator/validated_reads_manifest.json",
           "role": "stage_report",
           "optional": false
         },
         {
           "artifact_id": "validated_reads_manifest",
-          "path": "target/local-smoke/fastq.validate_reads/toy-se/fastqvalidator/validated_reads_manifest.json",
+          "path": "runs/bench/local-smoke/fastq.validate_reads/toy-se/fastqvalidator/validated_reads_manifest.json",
           "role": "stage_report",
           "optional": false
         },
         {
           "artifact_id": "validation_report",
-          "path": "target/local-smoke/fastq.validate_reads/toy-pe/fastqvalidator/validation.json",
+          "path": "runs/bench/local-smoke/fastq.validate_reads/toy-pe/fastqvalidator/validation.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "validation_report",
-          "path": "target/local-smoke/fastq.validate_reads/toy-se/fastqvalidator/validation.json",
+          "path": "runs/bench/local-smoke/fastq.validate_reads/toy-se/fastqvalidator/validation.json",
           "role": "report_json",
           "optional": false
         }
@@ -134,37 +134,37 @@
       "outputs": [
         {
           "artifact_id": "length_distribution_json",
-          "path": "target/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/length_distribution.json",
+          "path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/length_distribution.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "length_distribution_json",
-          "path": "target/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/length_distribution.json",
+          "path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/length_distribution.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "length_distribution_tsv",
-          "path": "target/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/length_distribution.tsv",
+          "path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/length_distribution.tsv",
           "role": "summary_tsv",
           "optional": false
         },
         {
           "artifact_id": "length_distribution_tsv",
-          "path": "target/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/length_distribution.tsv",
+          "path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/length_distribution.tsv",
           "role": "summary_tsv",
           "optional": false
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/profile_read_lengths_report.json",
+          "path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/profile_read_lengths_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json",
+          "path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json",
           "role": "report_json",
           "optional": false
         }
@@ -209,37 +209,37 @@
       "outputs": [
         {
           "artifact_id": "adapter_evidence_dir",
-          "path": "target/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc/fastqc",
+          "path": "runs/bench/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc/fastqc",
           "role": "stage_report",
           "optional": true
         },
         {
           "artifact_id": "adapter_evidence_dir",
-          "path": "target/local-smoke/fastq.detect_adapters/adapter-hit-se/fastqc/fastqc",
+          "path": "runs/bench/local-smoke/fastq.detect_adapters/adapter-hit-se/fastqc/fastqc",
           "role": "stage_report",
           "optional": true
         },
         {
           "artifact_id": "adapter_report",
-          "path": "target/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc/adapter_report.json",
+          "path": "runs/bench/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc/adapter_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "adapter_report",
-          "path": "target/local-smoke/fastq.detect_adapters/adapter-hit-se/fastqc/adapter_report.json",
+          "path": "runs/bench/local-smoke/fastq.detect_adapters/adapter-hit-se/fastqc/adapter_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc/adapter_report.json",
+          "path": "runs/bench/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc/adapter_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.detect_adapters/adapter-hit-se/fastqc/adapter_report.json",
+          "path": "runs/bench/local-smoke/fastq.detect_adapters/adapter-hit-se/fastqc/adapter_report.json",
           "role": "report_json",
           "optional": false
         }
@@ -296,13 +296,13 @@
       "outputs": [
         {
           "artifact_id": "duplicate_signal_report",
-          "path": "target/local-smoke/fastq.detect_duplicates_premerge/human_like_pe_distinct_pairs/bijux_dna/duplicate_signal_report.json",
+          "path": "runs/bench/local-smoke/fastq.detect_duplicates_premerge/human_like_pe_distinct_pairs/bijux_dna/duplicate_signal_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "duplicate_signal_report",
-          "path": "target/local-smoke/fastq.detect_duplicates_premerge/human_like_pe_duplicate_signals/bijux_dna/duplicate_signal_report.json",
+          "path": "runs/bench/local-smoke/fastq.detect_duplicates_premerge/human_like_pe_duplicate_signals/bijux_dna/duplicate_signal_report.json",
           "role": "report_json",
           "optional": false
         }
@@ -359,13 +359,13 @@
       "outputs": [
         {
           "artifact_id": "library_complexity_report",
-          "path": "target/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_distinct_pairs/bijux_dna/library_complexity_report.json",
+          "path": "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_distinct_pairs/bijux_dna/library_complexity_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "library_complexity_report",
-          "path": "target/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_duplicate_signals/bijux_dna/library_complexity_report.json",
+          "path": "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_duplicate_signals/bijux_dna/library_complexity_report.json",
           "role": "report_json",
           "optional": false
         }
@@ -404,19 +404,19 @@
       "outputs": [
         {
           "artifact_id": "raw_backend_report_json",
-          "path": "target/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.raw.json",
+          "path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.raw.json",
           "role": "report_json",
           "optional": true
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage_report.json",
+          "path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "trimmed_reads_r1",
-          "path": "target/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.fastq.gz",
           "role": "trimmed_reads",
           "optional": false
         }
@@ -461,25 +461,25 @@
       "outputs": [
         {
           "artifact_id": "normalized_reads_r1",
-          "path": "target/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_normalized.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_normalized.fastq.gz",
           "role": "reads",
           "optional": false
         },
         {
           "artifact_id": "primer_orientation_report",
-          "path": "target/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_orientation.tsv",
+          "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_orientation.tsv",
           "role": "summary_tsv",
           "optional": false
         },
         {
           "artifact_id": "primer_stats_json",
-          "path": "target/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_stats.json",
+          "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_stats.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/normalize_primers_report.json",
+          "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/normalize_primers_report.json",
           "role": "report_json",
           "optional": false
         }
@@ -518,19 +518,19 @@
       "outputs": [
         {
           "artifact_id": "raw_backend_report_json",
-          "path": "target/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.fastp.json",
+          "path": "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.fastp.json",
           "role": "report_json",
           "optional": true
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.json",
+          "path": "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "trimmed_reads_r1",
-          "path": "target/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/polyg.fastp.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/polyg.fastp.fastq.gz",
           "role": "trimmed_reads",
           "optional": false
         }
@@ -581,43 +581,43 @@
       "outputs": [
         {
           "artifact_id": "raw_backend_report_json",
-          "path": "target/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.fastp.json",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.fastp.json",
           "role": "report_json",
           "optional": true
         },
         {
           "artifact_id": "raw_backend_report_json",
-          "path": "target/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.fastp.json",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.fastp.json",
           "role": "report_json",
           "optional": true
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "trimmed_reads_r1",
-          "path": "target/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
           "role": "trimmed_reads",
           "optional": false
         },
         {
           "artifact_id": "trimmed_reads_r1",
-          "path": "target/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
           "role": "trimmed_reads",
           "optional": false
         },
         {
           "artifact_id": "trimmed_reads_r2",
-          "path": "target/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
           "role": "trimmed_reads",
           "optional": false
         }
@@ -656,13 +656,13 @@
       "outputs": [
         {
           "artifact_id": "filtered_reads_r1",
-          "path": "target/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/fastp.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/fastp.fastq.gz",
           "role": "reads",
           "optional": false
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/filter_report.json",
+          "path": "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/filter_report.json",
           "role": "report_json",
           "optional": false
         }
@@ -707,37 +707,37 @@
       "outputs": [
         {
           "artifact_id": "qc_json",
-          "path": "target/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/qc.json",
+          "path": "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/qc.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "qc_json",
-          "path": "target/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/qc.json",
+          "path": "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/qc.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "qc_plots_dir",
-          "path": "target/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/plots",
+          "path": "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/plots",
           "role": "index",
           "optional": true
         },
         {
           "artifact_id": "qc_plots_dir",
-          "path": "target/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/plots",
+          "path": "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/plots",
           "role": "index",
           "optional": true
         },
         {
           "artifact_id": "qc_tsv",
-          "path": "target/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/qc.tsv",
+          "path": "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/qc.tsv",
           "role": "summary_tsv",
           "optional": false
         },
         {
           "artifact_id": "qc_tsv",
-          "path": "target/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/qc.tsv",
+          "path": "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/qc.tsv",
           "role": "summary_tsv",
           "optional": false
         }
@@ -845,31 +845,31 @@
       "outputs": [
         {
           "artifact_id": "merged_reads",
-          "path": "target/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.assembled.fastq",
+          "path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.assembled.fastq",
           "role": "reads",
           "optional": false
         },
         {
           "artifact_id": "raw_backend_report_txt",
-          "path": "target/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.log",
+          "path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.log",
           "role": "log",
           "optional": true
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/merge_report.json",
+          "path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/merge_report.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "unmerged_reads_r1",
-          "path": "target/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.unassembled.forward.fastq",
+          "path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.unassembled.forward.fastq",
           "role": "reads",
           "optional": true
         },
         {
           "artifact_id": "unmerged_reads_r2",
-          "path": "target/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.unassembled.reverse.fastq",
+          "path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.unassembled.reverse.fastq",
           "role": "reads",
           "optional": true
         }
@@ -914,31 +914,31 @@
       "outputs": [
         {
           "artifact_id": "dedup_reads_r1",
-          "path": "target/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R1.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R1.fastq.gz",
           "role": "reads",
           "optional": false
         },
         {
           "artifact_id": "dedup_reads_r2",
-          "path": "target/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R2.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R2.fastq.gz",
           "role": "reads",
           "optional": false
         },
         {
           "artifact_id": "duplicate_classes_tsv",
-          "path": "target/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/duplicate_classes.tsv",
+          "path": "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/duplicate_classes.tsv",
           "role": "summary_tsv",
           "optional": false
         },
         {
           "artifact_id": "duplicate_provenance_json",
-          "path": "target/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/duplicate_provenance.json",
+          "path": "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/duplicate_provenance.json",
           "role": "summary_json",
           "optional": false
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/deduplicate_report.json",
+          "path": "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/deduplicate_report.json",
           "role": "report_json",
           "optional": false
         }
@@ -977,13 +977,13 @@
       "outputs": [
         {
           "artifact_id": "filter_report_json",
-          "path": "target/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/low_complexity_report.json",
+          "path": "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/low_complexity_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "filtered_fastq_r1",
-          "path": "target/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz",
           "role": "reads",
           "optional": false
         }
@@ -1136,19 +1136,19 @@
       "outputs": [
         {
           "artifact_id": "corrected_reads_r1",
-          "path": "target/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz",
           "role": "reads",
           "optional": false
         },
         {
           "artifact_id": "corrected_reads_r2",
-          "path": "target/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r2.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r2.fastq.gz",
           "role": "reads",
           "optional": false
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/correct_report.json",
+          "path": "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/correct_report.json",
           "role": "report_json",
           "optional": false
         }
@@ -1193,19 +1193,19 @@
       "outputs": [
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_report.json",
+          "path": "runs/bench/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "umi_reads_r1",
-          "path": "target/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_tagged_R1.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_tagged_R1.fastq.gz",
           "role": "reads",
           "optional": false
         },
         {
           "artifact_id": "umi_reads_r2",
-          "path": "target/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_tagged_R2.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_tagged_R2.fastq.gz",
           "role": "reads",
           "optional": false
         }
@@ -1244,19 +1244,19 @@
       "outputs": [
         {
           "artifact_id": "overrepresented_sequences_json",
-          "path": "target/local-smoke/fastq.profile_overrepresented_sequences/known-repeat-se/seqkit/overrepresented_sequences.json",
+          "path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/known-repeat-se/seqkit/overrepresented_sequences.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "overrepresented_sequences_tsv",
-          "path": "target/local-smoke/fastq.profile_overrepresented_sequences/known-repeat-se/seqkit/overrepresented_sequences.tsv",
+          "path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/known-repeat-se/seqkit/overrepresented_sequences.tsv",
           "role": "summary_tsv",
           "optional": false
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.profile_overrepresented_sequences/known-repeat-se/seqkit/overrepresented_report.json",
+          "path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/known-repeat-se/seqkit/overrepresented_report.json",
           "role": "report_json",
           "optional": false
         }
@@ -1307,25 +1307,25 @@
       "outputs": [
         {
           "artifact_id": "governed_qc_inputs_manifest",
-          "path": "target/local-smoke/fastq.report_qc/governed_qc_inputs_manifest.json",
+          "path": "runs/bench/local-smoke/fastq.report_qc/governed_qc_inputs_manifest.json",
           "role": "summary_json",
           "optional": false
         },
         {
           "artifact_id": "multiqc_data",
-          "path": "target/local-smoke/fastq.report_qc/multiqc_data",
+          "path": "runs/bench/local-smoke/fastq.report_qc/multiqc_data",
           "role": "index",
           "optional": false
         },
         {
           "artifact_id": "multiqc_report",
-          "path": "target/local-smoke/fastq.report_qc/multiqc_report.html",
+          "path": "runs/bench/local-smoke/fastq.report_qc/multiqc_report.html",
           "role": "report_html",
           "optional": false
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.report_qc/report_qc_report.json",
+          "path": "runs/bench/local-smoke/fastq.report_qc/report_qc_report.json",
           "role": "report_json",
           "optional": false
         }
@@ -1364,31 +1364,31 @@
       "outputs": [
         {
           "artifact_id": "chimera_filtered_reads",
-          "path": "target/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/nonchimeras.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/nonchimeras.fastq.gz",
           "role": "reads",
           "optional": false
         },
         {
           "artifact_id": "chimera_metrics_json",
-          "path": "target/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/chimera_metrics.json",
+          "path": "runs/bench/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/chimera_metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "chimeras_fasta",
-          "path": "target/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/chimeras.fasta",
+          "path": "runs/bench/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/chimeras.fasta",
           "role": "reads",
           "optional": true
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/remove_chimeras_report.json",
+          "path": "runs/bench/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/remove_chimeras_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "uchime_report_tsv",
-          "path": "target/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/uchime.tsv",
+          "path": "runs/bench/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/uchime.tsv",
           "role": "summary_tsv",
           "optional": true
         }
@@ -1427,31 +1427,31 @@
       "outputs": [
         {
           "artifact_id": "asv_sequences_fasta",
-          "path": "target/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/asv_sequences.fasta",
+          "path": "runs/bench/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/asv_sequences.fasta",
           "role": "reference",
           "optional": false
         },
         {
           "artifact_id": "asv_table_tsv",
-          "path": "target/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/asv_abundance.tsv",
+          "path": "runs/bench/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/asv_abundance.tsv",
           "role": "summary_tsv",
           "optional": false
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/infer_asvs_report.json",
+          "path": "runs/bench/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/infer_asvs_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "taxonomy_ready_fasta",
-          "path": "target/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/taxonomy_ready.fasta",
+          "path": "runs/bench/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/taxonomy_ready.fasta",
           "role": "reference",
           "optional": false
         },
         {
           "artifact_id": "taxonomy_ready_fastq",
-          "path": "target/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/taxonomy_ready.fastq",
+          "path": "runs/bench/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/taxonomy_ready.fastq",
           "role": "reference",
           "optional": false
         }
@@ -1490,31 +1490,31 @@
       "outputs": [
         {
           "artifact_id": "otu_representatives",
-          "path": "target/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/otu_representatives.fasta",
+          "path": "runs/bench/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/otu_representatives.fasta",
           "role": "reference",
           "optional": false
         },
         {
           "artifact_id": "otu_table",
-          "path": "target/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/otu_abundance.tsv",
+          "path": "runs/bench/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/otu_abundance.tsv",
           "role": "summary_tsv",
           "optional": false
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/cluster_otus_report.json",
+          "path": "runs/bench/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/cluster_otus_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "taxonomy_ready_fasta",
-          "path": "target/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fasta",
+          "path": "runs/bench/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fasta",
           "role": "reference",
           "optional": false
         },
         {
           "artifact_id": "taxonomy_ready_fastq",
-          "path": "target/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fastq",
+          "path": "runs/bench/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fastq",
           "role": "reference",
           "optional": false
         }
@@ -1553,13 +1553,13 @@
       "outputs": [
         {
           "artifact_id": "normalized_abundance_tsv",
-          "path": "target/local-smoke/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit/abundance_normalized.tsv",
+          "path": "runs/bench/local-smoke/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit/abundance_normalized.tsv",
           "role": "summary_tsv",
           "optional": false
         },
         {
           "artifact_id": "report_json",
-          "path": "target/local-smoke/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit/normalize_abundance_report.json",
+          "path": "runs/bench/local-smoke/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit/normalize_abundance_report.json",
           "role": "report_json",
           "optional": false
         }
@@ -1760,19 +1760,19 @@
       "outputs": [
         {
           "artifact_id": "authenticity_report",
-          "path": "target/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.json",
+          "path": "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.summary.json",
+          "path": "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -1817,19 +1817,19 @@
       "outputs": [
         {
           "artifact_id": "bias_report",
-          "path": "target/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.json",
+          "path": "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.summary.json",
+          "path": "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -1868,25 +1868,25 @@
       "outputs": [
         {
           "artifact_id": "complexity_curve",
-          "path": "target/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity_curve.tsv",
+          "path": "runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity_curve.tsv",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "complexity_report",
-          "path": "target/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity.json",
+          "path": "runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.complexity/human_like_complexity_projection/preseq/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity.summary.json",
+          "path": "runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -1994,19 +1994,19 @@
       "outputs": [
         {
           "artifact_id": "coverage_depth",
-          "path": "target/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.depth.txt",
+          "path": "runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.depth.txt",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "coverage_summary",
-          "path": "target/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.mosdepth.summary.txt",
+          "path": "runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.mosdepth.summary.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         }
@@ -2045,25 +2045,25 @@
       "outputs": [
         {
           "artifact_id": "damage_report",
-          "path": "target/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
+          "path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "parser_output",
-          "path": "target/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
+          "path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "terminal_position_metrics",
-          "path": "target/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
+          "path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
           "role": "metrics_json",
           "optional": false
         }
@@ -2102,25 +2102,25 @@
       "outputs": [
         {
           "artifact_id": "duplication_histogram",
-          "path": "target/local-smoke/bam.duplication_metrics/human_like_duplicate_cluster/samtools/duplication.histogram.txt",
+          "path": "runs/bench/local-smoke/bam.duplication_metrics/human_like_duplicate_cluster/samtools/duplication.histogram.txt",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "duplication_report",
-          "path": "target/local-smoke/bam.duplication_metrics/human_like_duplicate_cluster/samtools/duplication.metrics.json",
+          "path": "runs/bench/local-smoke/bam.duplication_metrics/human_like_duplicate_cluster/samtools/duplication.metrics.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.duplication_metrics/human_like_duplicate_cluster/samtools/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.duplication_metrics/human_like_duplicate_cluster/samtools/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.duplication_metrics/human_like_duplicate_cluster/samtools/duplication.summary.json",
+          "path": "runs/bench/local-smoke/bam.duplication_metrics/human_like_duplicate_cluster/samtools/duplication.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -2159,19 +2159,19 @@
       "outputs": [
         {
           "artifact_id": "endogenous_report",
-          "path": "target/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/endogenous.content.json",
+          "path": "runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/endogenous.content.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/endogenous.summary.json",
+          "path": "runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/endogenous.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -2210,49 +2210,49 @@
       "outputs": [
         {
           "artifact_id": "filtered_bai",
-          "path": "target/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filtered.bam.bai",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filtered.bam.bai",
           "role": "index",
           "optional": false
         },
         {
           "artifact_id": "filtered_bam",
-          "path": "target/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filtered.bam",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filtered.bam",
           "role": "bam",
           "optional": false
         },
         {
           "artifact_id": "flagstat_after",
-          "path": "target/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/flagstat.after.txt",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/flagstat.after.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "flagstat_before",
-          "path": "target/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/flagstat.before.txt",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/flagstat.before.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "idxstats_after",
-          "path": "target/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/idxstats.after.txt",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/idxstats.after.txt",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "idxstats_before",
-          "path": "target/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/idxstats.before.txt",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/idxstats.before.txt",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filter.summary.json",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filter.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -2297,25 +2297,25 @@
       "outputs": [
         {
           "artifact_id": "gc_bias_plot",
-          "path": "target/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.plot.pdf",
+          "path": "runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.plot.pdf",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "gc_bias_report",
-          "path": "target/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.metrics.txt",
+          "path": "runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.metrics.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.summary.json",
+          "path": "runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -2522,25 +2522,25 @@
       "outputs": [
         {
           "artifact_id": "insert_size_histogram",
-          "path": "target/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/insert_size.histogram.pdf",
+          "path": "runs/bench/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/insert_size.histogram.pdf",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "insert_size_report",
-          "path": "target/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/insert_size.metrics.txt",
+          "path": "runs/bench/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/insert_size.metrics.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/insert_size.summary.json",
+          "path": "runs/bench/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/insert_size.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -2585,37 +2585,37 @@
       "outputs": [
         {
           "artifact_id": "kinship_report",
-          "path": "target/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.json",
+          "path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "kinship_report",
-          "path": "target/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.json",
+          "path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.kinship/human_like_kinship_related_pair/king/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.summary.json",
+          "path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.summary.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.summary.json",
+          "path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -2654,49 +2654,49 @@
       "outputs": [
         {
           "artifact_id": "filtered_bai",
-          "path": "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/filtered.bam.bai",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/filtered.bam.bai",
           "role": "index",
           "optional": false
         },
         {
           "artifact_id": "filtered_bam",
-          "path": "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/filtered.bam",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/filtered.bam",
           "role": "bam",
           "optional": false
         },
         {
           "artifact_id": "flagstat_after",
-          "path": "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/flagstat.after.txt",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/flagstat.after.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "flagstat_before",
-          "path": "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/flagstat.before.txt",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/flagstat.before.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "idxstats_after",
-          "path": "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/idxstats.after.txt",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/idxstats.after.txt",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "idxstats_before",
-          "path": "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/idxstats.before.txt",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/idxstats.before.txt",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/length_filter.summary.json",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/length_filter.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -2735,31 +2735,31 @@
       "outputs": [
         {
           "artifact_id": "flagstat",
-          "path": "target/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/flagstat.txt",
+          "path": "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/flagstat.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "idxstats",
-          "path": "target/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/idxstats.txt",
+          "path": "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/idxstats.txt",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "stats",
-          "path": "target/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/samtools_stats.txt",
+          "path": "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/samtools_stats.txt",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/mapping.summary.json",
+          "path": "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/mapping.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -2798,49 +2798,49 @@
       "outputs": [
         {
           "artifact_id": "filtered_bai",
-          "path": "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/filtered.bam.bai",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/filtered.bam.bai",
           "role": "index",
           "optional": false
         },
         {
           "artifact_id": "filtered_bam",
-          "path": "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/filtered.bam",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/filtered.bam",
           "role": "bam",
           "optional": false
         },
         {
           "artifact_id": "flagstat_after",
-          "path": "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/flagstat.after.txt",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/flagstat.after.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "flagstat_before",
-          "path": "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/flagstat.before.txt",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/flagstat.before.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "idxstats_after",
-          "path": "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/idxstats.after.txt",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/idxstats.after.txt",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "idxstats_before",
-          "path": "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/idxstats.before.txt",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/idxstats.before.txt",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/mapq_filter.summary.json",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/mapq_filter.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -2879,49 +2879,49 @@
       "outputs": [
         {
           "artifact_id": "flagstat_after",
-          "path": "target/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/flagstat.after.txt",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/flagstat.after.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "flagstat_before",
-          "path": "target/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/flagstat.before.txt",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/flagstat.before.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "idxstats_after",
-          "path": "target/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/idxstats.after.txt",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/idxstats.after.txt",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "idxstats_before",
-          "path": "target/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/idxstats.before.txt",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/idxstats.before.txt",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "markdup_bai",
-          "path": "target/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/markdup.bam.bai",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/markdup.bam.bai",
           "role": "index",
           "optional": false
         },
         {
           "artifact_id": "markdup_bam",
-          "path": "target/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/markdup.bam",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/markdup.bam",
           "role": "bam",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/markdup.summary.json",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/markdup.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -2960,49 +2960,49 @@
       "outputs": [
         {
           "artifact_id": "flagstat_after",
-          "path": "target/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/flagstat.after.txt",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/flagstat.after.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "flagstat_before",
-          "path": "target/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/flagstat.before.txt",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/flagstat.before.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "idxstats_after",
-          "path": "target/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/idxstats.after.txt",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/idxstats.after.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "idxstats_before",
-          "path": "target/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/idxstats.before.txt",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/idxstats.before.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "overlap_corrected_bai",
-          "path": "target/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/overlap.corrected.bam.bai",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/overlap.corrected.bam.bai",
           "role": "index",
           "optional": false
         },
         {
           "artifact_id": "overlap_corrected_bam",
-          "path": "target/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/overlap.corrected.bam",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/overlap.corrected.bam",
           "role": "bam",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/overlap_correction.summary.json",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/overlap_correction.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -3041,25 +3041,25 @@
       "outputs": [
         {
           "artifact_id": "flagstat",
-          "path": "target/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/flagstat.txt",
+          "path": "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/flagstat.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "idxstats",
-          "path": "target/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/idxstats.txt",
+          "path": "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/idxstats.txt",
           "role": "unknown",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "stats",
-          "path": "target/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/samtools_stats.txt",
+          "path": "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/samtools_stats.txt",
           "role": "unknown",
           "optional": false
         }
@@ -3104,31 +3104,31 @@
       "outputs": [
         {
           "artifact_id": "recal_bai",
-          "path": "target/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.bam.bai",
+          "path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.bam.bai",
           "role": "index",
           "optional": false
         },
         {
           "artifact_id": "recal_bam",
-          "path": "target/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.bam",
+          "path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.bam",
           "role": "bam",
           "optional": false
         },
         {
           "artifact_id": "recal_report",
-          "path": "target/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.report.txt",
+          "path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.report.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.summary.json",
+          "path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -3173,19 +3173,19 @@
       "outputs": [
         {
           "artifact_id": "sex_report",
-          "path": "target/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.json",
+          "path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "summary",
-          "path": "target/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.summary.json",
+          "path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.summary.json",
           "role": "report_json",
           "optional": false
         }
@@ -3242,37 +3242,37 @@
       "outputs": [
         {
           "artifact_id": "flagstat",
-          "path": "target/local-smoke/bam.validate/core-v1-coordinate-pass/samtools/flagstat.txt",
+          "path": "runs/bench/local-smoke/bam.validate/core-v1-coordinate-pass/samtools/flagstat.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "flagstat",
-          "path": "target/local-smoke/bam.validate/core-v1-malformed-refusal/samtools/flagstat.txt",
+          "path": "runs/bench/local-smoke/bam.validate/core-v1-malformed-refusal/samtools/flagstat.txt",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.validate/core-v1-coordinate-pass/samtools/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.validate/core-v1-coordinate-pass/samtools/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "stage_metrics",
-          "path": "target/local-smoke/bam.validate/core-v1-malformed-refusal/samtools/stage.metrics.json",
+          "path": "runs/bench/local-smoke/bam.validate/core-v1-malformed-refusal/samtools/stage.metrics.json",
           "role": "metrics_json",
           "optional": false
         },
         {
           "artifact_id": "validation_report",
-          "path": "target/local-smoke/bam.validate/core-v1-coordinate-pass/samtools/validation.json",
+          "path": "runs/bench/local-smoke/bam.validate/core-v1-coordinate-pass/samtools/validation.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "validation_report",
-          "path": "target/local-smoke/bam.validate/core-v1-malformed-refusal/samtools/validation.json",
+          "path": "runs/bench/local-smoke/bam.validate/core-v1-malformed-refusal/samtools/validation.json",
           "role": "report_json",
           "optional": false
         }

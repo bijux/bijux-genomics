@@ -9,38 +9,31 @@ use std::fs;
 mod support;
 
 #[cfg(feature = "bam_downstream")]
-fn run_cargo_cli_json(args: &[&str], features: Option<&str>) -> serde_json::Value {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
-    let home = tempfile::tempdir().expect("tempdir");
-
-    let mut command = Command::new("cargo");
-    command
-        .current_dir(&repo_root)
-        .env("HOME", home.path())
-        .env("BIJUX_SKIP_QA", "1")
-        .env("BIJUX_ALLOW_SILVER", "1")
-        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["run", "-q", "-p", "bijux-dna"]);
-    if let Some(features) = features {
-        command.args(["--features", features]);
-    }
-    command.args(["--"]).args(args);
-    let output = command.output().expect("run cargo cli");
+fn run_hpc_submission_ready_report() -> serde_json::Value {
+    let output = run_cargo_cli(
+        &["bench", "local", "validate-hpc-submission-ready", "--json"],
+        Some("bam_downstream"),
+    );
 
     assert!(
-        output.status.success(),
-        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
-        output.status,
+        !output.status.success(),
+        "expected governed local HPC readiness blockers\nstdout:\n{}\nstderr:\n{}",
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("local HPC submission readiness failed"),
+        "stderr must report the governed readiness failure, got:\n{stderr}"
+    );
 
-    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+    let repo_root = support::repo_root().expect("repo root");
+    let report_path = repo_root.join("benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json");
+    serde_json::from_slice::<serde_json::Value>(&fs::read(&report_path).expect("read report"))
+        .expect("parse report")
 }
 
+#[cfg(feature = "bam_downstream")]
 fn run_cargo_cli(args: &[&str], features: Option<&str>) -> std::process::Output {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
@@ -60,7 +53,8 @@ fn run_cargo_cli(args: &[&str], features: Option<&str>) -> std::process::Output 
         command.args(["--features", features]);
     }
     command.args(["--"]).args(args);
-    command.output().expect("run cargo cli")
+    let output = command.output().expect("run cargo cli");
+    output
 }
 
 #[test]
@@ -83,11 +77,8 @@ fn bench_local_validate_hpc_submission_ready_refuses_without_bam_downstream() {
 
 #[cfg(feature = "bam_downstream")]
 #[test]
-fn bench_local_validate_hpc_submission_ready_reports_clean_repo_gate() {
-    let payload = run_cargo_cli_json(
-        &["bench", "local", "validate-hpc-submission-ready", "--json"],
-        Some("bam_downstream"),
-    );
+fn bench_local_validate_hpc_submission_ready_reports_governed_blockers() {
+    let payload = run_hpc_submission_ready_report();
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -98,15 +89,22 @@ fn bench_local_validate_hpc_submission_ready_reports_clean_repo_gate() {
         Some("benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(99));
-    assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(99));
-    assert_eq!(payload.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(95));
+    assert_eq!(payload.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
     assert!(
-        payload
-            .get("failing_goal_ids")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|goal_ids| goal_ids.is_empty()),
-        "successful readiness gate must not report failing goal ids"
+        payload.get("failing_goal_ids").and_then(serde_json::Value::as_array).is_some_and(
+            |goal_ids| {
+                goal_ids
+                    == &[
+                        serde_json::Value::from(65_u64),
+                        serde_json::Value::from(66_u64),
+                        serde_json::Value::from(94_u64),
+                        serde_json::Value::from(95_u64),
+                    ]
+            }
+        ),
+        "governed readiness gate must report the known failing goal ids"
     );
 
     let checks = payload.get("checks").and_then(serde_json::Value::as_array).expect("checks array");
@@ -149,10 +147,7 @@ fn bench_local_validate_hpc_submission_ready_reports_clean_repo_gate() {
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_validate_hpc_submission_ready_writes_governed_report_path() {
-    let _payload = run_cargo_cli_json(
-        &["bench", "local", "validate-hpc-submission-ready", "--json"],
-        Some("bam_downstream"),
-    );
+    let _payload = run_hpc_submission_ready_report();
 
     let repo_root = support::repo_root().expect("repo root");
     let report_path = repo_root.join("benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json");
@@ -165,5 +160,5 @@ fn bench_local_validate_hpc_submission_ready_writes_governed_report_path() {
         report.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json")
     );
-    assert_eq!(report.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(report.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(4));
 }
