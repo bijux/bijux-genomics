@@ -44,7 +44,7 @@ fn plan_validate_edna_taxonomy_no_vcf_pipeline_reports_governed_profile() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/edna-taxonomy-no-vcf.toml")
+        Some("benchmarks/configs/pipelines/local/edna-taxonomy-no-vcf.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),

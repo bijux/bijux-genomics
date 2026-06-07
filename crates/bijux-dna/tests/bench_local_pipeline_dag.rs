@@ -43,7 +43,7 @@ fn bench_local_pipeline_dag_validates_fastq_core_preprocess_contract() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/fastq-core-preprocess.toml")
+        Some("benchmarks/configs/pipelines/local/fastq-core-preprocess.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -95,13 +95,13 @@ fn bench_local_pipeline_dag_validates_fastq_paired_merge_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/fastq-paired-merge.toml",
+        "benchmarks/configs/pipelines/local/fastq-paired-merge.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/fastq-paired-merge.toml")
+        Some("benchmarks/configs/pipelines/local/fastq-paired-merge.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -158,13 +158,13 @@ fn bench_local_pipeline_dag_validates_fastq_edna_taxonomy_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/fastq-edna-taxonomy.toml",
+        "benchmarks/configs/pipelines/local/fastq-edna-taxonomy.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/fastq-edna-taxonomy.toml")
+        Some("benchmarks/configs/pipelines/local/fastq-edna-taxonomy.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -216,13 +216,13 @@ fn bench_local_pipeline_dag_validates_edna_taxonomy_no_vcf_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/edna-taxonomy-no-vcf.toml",
+        "benchmarks/configs/pipelines/local/edna-taxonomy-no-vcf.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/edna-taxonomy-no-vcf.toml")
+        Some("benchmarks/configs/pipelines/local/edna-taxonomy-no-vcf.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -296,13 +296,13 @@ fn bench_local_pipeline_dag_validates_fastq_amplicon_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/fastq-amplicon.toml",
+        "benchmarks/configs/pipelines/local/fastq-amplicon.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/fastq-amplicon.toml")
+        Some("benchmarks/configs/pipelines/local/fastq-amplicon.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -360,13 +360,13 @@ fn bench_local_pipeline_dag_validates_amplicon_asv_otu_no_vcf_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/amplicon-asv-otu-no-vcf.toml",
+        "benchmarks/configs/pipelines/local/amplicon-asv-otu-no-vcf.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/amplicon-asv-otu-no-vcf.toml")
+        Some("benchmarks/configs/pipelines/local/amplicon-asv-otu-no-vcf.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -436,13 +436,13 @@ fn bench_local_pipeline_dag_validates_fastq_umi_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/fastq-umi.toml",
+        "benchmarks/configs/pipelines/local/fastq-umi.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/fastq-umi.toml")
+        Some("benchmarks/configs/pipelines/local/fastq-umi.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -513,13 +513,13 @@ fn bench_local_pipeline_dag_validates_fastq_to_bam_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/fastq-to-bam.toml",
+        "benchmarks/configs/pipelines/local/fastq-to-bam.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/fastq-to-bam.toml")
+        Some("benchmarks/configs/pipelines/local/fastq-to-bam.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -590,13 +590,13 @@ fn bench_local_pipeline_dag_validates_core_germline_fastq_bam_vcf_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/core-germline-fastq-bam-vcf.toml",
+        "benchmarks/configs/pipelines/local/core-germline-fastq-bam-vcf.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/core-germline-fastq-bam-vcf.toml")
+        Some("benchmarks/configs/pipelines/local/core-germline-fastq-bam-vcf.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -664,13 +664,13 @@ fn bench_local_pipeline_dag_validates_bam_core_qc_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/bam-core-qc.toml",
+        "benchmarks/configs/pipelines/local/bam-core-qc.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/bam-core-qc.toml")
+        Some("benchmarks/configs/pipelines/local/bam-core-qc.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -736,13 +736,13 @@ fn bench_local_pipeline_dag_validates_bam_authenticity_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/bam-authenticity.toml",
+        "benchmarks/configs/pipelines/local/bam-authenticity.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/bam-authenticity.toml")
+        Some("benchmarks/configs/pipelines/local/bam-authenticity.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -803,13 +803,13 @@ fn bench_local_pipeline_dag_validates_adna_pseudohaploid_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml",
+        "benchmarks/configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml")
+        Some("benchmarks/configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -894,13 +894,13 @@ fn bench_local_pipeline_dag_validates_adna_gl_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/adna-gl-fastq-bam-vcf.toml",
+        "benchmarks/configs/pipelines/local/adna-gl-fastq-bam-vcf.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/adna-gl-fastq-bam-vcf.toml")
+        Some("benchmarks/configs/pipelines/local/adna-gl-fastq-bam-vcf.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -991,13 +991,13 @@ fn bench_local_pipeline_dag_validates_diploid_small_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/diploid-small-fastq-bam-vcf.toml",
+        "benchmarks/configs/pipelines/local/diploid-small-fastq-bam-vcf.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/diploid-small-fastq-bam-vcf.toml")
+        Some("benchmarks/configs/pipelines/local/diploid-small-fastq-bam-vcf.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -1098,13 +1098,13 @@ fn bench_local_pipeline_dag_validates_reference_panel_imputation_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/reference-panel-imputation.toml",
+        "benchmarks/configs/pipelines/local/reference-panel-imputation.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/reference-panel-imputation.toml")
+        Some("benchmarks/configs/pipelines/local/reference-panel-imputation.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -1243,13 +1243,13 @@ fn bench_local_pipeline_dag_validates_popgen_structure_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/popgen-structure-vcf.toml",
+        "benchmarks/configs/pipelines/local/popgen-structure-vcf.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/popgen-structure-vcf.toml")
+        Some("benchmarks/configs/pipelines/local/popgen-structure-vcf.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -1378,13 +1378,13 @@ fn bench_local_pipeline_dag_validates_relatedness_segments_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/relatedness-segments-vcf.toml",
+        "benchmarks/configs/pipelines/local/relatedness-segments-vcf.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/relatedness-segments-vcf.toml")
+        Some("benchmarks/configs/pipelines/local/relatedness-segments-vcf.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -1498,13 +1498,13 @@ fn bench_local_pipeline_dag_validates_bam_genotyping_to_vcf_downstream_contract(
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/bam-genotyping-to-vcf-downstream.toml",
+        "benchmarks/configs/pipelines/local/bam-genotyping-to-vcf-downstream.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/bam-genotyping-to-vcf-downstream.toml")
+        Some("benchmarks/configs/pipelines/local/bam-genotyping-to-vcf-downstream.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -1647,13 +1647,13 @@ fn bench_local_pipeline_dag_validates_bam_genotyping_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/bam-genotyping.toml",
+        "benchmarks/configs/pipelines/local/bam-genotyping.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/bam-genotyping.toml")
+        Some("benchmarks/configs/pipelines/local/bam-genotyping.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -1743,13 +1743,13 @@ fn bench_local_pipeline_dag_validates_bam_kinship_contract() {
         "local",
         "validate-pipeline-dag",
         "--config",
-        "configs/pipelines/local/bam-kinship.toml",
+        "benchmarks/configs/pipelines/local/bam-kinship.toml",
         "--json",
     ]);
 
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/bam-kinship.toml")
+        Some("benchmarks/configs/pipelines/local/bam-kinship.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),

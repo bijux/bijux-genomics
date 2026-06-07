@@ -50,7 +50,7 @@ fn plan_validate_amplicon_asv_otu_no_vcf_pipeline_reports_governed_profile() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/amplicon-asv-otu-no-vcf.toml")
+        Some("benchmarks/configs/pipelines/local/amplicon-asv-otu-no-vcf.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),

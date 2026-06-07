@@ -50,7 +50,7 @@ fn plan_validate_reference_panel_imputation_pipeline_reports_governed_profile() 
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/reference-panel-imputation.toml")
+        Some("benchmarks/configs/pipelines/local/reference-panel-imputation.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),

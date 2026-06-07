@@ -167,52 +167,52 @@ const BAM_STAGE_GOALS: &[(&str, u32, &str)] = &[
 const PIPELINE_DAG_GOALS: &[(u32, &str, &str)] = &[
     (
         77,
-        "configs/pipelines/local/fastq-core-preprocess.toml",
+        "benchmarks/configs/pipelines/local/fastq-core-preprocess.toml",
         "target/local-ready/pipeline-dag/fastq-core-preprocess.json",
     ),
     (
         78,
-        "configs/pipelines/local/fastq-paired-merge.toml",
+        "benchmarks/configs/pipelines/local/fastq-paired-merge.toml",
         "target/local-ready/pipeline-dag/fastq-paired-merge.json",
     ),
     (
         79,
-        "configs/pipelines/local/fastq-edna-taxonomy.toml",
+        "benchmarks/configs/pipelines/local/fastq-edna-taxonomy.toml",
         "target/local-ready/pipeline-dag/fastq-edna-taxonomy.json",
     ),
     (
         80,
-        "configs/pipelines/local/fastq-amplicon.toml",
+        "benchmarks/configs/pipelines/local/fastq-amplicon.toml",
         "target/local-ready/pipeline-dag/fastq-amplicon.json",
     ),
     (
         81,
-        "configs/pipelines/local/fastq-umi.toml",
+        "benchmarks/configs/pipelines/local/fastq-umi.toml",
         "target/local-ready/pipeline-dag/fastq-umi.json",
     ),
     (
         82,
-        "configs/pipelines/local/bam-core-qc.toml",
+        "benchmarks/configs/pipelines/local/bam-core-qc.toml",
         "target/local-ready/pipeline-dag/bam-core-qc.json",
     ),
     (
         83,
-        "configs/pipelines/local/bam-authenticity.toml",
+        "benchmarks/configs/pipelines/local/bam-authenticity.toml",
         "target/local-ready/pipeline-dag/bam-authenticity.json",
     ),
     (
         84,
-        "configs/pipelines/local/bam-genotyping.toml",
+        "benchmarks/configs/pipelines/local/bam-genotyping.toml",
         "target/local-ready/pipeline-dag/bam-genotyping.json",
     ),
     (
         85,
-        "configs/pipelines/local/bam-kinship.toml",
+        "benchmarks/configs/pipelines/local/bam-kinship.toml",
         "target/local-ready/pipeline-dag/bam-kinship.json",
     ),
     (
         86,
-        "configs/pipelines/local/fastq-to-bam.toml",
+        "benchmarks/configs/pipelines/local/fastq-to-bam.toml",
         "target/local-ready/pipeline-dag/fastq-to-bam.json",
     ),
 ];

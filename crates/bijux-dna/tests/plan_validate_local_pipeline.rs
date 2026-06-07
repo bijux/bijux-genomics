@@ -50,7 +50,7 @@ fn plan_validate_local_pipeline_reports_core_germline_contract() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/core-germline-fastq-bam-vcf.toml")
+        Some("benchmarks/configs/pipelines/local/core-germline-fastq-bam-vcf.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),

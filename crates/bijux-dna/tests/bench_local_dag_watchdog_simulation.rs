@@ -44,7 +44,7 @@ fn bench_local_dag_watchdog_simulation_writes_no_global_wait_report() {
     assert_eq!(payload.get("scenario").and_then(serde_json::Value::as_str), Some("no_global_wait"));
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/fastq-core-preprocess.toml")
+        Some("benchmarks/configs/pipelines/local/fastq-core-preprocess.toml")
     );
     assert_eq!(
         payload.get("dag_report_path").and_then(serde_json::Value::as_str),

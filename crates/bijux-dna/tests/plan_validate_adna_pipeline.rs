@@ -50,7 +50,7 @@ fn plan_validate_adna_pipeline_reports_governed_profile() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml")
+        Some("benchmarks/configs/pipelines/local/adna-pseudohaploid-fastq-bam-vcf.toml")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
