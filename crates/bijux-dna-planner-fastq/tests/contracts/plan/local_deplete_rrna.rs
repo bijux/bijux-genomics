@@ -18,7 +18,7 @@ fn local_deplete_rrna_plan_uses_governed_repo_inputs() -> Result<()> {
     assert_eq!(plan.tool_id.as_str(), "sortmerna");
     assert_eq!(plan.resources.threads, 4);
     assert_eq!(plan.resources.mem_gb, 8);
-    assert_eq!(plan.out_dir, PathBuf::from("target/local-ready/fastq.deplete_rrna"));
+    assert_eq!(plan.out_dir, PathBuf::from("benchmarks/readiness/local-ready/fastq.deplete_rrna"));
 
     let input_r1 = plan
         .io
@@ -47,7 +47,7 @@ fn local_deplete_rrna_plan_uses_governed_repo_inputs() -> Result<()> {
         .unwrap_or_else(|| panic!("rrna_filtered_reads_r1 output missing from local-ready plan"));
     assert_eq!(
         retained_reads.path,
-        PathBuf::from("target/local-ready/fastq.deplete_rrna/rrna_filtered.fastq.gz")
+        PathBuf::from("benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered.fastq.gz")
     );
 
     let removed_reads = plan
@@ -58,7 +58,7 @@ fn local_deplete_rrna_plan_uses_governed_repo_inputs() -> Result<()> {
         .unwrap_or_else(|| panic!("rrna_removed_reads_r1 output missing from local-ready plan"));
     assert_eq!(
         removed_reads.path,
-        PathBuf::from("target/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz")
+        PathBuf::from("benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz")
     );
 
     assert_eq!(
@@ -67,7 +67,9 @@ fn local_deplete_rrna_plan_uses_governed_repo_inputs() -> Result<()> {
     );
     assert_eq!(
         plan.params["removed_reads_r1"],
-        serde_json::json!("target/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz")
+        serde_json::json!(
+            "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz"
+        )
     );
     assert_eq!(plan.params["tool"], serde_json::json!("sortmerna"));
     assert_eq!(plan.params["threads"], serde_json::json!(4));

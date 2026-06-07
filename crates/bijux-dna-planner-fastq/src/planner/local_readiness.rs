@@ -20,17 +20,23 @@ use crate::{DepleteHostStageParams, DepleteRrnaStageParams, IndexReferenceStageP
 
 const LOCAL_DEPLETE_REFERENCE_CONTAMINANTS_CONFIG_PATH: &str =
     "benchmarks/configs/local/fastq-deplete-reference-contaminants.toml";
-const LOCAL_INDEX_REFERENCE_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-index-reference.toml";
+const LOCAL_INDEX_REFERENCE_CONFIG_PATH: &str =
+    "benchmarks/configs/local/fastq-index-reference.toml";
 const LOCAL_DEPLETE_HOST_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-deplete-host.toml";
 const LOCAL_DEPLETE_RRNA_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-deplete-rrna.toml";
-const LOCAL_SCREEN_TAXONOMY_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-screen-taxonomy.toml";
+const LOCAL_SCREEN_TAXONOMY_CONFIG_PATH: &str =
+    "benchmarks/configs/local/fastq-screen-taxonomy.toml";
 const LOCAL_RUNTIME_PROFILE_PATH: &str = "configs/runtime/profiles/local.toml";
 const DEFAULT_LOCAL_DEPLETE_REFERENCE_CONTAMINANTS_OUTPUT_DIR: &str =
-    "target/local-ready/fastq.deplete_reference_contaminants";
-const DEFAULT_LOCAL_INDEX_REFERENCE_OUTPUT_DIR: &str = "target/local-ready/fastq.index_reference";
-const DEFAULT_LOCAL_DEPLETE_HOST_OUTPUT_DIR: &str = "target/local-ready/fastq.deplete_host";
-const DEFAULT_LOCAL_DEPLETE_RRNA_OUTPUT_DIR: &str = "target/local-ready/fastq.deplete_rrna";
-const DEFAULT_LOCAL_SCREEN_TAXONOMY_OUTPUT_DIR: &str = "target/local-ready/fastq.screen_taxonomy";
+    "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants";
+const DEFAULT_LOCAL_INDEX_REFERENCE_OUTPUT_DIR: &str =
+    "benchmarks/readiness/local-ready/fastq.index_reference";
+const DEFAULT_LOCAL_DEPLETE_HOST_OUTPUT_DIR: &str =
+    "benchmarks/readiness/local-ready/fastq.deplete_host";
+const DEFAULT_LOCAL_DEPLETE_RRNA_OUTPUT_DIR: &str =
+    "benchmarks/readiness/local-ready/fastq.deplete_rrna";
+const DEFAULT_LOCAL_SCREEN_TAXONOMY_OUTPUT_DIR: &str =
+    "benchmarks/readiness/local-ready/fastq.screen_taxonomy";
 
 #[derive(Debug, Deserialize)]
 struct LocalIndexReferencePlanConfig {

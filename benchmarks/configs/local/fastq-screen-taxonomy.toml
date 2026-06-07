@@ -10,4 +10,4 @@ input_r1 = "assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq"
 database_root = "assets/reference/taxonomy/references/mock_community_taxonomy"
 tool_id = "kraken2"
 threads = 4
-output_dir = "target/local-ready/fastq.screen_taxonomy"
+output_dir = "benchmarks/readiness/local-ready/fastq.screen_taxonomy"

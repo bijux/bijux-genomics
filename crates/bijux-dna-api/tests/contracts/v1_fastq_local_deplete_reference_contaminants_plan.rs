@@ -32,7 +32,8 @@ fn write_local_deplete_reference_contaminants_plan_materializes_governed_target_
 ) -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-ready/fastq.deplete_reference_contaminants");
+    let output_dir =
+        repo_root.join("benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -41,7 +42,9 @@ fn write_local_deplete_reference_contaminants_plan_materializes_governed_target_
         bijux_dna_api::v1::api::fastq::write_local_deplete_reference_contaminants_plan()?;
     assert_eq!(
         plan_path,
-        repo_root.join("target/local-ready/fastq.deplete_reference_contaminants/plan.json")
+        repo_root.join(
+            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/plan.json"
+        )
     );
     assert!(plan_path.is_file(), "local-ready plan artifact must exist");
 
@@ -70,7 +73,7 @@ fn write_local_deplete_reference_contaminants_plan_materializes_governed_target_
                 part == "assets/reference/contaminants/references/toy_contaminant_reference"
             }) && command.iter().any(|part| {
                 part
-                    == "target/local-ready/fastq.deplete_reference_contaminants/bowtie2.contaminant.metrics.txt"
+                    == "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/bowtie2.contaminant.metrics.txt"
             })),
         "local-ready plan command must carry the governed Bowtie2 contaminant-depletion command"
     );

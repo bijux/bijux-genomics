@@ -38,7 +38,7 @@ pub fn benchmark_tools_for_stage(stage_id: &str, scenario_id: Option<&str>) -> R
 
 /// Materialize the governed local-ready `fastq.index_reference` dry-run plan.
 ///
-/// The written artifact lives at `target/local-ready/fastq.index_reference/plan.json` under the
+/// The written artifact lives at `benchmarks/readiness/local-ready/fastq.index_reference/plan.json` under the
 /// active repository root.
 ///
 /// # Errors
@@ -56,7 +56,7 @@ pub fn write_local_index_reference_plan() -> Result<PathBuf> {
 
 /// Materialize the governed local-ready `fastq.deplete_rrna` dry-run plan.
 ///
-/// The written artifact lives at `target/local-ready/fastq.deplete_rrna/plan.json` under the
+/// The written artifact lives at `benchmarks/readiness/local-ready/fastq.deplete_rrna/plan.json` under the
 /// active repository root.
 ///
 /// # Errors
@@ -74,7 +74,7 @@ pub fn write_local_deplete_rrna_plan() -> Result<PathBuf> {
 
 /// Materialize the governed local-ready `fastq.deplete_host` dry-run plan.
 ///
-/// The written artifact lives at `target/local-ready/fastq.deplete_host/plan.json` under the
+/// The written artifact lives at `benchmarks/readiness/local-ready/fastq.deplete_host/plan.json` under the
 /// active repository root.
 ///
 /// # Errors
@@ -92,7 +92,7 @@ pub fn write_local_deplete_host_plan() -> Result<PathBuf> {
 
 /// Materialize the governed local-ready `fastq.deplete_reference_contaminants` dry-run plan.
 ///
-/// The written artifact lives at `target/local-ready/fastq.deplete_reference_contaminants/plan.json`
+/// The written artifact lives at `benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/plan.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -111,7 +111,7 @@ pub fn write_local_deplete_reference_contaminants_plan() -> Result<PathBuf> {
 
 /// Materialize the governed local-ready `fastq.screen_taxonomy` dry-run plan.
 ///
-/// The written artifact lives at `target/local-ready/fastq.screen_taxonomy/plan.json` under the
+/// The written artifact lives at `benchmarks/readiness/local-ready/fastq.screen_taxonomy/plan.json` under the
 /// active repository root.
 ///
 /// # Errors

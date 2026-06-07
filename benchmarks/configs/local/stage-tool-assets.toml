@@ -256,7 +256,7 @@ stage_id = "fastq.index_reference"
 tool_id = "bowtie2_build"
 asset_role = "reference_index_output"
 asset_id = "reference_index"
-asset_path = "target/local-ready/fastq.index_reference/reference_index/bowtie2/reference"
+asset_path = "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference"
 declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
 
 [[rows]]

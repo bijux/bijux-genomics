@@ -31,13 +31,16 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_screen_taxonomy_plan_materializes_governed_target_output() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-ready/fastq.screen_taxonomy");
+    let output_dir = repo_root.join("benchmarks/readiness/local-ready/fastq.screen_taxonomy");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
 
     let plan_path = bijux_dna_api::v1::api::fastq::write_local_screen_taxonomy_plan()?;
-    assert_eq!(plan_path, repo_root.join("target/local-ready/fastq.screen_taxonomy/plan.json"));
+    assert_eq!(
+        plan_path,
+        repo_root.join("benchmarks/readiness/local-ready/fastq.screen_taxonomy/plan.json")
+    );
     assert!(plan_path.is_file(), "local-ready taxonomy plan artifact must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
@@ -61,7 +64,7 @@ fn write_local_screen_taxonomy_plan_materializes_governed_target_output() -> Res
     assert_eq!(
         payload["params"]["unclassified_reads_r1"],
         serde_json::json!(
-            "target/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq"
+            "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq"
         )
     );
     assert!(
@@ -71,9 +74,9 @@ fn write_local_screen_taxonomy_plan_materializes_governed_target_output() -> Res
             .and_then(serde_json::Value::as_str)
             .is_some_and(|script| {
                 script.contains("--db 'assets/reference/taxonomy/references/mock_community_taxonomy/kraken2'")
-                    && script.contains("'target/local-ready/fastq.screen_taxonomy/kraken2.report.tsv'")
-                    && script.contains("'target/local-ready/fastq.screen_taxonomy/kraken2.classifications.native.tsv'")
-                    && script.contains("--unclassified-out 'target/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq'")
+                    && script.contains("'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv'")
+                    && script.contains("'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.classifications.native.tsv'")
+                    && script.contains("--unclassified-out 'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq'")
             }),
         "local-ready taxonomy plan command must carry the governed taxonomy database root and report path"
     );

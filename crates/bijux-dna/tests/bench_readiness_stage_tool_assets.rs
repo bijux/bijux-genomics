@@ -249,7 +249,7 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
     );
     assert_eq!(
         index_reference_output.get("asset_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/fastq.index_reference/reference_index/bowtie2/reference")
+        Some("benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference")
     );
 
     let contamination_panel = rows

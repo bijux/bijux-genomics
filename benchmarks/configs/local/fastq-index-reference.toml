@@ -9,4 +9,4 @@ schema_version = "bijux.bench.fastq.local_index_reference.v1"
 reference_fasta = "assets/reference/contaminants/references/phix174.fasta"
 tool_id = "bowtie2_build"
 threads = 4
-output_dir = "target/local-ready/fastq.index_reference"
+output_dir = "benchmarks/readiness/local-ready/fastq.index_reference"

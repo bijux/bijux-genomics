@@ -18,7 +18,10 @@ fn local_index_reference_plan_uses_governed_repo_inputs() -> Result<()> {
     assert_eq!(plan.tool_id.as_str(), "bowtie2_build");
     assert_eq!(plan.resources.threads, 4);
     assert_eq!(plan.resources.mem_gb, 8);
-    assert_eq!(plan.out_dir, PathBuf::from("target/local-ready/fastq.index_reference"));
+    assert_eq!(
+        plan.out_dir,
+        PathBuf::from("benchmarks/readiness/local-ready/fastq.index_reference")
+    );
 
     let input = plan
         .io
@@ -36,7 +39,7 @@ fn local_index_reference_plan_uses_governed_repo_inputs() -> Result<()> {
         .unwrap_or_else(|| panic!("reference_index output missing from local-ready plan"));
     assert_eq!(
         reference_index.path,
-        PathBuf::from("target/local-ready/fastq.index_reference/reference_index/bowtie2/reference")
+        PathBuf::from("benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference")
     );
 
     let report_json = plan
@@ -47,7 +50,9 @@ fn local_index_reference_plan_uses_governed_repo_inputs() -> Result<()> {
         .unwrap_or_else(|| panic!("report_json output missing from local-ready plan"));
     assert_eq!(
         report_json.path,
-        PathBuf::from("target/local-ready/fastq.index_reference/index_reference_report.json")
+        PathBuf::from(
+            "benchmarks/readiness/local-ready/fastq.index_reference/index_reference_report.json"
+        )
     );
 
     assert_eq!(
@@ -59,7 +64,7 @@ fn local_index_reference_plan_uses_governed_repo_inputs() -> Result<()> {
     assert_eq!(plan.resources.mem_gb, 8);
     assert!(
         plan.command.template[2].contains(
-            "bowtie2-build --threads 4 'assets/reference/contaminants/references/phix174.fasta' 'target/local-ready/fastq.index_reference/reference_index/bowtie2/reference'"
+            "bowtie2-build --threads 4 'assets/reference/contaminants/references/phix174.fasta' 'benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference'"
         ),
         "local-ready plan command must materialize the governed bowtie2-build dry-run command"
     );

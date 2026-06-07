@@ -10,4 +10,4 @@ input_r1 = "assets/toy/core-v1/fastq/reads_1.fastq"
 reference_index = "assets/reference/host/references/toy_host_reference"
 tool_id = "bowtie2"
 threads = 4
-output_dir = "target/local-ready/fastq.deplete_host"
+output_dir = "benchmarks/readiness/local-ready/fastq.deplete_host"

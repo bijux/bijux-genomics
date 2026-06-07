@@ -31,13 +31,16 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_deplete_rrna_plan_materializes_governed_target_output() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("target/local-ready/fastq.deplete_rrna");
+    let output_dir = repo_root.join("benchmarks/readiness/local-ready/fastq.deplete_rrna");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
 
     let plan_path = bijux_dna_api::v1::api::fastq::write_local_deplete_rrna_plan()?;
-    assert_eq!(plan_path, repo_root.join("target/local-ready/fastq.deplete_rrna/plan.json"));
+    assert_eq!(
+        plan_path,
+        repo_root.join("benchmarks/readiness/local-ready/fastq.deplete_rrna/plan.json")
+    );
     assert!(plan_path.is_file(), "local-ready plan artifact must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
@@ -55,7 +58,9 @@ fn write_local_deplete_rrna_plan_materializes_governed_target_output() -> Result
     );
     assert_eq!(
         payload["params"]["removed_reads_r1"],
-        serde_json::json!("target/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz")
+        serde_json::json!(
+            "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz"
+        )
     );
     assert_eq!(payload["effective_params"]["emit_removed_reads"], serde_json::json!(true));
     assert!(
