@@ -120,6 +120,10 @@ pub enum BenchReadinessCommand {
     RenderAllDomainActiveStageToolMatrix(BenchReadinessRenderAllDomainActiveStageToolMatrixArgs),
     #[command(name = "render-all-domain-no-declared-only-rows")]
     RenderAllDomainNoDeclaredOnlyRows(BenchReadinessRenderAllDomainNoDeclaredOnlyRowsArgs),
+    #[command(name = "render-all-domain-no-not-benchmark-ready-rows")]
+    RenderAllDomainNoNotBenchmarkReadyRows(
+        BenchReadinessRenderAllDomainNoNotBenchmarkReadyRowsArgs,
+    ),
     #[command(name = "render-all-domain-no-planned-rows")]
     RenderAllDomainNoPlannedRows(BenchReadinessRenderAllDomainNoPlannedRowsArgs),
     #[command(name = "render-all-domain-retained-tools")]
@@ -814,6 +818,14 @@ pub struct BenchReadinessRenderAllDomainActiveStageToolMatrixArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderAllDomainNoDeclaredOnlyRowsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderAllDomainNoNotBenchmarkReadyRowsArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

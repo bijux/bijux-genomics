@@ -82,6 +82,7 @@ pub use self::readiness::{
     BenchReadinessRenderAllDomainHarnessReadyArgs,
     BenchReadinessRenderAllDomainMissingResultTestArgs,
     BenchReadinessRenderAllDomainNoDeclaredOnlyRowsArgs,
+    BenchReadinessRenderAllDomainNoNotBenchmarkReadyRowsArgs,
     BenchReadinessRenderAllDomainNoPlannedRowsArgs,
     BenchReadinessRenderAllDomainOutputDeclarationsArgs,
     BenchReadinessRenderAllDomainParserCollectorArgs,
