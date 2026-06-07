@@ -1,0 +1,120 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_adapters_ready.v1",
+  "output_path": "benchmarks/readiness/VCF_ADAPTERS_READY.json",
+  "checked_goal_count": 15,
+  "passed_goal_count": 15,
+  "failed_goal_count": 0,
+  "failing_goal_ids": [],
+  "benchmark_ready_pair_count": 9,
+  "adapter_complete_pair_count": 9,
+  "output_complete_pair_count": 9,
+  "rendered_command_pair_count": 9,
+  "ok": true,
+  "checks": [
+    {
+      "goal_id": 231,
+      "surface": "vcf tool-serving map",
+      "output_path": "benchmarks/readiness/vcf-tool-serving-map.tsv",
+      "ok": true,
+      "detail": "validated 20 governed VCF stage-tool rows with 9 canonical benchmark-ready pairs"
+    },
+    {
+      "goal_id": 232,
+      "surface": "vcf orphan tools",
+      "output_path": "benchmarks/readiness/vcf-orphan-tools.tsv",
+      "ok": true,
+      "detail": "validated 11 governed orphan VCF tools with explicit future_not_benchmark_ready decisions"
+    },
+    {
+      "goal_id": 233,
+      "surface": "vcf undercovered stages",
+      "output_path": "benchmarks/readiness/vcf-undercovered-stages.tsv",
+      "ok": true,
+      "detail": "validated 12 governed undercovered VCF stages with explicit specialized vs future decisions"
+    },
+    {
+      "goal_id": 234,
+      "surface": "vcf matrix-registry consistency",
+      "output_path": "benchmarks/readiness/vcf-matrix-registry-consistency.json",
+      "ok": true,
+      "detail": "validated clean agreement between the governed VCF stage matrix and registry"
+    },
+    {
+      "goal_id": 235,
+      "surface": "vcf bcftools adapter",
+      "output_path": "benchmarks/readiness/adapters/bcftools.vcf.json",
+      "ok": true,
+      "detail": "validated executable governed bcftools adapter rows with passing missing-input probes"
+    },
+    {
+      "goal_id": 236,
+      "surface": "vcf angsd adapter",
+      "output_path": "benchmarks/readiness/adapters/angsd.vcf.json",
+      "ok": true,
+      "detail": "validated retained ANGSD VCF adapter rows and their missing-input behavior"
+    },
+    {
+      "goal_id": 237,
+      "surface": "vcf plink family adapters",
+      "output_path": "benchmarks/readiness/adapters/plink.vcf.json",
+      "ok": true,
+      "detail": "validated governed plink and plink2 adapter rows with explicit raw and normalized outputs"
+    },
+    {
+      "goal_id": 238,
+      "surface": "vcf eigensoft adapter",
+      "output_path": "benchmarks/readiness/adapters/eigensoft.vcf.json",
+      "ok": true,
+      "detail": "validated retained EIGENSOFT VCF adapter rows and explicit convertf/smartpca outputs"
+    },
+    {
+      "goal_id": 239,
+      "surface": "vcf phasing family adapters",
+      "output_path": "benchmarks/readiness/adapters/shapeit5.vcf.json",
+      "ok": true,
+      "detail": "validated retained phasing adapter rows for shapeit5, eagle, and beagle"
+    },
+    {
+      "goal_id": 240,
+      "surface": "vcf imputation family adapter",
+      "output_path": "benchmarks/readiness/adapters/imputation-family.vcf.json",
+      "ok": true,
+      "detail": "validated retained imputation-family adapter rows with explicit parser outputs and missing-input probes"
+    },
+    {
+      "goal_id": 241,
+      "surface": "vcf descent family adapter",
+      "output_path": "benchmarks/readiness/adapters/descent-family.vcf.json",
+      "ok": true,
+      "detail": "validated retained IBD, ROH, and demography adapter rows"
+    },
+    {
+      "goal_id": 242,
+      "surface": "vcf adapter output coverage",
+      "output_path": "benchmarks/readiness/vcf-adapter-output-coverage.tsv",
+      "ok": true,
+      "detail": "validated complete raw-output and normalized-output declarations for the benchmark-ready VCF slice"
+    },
+    {
+      "goal_id": 243,
+      "surface": "vcf adapter missing-input tests",
+      "output_path": "benchmarks/readiness/vcf-adapter-missing-input-tests.json",
+      "ok": true,
+      "detail": "validated all 10 governed VCF missing-input roles before tool execution"
+    },
+    {
+      "goal_id": 244,
+      "surface": "vcf rendered commands",
+      "output_path": "benchmarks/readiness/vcf-rendered-commands.sh",
+      "ok": true,
+      "detail": "validated benchmark-ready VCF shell and argv command rendering with bash syntax coverage"
+    },
+    {
+      "goal_id": 245,
+      "surface": "vcf adapter benchmark-ready pair completeness",
+      "output_path": "benchmarks/readiness/VCF_ADAPTERS_READY.json",
+      "ok": true,
+      "detail": "validated 9 benchmark-ready VCF pairs across tool-serving map, executable adapters, output declarations, and rendered commands"
+    }
+  ]
+}

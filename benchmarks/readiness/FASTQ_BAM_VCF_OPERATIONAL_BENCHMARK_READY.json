@@ -1,0 +1,142 @@
+{
+  "schema_version": "bijux.bench.readiness.operational_benchmark_ready.v1",
+  "output_path": "benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json",
+  "checked_surface_count": 21,
+  "passed_surface_count": 21,
+  "failed_surface_count": 0,
+  "benchmark_ready_row_count": 121,
+  "blocker_count": 0,
+  "missing_result_row_count": 3,
+  "insufficient_data_row_count": 1,
+  "unsupported_pair_row_count": 1,
+  "ok": true,
+  "checks": [
+    {
+      "surface_id": "vcf_stage_catalog_ready",
+      "output_path": "benchmarks/readiness/local-ready/VCF_STAGE_CATALOG_READY.json",
+      "ok": true,
+      "detail": "checked_goal_count=9, failed_goal_count=0"
+    },
+    {
+      "surface_id": "vcf_smoke_suite_ready",
+      "output_path": "runs/bench/local-smoke/VCF_SMOKE_SUITE_READY.json",
+      "ok": true,
+      "detail": "checked_goal_count=19, failed_goal_count=0"
+    },
+    {
+      "surface_id": "vcf_adapters_ready",
+      "output_path": "benchmarks/readiness/VCF_ADAPTERS_READY.json",
+      "ok": true,
+      "detail": "benchmark_ready_pair_count=9, rendered_command_pair_count=9"
+    },
+    {
+      "surface_id": "vcf_parsers_report_ready",
+      "output_path": "benchmarks/readiness/VCF_PARSERS_REPORT_READY.json",
+      "ok": true,
+      "detail": "parser_fixture_row_count=38, benchmark_ready_parser_row_count=9"
+    },
+    {
+      "surface_id": "all_domain_expected_benchmark_results",
+      "output_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
+      "ok": true,
+      "detail": "row_count=121, result_id_count=121"
+    },
+    {
+      "surface_id": "all_domain_stage_tool_table",
+      "output_path": "benchmarks/readiness/all-domain-stage-tool-table.tsv",
+      "ok": true,
+      "detail": "row_count=143, benchmark_ready_unique_binding_count=121"
+    },
+    {
+      "surface_id": "all_domain_rendered_commands",
+      "output_path": "benchmarks/readiness/rendered-commands-all-domains.sh",
+      "ok": true,
+      "detail": "row_count=121, result_id_count=121"
+    },
+    {
+      "surface_id": "all_domain_output_declarations",
+      "output_path": "benchmarks/readiness/output-declarations-all-domains.tsv",
+      "ok": true,
+      "detail": "row_count=121, complete_row_count=121"
+    },
+    {
+      "surface_id": "all_domain_parser_collector",
+      "output_path": "benchmarks/readiness/parser-collector-all-domains.json",
+      "ok": true,
+      "detail": "row_count=124, fake_run_row_count=121"
+    },
+    {
+      "surface_id": "stage_tool_resources",
+      "output_path": "benchmarks/configs/local/stage-tool-resources.toml",
+      "ok": true,
+      "detail": "row_count=121, nonzero_resource_row_count=121"
+    },
+    {
+      "surface_id": "essential_pipelines_ready",
+      "output_path": "benchmarks/readiness/ESSENTIAL_PIPELINES_READY.json",
+      "ok": true,
+      "detail": "pipeline_count=10, dag_node_count=93"
+    },
+    {
+      "surface_id": "all_domain_harness_ready",
+      "output_path": "benchmarks/readiness/ALL_DOMAIN_HARNESS_READY.json",
+      "ok": true,
+      "detail": "checked_goal_count=12, failed_goal_count=0"
+    },
+    {
+      "surface_id": "all_domain_slurm_scripts",
+      "output_path": "runs/bench/slurm-dry-run/all-domains",
+      "ok": true,
+      "detail": "script_count=214, benchmark_job_count=121"
+    },
+    {
+      "surface_id": "all_domain_slurm_script_bodies",
+      "output_path": "runs/bench/slurm-dry-run/all-domains/no-placeholder-report.json",
+      "ok": true,
+      "detail": "script_count=214, findings_count=0"
+    },
+    {
+      "surface_id": "all_domain_slurm_shell_syntax",
+      "output_path": "runs/bench/slurm-dry-run/all-domains/bash-n-report.json",
+      "ok": true,
+      "detail": "script_count=214, findings_count=0"
+    },
+    {
+      "surface_id": "all_domain_slurm_submit_manifest",
+      "output_path": "runs/bench/slurm-dry-run/all-domains/submit-manifest.json",
+      "ok": true,
+      "detail": "job_count=214, dependency_count=135"
+    },
+    {
+      "surface_id": "all_domain_slurm_result_paths",
+      "output_path": "runs/bench/slurm-dry-run/all-domains/path-convention-check.json",
+      "ok": true,
+      "detail": "job_count=214, finding_count=0"
+    },
+    {
+      "surface_id": "full_benchmark_result_collector",
+      "output_path": "benchmarks/readiness/full-result-collector-test.json",
+      "ok": true,
+      "detail": "row_count=583, missing_result_status_count=3, insufficient_data_status_count=1, unsupported_pair_status_count=1"
+    },
+    {
+      "surface_id": "full_benchmark_report",
+      "output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md",
+      "ok": true,
+      "detail": "row_count=122, missing_result_row_count=3, unsupported_pair_row_count=1"
+    },
+    {
+      "surface_id": "full_benchmark_dashboard",
+      "output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md",
+      "ok": true,
+      "detail": "total_expected_jobs=121, ready_jobs=118, blocked_jobs=3"
+    },
+    {
+      "surface_id": "fastq_bam_benchmark_binding_coverage",
+      "output_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
+      "ok": true,
+      "detail": "validated 112 FASTQ/BAM benchmark-ready bindings through expected-result, command, parser, resource, and output coverage"
+    }
+  ],
+  "blockers": []
+}
