@@ -1182,6 +1182,15 @@ Visible aliases are part of the operator surface:
   `command.sh`, `stderr.txt`, and `failure.json`, and the failure record enumerates the exact
   declared outputs that remained missing, so unified failure handling stays explicit instead of
   collapsing into raw stderr alone.
+- `bijux-dna bench local render-all-domain-slurm-scripts`
+  `render-all-domain-slurm-scripts` writes one governed `.sbatch` file per canonical all-domain
+  benchmark result plus one per essential pipeline node under `target/slurm-dry-run/all-domains/`.
+  The generated tree keeps benchmark-ready FASTQ, BAM, and VCF jobs under
+  `benchmark-results/<domain>/<corpus>/<stage>/<asset-profile>/<tool>/job.sbatch` and essential
+  pipeline jobs under `essential-pipelines/<pipeline-id>/<node-id>/job.sbatch`, with matching
+  `stdout.log` and `stderr.log` paths beside each script. This is the owned cross-domain SLURM
+  generation surface for the governed 120-result benchmark slice and the 93-node essential
+  pipeline slice.
 - `bijux-dna bench local fake-run-essential-pipelines`
   `fake-run-essential-pipelines` writes one governed fake-run tree under
   `target/local-fake-runs/pipelines/essential/` for every node in the essential ten-pipeline
