@@ -38,7 +38,13 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_local_validate_slurm_script_bodies_refuses_placeholder_job_bodies() {
-    let temp = tempfile::tempdir().expect("tempdir");
+    let repo_root = support::repo_root().expect("repo root");
+    let runs_root = repo_root.join("runs/bench");
+    std::fs::create_dir_all(&runs_root).expect("create runs root");
+    let temp = tempfile::Builder::new()
+        .prefix("slurm-script-body-placeholder-")
+        .tempdir_in(&runs_root)
+        .expect("tempdir");
     let root = temp.path().join("slurm-dry-run");
     std::fs::create_dir_all(&root).expect("create root");
     let script_path = root.join("fake-placeholder.sbatch");
@@ -96,7 +102,13 @@ fn bench_local_validate_slurm_script_bodies_refuses_placeholder_job_bodies() {
 
 #[test]
 fn bench_local_validate_slurm_script_bodies_refuses_todo_and_empty_job_bodies() {
-    let temp = tempfile::tempdir().expect("tempdir");
+    let repo_root = support::repo_root().expect("repo root");
+    let runs_root = repo_root.join("runs/bench");
+    std::fs::create_dir_all(&runs_root).expect("create runs root");
+    let temp = tempfile::Builder::new()
+        .prefix("slurm-script-body-todo-")
+        .tempdir_in(&runs_root)
+        .expect("tempdir");
     let root = temp.path().join("slurm-dry-run");
     std::fs::create_dir_all(&root).expect("create root");
     let script_path = root.join("fake-empty.sbatch");
@@ -175,7 +187,7 @@ fn bench_local_validate_slurm_script_bodies_accepts_governed_fastq_and_bam_scrip
     );
     assert_eq!(
         payload.get("root_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run")
+        Some("runs/bench/slurm-dry-run")
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(payload.get("script_count").and_then(serde_json::Value::as_u64), Some(51));
@@ -202,11 +214,11 @@ fn bench_local_validate_slurm_script_bodies_writes_governed_report_path() {
     let payload = run_cli_json(&["bench", "local", "validate-slurm-script-bodies", "--json"]);
     assert_eq!(
         payload.get("report_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run/no-placeholder-report.json")
+        Some("runs/bench/slurm-dry-run/no-placeholder-report.json")
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let report_path = repo_root.join("target/slurm-dry-run/no-placeholder-report.json");
+    let report_path = repo_root.join("runs/bench/slurm-dry-run/no-placeholder-report.json");
     assert!(report_path.is_file(), "governed no-placeholder report must exist");
 
     let written_payload: serde_json::Value =

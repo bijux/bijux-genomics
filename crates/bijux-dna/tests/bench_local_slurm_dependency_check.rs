@@ -62,7 +62,13 @@ fn run_cargo_cli_json(args: &[&str], features: Option<&str>) -> serde_json::Valu
 
 #[test]
 fn bench_local_validate_slurm_dependencies_refuses_duplicated_dependency_locations() {
-    let tempdir = tempfile::tempdir().expect("tempdir");
+    let repo_root = support::repo_root().expect("repo root");
+    let runs_root = repo_root.join("runs/bench");
+    fs::create_dir_all(&runs_root).expect("create runs root");
+    let tempdir = tempfile::Builder::new()
+        .prefix("slurm-dependency-check-")
+        .tempdir_in(&runs_root)
+        .expect("tempdir");
     let root = tempdir.path().join("slurm-dry-run");
     let scripts_dir = root.join("fastq");
     fs::create_dir_all(&scripts_dir).expect("create scripts dir");
@@ -189,15 +195,15 @@ fn bench_local_validate_slurm_dependencies_reports_governed_submit_manifest_sour
     );
     assert_eq!(
         payload.get("root_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run")
+        Some("runs/bench/slurm-dry-run")
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run/submit-manifest.json")
+        Some("runs/bench/slurm-dry-run/submit-manifest.json")
     );
     assert_eq!(
         payload.get("report_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run/dependency-check.json")
+        Some("runs/bench/slurm-dry-run/dependency-check.json")
     );
     assert_eq!(payload.get("job_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(
@@ -224,7 +230,7 @@ fn bench_local_validate_slurm_dependencies_reports_governed_submit_manifest_sour
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|dependencies| dependencies.is_empty())
             && job.get("script_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
-                path.starts_with("target/slurm-dry-run/") && path.ends_with(".sbatch")
+                path.starts_with("runs/bench/slurm-dry-run/") && path.ends_with(".sbatch")
             })
     }));
 }
@@ -242,7 +248,7 @@ fn bench_local_validate_slurm_dependencies_writes_governed_report_path() {
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let report_path = repo_root.join("target/slurm-dry-run/dependency-check.json");
+    let report_path = repo_root.join("runs/bench/slurm-dry-run/dependency-check.json");
     assert!(report_path.is_file(), "dependency report must exist");
 
     let report =
@@ -250,6 +256,6 @@ fn bench_local_validate_slurm_dependencies_writes_governed_report_path() {
             .expect("parse report");
     assert_eq!(
         report.get("report_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run/dependency-check.json")
+        Some("runs/bench/slurm-dry-run/dependency-check.json")
     );
 }

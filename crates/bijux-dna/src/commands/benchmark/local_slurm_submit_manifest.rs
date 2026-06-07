@@ -17,13 +17,14 @@ use crate::commands::benchmark::local_stage_commands::{
     BenchLocalStageArtifactEntry, BenchLocalStageCommandEntry,
 };
 use crate::commands::benchmark::local_stage_inventory::BenchLocalDomain;
+use crate::commands::benchmark::path_resolution::{
+    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_VERSION: &str =
     "bijux.bench.local_slurm_submit_manifest.v1";
-const DEFAULT_SLURM_DRY_RUN_ROOT: &str = "target/slurm-dry-run";
-const DEFAULT_SLURM_SUBMIT_MANIFEST_PATH: &str = "target/slurm-dry-run/submit-manifest.json";
 const LOCAL_SLURM_DRY_RUN_RUN_ID: &str = "local-benchmark-dry-run";
 
 #[derive(Debug, Clone, Serialize)]
@@ -93,9 +94,12 @@ pub(crate) fn run_render_slurm_submit_manifest(
     validate_slurm_submit_manifest_feature_gate()?;
 
     let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let root_path = args.root.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_SLURM_DRY_RUN_ROOT));
-    let output_path =
-        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_SLURM_SUBMIT_MANIFEST_PATH));
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
+    let root_path =
+        args.root.clone().unwrap_or_else(|| benchmark_paths.benchmark_slurm_dry_run_root());
+    let output_path = args.output.clone().unwrap_or_else(|| {
+        benchmark_paths.benchmark_slurm_dry_run_root().join("submit-manifest.json")
+    });
     let manifest = render_slurm_submit_manifest(&repo_root, root_path, output_path)?;
     if args.json {
         render::json::print_pretty(&manifest)?;
@@ -115,6 +119,12 @@ pub(crate) fn render_slurm_submit_manifest(
     let absolute_root = if root_path.is_absolute() { root_path } else { repo_root.join(root_path) };
     let absolute_output =
         if output_path.is_absolute() { output_path } else { repo_root.join(output_path) };
+    ensure_path_stays_within_benchmark_runs_root(repo_root, &absolute_root, "slurm dry-run root")?;
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &absolute_output,
+        "slurm submit manifest output",
+    )?;
     fs::create_dir_all(&absolute_root)
         .with_context(|| format!("create {}", absolute_root.display()))?;
 

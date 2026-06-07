@@ -5,15 +5,14 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
+use crate::commands::benchmark::path_resolution::{
+    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_VERSION: &str =
     "bijux.bench.local_slurm_dependency_check.v1";
-const DEFAULT_SLURM_DRY_RUN_ROOT: &str = "target/slurm-dry-run";
-const DEFAULT_SLURM_SUBMIT_MANIFEST_PATH: &str = "target/slurm-dry-run/submit-manifest.json";
-const DEFAULT_SLURM_DEPENDENCY_CHECK_REPORT_PATH: &str =
-    "target/slurm-dry-run/dependency-check.json";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct BenchLocalSlurmDependencyCheckReport {
@@ -60,13 +59,15 @@ pub(crate) fn run_validate_slurm_dependencies(
     args: &parse::BenchLocalValidateSlurmDependenciesArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let root_path = args.root.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_SLURM_DRY_RUN_ROOT));
-    let manifest_path =
-        args.manifest.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_SLURM_SUBMIT_MANIFEST_PATH));
-    let report_path = args
-        .output
-        .clone()
-        .unwrap_or_else(|| PathBuf::from(DEFAULT_SLURM_DEPENDENCY_CHECK_REPORT_PATH));
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
+    let root_path =
+        args.root.clone().unwrap_or_else(|| benchmark_paths.benchmark_slurm_dry_run_root());
+    let manifest_path = args.manifest.clone().unwrap_or_else(|| {
+        benchmark_paths.benchmark_slurm_dry_run_root().join("submit-manifest.json")
+    });
+    let report_path = args.output.clone().unwrap_or_else(|| {
+        benchmark_paths.benchmark_slurm_dry_run_root().join("dependency-check.json")
+    });
     let report = validate_slurm_dependencies(&repo_root, root_path, manifest_path, report_path)?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -87,6 +88,17 @@ pub(crate) fn validate_slurm_dependencies(
         if manifest_path.is_absolute() { manifest_path } else { repo_root.join(manifest_path) };
     let absolute_report =
         if report_path.is_absolute() { report_path } else { repo_root.join(report_path) };
+    ensure_path_stays_within_benchmark_runs_root(repo_root, &absolute_root, "slurm dry-run root")?;
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &absolute_manifest,
+        "slurm submit manifest input",
+    )?;
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &absolute_report,
+        "slurm dependency report output",
+    )?;
 
     let manifest_bytes = fs::read(&absolute_manifest)
         .with_context(|| format!("read {}", absolute_manifest.display()))?;

@@ -71,11 +71,11 @@ fn bench_local_render_slurm_submit_manifest_reports_governed_51_job_slice() {
     );
     assert_eq!(
         payload.get("root_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run")
+        Some("runs/bench/slurm-dry-run")
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("target/slurm-dry-run/submit-manifest.json")
+        Some("runs/bench/slurm-dry-run/submit-manifest.json")
     );
     assert_eq!(
         payload.get("run_id").and_then(serde_json::Value::as_str),
@@ -90,14 +90,14 @@ fn bench_local_render_slurm_submit_manifest_reports_governed_51_job_slice() {
             && job.get("domain").and_then(serde_json::Value::as_str).is_some()
             && job.get("tool_id").and_then(serde_json::Value::as_str).is_some()
             && job.get("script_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
-                path.starts_with("target/slurm-dry-run/") && path.ends_with(".sbatch")
+                path.starts_with("runs/bench/slurm-dry-run/") && path.ends_with(".sbatch")
             })
             && job
                 .get("logs")
                 .and_then(|logs| logs.get("stdout_path"))
                 .and_then(serde_json::Value::as_str)
                 .is_some_and(|path| {
-                    path.starts_with("target/slurm-dry-run/runs/local-benchmark-dry-run/")
+                    path.starts_with("runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/")
                 })
             && job.get("outputs").and_then(serde_json::Value::as_array).is_some()
             && job.get("dependencies").and_then(serde_json::Value::as_array).is_some()

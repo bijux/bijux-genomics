@@ -4,14 +4,14 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
+use crate::commands::benchmark::path_resolution::{
+    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const LOCAL_SLURM_SCRIPT_BODY_REPORT_SCHEMA_VERSION: &str =
     "bijux.bench.local_slurm_script_bodies.v1";
-const DEFAULT_SLURM_DRY_RUN_ROOT: &str = "target/slurm-dry-run";
-const DEFAULT_SLURM_SCRIPT_BODY_REPORT_PATH: &str =
-    "target/slurm-dry-run/no-placeholder-report.json";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct BenchLocalSlurmScriptBodyReport {
@@ -37,9 +37,12 @@ pub(crate) fn run_validate_slurm_script_bodies(
     args: &parse::BenchLocalValidateSlurmScriptBodiesArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let root_path = args.root.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_SLURM_DRY_RUN_ROOT));
-    let report_path =
-        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_SLURM_SCRIPT_BODY_REPORT_PATH));
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
+    let root_path =
+        args.root.clone().unwrap_or_else(|| benchmark_paths.benchmark_slurm_dry_run_root());
+    let report_path = args.output.clone().unwrap_or_else(|| {
+        benchmark_paths.benchmark_slurm_dry_run_root().join("no-placeholder-report.json")
+    });
     let report = validate_slurm_script_bodies(&repo_root, root_path, report_path)?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -57,6 +60,12 @@ pub(crate) fn validate_slurm_script_bodies(
     let absolute_root = if root_path.is_absolute() { root_path } else { repo_root.join(root_path) };
     let absolute_report =
         if report_path.is_absolute() { report_path } else { repo_root.join(report_path) };
+    ensure_path_stays_within_benchmark_runs_root(repo_root, &absolute_root, "slurm dry-run root")?;
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &absolute_report,
+        "slurm script body report output",
+    )?;
 
     let mut script_paths = Vec::new();
     collect_sbatch_paths(&absolute_root, &mut script_paths)?;
