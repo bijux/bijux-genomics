@@ -132,6 +132,7 @@ fn bench_local_vcf_impute_smoke_writes_governed_files() {
     let imputation_qc: serde_json::Value =
         serde_json::from_str(&imputation_qc_raw).expect("parse imputation qc");
     assert_eq!(imputation_qc.get("backend").and_then(serde_json::Value::as_str), Some("beagle"));
+    assert_eq!(imputation_qc.get("variant_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
         imputation_qc.pointer("/concordance/truth_provided").and_then(serde_json::Value::as_bool),
         Some(true)
@@ -142,6 +143,10 @@ fn bench_local_vcf_impute_smoke_writes_governed_files() {
             .and_then(serde_json::Value::as_u64),
         Some(1)
     );
+
+    let metrics_raw = std::fs::read_to_string(&metrics_path).expect("read metrics");
+    let metrics: serde_json::Value = serde_json::from_str(&metrics_raw).expect("parse metrics");
+    assert_eq!(metrics.get("variant_count").and_then(serde_json::Value::as_u64), Some(2));
 
     let manifest_raw = std::fs::read_to_string(&manifest_path).expect("read manifest");
     let manifest: serde_json::Value = serde_json::from_str(&manifest_raw).expect("parse manifest");

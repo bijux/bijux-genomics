@@ -78,11 +78,12 @@
     let mut rsq_values = Vec::<f64>::new();
     let mut maf_bins = std::collections::BTreeMap::<&str, (u64, f64, f64)>::new();
     let mut per_chr_overlap = std::collections::BTreeMap::<String, u64>::new();
-    let sample_count = headers
+    let sample_ids = headers
         .iter()
         .find(|line| line.starts_with("#CHROM\t"))
-        .map(|line| line.split('\t').skip(9).count() as u64)
-        .unwrap_or(0);
+        .map(|line| line.split('\t').skip(9).map(str::to_string).collect::<Vec<_>>())
+        .unwrap_or_default();
+    let sample_count = sample_ids.len() as u64;
     for line in &imputed_records {
         if let Some((chr, pos, _)) = parse_variant_key(line) {
             let info = 0.60 + ((pos % 39) as f64 / 100.0);
@@ -258,11 +259,19 @@
             "maf_strata": maf_rows.iter().map(|(bin, _, _, _)| serde_json::json!({"maf_bin":bin, "genotype_concordance":serde_json::Value::Null, "dosage_r2":serde_json::Value::Null})).collect::<Vec<_>>(),
         })
     };
+    let masked_truth_site_count =
+        concordance.get("masked_truth_site_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let masked_truth_match_count =
+        concordance.get("imputed_match_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let unresolved_count =
+        concordance.get("unresolved_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
     let imputation_qc_payload = serde_json::json!({
         "schema_version": "bijux.vcf.imputation.v2",
         "backend": effective_backend.as_str(),
+        "variant_count": imputed_records.len(),
         "imputed_variant_count": imputed_records.len(),
         "sample_count": sample_count,
+        "sample_ids": sample_ids,
         "imputation_info_mean": info_mean,
         "rsq_mean": rsq_mean,
         "info_rsq_distribution": {
@@ -273,9 +282,14 @@
         "missingness_post": missingness_post,
         "missing_genotypes_before": missing_genotypes_before,
         "missing_genotypes_after": missing_genotypes_after,
+        "missing_before": missing_genotypes_before,
+        "missing_after": missing_genotypes_after,
         "imputed_genotypes": imputed_genotypes,
         "low_confidence_count": low_confidence_count,
         "not_imputable_reasons": not_imputable_reasons,
+        "masked_truth_site_count": masked_truth_site_count,
+        "masked_truth_match_count": masked_truth_match_count,
+        "unresolved_count": unresolved_count,
         "allele_frequency_shift_abs_mean": allele_frequency_shift_abs_mean,
         "strand_flip_like_sites": allele_flip_like,
         "allele_flip_like_sites": allele_flip_like,
