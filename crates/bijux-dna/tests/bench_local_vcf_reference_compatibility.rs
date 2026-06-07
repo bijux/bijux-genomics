@@ -44,7 +44,7 @@ fn bench_local_vcf_reference_compatibility_reports_governed_contig_parity() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/vcf/reference-compatibility.json")
+        Some("benchmarks/readiness/local-ready/vcf/reference-compatibility.json")
     );
     assert_eq!(payload.get("corpus_id").and_then(serde_json::Value::as_str), Some("vcf-mini"));
     assert_eq!(

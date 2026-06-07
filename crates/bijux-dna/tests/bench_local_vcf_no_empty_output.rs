@@ -43,7 +43,7 @@ fn bench_local_validate_vcf_no_empty_output_reports_governed_outputs() {
     );
     assert_eq!(
         payload.get("report_output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/vcf/no-empty-output-check.json")
+        Some("benchmarks/readiness/local-ready/vcf/no-empty-output-check.json")
     );
     assert_eq!(
         payload.get("smoke_root_manifest_path").and_then(serde_json::Value::as_str),

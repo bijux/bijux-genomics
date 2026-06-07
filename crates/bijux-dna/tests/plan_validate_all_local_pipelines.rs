@@ -59,7 +59,7 @@ fn plan_validate_all_local_pipelines_reports_benchmark_root_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/pipeline-dag/all-benchmark-pipelines.json")
+        Some("benchmarks/readiness/local-ready/pipeline-dag/all-benchmark-pipelines.json")
     );
     assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(payload.get("valid_pipeline_count").and_then(serde_json::Value::as_u64), Some(20));

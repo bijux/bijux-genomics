@@ -19,7 +19,8 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION: &str = "bijux.bench.local_stage_commands.v3";
-const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str = "target/local-ready/rendered-stage-commands.sh";
+const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str =
+    "benchmarks/readiness/local-ready/rendered-stage-commands.sh";
 const LOCAL_REPORT_QC_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-report-qc.toml";
 const LOCAL_REPORT_QC_CONFIG_SCHEMA_VERSION: &str = "bijux.bench.fastq.local_report_qc.v1";
 const DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR: &str = "target/local-smoke/fastq.report_qc";
@@ -982,11 +983,11 @@ mod tests {
         assert_eq!(rendered.schema_version, LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION);
         assert_eq!(
             rendered.manifest_output_path,
-            "target/local-ready/rendered-stage-commands.json"
+            "benchmarks/readiness/local-ready/rendered-stage-commands.json"
         );
         assert_eq!(
             rendered.argv_output_path,
-            "target/local-ready/rendered-stage-commands.argv.jsonl"
+            "benchmarks/readiness/local-ready/rendered-stage-commands.argv.jsonl"
         );
         assert!(rendered.commands.iter().any(|entry| entry.stage_id == "fastq.report_qc"));
         assert!(rendered.commands.iter().all(|entry| {
@@ -1037,7 +1038,7 @@ mod tests {
         let root = repo_root();
         let error = render_local_stage_commands(
             &root,
-            PathBuf::from("target/local-ready/rendered-stage-commands.sh"),
+            PathBuf::from("benchmarks/readiness/local-ready/rendered-stage-commands.sh"),
         )
         .expect_err("render without bam_downstream should explain the missing feature");
 

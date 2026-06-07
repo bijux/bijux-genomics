@@ -13,9 +13,10 @@ use crate::commands::benchmark::local_stage_inventory::LocalStageReadinessKind;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str = "target/local-ready/rendered-stage-commands.sh";
+const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str =
+    "benchmarks/readiness/local-ready/rendered-stage-commands.sh";
 const DEFAULT_MANIFEST_COMPLETION_REPORT_PATH: &str =
-    "target/local-ready/manifest-completion-report.json";
+    "benchmarks/readiness/local-ready/manifest-completion-report.json";
 const LOCAL_STAGE_MANIFEST_COMPLETION_REPORT_SCHEMA_VERSION: &str =
     "bijux.bench.local_stage_manifest_completion.v1";
 
@@ -179,8 +180,9 @@ mod tests {
         let root = repo_root();
         let fake_run_root =
             PathBuf::from("target/local-fake-runs/stages-manifest-completion-missing");
-        let report_output_path =
-            PathBuf::from("target/local-ready/manifest-completion-report.missing.json");
+        let report_output_path = PathBuf::from(
+            "benchmarks/readiness/local-ready/manifest-completion-report.missing.json",
+        );
         let fake_runs = fake_run_local_stage_commands(&root, fake_run_root.clone())
             .expect("fake-run local stage commands");
         let missing_manifest_path = root.join(

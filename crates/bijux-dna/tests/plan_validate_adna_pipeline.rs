@@ -54,7 +54,7 @@ fn plan_validate_adna_pipeline_reports_governed_profile() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json")
+        Some("benchmarks/readiness/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),

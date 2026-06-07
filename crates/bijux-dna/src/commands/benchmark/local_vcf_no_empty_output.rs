@@ -21,7 +21,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_NO_EMPTY_OUTPUT_CHECK_PATH: &str =
-    "target/local-ready/vcf/no-empty-output-check.json";
+    "benchmarks/readiness/local-ready/vcf/no-empty-output-check.json";
 const LOCAL_VCF_NO_EMPTY_OUTPUT_CHECK_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_no_empty_output_check.v1";
 const LOCAL_VCF_NO_EMPTY_OUTPUT_COMMAND: &str =

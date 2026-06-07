@@ -45,11 +45,11 @@ fn bench_local_render_benchmark_summary_json_reports_governed_51_stage_slice() {
     );
     assert_eq!(
         payload.get("report_output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/benchmark-summary.json")
+        Some("benchmarks/readiness/local-ready/benchmark-summary.json")
     );
     assert_eq!(
         payload.get("markdown_output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/benchmark-summary.md")
+        Some("benchmarks/readiness/local-ready/benchmark-summary.md")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(payload.get("ready_stage_count").and_then(serde_json::Value::as_u64), Some(51));

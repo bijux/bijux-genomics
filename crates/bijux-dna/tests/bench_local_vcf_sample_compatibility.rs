@@ -43,7 +43,7 @@ fn bench_local_vcf_sample_compatibility_reports_cohort_label_parity() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/vcf/sample-compatibility.json")
+        Some("benchmarks/readiness/local-ready/vcf/sample-compatibility.json")
     );
     assert_eq!(payload.get("corpus_id").and_then(serde_json::Value::as_str), Some("vcf-mini"));
     assert_eq!(payload.get("status").and_then(serde_json::Value::as_str), Some("compatible"));

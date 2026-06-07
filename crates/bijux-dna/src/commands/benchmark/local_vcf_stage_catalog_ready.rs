@@ -31,7 +31,7 @@ use crate::commands::fixtures::paths::{
 };
 
 pub(crate) const DEFAULT_VCF_STAGE_CATALOG_READY_PATH: &str =
-    "target/local-ready/VCF_STAGE_CATALOG_READY.json";
+    "benchmarks/readiness/local-ready/VCF_STAGE_CATALOG_READY.json";
 const LOCAL_VCF_STAGE_CATALOG_READY_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_stage_catalog_ready.v1";
 
@@ -375,7 +375,9 @@ mod tests {
             LocalVcfStageCatalogReadyGoalCheck {
                 goal_id: 209,
                 surface: "vcf no-empty-output gate".to_string(),
-                output_path: Some("target/local-ready/vcf/no-empty-output-check.json".to_string()),
+                output_path: Some(
+                    "benchmarks/readiness/local-ready/vcf/no-empty-output-check.json".to_string(),
+                ),
                 ok: false,
                 detail: "zero-byte artifact detected".to_string(),
             },

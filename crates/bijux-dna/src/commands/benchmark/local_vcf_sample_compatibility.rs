@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_SAMPLE_COMPATIBILITY_PATH: &str =
-    "target/local-ready/vcf/sample-compatibility.json";
+    "benchmarks/readiness/local-ready/vcf/sample-compatibility.json";
 const LOCAL_VCF_SAMPLE_COMPATIBILITY_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_sample_compatibility.v1";
 const DOWNSTREAM_SAMPLE_VARIANT_ROLES: &[&str] = &["multisample", "phased"];

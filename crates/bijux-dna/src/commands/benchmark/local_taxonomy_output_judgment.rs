@@ -16,7 +16,7 @@ use crate::commands::cli::render;
 pub(crate) const LOCAL_TAXONOMY_OUTPUT_JUDGMENT_SCHEMA_VERSION: &str =
     "bijux.bench.local_taxonomy_output_judgment.v1";
 pub(crate) const DEFAULT_TAXONOMY_OUTPUT_JUDGMENT_PATH: &str =
-    "target/local-ready/corpus-02-edna-taxonomy-judgment.json";
+    "benchmarks/readiness/local-ready/corpus-02-edna-taxonomy-judgment.json";
 
 #[derive(Debug, Clone)]
 pub(crate) struct LocalTaxonomyObservedReportArg {

@@ -10,7 +10,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_CORPUS_SKIP_REPORT_PATH: &str =
-    "target/local-ready/corpus-skip-report.json";
+    "benchmarks/readiness/local-ready/corpus-skip-report.json";
 const LOCAL_CORPUS_SKIP_REPORT_SCHEMA_VERSION: &str = "bijux.bench.local_corpus_skip_report.v1";
 
 #[derive(Debug, Clone, Serialize)]

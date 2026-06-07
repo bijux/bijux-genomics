@@ -45,7 +45,7 @@ fn bench_local_render_tool_comparison_template_json_reports_governed_51_row_slic
     );
     assert_eq!(
         payload.get("tsv_output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/tool-comparison-template.tsv")
+        Some("benchmarks/readiness/local-ready/tool-comparison-template.tsv")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(51));
     assert!(payload.get("rows").and_then(serde_json::Value::as_array).is_some_and(|rows| rows

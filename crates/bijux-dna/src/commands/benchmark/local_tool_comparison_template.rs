@@ -18,7 +18,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_TOOL_COMPARISON_TEMPLATE_PATH: &str =
-    "target/local-ready/tool-comparison-template.tsv";
+    "benchmarks/readiness/local-ready/tool-comparison-template.tsv";
 const LOCAL_TOOL_COMPARISON_TEMPLATE_SCHEMA_VERSION: &str =
     "bijux.bench.local_tool_comparison_template.v1";
 

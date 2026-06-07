@@ -43,7 +43,7 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/corpus-skip-report.json")
+        Some("benchmarks/readiness/local-ready/corpus-skip-report.json")
     );
     assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));

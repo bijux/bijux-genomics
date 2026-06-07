@@ -73,18 +73,22 @@ use crate::commands::cli::SlurmSubmitCampaignArgs;
 use crate::commands::hpc::{campaign_dry_run, prepare_foundation, submit_campaign};
 
 pub(crate) const DEFAULT_HPC_SUBMISSION_READY_REPORT_PATH: &str =
-    "target/local-ready/HPC_SUBMISSION_READY.json";
+    "benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json";
 const LOCAL_HPC_SUBMISSION_READY_SCHEMA_VERSION: &str = "bijux.bench.local_hpc_submission_ready.v1";
-const DEFAULT_STAGE_COMMANDS_PATH: &str = "target/local-ready/rendered-stage-commands.sh";
+const DEFAULT_STAGE_COMMANDS_PATH: &str =
+    "benchmarks/readiness/local-ready/rendered-stage-commands.sh";
 const DEFAULT_STAGE_OUTPUT_COMPLETION_REPORT_PATH: &str =
-    "target/local-ready/output-completion-report.json";
+    "benchmarks/readiness/local-ready/output-completion-report.json";
 const DEFAULT_STAGE_MANIFEST_COMPLETION_REPORT_PATH: &str =
-    "target/local-ready/manifest-completion-report.json";
-const DEFAULT_RUNTIME_METRICS_REPORT_PATH: &str = "target/local-ready/runtime-metrics.json";
+    "benchmarks/readiness/local-ready/manifest-completion-report.json";
+const DEFAULT_RUNTIME_METRICS_REPORT_PATH: &str =
+    "benchmarks/readiness/local-ready/runtime-metrics.json";
 const DEFAULT_TOOL_COMPARISON_TEMPLATE_PATH: &str =
-    "target/local-ready/tool-comparison-template.tsv";
-const DEFAULT_BENCHMARK_SUMMARY_JSON_PATH: &str = "target/local-ready/benchmark-summary.json";
-const DEFAULT_BENCHMARK_SUMMARY_MARKDOWN_PATH: &str = "target/local-ready/benchmark-summary.md";
+    "benchmarks/readiness/local-ready/tool-comparison-template.tsv";
+const DEFAULT_BENCHMARK_SUMMARY_JSON_PATH: &str =
+    "benchmarks/readiness/local-ready/benchmark-summary.json";
+const DEFAULT_BENCHMARK_SUMMARY_MARKDOWN_PATH: &str =
+    "benchmarks/readiness/local-ready/benchmark-summary.md";
 const DEFAULT_LOCAL_STAGE_FAILURE_ROOT: &str = "target/local-fake-runs/failures";
 const DEFAULT_SLURM_DRY_RUN_ROOT: &str = "target/slurm-dry-run";
 const DEFAULT_SLURM_SUBMIT_MANIFEST_PATH: &str = "target/slurm-dry-run/submit-manifest.json";
@@ -93,11 +97,12 @@ const DEFAULT_SLURM_DEPENDENCY_CHECK_REPORT_PATH: &str =
 const DEFAULT_SLURM_SHELL_SYNTAX_REPORT_PATH: &str = "target/slurm-dry-run/bash-n-report.json";
 const DEFAULT_SLURM_SCRIPT_BODY_REPORT_PATH: &str =
     "target/slurm-dry-run/no-placeholder-report.json";
-const DEFAULT_CORPUS_SKIP_REPORT_PATH: &str = "target/local-ready/corpus-skip-report.json";
+const DEFAULT_CORPUS_SKIP_REPORT_PATH: &str =
+    "benchmarks/readiness/local-ready/corpus-skip-report.json";
 const DEFAULT_HPC_SUPPORT_ROOT: &str = "artifacts/hpc/hpc-submission-ready";
 
 const FASTQ_STAGE_GOALS: &[(&str, u32, &str)] = &[
-    ("fastq.index_reference", 2, "target/local-ready/fastq.index_reference"),
+    ("fastq.index_reference", 2, "benchmarks/readiness/local-ready/fastq.index_reference"),
     ("fastq.validate_reads", 3, "target/local-smoke/fastq.validate_reads"),
     ("fastq.profile_read_lengths", 4, "target/local-smoke/fastq.profile_read_lengths"),
     ("fastq.detect_adapters", 5, "target/local-smoke/fastq.detect_adapters"),
@@ -113,15 +118,15 @@ const FASTQ_STAGE_GOALS: &[(&str, u32, &str)] = &[
     ("fastq.trim_reads", 11, "target/local-smoke/fastq.trim_reads"),
     ("fastq.filter_reads", 12, "target/local-smoke/fastq.filter_reads"),
     ("fastq.profile_reads", 13, "target/local-smoke/fastq.profile_reads"),
-    ("fastq.deplete_rrna", 14, "target/local-ready/fastq.deplete_rrna"),
+    ("fastq.deplete_rrna", 14, "benchmarks/readiness/local-ready/fastq.deplete_rrna"),
     ("fastq.merge_pairs", 15, "target/local-smoke/fastq.merge_pairs"),
     ("fastq.remove_duplicates", 16, "target/local-smoke/fastq.remove_duplicates"),
     ("fastq.filter_low_complexity", 17, "target/local-smoke/fastq.filter_low_complexity"),
-    ("fastq.deplete_host", 18, "target/local-ready/fastq.deplete_host"),
+    ("fastq.deplete_host", 18, "benchmarks/readiness/local-ready/fastq.deplete_host"),
     (
         "fastq.deplete_reference_contaminants",
         19,
-        "target/local-ready/fastq.deplete_reference_contaminants",
+        "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants",
     ),
     ("fastq.correct_errors", 20, "target/local-smoke/fastq.correct_errors"),
     ("fastq.extract_umis", 21, "target/local-smoke/fastq.extract_umis"),
@@ -134,11 +139,11 @@ const FASTQ_STAGE_GOALS: &[(&str, u32, &str)] = &[
     ("fastq.infer_asvs", 24, "target/local-smoke/fastq.infer_asvs"),
     ("fastq.cluster_otus", 25, "target/local-smoke/fastq.cluster_otus"),
     ("fastq.normalize_abundance", 26, "target/local-smoke/fastq.normalize_abundance"),
-    ("fastq.screen_taxonomy", 27, "target/local-ready/fastq.screen_taxonomy"),
+    ("fastq.screen_taxonomy", 27, "benchmarks/readiness/local-ready/fastq.screen_taxonomy"),
 ];
 
 const BAM_STAGE_GOALS: &[(&str, u32, &str)] = &[
-    ("bam.align", 29, "target/local-ready/bam.align"),
+    ("bam.align", 29, "benchmarks/readiness/local-ready/bam.align"),
     ("bam.validate", 30, "target/local-smoke/bam.validate"),
     ("bam.qc_pre", 31, "target/local-smoke/bam.qc_pre"),
     ("bam.mapping_summary", 32, "target/local-smoke/bam.mapping_summary"),
@@ -155,12 +160,12 @@ const BAM_STAGE_GOALS: &[(&str, u32, &str)] = &[
     ("bam.overlap_correction", 43, "target/local-smoke/bam.overlap_correction"),
     ("bam.damage", 44, "target/local-smoke/bam.damage"),
     ("bam.authenticity", 45, "target/local-smoke/bam.authenticity"),
-    ("bam.contamination", 46, "target/local-ready/bam.contamination"),
+    ("bam.contamination", 46, "benchmarks/readiness/local-ready/bam.contamination"),
     ("bam.sex", 47, "target/local-smoke/bam.sex"),
     ("bam.bias_mitigation", 48, "target/local-smoke/bam.bias_mitigation"),
     ("bam.recalibration", 49, "target/local-smoke/bam.recalibration"),
-    ("bam.haplogroups", 50, "target/local-ready/bam.haplogroups"),
-    ("bam.genotyping", 51, "target/local-ready/bam.genotyping"),
+    ("bam.haplogroups", 50, "benchmarks/readiness/local-ready/bam.haplogroups"),
+    ("bam.genotyping", 51, "benchmarks/readiness/local-ready/bam.genotyping"),
     ("bam.kinship", 52, "target/local-smoke/bam.kinship"),
 ];
 
@@ -168,52 +173,52 @@ const PIPELINE_DAG_GOALS: &[(u32, &str, &str)] = &[
     (
         77,
         "benchmarks/configs/pipelines/local/fastq-core-preprocess.toml",
-        "target/local-ready/pipeline-dag/fastq-core-preprocess.json",
+        "benchmarks/readiness/local-ready/pipeline-dag/fastq-core-preprocess.json",
     ),
     (
         78,
         "benchmarks/configs/pipelines/local/fastq-paired-merge.toml",
-        "target/local-ready/pipeline-dag/fastq-paired-merge.json",
+        "benchmarks/readiness/local-ready/pipeline-dag/fastq-paired-merge.json",
     ),
     (
         79,
         "benchmarks/configs/pipelines/local/fastq-edna-taxonomy.toml",
-        "target/local-ready/pipeline-dag/fastq-edna-taxonomy.json",
+        "benchmarks/readiness/local-ready/pipeline-dag/fastq-edna-taxonomy.json",
     ),
     (
         80,
         "benchmarks/configs/pipelines/local/fastq-amplicon.toml",
-        "target/local-ready/pipeline-dag/fastq-amplicon.json",
+        "benchmarks/readiness/local-ready/pipeline-dag/fastq-amplicon.json",
     ),
     (
         81,
         "benchmarks/configs/pipelines/local/fastq-umi.toml",
-        "target/local-ready/pipeline-dag/fastq-umi.json",
+        "benchmarks/readiness/local-ready/pipeline-dag/fastq-umi.json",
     ),
     (
         82,
         "benchmarks/configs/pipelines/local/bam-core-qc.toml",
-        "target/local-ready/pipeline-dag/bam-core-qc.json",
+        "benchmarks/readiness/local-ready/pipeline-dag/bam-core-qc.json",
     ),
     (
         83,
         "benchmarks/configs/pipelines/local/bam-authenticity.toml",
-        "target/local-ready/pipeline-dag/bam-authenticity.json",
+        "benchmarks/readiness/local-ready/pipeline-dag/bam-authenticity.json",
     ),
     (
         84,
         "benchmarks/configs/pipelines/local/bam-genotyping.toml",
-        "target/local-ready/pipeline-dag/bam-genotyping.json",
+        "benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping.json",
     ),
     (
         85,
         "benchmarks/configs/pipelines/local/bam-kinship.toml",
-        "target/local-ready/pipeline-dag/bam-kinship.json",
+        "benchmarks/readiness/local-ready/pipeline-dag/bam-kinship.json",
     ),
     (
         86,
         "benchmarks/configs/pipelines/local/fastq-to-bam.toml",
-        "target/local-ready/pipeline-dag/fastq-to-bam.json",
+        "benchmarks/readiness/local-ready/pipeline-dag/fastq-to-bam.json",
     ),
 ];
 
@@ -509,7 +514,9 @@ fn evaluate_benchmark_harness_goals(
                     55,
                     "benchmark_harness",
                     "rendered stage command manifest carries declared fields for every stage",
-                    Some("target/local-ready/rendered-stage-commands.json".to_string()),
+                    Some(
+                        "benchmarks/readiness/local-ready/rendered-stage-commands.json".to_string(),
+                    ),
                     "stage command rendering failed earlier".to_string(),
                 ));
                 None
@@ -1133,7 +1140,10 @@ fn evaluate_corpus_goals(
                 70,
                 "corpora",
                 "corpus-02 expected taxonomy output validates sample-taxon truth rows",
-                Some("benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv".to_string()),
+                Some(
+                    "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv"
+                        .to_string(),
+                ),
                 "corpus-02 eDNA fixture validation failed earlier".to_string(),
             ));
             None

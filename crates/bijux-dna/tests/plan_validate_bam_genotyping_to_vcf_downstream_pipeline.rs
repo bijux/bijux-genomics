@@ -54,7 +54,7 @@ fn plan_validate_bam_genotyping_to_vcf_downstream_pipeline_reports_governed_prof
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json")
+        Some("benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),

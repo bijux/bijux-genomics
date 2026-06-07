@@ -13,8 +13,9 @@ fn plan_validate_adna_pipeline_writes_governed_report_file() {
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
-    let output_path =
-        repo_root.join("target/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json");
+    let output_path = repo_root.join(
+        "benchmarks/readiness/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json",
+    );
 
     if output_path.exists() {
         fs::remove_file(&output_path).expect("remove stale output");
@@ -39,7 +40,7 @@ fn plan_validate_adna_pipeline_writes_governed_report_file() {
     );
     assert_eq!(
         String::from_utf8(output.stdout).expect("stdout utf8").trim(),
-        "target/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json"
+        "benchmarks/readiness/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json"
     );
 
     let payload = fs::read_to_string(&output_path).expect("read output file");

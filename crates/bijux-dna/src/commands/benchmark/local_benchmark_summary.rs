@@ -25,15 +25,18 @@ use crate::commands::benchmark::local_tool_comparison_template::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_BENCHMARK_SUMMARY_JSON_PATH: &str = "target/local-ready/benchmark-summary.json";
-const DEFAULT_BENCHMARK_SUMMARY_MARKDOWN_PATH: &str = "target/local-ready/benchmark-summary.md";
+const DEFAULT_BENCHMARK_SUMMARY_JSON_PATH: &str =
+    "benchmarks/readiness/local-ready/benchmark-summary.json";
+const DEFAULT_BENCHMARK_SUMMARY_MARKDOWN_PATH: &str =
+    "benchmarks/readiness/local-ready/benchmark-summary.md";
 const DEFAULT_MANIFEST_COMPLETION_REPORT_PATH: &str =
-    "target/local-ready/manifest-completion-report.json";
+    "benchmarks/readiness/local-ready/manifest-completion-report.json";
 const DEFAULT_OUTPUT_COMPLETION_REPORT_PATH: &str =
-    "target/local-ready/output-completion-report.json";
-const DEFAULT_RUNTIME_METRICS_REPORT_PATH: &str = "target/local-ready/runtime-metrics.json";
+    "benchmarks/readiness/local-ready/output-completion-report.json";
+const DEFAULT_RUNTIME_METRICS_REPORT_PATH: &str =
+    "benchmarks/readiness/local-ready/runtime-metrics.json";
 const DEFAULT_TOOL_COMPARISON_TEMPLATE_PATH: &str =
-    "target/local-ready/tool-comparison-template.tsv";
+    "benchmarks/readiness/local-ready/tool-comparison-template.tsv";
 const LOCAL_BENCHMARK_SUMMARY_SCHEMA_VERSION: &str = "bijux.bench.local_benchmark_summary.v1";
 
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]

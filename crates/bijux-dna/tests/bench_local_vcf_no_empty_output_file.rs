@@ -36,11 +36,12 @@ fn bench_local_validate_vcf_no_empty_output_writes_governed_json_file() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "target/local-ready/vcf/no-empty-output-check.json"
+        "benchmarks/readiness/local-ready/vcf/no-empty-output-check.json"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let report_path = repo_root.join("target/local-ready/vcf/no-empty-output-check.json");
+    let report_path =
+        repo_root.join("benchmarks/readiness/local-ready/vcf/no-empty-output-check.json");
     let raw = std::fs::read_to_string(&report_path).expect("read report");
     let parsed: serde_json::Value = serde_json::from_str(&raw).expect("parse report");
 

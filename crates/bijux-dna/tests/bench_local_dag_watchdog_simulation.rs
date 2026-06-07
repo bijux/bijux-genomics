@@ -48,11 +48,11 @@ fn bench_local_dag_watchdog_simulation_writes_no_global_wait_report() {
     );
     assert_eq!(
         payload.get("dag_report_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/pipeline-dag/fastq-core-preprocess.json")
+        Some("benchmarks/readiness/local-ready/pipeline-dag/fastq-core-preprocess.json")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/dag-sim/no-global-wait.json")
+        Some("benchmarks/readiness/local-ready/dag-sim/no-global-wait.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -107,7 +107,7 @@ fn bench_local_dag_watchdog_simulation_writes_failure_isolation_report() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/dag-sim/failure-isolation.json")
+        Some("benchmarks/readiness/local-ready/dag-sim/failure-isolation.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -169,7 +169,7 @@ fn bench_local_dag_watchdog_simulation_writes_partial_resume_report() {
     assert_eq!(payload.get("scenario").and_then(serde_json::Value::as_str), Some("partial_resume"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/dag-sim/partial-resume.json")
+        Some("benchmarks/readiness/local-ready/dag-sim/partial-resume.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -245,7 +245,7 @@ fn bench_local_dag_watchdog_simulation_writes_completion_rules_report() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-ready/dag-sim/completion-rules.json")
+        Some("benchmarks/readiness/local-ready/dag-sim/completion-rules.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),

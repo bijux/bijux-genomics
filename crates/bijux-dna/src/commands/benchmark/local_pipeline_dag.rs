@@ -2804,7 +2804,8 @@ fn validate_symbol_list(values: &[String], label: &str) -> Result<()> {
 }
 
 fn default_pipeline_report_relative_path(pipeline_id: &str) -> PathBuf {
-    PathBuf::from("target/local-ready/pipeline-dag").join(format!("{pipeline_id}.json"))
+    PathBuf::from("benchmarks/readiness/local-ready/pipeline-dag")
+        .join(format!("{pipeline_id}.json"))
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
@@ -2951,8 +2952,8 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
     fn fastq_core_preprocess_pipeline_dag_is_acyclic_and_inventory_aligned() {
         let repo_root = repo_root();
         let config_path = repo_root.join(DEFAULT_FASTQ_CORE_PREPROCESS_PIPELINE_CONFIG_PATH);
-        let output_path =
-            repo_root.join("target/local-ready/pipeline-dag/fastq-core-preprocess.json");
+        let output_path = repo_root
+            .join("benchmarks/readiness/local-ready/pipeline-dag/fastq-core-preprocess.json");
         let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
             .expect("validate local pipeline dag");
 
@@ -2988,7 +2989,8 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
         let repo_root = repo_root();
         let config_path =
             repo_root.join("benchmarks/configs/pipelines/local/fastq-paired-merge.toml");
-        let output_path = repo_root.join("target/local-ready/pipeline-dag/fastq-paired-merge.json");
+        let output_path =
+            repo_root.join("benchmarks/readiness/local-ready/pipeline-dag/fastq-paired-merge.json");
         let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
             .expect("validate paired merge local pipeline dag");
 
@@ -3026,8 +3028,8 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
         let repo_root = repo_root();
         let config_path =
             repo_root.join("benchmarks/configs/pipelines/local/fastq-edna-taxonomy.toml");
-        let output_path =
-            repo_root.join("target/local-ready/pipeline-dag/fastq-edna-taxonomy.json");
+        let output_path = repo_root
+            .join("benchmarks/readiness/local-ready/pipeline-dag/fastq-edna-taxonomy.json");
         let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
             .expect("validate edna taxonomy local pipeline dag");
 
@@ -3054,8 +3056,8 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
         let repo_root = repo_root();
         let config_path =
             repo_root.join("benchmarks/configs/pipelines/local/edna-taxonomy-no-vcf.toml");
-        let output_path =
-            repo_root.join("target/local-ready/pipeline-dag/edna-taxonomy-no-vcf.json");
+        let output_path = repo_root
+            .join("benchmarks/readiness/local-ready/pipeline-dag/edna-taxonomy-no-vcf.json");
         let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
             .expect("validate edna taxonomy no-vcf local pipeline dag");
 
@@ -3183,7 +3185,8 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
     fn fastq_amplicon_pipeline_dag_tracks_amplicon_handoffs() {
         let repo_root = repo_root();
         let config_path = repo_root.join("benchmarks/configs/pipelines/local/fastq-amplicon.toml");
-        let output_path = repo_root.join("target/local-ready/pipeline-dag/fastq-amplicon.json");
+        let output_path =
+            repo_root.join("benchmarks/readiness/local-ready/pipeline-dag/fastq-amplicon.json");
         let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
             .expect("validate amplicon local pipeline dag");
 
@@ -3217,8 +3220,8 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
         let repo_root = repo_root();
         let config_path =
             repo_root.join("benchmarks/configs/pipelines/local/amplicon-asv-otu-no-vcf.toml");
-        let output_path =
-            repo_root.join("target/local-ready/pipeline-dag/amplicon-asv-otu-no-vcf.json");
+        let output_path = repo_root
+            .join("benchmarks/readiness/local-ready/pipeline-dag/amplicon-asv-otu-no-vcf.json");
         let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
             .expect("validate amplicon asv otu no-vcf local pipeline dag");
 
@@ -3338,7 +3341,8 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
     fn fastq_umi_pipeline_dag_tracks_downstream_umi_consumers() {
         let repo_root = repo_root();
         let config_path = repo_root.join("benchmarks/configs/pipelines/local/fastq-umi.toml");
-        let output_path = repo_root.join("target/local-ready/pipeline-dag/fastq-umi.json");
+        let output_path =
+            repo_root.join("benchmarks/readiness/local-ready/pipeline-dag/fastq-umi.json");
         let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
             .expect("validate umi local pipeline dag");
 
@@ -3398,7 +3402,8 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
     fn bam_core_qc_pipeline_dag_tracks_qc_summary_filter_and_coverage_handoffs() {
         let repo_root = repo_root();
         let config_path = repo_root.join("benchmarks/configs/pipelines/local/bam-core-qc.toml");
-        let output_path = repo_root.join("target/local-ready/pipeline-dag/bam-core-qc.json");
+        let output_path =
+            repo_root.join("benchmarks/readiness/local-ready/pipeline-dag/bam-core-qc.json");
         let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
             .expect("validate bam core qc local pipeline dag");
 
@@ -3454,7 +3459,8 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
         let repo_root = repo_root();
         let config_path =
             repo_root.join("benchmarks/configs/pipelines/local/bam-authenticity.toml");
-        let output_path = repo_root.join("target/local-ready/pipeline-dag/bam-authenticity.json");
+        let output_path =
+            repo_root.join("benchmarks/readiness/local-ready/pipeline-dag/bam-authenticity.json");
         let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
             .expect("validate bam authenticity local pipeline dag");
 
@@ -3507,7 +3513,8 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
     fn bam_genotyping_pipeline_dag_tracks_recalibration_skip_and_run_handoffs() {
         let repo_root = repo_root();
         let config_path = repo_root.join("benchmarks/configs/pipelines/local/bam-genotyping.toml");
-        let output_path = repo_root.join("target/local-ready/pipeline-dag/bam-genotyping.json");
+        let output_path =
+            repo_root.join("benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping.json");
         let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
             .expect("validate bam genotyping local pipeline dag");
 
@@ -3560,7 +3567,8 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
     fn bam_kinship_pipeline_dag_keeps_overlap_insufficiency_local_to_kinship() {
         let repo_root = repo_root();
         let config_path = repo_root.join("benchmarks/configs/pipelines/local/bam-kinship.toml");
-        let output_path = repo_root.join("target/local-ready/pipeline-dag/bam-kinship.json");
+        let output_path =
+            repo_root.join("benchmarks/readiness/local-ready/pipeline-dag/bam-kinship.json");
         let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
             .expect("validate bam kinship local pipeline dag");
 
@@ -3621,7 +3629,8 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
     fn fastq_to_bam_pipeline_dag_maps_trimmed_fastq_paths_into_bam_alignment() {
         let repo_root = repo_root();
         let config_path = repo_root.join("benchmarks/configs/pipelines/local/fastq-to-bam.toml");
-        let output_path = repo_root.join("target/local-ready/pipeline-dag/fastq-to-bam.json");
+        let output_path =
+            repo_root.join("benchmarks/readiness/local-ready/pipeline-dag/fastq-to-bam.json");
         let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
             .expect("validate fastq-to-bam local pipeline dag");
 

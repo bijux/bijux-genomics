@@ -38,7 +38,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 #[test]
 fn bench_local_collect_runtime_metrics_json_reports_governed_51_stage_slice() {
     let fake_run_root = "target/local-fake-runs/stages-runtime-metrics-cli";
-    let report_output = "target/local-ready/runtime-metrics.cli.json";
+    let report_output = "benchmarks/readiness/local-ready/runtime-metrics.cli.json";
 
     let _fake_run_manifest = run_cli_json(&[
         "bench",

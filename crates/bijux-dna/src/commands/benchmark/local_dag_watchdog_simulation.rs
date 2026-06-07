@@ -11,17 +11,17 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH: &str =
-    "target/local-ready/dag-sim/no-global-wait.json";
+    "benchmarks/readiness/local-ready/dag-sim/no-global-wait.json";
 pub(crate) const DEFAULT_FAILURE_ISOLATION_REPORT_PATH: &str =
-    "target/local-ready/dag-sim/failure-isolation.json";
+    "benchmarks/readiness/local-ready/dag-sim/failure-isolation.json";
 pub(crate) const DEFAULT_PARTIAL_RESUME_REPORT_PATH: &str =
-    "target/local-ready/dag-sim/partial-resume.json";
+    "benchmarks/readiness/local-ready/dag-sim/partial-resume.json";
 pub(crate) const DEFAULT_COMPLETION_RULES_REPORT_PATH: &str =
-    "target/local-ready/dag-sim/completion-rules.json";
+    "benchmarks/readiness/local-ready/dag-sim/completion-rules.json";
 const LOCAL_DAG_WATCHDOG_SIMULATION_SCHEMA_VERSION: &str =
     "bijux.bench.local_dag_watchdog_simulation.v1";
 const FASTQ_CORE_PREPROCESS_PIPELINE_REPORT_PATH: &str =
-    "target/local-ready/pipeline-dag/fastq-core-preprocess.json";
+    "benchmarks/readiness/local-ready/pipeline-dag/fastq-core-preprocess.json";
 const NO_GLOBAL_WAIT_SLOW_BRANCH_STAGE_ID: &str = "fastq.profile_read_lengths";
 const FAILURE_ISOLATION_FAILED_SAMPLE_ID: &str = "sample_alpha";
 const FAILURE_ISOLATION_CONTINUED_SAMPLE_ID: &str = "sample_beta";

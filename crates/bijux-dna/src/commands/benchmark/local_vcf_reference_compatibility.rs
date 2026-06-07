@@ -9,7 +9,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_REFERENCE_COMPATIBILITY_PATH: &str =
-    "target/local-ready/vcf/reference-compatibility.json";
+    "benchmarks/readiness/local-ready/vcf/reference-compatibility.json";
 const LOCAL_VCF_REFERENCE_COMPATIBILITY_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_reference_compatibility.v1";
 

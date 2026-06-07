@@ -65,7 +65,8 @@ fn bench_local_validate_vcf_no_empty_output_rejects_zero_byte_artifact() {
     assert!(stderr.contains("stats_json"), "failure should name the output id: {stderr}");
     assert!(stderr.contains("status `empty`"), "failure should identify empty status: {stderr}");
 
-    let report_path = repo_root.join("target/local-ready/vcf/no-empty-output-check.json");
+    let report_path =
+        repo_root.join("benchmarks/readiness/local-ready/vcf/no-empty-output-check.json");
     let raw = std::fs::read_to_string(report_path).expect("read failure report");
     let report: serde_json::Value = serde_json::from_str(&raw).expect("parse failure report");
     assert_eq!(report.get("valid").and_then(serde_json::Value::as_bool), Some(false));

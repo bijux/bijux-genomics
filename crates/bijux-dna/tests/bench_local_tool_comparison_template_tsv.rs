@@ -33,7 +33,7 @@ fn bench_local_render_tool_comparison_template_writes_governed_tsv_columns() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let tsv_path = repo_root.join("target/local-ready/tool-comparison-template.tsv");
+    let tsv_path = repo_root.join("benchmarks/readiness/local-ready/tool-comparison-template.tsv");
     assert!(tsv_path.is_file(), "tool comparison template must exist");
 
     let tsv = std::fs::read_to_string(&tsv_path).expect("read tool comparison template");

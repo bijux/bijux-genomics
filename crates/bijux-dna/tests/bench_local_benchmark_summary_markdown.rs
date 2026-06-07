@@ -33,7 +33,7 @@ fn bench_local_render_benchmark_summary_writes_readable_markdown() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let markdown_path = repo_root.join("target/local-ready/benchmark-summary.md");
+    let markdown_path = repo_root.join("benchmarks/readiness/local-ready/benchmark-summary.md");
     assert!(markdown_path.is_file(), "benchmark summary markdown must exist");
 
     let markdown = std::fs::read_to_string(&markdown_path).expect("read benchmark summary");
