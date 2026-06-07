@@ -186,6 +186,15 @@ Visible aliases are part of the operator surface:
   `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `expected_outputs`,
   `expected_metrics`, and `report_section` explicit, and the command fails closed unless result
   identities stay unique and stable across all governed benchmark-ready domains.
+- `bijux-dna bench readiness render-all-domain-failure-classification`
+  `render-all-domain-failure-classification` writes
+  `target/bench-readiness/failure-classification-all-domains.json` and materializes a governed
+  fixture tree under `target/bench-readiness/failure-classification-all-domains-fixture/`. It
+  keeps one explicit row for each required failure class across the unified FASTQ, BAM, and VCF
+  readiness surface: `missing_input`, `tool_not_found`, `command_failed`, `missing_output`,
+  `parser_failed`, `insufficient_data`, and `unsupported_pair`. The command fails closed unless
+  every class is triggered by governed evidence instead of collapsing all failures into a generic
+  failed status.
 - `bijux-dna bench readiness render-all-domain-completion-check`
   `render-all-domain-completion-check` writes
   `target/bench-readiness/completion-check-all-domains.json` and materializes a governed fixture
