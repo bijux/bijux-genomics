@@ -125,6 +125,8 @@ pub enum BenchLocalCommand {
     FakeRunAllDomains(BenchLocalFakeRunAllDomainsArgs),
     #[command(name = "fake-run-all-domain-failures")]
     FakeRunAllDomainFailures(BenchLocalFakeRunAllDomainFailuresArgs),
+    #[command(name = "render-all-domain-slurm-scripts")]
+    RenderAllDomainSlurmScripts(BenchLocalRenderAllDomainSlurmScriptsArgs),
     #[command(name = "fake-run-failures")]
     FakeRunFailures(BenchLocalFakeRunFailuresArgs),
     #[command(name = "fake-run-stages")]
@@ -579,6 +581,14 @@ pub struct BenchLocalFakeRunAllDomainFailuresArgs {
     pub output_root: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = 7)]
     pub exit_code: i32,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderAllDomainSlurmScriptsArgs {
+    #[arg(long)]
+    pub output_root: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

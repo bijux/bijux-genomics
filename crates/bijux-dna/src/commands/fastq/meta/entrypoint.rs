@@ -878,6 +878,11 @@ pub(crate) fn handle_meta_commands(
                             &args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RenderAllDomainSlurmScripts(args) => {
+                        crate::commands::benchmark::local_all_domain_slurm_scripts::run_render_all_domain_slurm_scripts(
+                            &args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::FakeRunFailures(args) => {
                         crate::commands::benchmark::local_stage_fake_runs::run_fake_run_failures(
                             &args,
