@@ -44,7 +44,7 @@ fn bench_readiness_vcf_adapter_output_coverage_writes_governed_tsv_columns() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 38, "TSV must retain the governed 38-row VCF adapter slice");
+    assert_eq!(rows.len(), 39, "TSV must retain the governed 39-row VCF adapter slice");
 
     let has_row = |stage_id: &str,
                    tool_id: &str,
@@ -71,6 +71,10 @@ fn bench_readiness_vcf_adapter_output_coverage_writes_governed_tsv_columns() {
     assert!(
         has_row("vcf.stats", "bcftools", "complete", "benchmark_ready", "stats_json=", ""),
         "TSV must retain the governed bcftools stats output row"
+    );
+    assert!(
+        has_row("vcf.qc", "bcftools", "complete", "benchmark_ready", "qc_report=", ""),
+        "TSV must retain the governed bcftools QC output row"
     );
     assert!(
         has_row(

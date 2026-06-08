@@ -1,0 +1,5 @@
+variant_id	allele_frequency
+chr1:10:A:G	0.10
+chr1:20:C:T	0.25
+chr1:30:G:A	0.05
+chr1:40:T:G	0.40

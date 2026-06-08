@@ -40,6 +40,7 @@ fn bench_readiness_vcf_rendered_commands_write_bash_parseable_script() {
         script.contains("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../..\" && pwd)\"")
     );
     assert!(script.contains("# vcf.call / bcftools"));
+    assert!(script.contains("# vcf.qc / bcftools"));
     assert!(script.contains("# vcf.stats / bcftools"));
     assert!(script.contains("bcftools mpileup"));
     assert!(script.contains(" | bcftools call "));

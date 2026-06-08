@@ -45,24 +45,24 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-adapter-output-coverage.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(38));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(39));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(9)
+        Some(12)
     );
     assert_eq!(
         payload.get("benchmark_ready_complete_row_count").and_then(serde_json::Value::as_u64),
-        Some(9)
+        Some(12)
     );
     assert_eq!(
         payload.get("benchmark_ready_incomplete_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
-    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(35));
+    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(36));
     assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(3));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 38);
+    assert_eq!(rows.len(), 39);
 
     let call = rows
         .iter()
@@ -116,6 +116,29 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
             .filter_map(serde_json::Value::as_str)
             .any(|entry| entry.starts_with("stats_json=")),
         "stats row must keep the normalized stats artifact explicit"
+    );
+
+    let qc = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
+        })
+        .expect("bcftools qc row");
+    assert_eq!(
+        qc.get("benchmark_status").and_then(serde_json::Value::as_str),
+        Some("benchmark_ready")
+    );
+    assert_eq!(qc.get("status").and_then(serde_json::Value::as_str), Some("complete"));
+    assert_eq!(qc.get("raw_outputs").and_then(serde_json::Value::as_array).map(Vec::len), Some(6));
+    assert!(
+        qc.get("normalized_metrics")
+            .and_then(serde_json::Value::as_array)
+            .expect("qc normalized metrics")
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .any(|entry| entry.starts_with("qc_report=")),
+        "qc row must keep the normalized QC report explicit"
     );
 
     let postprocess = rows

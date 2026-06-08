@@ -49,11 +49,11 @@ fn bench_readiness_vcf_matrix_registry_consistency_reports_governed_pass_state()
     );
     assert_eq!(payload.get("passes_gate"), Some(&serde_json::Value::Bool(true)));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("matrix_row_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(payload.get("matrix_row_count").and_then(serde_json::Value::as_u64), Some(22));
     assert_eq!(payload.get("registry_pair_count").and_then(serde_json::Value::as_u64), Some(48));
     assert_eq!(
         payload.get("benchmark_ready_registry_pair_count").and_then(serde_json::Value::as_u64),
-        Some(9)
+        Some(10)
     );
     assert_eq!(
         payload.get("unregistered_matrix_pair_count").and_then(serde_json::Value::as_u64),

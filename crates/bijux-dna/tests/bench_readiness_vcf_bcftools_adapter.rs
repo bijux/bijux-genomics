@@ -47,18 +47,18 @@ fn bench_readiness_vcf_bcftools_adapter_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/adapters/bcftools.vcf.json")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(10));
-    assert_eq!(payload.get("supported_row_count").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(11));
+    assert_eq!(payload.get("supported_row_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("planned_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(payload.get("argv_valid_row_count").and_then(serde_json::Value::as_u64), Some(10));
+    assert_eq!(payload.get("argv_valid_row_count").and_then(serde_json::Value::as_u64), Some(11));
     assert_eq!(
         payload.get("missing_input_test_passed_row_count").and_then(serde_json::Value::as_u64),
-        Some(10)
+        Some(11)
     );
     assert_eq!(payload.get("indexed_row_count").and_then(serde_json::Value::as_u64), Some(9));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 10);
+    assert_eq!(rows.len(), 11);
 
     let has_stage = |stage_id: &str, support_status: &str, benchmark_status: &str| {
         rows.iter().any(|row| {
@@ -85,6 +85,10 @@ fn bench_readiness_vcf_bcftools_adapter_reports_governed_rows() {
     assert!(
         has_stage("vcf.filter", "supported", "benchmark_ready"),
         "report must retain the governed filter row"
+    );
+    assert!(
+        has_stage("vcf.qc", "supported", "benchmark_ready"),
+        "report must retain the governed QC row"
     );
     assert!(
         has_stage("vcf.stats", "supported", "benchmark_ready"),
@@ -126,5 +130,19 @@ fn bench_readiness_vcf_bcftools_adapter_reports_governed_rows() {
     assert_eq!(
         stats_row.get("parser_output_ids").and_then(serde_json::Value::as_array),
         Some(&vec![serde_json::Value::String("stats_json".to_string())])
+    );
+
+    let qc_row = rows
+        .iter()
+        .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc"))
+        .expect("qc row");
+    assert_eq!(
+        qc_row.get("raw_output_ids").and_then(serde_json::Value::as_array).map(Vec::len),
+        Some(6),
+        "qc row must retain the six raw QC reports and threshold artifact"
+    );
+    assert_eq!(
+        qc_row.get("parser_output_ids").and_then(serde_json::Value::as_array),
+        Some(&vec![serde_json::Value::String("qc_report".to_string())])
     );
 }

@@ -42,7 +42,13 @@ fn bench_readiness_vcf_parser_coverage_writes_governed_tsv_columns() {
         Some("stage_id\ttool_id\tparser_id\tfixture_path\tschema_id\tcoverage_status")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 8);
+    assert_eq!(rows.len(), 12);
+    assert!(
+        rows.iter().any(|row| {
+            row == &"vcf.qc\tbcftools\tparse_bcftools_qc_metrics\tbenchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.qc\tbijux.vcf.qc.v1\tcovered"
+        }),
+        "TSV must retain the governed VCF QC parser coverage row"
+    );
     assert!(
         rows.iter().any(|row| {
             row == &"vcf.call\tbcftools\tparse_bcftools_call_metrics\tbenchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call\tbijux.vcf.call.v1\tcovered"

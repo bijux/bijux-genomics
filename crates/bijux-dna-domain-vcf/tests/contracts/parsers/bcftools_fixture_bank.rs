@@ -83,6 +83,19 @@ const VCF_BCFTOOLS_FIXTURE_CASES: &[VcfBcftoolsFixtureCase] = &[
         parser_id: "parse_bcftools_stats_metrics",
         required_files: &["raw.bcftools_stats.txt", "expected.normalized.json"],
     },
+    VcfBcftoolsFixtureCase {
+        stage: VcfDomainStage::Qc,
+        parser_id: "parse_bcftools_qc_metrics",
+        required_files: &[
+            "raw.sample_missingness.tsv",
+            "raw.variant_missingness.tsv",
+            "raw.allele_frequency.tsv",
+            "raw.heterozygosity.tsv",
+            "raw.hwe.tsv",
+            "raw.thresholds.json",
+            "expected.normalized.json",
+        ],
+    },
 ];
 
 #[test]
@@ -102,6 +115,7 @@ fn vcf_bcftools_fixture_bank_covers_governed_stage_set() {
             "vcf.postprocess",
             "vcf.prepare_reference_panel",
             "vcf.stats",
+            "vcf.qc",
         ]
     );
     for case in VCF_BCFTOOLS_FIXTURE_CASES {

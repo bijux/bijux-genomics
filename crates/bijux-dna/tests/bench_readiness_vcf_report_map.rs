@@ -45,9 +45,9 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-report-map.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(9));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(9));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(12));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(10));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(
@@ -62,11 +62,11 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
             .get("section_counts")
             .and_then(|value| value.get("quality_control"))
             .and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(5)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 9);
+    assert_eq!(rows.len(), 12);
 
     let call = rows
         .iter()
@@ -106,6 +106,23 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
         .get("metric_columns")
         .and_then(serde_json::Value::as_array)
         .is_some_and(|items| items.iter().any(|item| item.as_str() == Some("filter_ids"))));
+
+    let qc = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
+        })
+        .expect("vcf.qc row");
+    assert_eq!(qc.get("section_id").and_then(serde_json::Value::as_str), Some("quality_control"));
+    assert_eq!(
+        qc.get("summary_table").and_then(serde_json::Value::as_str),
+        Some("quality_control_metrics")
+    );
+    assert!(qc
+        .get("metric_columns")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|items| items.iter().any(|item| item.as_str() == Some("hwe_summary"))));
 
     let gl_propagation = rows
         .iter()

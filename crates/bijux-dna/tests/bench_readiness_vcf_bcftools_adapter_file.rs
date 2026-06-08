@@ -43,7 +43,7 @@ fn bench_readiness_vcf_bcftools_adapter_writes_governed_json_file() {
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.vcf_bcftools_adapter.v1")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(10));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(11));
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
 
     for stage_id in [
@@ -56,6 +56,7 @@ fn bench_readiness_vcf_bcftools_adapter_writes_governed_json_file() {
         "vcf.gl_propagation",
         "vcf.postprocess",
         "vcf.prepare_reference_panel",
+        "vcf.qc",
         "vcf.stats",
     ] {
         assert!(
@@ -89,5 +90,18 @@ fn bench_readiness_vcf_bcftools_adapter_writes_governed_json_file() {
             .map(|items| items.len()),
         Some(2),
         "stats row must retain both raw bcftools output and normalized parser output declarations"
+    );
+
+    let qc_row = rows
+        .iter()
+        .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc"))
+        .expect("qc row");
+    assert_eq!(
+        qc_row
+            .get("declared_outputs")
+            .and_then(serde_json::Value::as_array)
+            .map(|items| items.len()),
+        Some(7),
+        "qc row must retain six raw QC declarations plus the normalized QC report"
     );
 }

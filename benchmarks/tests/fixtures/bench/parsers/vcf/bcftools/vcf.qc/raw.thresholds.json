@@ -1,0 +1,4 @@
+{
+  "sample_missingness_exclusion_threshold": 0.5,
+  "variant_missingness_exclusion_threshold": 0.5
+}

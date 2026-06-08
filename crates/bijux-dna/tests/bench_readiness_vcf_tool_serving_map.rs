@@ -46,20 +46,20 @@ fn bench_readiness_vcf_tool_serving_map_reports_owned_matrix_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-tool-serving-map.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(22));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(6));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(9)
+        Some(12)
     );
     assert_eq!(
         payload.get("not_benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(11)
+        Some(10)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 20);
+    assert_eq!(rows.len(), 22);
 
     let has_row = |tool_id: &str,
                    stage_id: &str,
@@ -86,6 +86,45 @@ fn bench_readiness_vcf_tool_serving_map_reports_owned_matrix_rows() {
         })
     };
 
+    assert!(
+        has_row(
+            "bcftools",
+            "vcf.qc",
+            "supported",
+            "runnable",
+            "parse_normalized",
+            "fixture:vcf_production_regression",
+            "assigned",
+            "benchmark_ready",
+        ),
+        "VCF tool-serving map must retain the governed bcftools QC row"
+    );
+    assert!(
+        has_row(
+            "plink",
+            "vcf.qc",
+            "supported",
+            "runnable",
+            "parse_normalized",
+            "fixture:vcf_production_regression",
+            "assigned",
+            "benchmark_ready",
+        ),
+        "VCF tool-serving map must retain the governed plink QC row"
+    );
+    assert!(
+        has_row(
+            "plink2",
+            "vcf.qc",
+            "supported",
+            "runnable",
+            "parse_normalized",
+            "fixture:vcf_production_regression",
+            "assigned",
+            "benchmark_ready",
+        ),
+        "VCF tool-serving map must retain the governed plink2 QC row"
+    );
     assert!(
         has_row(
             "bcftools",
