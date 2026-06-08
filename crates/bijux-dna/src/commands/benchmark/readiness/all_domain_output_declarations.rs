@@ -307,9 +307,9 @@ pub(crate) fn collect_all_domain_output_declaration_rows(
 fn ensure_all_domain_output_declaration_contract(
     rows: &[AllDomainOutputDeclarationRow],
 ) -> Result<()> {
-    if rows.len() != 121 {
+    if rows.len() != 124 {
         return Err(anyhow!(
-            "all-domain output declarations must retain exactly 121 benchmark-ready rows, found {}",
+            "all-domain output declarations must retain exactly 124 benchmark-ready rows, found {}",
             rows.len()
         ));
     }

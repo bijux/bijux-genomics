@@ -337,12 +337,12 @@ fn ensure_all_domain_local_job_coverage_contract(
             "all-domain local-job coverage must keep governed local benchmark job coverage for every active row"
         ));
     }
-    if report.row_count != 121
-        || report.result_id_count != 121
-        || report.local_job_binding_count != 121
+    if report.row_count != 124
+        || report.result_id_count != 124
+        || report.local_job_binding_count != 124
     {
         return Err(anyhow!(
-            "all-domain local-job coverage must retain exactly 121 governed active result rows, found {} rows, {} result ids, and {} local job rows",
+            "all-domain local-job coverage must retain exactly 124 governed active result rows, found {} rows, {} result ids, and {} local job rows",
             report.row_count,
             report.result_id_count,
             report.local_job_binding_count

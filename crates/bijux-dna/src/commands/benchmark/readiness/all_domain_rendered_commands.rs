@@ -371,9 +371,9 @@ fn ensure_all_domain_rendered_command_contract(
         ));
     }
 
-    if rows.len() != 121 {
+    if rows.len() != 124 {
         return Err(anyhow!(
-            "all-domain rendered commands must retain exactly 121 benchmark-ready rows, found {}",
+            "all-domain rendered commands must retain exactly 124 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
