@@ -601,6 +601,15 @@ Visible aliases are part of the operator surface:
   rows. The command fails closed unless the catalog matches the config-backed active stage
   inventory and the unified stage-tool surface, and unless parser, schema, and report-backed
   stages stay represented without drift.
+- `bijux-dna bench readiness render-all-domain-parser-fixture-coverage`
+  `render-all-domain-parser-fixture-coverage` writes
+  `benchmarks/readiness/all-domains/parser-fixture-coverage.tsv` with one governed row per active
+  FASTQ, BAM, and VCF job-bearing binding. Each row keeps `domain`, `stage_id`, `tool_id`,
+  `corpus_id`, `asset_profile_id`, `adapter_id`, `parser_id`, `schema_id`,
+  `parser_fixture_parser_id`, `parser_fixture_schema_id`, `parser_fixture_reference_kind`,
+  `parser_fixture_reference`, `proof_source`, `coverage_status`, and `reason` explicit. The
+  command fails closed unless every active binding from the governed all-domain active matrix
+  retains covered parser proof from the domain-local parser coverage surfaces.
 - `bijux-dna bench readiness render-all-domain-active-stage-tool-matrix`
   `render-all-domain-active-stage-tool-matrix` writes
   `benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv` with one governed row per
