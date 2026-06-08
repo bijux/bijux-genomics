@@ -7,8 +7,8 @@
   "existing_root_count": 6,
   "tracked_marker_count": 6,
   "ignored_root_count": 0,
-  "readiness_snapshot_count": 109,
-  "readiness_json_snapshot_count": 79,
+  "readiness_snapshot_count": 110,
+  "readiness_json_snapshot_count": 80,
   "readiness_tsv_snapshot_count": 30,
   "root_tests_regular_file_count": 1,
   "root_tests_readme_tracked_by_git": true,
@@ -132,6 +132,7 @@
     "benchmarks/readiness/vcf-tool-serving-map.tsv",
     "benchmarks/readiness/vcf-undercovered-stages.tsv",
     "benchmarks/readiness/vcf/call-diploid-ready.json",
+    "benchmarks/readiness/vcf/call-gl-ready.json",
     "benchmarks/readiness/vcf/call-pseudohaploid-ready.json",
     "benchmarks/readiness/vcf/call-ready.json",
     "benchmarks/readiness/vcf/vcf-active-stage-tool-matrix.tsv"
