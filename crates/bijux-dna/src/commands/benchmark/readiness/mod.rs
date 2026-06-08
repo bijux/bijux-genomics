@@ -107,6 +107,7 @@ pub(crate) mod vcf_parser_failure_tests;
 pub(crate) mod vcf_parsers_report_ready;
 pub(crate) mod vcf_phasing_family_adapter;
 pub(crate) mod vcf_plink_family_adapter;
+pub(crate) mod vcf_qc_ready;
 pub(crate) mod vcf_readiness_inputs;
 pub(crate) mod vcf_rendered_command_rows;
 pub(crate) mod vcf_rendered_commands;

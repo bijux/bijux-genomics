@@ -190,6 +190,8 @@ pub enum BenchReadinessCommand {
     RenderVcfCallPseudohaploidReady(BenchReadinessRenderVcfCallPseudohaploidReadyArgs),
     #[command(name = "render-vcf-stats-ready")]
     RenderVcfStatsReady(BenchReadinessRenderVcfStatsReadyArgs),
+    #[command(name = "render-vcf-qc-ready")]
+    RenderVcfQcReady(BenchReadinessRenderVcfQcReadyArgs),
     #[command(name = "render-vcf-adapter-output-coverage")]
     RenderVcfAdapterOutputCoverage(BenchReadinessRenderVcfAdapterOutputCoverageArgs),
     #[command(name = "render-vcf-commands")]
@@ -556,6 +558,14 @@ pub struct BenchReadinessRenderVcfCallPseudohaploidReadyArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfStatsReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfQcReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

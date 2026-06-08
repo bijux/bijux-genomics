@@ -18,7 +18,7 @@ use super::stage_tool_assets::{
     LOCAL_STAGE_TOOL_ASSETS_SCHEMA_VERSION,
 };
 use super::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
-use crate::commands::benchmark::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
+use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -143,7 +143,7 @@ pub(crate) fn collect_all_domain_stage_tool_table_rows(
         .into_iter()
         .map(|row| (binding_key("bam", &row.stage_id, &row.tool_id), row))
         .collect::<BTreeMap<_, _>>();
-    let vcf_matrix_rows = build_vcf_stage_matrix_rows()?
+    let vcf_matrix_rows = collect_vcf_benchmark_binding_rows()?
         .into_iter()
         .map(|row| (binding_key("vcf", &row.stage_id, &row.tool_id), row))
         .collect::<BTreeMap<_, _>>();
@@ -375,7 +375,7 @@ fn render_binding_key(key: &BindingKey) -> String {
 }
 
 fn vcf_matrix_rows_len() -> Result<usize> {
-    Ok(build_vcf_stage_matrix_rows()?.len())
+    Ok(collect_vcf_benchmark_binding_rows()?.len())
 }
 
 fn render_all_domain_stage_tool_table_tsv(rows: &[AllDomainStageToolTableRow]) -> String {
