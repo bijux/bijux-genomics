@@ -143,7 +143,7 @@ pub use self::readiness::{
     BenchReadinessRenderVcfComparableMetricsArgs, BenchReadinessRenderVcfDamageFilterReadyArgs,
     BenchReadinessRenderVcfDescentFamilyAdapterArgs, BenchReadinessRenderVcfEagleAdapterArgs,
     BenchReadinessRenderVcfEigensoftAdapterArgs,
-    BenchReadinessRenderVcfExpectedBenchmarkResultsArgs,
+    BenchReadinessRenderVcfExpectedBenchmarkResultsArgs, BenchReadinessRenderVcfFilterReadyArgs,
     BenchReadinessRenderVcfGlPropagationReadyArgs,
     BenchReadinessRenderVcfImputationFamilyAdapterArgs,
     BenchReadinessRenderVcfMatrixRegistryConsistencyArgs,

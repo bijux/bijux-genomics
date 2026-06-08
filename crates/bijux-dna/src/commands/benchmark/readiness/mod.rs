@@ -95,6 +95,7 @@ pub(crate) mod vcf_damage_filter_ready;
 pub(crate) mod vcf_descent_family_adapter;
 pub(crate) mod vcf_eigensoft_adapter;
 pub(crate) mod vcf_expected_benchmark_results;
+pub(crate) mod vcf_filter_ready;
 pub(crate) mod vcf_gl_propagation_ready;
 pub(crate) mod vcf_imputation_family_adapter;
 pub(crate) mod vcf_matrix_registry_consistency;
