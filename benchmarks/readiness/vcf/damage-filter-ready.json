@@ -1,0 +1,146 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_damage_filter_ready.v1",
+  "output_path": "benchmarks/readiness/vcf/damage-filter-ready.json",
+  "retained_row_count": 1,
+  "active_row_count": 1,
+  "complete_row_count": 1,
+  "incomplete_row_count": 0,
+  "checked_surface_count": 8,
+  "required_metric_names": [
+    "input_variants",
+    "removed_variants",
+    "retained_variants",
+    "low_quality_filtered_variants",
+    "damage_ratio_filtered_variants",
+    "terminal_damage_filtered_variants",
+    "damage_context_rule",
+    "terminal_context_count",
+    "sample_count"
+  ],
+  "tool_status_counts": {
+    "production": 1
+  },
+  "coverage_status_counts": {
+    "complete": 1
+  },
+  "violation_count": 0,
+  "ok": true,
+  "rows": [
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.damage_filter:vcf_single_sample:bcftools",
+      "stage_id": "vcf.damage_filter",
+      "tool_id": "bcftools",
+      "tool_status": "production",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "adapter_id": "vcf.adapter.transform",
+      "parser_id": "vcf.parser.vcf_output",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.damage-filter.v1",
+      "retained_scope_state": "active",
+      "retained_scope_detail": "active",
+      "retained_scope_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "all_domain_active_row_present": true,
+      "all_domain_active_row_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "command_ready": true,
+      "command_source": "vcf_bcftools_adapter",
+      "command_step_count": 2,
+      "command_step_ids": [
+        "damage_filter",
+        "index_damage_filtered_vcf"
+      ],
+      "primary_executables": [
+        "bcftools",
+        "bcftools"
+      ],
+      "command_output_path": "benchmarks/readiness/vcf-rendered-commands.sh",
+      "command_argv_output_path": "benchmarks/readiness/vcf-rendered-commands.argv.jsonl",
+      "output_ready": true,
+      "output_proof_path": "benchmarks/readiness/vcf-adapter-output-coverage.tsv",
+      "raw_outputs": [
+        "damage_filtered_vcf=benchmarks/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz"
+      ],
+      "normalized_metrics_outputs": [
+        "damage_filtered_vcf=benchmarks/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz"
+      ],
+      "manifest_output": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/vcf.damage_filter/{sample_scope}/bcftools/stage-result.json",
+      "index_outputs": [
+        "damage_filtered_vcf_tbi=benchmarks/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz.tbi"
+      ],
+      "parser_ready": true,
+      "parser_proof_path": "benchmarks/readiness/vcf-parser-coverage.tsv",
+      "parser_fixture_parser_id": "parse_bcftools_damage_filter_metrics",
+      "parser_fixture_schema_id": "bijux.vcf.damage_filter.v1",
+      "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter",
+      "expected_result_ready": true,
+      "expected_result_proof_path": "benchmarks/readiness/vcf-expected-benchmark-results.tsv",
+      "expected_outputs": [
+        "damage_filtered_vcf"
+      ],
+      "expected_metrics": [
+        "input_variants",
+        "removed_variants",
+        "retained_variants",
+        "low_quality_filtered_variants",
+        "damage_ratio_filtered_variants",
+        "terminal_damage_filtered_variants",
+        "damage_context_rule",
+        "terminal_context_count",
+        "sample_count"
+      ],
+      "report_section_id": "damage_aware_filtering",
+      "report_ready": true,
+      "report_map_proof_path": "benchmarks/readiness/vcf-report-map.tsv",
+      "summary_table_id": "damage_filtering_metrics",
+      "report_metric_columns": [
+        "input_variants",
+        "removed_variants",
+        "retained_variants",
+        "low_quality_filtered_variants",
+        "damage_ratio_filtered_variants",
+        "terminal_damage_filtered_variants",
+        "damage_context_rule",
+        "terminal_context_count",
+        "sample_count"
+      ],
+      "smoke_ready": true,
+      "smoke_command": "bijux-dna bench local run-vcf-damage-filter-smoke --tool-id bcftools",
+      "smoke_output_root": "runs/bench/local-smoke/vcf.damage_filter/bcftools",
+      "smoke_input_vcf_path": "runs/bench/local-smoke/vcf.damage_filter/bcftools/artifacts/input/damage_input.vcf",
+      "smoke_output_vcf_path": "runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz",
+      "smoke_output_tbi_path": "runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz.tbi",
+      "smoke_metrics_path": "runs/bench/local-smoke/vcf.damage_filter/bcftools/metrics.json",
+      "smoke_summary_path": "runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filter_summary.json",
+      "smoke_counts_path": "runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filter_counts.json",
+      "smoke_warnings_path": "runs/bench/local-smoke/vcf.damage_filter/bcftools/warnings.json",
+      "smoke_damage_manifest_path": "runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_genotype_manifest.json",
+      "smoke_stage_result_manifest_path": "runs/bench/local-smoke/vcf.damage_filter/bcftools/stage-result.json",
+      "smoke_parseable": true,
+      "smoke_gt_present": true,
+      "smoke_gl_present": true,
+      "smoke_input_variants": 4,
+      "smoke_removed_variants": 2,
+      "smoke_retained_variants": 2,
+      "smoke_low_quality_filtered_variants": 1,
+      "smoke_damage_ratio_filtered_variants": 1,
+      "smoke_terminal_damage_filtered_variants": 1,
+      "smoke_damage_context_rule": "remove_ct_ga_with_ratio_gt_0.35_or_terminal_signal_ge_0.50_or_pmd_lt_3.0",
+      "smoke_terminal_context_count": 1,
+      "smoke_sample_count": 1,
+      "required_metric_names": [
+        "input_variants",
+        "removed_variants",
+        "retained_variants",
+        "low_quality_filtered_variants",
+        "damage_ratio_filtered_variants",
+        "terminal_damage_filtered_variants",
+        "damage_context_rule",
+        "terminal_context_count",
+        "sample_count"
+      ],
+      "missing_surfaces": [],
+      "coverage_status": "complete",
+      "reason": "active retained VCF damage filter `bcftools` keeps active scope, command, output, parser, expected-result, report, and damage-context smoke proof for `vcf.damage_filter`"
+    }
+  ],
+  "violations": []
+}
