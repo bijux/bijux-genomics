@@ -628,6 +628,15 @@ Visible aliases are part of the operator surface:
   `readiness_kind`, `command_source`, explicit command-step identity, primary executables,
   `coverage_status`, and `reason` explicit. The command fails closed unless every active binding
   retains executable rendered-command proof and active-scope command coverage stays at 100%.
+- `bijux-dna bench readiness render-all-domain-output-contract-coverage`
+  `render-all-domain-output-contract-coverage` writes
+  `benchmarks/readiness/all-domains/output-contract-coverage.tsv` with one governed row per
+  active FASTQ, BAM, and VCF result binding in final job-bearing active scope. Each row keeps
+  `result_id`, `domain`, `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `adapter_id`,
+  the domain-owned `proof_source`, source and all-domain output-contract statuses, declared raw
+  outputs, normalized metrics, logs, manifest, index-output coverage, and an explicit row-level
+  `coverage_status`. The command fails closed unless every active binding retains complete raw
+  outputs, normalized metrics, logs, manifest, and required index declarations.
 - `bijux-dna bench readiness render-all-domain-no-declared-only-rows`
   `render-all-domain-no-declared-only-rows` writes
   `benchmarks/readiness/all-domains/no-declared-only-rows.json` and audits the governed
