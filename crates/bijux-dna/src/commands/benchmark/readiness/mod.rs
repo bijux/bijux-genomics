@@ -2,6 +2,7 @@
 mod adapter_missing_input_contracts;
 pub(crate) mod adapter_missing_input_tests;
 pub(crate) mod all_domain_active_scope_blockers;
+pub(crate) mod all_domain_active_scope_complete;
 pub(crate) mod all_domain_active_stage_catalog;
 pub(crate) mod all_domain_active_stage_tool_matrix;
 pub(crate) mod all_domain_adapter_coverage;

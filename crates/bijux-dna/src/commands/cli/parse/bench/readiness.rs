@@ -126,6 +126,8 @@ pub enum BenchReadinessCommand {
     RenderAllDomainActiveStageCatalog(BenchReadinessRenderAllDomainActiveStageCatalogArgs),
     #[command(name = "render-all-domain-active-scope-blockers")]
     RenderAllDomainActiveScopeBlockers(BenchReadinessRenderAllDomainActiveScopeBlockersArgs),
+    #[command(name = "render-all-domain-active-scope-complete")]
+    RenderAllDomainActiveScopeComplete(BenchReadinessRenderAllDomainActiveScopeCompleteArgs),
     #[command(name = "render-all-domain-adapter-coverage")]
     RenderAllDomainAdapterCoverage(BenchReadinessRenderAllDomainAdapterCoverageArgs),
     #[command(name = "render-all-domain-output-contract-coverage")]
@@ -856,6 +858,14 @@ pub struct BenchReadinessRenderAllDomainAdapterCoverageArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderAllDomainActiveScopeBlockersArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderAllDomainActiveScopeCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

@@ -470,6 +470,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderAllDomainActiveScopeComplete(args) => {
+                        crate::commands::benchmark::readiness::all_domain_active_scope_complete::run_render_all_domain_active_scope_complete(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderAllDomainAdapterCoverage(args) => {
                         crate::commands::benchmark::readiness::all_domain_adapter_coverage::run_render_all_domain_adapter_coverage(
                             args,
