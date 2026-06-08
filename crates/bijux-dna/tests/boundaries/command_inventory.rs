@@ -152,6 +152,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-all-domain-adapter-coverage",
     "bijux-dna bench readiness render-all-domain-expected-result-coverage",
     "bijux-dna bench readiness render-all-domain-active-scope-blockers",
+    "bijux-dna bench readiness render-all-domain-active-scope-complete",
     "bijux-dna bench readiness render-all-domain-local-job-coverage",
     "bijux-dna bench readiness render-all-domain-no-placeholder-command-check",
     "bijux-dna bench readiness render-all-domain-report-map-coverage",
