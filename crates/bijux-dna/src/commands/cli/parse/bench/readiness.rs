@@ -176,6 +176,8 @@ pub enum BenchReadinessCommand {
     RenderVcfAdaptersReady(BenchReadinessRenderVcfAdaptersReadyArgs),
     #[command(name = "render-vcf-active-stage-tool-matrix")]
     RenderVcfActiveStageToolMatrix(BenchReadinessRenderVcfActiveStageToolMatrixArgs),
+    #[command(name = "render-vcf-call-gl-ready")]
+    RenderVcfCallGlReady(BenchReadinessRenderVcfCallGlReadyArgs),
     #[command(name = "render-vcf-call-diploid-ready")]
     RenderVcfCallDiploidReady(BenchReadinessRenderVcfCallDiploidReadyArgs),
     #[command(name = "render-vcf-call-pseudohaploid-ready")]
@@ -482,6 +484,14 @@ pub struct BenchReadinessRenderVcfAdaptersReadyArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfActiveStageToolMatrixArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfCallGlReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

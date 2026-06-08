@@ -590,6 +590,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfCallGlReady(args) => {
+                        crate::commands::benchmark::readiness::vcf_call_gl_ready::run_render_vcf_call_gl_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfCallDiploidReady(args) => {
                         crate::commands::benchmark::readiness::vcf_call_diploid_ready::run_render_vcf_call_diploid_ready(
                             args,
