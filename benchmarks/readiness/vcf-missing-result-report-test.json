@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.vcf_missing_result_report.v1",
   "output_path": "benchmarks/readiness/vcf-missing-result-report-test.json",
   "fake_result_root": "benchmarks/readiness/vcf-missing-result-report-fixture",
-  "expected_row_count": 9,
-  "present_result_row_count": 8,
+  "expected_row_count": 13,
+  "present_result_row_count": 12,
   "missing_result_row_count": 1,
   "passes_behavior_test": true,
   "removed_result_row_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
@@ -12,7 +12,8 @@
     "damage_aware_filtering": 1,
     "likelihood_postprocess": 1,
     "normalization": 1,
-    "quality_control": 2,
+    "quality_control": 5,
+    "reference_panel_preparation": 1,
     "variant_calling": 4
   },
   "rows": [
@@ -238,6 +239,130 @@
       ],
       "report_section": "normalization",
       "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.prepare_reference_panel",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_reference_panel",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "prepared_panel",
+        "chunks_json"
+      ],
+      "observed_output_artifact_ids": [
+        "prepared_panel",
+        "chunks_json"
+      ],
+      "expected_metrics": [
+        "input_variants",
+        "output_variants",
+        "sample_count",
+        "sample_ids",
+        "sample_consistent",
+        "duplicate_sites_removed",
+        "normalization_status",
+        "parseable"
+      ],
+      "report_section": "reference_panel_preparation",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "qc_report"
+      ],
+      "observed_output_artifact_ids": [
+        "qc_report"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "report_section": "quality_control",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.qc/vcf_cohort/plink/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.qc/vcf_cohort/plink/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "qc_report"
+      ],
+      "observed_output_artifact_ids": [
+        "qc_report"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "report_section": "quality_control",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "qc_report"
+      ],
+      "observed_output_artifact_ids": [
+        "qc_report"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "report_section": "quality_control",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2` remains present with a validated stage-result manifest"
     },
     {
       "result_row_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",

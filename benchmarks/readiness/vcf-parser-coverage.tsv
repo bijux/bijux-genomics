@@ -7,6 +7,7 @@ vcf.damage_filter	bcftools	parse_bcftools_damage_filter_metrics	benchmarks/tests
 vcf.filter	bcftools	parse_bcftools_filter_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.filter	bijux.vcf.filter.v1	covered
 vcf.gl_propagation	bcftools	parse_bcftools_gl_propagation_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.gl_propagation	bijux.vcf.gl_propagation.v1	covered
 vcf.postprocess	bcftools	parse_bcftools_postprocess_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.postprocess	bijux.vcf.postprocess.v1	covered
+vcf.prepare_reference_panel	bcftools	parse_bcftools_prepare_reference_panel_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.prepare_reference_panel	bijux.vcf.prepare_reference_panel.v1	covered
 vcf.qc	bcftools	parse_bcftools_qc_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.qc	bijux.vcf.qc.v1	covered
 vcf.qc	plink	parse_plink_qc_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/plink/vcf.qc	bijux.vcf.qc.v1	covered
 vcf.qc	plink2	parse_plink2_qc_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.qc	bijux.vcf.qc.v1	covered

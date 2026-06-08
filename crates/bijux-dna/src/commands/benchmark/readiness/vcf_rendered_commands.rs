@@ -180,7 +180,11 @@ mod tests {
             report.argv_output_path,
             "benchmarks/readiness/vcf-rendered-commands.argv.jsonl"
         );
-        assert_eq!(report.row_count, 12);
-        assert!(report.rows.iter().all(|row| row.tool_id == "bcftools"));
+        assert_eq!(report.row_count, 13);
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.prepare_reference_panel" && row.tool_id == "bcftools"
+        }));
+        assert!(report.rows.iter().any(|row| row.stage_id == "vcf.qc" && row.tool_id == "plink"));
+        assert!(report.rows.iter().any(|row| row.stage_id == "vcf.qc" && row.tool_id == "plink2"));
     }
 }

@@ -45,11 +45,11 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-report-map.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(12));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(10));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(13));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(11));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(3));
-    assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(5));
-    assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(6));
+    assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(
         payload
             .get("section_counts")
@@ -64,9 +64,16 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
             .and_then(serde_json::Value::as_u64),
         Some(5)
     );
+    assert_eq!(
+        payload
+            .get("section_counts")
+            .and_then(|value| value.get("reference_panel_preparation"))
+            .and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 12);
+    assert_eq!(rows.len(), 13);
 
     let call = rows
         .iter()
@@ -152,5 +159,21 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
     assert_eq!(
         postprocess.get("summary_table").and_then(serde_json::Value::as_str),
         Some("normalization_metrics")
+    );
+
+    let prepare_reference_panel = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.prepare_reference_panel")
+        })
+        .expect("vcf.prepare_reference_panel row");
+    assert_eq!(
+        prepare_reference_panel.get("section_id").and_then(serde_json::Value::as_str),
+        Some("reference_panel_preparation")
+    );
+    assert_eq!(
+        prepare_reference_panel.get("summary_table").and_then(serde_json::Value::as_str),
+        Some("reference_panel_readiness")
     );
 }

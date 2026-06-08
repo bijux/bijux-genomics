@@ -213,12 +213,12 @@ fn ensure_vcf_tool_serving_map_contract(rows: &[VcfToolServingMapRow]) -> Result
         (
             "bcftools",
             "vcf.prepare_reference_panel",
-            "planned",
-            "declared_only",
+            "supported",
+            "runnable",
             "parse_normalized",
             "fixture:vcf_production_regression",
             "assigned",
-            "not_benchmark_ready",
+            "benchmark_ready",
         ),
         (
             "bcftools",
@@ -379,8 +379,8 @@ mod tests {
         assert_eq!(report.row_count, 22);
         assert_eq!(report.stage_count, 20);
         assert_eq!(report.tool_count, 7);
-        assert_eq!(report.benchmark_ready_row_count, 12);
-        assert_eq!(report.not_benchmark_ready_row_count, 10);
+        assert_eq!(report.benchmark_ready_row_count, 13);
+        assert_eq!(report.not_benchmark_ready_row_count, 9);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bcftools"
                 && row.stage_id == "vcf.call"
@@ -404,6 +404,16 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "plink"
                 && row.stage_id == "vcf.qc"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parse_normalized"
+                && row.corpus_status == "fixture:vcf_production_regression"
+                && row.asset_status == "assigned"
+                && row.benchmark_status == "benchmark_ready"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "bcftools"
+                && row.stage_id == "vcf.prepare_reference_panel"
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parse_normalized"

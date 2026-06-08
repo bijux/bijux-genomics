@@ -48,8 +48,8 @@ fn bench_readiness_vcf_bcftools_adapter_reports_governed_rows() {
         Some("benchmarks/readiness/adapters/bcftools.vcf.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(11));
-    assert_eq!(payload.get("supported_row_count").and_then(serde_json::Value::as_u64), Some(10));
-    assert_eq!(payload.get("planned_row_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(payload.get("supported_row_count").and_then(serde_json::Value::as_u64), Some(11));
+    assert_eq!(payload.get("planned_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("argv_valid_row_count").and_then(serde_json::Value::as_u64), Some(11));
     assert_eq!(
         payload.get("missing_input_test_passed_row_count").and_then(serde_json::Value::as_u64),
@@ -95,7 +95,7 @@ fn bench_readiness_vcf_bcftools_adapter_reports_governed_rows() {
         "report must retain the governed stats row"
     );
     assert!(
-        has_stage("vcf.prepare_reference_panel", "planned", "not_benchmark_ready"),
+        has_stage("vcf.prepare_reference_panel", "supported", "benchmark_ready"),
         "report must retain the governed panel-preparation row"
     );
     assert!(

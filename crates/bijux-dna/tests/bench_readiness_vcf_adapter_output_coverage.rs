@@ -48,11 +48,11 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(39));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(12)
+        Some(13)
     );
     assert_eq!(
         payload.get("benchmark_ready_complete_row_count").and_then(serde_json::Value::as_u64),
-        Some(12)
+        Some(13)
     );
     assert_eq!(
         payload.get("benchmark_ready_incomplete_row_count").and_then(serde_json::Value::as_u64),
@@ -116,6 +116,26 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
             .filter_map(serde_json::Value::as_str)
             .any(|entry| entry.starts_with("stats_json=")),
         "stats row must keep the normalized stats artifact explicit"
+    );
+
+    let reference_panel = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.prepare_reference_panel")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
+        })
+        .expect("bcftools prepare_reference_panel row");
+    assert_eq!(reference_panel.get("status").and_then(serde_json::Value::as_str), Some("complete"));
+    assert!(
+        reference_panel
+            .get("normalized_metrics")
+            .and_then(serde_json::Value::as_array)
+            .expect("prepare-reference-panel normalized metrics")
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .any(|entry| entry.starts_with("chunks_json=")),
+        "reference-panel row must keep the chunk manifest explicit"
     );
 
     let qc = rows

@@ -44,7 +44,7 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 12);
+    assert_eq!(rows.len(), 13);
     assert!(
         rows.iter().any(|row| {
             row == &"vcf\tvcf.call\tbcftools\tvcf_production_regression\tbam_bundle\tcalled_vcf\tvariant_count,snp_count,indel_count,sample_count\tvariant_calling"
@@ -68,6 +68,12 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
             row == &"vcf\tvcf.postprocess\tbcftools\tvcf_production_regression\tvcf_single_sample\tpostprocess_vcf\treadable_vcf,tabix_present,contigs_consistent_with_species_context,left_align_applied,multiallelic_records_split,indels_normalized,variant_ids_normalized,invalid_records_removed,filter_standardized_to_pass\tnormalization"
         }),
         "TSV must retain the governed VCF postprocess expected-result row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"vcf\tvcf.prepare_reference_panel\tbcftools\tvcf_production_regression\tvcf_reference_panel\tprepared_panel,chunks_json\tinput_variants,output_variants,sample_count,sample_ids,sample_consistent,duplicate_sites_removed,normalization_status,parseable\treference_panel_preparation"
+        }),
+        "TSV must retain the governed VCF prepare-reference-panel expected-result row"
     );
     assert!(
         rows.iter().any(|row| {

@@ -323,13 +323,6 @@ fn ensure_vcf_undercovered_stage_contract(rows: &[VcfUndercoveredStageRow]) -> R
             &["eigensoft", "plink"][..],
             "future_not_benchmark_ready",
         ),
-        (
-            "vcf.qc",
-            &["cohort_analysis", "variant_processing"][..],
-            &["plink2"][..],
-            &["bcftools", "plink"][..],
-            "limit_to_specialized_tool",
-        ),
     ];
 
     if rows.len() != expected_rows.len() {
@@ -443,14 +436,15 @@ mod tests {
         assert_eq!(report.schema_version, VCF_UNDERCOVERED_STAGES_SCHEMA_VERSION);
         assert_eq!(report.domain, "vcf");
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.undercovered_stage_count, 12);
+        assert_eq!(report.undercovered_stage_count, 11);
         assert_eq!(report.decision_counts.get("future_not_benchmark_ready").copied(), Some(7));
-        assert_eq!(report.decision_counts.get("limit_to_specialized_tool").copied(), Some(5));
+        assert_eq!(report.decision_counts.get("limit_to_specialized_tool").copied(), Some(4));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.phasing"
                 && row.registered_tools == vec!["shapeit5".to_string()]
                 && row.decision == "limit_to_specialized_tool"
         }));
+        assert!(report.rows.iter().all(|row| row.stage_id != "vcf.qc"));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.impute"
                 && row.missing_tools

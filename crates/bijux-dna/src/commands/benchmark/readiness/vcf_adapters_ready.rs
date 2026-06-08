@@ -106,6 +106,8 @@ pub(crate) fn render_vcf_adapters_ready(
     let mut tool_serving_map_report = None;
     let mut bcftools_adapter_report = None;
     let mut adapter_output_coverage_report = None;
+    let mut plink_adapter_report = None;
+    let mut plink2_adapter_report = None;
     let mut rendered_commands_report = None;
 
     record_goal_check(
@@ -118,11 +120,11 @@ pub(crate) fn render_vcf_adapters_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_TOOL_SERVING_MAP_PATH),
             )?;
-            if report.row_count != 20
+            if report.row_count != 22
                 || report.stage_count != 20
-                || report.tool_count != 6
-                || report.benchmark_ready_row_count != 9
-                || report.not_benchmark_ready_row_count != 11
+                || report.tool_count != 7
+                || report.benchmark_ready_row_count != 13
+                || report.not_benchmark_ready_row_count != 9
             {
                 bail!(
                     "VCF tool-serving map drifted: rows={}, stages={}, tools={}, benchmark_ready={}, not_benchmark_ready={}",
@@ -135,7 +137,7 @@ pub(crate) fn render_vcf_adapters_ready(
             }
             benchmark_ready_pair_count = report.benchmark_ready_row_count;
             tool_serving_map_report = Some(report);
-            Ok("validated 20 governed VCF stage-tool rows with 9 canonical benchmark-ready pairs"
+            Ok("validated 22 governed VCF stage-tool rows with 13 canonical benchmark-ready pairs"
                 .to_string())
         },
     );
@@ -148,17 +150,20 @@ pub(crate) fn render_vcf_adapters_ready(
         || {
             let report =
                 render_vcf_orphan_tools(repo_root, PathBuf::from(DEFAULT_VCF_ORPHAN_TOOLS_PATH))?;
-            if report.orphan_count != 11
+            if report.orphan_count != 10
                 || report.required_tool_count != 17
                 || report.registered_tool_count != 17
-                || report.served_tool_count != 6
+                || report.served_tool_count != 7
                 || report.rows.iter().any(|row| {
                     row.served_stage_count != 0 || row.decision != "future_not_benchmark_ready"
                 })
             {
                 bail!("VCF orphan-tool report drifted from the governed orphan tool slice");
             }
-            Ok("validated 11 governed orphan VCF tools with explicit future_not_benchmark_ready decisions".to_string())
+            Ok(
+                "validated 10 governed orphan VCF tools with explicit future_not_benchmark_ready decisions"
+                    .to_string(),
+            )
         },
     );
 
@@ -172,7 +177,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_UNDERCOVERED_STAGES_PATH),
             )?;
-            if report.stage_count != 20 || report.undercovered_stage_count != 12 {
+            if report.stage_count != 20 || report.undercovered_stage_count != 11 {
                 bail!(
                     "VCF undercovered-stage report drifted: stage_count={}, undercovered_stage_count={}",
                     report.stage_count,
@@ -183,14 +188,17 @@ pub(crate) fn render_vcf_adapters_ready(
                 report.decision_counts.get("future_not_benchmark_ready").copied().unwrap_or(0);
             let limit_to_specialized_tool =
                 report.decision_counts.get("limit_to_specialized_tool").copied().unwrap_or(0);
-            if future_not_benchmark_ready != 7 || limit_to_specialized_tool != 5 {
+            if future_not_benchmark_ready != 7 || limit_to_specialized_tool != 4 {
                 bail!(
                     "VCF undercovered-stage decisions drifted: future_not_benchmark_ready={}, limit_to_specialized_tool={}",
                     future_not_benchmark_ready,
                     limit_to_specialized_tool
                 );
             }
-            Ok("validated 12 governed undercovered VCF stages with explicit specialized vs future decisions".to_string())
+            Ok(
+                "validated 11 governed undercovered VCF stages with explicit specialized vs future decisions"
+                    .to_string(),
+            )
         },
     );
 
@@ -206,9 +214,9 @@ pub(crate) fn render_vcf_adapters_ready(
             )?;
             if !report.passes_gate
                 || report.stage_count != 20
-                || report.matrix_row_count != 20
+                || report.matrix_row_count != 22
                 || report.registry_pair_count != 48
-                || report.benchmark_ready_registry_pair_count != 9
+                || report.benchmark_ready_registry_pair_count != 11
                 || report.unregistered_matrix_pair_count != 0
                 || report.missing_benchmark_ready_registry_pair_count != 0
                 || !report.rows.is_empty()
@@ -230,9 +238,9 @@ pub(crate) fn render_vcf_adapters_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_BCFTOOLS_ADAPTER_PATH),
             )?;
-            if report.row_count != 10
-                || report.supported_row_count != 9
-                || report.planned_row_count != 1
+            if report.row_count != 11
+                || report.supported_row_count != 11
+                || report.planned_row_count != 0
                 || report.argv_valid_row_count != report.row_count
                 || report.missing_input_test_passed_row_count != report.row_count
                 || report.indexed_row_count != 9
@@ -241,7 +249,7 @@ pub(crate) fn render_vcf_adapters_ready(
                     "VCF bcftools adapter report drifted from the governed retained row contract"
                 );
             }
-            adapter_complete_pair_count = report
+            adapter_complete_pair_count += report
                 .rows
                 .iter()
                 .filter(|row| {
@@ -297,7 +305,10 @@ pub(crate) fn render_vcf_adapters_ready(
                 PathBuf::from(DEFAULT_VCF_PLINK2_ADAPTER_PATH),
             )?;
             if plink_report.row_count != 2
-                || plink_report.benchmark_ready_row_count != 0
+                || plink_report.benchmark_ready_row_count != 1
+                || plink_report.parser_output_row_count != plink_report.row_count
+                || plink_report.normalized_metrics_row_count != plink_report.row_count
+                || plink_report.raw_output_declared_row_count != plink_report.row_count
                 || plink_report.missing_input_test_passed_row_count != plink_report.row_count
             {
                 bail!("VCF plink adapter report drifted from the governed retained row contract");
@@ -313,7 +324,30 @@ pub(crate) fn render_vcf_adapters_ready(
                     "VCF plink2 adapter report drifted from the governed benchmarked row contract"
                 );
             }
-            Ok("validated governed plink and plink2 adapter rows with explicit raw and normalized outputs".to_string())
+            adapter_complete_pair_count += plink_report
+                .rows
+                .iter()
+                .filter(|row| {
+                    row.benchmark_status == "benchmark_ready"
+                        && row.argv_validation_passed
+                        && row.missing_input_test_passed
+                })
+                .count();
+            adapter_complete_pair_count += plink2_report
+                .rows
+                .iter()
+                .filter(|row| {
+                    row.benchmark_status == "benchmark_ready"
+                        && row.argv_validation_passed
+                        && row.missing_input_test_passed
+                })
+                .count();
+            plink_adapter_report = Some(plink_report);
+            plink2_adapter_report = Some(plink2_report);
+            Ok(
+                "validated governed plink and plink2 adapter rows with explicit raw and normalized outputs"
+                    .to_string(),
+            )
         },
     );
 
@@ -436,11 +470,11 @@ pub(crate) fn render_vcf_adapters_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_ADAPTER_OUTPUT_COVERAGE_PATH),
             )?;
-            if report.row_count != 38
-                || report.benchmark_ready_row_count != 9
-                || report.benchmark_ready_complete_row_count != 9
+            if report.row_count != 39
+                || report.benchmark_ready_row_count != 13
+                || report.benchmark_ready_complete_row_count != 13
                 || report.benchmark_ready_incomplete_row_count != 0
-                || report.complete_row_count != 35
+                || report.complete_row_count != 36
                 || report.incomplete_row_count != 3
             {
                 bail!("VCF adapter output coverage report drifted from the governed completeness contract");
@@ -489,7 +523,7 @@ pub(crate) fn render_vcf_adapters_ready(
         || {
             let report =
                 render_vcf_commands(repo_root, PathBuf::from(DEFAULT_VCF_RENDERED_COMMANDS_PATH))?;
-            if report.row_count != 9 || report.rows.iter().any(|row| row.tool_id != "bcftools") {
+            if report.row_count != 13 {
                 bail!(
                     "VCF rendered commands drifted from the governed benchmark-ready command slice"
                 );
@@ -537,6 +571,12 @@ pub(crate) fn render_vcf_adapters_ready(
             let bcftools_adapter_report = bcftools_adapter_report
                 .as_ref()
                 .ok_or_else(|| anyhow!("VCF bcftools adapter check did not produce a report"))?;
+            let plink_adapter_report = plink_adapter_report
+                .as_ref()
+                .ok_or_else(|| anyhow!("VCF plink adapter check did not produce a report"))?;
+            let plink2_adapter_report = plink2_adapter_report
+                .as_ref()
+                .ok_or_else(|| anyhow!("VCF plink2 adapter check did not produce a report"))?;
             let adapter_output_coverage_report =
                 adapter_output_coverage_report.as_ref().ok_or_else(|| {
                     anyhow!("VCF adapter output coverage check did not produce a report")
@@ -551,16 +591,46 @@ pub(crate) fn render_vcf_adapters_ready(
                 .filter(|row| row.benchmark_status == "benchmark_ready")
                 .map(|row| (row.stage_id.clone(), row.tool_id.clone()))
                 .collect::<BTreeSet<_>>();
-            let adapter_pairs = bcftools_adapter_report
-                .rows
-                .iter()
-                .filter(|row| {
-                    row.benchmark_status == "benchmark_ready"
-                        && row.argv_validation_passed
-                        && row.missing_input_test_passed
-                })
-                .map(|row| (row.stage_id.clone(), row.tool_id.clone()))
-                .collect::<BTreeSet<_>>();
+            let mut adapter_pairs = BTreeSet::new();
+            adapter_pairs.extend(
+                bcftools_adapter_report
+                    .rows
+                    .iter()
+                    .filter(|row| {
+                        row.benchmark_status == "benchmark_ready"
+                            && row.argv_validation_passed
+                            && row.missing_input_test_passed
+                            && benchmark_ready_pairs
+                                .contains(&(row.stage_id.clone(), row.tool_id.clone()))
+                    })
+                    .map(|row| (row.stage_id.clone(), row.tool_id.clone())),
+            );
+            adapter_pairs.extend(
+                plink_adapter_report
+                    .rows
+                    .iter()
+                    .filter(|row| {
+                        row.benchmark_status == "benchmark_ready"
+                            && row.argv_validation_passed
+                            && row.missing_input_test_passed
+                            && benchmark_ready_pairs
+                                .contains(&(row.stage_id.clone(), row.tool_id.clone()))
+                    })
+                    .map(|row| (row.stage_id.clone(), row.tool_id.clone())),
+            );
+            adapter_pairs.extend(
+                plink2_adapter_report
+                    .rows
+                    .iter()
+                    .filter(|row| {
+                        row.benchmark_status == "benchmark_ready"
+                            && row.argv_validation_passed
+                            && row.missing_input_test_passed
+                            && benchmark_ready_pairs
+                                .contains(&(row.stage_id.clone(), row.tool_id.clone()))
+                    })
+                    .map(|row| (row.stage_id.clone(), row.tool_id.clone())),
+            );
             let output_pairs = adapter_output_coverage_report
                 .rows
                 .iter()
@@ -591,6 +661,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 &benchmark_ready_pairs,
                 &rendered_pairs,
             )?;
+            adapter_complete_pair_count = adapter_pairs.len();
 
             Ok(format!(
                 "validated {} benchmark-ready VCF pairs across tool-serving map, executable adapters, output declarations, and rendered commands",
@@ -759,10 +830,10 @@ mod tests {
             &root,
             &root.join(DEFAULT_VCF_ADAPTERS_READY_PATH),
             checks,
-            9,
-            9,
-            9,
-            9,
+            13,
+            13,
+            13,
+            13,
         );
 
         assert_eq!(report.schema_version, VCF_ADAPTERS_READY_SCHEMA_VERSION);
@@ -771,10 +842,10 @@ mod tests {
         assert_eq!(report.passed_goal_count, 1);
         assert_eq!(report.failed_goal_count, 1);
         assert_eq!(report.failing_goal_ids, vec![245]);
-        assert_eq!(report.benchmark_ready_pair_count, 9);
-        assert_eq!(report.adapter_complete_pair_count, 9);
-        assert_eq!(report.output_complete_pair_count, 9);
-        assert_eq!(report.rendered_command_pair_count, 9);
+        assert_eq!(report.benchmark_ready_pair_count, 13);
+        assert_eq!(report.adapter_complete_pair_count, 13);
+        assert_eq!(report.output_complete_pair_count, 13);
+        assert_eq!(report.rendered_command_pair_count, 13);
         assert!(!report.ok);
     }
 }

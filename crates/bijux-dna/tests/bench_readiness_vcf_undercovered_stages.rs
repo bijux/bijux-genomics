@@ -49,7 +49,7 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(
         payload.get("undercovered_stage_count").and_then(serde_json::Value::as_u64),
-        Some(12)
+        Some(11)
     );
     assert_eq!(
         payload
@@ -63,11 +63,11 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
             .get("decision_counts")
             .and_then(|value| value.get("limit_to_specialized_tool"))
             .and_then(serde_json::Value::as_u64),
-        Some(5)
+        Some(4)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 12);
+    assert_eq!(rows.len(), 11);
 
     let has_row = |stage_id: &str,
                    valid_tool_classes: &[&str],
@@ -112,11 +112,7 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
         &["bcftools", "beagle-imputation", "glimpse", "impute5", "minimac4"],
         "limit_to_specialized_tool",
     ));
-    assert!(has_row(
-        "vcf.qc",
-        &["cohort_analysis", "variant_processing"],
-        &["plink2"],
-        &["bcftools", "plink"],
-        "limit_to_specialized_tool",
-    ));
+    assert!(!rows
+        .iter()
+        .any(|row| { row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc") }));
 }

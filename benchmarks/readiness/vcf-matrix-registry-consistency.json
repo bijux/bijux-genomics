@@ -6,7 +6,7 @@
   "stage_count": 20,
   "matrix_row_count": 22,
   "registry_pair_count": 48,
-  "benchmark_ready_registry_pair_count": 10,
+  "benchmark_ready_registry_pair_count": 11,
   "unregistered_matrix_pair_count": 0,
   "missing_benchmark_ready_registry_pair_count": 0,
   "rows": []

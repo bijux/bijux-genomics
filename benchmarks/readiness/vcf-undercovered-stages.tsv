@@ -10,4 +10,3 @@ vcf.impute	imputation,phasing	beagle	beagle-imputation,glimpse,impute5,minimac4	
 vcf.pca	cohort_analysis,population_structure,variant_processing	plink2	bcftools,eigensoft	limit_to_specialized_tool
 vcf.phasing	phasing,variant_processing	shapeit5	bcftools,beagle,eagle,shapeit	limit_to_specialized_tool
 vcf.population_structure	cohort_analysis,population_structure	plink2	eigensoft,plink	future_not_benchmark_ready
-vcf.qc	cohort_analysis,variant_processing	plink2	bcftools,plink	limit_to_specialized_tool

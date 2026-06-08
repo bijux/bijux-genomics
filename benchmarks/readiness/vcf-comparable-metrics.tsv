@@ -28,7 +28,7 @@ vcf.phasing	phase_block_n50	phase block n50	bases	higher_is_better	true	beagle,e
 vcf.phasing	switch_error_proxy	switch error proxy	fraction	lower_is_better	true	beagle,eagle,shapeit5
 vcf.population_structure	pair_count	pair count	pairs	exact_match_preferred	true	eigensoft,plink2
 vcf.population_structure	sample_count	sample count	samples	exact_match_preferred	true	eigensoft,plink2
-vcf.qc	concordance	concordance	fraction	higher_is_better	true	plink,plink2
-vcf.qc	imputation_info_mean	mean imputation info	score	higher_is_better	true	plink,plink2
-vcf.qc	missingness_post	post-qc missingness	fraction	lower_is_better	true	plink,plink2
-vcf.qc	rsq_mean	mean r-squared	score	higher_is_better	true	plink,plink2
+vcf.qc	concordance	concordance	fraction	higher_is_better	true	bcftools,plink,plink2
+vcf.qc	imputation_info_mean	mean imputation info	score	higher_is_better	true	bcftools,plink,plink2
+vcf.qc	missingness_post	post-qc missingness	fraction	lower_is_better	true	bcftools,plink,plink2
+vcf.qc	rsq_mean	mean r-squared	score	higher_is_better	true	bcftools,plink,plink2

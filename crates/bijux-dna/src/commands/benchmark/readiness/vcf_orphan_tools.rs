@@ -227,7 +227,6 @@ fn ensure_vcf_orphan_tool_contract(
         ("ibdseq", "ibdseq", 0usize, "future_not_benchmark_ready"),
         ("impute5", "impute5", 0usize, "future_not_benchmark_ready"),
         ("minimac4", "minimac4", 0usize, "future_not_benchmark_ready"),
-        ("plink", "plink", 0usize, "future_not_benchmark_ready"),
         ("shapeit", "shapeit", 0usize, "future_not_benchmark_ready"),
     ];
 
@@ -334,9 +333,9 @@ mod tests {
         assert_eq!(report.schema_version, VCF_ORPHAN_TOOLS_SCHEMA_VERSION);
         assert_eq!(report.domain, "vcf");
         assert_eq!(report.orphan_count, 10);
-        assert_eq!(report.required_tool_count, 16);
-        assert_eq!(report.registered_tool_count, 16);
-        assert_eq!(report.served_tool_count, 6);
+        assert_eq!(report.required_tool_count, 17);
+        assert_eq!(report.registered_tool_count, 17);
+        assert_eq!(report.served_tool_count, 7);
         assert!(report.rows.iter().all(|row| row.served_stage_count == 0));
         assert!(report.rows.iter().all(|row| row.decision == "future_not_benchmark_ready"));
         assert!(report.rows.iter().any(|row| {
@@ -344,11 +343,7 @@ mod tests {
                 && row.registered_binary == "angsd"
                 && row.decision == "future_not_benchmark_ready"
         }));
-        assert!(report.rows.iter().any(|row| {
-            row.tool_id == "plink"
-                && row.registered_binary == "plink"
-                && row.decision == "future_not_benchmark_ready"
-        }));
+        assert!(report.rows.iter().all(|row| row.tool_id != "plink"));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "shapeit"
                 && row.registered_binary == "shapeit"

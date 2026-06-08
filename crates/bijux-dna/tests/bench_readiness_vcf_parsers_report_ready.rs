@@ -54,17 +54,17 @@ fn bench_readiness_vcf_parsers_report_ready_reports_governed_pass_state() {
     );
     assert_eq!(
         payload.get("parser_fixture_row_count").and_then(serde_json::Value::as_u64),
-        Some(38)
+        Some(39)
     );
     assert_eq!(
         payload.get("benchmark_ready_parser_row_count").and_then(serde_json::Value::as_u64),
-        Some(9)
+        Some(13)
     );
     assert_eq!(
         payload.get("expected_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(9)
+        Some(13)
     );
-    assert_eq!(payload.get("report_map_row_count").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(payload.get("report_map_row_count").and_then(serde_json::Value::as_u64), Some(13));
     assert_eq!(
         payload.get("comparable_metric_row_count").and_then(serde_json::Value::as_u64),
         Some(33)

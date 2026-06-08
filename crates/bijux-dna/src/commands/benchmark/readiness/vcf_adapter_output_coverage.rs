@@ -613,8 +613,8 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_ADAPTER_OUTPUT_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.row_count, 39);
-        assert_eq!(report.benchmark_ready_row_count, 12);
-        assert_eq!(report.benchmark_ready_complete_row_count, 12);
+        assert_eq!(report.benchmark_ready_row_count, 13);
+        assert_eq!(report.benchmark_ready_complete_row_count, 13);
         assert_eq!(report.benchmark_ready_incomplete_row_count, 0);
         assert_eq!(report.complete_row_count, 36);
         assert_eq!(report.incomplete_row_count, 3);
@@ -646,6 +646,19 @@ mod tests {
         assert_eq!(qc.benchmark_status, "benchmark_ready");
         assert_eq!(qc.raw_outputs.len(), 6);
         assert!(qc.normalized_metrics.iter().any(|entry| entry.starts_with("qc_report=")));
+
+        let reference_panel = report
+            .rows
+            .iter()
+            .find(|row| row.stage_id == "vcf.prepare_reference_panel" && row.tool_id == "bcftools")
+            .expect("bcftools reference-panel row");
+        assert_eq!(reference_panel.status, VcfAdapterOutputCoverageStatus::Complete);
+        assert_eq!(reference_panel.benchmark_status, "benchmark_ready");
+        assert!(reference_panel.index_outputs.iter().any(|entry| entry.contains(".tbi")));
+        assert!(reference_panel
+            .normalized_metrics
+            .iter()
+            .any(|entry| entry.starts_with("chunks_json=")));
 
         let shapeit5 = report
             .rows

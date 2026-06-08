@@ -46,4 +46,8 @@ fn bench_readiness_vcf_report_map_writes_governed_tsv_file() {
             && line.contains("variant_count,snp_count,indel_count,transition_count,transversion_count,ti_tv,sample_count")
             && line.contains("result_status,reason,parser_id,failure_reason,observed_error")
     }));
+    assert!(payload.lines().any(|line| {
+        line
+            == "vcf.prepare_reference_panel\tbcftools\treference_panel_preparation\treference_panel_readiness\tinput_variants,output_variants,sample_count,sample_ids,sample_consistent,duplicate_sites_removed,normalization_status,parseable\tresult_status,reason,parser_id,failure_reason,observed_error,audit_manifest_path"
+    }));
 }
