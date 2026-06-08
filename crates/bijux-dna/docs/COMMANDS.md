@@ -654,6 +654,15 @@ Visible aliases are part of the operator surface:
   and absence booleans for the active matrix, rendered commands, expected results, and full
   benchmark report surface. The command fails closed unless every removed binding maps to one
   exact blocker row and remains absent from those governed active downstream surfaces.
+- `bijux-dna bench readiness render-all-domain-active-scope-complete`
+  `render-all-domain-active-scope-complete` writes
+  `benchmarks/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json` and fail-closes unless the
+  governed final all-domain active scope is non-ambiguous. The report keeps active and removed
+  row counts explicit, records one check row per retained-tool, active-catalog, active-matrix,
+  active-scope reduction, removed-scope, alias, parser, adapter, output-contract, expected-result,
+  report-map, local-job, blocker, placeholder-command, and fast-validator surface, and includes
+  dedicated VCF imputation-identity plus VCF postprocess-closure checks with explicit proof
+  paths.
 - `bijux-dna bench readiness render-all-domain-local-job-coverage`
   `render-all-domain-local-job-coverage` writes
   `benchmarks/readiness/all-domains/local-job-coverage.tsv` with one governed row per active
