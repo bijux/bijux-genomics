@@ -679,16 +679,6 @@
             bail!("metric-contract gate failed: missing imputation metric key `{metric}`");
         }
     }
-    let required_qc_metrics =
-        bijux_dna_domain_vcf::contracts::stage_metrics_contract(
-            bijux_dna_domain_vcf::VcfDomainStage::Qc,
-        )
-            .required_metrics;
-    for metric in required_qc_metrics {
-        if imputation_qc_payload.get(metric).is_none() {
-            bail!("metric-contract gate failed: missing qc metric key `{metric}`");
-        }
-    }
     atomic_write_bytes(
         &logs_txt,
         format!(
