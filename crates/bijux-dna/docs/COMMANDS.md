@@ -597,6 +597,15 @@ Visible aliases are part of the operator surface:
   `parser_id`, `schema_id`, `scope_state`, `scope_detail`, and the proof path that explains why
   the binding is currently active, complete, or removed from scope. The command fails closed
   unless every retained VCF binding is classified exactly once.
+- `bijux-dna bench readiness render-vcf-damage-filter-ready`
+  `render-vcf-damage-filter-ready` writes
+  `benchmarks/readiness/vcf/damage-filter-ready.json` with one governed row per active retained
+  `vcf.damage_filter` caller. Each row keeps the retained-scope proof, final active-row presence,
+  rendered-command identity, output-contract paths, parser fixture proof, expected metrics,
+  report-table placement, and real local smoke evidence for removed variants, retained variants,
+  threshold-specific filtering counts, explicit damage-context rule text, and terminal-context
+  coverage. The command fails closed unless every active retained `vcf.damage_filter` caller is
+  complete across those surfaces.
 - `bijux-dna bench readiness render-vcf-call-ready`
   `render-vcf-call-ready` writes `benchmarks/readiness/vcf/call-ready.json` with one governed row
   per retained `vcf.call` caller. Each row keeps the retained-scope proof, final active-row
