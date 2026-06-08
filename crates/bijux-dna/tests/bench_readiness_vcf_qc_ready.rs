@@ -85,7 +85,10 @@ fn bench_readiness_vcf_qc_ready_reports_complete_retained_qc_callers() {
             format!("runs/bench/local-smoke/vcf.qc/{tool_id}/stage-result.json");
 
         assert_eq!(row.get("stage_id").and_then(serde_json::Value::as_str), Some("vcf.qc"));
-        assert_eq!(row.get("retained_scope_state").and_then(serde_json::Value::as_str), Some("active"));
+        assert_eq!(
+            row.get("retained_scope_state").and_then(serde_json::Value::as_str),
+            Some("active")
+        );
         assert_eq!(
             row.get("all_domain_active_row_present").and_then(serde_json::Value::as_bool),
             Some(true)

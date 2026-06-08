@@ -54,24 +54,20 @@ fn bench_readiness_vcf_qc_ready_writes_governed_json_file() {
         .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools"))
         .expect("bcftools row");
     assert_eq!(bcftools.get("stage_id").and_then(serde_json::Value::as_str), Some("vcf.qc"));
-    assert!(
-        bcftools
-            .get("normalized_metrics_outputs")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|outputs| outputs.iter().any(|value| {
-                value.as_str().is_some_and(|entry| entry.starts_with("qc_report="))
-            }))
-    );
-    assert!(
-        bcftools
-            .get("report_metric_columns")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|columns| {
-                columns.iter().any(|value| value.as_str() == Some("sample_missingness"))
-                    && columns.iter().any(|value| value.as_str() == Some("hwe_summary"))
-                    && columns.iter().any(|value| value.as_str() == Some("excluded_variants"))
-            })
-    );
+    assert!(bcftools
+        .get("normalized_metrics_outputs")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|outputs| outputs
+            .iter()
+            .any(|value| { value.as_str().is_some_and(|entry| entry.starts_with("qc_report=")) })));
+    assert!(bcftools
+        .get("report_metric_columns")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|columns| {
+            columns.iter().any(|value| value.as_str() == Some("sample_missingness"))
+                && columns.iter().any(|value| value.as_str() == Some("hwe_summary"))
+                && columns.iter().any(|value| value.as_str() == Some("excluded_variants"))
+        }));
     assert_eq!(
         bcftools.get("reason").and_then(serde_json::Value::as_str),
         Some(
