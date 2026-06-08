@@ -24,9 +24,9 @@ const TRACKED_FULL_BENCHMARK_REPORT_JSON_PATH: &str =
     "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
 const REPORT_SURFACE_SOURCE_TRACKED_JSON: &str = "tracked_report_json";
 const REPORT_SURFACE_SOURCE_EXPECTED_RESULT_CONTRACT: &str = "expected_result_contract";
-const SCOPE_EXIT_KIND_LIFECYCLE_NOT_ACTIVE: &str = "lifecycle_not_active";
-const SCOPE_EXIT_KIND_BENCHMARK_NOT_READY: &str = "benchmark_not_ready";
-const SCOPE_EXIT_KIND_NON_EXECUTABLE_ADAPTER: &str = "non_executable_adapter";
+pub(crate) const SCOPE_EXIT_KIND_LIFECYCLE_NOT_ACTIVE: &str = "lifecycle_not_active";
+pub(crate) const SCOPE_EXIT_KIND_BENCHMARK_NOT_READY: &str = "benchmark_not_ready";
+pub(crate) const SCOPE_EXIT_KIND_NON_EXECUTABLE_ADAPTER: &str = "non_executable_adapter";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct BindingKey {
@@ -115,7 +115,7 @@ pub(crate) fn render_removed_from_scope(
     Ok(report)
 }
 
-fn build_removed_from_scope_report(
+pub(crate) fn build_removed_from_scope_report(
     repo_root: &Path,
     output_path: &Path,
 ) -> Result<RemovedFromScopeReport> {
