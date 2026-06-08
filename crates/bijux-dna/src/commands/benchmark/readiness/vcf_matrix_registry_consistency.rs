@@ -6,7 +6,7 @@ use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
 use crate::commands::benchmark::local_vcf_stage_catalog::build_vcf_stage_catalog_rows;
-use crate::commands::benchmark::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
+use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -75,7 +75,7 @@ pub(crate) fn render_vcf_matrix_registry_consistency(
         .into_iter()
         .map(|row| (row.stage_id, row.support_status))
         .collect::<BTreeMap<_, _>>();
-    let matrix_rows = build_vcf_stage_matrix_rows()?;
+    let matrix_rows = collect_vcf_benchmark_binding_rows()?;
     let registry_records = load_vcf_registry_tool_records(repo_root)?;
 
     let registry_pair_count = registry_records.iter().map(|record| record.stage_ids.len()).sum();
@@ -308,9 +308,9 @@ mod tests {
         assert_eq!(report.domain, "vcf");
         assert!(report.passes_gate);
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.matrix_row_count, 20);
+        assert_eq!(report.matrix_row_count, 22);
         assert_eq!(report.registry_pair_count, 48);
-        assert_eq!(report.benchmark_ready_registry_pair_count, 9);
+        assert_eq!(report.benchmark_ready_registry_pair_count, 10);
         assert_eq!(report.unregistered_matrix_pair_count, 0);
         assert_eq!(report.missing_benchmark_ready_registry_pair_count, 0);
         assert!(report.rows.is_empty());

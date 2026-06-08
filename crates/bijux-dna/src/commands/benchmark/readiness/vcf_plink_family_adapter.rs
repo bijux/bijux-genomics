@@ -12,10 +12,9 @@ use serde::Serialize;
 use crate::commands::benchmark::local_vcf_stage_catalog::{
     build_vcf_stage_catalog_rows, VcfStageCatalogRow,
 };
-use crate::commands::benchmark::local_vcf_stage_matrix::{
-    build_vcf_stage_matrix_rows, VcfStageMatrixRow,
-};
+use crate::commands::benchmark::local_vcf_stage_matrix::VcfStageMatrixRow;
 use crate::commands::benchmark::readiness::vcf_readiness_inputs::load_governed_vcf_fixture_inputs;
+use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -178,7 +177,7 @@ fn collect_vcf_plink_family_adapter_rows(
         .into_iter()
         .map(|row| (row.stage_id.clone(), row))
         .collect::<BTreeMap<_, _>>();
-    let matrix_by_stage = build_vcf_stage_matrix_rows()?
+    let matrix_by_stage = collect_vcf_benchmark_binding_rows()?
         .into_iter()
         .filter(|row| row.tool_id == registry_tool.tool_id)
         .map(|row| (row.stage_id.clone(), row))
@@ -203,6 +202,14 @@ fn collect_vcf_plink_family_adapter_rows(
     rows.sort_by(|left, right| left.stage_id.cmp(&right.stage_id));
     ensure_vcf_plink_family_adapter_contract(registry_tool, &rows)?;
     Ok(rows)
+}
+
+pub(crate) fn collect_vcf_plink_family_adapter_rows_for_tool(
+    repo_root: &Path,
+    tool_id: &str,
+) -> Result<Vec<VcfPlinkFamilyAdapterRow>> {
+    let registry_tool = load_registry_tool_contract(repo_root, tool_id)?;
+    collect_vcf_plink_family_adapter_rows(repo_root, &registry_tool)
 }
 
 fn build_plink_family_row(

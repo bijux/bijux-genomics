@@ -8,13 +8,13 @@ use bijux_dna_domain_vcf::VcfDomainStage;
 use serde::Serialize;
 
 use super::vcf_bcftools_adapter::collect_vcf_bcftools_adapter_rows;
+use super::vcf_plink_family_adapter::collect_vcf_plink_family_adapter_rows_for_tool;
 use super::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
 use crate::commands::benchmark::local_vcf_stage_catalog::{
     build_vcf_stage_catalog_rows, VcfStageCatalogRow,
 };
-use crate::commands::benchmark::local_vcf_stage_matrix::{
-    build_vcf_stage_matrix_rows, VcfStageMatrixRow,
-};
+use crate::commands::benchmark::local_vcf_stage_matrix::VcfStageMatrixRow;
+use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -108,7 +108,7 @@ pub(crate) fn collect_vcf_expected_benchmark_result_rows(
         .into_iter()
         .filter(|row| row.benchmark_status == "benchmark_ready")
         .collect::<Vec<_>>();
-    let matrix_by_pair = build_vcf_stage_matrix_rows()?
+    let matrix_by_pair = collect_vcf_benchmark_binding_rows()?
         .into_iter()
         .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row))
         .collect::<BTreeMap<_, _>>();
@@ -116,9 +116,19 @@ pub(crate) fn collect_vcf_expected_benchmark_result_rows(
         .into_iter()
         .map(|row| (row.stage_id.clone(), row))
         .collect::<BTreeMap<_, _>>();
-    let bcftools_by_stage = collect_vcf_bcftools_adapter_rows(repo_root)?
+    let adapter_rows = collect_vcf_bcftools_adapter_rows(repo_root)?
         .into_iter()
-        .map(|row| (row.stage_id.clone(), row))
+        .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into()))
+        .chain(
+            collect_vcf_plink_family_adapter_rows_for_tool(repo_root, "plink")?
+                .into_iter()
+                .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into())),
+        )
+        .chain(
+            collect_vcf_plink_family_adapter_rows_for_tool(repo_root, "plink2")?
+                .into_iter()
+                .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into())),
+        )
         .collect::<BTreeMap<_, _>>();
 
     let mut rows = Vec::with_capacity(benchmark_ready_rows.len());
@@ -154,7 +164,7 @@ pub(crate) fn collect_vcf_expected_benchmark_result_rows(
             &serving_row.tool_id,
             &serving_row.stage_id,
             matrix_row,
-            &bcftools_by_stage,
+            &adapter_rows,
         )?;
         let report_section = report_section_for_stage(catalog_row)?;
 
@@ -185,34 +195,46 @@ fn expected_outputs_for_binding(
     tool_id: &str,
     stage_id: &str,
     matrix_row: &VcfStageMatrixRow,
-    bcftools_by_stage: &BTreeMap<String, super::vcf_bcftools_adapter::VcfBcftoolsAdapterRow>,
+    adapter_rows: &BTreeMap<(String, String), VcfExpectedOutputsAdapterRow>,
 ) -> Result<Vec<String>> {
-    let expected_outputs = match tool_id {
-        "bcftools" => {
-            let adapter_row = bcftools_by_stage.get(stage_id).ok_or_else(|| {
-                anyhow!(
-                    "VCF expected-result table is missing bcftools adapter coverage for `{stage_id}`"
-                )
-            })?;
-            if adapter_row.stage_output_ids != matrix_row.expected_outputs {
-                return Err(anyhow!(
-                    "VCF expected-result table stage output drifted for `{stage_id}` / `{tool_id}`"
-                ));
-            }
-            adapter_row.stage_output_ids.clone()
-        }
-        other => {
-            return Err(anyhow!(
-                "VCF expected-result table does not yet own a benchmark-ready adapter collector for `{other}`"
-            ));
-        }
-    };
+    let adapter_row = adapter_rows
+        .get(&(stage_id.to_string(), tool_id.to_string()))
+        .ok_or_else(|| {
+            anyhow!(
+                "VCF expected-result table is missing adapter coverage for `{stage_id}` / `{tool_id}`"
+            )
+        })?;
+    let expected_outputs = adapter_row.stage_output_ids.clone();
+    if expected_outputs != matrix_row.expected_outputs {
+        return Err(anyhow!(
+            "VCF expected-result table stage output drifted for `{stage_id}` / `{tool_id}`"
+        ));
+    }
     if expected_outputs.is_empty() {
         return Err(anyhow!(
             "VCF expected-result table row `{stage_id}` / `{tool_id}` is missing expected outputs"
         ));
     }
     Ok(expected_outputs)
+}
+
+#[derive(Debug, Clone)]
+struct VcfExpectedOutputsAdapterRow {
+    stage_output_ids: Vec<String>,
+}
+
+impl From<super::vcf_bcftools_adapter::VcfBcftoolsAdapterRow> for VcfExpectedOutputsAdapterRow {
+    fn from(value: super::vcf_bcftools_adapter::VcfBcftoolsAdapterRow) -> Self {
+        Self { stage_output_ids: value.stage_output_ids }
+    }
+}
+
+impl From<super::vcf_plink_family_adapter::VcfPlinkFamilyAdapterRow>
+    for VcfExpectedOutputsAdapterRow
+{
+    fn from(value: super::vcf_plink_family_adapter::VcfPlinkFamilyAdapterRow) -> Self {
+        Self { stage_output_ids: value.stage_output_ids }
+    }
 }
 
 fn report_section_for_stage(catalog_row: &VcfStageCatalogRow) -> Result<String> {
@@ -259,9 +281,9 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "VCF expected-result table must keep one row per benchmark-ready stage-tool-corpus-asset binding"
         ));
     }
-    if rows.len() != 9 {
+    if rows.len() != 12 {
         return Err(anyhow!(
-            "VCF expected-result table must retain exactly 9 benchmark-ready rows, found {}",
+            "VCF expected-result table must retain exactly 12 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -279,6 +301,15 @@ fn ensure_vcf_expected_benchmark_result_contract(
         expected_metrics,
         report_section,
     ) in [
+        (
+            "vcf.qc",
+            "bcftools",
+            "vcf_production_regression",
+            "vcf_cohort",
+            "qc_report",
+            "hwe_summary",
+            "quality_control",
+        ),
         (
             "vcf.call",
             "bcftools",
@@ -377,18 +408,17 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH);
-        assert_eq!(report.row_count, 9);
-        assert_eq!(report.stage_count, 9);
-        assert_eq!(report.tool_count, 1);
+        assert_eq!(report.row_count, 12);
+        assert_eq!(report.stage_count, 10);
+        assert_eq!(report.tool_count, 3);
         assert_eq!(report.corpus_count, 1);
         assert_eq!(report.asset_profile_count, 3);
         assert_eq!(report.report_section_counts.get("variant_calling"), Some(&4));
-        assert_eq!(report.report_section_counts.get("quality_control"), Some(&2));
+        assert_eq!(report.report_section_counts.get("quality_control"), Some(&5));
         assert_eq!(report.report_section_counts.get("normalization"), Some(&1));
 
         assert!(report.rows.iter().all(|row| {
             row.domain == "vcf"
-                && row.tool_id == "bcftools"
                 && row.corpus_id == "vcf_production_regression"
                 && !row.expected_outputs.is_empty()
                 && !row.expected_metrics.is_empty()

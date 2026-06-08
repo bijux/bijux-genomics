@@ -8,9 +8,8 @@ use serde::Serialize;
 use crate::commands::benchmark::local_vcf_stage_catalog::{
     build_vcf_stage_catalog_rows, VcfStageCatalogRow,
 };
-use crate::commands::benchmark::local_vcf_stage_matrix::{
-    build_vcf_stage_matrix_rows, VcfStageMatrixRow,
-};
+use crate::commands::benchmark::local_vcf_stage_matrix::VcfStageMatrixRow;
+use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -95,7 +94,7 @@ pub(crate) fn collect_vcf_tool_serving_map_rows() -> Result<Vec<VcfToolServingMa
     let catalog_rows = build_vcf_stage_catalog_rows()?;
     let catalog_by_stage =
         catalog_rows.into_iter().map(|row| (row.stage_id.clone(), row)).collect::<BTreeMap<_, _>>();
-    let matrix_rows = build_vcf_stage_matrix_rows()?;
+    let matrix_rows = collect_vcf_benchmark_binding_rows()?;
 
     let mut rows = Vec::with_capacity(matrix_rows.len());
     for matrix_row in matrix_rows {
@@ -119,15 +118,6 @@ fn build_tool_serving_row(
     matrix_row: &VcfStageMatrixRow,
     catalog_row: &VcfStageCatalogRow,
 ) -> Result<VcfToolServingMapRow> {
-    if matrix_row.tool_id != catalog_row.default_tool_id {
-        return Err(anyhow!(
-            "VCF matrix row `{}` drifted from the stage catalog default tool (`{}` vs `{}`)",
-            matrix_row.stage_id,
-            matrix_row.tool_id,
-            catalog_row.default_tool_id
-        ));
-    }
-
     let support_status = catalog_row.support_status.clone();
     let adapter_status = adapter_status_label(&support_status, &matrix_row.adapter_id);
     let parser_status = parser_status_label(&matrix_row.parser_id)?;
@@ -231,14 +221,34 @@ fn ensure_vcf_tool_serving_map_contract(rows: &[VcfToolServingMapRow]) -> Result
             "not_benchmark_ready",
         ),
         (
-            "plink2",
+            "bcftools",
             "vcf.qc",
-            "planned",
-            "declared_only",
+            "supported",
+            "runnable",
             "parse_normalized",
             "fixture:vcf_production_regression",
             "assigned",
-            "not_benchmark_ready",
+            "benchmark_ready",
+        ),
+        (
+            "plink",
+            "vcf.qc",
+            "supported",
+            "runnable",
+            "parse_normalized",
+            "fixture:vcf_production_regression",
+            "assigned",
+            "benchmark_ready",
+        ),
+        (
+            "plink2",
+            "vcf.qc",
+            "supported",
+            "runnable",
+            "parse_normalized",
+            "fixture:vcf_production_regression",
+            "assigned",
+            "benchmark_ready",
         ),
         (
             "ibdne",
@@ -282,7 +292,7 @@ fn ensure_vcf_tool_serving_map_contract(rows: &[VcfToolServingMapRow]) -> Result
         }
     }
 
-    let expected_row_count = build_vcf_stage_matrix_rows()?.len();
+    let expected_row_count = collect_vcf_benchmark_binding_rows()?.len();
     if rows.len() != expected_row_count {
         return Err(anyhow!(
             "VCF tool-serving map must contain exactly one row per matrix row (expected {}, found {})",
@@ -366,14 +376,34 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_TOOL_SERVING_MAP_SCHEMA_VERSION);
         assert_eq!(report.domain, "vcf");
-        assert_eq!(report.row_count, 20);
+        assert_eq!(report.row_count, 22);
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.tool_count, 6);
-        assert_eq!(report.benchmark_ready_row_count, 9);
-        assert_eq!(report.not_benchmark_ready_row_count, 11);
+        assert_eq!(report.tool_count, 7);
+        assert_eq!(report.benchmark_ready_row_count, 12);
+        assert_eq!(report.not_benchmark_ready_row_count, 10);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bcftools"
                 && row.stage_id == "vcf.call"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parse_normalized"
+                && row.corpus_status == "fixture:vcf_production_regression"
+                && row.asset_status == "assigned"
+                && row.benchmark_status == "benchmark_ready"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "bcftools"
+                && row.stage_id == "vcf.qc"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parse_normalized"
+                && row.corpus_status == "fixture:vcf_production_regression"
+                && row.asset_status == "assigned"
+                && row.benchmark_status == "benchmark_ready"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "plink"
+                && row.stage_id == "vcf.qc"
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parse_normalized"

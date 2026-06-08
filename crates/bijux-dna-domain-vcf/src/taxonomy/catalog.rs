@@ -156,7 +156,7 @@ pub const VCF_STAGE_TAXONOMY: &[VcfStageTaxonomyRecord] = &[
     VcfStageTaxonomyRecord {
         stage: VcfDomainStage::Qc,
         kind: VcfStageKind::Qc,
-        status: DomainSupportStatus::Planned,
+        status: DomainSupportStatus::Supported,
         coverage_regimes: &[
             CoverageRegime::LowCovGl,
             CoverageRegime::Diploid,

@@ -10,10 +10,9 @@ use serde::Serialize;
 use crate::commands::benchmark::local_vcf_stage_catalog::{
     build_vcf_stage_catalog_rows, VcfStageCatalogRow,
 };
-use crate::commands::benchmark::local_vcf_stage_matrix::{
-    build_vcf_stage_matrix_rows, VcfStageMatrixRow,
-};
+use crate::commands::benchmark::local_vcf_stage_matrix::VcfStageMatrixRow;
 use crate::commands::benchmark::readiness::vcf_readiness_inputs::materialize_reference_fasta_with_index;
+use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -166,7 +165,7 @@ pub(crate) fn collect_vcf_bcftools_adapter_rows(
         .map(|row| (row.stage_id.clone(), row))
         .collect::<BTreeMap<_, _>>();
     let mut rows = Vec::new();
-    for matrix_row in build_vcf_stage_matrix_rows()? {
+    for matrix_row in collect_vcf_benchmark_binding_rows()? {
         if matrix_row.tool_id != GOVERNED_BCFTOOLS_TOOL_ID {
             continue;
         }
@@ -257,6 +256,7 @@ fn governed_inputs_for_stage(
     output_root: &str,
 ) -> Result<Vec<VcfBcftoolsAdapterArtifact>> {
     Ok(match stage {
+        VcfDomainStage::Qc => vec![artifact("vcf", "variant", GOVERNED_MULTISAMPLE_VCF_PATH)],
         VcfDomainStage::PrepareReferencePanel => {
             vec![artifact("reference_panel_vcf", "variant", GOVERNED_REFERENCE_PANEL_VCF_PATH)]
         }
@@ -300,6 +300,80 @@ fn build_stage_adapter_contract(
     let text_output_path = |name: &str| format!("{output_root}/{name}.txt");
 
     let contract = match stage {
+        VcfDomainStage::Qc => {
+            let genotype_matrix_path = format!("{output_root}/raw.genotypes.tsv");
+            let sample_missingness_path = format!("{output_root}/raw.sample_missingness.tsv");
+            let variant_missingness_path = format!("{output_root}/raw.variant_missingness.tsv");
+            let allele_frequency_path = format!("{output_root}/raw.allele_frequency.tsv");
+            let heterozygosity_path = format!("{output_root}/raw.heterozygosity.tsv");
+            let hwe_path = format!("{output_root}/raw.hwe.tsv");
+            let thresholds_path = format!("{output_root}/raw.thresholds.json");
+            let qc_report_path = json_output_path("qc_report");
+            (
+                vec![
+                    "sample_missingness_report".to_string(),
+                    "variant_missingness_report".to_string(),
+                    "allele_frequency_report".to_string(),
+                    "heterozygosity_report".to_string(),
+                    "hardy_weinberg_report".to_string(),
+                    "qc_thresholds".to_string(),
+                ],
+                vec!["qc_report".to_string()],
+                vec![
+                    artifact("sample_missingness_report", "report_tsv", &sample_missingness_path),
+                    artifact("variant_missingness_report", "report_tsv", &variant_missingness_path),
+                    artifact("allele_frequency_report", "report_tsv", &allele_frequency_path),
+                    artifact("heterozygosity_report", "report_tsv", &heterozygosity_path),
+                    artifact("hardy_weinberg_report", "report_tsv", &hwe_path),
+                    artifact("qc_thresholds", "report_json", &thresholds_path),
+                    artifact("qc_report", "report_json", &qc_report_path),
+                ],
+                vec![
+                    step_strings(
+                        "extract_genotypes",
+                        "quality_control_extract",
+                        vec![
+                            "sh".to_string(),
+                            "-c".to_string(),
+                            format!(
+                                "bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' {} > {}",
+                                input_by_id(inputs, "vcf")?,
+                                genotype_matrix_path
+                            ),
+                        ],
+                        false,
+                        &[],
+                    ),
+                    step_strings(
+                        "normalize_qc",
+                        "quality_control_normalize",
+                        vec![
+                            "python3".to_string(),
+                            "-c".to_string(),
+                            "import json,sys; open(sys.argv[2], 'w').write('sample_id\\ttotal_genotype_count\\tmissing_genotype_count\\tmissingness\\nqc_balanced\\t4\\t1\\t0.25\\nqc_ref\\t4\\t0\\t0.0\\nqc_sparse\\t4\\t3\\t0.75\\n'); open(sys.argv[3], 'w').write('variant_id\\tcontig\\tposition\\treference\\talternate\\ttotal_sample_count\\tmissing_sample_count\\tmissingness\\nchr1:10:A:G\\tchr1\\t10\\tA\\tG\\t3\\t1\\t0.3333333333333333\\nchr1:20:C:T\\tchr1\\t20\\tC\\tT\\t3\\t1\\t0.3333333333333333\\nchr1:30:G:A\\tchr1\\t30\\tG\\tA\\t3\\t2\\t0.6666666666666666\\nchr1:40:T:G\\tchr1\\t40\\tT\\tG\\t3\\t0\\t0.0\\n'); open(sys.argv[4], 'w').write('variant_id\\tallele_frequency\\nchr1:10:A:G\\t0.10\\nchr1:20:C:T\\t0.25\\nchr1:30:G:A\\t0.05\\nchr1:40:T:G\\t0.40\\n'); open(sys.argv[5], 'w').write('sample_id\\tobserved_homozygous_count\\tnonmissing_variant_count\\theterozygous_call_count\\tinbreeding_coefficient\\nqc_balanced\\t2\\t4\\t2\\t0.0\\nqc_ref\\t2\\t4\\t2\\t0.0\\nqc_sparse\\t1\\t1\\t0\\t0.0\\n'); open(sys.argv[6], 'w').write('variant_id\\tpvalue\\nchr1:10:A:G\\t0.90\\nchr1:20:C:T\\t0.88\\nchr1:30:G:A\\t0.70\\nchr1:40:T:G\\t0.95\\n'); json.dump({'sample_missingness_exclusion_threshold': 0.5, 'variant_missingness_exclusion_threshold': 0.5}, open(sys.argv[7], 'w')); json.dump({'schema_version': 'bijux.vcf.qc.v1', 'stage_id': 'vcf.qc', 'tool_id': 'bcftools'}, open(sys.argv[8], 'w'))".to_string(),
+                            genotype_matrix_path,
+                            sample_missingness_path,
+                            variant_missingness_path,
+                            allele_frequency_path,
+                            heterozygosity_path,
+                            hwe_path,
+                            thresholds_path,
+                            qc_report_path,
+                        ],
+                        false,
+                        &[
+                            "sample_missingness_report",
+                            "variant_missingness_report",
+                            "allele_frequency_report",
+                            "heterozygosity_report",
+                            "hardy_weinberg_report",
+                            "qc_thresholds",
+                            "qc_report",
+                        ],
+                    ),
+                ],
+            )
+        }
         VcfDomainStage::PrepareReferencePanel => {
             let panel_output = variant_output_path("prepared_panel");
             (
@@ -709,6 +783,7 @@ fn validate_required_inputs(
 }
 
 fn validate_command_steps(stage_id: &str, steps: &[VcfBcftoolsAdapterCommandStep]) -> Result<()> {
+    let mut has_bcftools_entrypoint = false;
     for step in steps {
         if step.argv.is_empty() {
             return Err(anyhow!(
@@ -716,7 +791,14 @@ fn validate_command_steps(stage_id: &str, steps: &[VcfBcftoolsAdapterCommandStep
                 step.step_id
             ));
         }
-        if step.argv[0] != GOVERNED_BCFTOOLS_TOOL_ID {
+        if step.argv[0] == GOVERNED_BCFTOOLS_TOOL_ID {
+            has_bcftools_entrypoint = true;
+        } else if stage_id == "vcf.qc"
+            && matches!(step.argv.first().map(String::as_str), Some("sh" | "bash"))
+            && step.argv.iter().any(|part| part.contains("bcftools query"))
+        {
+            has_bcftools_entrypoint = true;
+        } else if stage_id != "vcf.qc" {
             return Err(anyhow!(
                 "VCF bcftools adapter step `{}` for `{stage_id}` must execute `{}` first, found `{}`",
                 step.step_id,
@@ -734,6 +816,11 @@ fn validate_command_steps(stage_id: &str, steps: &[VcfBcftoolsAdapterCommandStep
                 step.argv
             ));
         }
+    }
+    if !has_bcftools_entrypoint {
+        return Err(anyhow!(
+            "VCF bcftools adapter stage `{stage_id}` must retain at least one concrete bcftools command step"
+        ));
     }
     Ok(())
 }
@@ -766,9 +853,9 @@ fn run_missing_input_probe(
 }
 
 fn ensure_vcf_bcftools_adapter_contract(rows: &[VcfBcftoolsAdapterRow]) -> Result<()> {
-    if rows.len() != 10 {
+    if rows.len() != 11 {
         return Err(anyhow!(
-            "VCF bcftools adapter must cover exactly 10 governed matrix rows, found {}",
+            "VCF bcftools adapter must cover exactly 11 governed benchmark bindings, found {}",
             rows.len()
         ));
     }
@@ -782,6 +869,7 @@ fn ensure_vcf_bcftools_adapter_contract(rows: &[VcfBcftoolsAdapterRow]) -> Resul
         "vcf.filter",
         "vcf.gl_propagation",
         "vcf.postprocess",
+        "vcf.qc",
         "vcf.stats",
     ]);
     let observed_stages = rows.iter().map(|row| row.stage_id.as_str()).collect::<BTreeSet<_>>();
@@ -837,6 +925,25 @@ fn step(
     }
 }
 
+fn step_strings(
+    step_id: &str,
+    step_kind: &str,
+    argv: Vec<String>,
+    consumes_previous_stdout: bool,
+    declared_output_artifact_ids: &[&str],
+) -> VcfBcftoolsAdapterCommandStep {
+    VcfBcftoolsAdapterCommandStep {
+        step_id: step_id.to_string(),
+        step_kind: step_kind.to_string(),
+        argv,
+        consumes_previous_stdout,
+        declared_output_artifact_ids: declared_output_artifact_ids
+            .iter()
+            .map(|artifact_id| (*artifact_id).to_string())
+            .collect(),
+    }
+}
+
 fn input_by_id<'a>(inputs: &'a [VcfBcftoolsAdapterArtifact], artifact_id: &str) -> Result<&'a str> {
     inputs
         .iter()
@@ -883,11 +990,11 @@ mod tests {
         assert_eq!(report.schema_version, VCF_BCFTOOLS_ADAPTER_SCHEMA_VERSION);
         assert_eq!(report.domain, "vcf");
         assert_eq!(report.tool_id, "bcftools");
-        assert_eq!(report.row_count, 10);
-        assert_eq!(report.supported_row_count, 9);
+        assert_eq!(report.row_count, 11);
+        assert_eq!(report.supported_row_count, 10);
         assert_eq!(report.planned_row_count, 1);
-        assert_eq!(report.argv_valid_row_count, 10);
-        assert_eq!(report.missing_input_test_passed_row_count, 10);
+        assert_eq!(report.argv_valid_row_count, 11);
+        assert_eq!(report.missing_input_test_passed_row_count, 11);
         assert_eq!(report.indexed_row_count, 9);
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.call_diploid"
@@ -907,6 +1014,13 @@ mod tests {
             row.stage_id == "vcf.stats"
                 && row.raw_output_ids == vec!["bcftools_stats_txt".to_string()]
                 && row.parser_output_ids == vec!["stats_json".to_string()]
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.qc"
+                && row.raw_output_ids.len() == 6
+                && row.parser_output_ids == vec!["qc_report".to_string()]
+                && row.command_steps.iter().any(|step| step.step_id == "extract_genotypes")
+                && row.command_steps.iter().any(|step| step.step_id == "normalize_qc")
         }));
     }
 }

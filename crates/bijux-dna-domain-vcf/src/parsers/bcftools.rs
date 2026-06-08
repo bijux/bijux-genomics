@@ -30,6 +30,12 @@ const RAW_PANEL_VCF_NAME: &str = "raw.panel.vcf";
 const RAW_PANEL_TBI_NAME: &str = "raw.panel.vcf.tbi";
 const RAW_PANEL_MANIFEST_NAME: &str = "raw.panel_manifest.json";
 const RAW_STATS_NAME: &str = "raw.bcftools_stats.txt";
+const RAW_QC_SAMPLE_MISSINGNESS_NAME: &str = "raw.sample_missingness.tsv";
+const RAW_QC_VARIANT_MISSINGNESS_NAME: &str = "raw.variant_missingness.tsv";
+const RAW_QC_ALLELE_FREQUENCY_NAME: &str = "raw.allele_frequency.tsv";
+const RAW_QC_HETEROZYGOSITY_NAME: &str = "raw.heterozygosity.tsv";
+const RAW_QC_HWE_NAME: &str = "raw.hwe.tsv";
+const RAW_QC_THRESHOLDS_NAME: &str = "raw.thresholds.json";
 
 #[derive(Debug, Clone)]
 struct ParsedVcfRecord {
@@ -66,6 +72,35 @@ struct FilteredOutputSummary {
     filter_ids: Vec<String>,
 }
 
+#[derive(Debug, Clone)]
+struct QcSampleMissingnessRow {
+    sample_id: String,
+    total_genotype_count: u64,
+    missing_genotype_count: u64,
+    missingness: f64,
+}
+
+#[derive(Debug, Clone)]
+struct QcVariantMissingnessRow {
+    variant_id: String,
+    contig: String,
+    position: u64,
+    reference: String,
+    alternate: String,
+    total_sample_count: u64,
+    missing_sample_count: u64,
+    missingness: f64,
+}
+
+#[derive(Debug, Clone)]
+struct QcHeterozygosityRow {
+    sample_id: String,
+    observed_homozygous_count: u64,
+    nonmissing_variant_count: u64,
+    heterozygous_call_count: u64,
+    inbreeding_coefficient: f64,
+}
+
 /// Normalize the governed raw `bcftools` artifact set for a retained VCF stage.
 ///
 /// # Errors
@@ -86,6 +121,7 @@ pub fn parse_bcftools_stage_metrics(
         VcfDomainStage::PrepareReferencePanel => {
             parse_prepare_reference_panel_metrics(artifact_root)
         }
+        VcfDomainStage::Qc => parse_qc_metrics(artifact_root),
         VcfDomainStage::Stats => parse_stats_metrics(artifact_root),
         other => bail!("unsupported bcftools VCF parser stage `{}`", other.as_str()),
     }
@@ -268,6 +304,143 @@ fn parse_filter_metrics(root: &Path) -> Result<serde_json::Value> {
             "thresholds.sample_missingness_max",
         )?,
         "sample_count": doc.sample_ids.len(),
+    }))
+}
+
+fn parse_qc_metrics(root: &Path) -> Result<serde_json::Value> {
+    let sample_missingness =
+        parse_qc_sample_missingness_table(&root.join(RAW_QC_SAMPLE_MISSINGNESS_NAME))?;
+    let variant_missingness =
+        parse_qc_variant_missingness_table(&root.join(RAW_QC_VARIANT_MISSINGNESS_NAME))?;
+    let allele_frequencies =
+        parse_qc_allele_frequency_table(&root.join(RAW_QC_ALLELE_FREQUENCY_NAME))?;
+    let heterozygosity = parse_qc_heterozygosity_table(&root.join(RAW_QC_HETEROZYGOSITY_NAME))?;
+    let hwe_pvalues = parse_qc_hwe_table(&root.join(RAW_QC_HWE_NAME))?;
+    let thresholds = read_json(&root.join(RAW_QC_THRESHOLDS_NAME))?;
+    let sample_threshold = thresholds
+        .get("sample_missingness_exclusion_threshold")
+        .and_then(serde_json::Value::as_f64)
+        .ok_or_else(|| {
+            anyhow!("qc thresholds are missing sample_missingness_exclusion_threshold")
+        })?;
+    let variant_threshold = thresholds
+        .get("variant_missingness_exclusion_threshold")
+        .and_then(serde_json::Value::as_f64)
+        .ok_or_else(|| {
+            anyhow!("qc thresholds are missing variant_missingness_exclusion_threshold")
+        })?;
+
+    let excluded_samples = sample_missingness
+        .iter()
+        .filter(|row| row.missingness > sample_threshold)
+        .map(|row| {
+            serde_json::json!({
+                "sample_id": row.sample_id,
+                "total_genotype_count": row.total_genotype_count,
+                "missing_genotype_count": row.missing_genotype_count,
+                "missingness": row.missingness,
+            })
+        })
+        .collect::<Vec<_>>();
+    let excluded_variants = variant_missingness
+        .iter()
+        .filter(|row| row.missingness > variant_threshold)
+        .map(|row| {
+            serde_json::json!({
+                "variant_id": row.variant_id,
+                "contig": row.contig,
+                "position": row.position,
+                "reference": row.reference,
+                "alternate": row.alternate,
+                "total_sample_count": row.total_sample_count,
+                "missing_sample_count": row.missing_sample_count,
+                "missingness": row.missingness,
+            })
+        })
+        .collect::<Vec<_>>();
+    let heterozygous_call_count =
+        heterozygosity.iter().map(|row| row.heterozygous_call_count).sum::<u64>();
+    let observed_homozygous_count =
+        heterozygosity.iter().map(|row| row.observed_homozygous_count).sum::<u64>();
+    let mean_inbreeding_coefficient = if heterozygosity.is_empty() {
+        0.0
+    } else {
+        heterozygosity.iter().map(|row| row.inbreeding_coefficient).sum::<f64>()
+            / heterozygosity.len() as f64
+    };
+    let allele_frequency_mean = if allele_frequencies.is_empty() {
+        0.0
+    } else {
+        allele_frequencies.iter().sum::<f64>() / allele_frequencies.len() as f64
+    };
+    let maf_bin_counts = maf_bin_counts(&allele_frequencies);
+    let hwe_pvalue_mean = if hwe_pvalues.is_empty() {
+        None
+    } else {
+        Some(round_f64(hwe_pvalues.iter().sum::<f64>() / hwe_pvalues.len() as f64, 6))
+    };
+
+    Ok(serde_json::json!({
+        "schema_version": "bijux.vcf.qc.v1",
+        "stage_id": "vcf.qc",
+        "tool_id": BCFTOOLS_TOOL_ID,
+        "variant_count": allele_frequencies.len(),
+        "sample_missingness": sample_missingness
+            .iter()
+            .map(|row| serde_json::json!({
+                "sample_id": row.sample_id,
+                "total_genotype_count": row.total_genotype_count,
+                "missing_genotype_count": row.missing_genotype_count,
+                "missingness": row.missingness,
+            }))
+            .collect::<Vec<_>>(),
+        "variant_missingness": variant_missingness
+            .iter()
+            .map(|row| serde_json::json!({
+                "variant_id": row.variant_id,
+                "contig": row.contig,
+                "position": row.position,
+                "reference": row.reference,
+                "alternate": row.alternate,
+                "total_sample_count": row.total_sample_count,
+                "missing_sample_count": row.missing_sample_count,
+                "missingness": row.missingness,
+            }))
+            .collect::<Vec<_>>(),
+        "maf_summary": {
+            "allele_frequency_mean": allele_frequency_mean,
+            "maf_bin_counts": maf_bin_counts,
+            "observed_variant_count": allele_frequencies.len(),
+        },
+        "heterozygosity": {
+            "sample_rows": heterozygosity
+                .iter()
+                .map(|row| serde_json::json!({
+                    "sample_id": row.sample_id,
+                    "observed_homozygous_count": row.observed_homozygous_count,
+                    "nonmissing_variant_count": row.nonmissing_variant_count,
+                    "heterozygous_call_count": row.heterozygous_call_count,
+                    "inbreeding_coefficient": row.inbreeding_coefficient,
+                }))
+                .collect::<Vec<_>>(),
+            "heterozygous_call_count": heterozygous_call_count,
+            "observed_homozygous_count": observed_homozygous_count,
+            "het_hom_ratio": if observed_homozygous_count == 0 {
+                serde_json::Value::Null
+            } else {
+                serde_json::json!(heterozygous_call_count as f64 / observed_homozygous_count as f64)
+            },
+            "mean_inbreeding_coefficient": mean_inbreeding_coefficient,
+        },
+        "hwe_summary": {
+            "tested_variant_count": hwe_pvalues.len(),
+            "pvalue_mean": hwe_pvalue_mean,
+            "status": "computed_modern",
+        },
+        "excluded_samples": excluded_samples,
+        "excluded_variants": excluded_variants,
+        "sample_missingness_exclusion_threshold": sample_threshold,
+        "variant_missingness_exclusion_threshold": variant_threshold,
     }))
 }
 
@@ -483,6 +656,178 @@ fn parse_vcf_document(path: &Path) -> Result<ParsedVcfDocument> {
         bail!("raw VCF is missing #CHROM header");
     }
     Ok(doc)
+}
+
+fn parse_qc_sample_missingness_table(path: &Path) -> Result<Vec<QcSampleMissingnessRow>> {
+    let (header, rows) = read_table(path)?;
+    let sample_idx = index_for(&header, "sample_id")?;
+    let total_idx = index_for(&header, "total_genotype_count")?;
+    let missing_idx = index_for(&header, "missing_genotype_count")?;
+    let missingness_idx = index_for(&header, "missingness")?;
+    let mut parsed = rows
+        .into_iter()
+        .map(|row| {
+            Ok(QcSampleMissingnessRow {
+                sample_id: field(&row, sample_idx, path)?.to_string(),
+                total_genotype_count: parse_u64(field(&row, total_idx, path)?, "sample total")?,
+                missing_genotype_count: parse_u64(
+                    field(&row, missing_idx, path)?,
+                    "sample missing count",
+                )?,
+                missingness: parse_f64(field(&row, missingness_idx, path)?, "sample missingness")?,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    parsed.sort_by(|left, right| left.sample_id.cmp(&right.sample_id));
+    Ok(parsed)
+}
+
+fn parse_qc_variant_missingness_table(path: &Path) -> Result<Vec<QcVariantMissingnessRow>> {
+    let (header, rows) = read_table(path)?;
+    let variant_idx = index_for(&header, "variant_id")?;
+    let contig_idx = index_for(&header, "contig")?;
+    let position_idx = index_for(&header, "position")?;
+    let reference_idx = index_for(&header, "reference")?;
+    let alternate_idx = index_for(&header, "alternate")?;
+    let total_idx = index_for(&header, "total_sample_count")?;
+    let missing_idx = index_for(&header, "missing_sample_count")?;
+    let missingness_idx = index_for(&header, "missingness")?;
+    let mut parsed = rows
+        .into_iter()
+        .map(|row| {
+            Ok(QcVariantMissingnessRow {
+                variant_id: field(&row, variant_idx, path)?.to_string(),
+                contig: field(&row, contig_idx, path)?.to_string(),
+                position: parse_u64(field(&row, position_idx, path)?, "variant position")?,
+                reference: field(&row, reference_idx, path)?.to_string(),
+                alternate: field(&row, alternate_idx, path)?.to_string(),
+                total_sample_count: parse_u64(field(&row, total_idx, path)?, "variant total")?,
+                missing_sample_count: parse_u64(
+                    field(&row, missing_idx, path)?,
+                    "variant missing",
+                )?,
+                missingness: parse_f64(field(&row, missingness_idx, path)?, "variant missingness")?,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    parsed.sort_by(|left, right| left.variant_id.cmp(&right.variant_id));
+    Ok(parsed)
+}
+
+fn parse_qc_allele_frequency_table(path: &Path) -> Result<Vec<f64>> {
+    let (header, rows) = read_table(path)?;
+    let frequency_idx = index_for(&header, "allele_frequency")?;
+    rows.into_iter()
+        .map(|row| parse_f64(field(&row, frequency_idx, path)?, "allele frequency"))
+        .collect()
+}
+
+fn parse_qc_heterozygosity_table(path: &Path) -> Result<Vec<QcHeterozygosityRow>> {
+    let (header, rows) = read_table(path)?;
+    let sample_idx = index_for(&header, "sample_id")?;
+    let hom_idx = index_for(&header, "observed_homozygous_count")?;
+    let total_idx = index_for(&header, "nonmissing_variant_count")?;
+    let het_idx = index_for(&header, "heterozygous_call_count")?;
+    let coefficient_idx = index_for(&header, "inbreeding_coefficient")?;
+    let mut parsed = rows
+        .into_iter()
+        .map(|row| {
+            Ok(QcHeterozygosityRow {
+                sample_id: field(&row, sample_idx, path)?.to_string(),
+                observed_homozygous_count: parse_u64(
+                    field(&row, hom_idx, path)?,
+                    "homozygous count",
+                )?,
+                nonmissing_variant_count: parse_u64(
+                    field(&row, total_idx, path)?,
+                    "nonmissing variant count",
+                )?,
+                heterozygous_call_count: parse_u64(
+                    field(&row, het_idx, path)?,
+                    "heterozygous call count",
+                )?,
+                inbreeding_coefficient: parse_f64(
+                    field(&row, coefficient_idx, path)?,
+                    "inbreeding coefficient",
+                )?,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    parsed.sort_by(|left, right| left.sample_id.cmp(&right.sample_id));
+    Ok(parsed)
+}
+
+fn parse_qc_hwe_table(path: &Path) -> Result<Vec<f64>> {
+    let (header, rows) = read_table(path)?;
+    let pvalue_idx = index_for(&header, "pvalue")?;
+    rows.into_iter().map(|row| parse_f64(field(&row, pvalue_idx, path)?, "hwe pvalue")).collect()
+}
+
+fn maf_bin_counts(values: &[f64]) -> serde_json::Map<String, serde_json::Value> {
+    let mut counts = serde_json::Map::<String, serde_json::Value>::new();
+    for value in values {
+        let label = if *value < 0.01 {
+            "0-0.01"
+        } else if *value < 0.05 {
+            "0.01-0.05"
+        } else if *value < 0.1 {
+            "0.05-0.1"
+        } else if *value < 0.2 {
+            "0.1-0.2"
+        } else {
+            "0.2-0.5"
+        };
+        let count = counts.entry(label.to_string()).or_insert_with(|| serde_json::json!(0));
+        let next = count.as_u64().unwrap_or(0) + 1;
+        *count = serde_json::json!(next);
+    }
+    counts
+}
+
+fn read_table(path: &Path) -> Result<(Vec<String>, Vec<Vec<String>>)> {
+    let rows = read_rows(path)?;
+    let (header, rows) =
+        rows.split_first().ok_or_else(|| anyhow!("table {} is empty", path.display()))?;
+    Ok((header.clone(), rows.to_vec()))
+}
+
+fn read_rows(path: &Path) -> Result<Vec<Vec<String>>> {
+    let raw = read_text(path)?;
+    let mut rows = Vec::<Vec<String>>::new();
+    for line in raw.lines() {
+        let line = line.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        rows.push(line.split_whitespace().map(str::to_string).collect());
+    }
+    Ok(rows)
+}
+
+fn index_for(header: &[String], column: &str) -> Result<usize> {
+    header
+        .iter()
+        .position(|value| value == column)
+        .ok_or_else(|| anyhow!("missing `{column}` column"))
+}
+
+fn field<'a>(row: &'a [String], index: usize, path: &Path) -> Result<&'a str> {
+    row.get(index)
+        .map(String::as_str)
+        .ok_or_else(|| anyhow!("row in {} is missing column index {}", path.display(), index))
+}
+
+fn parse_f64(raw: &str, label: &str) -> Result<f64> {
+    raw.parse::<f64>().map_err(|error| anyhow!("parse {label} `{raw}`: {error}"))
+}
+
+fn parse_u64(raw: &str, label: &str) -> Result<u64> {
+    raw.parse::<u64>().map_err(|error| anyhow!("parse {label} `{raw}`: {error}"))
+}
+
+fn round_f64(value: f64, scale: u32) -> f64 {
+    let factor = 10_f64.powi(i32::try_from(scale).unwrap_or(0));
+    (value * factor).round() / factor
 }
 
 fn count_snp_and_indel_records(doc: &ParsedVcfDocument) -> (u64, u64) {

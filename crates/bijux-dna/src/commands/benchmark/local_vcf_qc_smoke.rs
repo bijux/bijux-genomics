@@ -14,7 +14,7 @@ use super::local_stage_result_manifest::{
     BenchStageResultResourceMetricsV1, BenchStageResultRuntimeV1, BenchStageResultStatus,
     BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
-use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
+use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_qc_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -23,7 +23,6 @@ const LOCAL_VCF_QC_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_qc_smoke.
 const LOCAL_VCF_QC_SMOKE_METRICS_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_qc_smoke.metrics.v1";
 const LOCAL_VCF_QC_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-qc-smoke";
 const GOVERNED_VCF_QC_STAGE_ID: &str = "vcf.qc";
-const GOVERNED_VCF_QC_TOOL_ID: &str = "plink2";
 const GOVERNED_VCF_QC_CORPUS_ID: &str = "vcf_production_regression";
 const GOVERNED_VCF_QC_ASSET_PROFILE_ID: &str = "vcf_cohort";
 const GOVERNED_VCF_QC_INPUT_FIXTURE_ID: &str = "qc_cohort_missingness";
@@ -350,16 +349,12 @@ pub(crate) fn run_vcf_qc_smoke(args: &parse::BenchLocalRunVcfQcSmokeArgs) -> Res
 pub(crate) fn resolve_governed_vcf_qc_smoke_contract(
     requested_tool_id: &str,
 ) -> Result<GovernedVcfQcSmokeContract> {
-    let matrix_row = build_vcf_stage_matrix_rows()?
+    let matrix_row = collect_vcf_qc_benchmark_binding_rows()?
         .into_iter()
-        .find(|row| row.stage_id == GOVERNED_VCF_QC_STAGE_ID)
-        .ok_or_else(|| anyhow!("VCF stage matrix is missing `{GOVERNED_VCF_QC_STAGE_ID}`"))?;
-    if matrix_row.tool_id != GOVERNED_VCF_QC_TOOL_ID {
-        bail!(
-            "VCF QC smoke requires retained tool `{GOVERNED_VCF_QC_TOOL_ID}`, found `{}` in the governed matrix",
-            matrix_row.tool_id
-        );
-    }
+        .find(|row| row.tool_id == requested_tool_id)
+        .ok_or_else(|| {
+            anyhow!("VCF QC smoke is missing governed retained tool `{requested_tool_id}`")
+        })?;
     if matrix_row.corpus_id != GOVERNED_VCF_QC_CORPUS_ID {
         bail!(
             "VCF QC smoke requires corpus `{GOVERNED_VCF_QC_CORPUS_ID}`, found `{}`",
@@ -370,13 +365,6 @@ pub(crate) fn resolve_governed_vcf_qc_smoke_contract(
         bail!(
             "VCF QC smoke requires asset profile `{GOVERNED_VCF_QC_ASSET_PROFILE_ID}`, found `{}`",
             matrix_row.asset_profile_id
-        );
-    }
-    if requested_tool_id != matrix_row.tool_id {
-        bail!(
-            "VCF QC smoke only retains tool `{}` for `{}`; requested `{requested_tool_id}`",
-            matrix_row.tool_id,
-            matrix_row.stage_id
         );
     }
     Ok(GovernedVcfQcSmokeContract {

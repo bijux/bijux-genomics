@@ -77,4 +77,5 @@ pub(crate) mod schema_validation;
 pub(crate) mod stage_catalog;
 pub(crate) mod suite;
 pub(crate) mod taxonomy_database;
+pub(crate) mod vcf_benchmark_bindings;
 pub(crate) mod workspace;

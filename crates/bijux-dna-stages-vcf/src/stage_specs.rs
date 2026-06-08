@@ -70,7 +70,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.qc",
-            status: "planned",
+            status: "supported",
             default_tool_id: "plink2",
             metrics_schema: "bijux.vcf.qc.v1",
             smoke_supported: true,

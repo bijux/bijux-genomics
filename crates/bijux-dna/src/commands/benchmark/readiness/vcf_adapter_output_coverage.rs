@@ -612,11 +612,11 @@ mod tests {
         .expect("render VCF adapter output coverage");
 
         assert_eq!(report.schema_version, VCF_ADAPTER_OUTPUT_COVERAGE_SCHEMA_VERSION);
-        assert_eq!(report.row_count, 38);
-        assert_eq!(report.benchmark_ready_row_count, 9);
-        assert_eq!(report.benchmark_ready_complete_row_count, 9);
+        assert_eq!(report.row_count, 39);
+        assert_eq!(report.benchmark_ready_row_count, 12);
+        assert_eq!(report.benchmark_ready_complete_row_count, 12);
         assert_eq!(report.benchmark_ready_incomplete_row_count, 0);
-        assert_eq!(report.complete_row_count, 35);
+        assert_eq!(report.complete_row_count, 36);
         assert_eq!(report.incomplete_row_count, 3);
 
         let call = report
@@ -636,6 +636,16 @@ mod tests {
         assert_eq!(stats.status, VcfAdapterOutputCoverageStatus::Complete);
         assert!(stats.index_outputs.is_empty());
         assert!(stats.normalized_metrics.iter().any(|entry| entry.starts_with("stats_json=")));
+
+        let qc = report
+            .rows
+            .iter()
+            .find(|row| row.stage_id == "vcf.qc" && row.tool_id == "bcftools")
+            .expect("bcftools qc row");
+        assert_eq!(qc.status, VcfAdapterOutputCoverageStatus::Complete);
+        assert_eq!(qc.benchmark_status, "benchmark_ready");
+        assert_eq!(qc.raw_outputs.len(), 6);
+        assert!(qc.normalized_metrics.iter().any(|entry| entry.starts_with("qc_report=")));
 
         let shapeit5 = report
             .rows

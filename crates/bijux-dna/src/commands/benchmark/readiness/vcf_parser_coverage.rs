@@ -8,7 +8,7 @@ use bijux_dna_domain_vcf::{find_vcf_parser_fixture_inventory_row, VcfDomainStage
 use serde::Serialize;
 
 use super::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
-use crate::commands::benchmark::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
+use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -130,7 +130,7 @@ pub(crate) fn collect_vcf_parser_coverage_rows(
         .into_iter()
         .filter(|row| row.benchmark_status == "benchmark_ready")
         .collect::<Vec<_>>();
-    let matrix_rows = build_vcf_stage_matrix_rows()?
+    let matrix_rows = collect_vcf_benchmark_binding_rows()?
         .into_iter()
         .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row))
         .collect::<BTreeMap<_, _>>();
@@ -256,10 +256,10 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_PARSER_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_PARSER_COVERAGE_PATH);
-        assert_eq!(report.stage_count, 9);
-        assert_eq!(report.tool_count, 1);
-        assert_eq!(report.row_count, 9);
-        assert_eq!(report.covered_row_count, 9);
+        assert_eq!(report.stage_count, 10);
+        assert_eq!(report.tool_count, 3);
+        assert_eq!(report.row_count, 12);
+        assert_eq!(report.covered_row_count, 12);
         assert_eq!(report.missing_row_count, 0);
         assert_eq!(report.parser_coverage_percent, 100.0);
         assert_eq!(report.coverage_status_counts.get("covered"), Some(&9));

@@ -73,6 +73,12 @@ const VCF_PARSER_FIXTURE_INVENTORY: &[VcfParserFixtureInventoryRow] = &[
         fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.stats",
     },
     VcfParserFixtureInventoryRow {
+        tool_id: "bcftools",
+        stage: VcfDomainStage::Qc,
+        parser_id: "parse_bcftools_qc_metrics",
+        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.qc",
+    },
+    VcfParserFixtureInventoryRow {
         tool_id: "angsd",
         stage: VcfDomainStage::CallGl,
         parser_id: "parse_angsd_call_gl_metrics",
