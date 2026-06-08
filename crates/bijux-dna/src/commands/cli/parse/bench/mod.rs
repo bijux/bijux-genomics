@@ -82,6 +82,7 @@ pub use self::readiness::{
     BenchReadinessRenderAllDomainExpectedResultCoverageArgs,
     BenchReadinessRenderAllDomainFailureClassificationArgs,
     BenchReadinessRenderAllDomainHarnessReadyArgs,
+    BenchReadinessRenderAllDomainLocalJobCoverageArgs,
     BenchReadinessRenderAllDomainMissingResultTestArgs,
     BenchReadinessRenderAllDomainNoDeclaredOnlyRowsArgs,
     BenchReadinessRenderAllDomainNoNotBenchmarkReadyRowsArgs,

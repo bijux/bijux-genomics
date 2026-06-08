@@ -392,6 +392,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderAllDomainLocalJobCoverage(args) => {
+                        crate::commands::benchmark::readiness::all_domain_local_job_coverage::run_render_all_domain_local_job_coverage(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderAllDomainFailureClassification(args) => {
                         crate::commands::benchmark::readiness::all_domain_failure_classification::run_render_all_domain_failure_classification(
                             args,
