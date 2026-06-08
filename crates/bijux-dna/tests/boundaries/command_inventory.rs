@@ -111,6 +111,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-all-domain-output-declarations",
     "bijux-dna bench readiness render-all-domain-commands",
     "bijux-dna bench readiness render-all-domain-retained-tools",
+    "bijux-dna bench readiness render-stage-tool-alias-check",
     "bijux-dna bench readiness render-parser-completeness-gate",
     "bijux-dna bench readiness render-corpus-asset-coverage-gate",
     "bijux-dna bench readiness render-essential-pipeline-corpus-assets",

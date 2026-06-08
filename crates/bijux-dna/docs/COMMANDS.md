@@ -635,6 +635,14 @@ Visible aliases are part of the operator surface:
   `future`, equivalent not-yet-active lifecycle rows, declaration-only adapter coverage, and
   `not_benchmark_ready` rows. The command fails closed unless every active matrix tool appears
   exactly once and no retained tool serves zero active stages.
+- `bijux-dna bench readiness render-stage-tool-alias-check`
+  `render-stage-tool-alias-check` writes
+  `benchmarks/readiness/all-domains/stage-tool-alias-check.json` and audits the governed
+  all-domain candidate, active, expected-result, and rendered-command surfaces for stale stage or
+  tool aliases. The report keeps the accepted migration-validation stage alias inventory explicit,
+  discovers any separator-folded tool alias clusters from the governed candidate surface, and
+  fails closed unless those aliases remain confined to migration validation instead of entering
+  benchmark-owned active or generated-job surfaces.
 - `bijux-dna bench readiness render-removed-from-scope`
   `render-removed-from-scope` writes `benchmarks/readiness/removed-from-scope.tsv` with one
   governed row per candidate FASTQ, BAM, and VCF stage-tool binding that is outside the final
