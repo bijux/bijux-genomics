@@ -604,6 +604,14 @@ Visible aliases are part of the operator surface:
   metrics, report-table placement, and real local smoke evidence for parseable VCF, index output,
   variant counts, SNP count, indel count, and sample count. The command fails closed unless every
   retained `vcf.call` caller is complete across those surfaces.
+- `bijux-dna bench readiness render-vcf-call-diploid-ready`
+  `render-vcf-call-diploid-ready` writes `benchmarks/readiness/vcf/call-diploid-ready.json` with
+  one governed row per retained `vcf.call_diploid` caller. Each row keeps the retained-scope
+  proof, final active-row presence, rendered-command identity, output-contract paths, parser
+  fixture proof, expected metrics, report-table placement, and real local smoke evidence for
+  diploid genotype representation, called-genotype counts, genotype-state counts, and sample
+  count. The command fails closed unless every retained `vcf.call_diploid` caller is complete
+  across those surfaces.
 - `bijux-dna bench readiness render-all-domain-stage-tool-table`
   `render-all-domain-stage-tool-table` writes
   `benchmarks/readiness/all-domain-stage-tool-table.tsv` with one governed row per FASTQ, BAM,
