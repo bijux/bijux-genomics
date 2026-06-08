@@ -112,5 +112,6 @@ pub(crate) mod vcf_rendered_command_rows;
 pub(crate) mod vcf_rendered_commands;
 pub(crate) mod vcf_report_map;
 pub(crate) mod vcf_stage_readiness_support;
+pub(crate) mod vcf_stats_ready;
 pub(crate) mod vcf_tool_serving_map;
 pub(crate) mod vcf_undercovered_stages;

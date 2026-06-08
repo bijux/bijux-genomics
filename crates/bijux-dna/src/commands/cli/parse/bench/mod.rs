@@ -152,9 +152,9 @@ pub use self::readiness::{
     BenchReadinessRenderVcfParserCoverageArgs, BenchReadinessRenderVcfParserFailureTestsArgs,
     BenchReadinessRenderVcfParsersReportReadyArgs, BenchReadinessRenderVcfPlink2AdapterArgs,
     BenchReadinessRenderVcfPlinkAdapterArgs, BenchReadinessRenderVcfReportMapArgs,
-    BenchReadinessRenderVcfShapeit5AdapterArgs, BenchReadinessRenderVcfToolServingMapArgs,
-    BenchReadinessRenderVcfUndercoveredStagesArgs, BenchReadinessValidateToolExecutionModesArgs,
-    BenchReadinessValidateToolFamiliesArgs,
+    BenchReadinessRenderVcfShapeit5AdapterArgs, BenchReadinessRenderVcfStatsReadyArgs,
+    BenchReadinessRenderVcfToolServingMapArgs, BenchReadinessRenderVcfUndercoveredStagesArgs,
+    BenchReadinessValidateToolExecutionModesArgs, BenchReadinessValidateToolFamiliesArgs,
 };
 pub use self::schema_validation::{BenchSchemaDomainArg, BenchValidateSchemasArgs};
 pub use self::suite::BenchRunArgs;
