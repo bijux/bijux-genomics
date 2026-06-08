@@ -330,19 +330,11 @@ fn validate_suite_contracts(suite: &SuiteSpec) -> Result<()> {
     if stage_set.len() == 1 {
         return Ok(());
     }
-    for required in [
-        ("validate_pre", "fastq.validate_reads"),
-        ("trim", "fastq.trim_reads"),
-        ("filter", "fastq.filter_reads"),
-        ("stats", "fastq.profile_reads"),
-        ("report_qc", "fastq.report_qc"),
-    ] {
-        let (legacy_name, stage_id) = required;
-        if !(stage_set.contains(legacy_name)
-            || stage_set.contains(stage_id)
-            || (legacy_name == "report_qc" && stage_set.contains("qc_post"))
-            || (stage_id == "fastq.report_qc" && stage_set.contains("fastq.qc_post")))
-        {
+    for stage_id in crate::commands::benchmark::alias_inventory::required_migration_stage_ids() {
+        if !crate::commands::benchmark::alias_inventory::stage_set_contains_canonical_or_migration_alias(
+            &stage_set,
+            stage_id,
+        ) {
             return Err(anyhow!("suite missing required stage `{stage_id}`"));
         }
     }

@@ -9,6 +9,7 @@ use super::tool_serving_map::{
     render_bam_tool_serving_map, render_fastq_tool_serving_map, DEFAULT_BAM_TOOL_SERVING_MAP_PATH,
     DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH,
 };
+use crate::commands::benchmark::alias_inventory::{choose_canonical_tool_id, normalize_tool_id};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -134,29 +135,6 @@ pub(crate) fn render_tool_id_normalization(
     })
 }
 
-fn normalize_tool_id(tool_id: &str) -> String {
-    tool_id
-        .chars()
-        .filter(|character| *character != '-' && *character != '_')
-        .flat_map(char::to_lowercase)
-        .collect()
-}
-
-fn choose_canonical_tool_id(cluster_tool_ids: &[String]) -> String {
-    cluster_tool_ids
-        .iter()
-        .min_by_key(|tool_id| canonical_preference(tool_id))
-        .cloned()
-        .expect("canonical tool id")
-}
-
-fn canonical_preference(tool_id: &str) -> (usize, usize, String) {
-    let hyphen_count = tool_id.matches('-').count();
-    let underscore_count = tool_id.matches('_').count();
-    let separator_penalty = hyphen_count + underscore_count;
-    (separator_penalty, hyphen_count, tool_id.to_ascii_lowercase())
-}
-
 fn render_tool_id_normalization_tsv(rows: &[ToolIdNormalizationRow]) -> String {
     let mut rendered =
         String::from("normalized_tool_id\tcanonical_tool_id\talias_tool_ids\tdomains\treason\n");
@@ -194,9 +172,10 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        normalize_tool_id, render_tool_id_normalization, DEFAULT_TOOL_ID_NORMALIZATION_PATH,
+        render_tool_id_normalization, DEFAULT_TOOL_ID_NORMALIZATION_PATH,
         TOOL_ID_NORMALIZATION_SCHEMA_VERSION,
     };
+    use crate::commands::benchmark::alias_inventory::normalize_tool_id;
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))

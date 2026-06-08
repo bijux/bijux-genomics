@@ -1,3 +1,4 @@
+pub(crate) mod alias_inventory;
 pub(crate) mod config;
 pub(crate) mod corpus_fastq;
 pub(crate) mod corpus_metadata;
