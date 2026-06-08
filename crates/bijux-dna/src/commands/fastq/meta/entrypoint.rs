@@ -397,6 +397,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderAllDomainNoPlaceholderCommandCheck(args) => {
+                        crate::commands::benchmark::readiness::all_domain_no_placeholder_command_check::run_render_all_domain_no_placeholder_command_check(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderAllDomainFailureClassification(args) => {
                         crate::commands::benchmark::readiness::all_domain_failure_classification::run_render_all_domain_failure_classification(
                             args,
