@@ -270,7 +270,7 @@ pub(crate) fn validate_vcf_schemas(
     Ok(report)
 }
 
-fn validate_all_domain_schemas(
+pub(crate) fn validate_all_domain_schemas(
     repo_root: &Path,
     output_path: PathBuf,
     schema_root: &Path,

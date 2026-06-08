@@ -116,6 +116,14 @@ pub(crate) fn handle_meta_commands(
                         &cwd, args,
                     )?;
                 }
+                BenchCommand::ActiveScope { command } => match command {
+                    cli::BenchActiveScopeCommand::Validate(args) => {
+                        crate::commands::benchmark::active_scope::run_active_scope_validate_command(
+                            &std::env::current_dir()?,
+                            args,
+                        )?;
+                    }
+                },
                 BenchCommand::Paths { command } => match command {
                     cli::BenchPathsCommand::Validate(args) => {
                         crate::commands::benchmark_paths::run_benchmark_paths_validate_command(

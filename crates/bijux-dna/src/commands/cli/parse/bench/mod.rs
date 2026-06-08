@@ -2,6 +2,7 @@ use clap::Subcommand;
 
 use super::BenchBamCommand;
 
+mod active_scope;
 mod config;
 mod corpus_fastq;
 mod fastq;
@@ -13,6 +14,7 @@ mod readiness;
 mod schema_validation;
 mod suite;
 
+pub use self::active_scope::{BenchActiveScopeCommand, BenchActiveScopeValidateArgs};
 pub use self::config::{
     BenchConfigCommand, BenchConfigJsonArgs, BenchConfigValidateArgs,
     BenchNormalizeWorkspaceLayoutArgs, BenchRepoChecksArgs, BenchWorkspaceValueArgs,
@@ -171,6 +173,11 @@ pub enum BenchCommand {
     ValidateMatrix(BenchValidateMatrixArgs),
     #[command(name = "validate-schemas")]
     ValidateSchemas(BenchValidateSchemasArgs),
+    #[command(name = "active-scope")]
+    ActiveScope {
+        #[command(subcommand)]
+        command: BenchActiveScopeCommand,
+    },
     Paths {
         #[command(subcommand)]
         command: BenchPathsCommand,
