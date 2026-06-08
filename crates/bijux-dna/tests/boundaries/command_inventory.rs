@@ -183,6 +183,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-vcf-stats-ready",
     "bijux-dna bench readiness render-vcf-qc-ready",
     "bijux-dna bench readiness render-vcf-call-ready",
+    "bijux-dna bench readiness render-vcf-prepare-reference-panel-ready",
     "bijux-dna bench readiness render-vcf-adapter-output-coverage",
     "bijux-dna bench readiness render-vcf-angsd-adapter",
     "bijux-dna bench readiness render-vcf-descent-family-adapter",

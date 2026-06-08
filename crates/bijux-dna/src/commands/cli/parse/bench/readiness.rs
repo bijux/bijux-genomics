@@ -192,6 +192,8 @@ pub enum BenchReadinessCommand {
     RenderVcfStatsReady(BenchReadinessRenderVcfStatsReadyArgs),
     #[command(name = "render-vcf-qc-ready")]
     RenderVcfQcReady(BenchReadinessRenderVcfQcReadyArgs),
+    #[command(name = "render-vcf-prepare-reference-panel-ready")]
+    RenderVcfPrepareReferencePanelReady(BenchReadinessRenderVcfPrepareReferencePanelReadyArgs),
     #[command(name = "render-vcf-adapter-output-coverage")]
     RenderVcfAdapterOutputCoverage(BenchReadinessRenderVcfAdapterOutputCoverageArgs),
     #[command(name = "render-vcf-commands")]
@@ -566,6 +568,14 @@ pub struct BenchReadinessRenderVcfStatsReadyArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfQcReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfPrepareReferencePanelReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
