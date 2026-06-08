@@ -32,10 +32,7 @@ fn bench_readiness_all_domain_active_scope_blockers_writes_governed_tsv_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(
-        rendered_path.trim(),
-        "benchmarks/readiness/all-domains/active-scope-blockers.tsv"
-    );
+    assert_eq!(rendered_path.trim(), "benchmarks/readiness/all-domains/active-scope-blockers.tsv");
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read active-scope blockers TSV");
@@ -48,7 +45,7 @@ fn bench_readiness_all_domain_active_scope_blockers_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 22);
+    assert_eq!(rows.len(), 21);
     assert!(rows.iter().any(|row| {
         row == &"fastq\tfastq.index_reference\tbowtie2_build\tnot_assigned\treference_fasta+reference_index_output\tfastq.adapter.index_reference\tfastq.parser.index_reference\tfastq_index_reference_v1\tnot_benchmark_ready\trunnable\tbenchmark_not_ready\tbenchmark_not_ready\tbenchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json\tbinding is intentionally outside final job-bearing active scope because it is not benchmark ready\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
     }));

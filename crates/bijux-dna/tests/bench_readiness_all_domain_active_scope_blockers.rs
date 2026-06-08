@@ -35,12 +35,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_all_domain_active_scope_blockers_reports_exact_removed_bindings() {
-    let payload = run_cli_json(&[
-        "bench",
-        "readiness",
-        "render-all-domain-active-scope-blockers",
-        "--json",
-    ]);
+    let payload =
+        run_cli_json(&["bench", "readiness", "render-all-domain-active-scope-blockers", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -54,8 +50,8 @@ fn bench_readiness_all_domain_active_scope_blockers_reports_exact_removed_bindin
         payload.get("removed_from_scope_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/removed-from-scope.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(22));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(18));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(21));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(17));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(17));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
@@ -70,7 +66,7 @@ fn bench_readiness_all_domain_active_scope_blockers_reports_exact_removed_bindin
     );
     assert_eq!(
         blocker_type_counts.get("lifecycle_not_active").and_then(serde_json::Value::as_u64),
-        Some(16)
+        Some(15)
     );
     assert!(
         blocker_type_counts.get("non_executable_adapter").is_none(),
@@ -91,11 +87,11 @@ fn bench_readiness_all_domain_active_scope_blockers_reports_exact_removed_bindin
         blocker_path_counts
             .get("benchmarks/readiness/all-domains/no-planned-rows.json")
             .and_then(serde_json::Value::as_u64),
-        Some(16)
+        Some(15)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 22);
+    assert_eq!(rows.len(), 21);
     let violations =
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
     assert!(violations.is_empty(), "active-scope blocker table must fail closed on drift");

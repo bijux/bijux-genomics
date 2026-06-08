@@ -45,12 +45,12 @@ fn bench_readiness_all_domain_retained_tools_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 64);
+    assert_eq!(rows.len(), 66);
     assert!(rows.iter().any(|row| {
         row == &"kraken2\tfastq\t1\t1\t1\t1\tbenchmark_ready\tfastq.screen_taxonomy\tfastq.screen_taxonomy"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"bcftools\tvcf\t9\t9\t9\t9\tbenchmark_ready\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.stats\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.stats"
+        row == &"bcftools\tvcf\t10\t10\t10\t10\tbenchmark_ready\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.qc,vcf.stats\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.qc,vcf.stats"
     }));
     assert!(
         rows.iter().all(|row| !row.starts_with("beagle\t")),

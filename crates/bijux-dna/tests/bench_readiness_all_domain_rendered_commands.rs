@@ -50,14 +50,14 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/rendered-commands-all-domains.argv.jsonl")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(121));
-    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(121));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(124));
+    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(124));
 
     let domain_counts =
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(12));
 
     let command_source_counts = payload
         .get("command_source_counts")
@@ -69,16 +69,22 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
     );
     assert_eq!(
         command_source_counts.get("vcf_bcftools_adapter").and_then(serde_json::Value::as_u64),
-        Some(9)
+        Some(10)
+    );
+    assert_eq!(
+        command_source_counts
+            .get("vcf_plink_family_adapter")
+            .and_then(serde_json::Value::as_u64),
+        Some(2)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 121);
+    assert_eq!(rows.len(), 124);
     let result_ids = rows
         .iter()
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(result_ids.len(), 121);
+    assert_eq!(result_ids.len(), 124);
 
     let bias_mitigation = rows
         .iter()

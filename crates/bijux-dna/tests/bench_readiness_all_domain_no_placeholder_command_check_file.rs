@@ -45,23 +45,14 @@ fn bench_readiness_all_domain_no_placeholder_command_check_writes_governed_json_
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.all_domain_no_placeholder_command_check.v1")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(121));
-    assert_eq!(
-        payload.get("command_step_count").and_then(serde_json::Value::as_u64),
-        Some(133)
-    );
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(124));
+    assert_eq!(payload.get("command_step_count").and_then(serde_json::Value::as_u64), Some(137));
     assert_eq!(
         payload.get("shell_wrapped_step_count").and_then(serde_json::Value::as_u64),
-        Some(81)
+        Some(82)
     );
-    assert_eq!(
-        payload.get("direct_step_count").and_then(serde_json::Value::as_u64),
-        Some(52)
-    );
-    assert_eq!(
-        payload.get("invalid_row_count").and_then(serde_json::Value::as_u64),
-        Some(0)
-    );
+    assert_eq!(payload.get("direct_step_count").and_then(serde_json::Value::as_u64), Some(55));
+    assert_eq!(payload.get("invalid_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
@@ -90,9 +81,11 @@ fn bench_readiness_all_domain_no_placeholder_command_check_writes_governed_json_
         row.get("result_id").and_then(serde_json::Value::as_str)
             == Some("vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools")
             && row.get("step_audits").and_then(serde_json::Value::as_array).is_some_and(|steps| {
-                steps.iter().filter_map(|step| {
-                    step.get("step_id").and_then(serde_json::Value::as_str)
-                }).collect::<Vec<_>>() == vec!["fill_tags", "index_postprocess_vcf"]
+                steps
+                    .iter()
+                    .filter_map(|step| step.get("step_id").and_then(serde_json::Value::as_str))
+                    .collect::<Vec<_>>()
+                    == vec!["fill_tags", "index_postprocess_vcf"]
             })
     }));
 

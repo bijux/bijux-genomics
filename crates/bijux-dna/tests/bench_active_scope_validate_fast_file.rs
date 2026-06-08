@@ -42,18 +42,9 @@ fn bench_active_scope_validate_fast_writes_disposable_report_file() {
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.active_scope_validate_fast.v1")
     );
-    assert_eq!(
-        payload.get("checked_surface_count").and_then(serde_json::Value::as_u64),
-        Some(10)
-    );
-    assert_eq!(
-        payload.get("passed_surface_count").and_then(serde_json::Value::as_u64),
-        Some(10)
-    );
-    assert_eq!(
-        payload.get("failed_surface_count").and_then(serde_json::Value::as_u64),
-        Some(0)
-    );
+    assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(10));
+    assert_eq!(payload.get("passed_surface_count").and_then(serde_json::Value::as_u64), Some(10));
+    assert_eq!(payload.get("failed_surface_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let checks = payload.get("checks").and_then(serde_json::Value::as_array).expect("checks");

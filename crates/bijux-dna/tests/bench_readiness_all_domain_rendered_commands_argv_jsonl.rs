@@ -37,7 +37,7 @@ fn bench_readiness_all_domain_rendered_commands_write_governed_argv_jsonl() {
 
     let jsonl = std::fs::read_to_string(&jsonl_path).expect("read all-domain command argv JSONL");
     let rows = jsonl.lines().collect::<Vec<_>>();
-    assert_eq!(rows.len(), 121);
+    assert_eq!(rows.len(), 124);
     assert!(rows.iter().all(|line| {
         serde_json::from_str::<serde_json::Value>(line).ok().is_some_and(|row| {
             row.get("result_id").and_then(serde_json::Value::as_str).is_some()

@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_local_job_coverage_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 121);
+    assert_eq!(rows.len(), 124);
     assert!(rows.iter().any(|row| {
         row == &"fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2\tfastq\tfastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq.parser.screen_taxonomy\tfastq_screen_taxonomy_v1\tdry_or_smoke\tbenchmark_ready\tfastq_bam_command_adapter\t1\t1\tinvoke\tsh\tbenchmarks/readiness/rendered-commands-all-domains.sh\tbenchmarks/readiness/rendered-commands-all-domains.argv.jsonl\tcovered\tactive row `fastq` / `fastq.screen_taxonomy` / `kraken2` keeps one local benchmark job row in `benchmarks/readiness/rendered-commands-all-domains.sh` and `benchmarks/readiness/rendered-commands-all-domains.argv.jsonl` through `fastq_bam_command_adapter`"
     }));

@@ -35,8 +35,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_active_scope_validate_fast_reports_complete_fast_surface() {
-    let payload =
-        run_cli_json(&["bench", "active-scope", "validate", "--fast", "--json"]);
+    let payload = run_cli_json(&["bench", "active-scope", "validate", "--fast", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -59,18 +58,9 @@ fn bench_active_scope_validate_fast_reports_complete_fast_surface() {
         payload.get("fixture_root").and_then(serde_json::Value::as_str),
         Some("benchmarks/tests/fixtures")
     );
-    assert_eq!(
-        payload.get("checked_surface_count").and_then(serde_json::Value::as_u64),
-        Some(10)
-    );
-    assert_eq!(
-        payload.get("passed_surface_count").and_then(serde_json::Value::as_u64),
-        Some(10)
-    );
-    assert_eq!(
-        payload.get("failed_surface_count").and_then(serde_json::Value::as_u64),
-        Some(0)
-    );
+    assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(10));
+    assert_eq!(payload.get("passed_surface_count").and_then(serde_json::Value::as_u64), Some(10));
+    assert_eq!(payload.get("failed_surface_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let category_counts = payload
@@ -98,9 +88,9 @@ fn bench_active_scope_validate_fast_reports_complete_fast_surface() {
 
     let checks = payload.get("checks").and_then(serde_json::Value::as_array).expect("checks");
     assert_eq!(checks.len(), 10);
-    assert!(checks.iter().all(|check| {
-        check.get("ok").and_then(serde_json::Value::as_bool) == Some(true)
-    }));
+    assert!(checks
+        .iter()
+        .all(|check| { check.get("ok").and_then(serde_json::Value::as_bool) == Some(true) }));
 
     assert!(checks.iter().any(|check| {
         check.get("category").and_then(serde_json::Value::as_str) == Some("configs")
@@ -109,7 +99,7 @@ fn bench_active_scope_validate_fast_reports_complete_fast_surface() {
             && check.get("output_path").and_then(serde_json::Value::as_str)
                 == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
             && check.get("detail").and_then(serde_json::Value::as_str)
-                == Some("row_count=121, stage_count=56, tool_count=64")
+                == Some("row_count=124, stage_count=57, tool_count=66")
     }));
     assert!(checks.iter().any(|check| {
         check.get("category").and_then(serde_json::Value::as_str) == Some("fixtures")
@@ -123,13 +113,13 @@ fn bench_active_scope_validate_fast_reports_complete_fast_surface() {
             && check.get("surface_id").and_then(serde_json::Value::as_str)
                 == Some("all_domain_no_placeholder_command_check")
             && check.get("detail").and_then(serde_json::Value::as_str)
-                == Some("valid_row_count=121, invalid_row_count=0, violation_count=0")
+                == Some("valid_row_count=124, invalid_row_count=0, violation_count=0")
     }));
     assert!(checks.iter().any(|check| {
         check.get("category").and_then(serde_json::Value::as_str) == Some("reports")
             && check.get("surface_id").and_then(serde_json::Value::as_str)
                 == Some("all_domain_report_map_coverage")
             && check.get("detail").and_then(serde_json::Value::as_str)
-                == Some("covered_row_count=121, missing_row_count=0")
+                == Some("covered_row_count=124, missing_row_count=0")
     }));
 }
