@@ -168,14 +168,15 @@ fn build_vcf_call_pseudohaploid_ready_report(
 ) -> Result<VcfCallPseudohaploidReadyReport> {
     let (command_report, bindings) =
         collect_vcf_stage_readiness_bindings(repo_root, VCF_CALL_PSEUDOHAPLOID_STAGE_ID)?;
+    let active_bindings = bindings
+        .into_iter()
+        .filter(|binding| binding.retained_row.scope_state == "active")
+        .collect::<Vec<_>>();
 
-    let mut rows = Vec::with_capacity(bindings.len());
-    for binding in bindings {
-        let smoke_report = if binding.retained_row.scope_state == "active" {
-            run_local_vcf_call_pseudohaploid_smoke(repo_root, &binding.retained_row.tool_id).ok()
-        } else {
-            None
-        };
+    let mut rows = Vec::with_capacity(active_bindings.len());
+    for binding in active_bindings {
+        let smoke_report =
+            run_local_vcf_call_pseudohaploid_smoke(repo_root, &binding.retained_row.tool_id).ok();
         rows.push(build_vcf_call_pseudohaploid_ready_row(
             &command_report,
             binding,
@@ -508,7 +509,7 @@ fn ensure_vcf_call_pseudohaploid_ready_contract(
     }
     if report.rows.is_empty() {
         return Err(anyhow!(
-            "VCF call_pseudohaploid readiness must keep at least one retained caller row"
+            "VCF call_pseudohaploid readiness must keep at least one active retained caller row"
         ));
     }
     if report.checked_surface_count != 8 {
