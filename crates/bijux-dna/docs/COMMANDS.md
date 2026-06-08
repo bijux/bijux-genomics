@@ -606,6 +606,14 @@ Visible aliases are part of the operator surface:
   threshold-specific filtering counts, explicit damage-context rule text, and terminal-context
   coverage. The command fails closed unless every active retained `vcf.damage_filter` caller is
   complete across those surfaces.
+- `bijux-dna bench readiness render-vcf-filter-ready`
+  `render-vcf-filter-ready` writes `benchmarks/readiness/vcf/filter-ready.json` with one governed
+  row per active retained `vcf.filter` caller. Each row keeps the retained-scope proof, final
+  active-row presence, rendered-command identity, output-contract paths, parser fixture proof,
+  expected metrics, report-table placement, and real local smoke evidence for input variants,
+  pass variants, failed variants, normalized filter IDs, and governed depth, quality, and
+  missingness thresholds. The command fails closed unless every active retained `vcf.filter`
+  caller is complete across those surfaces.
 - `bijux-dna bench readiness render-vcf-call-ready`
   `render-vcf-call-ready` writes `benchmarks/readiness/vcf/call-ready.json` with one governed row
   per retained `vcf.call` caller. Each row keeps the retained-scope proof, final active-row
