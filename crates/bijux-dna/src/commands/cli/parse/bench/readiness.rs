@@ -200,6 +200,8 @@ pub enum BenchReadinessCommand {
     RenderVcfPlink2Adapter(BenchReadinessRenderVcfPlink2AdapterArgs),
     #[command(name = "render-vcf-bcftools-adapter")]
     RenderVcfBcftoolsAdapter(BenchReadinessRenderVcfBcftoolsAdapterArgs),
+    #[command(name = "render-vcf-call-ready")]
+    RenderVcfCallReady(BenchReadinessRenderVcfCallReadyArgs),
     #[command(name = "render-vcf-matrix-registry-consistency")]
     RenderVcfMatrixRegistryConsistency(BenchReadinessRenderVcfMatrixRegistryConsistencyArgs),
     #[command(name = "render-missing-benchmark-pairs")]
@@ -476,6 +478,14 @@ pub struct BenchReadinessRenderVcfAdaptersReadyArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfActiveStageToolMatrixArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfCallReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
