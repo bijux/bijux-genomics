@@ -1,10 +1,10 @@
 {
   "schema_version": "bijux.bench.readiness.all_domain_active_scope_complete.v1",
   "output_path": "benchmarks/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json",
-  "active_row_count": 121,
-  "active_stage_count": 56,
-  "active_tool_count": 64,
-  "removed_row_count": 22,
+  "active_row_count": 124,
+  "active_stage_count": 57,
+  "active_tool_count": 66,
+  "removed_row_count": 21,
   "checked_surface_count": 19,
   "passed_surface_count": 19,
   "failed_surface_count": 0,
@@ -16,7 +16,7 @@
         "benchmarks/readiness/all-domains/retained-tools.tsv"
       ],
       "ok": true,
-      "detail": "row_count=64, active_matrix_tool_count=64, benchmark_ready_tool_count=64"
+      "detail": "row_count=66, active_matrix_tool_count=66, benchmark_ready_tool_count=66"
     },
     {
       "surface_id": "all_domain_active_stage_catalog",
@@ -24,7 +24,7 @@
         "benchmarks/readiness/all-domains/active-stage-catalog.tsv"
       ],
       "ok": true,
-      "detail": "row_count=56, stages_with_benchmark_ready_tools=56, stages_with_report_rows=56"
+      "detail": "row_count=57, stages_with_benchmark_ready_tools=57, stages_with_report_rows=57"
     },
     {
       "surface_id": "all_domain_active_stage_tool_matrix",
@@ -32,7 +32,7 @@
         "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv"
       ],
       "ok": true,
-      "detail": "row_count=121, stage_count=56, tool_count=64"
+      "detail": "row_count=124, stage_count=57, tool_count=66"
     },
     {
       "surface_id": "all_domain_no_planned_rows",
@@ -40,7 +40,7 @@
         "benchmarks/readiness/all-domains/no-planned-rows.json"
       ],
       "ok": true,
-      "detail": "active_row_count=121, removed_row_count=16, violation_count=0"
+      "detail": "active_row_count=124, removed_row_count=15, violation_count=0"
     },
     {
       "surface_id": "all_domain_no_declared_only_rows",
@@ -48,7 +48,7 @@
         "benchmarks/readiness/all-domains/no-declared-only-rows.json"
       ],
       "ok": true,
-      "detail": "active_row_count=127, removed_row_count=0, violation_count=0"
+      "detail": "active_row_count=130, removed_row_count=0, violation_count=0"
     },
     {
       "surface_id": "all_domain_no_not_benchmark_ready_rows",
@@ -56,7 +56,7 @@
         "benchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json"
       ],
       "ok": true,
-      "detail": "active_row_count=121, removed_row_count=6, violation_count=0"
+      "detail": "active_row_count=124, removed_row_count=6, violation_count=0"
     },
     {
       "surface_id": "removed_from_scope",
@@ -64,7 +64,7 @@
         "benchmarks/readiness/removed-from-scope.tsv"
       ],
       "ok": true,
-      "detail": "removed_row_count=22, removed_stage_count=18, removed_tool_count=17"
+      "detail": "removed_row_count=21, removed_stage_count=17, removed_tool_count=17"
     },
     {
       "surface_id": "stage_tool_alias_check",
@@ -72,7 +72,7 @@
         "benchmarks/readiness/all-domains/stage-tool-alias-check.json"
       ],
       "ok": true,
-      "detail": "candidate_row_count=143, active_row_count=121, violation_count=0"
+      "detail": "candidate_row_count=145, active_row_count=124, violation_count=0"
     },
     {
       "surface_id": "all_domain_parser_fixture_coverage",
@@ -80,7 +80,7 @@
         "benchmarks/readiness/all-domains/parser-fixture-coverage.tsv"
       ],
       "ok": true,
-      "detail": "covered_row_count=121, missing_row_count=0, coverage_percent=100.0"
+      "detail": "covered_row_count=124, missing_row_count=0, coverage_percent=100.0"
     },
     {
       "surface_id": "all_domain_adapter_coverage",
@@ -88,7 +88,7 @@
         "benchmarks/readiness/all-domains/adapter-coverage.tsv"
       ],
       "ok": true,
-      "detail": "covered_row_count=121, missing_row_count=0, coverage_percent=100.0"
+      "detail": "covered_row_count=124, missing_row_count=0, coverage_percent=100.0"
     },
     {
       "surface_id": "all_domain_output_contract_coverage",
@@ -96,7 +96,7 @@
         "benchmarks/readiness/all-domains/output-contract-coverage.tsv"
       ],
       "ok": true,
-      "detail": "covered_row_count=121, missing_row_count=0, index_declared_row_count=8"
+      "detail": "covered_row_count=124, missing_row_count=0, index_declared_row_count=8"
     },
     {
       "surface_id": "all_domain_expected_result_coverage",
@@ -104,7 +104,7 @@
         "benchmarks/readiness/all-domains/expected-result-coverage.tsv"
       ],
       "ok": true,
-      "detail": "covered_row_count=121, missing_row_count=0, coverage_percent=100.0"
+      "detail": "covered_row_count=124, missing_row_count=0, coverage_percent=100.0"
     },
     {
       "surface_id": "all_domain_report_map_coverage",
@@ -112,7 +112,7 @@
         "benchmarks/readiness/all-domains/report-map-coverage.tsv"
       ],
       "ok": true,
-      "detail": "covered_row_count=121, missing_row_count=0, report_map_binding_count=56"
+      "detail": "covered_row_count=124, missing_row_count=0, report_map_binding_count=59"
     },
     {
       "surface_id": "all_domain_local_job_coverage",
@@ -120,7 +120,7 @@
         "benchmarks/readiness/all-domains/local-job-coverage.tsv"
       ],
       "ok": true,
-      "detail": "covered_row_count=121, missing_row_count=0, local_job_binding_count=121"
+      "detail": "covered_row_count=124, missing_row_count=0, local_job_binding_count=124"
     },
     {
       "surface_id": "all_domain_active_scope_blockers",
@@ -128,7 +128,7 @@
         "benchmarks/readiness/all-domains/active-scope-blockers.tsv"
       ],
       "ok": true,
-      "detail": "row_count=22, blocker_type_count=2, violation_count=0"
+      "detail": "row_count=21, blocker_type_count=2, violation_count=0"
     },
     {
       "surface_id": "all_domain_no_placeholder_command_check",
@@ -136,7 +136,7 @@
         "benchmarks/readiness/all-domains/no-placeholder-command-check.json"
       ],
       "ok": true,
-      "detail": "valid_row_count=121, invalid_row_count=0, command_step_count=133"
+      "detail": "valid_row_count=124, invalid_row_count=0, command_step_count=137"
     },
     {
       "surface_id": "active_scope_validate_fast",

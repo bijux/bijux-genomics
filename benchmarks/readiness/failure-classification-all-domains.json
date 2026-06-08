@@ -78,7 +78,7 @@
       "tool_id": "bcftools",
       "result_id": null,
       "source_surface": "vcf_parser_failure_tests",
-      "evidence_path": "artifacts/bench-readiness/vcf-parser-failure-tests/vcf-parser-failure-ctRN70/fixture/raw.calls.vcf",
+      "evidence_path": "artifacts/bench-readiness/vcf-parser-failure-tests/empty-output/fixture/raw.calls.vcf",
       "observed_status": "parser_failed",
       "observed_error": "raw VCF is missing #CHROM header",
       "detail": "parse_bcftools_call_metrics expected `raw VCF is missing #CHROM header`",

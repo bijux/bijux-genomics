@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.disposable_root_cleanup_proof.v1",
   "output_path": "benchmarks/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json",
   "repo_root": "/Users/bijan/bijux/bijux-genomics",
-  "deleted_root_count": 2,
-  "already_absent_root_count": 1,
+  "deleted_root_count": 3,
+  "already_absent_root_count": 0,
   "validator_output_path": "benchmarks/readiness/benchmark-paths-validation.json",
   "validator_violation_count": 0,
   "validator_ok": true,
@@ -14,9 +14,9 @@
   "deleted_roots": [
     {
       "relative_path": "target",
-      "existed_before": false,
+      "existed_before": true,
       "exists_after": false,
-      "removal_action": "already_absent"
+      "removal_action": "deleted"
     },
     {
       "relative_path": "artifacts",
