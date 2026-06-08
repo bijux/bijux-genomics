@@ -7,9 +7,9 @@
   "existing_root_count": 6,
   "tracked_marker_count": 6,
   "ignored_root_count": 0,
-  "readiness_snapshot_count": 105,
+  "readiness_snapshot_count": 106,
   "readiness_json_snapshot_count": 76,
-  "readiness_tsv_snapshot_count": 29,
+  "readiness_tsv_snapshot_count": 30,
   "root_tests_regular_file_count": 1,
   "root_tests_readme_tracked_by_git": true,
   "violation_count": 0,
@@ -130,7 +130,8 @@
     "benchmarks/readiness/vcf-report-map.tsv",
     "benchmarks/readiness/vcf-schema-validation.json",
     "benchmarks/readiness/vcf-tool-serving-map.tsv",
-    "benchmarks/readiness/vcf-undercovered-stages.tsv"
+    "benchmarks/readiness/vcf-undercovered-stages.tsv",
+    "benchmarks/readiness/vcf/vcf-active-stage-tool-matrix.tsv"
   ],
   "roots": [
     {
