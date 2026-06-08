@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_adapter_coverage_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 124);
+    assert_eq!(rows.len(), 125);
     assert!(rows.iter().any(|row| {
         row == &"fastq:corpus-01-mini:fastq.trim_reads:sample-set:trimmomatic\tfastq\tfastq.trim_reads\ttrimmomatic\tcorpus-01-mini\tcorpus_only\tfastq.adapter.trim_reads\tsmoke\tfastq_bam_command_adapter\t1\t1\tinvoke\tsh\tcovered\tactive row `fastq` / `fastq.trim_reads` / `trimmomatic` keeps executable command rendering through `fastq_bam_command_adapter` with 1 command step(s)"
     }));

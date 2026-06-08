@@ -351,9 +351,9 @@ fn ensure_fake_run_row_alignment(
     command_rows: &BTreeMap<String, AllDomainRenderedCommandRow>,
     output_rows: &BTreeMap<String, AllDomainOutputDeclarationRow>,
 ) -> Result<()> {
-    if expected_rows.len() != 121 || command_rows.len() != 121 || output_rows.len() != 121 {
+    if expected_rows.len() != 125 || command_rows.len() != 125 || output_rows.len() != 125 {
         return Err(anyhow!(
-            "all-domain fake-runner requires exactly 121 expected-result, command, and output rows"
+            "all-domain fake-runner requires exactly 125 expected-result, command, and output rows"
         ));
     }
     let expected_ids = expected_rows.keys().cloned().collect::<BTreeSet<_>>();
@@ -635,9 +635,9 @@ fn ensure_result_report_contract(report: &AllDomainFakeRunResultReport) -> Resul
 }
 
 fn ensure_all_domain_fake_run_contract(report: &AllDomainFakeRunsReport) -> Result<()> {
-    if report.result_count != 121 || report.results.len() != 121 {
+    if report.result_count != 125 || report.results.len() != 125 {
         return Err(anyhow!(
-            "all-domain fake-runner must cover exactly 121 governed benchmark-ready results"
+            "all-domain fake-runner must cover exactly 125 governed benchmark-ready results"
         ));
     }
     let unique_result_ids =

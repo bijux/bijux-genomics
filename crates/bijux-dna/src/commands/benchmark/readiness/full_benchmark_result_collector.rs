@@ -42,16 +42,16 @@ pub(crate) const DEFAULT_FULL_BENCHMARK_RESULT_COLLECTOR_PATH: &str =
 const FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.full_benchmark_result_collector.v1";
 
-const CANONICAL_RESULT_COUNT: usize = 121;
+const CANONICAL_RESULT_COUNT: usize = 125;
 const ESSENTIAL_PIPELINE_NODE_COUNT: usize = 93;
-const EXPECTED_ROW_COUNT: usize = 121;
-const FAKE_RUN_ROW_COUNT: usize = 121;
-const FAKE_FAILURE_ROW_COUNT: usize = 121;
-const MISSING_AUDIT_ROW_COUNT: usize = 121;
+const EXPECTED_ROW_COUNT: usize = 125;
+const FAKE_RUN_ROW_COUNT: usize = 125;
+const FAKE_FAILURE_ROW_COUNT: usize = 125;
+const MISSING_AUDIT_ROW_COUNT: usize = 125;
 const REAL_SMOKE_ROW_COUNT: usize = 4;
 const INSUFFICIENT_DATA_ROW_COUNT: usize = 1;
 const UNSUPPORTED_PAIR_ROW_COUNT: usize = 1;
-const TOTAL_ROW_COUNT: usize = 583;
+const TOTAL_ROW_COUNT: usize = 599;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -573,10 +573,10 @@ fn ensure_full_benchmark_result_collector_contract(
             "full benchmark result collector surface counts drifted from the governed benchmark and pipeline slices"
         ));
     }
-    if count_status(&report.result_status_counts, FullBenchmarkResultStatus::Expected) != 121
-        || count_status(&report.result_status_counts, FullBenchmarkResultStatus::Succeeded) != 218
-        || count_status(&report.result_status_counts, FullBenchmarkResultStatus::Failed) != 121
-        || count_status(&report.result_status_counts, FullBenchmarkResultStatus::Present) != 118
+    if count_status(&report.result_status_counts, FullBenchmarkResultStatus::Expected) != 125
+        || count_status(&report.result_status_counts, FullBenchmarkResultStatus::Succeeded) != 222
+        || count_status(&report.result_status_counts, FullBenchmarkResultStatus::Failed) != 125
+        || count_status(&report.result_status_counts, FullBenchmarkResultStatus::Present) != 122
         || report.missing_result_status_count != 3
         || report.insufficient_data_status_count != 1
         || report.unsupported_pair_status_count != 1
@@ -587,7 +587,7 @@ fn ensure_full_benchmark_result_collector_contract(
     }
     if report.domain_counts.get("fastq").copied() != Some(282)
         || report.domain_counts.get("bam").copied() != Some(228)
-        || report.domain_counts.get("vcf").copied() != Some(73)
+        || report.domain_counts.get("vcf").copied() != Some(89)
     {
         return Err(anyhow!(
             "full benchmark result collector domain counts drifted from the governed merged dataset"

@@ -337,7 +337,7 @@ fn ensure_full_benchmark_dashboard_contract(
             "full benchmark dashboard total stages drifted from the governed all-domain stage inventory"
         ));
     }
-    if report.total_tools != expected_results.tool_count || report.total_tools != 64 {
+    if report.total_tools != expected_results.tool_count || report.total_tools != 66 {
         return Err(anyhow!(
             "full benchmark dashboard total tools drifted from the governed expected-result slice"
         ));
@@ -347,13 +347,13 @@ fn ensure_full_benchmark_dashboard_contract(
             "full benchmark dashboard total tools must equal full benchmark report tool rows"
         ));
     }
-    if report.total_expected_jobs != expected_results.row_count || report.total_expected_jobs != 121
+    if report.total_expected_jobs != expected_results.row_count || report.total_expected_jobs != 125
     {
         return Err(anyhow!(
             "full benchmark dashboard total expected jobs drifted from the governed expected-result slice"
         ));
     }
-    if report.ready_jobs != full_report.present_row_count || report.ready_jobs != 118 {
+    if report.ready_jobs != full_report.present_row_count || report.ready_jobs != 122 {
         return Err(anyhow!(
             "full benchmark dashboard ready jobs drifted from the governed full benchmark report"
         ));

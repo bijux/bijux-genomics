@@ -371,9 +371,9 @@ fn ensure_all_domain_rendered_command_contract(
         ));
     }
 
-    if rows.len() != 124 {
+    if rows.len() != 125 {
         return Err(anyhow!(
-            "all-domain rendered commands must retain exactly 124 benchmark-ready rows, found {}",
+            "all-domain rendered commands must retain exactly 125 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -556,12 +556,15 @@ mod tests {
             report.argv_output_path,
             "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl"
         );
-        assert_eq!(report.row_count, 121);
-        assert_eq!(report.result_id_count, 121);
+        assert_eq!(report.row_count, 125);
+        assert_eq!(report.result_id_count, 125);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&9));
-        assert_eq!(report.benchmark_status_counts.get("benchmark_ready"), Some(&121));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&13));
+        assert_eq!(report.benchmark_status_counts.get("benchmark_ready"), Some(&125));
+        assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&112));
+        assert_eq!(report.command_source_counts.get("vcf_bcftools_adapter"), Some(&11));
+        assert_eq!(report.command_source_counts.get("vcf_plink_family_adapter"), Some(&2));
         assert!(report.rows.iter().all(|row| !row.command_steps.is_empty()));
     }
 }

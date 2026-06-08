@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.all_domain_missing_result_test.v1",
   "output_path": "benchmarks/readiness/missing-result-test-all-domains.json",
   "fake_result_root": "runs/bench/readiness-probes/all-domains/missing-result-test",
-  "expected_row_count": 121,
-  "present_result_row_count": 118,
+  "expected_row_count": 125,
+  "present_result_row_count": 122,
   "missing_result_row_count": 3,
   "passes_behavior_test": true,
   "removed_result_ids": [
@@ -19,7 +19,7 @@
   "domain_counts": {
     "bam": 49,
     "fastq": 63,
-    "vcf": 9
+    "vcf": 13
   },
   "rows": [
     {
@@ -3690,6 +3690,168 @@
       ],
       "report_section": "normalization",
       "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.prepare_reference_panel",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_reference_panel",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "prepared_panel",
+        "chunks_json",
+        "prepared_panel_tbi"
+      ],
+      "observed_output_artifact_ids": [
+        "prepared_panel",
+        "chunks_json",
+        "prepared_panel_tbi"
+      ],
+      "expected_metrics": [
+        "input_variants",
+        "output_variants",
+        "sample_count",
+        "sample_ids",
+        "sample_consistent",
+        "duplicate_sites_removed",
+        "normalization_status",
+        "parseable"
+      ],
+      "report_section": "reference_panel_preparation",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "sample_missingness_report",
+        "variant_missingness_report",
+        "allele_frequency_report",
+        "heterozygosity_report",
+        "hardy_weinberg_report",
+        "qc_thresholds",
+        "qc_report"
+      ],
+      "observed_output_artifact_ids": [
+        "sample_missingness_report",
+        "variant_missingness_report",
+        "allele_frequency_report",
+        "heterozygosity_report",
+        "hardy_weinberg_report",
+        "qc_thresholds",
+        "qc_report"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "report_section": "quality_control",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "sample_missingness_imiss",
+        "variant_missingness_lmiss",
+        "allele_frequency_frq",
+        "heterozygosity_het",
+        "hardy_weinberg_hwe",
+        "plink_log",
+        "qc_report"
+      ],
+      "observed_output_artifact_ids": [
+        "sample_missingness_imiss",
+        "variant_missingness_lmiss",
+        "allele_frequency_frq",
+        "heterozygosity_het",
+        "hardy_weinberg_hwe",
+        "plink_log",
+        "qc_report"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "report_section": "quality_control",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "sample_missingness_smiss",
+        "variant_missingness_vmiss",
+        "allele_frequency_afreq",
+        "heterozygosity_het",
+        "hardy_weinberg_hardy",
+        "plink2_log",
+        "qc_report"
+      ],
+      "observed_output_artifact_ids": [
+        "sample_missingness_smiss",
+        "variant_missingness_vmiss",
+        "allele_frequency_afreq",
+        "heterozygosity_het",
+        "hardy_weinberg_hardy",
+        "plink2_log",
+        "qc_report"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "report_section": "quality_control",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2` remains present with a validated fake-run manifest"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",

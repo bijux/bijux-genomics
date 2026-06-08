@@ -48,7 +48,7 @@ fn bench_readiness_all_domain_output_contract_coverage_writes_governed_tsv_file(
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 124);
+    assert_eq!(rows.len(), 125);
     assert!(rows.iter().any(|row| {
         row == &"fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2\tfastq\tfastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq_output_contract\tcomplete\tcomplete\tscreen_report_tsv,unclassified_reads_r1,unclassified_reads_r2\tclassification_report_json\tstdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stdout.log,stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stderr.log\truns/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json\t\ttrue\ttrue\ttrue\ttrue\tnot_applicable\tcovered\tactive row `fastq` / `fastq.screen_taxonomy` / `kraken2` keeps governed raw outputs, normalized metrics, logs, and manifest declarations through `fastq_output_contract` with no index requirement"
     }));

@@ -48,7 +48,7 @@ fn bench_readiness_stage_tool_resources_writes_governed_toml_file() {
         Some("benchmark_ready_command_resources")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 121);
+    assert_eq!(rows.len(), 125);
     assert!(rows.iter().all(|row| {
         row.get("threads").and_then(toml::Value::as_integer).unwrap_or_default() > 0
             && row.get("memory_gb").and_then(toml::Value::as_integer).unwrap_or_default() > 0

@@ -46,8 +46,8 @@ fn bench_readiness_full_benchmark_report_writes_markdown_and_json_outputs() {
         serde_json::from_str(&json_payload).expect("parse report json");
 
     assert!(markdown.contains("# FASTQ + BAM + VCF Benchmark Report"));
-    assert!(markdown.contains("- Report rows: 122"));
-    assert!(markdown.contains("- Expected-result rows: 121"));
+    assert!(markdown.contains("- Report rows: 126"));
+    assert!(markdown.contains("- Expected-result rows: 125"));
     assert!(markdown.contains("- Explicit unsupported rows: 1"));
     assert!(markdown.contains("## Stage-Centric"));
     assert!(markdown.contains("## Tool-Centric"));
@@ -69,5 +69,5 @@ fn bench_readiness_full_benchmark_report_writes_markdown_and_json_outputs() {
         json_value.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.full_benchmark_report.v1")
     );
-    assert_eq!(json_value.get("row_count").and_then(serde_json::Value::as_u64), Some(122));
+    assert_eq!(json_value.get("row_count").and_then(serde_json::Value::as_u64), Some(126));
 }

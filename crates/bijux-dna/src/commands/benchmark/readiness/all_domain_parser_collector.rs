@@ -12,6 +12,7 @@ use crate::commands::benchmark::local_all_domain_fake_runs::{
 };
 use crate::commands::benchmark::local_stage_commands::materialize_local_stage;
 use crate::commands::benchmark::local_stage_result_manifest::load_validated_stage_result_manifest_path;
+use crate::commands::benchmark::local_vcf_prepare_reference_panel_smoke::run_local_vcf_prepare_reference_panel_smoke;
 use crate::commands::benchmark::local_vcf_stats_smoke::run_local_vcf_stats_smoke;
 use crate::commands::benchmark::path_resolution::{
     ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
@@ -219,6 +220,9 @@ fn collect_real_smoke_rows(repo_root: &Path) -> Result<Vec<AllDomainParserCollec
         .context("materialize bam.validate real-smoke report")?;
     let vcf_stats_report = run_local_vcf_stats_smoke(repo_root, "bcftools")
         .context("materialize vcf.stats real-smoke report")?;
+    let vcf_prepare_reference_panel_report =
+        run_local_vcf_prepare_reference_panel_smoke(repo_root, "bcftools")
+            .context("materialize vcf.prepare_reference_panel real-smoke report")?;
 
     Ok(vec![
         collect_fastq_validate_smoke_row(repo_root, &fastq_validate_path)?,
@@ -227,6 +231,11 @@ fn collect_real_smoke_rows(repo_root: &Path) -> Result<Vec<AllDomainParserCollec
             repo_root,
             &vcf_stats_report.metrics_path,
             &vcf_stats_report.stage_result_manifest_path,
+        )?,
+        collect_vcf_prepare_reference_panel_smoke_row(
+            repo_root,
+            &vcf_prepare_reference_panel_report.metrics_path,
+            &vcf_prepare_reference_panel_report.stage_result_manifest_path,
         )?,
     ])
 }
@@ -369,6 +378,58 @@ fn collect_vcf_stats_smoke_row(
             ),
             ("ti_tv".to_string(), Value::from(json_f64_field(&metrics, "ti_tv")?)),
             ("sample_count".to_string(), Value::from(json_u64_field(&metrics, "sample_count")?)),
+        ]),
+    })
+}
+
+fn collect_vcf_prepare_reference_panel_smoke_row(
+    repo_root: &Path,
+    metrics_relative_path: &str,
+    stage_result_relative_path: &str,
+) -> Result<AllDomainParserCollectorRow> {
+    let metrics_path = repo_root.join(metrics_relative_path);
+    let metrics = read_json_document(&metrics_path)?;
+    let parsed_top_level_keys = top_level_keys(&metrics);
+    let stage_result_path = repo_root.join(stage_result_relative_path);
+    let stage_result = load_validated_stage_result_manifest_path(&stage_result_path)
+        .with_context(|| format!("load {}", stage_result_path.display()))?;
+
+    Ok(AllDomainParserCollectorRow {
+        record_id: "real-smoke:vcf.prepare_reference_panel".to_string(),
+        source_kind: AllDomainParserCollectorSourceKind::RealSmoke,
+        document_kind: "vcf_local_prepare_reference_panel_metrics".to_string(),
+        domain: "vcf".to_string(),
+        stage_id: "vcf.prepare_reference_panel".to_string(),
+        tool_id: "bcftools".to_string(),
+        corpus_id: "vcf_production_regression".to_string(),
+        asset_profile_id: "vcf_reference_panel".to_string(),
+        result_id: None,
+        parsed_path: metrics_relative_path.to_string(),
+        parsed_schema_version: json_string_field(&metrics, "schema_version")?,
+        parsed_top_level_key_count: parsed_top_level_keys.len(),
+        parsed_top_level_keys,
+        manifest_path: Some(stage_result_relative_path.to_string()),
+        manifest_status: Some(manifest_status_label(&stage_result)),
+        manifest_exit_code: Some(stage_result.runtime.exit_code),
+        declared_output_count: stage_result.outputs.len(),
+        normalized_snapshot: BTreeMap::from([
+            (
+                "input_variants".to_string(),
+                Value::from(json_u64_field(&metrics, "input_variants")?),
+            ),
+            (
+                "output_variants".to_string(),
+                Value::from(json_u64_field(&metrics, "output_variants")?),
+            ),
+            ("sample_count".to_string(), Value::from(json_u64_field(&metrics, "sample_count")?)),
+            (
+                "duplicate_sites_removed".to_string(),
+                Value::from(json_u64_field(&metrics, "duplicate_sites_removed")?),
+            ),
+            (
+                "normalization_status".to_string(),
+                Value::from(json_string_field(&metrics, "normalization_status")?),
+            ),
         ]),
     })
 }
@@ -613,14 +674,14 @@ mod tests {
             report.fake_run_root,
             "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs"
         );
-        assert_eq!(report.row_count, 124);
-        assert_eq!(report.fake_run_row_count, 121);
-        assert_eq!(report.real_smoke_row_count, 3);
-        assert_eq!(report.source_kind_counts.get("fake_run"), Some(&121));
-        assert_eq!(report.source_kind_counts.get("real_smoke"), Some(&3));
+        assert_eq!(report.row_count, 129);
+        assert_eq!(report.fake_run_row_count, 125);
+        assert_eq!(report.real_smoke_row_count, 4);
+        assert_eq!(report.source_kind_counts.get("fake_run"), Some(&125));
+        assert_eq!(report.source_kind_counts.get("real_smoke"), Some(&4));
         assert_eq!(report.domain_counts.get("fastq"), Some(&64));
         assert_eq!(report.domain_counts.get("bam"), Some(&50));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&10));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&15));
 
         let fastq_smoke = report
             .rows
@@ -658,6 +719,32 @@ mod tests {
         assert_eq!(vcf_smoke.normalized_snapshot.get("variant_count"), Some(&Value::from(4_u64)));
         assert_eq!(vcf_smoke.normalized_snapshot.get("ti_tv"), Some(&Value::from(2.0_f64)));
         assert_eq!(vcf_smoke.manifest_status.as_deref(), Some("succeeded"));
+
+        let vcf_prepare_reference_panel_smoke = report
+            .rows
+            .iter()
+            .find(|row| row.record_id == "real-smoke:vcf.prepare_reference_panel")
+            .expect("vcf prepare-reference-panel smoke row");
+        assert_eq!(
+            vcf_prepare_reference_panel_smoke.document_kind,
+            "vcf_local_prepare_reference_panel_metrics"
+        );
+        assert_eq!(
+            vcf_prepare_reference_panel_smoke.parsed_schema_version,
+            "bijux.bench.local_vcf_prepare_reference_panel_smoke.metrics.v1"
+        );
+        assert_eq!(
+            vcf_prepare_reference_panel_smoke.normalized_snapshot.get("input_variants"),
+            Some(&Value::from(5_u64))
+        );
+        assert_eq!(
+            vcf_prepare_reference_panel_smoke.normalized_snapshot.get("duplicate_sites_removed"),
+            Some(&Value::from(1_u64))
+        );
+        assert_eq!(
+            vcf_prepare_reference_panel_smoke.normalized_snapshot.get("normalization_status"),
+            Some(&Value::from("sorted_indexed_deduplicated"))
+        );
         assert_eq!(vcf_smoke.manifest_exit_code, Some(0));
 
         let fake_vcf = report

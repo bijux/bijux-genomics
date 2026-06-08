@@ -51,10 +51,10 @@ fn bench_readiness_all_domain_missing_result_test_tracks_three_governed_missing_
         payload.get("fake_result_root").and_then(serde_json::Value::as_str),
         Some("runs/bench/readiness-probes/all-domains/missing-result-test")
     );
-    assert_eq!(payload.get("expected_row_count").and_then(serde_json::Value::as_u64), Some(121));
+    assert_eq!(payload.get("expected_row_count").and_then(serde_json::Value::as_u64), Some(125));
     assert_eq!(
         payload.get("present_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(118)
+        Some(122)
     );
     assert_eq!(
         payload.get("missing_result_row_count").and_then(serde_json::Value::as_u64),
@@ -66,7 +66,7 @@ fn bench_readiness_all_domain_missing_result_test_tracks_three_governed_missing_
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(13));
 
     let removed_result_ids = payload
         .get("removed_result_ids")
@@ -87,7 +87,7 @@ fn bench_readiness_all_domain_missing_result_test_tracks_three_governed_missing_
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 121);
+    assert_eq!(rows.len(), 125);
 
     let missing_rows = rows
         .iter()

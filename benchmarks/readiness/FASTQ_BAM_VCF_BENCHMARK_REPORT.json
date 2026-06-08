@@ -2,30 +2,30 @@
   "schema_version": "bijux.bench.readiness.full_benchmark_report.v1",
   "markdown_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md",
   "json_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-  "row_count": 122,
-  "expected_result_row_count": 121,
+  "row_count": 126,
+  "expected_result_row_count": 125,
   "explicit_unsupported_row_count": 1,
-  "present_row_count": 118,
+  "present_row_count": 122,
   "missing_result_row_count": 3,
   "unsupported_pair_row_count": 1,
-  "stage_centric_row_count": 56,
-  "tool_centric_row_count": 64,
+  "stage_centric_row_count": 58,
+  "tool_centric_row_count": 66,
   "corpus_centric_row_count": 10,
-  "pipeline_centric_row_count": 7,
-  "runtime_row_count": 122,
-  "memory_row_count": 122,
+  "pipeline_centric_row_count": 10,
+  "runtime_row_count": 126,
+  "memory_row_count": 126,
   "comparable_metric_row_count": 103,
-  "failure_row_count": 121,
+  "failure_row_count": 125,
   "failure_class_row_count": 7,
   "passes_behavior_test": true,
   "domain_counts": {
     "bam": 49,
     "fastq": 63,
-    "vcf": 10
+    "vcf": 14
   },
   "row_status_counts": {
     "missing_result": 3,
-    "present": 118,
+    "present": 122,
     "unsupported_pair": 1
   },
   "rows": [
@@ -2928,7 +2928,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.1723815,
+      "real_smoke_elapsed_seconds": 0.15675375,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -3152,6 +3152,116 @@
       "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools` remains present with a validated fake-run manifest"
     },
     {
+      "report_row_id": "vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools",
+      "row_status": "present",
+      "result_id": "vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.prepare_reference_panel",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_reference_panel",
+      "report_section": "reference_panel_preparation",
+      "pipeline_ids": [
+        "reference-panel-imputation"
+      ],
+      "expected_output_count": 2,
+      "expected_metric_count": 8,
+      "comparable_metric_count": 0,
+      "simulated_elapsed_seconds": 1.5,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stage-result.json",
+      "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools",
+      "row_status": "present",
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "report_section": "quality_control",
+      "pipeline_ids": [],
+      "expected_output_count": 1,
+      "expected_metric_count": 10,
+      "comparable_metric_count": 4,
+      "simulated_elapsed_seconds": 1.5,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stage-result.json",
+      "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink",
+      "row_status": "present",
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "report_section": "quality_control",
+      "pipeline_ids": [],
+      "expected_output_count": 1,
+      "expected_metric_count": 10,
+      "comparable_metric_count": 4,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/stage-result.json",
+      "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink` remains present with a validated fake-run manifest"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2",
+      "row_status": "present",
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "report_section": "quality_control",
+      "pipeline_ids": [
+        "adna-gl-fastq-bam-vcf",
+        "bam-genotyping-to-vcf-downstream",
+        "core-germline-fastq-bam-vcf",
+        "diploid-small-fastq-bam-vcf",
+        "popgen-structure-vcf",
+        "reference-panel-imputation",
+        "relatedness-segments-vcf"
+      ],
+      "expected_output_count": 1,
+      "expected_metric_count": 10,
+      "comparable_metric_count": 4,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stage-result.json",
+      "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2` remains present with a validated fake-run manifest"
+    },
+    {
       "report_row_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
       "row_status": "missing_result",
       "result_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
@@ -3172,7 +3282,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.042461083,
+      "real_smoke_elapsed_seconds": 0.059379917,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -4340,6 +4450,54 @@
     },
     {
       "domain": "vcf",
+      "stage_id": "vcf.prepare_reference_panel",
+      "row_count": 1,
+      "present_row_count": 1,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "tool_ids": [
+        "bcftools"
+      ],
+      "corpus_ids": [
+        "vcf_production_regression"
+      ],
+      "pipeline_ids": [
+        "reference-panel-imputation"
+      ],
+      "report_sections": [
+        "reference_panel_preparation"
+      ]
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "row_count": 3,
+      "present_row_count": 3,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "tool_ids": [
+        "bcftools",
+        "plink",
+        "plink2"
+      ],
+      "corpus_ids": [
+        "vcf_production_regression"
+      ],
+      "pipeline_ids": [
+        "adna-gl-fastq-bam-vcf",
+        "bam-genotyping-to-vcf-downstream",
+        "core-germline-fastq-bam-vcf",
+        "diploid-small-fastq-bam-vcf",
+        "popgen-structure-vcf",
+        "reference-panel-imputation",
+        "relatedness-segments-vcf"
+      ],
+      "report_sections": [
+        "quality_control"
+      ]
+    },
+    {
+      "domain": "vcf",
       "stage_id": "vcf.stats",
       "row_count": 1,
       "present_row_count": 0,
@@ -4566,8 +4724,8 @@
     },
     {
       "tool_id": "bcftools",
-      "row_count": 9,
-      "present_row_count": 8,
+      "row_count": 11,
+      "present_row_count": 10,
       "missing_result_row_count": 1,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -4582,6 +4740,8 @@
         "vcf.filter",
         "vcf.gl_propagation",
         "vcf.postprocess",
+        "vcf.prepare_reference_panel",
+        "vcf.qc",
         "vcf.stats"
       ],
       "corpus_ids": [
@@ -4592,7 +4752,8 @@
         "adna-pseudohaploid-fastq-bam-vcf",
         "bam-genotyping-to-vcf-downstream",
         "core-germline-fastq-bam-vcf",
-        "diploid-small-fastq-bam-vcf"
+        "diploid-small-fastq-bam-vcf",
+        "reference-panel-imputation"
       ]
     },
     {
@@ -5196,6 +5357,48 @@
         "corpus-01-bam-mini"
       ],
       "pipeline_ids": []
+    },
+    {
+      "tool_id": "plink",
+      "row_count": 1,
+      "present_row_count": 1,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "domains": [
+        "vcf"
+      ],
+      "stage_ids": [
+        "vcf.qc"
+      ],
+      "corpus_ids": [
+        "vcf_production_regression"
+      ],
+      "pipeline_ids": []
+    },
+    {
+      "tool_id": "plink2",
+      "row_count": 1,
+      "present_row_count": 1,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "domains": [
+        "vcf"
+      ],
+      "stage_ids": [
+        "vcf.qc"
+      ],
+      "corpus_ids": [
+        "vcf_production_regression"
+      ],
+      "pipeline_ids": [
+        "adna-gl-fastq-bam-vcf",
+        "bam-genotyping-to-vcf-downstream",
+        "core-germline-fastq-bam-vcf",
+        "diploid-small-fastq-bam-vcf",
+        "popgen-structure-vcf",
+        "reference-panel-imputation",
+        "relatedness-segments-vcf"
+      ]
     },
     {
       "tool_id": "pmdtools",
@@ -5864,8 +6067,8 @@
     },
     {
       "corpus_id": "vcf_production_regression",
-      "row_count": 9,
-      "present_row_count": 8,
+      "row_count": 13,
+      "present_row_count": 12,
       "missing_result_row_count": 1,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -5880,28 +6083,35 @@
         "vcf.filter",
         "vcf.gl_propagation",
         "vcf.postprocess",
+        "vcf.prepare_reference_panel",
+        "vcf.qc",
         "vcf.stats"
       ],
       "tool_ids": [
-        "bcftools"
+        "bcftools",
+        "plink",
+        "plink2"
       ],
       "pipeline_ids": [
         "adna-gl-fastq-bam-vcf",
         "adna-pseudohaploid-fastq-bam-vcf",
         "bam-genotyping-to-vcf-downstream",
         "core-germline-fastq-bam-vcf",
-        "diploid-small-fastq-bam-vcf"
+        "diploid-small-fastq-bam-vcf",
+        "popgen-structure-vcf",
+        "reference-panel-imputation",
+        "relatedness-segments-vcf"
       ]
     }
   ],
   "pipeline_centric": {
-    "row_count": 7,
-    "unmapped_row_count": 90,
+    "row_count": 10,
+    "unmapped_row_count": 92,
     "rows": [
       {
         "pipeline_id": "adna-gl-fastq-bam-vcf",
-        "row_count": 14,
-        "present_row_count": 13,
+        "row_count": 15,
+        "present_row_count": 14,
         "missing_result_row_count": 1,
         "unsupported_pair_row_count": 0,
         "domains": [
@@ -5923,7 +6133,8 @@
           "fastq.trim_terminal_damage",
           "fastq.validate_reads",
           "vcf.call_gl",
-          "vcf.gl_propagation"
+          "vcf.gl_propagation",
+          "vcf.qc"
         ],
         "tool_ids": [
           "authenticct",
@@ -5934,6 +6145,7 @@
           "fastp",
           "fastqvalidator",
           "ngsbriggs",
+          "plink2",
           "preseq",
           "samtools",
           "verifybamid2"
@@ -6008,8 +6220,8 @@
       },
       {
         "pipeline_id": "bam-genotyping-to-vcf-downstream",
-        "row_count": 5,
-        "present_row_count": 3,
+        "row_count": 6,
+        "present_row_count": 4,
         "missing_result_row_count": 2,
         "unsupported_pair_row_count": 0,
         "domains": [
@@ -6021,18 +6233,20 @@
           "bam.filter",
           "bam.recalibration",
           "vcf.filter",
+          "vcf.qc",
           "vcf.stats"
         ],
         "tool_ids": [
           "bcftools",
           "gatk",
+          "plink2",
           "samtools"
         ]
       },
       {
         "pipeline_id": "core-germline-fastq-bam-vcf",
-        "row_count": 11,
-        "present_row_count": 9,
+        "row_count": 12,
+        "present_row_count": 10,
         "missing_result_row_count": 2,
         "unsupported_pair_row_count": 0,
         "domains": [
@@ -6051,6 +6265,7 @@
           "fastq.validate_reads",
           "vcf.call",
           "vcf.filter",
+          "vcf.qc",
           "vcf.stats"
         ],
         "tool_ids": [
@@ -6058,14 +6273,15 @@
           "bowtie2",
           "fastp",
           "fastqvalidator",
+          "plink2",
           "samtools",
           "seqkit_stats"
         ]
       },
       {
         "pipeline_id": "diploid-small-fastq-bam-vcf",
-        "row_count": 14,
-        "present_row_count": 12,
+        "row_count": 15,
+        "present_row_count": 13,
         "missing_result_row_count": 2,
         "unsupported_pair_row_count": 0,
         "domains": [
@@ -6087,6 +6303,7 @@
           "fastq.validate_reads",
           "vcf.call_diploid",
           "vcf.filter",
+          "vcf.qc",
           "vcf.stats"
         ],
         "tool_ids": [
@@ -6095,6 +6312,7 @@
           "fastp",
           "fastqvalidator",
           "gatk",
+          "plink2",
           "samtools",
           "seqkit_stats"
         ]
@@ -6120,6 +6338,56 @@
           "fastqc",
           "fastqvalidator",
           "kraken2"
+        ]
+      },
+      {
+        "pipeline_id": "popgen-structure-vcf",
+        "row_count": 1,
+        "present_row_count": 1,
+        "missing_result_row_count": 0,
+        "unsupported_pair_row_count": 0,
+        "domains": [
+          "vcf"
+        ],
+        "stage_ids": [
+          "vcf.qc"
+        ],
+        "tool_ids": [
+          "plink2"
+        ]
+      },
+      {
+        "pipeline_id": "reference-panel-imputation",
+        "row_count": 2,
+        "present_row_count": 2,
+        "missing_result_row_count": 0,
+        "unsupported_pair_row_count": 0,
+        "domains": [
+          "vcf"
+        ],
+        "stage_ids": [
+          "vcf.prepare_reference_panel",
+          "vcf.qc"
+        ],
+        "tool_ids": [
+          "bcftools",
+          "plink2"
+        ]
+      },
+      {
+        "pipeline_id": "relatedness-segments-vcf",
+        "row_count": 1,
+        "present_row_count": 1,
+        "missing_result_row_count": 0,
+        "unsupported_pair_row_count": 0,
+        "domains": [
+          "vcf"
+        ],
+        "stage_ids": [
+          "vcf.qc"
+        ],
+        "tool_ids": [
+          "plink2"
         ]
       }
     ]
@@ -7365,7 +7633,7 @@
       "row_status": "present",
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.1723815,
+      "real_smoke_elapsed_seconds": 0.15675375,
       "runtime_source": "fake_run_and_real_smoke"
     },
     {
@@ -7457,6 +7725,50 @@
       "runtime_source": "fake_run_simulated"
     },
     {
+      "report_row_id": "vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.prepare_reference_panel",
+      "tool_id": "bcftools",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.5,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "bcftools",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.5,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
       "report_row_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
       "domain": "vcf",
       "stage_id": "vcf.stats",
@@ -7464,7 +7776,7 @@
       "row_status": "missing_result",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.042461083,
+      "real_smoke_elapsed_seconds": 0.059379917,
       "runtime_source": "fake_run_and_real_smoke"
     }
   ],
@@ -8922,6 +9234,54 @@
       "memory_source": "declared_stage_tool_resource"
     },
     {
+      "report_row_id": "vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.prepare_reference_panel",
+      "tool_id": "bcftools",
+      "row_status": "present",
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "bcftools",
+      "row_status": "present",
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink",
+      "row_status": "present",
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "row_status": "present",
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
       "report_row_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
       "domain": "vcf",
       "stage_id": "vcf.stats",
@@ -8935,12 +9295,12 @@
     }
   ],
   "failures": {
-    "simulated_failure_row_count": 121,
+    "simulated_failure_row_count": 125,
     "failure_class_row_count": 7,
     "simulated_failure_domain_counts": {
       "bam": 49,
       "fastq": 63,
-      "vcf": 9
+      "vcf": 13
     },
     "rows": [
       {
@@ -10024,6 +10384,42 @@
         "detail": "fake failure recorded exit_code=7"
       },
       {
+        "record_id": "fake-failure:vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools",
+        "domain": "vcf",
+        "stage_id": "vcf.prepare_reference_panel",
+        "tool_id": "bcftools",
+        "result_id": "vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools",
+        "domain": "vcf",
+        "stage_id": "vcf.qc",
+        "tool_id": "bcftools",
+        "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink",
+        "domain": "vcf",
+        "stage_id": "vcf.qc",
+        "tool_id": "plink",
+        "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2",
+        "domain": "vcf",
+        "stage_id": "vcf.qc",
+        "tool_id": "plink2",
+        "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
         "record_id": "fake-failure:vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
         "domain": "vcf",
         "stage_id": "vcf.stats",
@@ -10093,7 +10489,7 @@
         "tool_id": "bcftools",
         "result_id": null,
         "source_surface": "vcf_parser_failure_tests",
-        "evidence_path": "artifacts/bench-readiness/vcf-parser-failure-tests/vcf-parser-failure-ctRN70/fixture/raw.calls.vcf",
+        "evidence_path": "artifacts/bench-readiness/vcf-parser-failure-tests/empty-output/fixture/raw.calls.vcf",
         "observed_status": "parser_failed",
         "observed_error": "raw VCF is missing #CHROM header",
         "detail": "parse_bcftools_call_metrics expected `raw VCF is missing #CHROM header`",
@@ -11736,11 +12132,12 @@
       "direction": "higher_is_better",
       "required": true,
       "tool_ids": [
+        "bcftools",
         "plink",
         "plink2"
       ],
       "contract_status": "declared",
-      "reason": "governed VCF comparable metric published for `vcf.qc` across 2 retained tools"
+      "reason": "governed VCF comparable metric published for `vcf.qc` across 3 retained tools"
     },
     {
       "domain": "vcf",
@@ -11751,11 +12148,12 @@
       "direction": "higher_is_better",
       "required": true,
       "tool_ids": [
+        "bcftools",
         "plink",
         "plink2"
       ],
       "contract_status": "declared",
-      "reason": "governed VCF comparable metric published for `vcf.qc` across 2 retained tools"
+      "reason": "governed VCF comparable metric published for `vcf.qc` across 3 retained tools"
     },
     {
       "domain": "vcf",
@@ -11766,11 +12164,12 @@
       "direction": "lower_is_better",
       "required": true,
       "tool_ids": [
+        "bcftools",
         "plink",
         "plink2"
       ],
       "contract_status": "declared",
-      "reason": "governed VCF comparable metric published for `vcf.qc` across 2 retained tools"
+      "reason": "governed VCF comparable metric published for `vcf.qc` across 3 retained tools"
     },
     {
       "domain": "vcf",
@@ -11781,11 +12180,12 @@
       "direction": "higher_is_better",
       "required": true,
       "tool_ids": [
+        "bcftools",
         "plink",
         "plink2"
       ],
       "contract_status": "declared",
-      "reason": "governed VCF comparable metric published for `vcf.qc` across 2 retained tools"
+      "reason": "governed VCF comparable metric published for `vcf.qc` across 3 retained tools"
     }
   ],
   "unsupported_pairs": [

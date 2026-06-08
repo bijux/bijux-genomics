@@ -289,9 +289,9 @@ fn ensure_all_domain_expected_benchmark_result_contract(
             expected_count
         ));
     }
-    if rows.len() != 124 {
+    if rows.len() != 125 {
         return Err(anyhow!(
-            "all-domain expected-result table must retain exactly 124 benchmark-ready rows, found {}",
+            "all-domain expected-result table must retain exactly 125 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -486,12 +486,15 @@ mod tests {
 
         assert_eq!(report.schema_version, ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH);
-        assert_eq!(report.row_count, 120);
-        assert_eq!(report.result_id_count, 120);
-        assert_eq!(report.stage_count, 55);
+        assert_eq!(report.row_count, 125);
+        assert_eq!(report.result_id_count, 125);
+        assert_eq!(report.stage_count, 58);
+        assert_eq!(report.tool_count, 66);
+        assert_eq!(report.corpus_count, 9);
+        assert_eq!(report.asset_profile_count, 12);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&8));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&13));
 
         let taxonomy = report
             .rows

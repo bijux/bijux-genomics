@@ -48,7 +48,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_writes_governed_tsv_fil
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 124);
+    assert_eq!(rows.len(), 125);
     assert!(rows.iter().any(|row| {
         row == &"fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2\tfastq\tfastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tclassification_report_json,screen_report_tsv,unclassified_reads_r1,unclassified_reads_r2\tclassification_report_json,classified_read_fraction\tcontamination_screening"
     }));

@@ -2,13 +2,13 @@
   "schema_version": "bijux.bench.readiness.all_domain_completion_check.v1",
   "output_path": "benchmarks/readiness/completion-check-all-domains.json",
   "fixture_root": "runs/bench/readiness-probes/all-domains/completion-check",
-  "row_count": 121,
-  "complete_row_count": 116,
+  "row_count": 125,
+  "complete_row_count": 120,
   "incomplete_row_count": 5,
   "domain_counts": {
     "bam": 49,
     "fastq": 63,
-    "vcf": 9
+    "vcf": 13
   },
   "failure_reason_counts": {
     "execution_not_successful": 1,
@@ -6656,6 +6656,226 @@
         {
           "file_id": "metrics",
           "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.postprocess/vcf_single_sample/bcftools/metrics.json",
+          "exists": true,
+          "non_empty": true
+        }
+      ],
+      "completion_status": "complete",
+      "failure_reasons": []
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.prepare_reference_panel",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_reference_panel",
+      "command_script_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/command.sh",
+      "stdout_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stdout.txt",
+      "stderr_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stderr.txt",
+      "metrics_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/metrics.json",
+      "stage_result_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stage-result.json",
+      "manifest_exists": true,
+      "manifest_valid": true,
+      "manifest_output_match": true,
+      "exit_code_zero": true,
+      "runtime_status": "succeeded",
+      "exit_code": 0,
+      "declared_output_count": 3,
+      "present_declared_output_count": 3,
+      "missing_declared_output_ids": [],
+      "normalized_metrics_count": 2,
+      "present_normalized_metrics_count": 2,
+      "missing_normalized_metric_ids": [],
+      "required_file_count": 4,
+      "ready_required_file_count": 4,
+      "required_files": [
+        {
+          "file_id": "command_script",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/command.sh",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stdout",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stdout.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stderr",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stderr.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "metrics",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/metrics.json",
+          "exists": true,
+          "non_empty": true
+        }
+      ],
+      "completion_status": "complete",
+      "failure_reasons": []
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_script_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/command.sh",
+      "stdout_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stdout.txt",
+      "stderr_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stderr.txt",
+      "metrics_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/metrics.json",
+      "stage_result_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stage-result.json",
+      "manifest_exists": true,
+      "manifest_valid": true,
+      "manifest_output_match": true,
+      "exit_code_zero": true,
+      "runtime_status": "succeeded",
+      "exit_code": 0,
+      "declared_output_count": 7,
+      "present_declared_output_count": 7,
+      "missing_declared_output_ids": [],
+      "normalized_metrics_count": 1,
+      "present_normalized_metrics_count": 1,
+      "missing_normalized_metric_ids": [],
+      "required_file_count": 4,
+      "ready_required_file_count": 4,
+      "required_files": [
+        {
+          "file_id": "command_script",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/command.sh",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stdout",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stdout.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stderr",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stderr.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "metrics",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/metrics.json",
+          "exists": true,
+          "non_empty": true
+        }
+      ],
+      "completion_status": "complete",
+      "failure_reasons": []
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_script_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/command.sh",
+      "stdout_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/stdout.txt",
+      "stderr_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/stderr.txt",
+      "metrics_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/metrics.json",
+      "stage_result_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/stage-result.json",
+      "manifest_exists": true,
+      "manifest_valid": true,
+      "manifest_output_match": true,
+      "exit_code_zero": true,
+      "runtime_status": "succeeded",
+      "exit_code": 0,
+      "declared_output_count": 7,
+      "present_declared_output_count": 7,
+      "missing_declared_output_ids": [],
+      "normalized_metrics_count": 1,
+      "present_normalized_metrics_count": 1,
+      "missing_normalized_metric_ids": [],
+      "required_file_count": 4,
+      "ready_required_file_count": 4,
+      "required_files": [
+        {
+          "file_id": "command_script",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/command.sh",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stdout",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/stdout.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stderr",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/stderr.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "metrics",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/metrics.json",
+          "exists": true,
+          "non_empty": true
+        }
+      ],
+      "completion_status": "complete",
+      "failure_reasons": []
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_script_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/command.sh",
+      "stdout_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stdout.txt",
+      "stderr_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stderr.txt",
+      "metrics_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/metrics.json",
+      "stage_result_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stage-result.json",
+      "manifest_exists": true,
+      "manifest_valid": true,
+      "manifest_output_match": true,
+      "exit_code_zero": true,
+      "runtime_status": "succeeded",
+      "exit_code": 0,
+      "declared_output_count": 7,
+      "present_declared_output_count": 7,
+      "missing_declared_output_ids": [],
+      "normalized_metrics_count": 1,
+      "present_normalized_metrics_count": 1,
+      "missing_normalized_metric_ids": [],
+      "required_file_count": 4,
+      "ready_required_file_count": 4,
+      "required_files": [
+        {
+          "file_id": "command_script",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/command.sh",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stdout",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stdout.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stderr",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stderr.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "metrics",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/metrics.json",
           "exists": true,
           "non_empty": true
         }

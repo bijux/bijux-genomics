@@ -51,14 +51,14 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(121));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(125));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(121)
+        Some(125)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(121)
+        Some(125)
     );
     assert_eq!(
         payload
@@ -79,7 +79,7 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
             .get("domain_counts")
             .and_then(|value| value.get("vcf"))
             .and_then(serde_json::Value::as_u64),
-        Some(9)
+        Some(13)
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let bwa_align = rows
@@ -115,6 +115,27 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
     assert_eq!(fastqc.get("memory_gb").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(fastqc.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(15));
     assert_eq!(fastqc.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(4));
+    let prepare_reference_panel = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.prepare_reference_panel")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
+        })
+        .expect("prepare-reference-panel bcftools row");
+    assert_eq!(prepare_reference_panel.get("threads").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        prepare_reference_panel.get("memory_gb").and_then(serde_json::Value::as_u64),
+        Some(4)
+    );
+    assert_eq!(
+        prepare_reference_panel.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(30)
+    );
+    assert_eq!(
+        prepare_reference_panel.get("scratch_gb").and_then(serde_json::Value::as_u64),
+        Some(8)
+    );
     let bam_authenticity = rows
         .iter()
         .find(|row| {

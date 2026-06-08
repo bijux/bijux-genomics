@@ -236,10 +236,10 @@ fn collect_all_domain_missing_result_rows(
 
     if fake_runs_by_id.len() != expected_rows.len()
         || output_rows_by_id.len() != expected_rows.len()
-        || expected_rows.len() != 121
+        || expected_rows.len() != 125
     {
         return Err(anyhow!(
-            "all-domain missing-result test requires exact 121-row alignment between expected results, output declarations, and fake runs"
+            "all-domain missing-result test requires exact 125-row alignment between expected results, output declarations, and fake runs"
         ));
     }
 
@@ -351,21 +351,21 @@ fn collect_all_domain_missing_result_rows(
 fn ensure_all_domain_missing_result_contract(
     mut report: AllDomainMissingResultTestReport,
 ) -> Result<AllDomainMissingResultTestReport> {
-    if report.rows.len() != 121 {
+    if report.rows.len() != 125 {
         return Err(anyhow!(
-            "all-domain missing-result test must retain exactly 121 expected rows, found {}",
+            "all-domain missing-result test must retain exactly 125 expected rows, found {}",
             report.rows.len()
         ));
     }
-    if report.expected_row_count != 121 {
+    if report.expected_row_count != 125 {
         return Err(anyhow!(
-            "all-domain missing-result test must track exactly 121 expected rows, found {}",
+            "all-domain missing-result test must track exactly 125 expected rows, found {}",
             report.expected_row_count
         ));
     }
-    if report.present_result_row_count != 118 {
+    if report.present_result_row_count != 122 {
         return Err(anyhow!(
-            "all-domain missing-result test must retain exactly 118 present rows after removing three results, found {}",
+            "all-domain missing-result test must retain exactly 122 present rows after removing three results, found {}",
             report.present_result_row_count
         ));
     }
@@ -486,13 +486,13 @@ mod tests {
             report.fake_result_root,
             "runs/bench/readiness-probes/all-domains/missing-result-test"
         );
-        assert_eq!(report.expected_row_count, 121);
-        assert_eq!(report.present_result_row_count, 118);
+        assert_eq!(report.expected_row_count, 125);
+        assert_eq!(report.present_result_row_count, 122);
         assert_eq!(report.missing_result_row_count, 3);
         assert!(report.passes_behavior_test);
         assert_eq!(report.domain_counts.get("fastq").copied(), Some(63));
         assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
-        assert_eq!(report.domain_counts.get("vcf").copied(), Some(9));
+        assert_eq!(report.domain_counts.get("vcf").copied(), Some(13));
 
         let removed_ids =
             report.removed_result_ids.iter().map(String::as_str).collect::<BTreeSet<_>>();

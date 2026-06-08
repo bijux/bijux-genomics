@@ -363,12 +363,12 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_resources.v1");
         assert_eq!(report.config_path, "benchmarks/configs/local/stage-tool-resources.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_command_resources");
-        assert_eq!(report.row_count, 120);
-        assert_eq!(report.benchmark_ready_row_count, 120);
-        assert_eq!(report.nonzero_resource_row_count, 120);
+        assert_eq!(report.row_count, 125);
+        assert_eq!(report.benchmark_ready_row_count, 125);
+        assert_eq!(report.nonzero_resource_row_count, 125);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&8));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&13));
         assert!(report.rows.iter().all(|row| {
             row.threads > 0 && row.memory_gb > 0 && row.walltime_minutes > 0 && row.scratch_gb > 0
         }));
@@ -376,6 +376,14 @@ mod tests {
             row.stage_id == "fastq.profile_read_lengths"
                 && row.tool_id == "seqfu"
                 && row.resource_origin == FASTQ_RESOURCE_ORIGIN
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.prepare_reference_panel"
+                && row.tool_id == "bcftools"
+                && row.threads == 2
+                && row.memory_gb == 4
+                && row.walltime_minutes == 30
+                && row.scratch_gb == 8
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "fastq.detect_adapters"

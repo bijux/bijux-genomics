@@ -55,38 +55,38 @@ fn bench_readiness_all_domain_harness_ready_reports_governed_pass_state() {
     assert_eq!(payload.get("all_domain_stage_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(
         payload.get("benchmark_ready_binding_count").and_then(serde_json::Value::as_u64),
-        Some(121)
+        Some(125)
     );
     assert_eq!(
         payload.get("expected_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(121)
+        Some(125)
     );
     assert_eq!(
         payload.get("rendered_command_row_count").and_then(serde_json::Value::as_u64),
-        Some(121)
+        Some(125)
     );
     assert_eq!(
         payload.get("output_declaration_row_count").and_then(serde_json::Value::as_u64),
-        Some(121)
+        Some(125)
     );
-    assert_eq!(payload.get("fake_run_result_count").and_then(serde_json::Value::as_u64), Some(121));
-    assert_eq!(payload.get("fake_run_output_count").and_then(serde_json::Value::as_u64), Some(484));
+    assert_eq!(payload.get("fake_run_result_count").and_then(serde_json::Value::as_u64), Some(125));
+    assert_eq!(payload.get("fake_run_output_count").and_then(serde_json::Value::as_u64), Some(508));
     assert_eq!(
         payload.get("fake_failure_result_count").and_then(serde_json::Value::as_u64),
-        Some(121)
+        Some(125)
     );
     assert_eq!(
         payload.get("fake_failure_output_count").and_then(serde_json::Value::as_u64),
-        Some(484)
+        Some(508)
     );
-    assert_eq!(payload.get("completion_row_count").and_then(serde_json::Value::as_u64), Some(121));
+    assert_eq!(payload.get("completion_row_count").and_then(serde_json::Value::as_u64), Some(125));
     assert_eq!(
         payload.get("parser_collector_row_count").and_then(serde_json::Value::as_u64),
-        Some(124)
+        Some(129)
     );
     assert_eq!(
         payload.get("missing_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(121)
+        Some(125)
     );
     assert_eq!(payload.get("failure_class_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(

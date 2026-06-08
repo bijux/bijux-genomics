@@ -285,9 +285,9 @@ fn ensure_all_domain_expected_result_coverage_contract(
             "all-domain expected-result coverage must keep governed expected-result coverage for every active row"
         ));
     }
-    if report.row_count != 124 || report.result_id_count != 124 {
+    if report.row_count != 125 || report.result_id_count != 125 {
         return Err(anyhow!(
-            "all-domain expected-result coverage must retain exactly 124 governed active result rows, found {} rows and {} result ids",
+            "all-domain expected-result coverage must retain exactly 125 governed active result rows, found {} rows and {} result ids",
             report.row_count,
             report.result_id_count
         ));

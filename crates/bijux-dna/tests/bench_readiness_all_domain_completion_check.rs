@@ -51,8 +51,8 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
         payload.get("fixture_root").and_then(serde_json::Value::as_str),
         Some("runs/bench/readiness-probes/all-domains/completion-check")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(121));
-    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(116));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(125));
+    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(120));
     assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("passes_behavior_test"), Some(&serde_json::Value::Bool(true)));
 
@@ -60,7 +60,7 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(13));
 
     let failure_reason_counts = payload
         .get("failure_reason_counts")
@@ -122,7 +122,7 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 121);
+    assert_eq!(rows.len(), 125);
 
     let missing_declared = rows
         .iter()

@@ -138,7 +138,7 @@ vcf	vcf.pca	plink2	vcf_production_regression	vcf_cohort	vcf.adapter.population_s
 vcf	vcf.phasing	shapeit5	vcf_production_regression	vcf_cohort_with_panel	vcf.adapter.panel_workflow	vcf.parser.vcf_output	not_benchmark_ready
 vcf	vcf.population_structure	plink2	vcf_production_regression	vcf_cohort	vcf.adapter.population_structure	vcf.parser.report_json	not_benchmark_ready
 vcf	vcf.postprocess	bcftools	vcf_production_regression	vcf_single_sample	vcf.adapter.transform	vcf.parser.vcf_output	benchmark_ready
-vcf	vcf.prepare_reference_panel	bcftools	vcf_production_regression	vcf_reference_panel	vcf.adapter.reference_panel	vcf.parser.vcf_output	not_benchmark_ready
+vcf	vcf.prepare_reference_panel	bcftools	vcf_production_regression	vcf_reference_panel	vcf.adapter.reference_panel	vcf.parser.vcf_output	benchmark_ready
 vcf	vcf.qc	bcftools	vcf_production_regression	vcf_cohort	vcf.adapter.quality_control	vcf.parser.qc_report	benchmark_ready
 vcf	vcf.qc	plink	vcf_production_regression	vcf_cohort	vcf.adapter.quality_control	vcf.parser.qc_report	benchmark_ready
 vcf	vcf.qc	plink2	vcf_production_regression	vcf_cohort	vcf.adapter.quality_control	vcf.parser.qc_report	benchmark_ready

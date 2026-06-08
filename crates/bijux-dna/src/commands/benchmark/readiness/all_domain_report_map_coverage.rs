@@ -447,12 +447,12 @@ fn ensure_all_domain_report_map_coverage_contract(
             "all-domain report-map coverage must keep governed report sections for every active row"
         ));
     }
-    if report.row_count != 124
-        || report.result_id_count != 124
-        || report.report_map_binding_count != 59
+    if report.row_count != 125
+        || report.result_id_count != 125
+        || report.report_map_binding_count != 60
     {
         return Err(anyhow!(
-            "all-domain report-map coverage must retain 124 active result rows, 124 result ids, and 59 governed report-map bindings; found rows={}, result_ids={}, bindings={}",
+            "all-domain report-map coverage must retain 125 active result rows, 125 result ids, and 60 governed report-map bindings; found rows={}, result_ids={}, bindings={}",
             report.row_count,
             report.result_id_count,
             report.report_map_binding_count
