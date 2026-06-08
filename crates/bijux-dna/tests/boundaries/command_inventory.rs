@@ -174,6 +174,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-vcf-adapter-missing-input-tests",
     "bijux-dna bench readiness render-vcf-adapters-ready",
     "bijux-dna bench readiness render-vcf-active-stage-tool-matrix",
+    "bijux-dna bench readiness render-vcf-damage-filter-ready",
     "bijux-dna bench readiness render-vcf-call-gl-ready",
     "bijux-dna bench readiness render-vcf-call-diploid-ready",
     "bijux-dna bench readiness render-vcf-call-pseudohaploid-ready",
