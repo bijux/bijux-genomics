@@ -50,8 +50,8 @@ fn bench_vcf_stage_catalog_matches_code_catalog() {
         Some("benchmarks/configs/local/vcf-stage-catalog.toml")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("supported_stage_count").and_then(serde_json::Value::as_u64), Some(9));
-    assert_eq!(payload.get("planned_stage_count").and_then(serde_json::Value::as_u64), Some(11));
+    assert_eq!(payload.get("supported_stage_count").and_then(serde_json::Value::as_u64), Some(11));
+    assert_eq!(payload.get("planned_stage_count").and_then(serde_json::Value::as_u64), Some(9));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), vcf_stage_catalog().len());

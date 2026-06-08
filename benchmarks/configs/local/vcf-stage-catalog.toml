@@ -3,7 +3,7 @@ schema_version = "bijux.bench.vcf.local_stage_catalog.v1"
 [[rows]]
 stage_id = "vcf.prepare_reference_panel"
 stage_name = "Reference Panel Preparation"
-support_status = "planned"
+support_status = "supported"
 default_tool_id = "bcftools"
 metrics_schema_id = "bijux.vcf.prepare_reference_panel.v1"
 input_types = ["vcf"]
@@ -126,7 +126,7 @@ local_smoke_mode = "vcf_single_sample"
 [[rows]]
 stage_id = "vcf.qc"
 stage_name = "Variant Quality Control"
-support_status = "planned"
+support_status = "supported"
 default_tool_id = "plink2"
 metrics_schema_id = "bijux.vcf.qc.v1"
 input_types = ["vcf"]

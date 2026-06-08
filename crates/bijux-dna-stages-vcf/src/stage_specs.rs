@@ -160,7 +160,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.prepare_reference_panel",
-            status: "planned",
+            status: "supported",
             default_tool_id: "bcftools",
             metrics_schema: "bijux.vcf.prepare_reference_panel.v1",
             smoke_supported: true,
