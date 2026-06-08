@@ -108,6 +108,11 @@
       "het_hom_ratio": 0.8,
       "mean_inbreeding_coefficient": 0.0
     },
+    "hwe_summary": {
+      "tested_variant_count": 4,
+      "pvalue_mean": 0.8575,
+      "status": "computed_modern"
+    },
     "excluded_samples": [
       {
         "sample_id": "qc_sparse",

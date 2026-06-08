@@ -119,16 +119,16 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
         "insufficient_data_probe",
     ];
     const QC_METRICS: &[&str] = &[
-        "sample_count",
-        "missingness_post",
-        "imputation_info_mean",
-        "rsq_mean",
-        "strand_flip_like_sites",
-        "allele_frequency_shift_abs_mean",
-        "residual_ct_ga_asymmetry",
-        "lowcov_uncertainty_mean",
-        "concordance",
-        "readiness_for_ibd_roh",
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold",
     ];
     const POSTPROCESS_METRICS: &[&str] = &[
         "readable_vcf",

@@ -77,6 +77,20 @@ fn bench_local_vcf_qc_smoke_writes_governed_files() {
         summary.get("sample_missingness_exclusion_threshold").and_then(serde_json::Value::as_f64),
         Some(0.5)
     );
+    assert_eq!(
+        summary
+            .get("hwe_summary")
+            .and_then(|value| value.get("tested_variant_count"))
+            .and_then(serde_json::Value::as_u64),
+        Some(3)
+    );
+    assert_eq!(
+        summary
+            .get("hwe_summary")
+            .and_then(|value| value.get("pvalue_mean"))
+            .and_then(serde_json::Value::as_f64),
+        Some(0.825656)
+    );
     let excluded_samples = summary
         .get("excluded_samples")
         .and_then(serde_json::Value::as_array)
@@ -105,6 +119,13 @@ fn bench_local_vcf_qc_smoke_writes_governed_files() {
     assert_eq!(
         metrics.get("sample_missingness_exclusion_threshold").and_then(serde_json::Value::as_f64),
         Some(0.5)
+    );
+    assert_eq!(
+        metrics
+            .get("hwe_summary")
+            .and_then(|value| value.get("status"))
+            .and_then(serde_json::Value::as_str),
+        Some("computed_modern")
     );
 
     let manifest_raw = std::fs::read_to_string(&manifest_path).expect("read manifest");

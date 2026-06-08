@@ -38,6 +38,13 @@ struct QcVariantMissingnessRow {
     missingness: f64,
 }
 
+#[derive(Debug, Clone, Serialize)]
+struct QcHweSummary {
+    tested_variant_count: u64,
+    pvalue_mean: Option<f64>,
+    status: String,
+}
+
 fn maf_bin_label(maf: f64) -> &'static str {
     if maf < 0.01 {
         "0-0.01"
@@ -87,6 +94,11 @@ fn is_transition(reference: &str, alt: &str) -> bool {
 
 fn is_transversion(reference: &str, alt: &str) -> bool {
     !is_transition(reference, alt)
+}
+
+fn round_f64(value: f64, scale: u32) -> f64 {
+    let factor = 10_f64.powi(i32::try_from(scale).unwrap_or(0));
+    (value * factor).round() / factor
 }
 
 /// # Errors
@@ -304,7 +316,17 @@ pub fn run_qc_stage(
     let hwe_p_mean = if hwe_p_values.is_empty() {
         None
     } else {
-        Some(hwe_p_values.iter().sum::<f64>() / hwe_p_values.len() as f64)
+        Some(round_f64(hwe_p_values.iter().sum::<f64>() / hwe_p_values.len() as f64, 6))
+    };
+    let hwe_status = if params.is_ancient_dna && !params.allow_hwe_for_ancient {
+        "skipped_ancient_default"
+    } else {
+        "computed_modern"
+    };
+    let hwe_summary = QcHweSummary {
+        tested_variant_count: u64::try_from(hwe_p_values.len()).unwrap_or(0),
+        pvalue_mean: hwe_p_mean,
+        status: hwe_status.to_string(),
     };
     let ti_tv = if tv_count == 0 { None } else { Some(ti_count as f64 / tv_count as f64) };
     let het_hom_ratio =
@@ -351,14 +373,7 @@ pub fn run_qc_stage(
     if let Some(hwe) = hwe_p_mean {
         table.push_str(&format!("hwe_pvalue_mean\t{hwe:.6}\n"));
     }
-    table.push_str(&format!(
-        "hwe_status\t{}\n",
-        if params.is_ancient_dna && !params.allow_hwe_for_ancient {
-            "skipped_ancient_default"
-        } else {
-            "computed_modern"
-        }
-    ));
+    table.push_str(&format!("hwe_status\t{}\n", hwe_status));
     atomic_write_bytes(&qc_tables_tsv, table.as_bytes())?;
     atomic_write_bytes(&imputation_qc_tsv, table.as_bytes())?;
     let warnings_json = out_dir.join("warnings.json");
@@ -504,7 +519,8 @@ pub fn run_qc_stage(
             "hwe_pvalue_mean": hwe_p_mean,
             "ti_tv": ti_tv,
             "het_hom_ratio": het_hom_ratio,
-            "hwe_status": if params.is_ancient_dna && !params.allow_hwe_for_ancient { "skipped_ancient_default" } else { "computed_modern" },
+            "hwe_status": hwe_status,
+            "hwe_summary": hwe_summary,
             "sample_missingness": sample_missingness.clone(),
             "variant_missingness": variant_missingness_rows.clone(),
             "maf_summary": {

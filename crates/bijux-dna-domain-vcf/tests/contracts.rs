@@ -135,8 +135,9 @@ mod contracts {
         assert!(stats.required_metrics.contains(&"transition_count"));
 
         let qc = stage_metrics_contract(VcfDomainStage::Qc);
-        assert!(qc.required_metrics.contains(&"sample_count"));
-        assert!(qc.required_metrics.contains(&"missingness_post"));
+        assert!(qc.required_metrics.contains(&"sample_missingness"));
+        assert!(qc.required_metrics.contains(&"variant_missingness"));
+        assert!(qc.required_metrics.contains(&"hwe_summary"));
     }
 
     #[test]

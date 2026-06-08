@@ -84,11 +84,19 @@ pub(crate) struct LocalVcfQcSmokeHeterozygosity {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub(crate) struct LocalVcfQcSmokeHweSummary {
+    pub(crate) tested_variant_count: u64,
+    pub(crate) pvalue_mean: Option<f64>,
+    pub(crate) status: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct LocalVcfQcSummary {
     sample_missingness: Vec<LocalVcfQcSmokeSampleMissingnessRow>,
     variant_missingness: Vec<LocalVcfQcSmokeVariantMissingnessRow>,
     maf_summary: LocalVcfQcSmokeMafSummary,
     heterozygosity: LocalVcfQcSmokeHeterozygosity,
+    hwe_summary: LocalVcfQcSmokeHweSummary,
     excluded_samples: Vec<LocalVcfQcSmokeSampleMissingnessRow>,
     excluded_variants: Vec<LocalVcfQcSmokeVariantMissingnessRow>,
     sample_missingness_exclusion_threshold: f64,
@@ -105,6 +113,7 @@ pub(crate) struct LocalVcfQcSmokeMetrics {
     pub(crate) variant_missingness: Vec<LocalVcfQcSmokeVariantMissingnessRow>,
     pub(crate) maf_summary: LocalVcfQcSmokeMafSummary,
     pub(crate) heterozygosity: LocalVcfQcSmokeHeterozygosity,
+    pub(crate) hwe_summary: LocalVcfQcSmokeHweSummary,
     pub(crate) excluded_samples: Vec<LocalVcfQcSmokeSampleMissingnessRow>,
     pub(crate) excluded_variants: Vec<LocalVcfQcSmokeVariantMissingnessRow>,
     pub(crate) sample_missingness_exclusion_threshold: f64,
@@ -140,6 +149,7 @@ pub(crate) struct LocalVcfQcSmokeReport {
     pub(crate) variant_missingness: Vec<LocalVcfQcSmokeVariantMissingnessRow>,
     pub(crate) maf_summary: LocalVcfQcSmokeMafSummary,
     pub(crate) heterozygosity: LocalVcfQcSmokeHeterozygosity,
+    pub(crate) hwe_summary: LocalVcfQcSmokeHweSummary,
     pub(crate) excluded_samples: Vec<LocalVcfQcSmokeSampleMissingnessRow>,
     pub(crate) excluded_variants: Vec<LocalVcfQcSmokeVariantMissingnessRow>,
     pub(crate) sample_missingness_exclusion_threshold: f64,
@@ -221,6 +231,7 @@ pub(crate) fn run_local_vcf_qc_smoke(
         variant_missingness: summary.variant_missingness.clone(),
         maf_summary: summary.maf_summary.clone(),
         heterozygosity: summary.heterozygosity.clone(),
+        hwe_summary: summary.hwe_summary.clone(),
         excluded_samples: summary.excluded_samples.clone(),
         excluded_variants: summary.excluded_variants.clone(),
         sample_missingness_exclusion_threshold: summary.sample_missingness_exclusion_threshold,
@@ -261,6 +272,7 @@ pub(crate) fn run_local_vcf_qc_smoke(
         variant_missingness: metrics.variant_missingness.clone(),
         maf_summary: metrics.maf_summary.clone(),
         heterozygosity: metrics.heterozygosity.clone(),
+        hwe_summary: metrics.hwe_summary.clone(),
         excluded_samples: metrics.excluded_samples.clone(),
         excluded_variants: metrics.excluded_variants.clone(),
         sample_missingness_exclusion_threshold: metrics.sample_missingness_exclusion_threshold,
@@ -438,6 +450,24 @@ fn validate_qc_summary(summary: &LocalVcfQcSummary) -> Result<()> {
             summary.heterozygosity.het_hom_ratio
         );
     }
+    if summary.hwe_summary.tested_variant_count != 3 {
+        bail!(
+            "governed VCF QC smoke expected 3 HWE-tested variants, found {}",
+            summary.hwe_summary.tested_variant_count
+        );
+    }
+    if summary.hwe_summary.pvalue_mean != Some(0.825656) {
+        bail!(
+            "governed VCF QC smoke expected HWE p-value mean 0.825656, found {:?}",
+            summary.hwe_summary.pvalue_mean
+        );
+    }
+    if summary.hwe_summary.status != "computed_modern" {
+        bail!(
+            "governed VCF QC smoke expected HWE status `computed_modern`, found `{}`",
+            summary.hwe_summary.status
+        );
+    }
 
     let qc_sparse = summary
         .sample_missingness
@@ -572,6 +602,9 @@ mod tests {
         assert_eq!(report.excluded_variants[0].variant_id, "chr1:30:G:A");
         assert_eq!(report.maf_summary.observed_variant_count, 4);
         assert_eq!(report.heterozygosity.het_hom_ratio, Some(2.0));
+        assert_eq!(report.hwe_summary.tested_variant_count, 3);
+        assert_eq!(report.hwe_summary.pvalue_mean, Some(0.825656));
+        assert_eq!(report.hwe_summary.status, "computed_modern");
     }
 
     #[test]

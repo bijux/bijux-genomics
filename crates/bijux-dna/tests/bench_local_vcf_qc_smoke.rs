@@ -139,6 +139,17 @@ fn bench_local_vcf_qc_smoke_reports_real_governed_outputs() {
     );
     assert_eq!(heterozygosity.get("het_hom_ratio").and_then(serde_json::Value::as_f64), Some(2.0));
 
+    let hwe_summary = payload.get("hwe_summary").expect("hwe_summary");
+    assert_eq!(
+        hwe_summary.get("tested_variant_count").and_then(serde_json::Value::as_u64),
+        Some(3)
+    );
+    assert_eq!(hwe_summary.get("pvalue_mean").and_then(serde_json::Value::as_f64), Some(0.825656));
+    assert_eq!(
+        hwe_summary.get("status").and_then(serde_json::Value::as_str),
+        Some("computed_modern")
+    );
+
     let repo_root = support::repo_root().expect("repo root");
     let qc_json_path = repo_root.join("runs/bench/local-smoke/vcf.qc/plink2/qc.json");
     let raw = std::fs::read_to_string(&qc_json_path).expect("read qc report");
@@ -148,4 +159,11 @@ fn bench_local_vcf_qc_smoke_reports_real_governed_outputs() {
         Some("bijux.bench.local_vcf_qc_smoke.v1")
     );
     assert_eq!(qc_report.get("tool_id").and_then(serde_json::Value::as_str), Some("plink2"));
+    assert_eq!(
+        qc_report
+            .get("hwe_summary")
+            .and_then(|value| value.get("tested_variant_count"))
+            .and_then(serde_json::Value::as_u64),
+        Some(3)
+    );
 }

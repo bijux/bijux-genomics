@@ -48,6 +48,13 @@ struct HeterozygosityRow {
 }
 
 #[derive(Debug, Clone)]
+struct HweSummary {
+    tested_variant_count: u64,
+    pvalue_mean: Option<f64>,
+    status: String,
+}
+
+#[derive(Debug, Clone)]
 struct PcaRow {
     sample_id: String,
     components: BTreeMap<String, f64>,
@@ -94,7 +101,7 @@ fn parse_plink_qc_metrics(root: &Path) -> Result<serde_json::Value> {
     let variant_missingness = parse_variant_missingness_table(&root.join("raw.lmiss"))?;
     let maf_summary = parse_plink_frequency_table(&root.join("raw.frq"))?;
     let heterozygosity = parse_heterozygosity_table(&root.join("raw.het"))?;
-    validate_nonempty_table(&root.join("raw.hwe"))?;
+    let hwe_summary = parse_hwe_summary(&root.join("raw.hwe"))?;
 
     Ok(render_qc_payload(
         "plink",
@@ -102,6 +109,7 @@ fn parse_plink_qc_metrics(root: &Path) -> Result<serde_json::Value> {
         variant_missingness,
         maf_summary,
         heterozygosity,
+        hwe_summary,
         thresholds,
     ))
 }
@@ -112,7 +120,7 @@ fn parse_plink2_qc_metrics(root: &Path) -> Result<serde_json::Value> {
     let variant_missingness = parse_variant_missingness_table(&root.join("raw.vmiss"))?;
     let maf_summary = parse_plink2_frequency_table(&root.join("raw.afreq"))?;
     let heterozygosity = parse_heterozygosity_table(&root.join("raw.het"))?;
-    validate_nonempty_table(&root.join("raw.hardy"))?;
+    let hwe_summary = parse_hwe_summary(&root.join("raw.hardy"))?;
 
     Ok(render_qc_payload(
         "plink2",
@@ -120,6 +128,7 @@ fn parse_plink2_qc_metrics(root: &Path) -> Result<serde_json::Value> {
         variant_missingness,
         maf_summary,
         heterozygosity,
+        hwe_summary,
         thresholds,
     ))
 }
@@ -130,6 +139,7 @@ fn render_qc_payload(
     variant_missingness: Vec<VariantMissingnessRow>,
     maf_summary: FrequencySummary,
     heterozygosity: Vec<HeterozygosityRow>,
+    hwe_summary: HweSummary,
     thresholds: BTreeMap<String, String>,
 ) -> serde_json::Value {
     let sample_threshold = thresholds
@@ -202,6 +212,11 @@ fn render_qc_payload(
                 serde_json::json!(heterozygous_total as f64 / observed_homozygous_total as f64)
             },
             "mean_inbreeding_coefficient": mean_inbreeding_coefficient,
+        },
+        "hwe_summary": {
+            "tested_variant_count": hwe_summary.tested_variant_count,
+            "pvalue_mean": hwe_summary.pvalue_mean,
+            "status": hwe_summary.status,
         },
         "excluded_samples": excluded_samples,
         "excluded_variants": excluded_variants,
@@ -739,6 +754,23 @@ fn parse_heterozygosity_table(path: &Path) -> Result<Vec<HeterozygosityRow>> {
     Ok(parsed)
 }
 
+fn parse_hwe_summary(path: &Path) -> Result<HweSummary> {
+    let (header, rows) = read_table(path)?;
+    let pvalue_idx = index_for(&header, &["p"])?;
+    let mut pvalues = Vec::<f64>::new();
+    for row in rows {
+        pvalues.push(parse_f64(field(&row, pvalue_idx, path)?, "hwe p-value")?);
+    }
+    if pvalues.is_empty() {
+        bail!("required HWE table {} is empty", path.display());
+    }
+    Ok(HweSummary {
+        tested_variant_count: u64::try_from(pvalues.len()).unwrap_or(0),
+        pvalue_mean: Some(round_f64(mean(&pvalues), 6)),
+        status: "computed_modern".to_string(),
+    })
+}
+
 fn parse_fam_samples(path: &Path) -> Result<Vec<(String, String)>> {
     let rows = read_rows(path)?;
     rows.into_iter()
@@ -798,17 +830,14 @@ fn sample_population_labels(source: &serde_json::Value) -> Result<BTreeMap<Strin
     Ok(labels)
 }
 
-fn validate_nonempty_table(path: &Path) -> Result<()> {
-    let rows = read_rows(path)?;
-    if rows.is_empty() {
-        bail!("required table {} is empty", path.display());
-    }
-    Ok(())
-}
-
 fn count_data_rows(path: &Path) -> Result<u64> {
     let (_header, rows) = read_table(path)?;
     Ok(u64::try_from(rows.len()).unwrap_or(0))
+}
+
+fn round_f64(value: f64, scale: u32) -> f64 {
+    let factor = 10_f64.powi(i32::try_from(scale).unwrap_or(0));
+    (value * factor).round() / factor
 }
 
 fn read_table(path: &Path) -> Result<(Vec<String>, Vec<Vec<String>>)> {
