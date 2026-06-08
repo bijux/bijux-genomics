@@ -181,6 +181,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-vcf-call-diploid-ready",
     "bijux-dna bench readiness render-vcf-call-pseudohaploid-ready",
     "bijux-dna bench readiness render-vcf-stats-ready",
+    "bijux-dna bench readiness render-vcf-qc-ready",
     "bijux-dna bench readiness render-vcf-call-ready",
     "bijux-dna bench readiness render-vcf-adapter-output-coverage",
     "bijux-dna bench readiness render-vcf-angsd-adapter",
