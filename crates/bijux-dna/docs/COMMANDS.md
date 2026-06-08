@@ -636,6 +636,16 @@ Visible aliases are part of the operator surface:
   `parser_id`, `schema_id`, expected outputs, expected metrics, the governed `report_section`,
   row-level `coverage_status`, and an explicit `reason`. The command fails closed unless every
   active binding retains one canonical expected-result row.
+- `bijux-dna bench readiness render-all-domain-active-scope-blockers`
+  `render-all-domain-active-scope-blockers` writes
+  `benchmarks/readiness/all-domains/active-scope-blockers.tsv` with one governed row per
+  candidate FASTQ, BAM, and VCF binding that is intentionally outside the final job-bearing
+  active scope. Each row keeps `domain`, `stage_id`, `tool_id`, `corpus_id`,
+  `asset_profile_id`, `adapter_id`, `parser_id`, `schema_id`, `status`, `adapter_status`,
+  `scope_exit_kind`, durable `blocker_type`, durable `blocker_path`, an explicit `reason`,
+  and absence booleans for the active matrix, rendered commands, expected results, and full
+  benchmark report surface. The command fails closed unless every removed binding maps to one
+  exact blocker row and remains absent from those governed active downstream surfaces.
 - `bijux-dna bench readiness render-all-domain-local-job-coverage`
   `render-all-domain-local-job-coverage` writes
   `benchmarks/readiness/all-domains/local-job-coverage.tsv` with one governed row per active
