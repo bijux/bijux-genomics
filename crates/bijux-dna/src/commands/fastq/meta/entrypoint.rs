@@ -595,6 +595,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfCallPseudohaploidReady(args) => {
+                        crate::commands::benchmark::readiness::vcf_call_pseudohaploid_ready::run_render_vcf_call_pseudohaploid_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfCallReady(args) => {
                         crate::commands::benchmark::readiness::vcf_call_ready::run_render_vcf_call_ready(
                             args,
