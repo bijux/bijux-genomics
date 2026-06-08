@@ -7,9 +7,9 @@
   "validator_output_path": "benchmarks/readiness/benchmark-paths-validation.json",
   "validator_violation_count": 0,
   "validator_ok": true,
-  "validator_readiness_snapshot_count": 97,
+  "validator_readiness_snapshot_count": 98,
   "validator_readiness_json_snapshot_count": 74,
-  "validator_readiness_tsv_snapshot_count": 23,
+  "validator_readiness_tsv_snapshot_count": 24,
   "ok": true,
   "deleted_roots": [
     {
