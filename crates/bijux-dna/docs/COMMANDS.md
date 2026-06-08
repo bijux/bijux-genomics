@@ -663,6 +663,14 @@ Visible aliases are part of the operator surface:
   expected metrics, report-table placement, and real local smoke evidence for variant count, SNP
   count, indel count, transition count, transversion count, Ti/Tv, and sample count. The command
   fails closed unless every active retained `vcf.stats` caller is complete across those surfaces.
+- `bijux-dna bench readiness render-vcf-qc-ready`
+  `render-vcf-qc-ready` writes `benchmarks/readiness/vcf/qc-ready.json` with one governed row per
+  active retained `vcf.qc` caller. Each row keeps the retained-scope proof, final active-row
+  presence, rendered-command identity, output-contract paths, parser fixture proof, expected
+  metrics, report-table placement, and real local smoke evidence for sample missingness, variant
+  missingness, MAF summary, heterozygosity, HWE summary, excluded samples, excluded variants, and
+  the governed QC exclusion thresholds. The command fails closed unless every active retained
+  `vcf.qc` caller is complete across those surfaces.
 - `bijux-dna bench readiness render-all-domain-stage-tool-table`
   `render-all-domain-stage-tool-table` writes
   `benchmarks/readiness/all-domain-stage-tool-table.tsv` with one governed row per FASTQ, BAM,
