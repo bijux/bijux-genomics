@@ -15,9 +15,9 @@ use super::vcf_stage_readiness_support::{
     collect_vcf_stage_readiness_bindings, VcfStageReadinessBinding,
 };
 use crate::commands::benchmark::local_vcf_qc_smoke::{
-    LocalVcfQcSmokeHeterozygosity, LocalVcfQcSmokeHweSummary, LocalVcfQcSmokeMafSummary,
-    LocalVcfQcSmokeReport, LocalVcfQcSmokeSampleMissingnessRow,
-    LocalVcfQcSmokeVariantMissingnessRow, run_local_vcf_qc_smoke,
+    run_local_vcf_qc_smoke, LocalVcfQcSmokeHeterozygosity, LocalVcfQcSmokeHweSummary,
+    LocalVcfQcSmokeMafSummary, LocalVcfQcSmokeReport, LocalVcfQcSmokeSampleMissingnessRow,
+    LocalVcfQcSmokeVariantMissingnessRow,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -174,7 +174,8 @@ pub(crate) fn render_vcf_qc_ready(
 }
 
 fn build_vcf_qc_ready_report(repo_root: &Path, output_path: &Path) -> Result<VcfQcReadyReport> {
-    let (command_report, bindings) = collect_vcf_stage_readiness_bindings(repo_root, VCF_QC_STAGE_ID)?;
+    let (command_report, bindings) =
+        collect_vcf_stage_readiness_bindings(repo_root, VCF_QC_STAGE_ID)?;
     let active_bindings = bindings
         .into_iter()
         .filter(|binding| binding.retained_row.scope_state == "active")
@@ -528,10 +529,7 @@ fn qc_smoke_matches_governed_contract(report: &LocalVcfQcSmokeReport) -> bool {
             REQUIRED_HET_HOM_RATIO,
         )
         && report.hwe_summary.tested_variant_count == REQUIRED_HWE_TESTED_VARIANT_COUNT
-        && approx_eq(
-            report.hwe_summary.pvalue_mean.unwrap_or_default(),
-            REQUIRED_HWE_PVALUE_MEAN,
-        )
+        && approx_eq(report.hwe_summary.pvalue_mean.unwrap_or_default(), REQUIRED_HWE_PVALUE_MEAN)
         && report.hwe_summary.status == REQUIRED_HWE_STATUS
         && approx_eq(
             report.sample_missingness_exclusion_threshold,
@@ -544,19 +542,10 @@ fn qc_smoke_matches_governed_contract(report: &LocalVcfQcSmokeReport) -> bool {
         && report.excluded_samples.len() == 1
         && report.excluded_variants.len() == 1
         && report.excluded_samples[0].sample_id == REQUIRED_EXCLUDED_SAMPLE_ID
-        && approx_eq(
-            report.excluded_samples[0].missingness,
-            REQUIRED_EXCLUDED_SAMPLE_MISSINGNESS,
-        )
+        && approx_eq(report.excluded_samples[0].missingness, REQUIRED_EXCLUDED_SAMPLE_MISSINGNESS)
         && report.excluded_variants[0].variant_id == REQUIRED_EXCLUDED_VARIANT_ID
-        && approx_eq(
-            report.excluded_variants[0].missingness,
-            REQUIRED_EXCLUDED_VARIANT_MISSINGNESS,
-        )
-        && report
-            .sample_missingness
-            .iter()
-            .any(|row| row.sample_id == REQUIRED_EXCLUDED_SAMPLE_ID)
+        && approx_eq(report.excluded_variants[0].missingness, REQUIRED_EXCLUDED_VARIANT_MISSINGNESS)
+        && report.sample_missingness.iter().any(|row| row.sample_id == REQUIRED_EXCLUDED_SAMPLE_ID)
         && report
             .variant_missingness
             .iter()
@@ -570,9 +559,7 @@ fn ensure_vcf_qc_ready_contract(report: &VcfQcReadyReport) -> Result<()> {
         ));
     }
     if report.rows.is_empty() {
-        return Err(anyhow!(
-            "VCF QC readiness must keep at least one active retained caller row"
-        ));
+        return Err(anyhow!("VCF QC readiness must keep at least one active retained caller row"));
     }
     if report.checked_surface_count != 8 {
         return Err(anyhow!("VCF QC readiness must record exactly 8 checked surfaces"));

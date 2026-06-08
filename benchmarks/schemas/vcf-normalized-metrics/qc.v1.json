@@ -23,9 +23,6 @@
         "heterozygosity": {
           "type": "object"
         },
-        "hwe_summary": {
-          "type": "object"
-        },
         "maf_summary": {
           "type": "object"
         },
@@ -65,7 +62,6 @@
         "variant_missingness",
         "maf_summary",
         "heterozygosity",
-        "hwe_summary",
         "excluded_samples",
         "excluded_variants",
         "sample_missingness_exclusion_threshold",
