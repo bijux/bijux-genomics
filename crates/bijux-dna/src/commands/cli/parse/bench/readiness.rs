@@ -118,6 +118,8 @@ pub enum BenchReadinessCommand {
     RenderAllDomainActiveStageCatalog(BenchReadinessRenderAllDomainActiveStageCatalogArgs),
     #[command(name = "render-all-domain-adapter-coverage")]
     RenderAllDomainAdapterCoverage(BenchReadinessRenderAllDomainAdapterCoverageArgs),
+    #[command(name = "render-all-domain-output-contract-coverage")]
+    RenderAllDomainOutputContractCoverage(BenchReadinessRenderAllDomainOutputContractCoverageArgs),
     #[command(name = "render-all-domain-parser-fixture-coverage")]
     RenderAllDomainParserFixtureCoverage(BenchReadinessRenderAllDomainParserFixtureCoverageArgs),
     #[command(name = "render-all-domain-active-stage-tool-matrix")]
@@ -818,6 +820,14 @@ pub struct BenchReadinessRenderAllDomainActiveStageCatalogArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderAllDomainAdapterCoverageArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderAllDomainOutputContractCoverageArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
