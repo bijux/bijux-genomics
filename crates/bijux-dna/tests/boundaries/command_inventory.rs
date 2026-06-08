@@ -80,6 +80,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna explain metrics",
     "bijux-dna explain bench",
     "bijux-dna bench config validate",
+    "bijux-dna bench active-scope validate --fast",
     "bijux-dna bench paths validate",
     "bijux-dna bench paths prove-disposable-root-cleanup",
     "bijux-dna bench run",
