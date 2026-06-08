@@ -14,23 +14,32 @@ use super::vcf_report_map::DEFAULT_VCF_REPORT_MAP_PATH;
 use super::vcf_stage_readiness_support::{
     collect_vcf_stage_readiness_bindings, VcfStageReadinessBinding,
 };
-use crate::commands::benchmark::local_vcf_call_smoke::{
-    run_local_vcf_call_smoke, LocalVcfCallSmokeReport,
+use crate::commands::benchmark::local_vcf_call_diploid_smoke::{
+    run_local_vcf_call_diploid_smoke, LocalVcfCallDiploidSmokeReport,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_VCF_CALL_READY_PATH: &str = "benchmarks/readiness/vcf/call-ready.json";
-const VCF_CALL_READY_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_call_ready.v1";
-const VCF_CALL_STAGE_ID: &str = "vcf.call";
-const REQUIRED_METRIC_NAMES: [&str; 4] =
-    ["variant_count", "snp_count", "indel_count", "sample_count"];
+pub(crate) const DEFAULT_VCF_CALL_DIPLOID_READY_PATH: &str =
+    "benchmarks/readiness/vcf/call-diploid-ready.json";
+const VCF_CALL_DIPLOID_READY_SCHEMA_VERSION: &str =
+    "bijux.bench.readiness.vcf_call_diploid_ready.v1";
+const VCF_CALL_DIPLOID_STAGE_ID: &str = "vcf.call_diploid";
+const REQUIRED_METRIC_NAMES: [&str; 7] = [
+    "ploidy",
+    "called_genotypes",
+    "heterozygous_count",
+    "homozygous_ref_count",
+    "homozygous_alt_count",
+    "missing_count",
+    "sample_count",
+];
 const COVERAGE_STATUS_COMPLETE: &str = "complete";
 const COVERAGE_STATUS_INCOMPLETE: &str = "incomplete";
 const NO_VALUE: &str = "none";
 
 #[derive(Debug, Clone, Serialize)]
-pub(crate) struct VcfCallReadyRow {
+pub(crate) struct VcfCallDiploidReadyRow {
     pub(crate) result_id: String,
     pub(crate) stage_id: String,
     pub(crate) tool_id: String,
@@ -80,11 +89,15 @@ pub(crate) struct VcfCallReadyRow {
     pub(crate) smoke_metrics_path: String,
     pub(crate) smoke_stage_result_manifest_path: String,
     pub(crate) smoke_parseable: bool,
+    pub(crate) smoke_diploid_compatible: bool,
     pub(crate) smoke_gt_present: bool,
     pub(crate) smoke_gl_present: bool,
-    pub(crate) smoke_variant_count: u64,
-    pub(crate) smoke_snp_count: u64,
-    pub(crate) smoke_indel_count: u64,
+    pub(crate) smoke_ploidy: String,
+    pub(crate) smoke_called_genotypes: u64,
+    pub(crate) smoke_heterozygous_count: u64,
+    pub(crate) smoke_homozygous_ref_count: u64,
+    pub(crate) smoke_homozygous_alt_count: u64,
+    pub(crate) smoke_missing_count: u64,
     pub(crate) smoke_sample_count: u64,
     pub(crate) required_metric_names: Vec<String>,
     pub(crate) missing_surfaces: Vec<String>,
@@ -93,7 +106,7 @@ pub(crate) struct VcfCallReadyRow {
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub(crate) struct VcfCallReadyReport {
+pub(crate) struct VcfCallDiploidReadyReport {
     pub(crate) schema_version: &'static str,
     pub(crate) output_path: String,
     pub(crate) retained_row_count: usize,
@@ -106,17 +119,17 @@ pub(crate) struct VcfCallReadyReport {
     pub(crate) coverage_status_counts: BTreeMap<String, usize>,
     pub(crate) violation_count: usize,
     pub(crate) ok: bool,
-    pub(crate) rows: Vec<VcfCallReadyRow>,
-    pub(crate) violations: Vec<VcfCallReadyRow>,
+    pub(crate) rows: Vec<VcfCallDiploidReadyRow>,
+    pub(crate) violations: Vec<VcfCallDiploidReadyRow>,
 }
 
-pub(crate) fn run_render_vcf_call_ready(
-    args: &parse::BenchReadinessRenderVcfCallReadyArgs,
+pub(crate) fn run_render_vcf_call_diploid_ready(
+    args: &parse::BenchReadinessRenderVcfCallDiploidReadyArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let report = render_vcf_call_ready(
+    let report = render_vcf_call_diploid_ready(
         &repo_root,
-        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_CALL_READY_PATH)),
+        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_CALL_DIPLOID_READY_PATH)),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -126,33 +139,40 @@ pub(crate) fn run_render_vcf_call_ready(
     Ok(())
 }
 
-pub(crate) fn render_vcf_call_ready(
+pub(crate) fn render_vcf_call_diploid_ready(
     repo_root: &Path,
     output_path: PathBuf,
-) -> Result<VcfCallReadyReport> {
+) -> Result<VcfCallDiploidReadyReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
-    let report = build_vcf_call_ready_report(repo_root, &output_path)?;
+    let report = build_vcf_call_diploid_ready_report(repo_root, &output_path)?;
     bijux_dna_infra::atomic_write_json(&output_path, &report)?;
     if !report.ok {
         return Err(anyhow!(
-            "vcf.call retained callers must stay complete across active-scope, command, output, parser, report, and smoke proof"
+            "vcf.call_diploid retained callers must stay complete across active-scope, command, output, parser, report, and diploid smoke proof"
         ));
     }
     Ok(report)
 }
 
-fn build_vcf_call_ready_report(repo_root: &Path, output_path: &Path) -> Result<VcfCallReadyReport> {
+fn build_vcf_call_diploid_ready_report(
+    repo_root: &Path,
+    output_path: &Path,
+) -> Result<VcfCallDiploidReadyReport> {
     let (command_report, bindings) =
-        collect_vcf_stage_readiness_bindings(repo_root, VCF_CALL_STAGE_ID)?;
+        collect_vcf_stage_readiness_bindings(repo_root, VCF_CALL_DIPLOID_STAGE_ID)?;
 
     let mut rows = Vec::with_capacity(bindings.len());
     for binding in bindings {
         let smoke_report = if binding.retained_row.scope_state == "active" {
-            run_local_vcf_call_smoke(repo_root, &binding.retained_row.tool_id).ok()
+            run_local_vcf_call_diploid_smoke(repo_root, &binding.retained_row.tool_id).ok()
         } else {
             None
         };
-        rows.push(build_vcf_call_ready_row(&command_report, binding, smoke_report.as_ref()));
+        rows.push(build_vcf_call_diploid_ready_row(
+            &command_report,
+            binding,
+            smoke_report.as_ref(),
+        ));
     }
     rows.sort_by(|left, right| {
         left.stage_id.cmp(&right.stage_id).then_with(|| left.tool_id.cmp(&right.tool_id))
@@ -174,8 +194,8 @@ fn build_vcf_call_ready_report(repo_root: &Path, output_path: &Path) -> Result<V
         .cloned()
         .collect::<Vec<_>>();
 
-    let report = VcfCallReadyReport {
-        schema_version: VCF_CALL_READY_SCHEMA_VERSION,
+    let report = VcfCallDiploidReadyReport {
+        schema_version: VCF_CALL_DIPLOID_READY_SCHEMA_VERSION,
         output_path: path_relative_to_repo(repo_root, output_path),
         retained_row_count: rows.len(),
         active_row_count,
@@ -190,16 +210,15 @@ fn build_vcf_call_ready_report(repo_root: &Path, output_path: &Path) -> Result<V
         rows,
         violations,
     };
-    ensure_vcf_call_ready_contract(&report)?;
+    ensure_vcf_call_diploid_ready_contract(&report)?;
     Ok(report)
 }
 
-#[allow(clippy::too_many_arguments)]
-fn build_vcf_call_ready_row(
+fn build_vcf_call_diploid_ready_row(
     command_report: &VcfRenderedCommandsReport,
     binding: VcfStageReadinessBinding,
-    smoke_report: Option<&LocalVcfCallSmokeReport>,
-) -> VcfCallReadyRow {
+    smoke_report: Option<&LocalVcfCallDiploidSmokeReport>,
+) -> VcfCallDiploidReadyRow {
     let result_id = binding
         .expected_row
         .as_ref()
@@ -234,10 +253,10 @@ fn build_vcf_call_ready_row(
     let output_ready = binding.output_row.as_ref().is_some_and(|row| {
         row.status == VcfAdapterOutputCoverageStatus::Complete
             && row.benchmark_status == "benchmark_ready"
-            && contains_artifact_id(&row.raw_outputs, "called_vcf")
+            && contains_artifact_id(&row.raw_outputs, "diploid_vcf")
             && !row.normalized_metrics.is_empty()
             && !row.manifest.trim().is_empty()
-            && contains_artifact_id(&row.index_outputs, "called_vcf_tbi")
+            && contains_artifact_id(&row.index_outputs, "diploid_vcf_tbi")
     });
     if !output_ready {
         missing_surfaces.push("vcf_adapter_output_coverage".to_string());
@@ -255,7 +274,7 @@ fn build_vcf_call_ready_row(
 
     let expected_result_ready = binding.expected_row.as_ref().is_some_and(|row| {
         row.report_section == "variant_calling"
-            && row.expected_outputs.iter().any(|value| value == "called_vcf")
+            && row.expected_outputs.iter().any(|value| value == "diploid_vcf")
             && required_metric_names
                 .iter()
                 .all(|metric| row.expected_metrics.iter().any(|value| value == metric))
@@ -277,17 +296,22 @@ fn build_vcf_call_ready_row(
 
     let smoke_ready = smoke_report.is_some_and(|report| {
         report.parseable
+            && report.diploid_compatible
             && report.gt_present
+            && report.ploidy == "diploid"
             && !report.output_vcf_path.trim().is_empty()
             && !report.output_tbi_path.trim().is_empty()
             && !report.metrics_path.trim().is_empty()
             && !report.stage_result_manifest_path.trim().is_empty()
             && report.sample_count > 0
-            && report.variant_count >= report.snp_count
-            && report.variant_count >= report.indel_count
+            && report.called_genotypes
+                == report.heterozygous_count
+                    + report.homozygous_ref_count
+                    + report.homozygous_alt_count
+            && report.called_genotypes + report.missing_count > 0
     });
     if !smoke_ready {
-        missing_surfaces.push("local_vcf_call_smoke".to_string());
+        missing_surfaces.push("local_vcf_call_diploid_smoke".to_string());
     }
 
     let coverage_status = if missing_surfaces.is_empty() {
@@ -297,18 +321,18 @@ fn build_vcf_call_ready_row(
     };
     let reason = if missing_surfaces.is_empty() {
         format!(
-            "retained VCF caller `{}` keeps active scope, command, output, parser, expected-result, report, and smoke proof for `vcf.call`",
+            "retained VCF diploid caller `{}` keeps active scope, command, output, parser, expected-result, report, and diploid genotype proof for `vcf.call_diploid`",
             binding.retained_row.tool_id
         )
     } else {
         format!(
-            "retained VCF caller `{}` is missing: {}",
+            "retained VCF diploid caller `{}` is missing: {}",
             binding.retained_row.tool_id,
             missing_surfaces.join(", ")
         )
     };
 
-    VcfCallReadyRow {
+    VcfCallDiploidReadyRow {
         result_id,
         stage_id: binding.retained_row.stage_id,
         tool_id: binding.retained_row.tool_id,
@@ -440,11 +464,21 @@ fn build_vcf_call_ready_row(
             .map(|report| report.stage_result_manifest_path.clone())
             .unwrap_or_else(no_value_string),
         smoke_parseable: smoke_report.is_some_and(|report| report.parseable),
+        smoke_diploid_compatible: smoke_report.is_some_and(|report| report.diploid_compatible),
         smoke_gt_present: smoke_report.is_some_and(|report| report.gt_present),
         smoke_gl_present: smoke_report.is_some_and(|report| report.gl_present),
-        smoke_variant_count: smoke_report.map(|report| report.variant_count).unwrap_or(0),
-        smoke_snp_count: smoke_report.map(|report| report.snp_count).unwrap_or(0),
-        smoke_indel_count: smoke_report.map(|report| report.indel_count).unwrap_or(0),
+        smoke_ploidy: smoke_report
+            .map(|report| report.ploidy.to_string())
+            .unwrap_or_else(no_value_string),
+        smoke_called_genotypes: smoke_report.map(|report| report.called_genotypes).unwrap_or(0),
+        smoke_heterozygous_count: smoke_report.map(|report| report.heterozygous_count).unwrap_or(0),
+        smoke_homozygous_ref_count: smoke_report
+            .map(|report| report.homozygous_ref_count)
+            .unwrap_or(0),
+        smoke_homozygous_alt_count: smoke_report
+            .map(|report| report.homozygous_alt_count)
+            .unwrap_or(0),
+        smoke_missing_count: smoke_report.map(|report| report.missing_count).unwrap_or(0),
         smoke_sample_count: smoke_report.map(|report| report.sample_count).unwrap_or(0),
         required_metric_names,
         missing_surfaces,
@@ -453,35 +487,37 @@ fn build_vcf_call_ready_row(
     }
 }
 
-fn ensure_vcf_call_ready_contract(report: &VcfCallReadyReport) -> Result<()> {
+fn ensure_vcf_call_diploid_ready_contract(report: &VcfCallDiploidReadyReport) -> Result<()> {
     if report.retained_row_count != report.rows.len() {
         return Err(anyhow!(
-            "VCF call readiness must keep exactly one row per retained `vcf.call` binding"
+            "VCF call_diploid readiness must keep exactly one row per retained `vcf.call_diploid` binding"
         ));
     }
     if report.rows.is_empty() {
-        return Err(anyhow!("VCF call readiness must keep at least one retained caller row"));
+        return Err(anyhow!(
+            "VCF call_diploid readiness must keep at least one retained caller row"
+        ));
     }
     if report.checked_surface_count != 8 {
-        return Err(anyhow!("VCF call readiness must record exactly 8 checked surfaces"));
+        return Err(anyhow!("VCF call_diploid readiness must record exactly 8 checked surfaces"));
     }
     let unique_results =
         report.rows.iter().map(|row| row.result_id.as_str()).collect::<BTreeSet<_>>().len();
     if unique_results != report.rows.len() {
         return Err(anyhow!(
-            "VCF call readiness must keep one unique result_id per retained caller row"
+            "VCF call_diploid readiness must keep one unique result_id per retained caller row"
         ));
     }
     for row in &report.rows {
-        if row.stage_id != VCF_CALL_STAGE_ID {
+        if row.stage_id != VCF_CALL_DIPLOID_STAGE_ID {
             return Err(anyhow!(
-                "VCF call readiness row `{}` drifted away from the `vcf.call` stage",
+                "VCF call_diploid readiness row `{}` drifted away from the `vcf.call_diploid` stage",
                 row.stage_id
             ));
         }
         if row.coverage_status == COVERAGE_STATUS_COMPLETE && !row.missing_surfaces.is_empty() {
             return Err(anyhow!(
-                "VCF call readiness row `{}` / `{}` cannot be complete while listing missing surfaces",
+                "VCF call_diploid readiness row `{}` / `{}` cannot be complete while listing missing surfaces",
                 row.stage_id,
                 row.tool_id
             ));
