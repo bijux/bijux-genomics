@@ -174,6 +174,8 @@ pub enum BenchReadinessCommand {
     RenderVcfAdapterMissingInputTests(BenchReadinessRenderVcfAdapterMissingInputTestsArgs),
     #[command(name = "render-vcf-adapters-ready")]
     RenderVcfAdaptersReady(BenchReadinessRenderVcfAdaptersReadyArgs),
+    #[command(name = "render-vcf-active-stage-tool-matrix")]
+    RenderVcfActiveStageToolMatrix(BenchReadinessRenderVcfActiveStageToolMatrixArgs),
     #[command(name = "render-vcf-adapter-output-coverage")]
     RenderVcfAdapterOutputCoverage(BenchReadinessRenderVcfAdapterOutputCoverageArgs),
     #[command(name = "render-vcf-commands")]
@@ -466,6 +468,14 @@ pub struct BenchReadinessRenderVcfAdapterMissingInputTestsArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfAdaptersReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfActiveStageToolMatrixArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

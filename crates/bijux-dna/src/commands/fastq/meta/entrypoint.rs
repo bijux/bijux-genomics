@@ -585,6 +585,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfActiveStageToolMatrix(args) => {
+                        crate::commands::benchmark::readiness::vcf_active_stage_tool_matrix::run_render_vcf_active_stage_tool_matrix(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfAdapterOutputCoverage(args) => {
                         crate::commands::benchmark::readiness::vcf_adapter_output_coverage::run_render_vcf_adapter_output_coverage(
                             args,
