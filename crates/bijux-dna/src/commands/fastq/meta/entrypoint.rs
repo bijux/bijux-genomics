@@ -442,6 +442,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderAllDomainAdapterCoverage(args) => {
+                        crate::commands::benchmark::readiness::all_domain_adapter_coverage::run_render_all_domain_adapter_coverage(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderAllDomainParserFixtureCoverage(args) => {
                         crate::commands::benchmark::readiness::all_domain_parser_fixture_coverage::run_render_all_domain_parser_fixture_coverage(
                             args,
