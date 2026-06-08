@@ -135,6 +135,14 @@ Visible aliases are part of the operator surface:
 
 ### Benchmarking
 - `bijux-dna bench config validate`
+- `bijux-dna bench active-scope validate --fast`
+  `active-scope validate --fast` writes `artifacts/bench-active-scope/validate-fast.json` and
+  runs the fast in-process active-scope validator without relying on compilation-heavy test suites.
+  The report keeps the resolved benchmark, schema, and fixture roots explicit and checks the
+  governed config-backed active matrix, all-domain schema validation, benchmark fixture root
+  validation, adapter coverage, local job coverage, no-placeholder command checks, parser fixture
+  coverage, output-contract coverage, expected-result coverage, and report-map coverage. The
+  command fails closed if any fast active-scope surface drifts.
 - `bijux-dna bench paths validate`
   `paths validate --strict` writes `benchmarks/readiness/benchmark-paths-validation.json` and
   proves that the tracked `benchmarks/`, `benchmarks/configs/`, `benchmarks/schemas/`,
