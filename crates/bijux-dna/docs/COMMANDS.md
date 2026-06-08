@@ -656,6 +656,14 @@ Visible aliases are part of the operator surface:
   governed all-domain shell-script and argv output paths, row-level `coverage_status`, and an
   explicit `reason`. The command fails closed unless every active binding keeps one executable
   local benchmark job row.
+- `bijux-dna bench readiness render-all-domain-no-placeholder-command-check`
+  `render-all-domain-no-placeholder-command-check` writes
+  `benchmarks/readiness/all-domains/no-placeholder-command-check.json` and audits every active
+  FASTQ, BAM, and VCF command step in the governed all-domain rendered-command surface. The
+  report keeps row, stage, tool, command-source, and shell-wrapper counts explicit, records
+  per-step `command_heads`, real-invocation booleans, and row-level finding sets, and fails
+  closed if any active command still contains `todo`, `placeholder`, echo-only execution,
+  unconditional success stubs, an empty executable, or a missing real tool invocation.
 - `bijux-dna bench readiness render-all-domain-report-map-coverage`
   `render-all-domain-report-map-coverage` writes
   `benchmarks/readiness/all-domains/report-map-coverage.tsv` with one governed row per active
