@@ -144,6 +144,7 @@ pub use self::readiness::{
     BenchReadinessRenderVcfDescentFamilyAdapterArgs, BenchReadinessRenderVcfEagleAdapterArgs,
     BenchReadinessRenderVcfEigensoftAdapterArgs,
     BenchReadinessRenderVcfExpectedBenchmarkResultsArgs,
+    BenchReadinessRenderVcfGlPropagationReadyArgs,
     BenchReadinessRenderVcfImputationFamilyAdapterArgs,
     BenchReadinessRenderVcfMatrixRegistryConsistencyArgs,
     BenchReadinessRenderVcfMissingResultReportArgs,

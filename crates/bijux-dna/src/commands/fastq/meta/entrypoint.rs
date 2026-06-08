@@ -595,6 +595,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfGlPropagationReady(args) => {
+                        crate::commands::benchmark::readiness::vcf_gl_propagation_ready::run_render_vcf_gl_propagation_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfCallGlReady(args) => {
                         crate::commands::benchmark::readiness::vcf_call_gl_ready::run_render_vcf_call_gl_ready(
                             args,
