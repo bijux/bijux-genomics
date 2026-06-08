@@ -5,6 +5,7 @@ This directory stores tracked deterministic benchmark readiness proof, including
 
 Deterministic local-ready proof now lives under `benchmarks/readiness/local-ready/`.
 All-domain retained-tool proof now lives under `benchmarks/readiness/all-domains/`.
+VCF retained-binding scope proof now lives under `benchmarks/readiness/vcf/`.
 Disposable-root cleanup proof now lives under `benchmarks/readiness/path-cleanup/`.
 The removed binding audit now lives at `benchmarks/readiness/removed-from-scope.tsv` and keeps
 candidate rows that are intentionally outside the final active benchmark job surface explicit.

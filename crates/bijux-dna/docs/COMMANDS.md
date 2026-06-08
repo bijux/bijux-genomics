@@ -589,6 +589,14 @@ Visible aliases are part of the operator surface:
   `benchmark_status` from the owned VCF stage catalog and matrix. The report fails closed unless
   every matrix row appears exactly once and the supported-vs-planned split remains aligned with
   the canonical VCF stage contracts.
+- `bijux-dna bench readiness render-vcf-active-stage-tool-matrix`
+  `render-vcf-active-stage-tool-matrix` writes
+  `benchmarks/readiness/vcf/vcf-active-stage-tool-matrix.tsv` with one governed row per retained
+  VCF stage-tool binding from the VCF tool registries. Each row keeps `stage_id`, `tool_id`,
+  merged `tool_status`, `stage_support_status`, `corpus_id`, `asset_profile_id`, `adapter_id`,
+  `parser_id`, `schema_id`, `scope_state`, `scope_detail`, and the proof path that explains why
+  the binding is currently active, complete, or removed from scope. The command fails closed
+  unless every retained VCF binding is classified exactly once.
 - `bijux-dna bench readiness render-all-domain-stage-tool-table`
   `render-all-domain-stage-tool-table` writes
   `benchmarks/readiness/all-domain-stage-tool-table.tsv` with one governed row per FASTQ, BAM,
