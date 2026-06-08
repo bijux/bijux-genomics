@@ -90,6 +90,7 @@ pub use self::readiness::{
     BenchReadinessRenderAllDomainOutputDeclarationsArgs,
     BenchReadinessRenderAllDomainParserCollectorArgs,
     BenchReadinessRenderAllDomainParserFixtureCoverageArgs,
+    BenchReadinessRenderAllDomainReportMapCoverageArgs,
     BenchReadinessRenderAllDomainRetainedToolsArgs,
     BenchReadinessRenderAllDomainStageToolTableArgs,
     BenchReadinessRenderBamAdapterOutputContractArgs,

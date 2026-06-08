@@ -462,6 +462,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderAllDomainReportMapCoverage(args) => {
+                        crate::commands::benchmark::readiness::all_domain_report_map_coverage::run_render_all_domain_report_map_coverage(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderAllDomainActiveStageToolMatrix(args) => {
                         crate::commands::benchmark::readiness::all_domain_active_stage_tool_matrix::run_render_all_domain_active_stage_tool_matrix(
                             args,
