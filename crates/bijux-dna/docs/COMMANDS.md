@@ -620,6 +620,14 @@ Visible aliases are part of the operator surface:
   coverage. Active scope then keeps only benchmark-ready rows that remain eligible for jobs. The
   command fails closed unless the row set matches the governed all-domain stage-tool surface and
   its stage coverage matches the all-domain active stage catalog.
+- `bijux-dna bench readiness render-all-domain-adapter-coverage`
+  `render-all-domain-adapter-coverage` writes
+  `benchmarks/readiness/all-domains/adapter-coverage.tsv` with one governed row per active
+  FASTQ, BAM, and VCF result binding in final job-bearing active scope. Each row keeps
+  `result_id`, `domain`, `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `adapter_id`,
+  `readiness_kind`, `command_source`, explicit command-step identity, primary executables,
+  `coverage_status`, and `reason` explicit. The command fails closed unless every active binding
+  retains executable rendered-command proof and active-scope command coverage stays at 100%.
 - `bijux-dna bench readiness render-all-domain-no-declared-only-rows`
   `render-all-domain-no-declared-only-rows` writes
   `benchmarks/readiness/all-domains/no-declared-only-rows.json` and audits the governed
