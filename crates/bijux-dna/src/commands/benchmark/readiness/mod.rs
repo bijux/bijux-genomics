@@ -91,6 +91,7 @@ pub(crate) mod vcf_call_gl_ready;
 pub(crate) mod vcf_call_pseudohaploid_ready;
 pub(crate) mod vcf_call_ready;
 pub(crate) mod vcf_comparable_metrics;
+pub(crate) mod vcf_damage_filter_ready;
 pub(crate) mod vcf_descent_family_adapter;
 pub(crate) mod vcf_eigensoft_adapter;
 pub(crate) mod vcf_expected_benchmark_results;
