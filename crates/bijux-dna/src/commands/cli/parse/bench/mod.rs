@@ -79,6 +79,7 @@ pub use self::readiness::{
     BenchReadinessRenderAllDomainAdapterCoverageArgs, BenchReadinessRenderAllDomainCommandsArgs,
     BenchReadinessRenderAllDomainCompletionCheckArgs,
     BenchReadinessRenderAllDomainExpectedBenchmarkResultsArgs,
+    BenchReadinessRenderAllDomainExpectedResultCoverageArgs,
     BenchReadinessRenderAllDomainFailureClassificationArgs,
     BenchReadinessRenderAllDomainHarnessReadyArgs,
     BenchReadinessRenderAllDomainMissingResultTestArgs,

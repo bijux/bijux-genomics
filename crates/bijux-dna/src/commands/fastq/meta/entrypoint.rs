@@ -382,6 +382,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderAllDomainExpectedResultCoverage(args) => {
+                        crate::commands::benchmark::readiness::all_domain_expected_result_coverage::run_render_all_domain_expected_result_coverage(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderAllDomainHarnessReady(args) => {
                         crate::commands::benchmark::readiness::all_domain_harness_ready::run_render_all_domain_harness_ready(
                             args,

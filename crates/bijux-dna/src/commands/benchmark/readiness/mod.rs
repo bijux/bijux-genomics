@@ -6,6 +6,7 @@ pub(crate) mod all_domain_active_stage_tool_matrix;
 pub(crate) mod all_domain_adapter_coverage;
 pub(crate) mod all_domain_completion_check;
 pub(crate) mod all_domain_expected_benchmark_results;
+pub(crate) mod all_domain_expected_result_coverage;
 pub(crate) mod all_domain_failure_classification;
 pub(crate) mod all_domain_harness_ready;
 pub(crate) mod all_domain_missing_result_test;
