@@ -467,6 +467,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderStageToolAliasCheck(args) => {
+                        crate::commands::benchmark::readiness::stage_tool_alias_check::run_render_stage_tool_alias_check(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderRemovedFromScope(args) => {
                         crate::commands::benchmark::readiness::removed_from_scope::run_render_removed_from_scope(
                             args,
