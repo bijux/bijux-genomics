@@ -54,5 +54,6 @@ vcf	vcf.damage_filter	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	dam
 vcf	vcf.filter	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	quality_control
 vcf	vcf.gl_propagation	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	likelihood_postprocess
 vcf	vcf.postprocess	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	normalization
+vcf	vcf.prepare_reference_panel	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	reference_panel_preparation
 vcf	vcf.qc	smoke	3	3	3	3	true	3	benchmark_ready	bcftools,plink,plink2	bcftools,plink,plink2	quality_control
 vcf	vcf.stats	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	quality_control

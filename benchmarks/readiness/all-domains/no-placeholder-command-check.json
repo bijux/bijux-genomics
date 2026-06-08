@@ -3,23 +3,23 @@
   "output_path": "benchmarks/readiness/all-domains/no-placeholder-command-check.json",
   "script_output_path": "benchmarks/readiness/rendered-commands-all-domains.sh",
   "argv_output_path": "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl",
-  "row_count": 124,
-  "result_id_count": 124,
-  "stage_count": 57,
+  "row_count": 125,
+  "result_id_count": 125,
+  "stage_count": 58,
   "tool_count": 66,
-  "command_step_count": 137,
+  "command_step_count": 139,
   "shell_wrapped_step_count": 82,
-  "direct_step_count": 55,
-  "valid_row_count": 124,
+  "direct_step_count": 57,
+  "valid_row_count": 125,
   "invalid_row_count": 0,
   "domain_counts": {
     "bam": 49,
     "fastq": 63,
-    "vcf": 12
+    "vcf": 13
   },
   "command_source_counts": {
     "fastq_bam_command_adapter": 112,
-    "vcf_bcftools_adapter": 10,
+    "vcf_bcftools_adapter": 11,
     "vcf_plink_family_adapter": 2
   },
   "finding_type_counts": {},
@@ -4679,6 +4679,43 @@
         },
         {
           "step_id": "index_postprocess_vcf",
+          "step_kind": "index",
+          "executable": "bcftools",
+          "is_shell_wrapper": false,
+          "command_heads": [],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        }
+      ]
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.prepare_reference_panel",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_reference_panel",
+      "command_source": "vcf_bcftools_adapter",
+      "command_step_count": 2,
+      "script_command_count": 2,
+      "has_real_invocation": true,
+      "finding_count": 0,
+      "finding_types": [],
+      "ok": true,
+      "step_audits": [
+        {
+          "step_id": "normalize_panel",
+          "step_kind": "transform",
+          "executable": "bcftools",
+          "is_shell_wrapper": false,
+          "command_heads": [],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        },
+        {
+          "step_id": "index_panel",
           "step_kind": "index",
           "executable": "bcftools",
           "is_shell_wrapper": false,

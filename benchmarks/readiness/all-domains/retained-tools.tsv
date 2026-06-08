@@ -10,7 +10,7 @@ bamutil	bam	1	1	1	1	benchmark_ready	bam.overlap_correction	bam.overlap_correctio
 bayeshammer	fastq	1	1	1	1	benchmark_ready	fastq.correct_errors	fastq.correct_errors
 bbduk	fastq	4	4	4	4	benchmark_ready	fastq.filter_low_complexity,fastq.filter_reads,fastq.trim_polyg_tails,fastq.trim_reads	fastq.filter_low_complexity,fastq.filter_reads,fastq.trim_polyg_tails,fastq.trim_reads
 bbmerge	fastq	1	1	1	1	benchmark_ready	fastq.merge_pairs	fastq.merge_pairs
-bcftools	vcf	10	10	10	10	benchmark_ready	vcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.qc,vcf.stats	vcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.qc,vcf.stats
+bcftools	vcf	11	11	11	11	benchmark_ready	vcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.prepare_reference_panel,vcf.qc,vcf.stats	vcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.prepare_reference_panel,vcf.qc,vcf.stats
 bedtools	bam	3	3	3	3	benchmark_ready	bam.coverage,bam.filter,bam.validate	bam.coverage,bam.filter,bam.validate
 bijux_dna	fastq	1	1	1	1	benchmark_ready	fastq.detect_duplicates_premerge	fastq.detect_duplicates_premerge
 bowtie2	bam,fastq	3	3	3	3	benchmark_ready	bam.align,fastq.deplete_host,fastq.deplete_reference_contaminants	bam.align,fastq.deplete_host,fastq.deplete_reference_contaminants

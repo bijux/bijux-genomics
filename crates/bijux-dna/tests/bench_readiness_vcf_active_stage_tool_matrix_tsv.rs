@@ -53,6 +53,9 @@ fn bench_readiness_vcf_active_stage_tool_matrix_writes_governed_tsv_file() {
         row == &"vcf.call_gl\tangsd\tplanned\tsupported\tvcf_production_regression\tbam_bundle\tvcf.adapter.calling\tvcf.parser.call_summary\tbijux.schemas.bench.vcf-normalized-metrics.call-gl.v1\tremoved_from_scope\tbenchmark_not_ready\tbenchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json\tbinding `vcf.call_gl` / `angsd` is retained for a supported stage but remains outside active scope because it is not benchmark ready"
     }));
     assert!(rows.iter().any(|row| {
+        row == &"vcf.prepare_reference_panel\tbcftools\tproduction\tsupported\tvcf_production_regression\tvcf_reference_panel\tvcf.adapter.reference_panel\tvcf.parser.vcf_output\tbijux.schemas.bench.vcf-normalized-metrics.prepare-reference-panel.v1\tactive\tactive\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `vcf.prepare_reference_panel` / `bcftools` is part of the governed all-domain active benchmark matrix"
+    }));
+    assert!(rows.iter().any(|row| {
         row == &"vcf.phasing\teagle\texperimental,planned\tplanned\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.vcf_output\tbijux.schemas.bench.vcf-normalized-metrics.phasing.v1\tremoved_from_scope\tlifecycle_not_active\tbenchmarks/readiness/all-domains/no-planned-rows.json\tbinding `vcf.phasing` / `eagle` is retained but remains outside active scope because the stage lifecycle is not active"
     }));
 }

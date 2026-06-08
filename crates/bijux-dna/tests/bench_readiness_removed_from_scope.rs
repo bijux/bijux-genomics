@@ -52,15 +52,15 @@ fn bench_readiness_removed_from_scope_reports_only_non_active_bindings() {
     assert_eq!(payload.get("candidate_row_count").and_then(serde_json::Value::as_u64), Some(145));
     assert_eq!(payload.get("candidate_stage_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(payload.get("candidate_tool_count").and_then(serde_json::Value::as_u64), Some(74));
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(124));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(57));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(125));
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(58));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(66));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(21));
-    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(17));
-    assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(17));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(16));
+    assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(16));
     assert_eq!(
         payload.get("fully_removed_stage_count").and_then(serde_json::Value::as_u64),
-        Some(14)
+        Some(13)
     );
     assert_eq!(
         payload.get("fully_removed_tool_count").and_then(serde_json::Value::as_u64),
@@ -79,7 +79,7 @@ fn bench_readiness_removed_from_scope_reports_only_non_active_bindings() {
     );
     assert_eq!(
         scope_exit_kind_counts.get("lifecycle_not_active").and_then(serde_json::Value::as_u64),
-        Some(15)
+        Some(14)
     );
     assert!(
         scope_exit_kind_counts.get("non_executable_adapter").is_none(),
@@ -87,7 +87,7 @@ fn bench_readiness_removed_from_scope_reports_only_non_active_bindings() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 21);
+    assert_eq!(rows.len(), 20);
     let violations =
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
     assert!(violations.is_empty(), "removed rows must stay outside governed active surfaces");
