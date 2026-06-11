@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "fad22cb7260a68cf7a3b3fda4a408011ddfbe283",
-  "bundle_checksum_sha256": "2d976ce28741b2317929595436474e0b22bea21e7c5f05dacae67f402977e4df",
+  "source_commit": "be6d94ad67ff37fdc5b8b5846464b201a05de675",
+  "bundle_checksum_sha256": "087fdd8054d4a1539144559eae3fa3a397794d2aa76fc6f9172b79fe27d09354",
   "domains": [
     {
       "domain_id": "bam",
@@ -3769,7 +3769,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "24327755c1f8929ee0076505e0fb5b3a64c0789273b14689b1e9cf42a7237de2"
+      "checksum_sha256": "96b4d1bdb06fdb620af7b14331925f8e1662ad09367621bdb09c00dddaee5ae1"
     },
     {
       "domain_id": "fastq",
@@ -12656,7 +12656,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "776001956be12e9da701c0640c500a87d423699de03f1b7e388a483932ecd2d1"
+      "checksum_sha256": "c7b60be3d77138af73690f7effa1b8fb4f6e4cb4d855a65ab0bcd3f5c0f23d16"
     },
     {
       "domain_id": "vcf",
@@ -12713,6 +12713,7 @@
         "vcf.call_gl",
         "vcf.call_pseudohaploid",
         "vcf.damage_filter",
+        "vcf.demography",
         "vcf.filter",
         "vcf.gl_propagation",
         "vcf.ibd",
@@ -12731,6 +12732,7 @@
         "bcftools",
         "beagle",
         "germline",
+        "ibdne",
         "plink2",
         "shapeit5"
       ],
@@ -13157,7 +13159,7 @@
           "inputs": [
             {
               "name": "ibd_segments",
-              "data_type": "json",
+              "data_type": "tsv",
               "cardinality": "One"
             }
           ],
@@ -13177,22 +13179,37 @@
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "ne_recent",
+              "metric_id": "method",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             },
             {
-              "metric_id": "ne_time_series",
+              "metric_id": "inference_status",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             },
             {
-              "metric_id": "ne_confidence_interval",
+              "metric_id": "status",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             },
             {
-              "metric_id": "assumption_flags",
+              "metric_id": "insufficient_reason",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "time_bins",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "ne_estimates",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "insufficient_data_probe",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             }
@@ -13215,9 +13232,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "full scientific validation pending downstream admission"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "vcf.filter",
@@ -13348,8 +13363,8 @@
         },
         {
           "stage_id": "vcf.ibd",
-          "status": "supported",
-          "evidence_status": "supported",
+          "status": "planned",
+          "evidence_status": "planned",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.ibd in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -14451,7 +14466,7 @@
             "PE",
             "SE"
           ],
-          "metrics_schema_id": "bijux.vcf.ibd.v1",
+          "metrics_schema_id": "bijux.vcf.demography.v1",
           "comparability_notes": "Planned tool; compare only within pinned profile and reference build.",
           "container": {
             "image": "containers/apptainer/lunarc/ibdne.def",
@@ -14668,10 +14683,6 @@
           "schema_version": "bijux.metrics.v1"
         },
         {
-          "metric_id": "assumption_flags",
-          "schema_version": "bijux.metrics.v1"
-        },
-        {
           "metric_id": "called_variants",
           "schema_version": "bijux.metrics.v1"
         },
@@ -14768,6 +14779,14 @@
           "schema_version": "bijux.metrics.v1"
         },
         {
+          "metric_id": "inference_status",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "insufficient_data_probe",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
           "metric_id": "insufficient_overlap_probe",
           "schema_version": "bijux.metrics.v1"
         },
@@ -14796,19 +14815,15 @@
           "schema_version": "bijux.metrics.v1"
         },
         {
+          "metric_id": "method",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
           "metric_id": "missing_quality_fields",
           "schema_version": "bijux.metrics.v1"
         },
         {
-          "metric_id": "ne_confidence_interval",
-          "schema_version": "bijux.metrics.v1"
-        },
-        {
-          "metric_id": "ne_recent",
-          "schema_version": "bijux.metrics.v1"
-        },
-        {
-          "metric_id": "ne_time_series",
+          "metric_id": "ne_estimates",
           "schema_version": "bijux.metrics.v1"
         },
         {
@@ -14933,6 +14948,10 @@
         },
         {
           "metric_id": "ti_tv",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "time_bins",
           "schema_version": "bijux.metrics.v1"
         },
         {
@@ -15120,6 +15139,14 @@
           "override_policy": "explicit profile override required"
         },
         {
+          "stage_id": "vcf.demography",
+          "tool_id": "ibdne",
+          "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+          "rationale": "deterministic effective population size summary from normalized IBD-derived inputs with explicit insufficiency reporting.",
+          "governance_status": "advisory",
+          "override_policy": "explicit profile override required"
+        },
+        {
           "stage_id": "vcf.filter",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -15140,7 +15167,7 @@
           "tool_id": "germline",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
           "rationale": "the governed IBD baseline keeps normalized pairwise segment rows and insufficient-overlap reporting explicit while retained alternatives stay comparative.",
-          "governance_status": "enforced",
+          "governance_status": "advisory",
           "override_policy": "explicit profile override required"
         },
         {
@@ -15286,21 +15313,6 @@
           "fixture_path": "domain/vcf/fixtures/vcf.gl_propagation/bcftools.txt"
         },
         {
-          "stage_id": "vcf.ibd",
-          "tool_id": "germline",
-          "fixture_path": "domain/vcf/fixtures/vcf.ibd/germline.txt"
-        },
-        {
-          "stage_id": "vcf.ibd",
-          "tool_id": "ibdhap",
-          "fixture_path": "domain/vcf/fixtures/vcf.ibd/ibdhap.txt"
-        },
-        {
-          "stage_id": "vcf.ibd",
-          "tool_id": "ibdseq",
-          "fixture_path": "domain/vcf/fixtures/vcf.ibd/ibdseq.txt"
-        },
-        {
           "stage_id": "vcf.imputation_metrics",
           "tool_id": "beagle",
           "fixture_path": "domain/vcf/fixtures/vcf.imputation_metrics/beagle.txt"
@@ -15417,7 +15429,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "b301f605ae573f41c438d1fd5f2b9a8b15e97ce929b3b93d91fa30d226a2973e"
+      "checksum_sha256": "33dd9cdedb2ed80927dc2db1647d1c7703f6f6d480636152bc38c9a7a91f467e"
     }
   ]
 }

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: fad22cb7260a68cf7a3b3fda4a408011ddfbe283
+# source_commit: be6d94ad67ff37fdc5b8b5846464b201a05de675
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -282,7 +282,7 @@ expected_version_regex = "ibdne [0-9]+([.][0-9]+)?"
 healthcheck_cmd = "ibdne --help"
 expected_bin = "ibdne"
 expected_artifacts = ["demography_report", "metrics.json"]
-metrics_schema = "bijux.vcf.ibd.v1"
+metrics_schema = "bijux.vcf.demography.v1"
 comparability_notes = "Planned tool; compare only within pinned profile and reference build."
 dockerfile = "containers/docker/arm64/Dockerfile.ibdne"
 apptainer_def = "containers/apptainer/shared/ibdne.def"
@@ -567,18 +567,6 @@ validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = "preserves GL fields across downstream handoffs in the current governed profile."
-requires_validation = false
-requires_reporting = false
-
-[[stages]]
-id = "vcf.ibd"
-required_tool_roles = ["transform"]
-primary_tools = ["germline"]
-optional_alternatives = ["ibdseq", "ibdhap"]
-validation_tools = []
-reporting_tools = []
-planned_out_of_scope = []
-default_rationale = "the governed IBD baseline keeps normalized pairwise segment rows and insufficient-overlap reporting explicit while retained alternatives stay comparative."
 requires_validation = false
 requires_reporting = false
 

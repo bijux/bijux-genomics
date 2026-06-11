@@ -461,6 +461,14 @@
         "override_policy": "explicit profile override required"
       },
       {
+        "stage_id": "vcf.demography",
+        "tool_id": "ibdne",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "deterministic effective population size summary from normalized IBD-derived inputs with explicit insufficiency reporting.",
+        "governance_status": "advisory",
+        "override_policy": "explicit profile override required"
+      },
+      {
         "stage_id": "vcf.filter",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -481,7 +489,7 @@
         "tool_id": "germline",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "rationale": "the governed IBD baseline keeps normalized pairwise segment rows and insufficient-overlap reporting explicit while retained alternatives stay comparative.",
-        "governance_status": "enforced",
+        "governance_status": "advisory",
         "override_policy": "explicit profile override required"
       },
       {

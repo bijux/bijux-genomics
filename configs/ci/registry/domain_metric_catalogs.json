@@ -649,10 +649,6 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
-        "metric_id": "assumption_flags",
-        "schema_version": "bijux.metrics.v1"
-      },
-      {
         "metric_id": "called_variants",
         "schema_version": "bijux.metrics.v1"
       },
@@ -749,6 +745,14 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "inference_status",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "insufficient_data_probe",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "insufficient_overlap_probe",
         "schema_version": "bijux.metrics.v1"
       },
@@ -777,19 +781,15 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "method",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "missing_quality_fields",
         "schema_version": "bijux.metrics.v1"
       },
       {
-        "metric_id": "ne_confidence_interval",
-        "schema_version": "bijux.metrics.v1"
-      },
-      {
-        "metric_id": "ne_recent",
-        "schema_version": "bijux.metrics.v1"
-      },
-      {
-        "metric_id": "ne_time_series",
+        "metric_id": "ne_estimates",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -914,6 +914,10 @@
       },
       {
         "metric_id": "ti_tv",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "time_bins",
         "schema_version": "bijux.metrics.v1"
       },
       {
