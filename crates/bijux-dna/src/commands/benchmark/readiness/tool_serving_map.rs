@@ -132,6 +132,9 @@ pub(crate) fn render_fastq_tool_serving_map(
                     binding.tool_id.as_str()
                 )
             })?;
+            if !include_fastq_readiness_binding(&binding.stage_id, &binding.tool_id) {
+                continue;
+            }
             tool_ids.insert(binding.tool_id.as_str().to_string());
             rows.push(ToolServingMapRow {
                 tool_id: binding.tool_id.as_str().to_string(),
@@ -163,6 +166,16 @@ pub(crate) fn render_fastq_tool_serving_map(
         row_count: rows.len(),
         rows,
     })
+}
+
+fn include_fastq_readiness_binding(stage_id: &StageId, tool_id: &ToolId) -> bool {
+    if stage_id.as_str() != "fastq.screen_taxonomy" {
+        return true;
+    }
+    matches!(
+        tool_id.as_str(),
+        "centrifuge" | "kaiju" | "kraken2" | "krakenuniq"
+    )
 }
 
 fn ensure_fastq_amplicon_fixture_coverage(rows: &[ToolServingMapRow]) -> Result<()> {

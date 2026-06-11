@@ -1913,7 +1913,7 @@ fn evaluate_slurm_script_body_goal(
     checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
     report: &BenchLocalSlurmScriptBodyReport,
 ) {
-    if report.ok && report.script_count == 264 {
+    if report.ok && report.script_count == 269 {
         checks.push(ok_check(
             94,
             "slurm_dry_run",
@@ -1939,7 +1939,7 @@ fn evaluate_slurm_shell_syntax_goal(
     checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
     report: &BenchLocalSlurmShellSyntaxReport,
 ) {
-    if report.ok && report.script_count == 264 {
+    if report.ok && report.script_count == 269 {
         checks.push(ok_check(
             95,
             "slurm_dry_run",

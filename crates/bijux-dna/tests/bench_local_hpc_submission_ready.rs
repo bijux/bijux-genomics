@@ -8,12 +8,27 @@ use std::fs;
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
+fn run_cli(args: &[&str]) -> std::process::Output {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(args)
+        .output()
+        .expect("run cli")
+}
+
 #[cfg(feature = "bam_downstream")]
 fn run_hpc_submission_ready_report() -> serde_json::Value {
-    let output = run_cargo_cli(
-        &["bench", "local", "validate-hpc-submission-ready", "--json"],
-        Some("bam_downstream"),
-    );
+    let output = run_cli(&["bench", "local", "validate-hpc-submission-ready", "--json"]);
 
     assert!(
         !output.status.success(),
@@ -33,34 +48,10 @@ fn run_hpc_submission_ready_report() -> serde_json::Value {
         .expect("parse report")
 }
 
-#[cfg(feature = "bam_downstream")]
-fn run_cargo_cli(args: &[&str], features: Option<&str>) -> std::process::Output {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
-    let home = tempfile::tempdir().expect("tempdir");
-
-    let mut command = Command::new("cargo");
-    command
-        .current_dir(&repo_root)
-        .env("HOME", home.path())
-        .env("BIJUX_SKIP_QA", "1")
-        .env("BIJUX_ALLOW_SILVER", "1")
-        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["run", "-q", "-p", "bijux-dna"]);
-    if let Some(features) = features {
-        command.args(["--features", features]);
-    }
-    command.args(["--"]).args(args);
-    let output = command.output().expect("run cargo cli");
-    output
-}
-
+#[cfg(not(feature = "bam_downstream"))]
 #[test]
 fn bench_local_validate_hpc_submission_ready_refuses_without_bam_downstream() {
-    let output =
-        run_cargo_cli(&["bench", "local", "validate-hpc-submission-ready", "--json"], None);
+    let output = run_cli(&["bench", "local", "validate-hpc-submission-ready", "--json"]);
 
     assert!(
         !output.status.success(),
@@ -95,11 +86,7 @@ fn bench_local_validate_hpc_submission_ready_reports_governed_blockers() {
     assert!(
         payload.get("failing_goal_ids").and_then(serde_json::Value::as_array).is_some_and(
             |goal_ids| {
-                goal_ids
-                    == &[
-                        serde_json::Value::from(65_u64),
-                        serde_json::Value::from(66_u64),
-                    ]
+                goal_ids == &[serde_json::Value::from(65_u64), serde_json::Value::from(66_u64)]
             }
         ),
         "governed readiness gate must report the known failing goal ids"

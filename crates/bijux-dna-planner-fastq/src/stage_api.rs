@@ -475,6 +475,7 @@ pub fn benchmark_profiles_for_stage(stage_id: &StageId) -> Vec<StageToolBenchmar
     stage_tool_bindings_for_stage(stage_id)
         .into_iter()
         .filter_map(|binding| benchmark_profile_for_stage_tool(&binding.stage_id, &binding.tool_id))
+        .filter(|profile| profile.readiness != BenchmarkReadinessLevel::PlannedContract)
         .collect()
 }
 

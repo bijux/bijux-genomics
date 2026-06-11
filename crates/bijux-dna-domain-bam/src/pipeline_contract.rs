@@ -17,17 +17,14 @@ pub fn canonical_stage_order() -> Vec<&'static str> {
 #[must_use]
 pub fn stage_criticality(stage_id: &str) -> Option<StageCriticality> {
     let stage = BamStage::try_from(stage_id).ok()?;
-    if bam_stage_is_stable(stage) {
-        Some(StageCriticality::Essential)
-    } else if matches!(
+    if matches!(
         stage,
         BamStage::BiasMitigation
-            | BamStage::Recalibration
-            | BamStage::Haplogroups
             | BamStage::Genotyping
-            | BamStage::Kinship
     ) {
         Some(StageCriticality::Experimental)
+    } else if bam_stage_is_stable(stage) {
+        Some(StageCriticality::Essential)
     } else {
         Some(StageCriticality::Optional)
     }
