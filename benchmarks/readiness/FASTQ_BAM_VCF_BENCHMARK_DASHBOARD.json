@@ -4,8 +4,8 @@
   "json_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json",
   "total_stages": 71,
   "total_tools": 68,
-  "total_expected_jobs": 127,
-  "ready_jobs": 124,
+  "total_expected_jobs": 128,
+  "ready_jobs": 125,
   "blocked_jobs": 3,
   "missing_parsers": 0,
   "missing_adapters": 0,
@@ -30,14 +30,14 @@
     },
     {
       "metric_id": "total_expected_jobs",
-      "count": 127,
+      "count": 128,
       "source_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "source_field": "row_count",
       "detail": "canonical FASTQ, BAM, and VCF expected benchmark bindings"
     },
     {
       "metric_id": "ready_jobs",
-      "count": 124,
+      "count": 125,
       "source_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
       "source_field": "present_row_count",
       "detail": "expected benchmark jobs with present governed result rows"

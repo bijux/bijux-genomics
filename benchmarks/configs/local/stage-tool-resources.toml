@@ -1199,6 +1199,16 @@ resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
 
 [[rows]]
 domain = "vcf"
+stage_id = "vcf.imputation_metrics"
+tool_id = "beagle"
+threads = 8
+memory_gb = 16
+walltime_minutes = 60
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
 stage_id = "vcf.impute"
 tool_id = "beagle"
 threads = 8

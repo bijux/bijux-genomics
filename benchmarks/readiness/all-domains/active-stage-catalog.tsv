@@ -53,6 +53,7 @@ vcf	vcf.call_pseudohaploid	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftool
 vcf	vcf.damage_filter	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	damage_aware_filtering
 vcf	vcf.filter	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	quality_control
 vcf	vcf.gl_propagation	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	likelihood_postprocess
+vcf	vcf.imputation_metrics	smoke	1	1	1	1	true	1	benchmark_ready	beagle	beagle	imputation
 vcf	vcf.impute	smoke	1	1	1	1	true	1	benchmark_ready	beagle	beagle	imputation
 vcf	vcf.phasing	smoke	1	1	1	1	true	1	benchmark_ready	shapeit5	shapeit5	phasing
 vcf	vcf.postprocess	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	normalization
