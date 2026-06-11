@@ -44,7 +44,7 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 16);
+    assert_eq!(rows.len(), 18);
     assert!(
         rows.iter().any(|row| {
             row == &"vcf\tvcf.call\tbcftools\tvcf_production_regression\tbam_bundle\tcalled_vcf\tvariant_count,snp_count,indel_count,sample_count\tvariant_calling"
@@ -68,6 +68,18 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
             row == &"vcf\tvcf.impute\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\timputed_vcf\tvariant_count,missing_before,missing_after,imputed_genotypes,low_confidence_count,masked_truth_site_count,masked_truth_match_count,unresolved_count,not_imputable_reasons,sample_count,sample_ids\timputation"
         }),
         "TSV must retain the governed VCF imputation expected-result row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"vcf\tvcf.pca\tplink2\tvcf_production_regression\tvcf_cohort\tpca_report\tsample_count,variant_count,excluded_samples,unexpected_samples,eigenvalues\tpopulation_structure"
+        }),
+        "TSV must retain the governed plink2 PCA expected-result row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"vcf\tvcf.pca\teigensoft\tvcf_production_regression\tvcf_cohort\tpca_report\tsample_count,variant_count,excluded_samples,unexpected_samples,eigenvalues\tpopulation_structure"
+        }),
+        "TSV must retain the governed eigensoft PCA expected-result row"
     );
     assert!(
         rows.iter().any(|row| {

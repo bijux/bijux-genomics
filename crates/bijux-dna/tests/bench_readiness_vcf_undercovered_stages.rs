@@ -49,18 +49,25 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(
         payload.get("undercovered_stage_count").and_then(serde_json::Value::as_u64),
-        Some(11)
+        Some(10)
     );
     assert_eq!(
         payload
             .get("decision_counts")
             .and_then(|value| value.get("future_not_benchmark_ready"))
             .and_then(serde_json::Value::as_u64),
-        Some(11)
+        Some(9)
+    );
+    assert_eq!(
+        payload
+            .get("decision_counts")
+            .and_then(|value| value.get("limit_to_specialized_tool"))
+            .and_then(serde_json::Value::as_u64),
+        Some(1)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 11);
+    assert_eq!(rows.len(), 10);
 
     let has_row = |stage_id: &str,
                    valid_tool_classes: &[&str],
@@ -113,13 +120,6 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
         "future_not_benchmark_ready",
     ));
     assert!(has_row(
-        "vcf.pca",
-        &["cohort_analysis", "population_structure"],
-        &["plink2"],
-        &["eigensoft"],
-        "future_not_benchmark_ready",
-    ));
-    assert!(has_row(
         "vcf.imputation_metrics",
         &["imputation", "phasing"],
         &["beagle"],
@@ -131,8 +131,11 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
         &["cohort_analysis", "population_structure"],
         &["plink2"],
         &["eigensoft", "plink"],
-        "future_not_benchmark_ready",
+        "limit_to_specialized_tool",
     ));
+    assert!(!rows
+        .iter()
+        .any(|row| { row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.pca") }));
     assert!(!rows
         .iter()
         .any(|row| { row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc") }));

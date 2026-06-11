@@ -309,13 +309,6 @@ fn ensure_vcf_undercovered_stage_contract(rows: &[VcfUndercoveredStageRow]) -> R
             "future_not_benchmark_ready",
         ),
         (
-            "vcf.pca",
-            &["cohort_analysis", "population_structure"][..],
-            &["plink2"][..],
-            &["eigensoft"][..],
-            "future_not_benchmark_ready",
-        ),
-        (
             "vcf.phasing",
             &["phasing"][..],
             &["shapeit5"][..],
@@ -327,7 +320,7 @@ fn ensure_vcf_undercovered_stage_contract(rows: &[VcfUndercoveredStageRow]) -> R
             &["cohort_analysis", "population_structure"][..],
             &["plink2"][..],
             &["eigensoft", "plink"][..],
-            "future_not_benchmark_ready",
+            "limit_to_specialized_tool",
         ),
     ];
 
@@ -442,9 +435,9 @@ mod tests {
         assert_eq!(report.schema_version, VCF_UNDERCOVERED_STAGES_SCHEMA_VERSION);
         assert_eq!(report.domain, "vcf");
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.undercovered_stage_count, 11);
-        assert_eq!(report.decision_counts.get("future_not_benchmark_ready").copied(), Some(11));
-        assert_eq!(report.decision_counts.get("limit_to_specialized_tool"), None);
+        assert_eq!(report.undercovered_stage_count, 10);
+        assert_eq!(report.decision_counts.get("future_not_benchmark_ready").copied(), Some(9));
+        assert_eq!(report.decision_counts.get("limit_to_specialized_tool").copied(), Some(1));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.phasing"
                 && row.registered_tools == vec!["shapeit5".to_string()]
@@ -465,8 +458,9 @@ mod tests {
                     == vec!["cohort_analysis".to_string(), "population_structure".to_string()]
                 && row.registered_tools == vec!["plink2".to_string()]
                 && row.missing_tools == vec!["eigensoft".to_string(), "plink".to_string()]
-                && row.decision == "future_not_benchmark_ready"
+                && row.decision == "limit_to_specialized_tool"
         }));
+        assert!(report.rows.iter().all(|row| row.stage_id != "vcf.pca"));
         assert!(report.rows.iter().all(|row| row.stage_id != "vcf.qc"));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.impute"

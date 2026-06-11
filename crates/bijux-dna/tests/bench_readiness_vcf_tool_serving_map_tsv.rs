@@ -43,11 +43,13 @@ fn bench_readiness_vcf_tool_serving_map_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 22, "TSV must retain the governed VCF row count");
+    assert_eq!(rows.len(), 23, "TSV must retain the governed VCF row count");
     for row in [
         "bcftools\tvcf.qc\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "bcftools\tvcf.call\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "bcftools\tvcf.call_gl\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
+        "plink2\tvcf.pca\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
+        "eigensoft\tvcf.pca\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "plink\tvcf.qc\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "plink2\tvcf.qc\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "bcftools\tvcf.prepare_reference_panel\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",

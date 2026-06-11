@@ -48,11 +48,11 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(39));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(16)
+        Some(18)
     );
     assert_eq!(
         payload.get("benchmark_ready_complete_row_count").and_then(serde_json::Value::as_u64),
-        Some(16)
+        Some(18)
     );
     assert_eq!(
         payload.get("benchmark_ready_incomplete_row_count").and_then(serde_json::Value::as_u64),

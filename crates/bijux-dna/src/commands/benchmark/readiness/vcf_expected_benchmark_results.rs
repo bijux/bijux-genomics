@@ -8,6 +8,7 @@ use bijux_dna_domain_vcf::VcfDomainStage;
 use serde::Serialize;
 
 use super::vcf_bcftools_adapter::collect_vcf_bcftools_adapter_rows;
+use super::vcf_eigensoft_adapter::collect_vcf_eigensoft_adapter_rows_for_tool;
 use super::vcf_imputation_family_adapter::collect_vcf_imputation_family_adapter_rows;
 use super::vcf_phasing_family_adapter::collect_vcf_phasing_family_adapter_rows_for_tool;
 use super::vcf_plink_family_adapter::collect_vcf_plink_family_adapter_rows_for_tool;
@@ -141,6 +142,11 @@ pub(crate) fn collect_vcf_expected_benchmark_result_rows(
                 .into_iter()
                 .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into())),
         )
+        .chain(
+            collect_vcf_eigensoft_adapter_rows_for_tool(repo_root)?
+                .into_iter()
+                .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into())),
+        )
         .collect::<BTreeMap<_, _>>();
 
     let mut rows = Vec::with_capacity(benchmark_ready_rows.len());
@@ -265,6 +271,12 @@ impl From<super::vcf_imputation_family_adapter::VcfImputationFamilyAdapterRow>
     }
 }
 
+impl From<super::vcf_eigensoft_adapter::VcfEigensoftAdapterRow> for VcfExpectedOutputsAdapterRow {
+    fn from(value: super::vcf_eigensoft_adapter::VcfEigensoftAdapterRow) -> Self {
+        Self { stage_output_ids: value.stage_output_ids }
+    }
+}
+
 fn report_section_for_stage(catalog_row: &VcfStageCatalogRow) -> Result<String> {
     if catalog_row.benchmark_category.trim().is_empty() {
         return Err(anyhow!(
@@ -309,9 +321,9 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "VCF expected-result table must keep one row per benchmark-ready stage-tool-corpus-asset binding"
         ));
     }
-    if rows.len() != 16 {
+    if rows.len() != 18 {
         return Err(anyhow!(
-            "VCF expected-result table must retain exactly 16 benchmark-ready rows, found {}",
+            "VCF expected-result table must retain exactly 18 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -364,6 +376,24 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "postprocess_vcf",
             "readable_vcf",
             "normalization",
+        ),
+        (
+            "vcf.pca",
+            "plink2",
+            "vcf_production_regression",
+            "vcf_cohort",
+            "pca_report",
+            "eigenvalues",
+            "population_structure",
+        ),
+        (
+            "vcf.pca",
+            "eigensoft",
+            "vcf_production_regression",
+            "vcf_cohort",
+            "pca_report",
+            "eigenvalues",
+            "population_structure",
         ),
         (
             "vcf.prepare_reference_panel",
@@ -472,14 +502,15 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH);
-        assert_eq!(report.row_count, 16);
-        assert_eq!(report.stage_count, 14);
-        assert_eq!(report.tool_count, 5);
+        assert_eq!(report.row_count, 18);
+        assert_eq!(report.stage_count, 15);
+        assert_eq!(report.tool_count, 6);
         assert_eq!(report.corpus_count, 1);
         assert_eq!(report.asset_profile_count, 5);
         assert_eq!(report.report_section_counts.get("damage_aware_filtering"), Some(&1));
         assert_eq!(report.report_section_counts.get("imputation"), Some(&2));
         assert_eq!(report.report_section_counts.get("likelihood_postprocess"), Some(&1));
+        assert_eq!(report.report_section_counts.get("population_structure"), Some(&2));
         assert_eq!(report.report_section_counts.get("phasing"), Some(&1));
         assert_eq!(report.report_section_counts.get("variant_calling"), Some(&4));
         assert_eq!(report.report_section_counts.get("quality_control"), Some(&5));
@@ -525,6 +556,22 @@ mod tests {
                 && row.expected_outputs == vec!["gl_propagated_vcf".to_string()]
                 && row.expected_metrics.iter().any(|metric| metric == "lost_fields")
                 && row.report_section == "likelihood_postprocess"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.pca"
+                && row.tool_id == "plink2"
+                && row.asset_profile_id == "vcf_cohort"
+                && row.expected_outputs == vec!["pca_report".to_string()]
+                && row.expected_metrics.iter().any(|metric| metric == "eigenvalues")
+                && row.report_section == "population_structure"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.pca"
+                && row.tool_id == "eigensoft"
+                && row.asset_profile_id == "vcf_cohort"
+                && row.expected_outputs == vec!["pca_report".to_string()]
+                && row.expected_metrics.iter().any(|metric| metric == "eigenvalues")
+                && row.report_section == "population_structure"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.phasing"

@@ -36,7 +36,7 @@ fn bench_readiness_vcf_rendered_commands_write_governed_argv_jsonl() {
 
     let jsonl = std::fs::read_to_string(&jsonl_path).expect("read VCF rendered command argv JSONL");
     let rows = jsonl.lines().collect::<Vec<_>>();
-    assert_eq!(rows.len(), 12);
+    assert_eq!(rows.len(), 18);
     assert!(rows.iter().all(|line| {
         serde_json::from_str::<serde_json::Value>(line).ok().is_some_and(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str).is_some()
@@ -58,8 +58,8 @@ fn bench_readiness_vcf_rendered_commands_write_governed_argv_jsonl() {
     }));
     assert!(rows.iter().any(|line| {
         serde_json::from_str::<serde_json::Value>(line).ok().is_some_and(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink")
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.pca")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("eigensoft")
         })
     }));
 }

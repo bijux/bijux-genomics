@@ -256,13 +256,13 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_PARSER_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_PARSER_COVERAGE_PATH);
-        assert_eq!(report.stage_count, 13);
-        assert_eq!(report.tool_count, 5);
-        assert_eq!(report.row_count, 15);
-        assert_eq!(report.covered_row_count, 15);
+        assert_eq!(report.stage_count, 15);
+        assert_eq!(report.tool_count, 6);
+        assert_eq!(report.row_count, 18);
+        assert_eq!(report.covered_row_count, 18);
         assert_eq!(report.missing_row_count, 0);
         assert_eq!(report.parser_coverage_percent, 100.0);
-        assert_eq!(report.coverage_status_counts.get("covered"), Some(&15));
+        assert_eq!(report.coverage_status_counts.get("covered"), Some(&18));
         assert!(report.rows.iter().all(|row| {
             row.schema_id.starts_with("bijux.vcf.")
                 && coverage_status_label(row.coverage_status) == "covered"
@@ -281,6 +281,18 @@ mod tests {
             row.stage_id == "vcf.postprocess"
                 && row.parser_id == "parse_bcftools_postprocess_metrics"
                 && row.schema_id == "bijux.vcf.postprocess.v1"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.pca"
+                && row.tool_id == "plink2"
+                && row.parser_id == "parse_plink2_pca_metrics"
+                && row.schema_id == "bijux.vcf.pca.v1"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.pca"
+                && row.tool_id == "eigensoft"
+                && row.parser_id == "parse_eigensoft_pca_metrics"
+                && row.schema_id == "bijux.vcf.pca.v1"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.impute"

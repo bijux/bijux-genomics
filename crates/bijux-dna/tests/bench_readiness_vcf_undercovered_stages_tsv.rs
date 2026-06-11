@@ -41,7 +41,7 @@ fn bench_readiness_vcf_undercovered_stages_writes_governed_tsv_columns() {
         Some("stage_id\tvalid_tool_classes\tregistered_tools\tmissing_tools\tdecision")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 11, "TSV must retain the governed VCF undercovered row count");
+    assert_eq!(rows.len(), 10, "TSV must retain the governed VCF undercovered row count");
     for row in [
         "vcf.admixture\tcohort_analysis\tplink2\tplink\tfuture_not_benchmark_ready",
         "vcf.call_gl\tgenotype_likelihood_calling,variant_processing\tbcftools\tangsd\tfuture_not_benchmark_ready",
@@ -51,9 +51,8 @@ fn bench_readiness_vcf_undercovered_stages_writes_governed_tsv_columns() {
         "vcf.ibd\tdemography,relatedness\tgermline\tibdhap,ibdne,ibdseq\tfuture_not_benchmark_ready",
         "vcf.imputation_metrics\timputation,phasing\tbeagle\tbeagle-imputation,glimpse,impute5,minimac4\tfuture_not_benchmark_ready",
         "vcf.impute\timputation,phasing\tbeagle\tbeagle-imputation,glimpse,impute5,minimac4\tfuture_not_benchmark_ready",
-        "vcf.pca\tcohort_analysis,population_structure\tplink2\teigensoft\tfuture_not_benchmark_ready",
         "vcf.phasing\tphasing\tshapeit5\tbeagle,eagle,shapeit\tfuture_not_benchmark_ready",
-        "vcf.population_structure\tcohort_analysis,population_structure\tplink2\teigensoft,plink\tfuture_not_benchmark_ready",
+        "vcf.population_structure\tcohort_analysis,population_structure\tplink2\teigensoft,plink\tlimit_to_specialized_tool",
     ] {
         assert!(
             rows.iter().any(|candidate| candidate == &row),

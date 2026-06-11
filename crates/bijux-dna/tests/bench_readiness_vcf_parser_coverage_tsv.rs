@@ -42,7 +42,7 @@ fn bench_readiness_vcf_parser_coverage_writes_governed_tsv_columns() {
         Some("stage_id\ttool_id\tparser_id\tfixture_path\tschema_id\tcoverage_status")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 16);
+    assert_eq!(rows.len(), 18);
     assert!(
         rows.iter().any(|row| {
             row == &"vcf.qc\tbcftools\tparse_bcftools_qc_metrics\tbenchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.qc\tbijux.vcf.qc.v1\tcovered"
@@ -60,6 +60,18 @@ fn bench_readiness_vcf_parser_coverage_writes_governed_tsv_columns() {
             row == &"vcf.call_gl\tbcftools\tparse_bcftools_call_gl_metrics\tbenchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_gl\tbijux.vcf.call_gl.v1\tcovered"
         }),
         "TSV must retain the governed VCF GL parser coverage row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"vcf.pca\tplink2\tparse_plink2_pca_metrics\tbenchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.pca\tbijux.vcf.pca.v1\tcovered"
+        }),
+        "TSV must retain the governed plink2 PCA parser coverage row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"vcf.pca\teigensoft\tparse_eigensoft_pca_metrics\tbenchmarks/tests/fixtures/bench/parsers/vcf/eigensoft/pca\tbijux.vcf.pca.v1\tcovered"
+        }),
+        "TSV must retain the governed eigensoft PCA parser coverage row"
     );
     assert!(
         rows.iter().any(|row| {

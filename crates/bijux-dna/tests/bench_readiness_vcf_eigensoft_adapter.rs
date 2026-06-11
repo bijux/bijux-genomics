@@ -54,7 +54,7 @@ fn bench_readiness_vcf_eigensoft_adapter_reports_governed_rows() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(0)
+        Some(1)
     );
     assert_eq!(payload.get("parser_output_row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
@@ -76,7 +76,7 @@ fn bench_readiness_vcf_eigensoft_adapter_reports_governed_rows() {
         .expect("eigensoft pca row");
     assert_eq!(
         pca_row.get("benchmark_status").and_then(serde_json::Value::as_str),
-        Some("not_benchmark_ready")
+        Some("benchmark_ready")
     );
     assert_eq!(
         pca_row.get("normalized_metrics_artifact_id").and_then(serde_json::Value::as_str),

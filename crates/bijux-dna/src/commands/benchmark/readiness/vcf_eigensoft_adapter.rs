@@ -12,9 +12,8 @@ use serde::Serialize;
 use crate::commands::benchmark::local_vcf_stage_catalog::{
     build_vcf_stage_catalog_rows, VcfStageCatalogRow,
 };
-use crate::commands::benchmark::local_vcf_stage_matrix::{
-    build_vcf_stage_matrix_rows, VcfStageMatrixRow,
-};
+use crate::commands::benchmark::local_vcf_stage_matrix::VcfStageMatrixRow;
+use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::benchmark::readiness::vcf_readiness_inputs::load_governed_vcf_fixture_inputs;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -192,7 +191,7 @@ fn collect_vcf_eigensoft_adapter_rows(
         .into_iter()
         .map(|row| (row.stage_id.clone(), row))
         .collect::<BTreeMap<_, _>>();
-    let matrix_by_stage = build_vcf_stage_matrix_rows()?
+    let matrix_by_stage = collect_vcf_benchmark_binding_rows()?
         .into_iter()
         .filter(|row| row.tool_id == registry_tool.tool_id)
         .map(|row| (row.stage_id.clone(), row))
@@ -217,6 +216,13 @@ fn collect_vcf_eigensoft_adapter_rows(
     rows.sort_by(|left, right| left.stage_id.cmp(&right.stage_id));
     ensure_vcf_eigensoft_adapter_contract(registry_tool, &rows)?;
     Ok(rows)
+}
+
+pub(crate) fn collect_vcf_eigensoft_adapter_rows_for_tool(
+    repo_root: &Path,
+) -> Result<Vec<VcfEigensoftAdapterRow>> {
+    let registry_tool = load_registry_tool_contract(repo_root, "eigensoft")?;
+    collect_vcf_eigensoft_adapter_rows(repo_root, &registry_tool)
 }
 
 fn build_eigensoft_row(
@@ -684,7 +690,7 @@ mod tests {
         assert_eq!(report.tool_id, "eigensoft");
         assert_eq!(report.tool_status, "experimental");
         assert_eq!(report.row_count, 2);
-        assert_eq!(report.benchmark_ready_row_count, 0);
+        assert_eq!(report.benchmark_ready_row_count, 1);
         assert_eq!(report.parser_output_row_count, 2);
         assert_eq!(report.normalized_metrics_row_count, 2);
         assert_eq!(report.conversion_output_row_count, 2);
@@ -692,6 +698,7 @@ mod tests {
 
         let pca =
             report.rows.iter().find(|row| row.stage_id == "vcf.pca").expect("eigensoft pca row");
+        assert_eq!(pca.benchmark_status, "benchmark_ready");
         assert_eq!(pca.normalized_metrics_artifact_id, "pca_report");
         assert!(
             pca.command_steps

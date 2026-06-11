@@ -38,18 +38,16 @@ fn bench_readiness_vcf_orphan_tools_writes_governed_tsv_columns() {
     let mut lines = tsv.lines();
     assert_eq!(lines.next(), Some("tool_id\tregistered_binary\tserved_stage_count\tdecision"));
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 11, "TSV must retain the governed VCF orphan row count");
+    assert_eq!(rows.len(), 9, "TSV must retain the governed VCF orphan row count");
     for row in [
         "angsd\tangsd\t0\tfuture_not_benchmark_ready",
         "beagle-imputation\tbeagle\t0\tfuture_not_benchmark_ready",
         "eagle\teagle\t0\tfuture_not_benchmark_ready",
-        "eigensoft\tsmartpca\t0\tfuture_not_benchmark_ready",
         "glimpse\tglimpse\t0\tfuture_not_benchmark_ready",
         "ibdhap\tibdhap\t0\tfuture_not_benchmark_ready",
         "ibdseq\tibdseq\t0\tfuture_not_benchmark_ready",
         "impute5\timpute5\t0\tfuture_not_benchmark_ready",
         "minimac4\tminimac4\t0\tfuture_not_benchmark_ready",
-        "plink\tplink\t0\tfuture_not_benchmark_ready",
         "shapeit\tshapeit\t0\tfuture_not_benchmark_ready",
     ] {
         assert!(

@@ -221,7 +221,6 @@ fn ensure_vcf_orphan_tool_contract(
         ("angsd", "angsd", 0usize, "future_not_benchmark_ready"),
         ("beagle-imputation", "beagle", 0usize, "future_not_benchmark_ready"),
         ("eagle", "eagle", 0usize, "future_not_benchmark_ready"),
-        ("eigensoft", "smartpca", 0usize, "future_not_benchmark_ready"),
         ("glimpse", "glimpse", 0usize, "future_not_benchmark_ready"),
         ("ibdhap", "ibdhap", 0usize, "future_not_benchmark_ready"),
         ("ibdseq", "ibdseq", 0usize, "future_not_benchmark_ready"),
@@ -332,10 +331,10 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_ORPHAN_TOOLS_SCHEMA_VERSION);
         assert_eq!(report.domain, "vcf");
-        assert_eq!(report.orphan_count, 10);
+        assert_eq!(report.orphan_count, 9);
         assert_eq!(report.required_tool_count, 17);
         assert_eq!(report.registered_tool_count, 17);
-        assert_eq!(report.served_tool_count, 7);
+        assert_eq!(report.served_tool_count, 8);
         assert!(report.rows.iter().all(|row| row.served_stage_count == 0));
         assert!(report.rows.iter().all(|row| row.decision == "future_not_benchmark_ready"));
         assert!(report.rows.iter().any(|row| {

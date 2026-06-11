@@ -251,6 +251,26 @@ fn ensure_vcf_tool_serving_map_contract(rows: &[VcfToolServingMapRow]) -> Result
             "benchmark_ready",
         ),
         (
+            "plink2",
+            "vcf.pca",
+            "supported",
+            "runnable",
+            "parse_normalized",
+            "fixture:vcf_production_regression",
+            "assigned",
+            "benchmark_ready",
+        ),
+        (
+            "eigensoft",
+            "vcf.pca",
+            "supported",
+            "runnable",
+            "parse_normalized",
+            "fixture:vcf_production_regression",
+            "assigned",
+            "benchmark_ready",
+        ),
+        (
             "ibdne",
             "vcf.demography",
             "planned",
@@ -376,11 +396,11 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_TOOL_SERVING_MAP_SCHEMA_VERSION);
         assert_eq!(report.domain, "vcf");
-        assert_eq!(report.row_count, 22);
+        assert_eq!(report.row_count, 23);
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.tool_count, 7);
-        assert_eq!(report.benchmark_ready_row_count, 16);
-        assert_eq!(report.not_benchmark_ready_row_count, 6);
+        assert_eq!(report.tool_count, 8);
+        assert_eq!(report.benchmark_ready_row_count, 18);
+        assert_eq!(report.not_benchmark_ready_row_count, 5);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bcftools"
                 && row.stage_id == "vcf.call"
@@ -444,6 +464,26 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "beagle"
                 && row.stage_id == "vcf.impute"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parse_normalized"
+                && row.corpus_status == "fixture:vcf_production_regression"
+                && row.asset_status == "assigned"
+                && row.benchmark_status == "benchmark_ready"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "plink2"
+                && row.stage_id == "vcf.pca"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parse_normalized"
+                && row.corpus_status == "fixture:vcf_production_regression"
+                && row.asset_status == "assigned"
+                && row.benchmark_status == "benchmark_ready"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "eigensoft"
+                && row.stage_id == "vcf.pca"
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parse_normalized"
