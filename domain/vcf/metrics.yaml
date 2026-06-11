@@ -23,6 +23,8 @@ metrics:
 - id: ibd_length_bins_cM
 - id: ibd_segment_count
 - id: ibd_total_length_cM
+- id: insufficient_overlap_probe
+- id: insufficient_reason
 - id: impute_status
 - id: low_confidence_sites
 - id: mean_gl_depth
@@ -49,6 +51,7 @@ metrics:
 - id: qc_status
 - id: r2_available
 - id: reference_panel_status
+- id: rows
 - id: roh_count
 - id: roh_length_bins_mb
 - id: roh_max_length_mb

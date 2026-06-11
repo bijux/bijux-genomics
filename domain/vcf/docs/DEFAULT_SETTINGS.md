@@ -24,7 +24,7 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.pca` -> `pca_report`
 - `vcf.admixture` -> `admixture_report`
 - `vcf.population_structure` -> `population_structure_report`
-- `vcf.ibd` -> `ibd_json`
+- `vcf.ibd` -> `ibd_segments`
 - `vcf.phasing` -> `phased_vcf`
 - `vcf.imputation_metrics` -> `imputation_metrics_json`
 - `vcf.impute` -> `imputed_vcf`
@@ -54,7 +54,6 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.qc` default: `plink2`. rationale: the governed cohort-QC baseline keeps missingness, MAF, and HWE summaries anchored to the admitted PLINK-family execution surface while retaining deterministic bcftools compatibility for comparison.
 - `vcf.pca` default: `plink2`. rationale: current governed PCA default keeps sample-complete eigenvector output, eigenvalue reporting, and metadata joins anchored to the PLINK2 smoke-backed cohort path while retained `eigensoft` stays comparative.
 - `vcf.admixture` default: `plink2`. rationale: the governed admixture baseline keeps cohort preparation, K selection, and normalized cluster fractions anchored to the admitted PLINK-family execution surface.
-- `vcf.ibd` default: `germline` (planned). rationale: current planned IBD baseline names the intended segment caller while alternative tools stay comparative.
 - `vcf.phasing` default: `shapeit5`. rationale: current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle and Eagle stay comparative.
 - `vcf.imputation_metrics` default: `beagle`. rationale: keep the governed imputation-metrics contract anchored to the same backend family that produces the source imputation evidence.
 - `vcf.impute` default: `beagle`. rationale: current governed production default keeps explicit panel-aware imputation runnable while retained alternatives stay comparative.
@@ -66,6 +65,7 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.damage_filter` default: `bcftools`. rationale: deterministic PMD/C>T-G>A masking contract anchor for the current governed profile.
 - `vcf.gl_propagation` default: `bcftools`. rationale: preserves GL fields across downstream handoffs in the current governed profile.
 - `vcf.population_structure` default: `plink2`. rationale: the governed population-structure baseline keeps consumed PCA and admixture evidence on the admitted PLINK-family structure path with explicit sample-group distance summaries.
+- `vcf.ibd` default: `germline`. rationale: the governed IBD baseline keeps normalized pairwise segment rows and insufficient-overlap reporting explicit while retained alternatives stay comparative.
 - `vcf.roh` default: `plink2`. rationale: deterministic ROH interval extraction with normalized segment and per-sample summaries.
 - `vcf.demography` default: `ibdne` (planned). rationale: deterministic effective population size summary from IBD-derived inputs.
 
@@ -82,5 +82,6 @@ single_tool_justification: vcf.impute
 single_tool_justification: vcf.postprocess
 single_tool_justification: vcf.prepare_reference_panel
 single_tool_justification: vcf.call_diploid
+single_tool_justification: vcf.ibd
 single_tool_justification: vcf.roh
 single_tool_justification: vcf.demography

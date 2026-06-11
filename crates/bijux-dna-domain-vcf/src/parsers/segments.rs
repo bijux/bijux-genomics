@@ -225,7 +225,7 @@ fn parse_ibd_metrics(tool_id: &str, root: &Path) -> Result<serde_json::Value> {
                 "sample_b": sample_b,
                 "segment_count": segment_count,
                 "total_length": pair_total_length,
-                "marker_count_total": marker_count_total,
+                "overlap_marker_count": marker_count_total,
                 "status": "complete",
             })
         })

@@ -1,26 +1,28 @@
 schema_version: "bijux.stage.v1"
 stage_id: "vcf.ibd"
-status: "planned"
+status: "supported"
 scope: "post_vcf"
 domain: "vcf"
 description: "VCF stage contract for vcf.ibd in the governed domain registry."
 inputs:
-  - name: "vcf"
+  - name: "filtered_vcf"
     data_type: "vcf"
     cardinality: "One"
 outputs:
   - name: "ibd_segments"
-    data_type: "json"
+    data_type: "tsv"
     cardinality: "One"
-required_inputs: ["vcf"]
+required_inputs: ["filtered_vcf"]
 required_outputs: ["ibd_segments"]
 tool_capability_requirements: []
 metrics:
-  - name: "ibd_segment_count"
-  - name: "ibd_total_length_cM"
-  - name: "ibd_length_bins_cM"
-  - name: "pairwise_ibd_sharing_matrix"
-compatible_tools: ["germline", "ibdhap"]
+  - name: "pair_count"
+  - name: "rows"
+  - name: "status"
+  - name: "insufficient_reason"
+  - name: "insufficient_overlap_probe"
+compatible_tools: ["germline", "ibdseq", "ibdhap"]
+single_tool_justification: "germline is the governed IBD baseline because it keeps normalized pairwise segment rows and the insufficient-overlap probe explicit while retained alternatives stay comparative."
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "phasing_quality_thresholds_are_fixed_per_run"
@@ -29,4 +31,4 @@ bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness:
   - "none"
-planned_out_of_scope: ["full scientific validation pending downstream admission"]
+planned_out_of_scope: []

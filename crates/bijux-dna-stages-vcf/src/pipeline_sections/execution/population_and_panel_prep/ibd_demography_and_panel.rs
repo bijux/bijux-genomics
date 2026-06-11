@@ -43,6 +43,36 @@ fn parse_germline_segments(path: &Path) -> Vec<IbdSegment> {
     segments
 }
 
+fn parse_normalized_ibd_segments(path: &Path) -> Vec<IbdSegment> {
+    let Ok(raw) = std::fs::read_to_string(path) else {
+        return Vec::new();
+    };
+    let mut segments = Vec::new();
+    for (index, line) in raw.lines().enumerate() {
+        if index == 0 || line.trim().is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let cols = line.split('\t').collect::<Vec<_>>();
+        if cols.len() < 7 {
+            continue;
+        }
+        let length_cm = cols[5].parse::<f64>().unwrap_or(0.0);
+        if length_cm <= 0.0 {
+            continue;
+        }
+        segments.push(IbdSegment {
+            sample_a: cols[0].to_string(),
+            sample_b: cols[1].to_string(),
+            contig: cols[2].to_string(),
+            start: cols[3].parse::<u64>().unwrap_or(0),
+            end: cols[4].parse::<u64>().unwrap_or(0),
+            length_cm,
+            marker_count: cols[6].parse::<usize>().unwrap_or(0),
+        });
+    }
+    segments
+}
+
 fn normalize_and_merge_ibd_segments(mut segs: Vec<IbdSegment>) -> Vec<IbdSegment> {
     segs.sort_by(|a, b| {
         a.sample_a
@@ -225,26 +255,41 @@ pub fn run_ibd_stage(
     let input_s = input_vcf.to_string_lossy().to_string();
     let germline_prefix = out_dir.join("germline");
     let germline_prefix_s = germline_prefix.to_string_lossy().to_string();
-    let germline_ok = try_run_tool(
-        "germline",
-        &[
-            "-input",
-            input_s.as_str(),
-            "-output",
-            germline_prefix_s.as_str(),
-            "-min_m",
-            &params.min_segment_cm.to_string(),
-        ],
-    );
-    let ibdhap_ok = try_run_tool(
-        "ibdhap",
-        &[
-            "--segments",
-            germline_prefix.with_extension("match").to_string_lossy().as_ref(),
-            "--out",
-            ibd_filtered_segments_tsv.to_string_lossy().as_ref(),
-        ],
-    );
+    let requested_tool = params.toolchain.as_str();
+    let germline_ok = matches!(requested_tool, "germline" | "germline+ibdhap")
+        && try_run_tool(
+            "germline",
+            &[
+                "-input",
+                input_s.as_str(),
+                "-output",
+                germline_prefix_s.as_str(),
+                "-min_m",
+                &params.min_segment_cm.to_string(),
+            ],
+        );
+    let ibdseq_segments_path = out_dir.join("ibdseq.segments.tsv");
+    let ibdseq_ok = requested_tool == "ibdseq"
+        && try_run_tool(
+            "ibdseq",
+            &[
+                "--vcf",
+                input_s.as_str(),
+                "--out",
+                ibdseq_segments_path.to_string_lossy().as_ref(),
+            ],
+        );
+    let ibdhap_segments_path = out_dir.join("ibdhap.segments.tsv");
+    let ibdhap_ok = matches!(requested_tool, "ibdhap" | "germline+ibdhap")
+        && try_run_tool(
+            "ibdhap",
+            &[
+                "--vcf",
+                input_s.as_str(),
+                "--out",
+                ibdhap_segments_path.to_string_lossy().as_ref(),
+            ],
+        );
 
     let mut prep = Vec::<(String, u64, f64, f64)>::new();
     for line in raw.lines() {
@@ -277,15 +322,23 @@ pub fn run_ibd_stage(
     kept.push_str("sample_a\tsample_b\tcontig\tstart\tend\tlength_cm\tmarker_count\n");
     let mut execution_mode = "fallback_proxy";
     let germline_match = germline_prefix.with_extension("match");
-    let mut raw_segments = if germline_ok && germline_match.exists() {
-        parse_germline_segments(&germline_match)
-    } else {
-        Vec::new()
+    let mut raw_segments = match requested_tool {
+        "ibdseq" if ibdseq_ok && ibdseq_segments_path.exists() => {
+            execution_mode = "real_tool";
+            parse_normalized_ibd_segments(&ibdseq_segments_path)
+        }
+        "ibdhap" if ibdhap_ok && ibdhap_segments_path.exists() => {
+            execution_mode = "real_tool";
+            parse_normalized_ibd_segments(&ibdhap_segments_path)
+        }
+        _ if germline_ok && germline_match.exists() => {
+            execution_mode = "real_tool";
+            parse_germline_segments(&germline_match)
+        }
+        _ => Vec::new(),
     };
     if raw_segments.is_empty() {
         raw_segments = fallback_ibd_segments_from_vcf(&raw, &samples);
-    } else {
-        execution_mode = "real_tool";
     }
     let mut seg_count = 0_u64;
     for seg in &raw_segments {
@@ -351,6 +404,7 @@ pub fn run_ibd_stage(
             },
             "tool_attempts": {
                 "germline": germline_ok,
+                "ibdseq": ibdseq_ok,
                 "ibdhap": ibdhap_ok
             },
             "execution_mode": execution_mode,
@@ -381,6 +435,7 @@ pub fn run_ibd_stage(
             },
             "tool_attempts": {
                 "germline": germline_ok,
+                "ibdseq": ibdseq_ok,
                 "ibdhap": ibdhap_ok
             },
             "execution_mode": execution_mode
@@ -389,8 +444,8 @@ pub fn run_ibd_stage(
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "runner={}\nexecution_mode={}\nmin_segment_cm={}\nmin_markers_per_segment={}\ngermline_attempted={}\nibdhap_attempted={}\n",
-            params.toolchain, execution_mode, params.min_segment_cm, params.min_markers_per_segment, germline_ok, ibdhap_ok
+            "runner={}\nexecution_mode={}\nmin_segment_cm={}\nmin_markers_per_segment={}\ngermline_attempted={}\nibdseq_attempted={}\nibdhap_attempted={}\n",
+            params.toolchain, execution_mode, params.min_segment_cm, params.min_markers_per_segment, germline_ok, ibdseq_ok, ibdhap_ok
         )
         .as_bytes(),
     )?;

@@ -122,9 +122,9 @@ pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
         VcfDomainStage::Ibd => StageIoContract {
             stage,
             inputs: vec![port("filtered_vcf", "vcf", one)],
-            outputs: vec![port("report_json", "json", one)],
+            outputs: vec![port("ibd_segments", "tsv", one)],
             required_inputs: vec!["filtered_vcf"],
-            required_outputs: vec!["report_json"],
+            required_outputs: vec!["ibd_segments"],
             required_indices: vec!["vcf.tbi"],
         },
         VcfDomainStage::Demography => StageIoContract {

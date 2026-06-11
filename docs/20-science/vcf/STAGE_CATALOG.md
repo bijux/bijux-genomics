@@ -168,12 +168,12 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 - References: `domain/vcf/stages/postprocess.yaml`, `domain/vcf/docs/IMPUTATION_CONTRACT.md`.
 
 ### vcf.ibd {#vcf-ibd}
-- Status: planned.
-- Purpose: estimate pairwise IBD segments for relatedness and demographic downstreams.
+- Status: supported.
+- Purpose: estimate pairwise IBD segments for relatedness and demographic downstreams with normalized pair rows.
 - Inputs/Outputs: cohort VCF → IBD segments and report.
-- Metrics: segment count, shared cM summaries.
-- Tools: germline, ibdhap.
-- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Metrics: pair count, normalized pair rows, status, insufficient reason, insufficient-overlap probe.
+- Tools: germline, ibdseq, ibdhap.
+- Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/ibd.yaml`, `docs/20-science/vcf/IBD.md`.
 
 ### vcf.roh {#vcf-roh}
