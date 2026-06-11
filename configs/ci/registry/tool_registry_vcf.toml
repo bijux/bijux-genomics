@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: cb56aa4b226ce8724e9bdf36f3c01f48e1ba89d4
+# source_commit: b9e7630f9bbf71d5e9944514bd8d0a361e6b87fb
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -584,6 +584,18 @@ validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = "current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle and Eagle stay comparative."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "vcf.population_structure"
+required_tool_roles = ["transform"]
+primary_tools = ["plink2"]
+optional_alternatives = ["plink", "eigensoft"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "the governed population-structure baseline keeps consumed PCA and admixture evidence on the admitted PLINK-family structure path with explicit sample-group distance summaries."
 requires_validation = false
 requires_reporting = false
 

@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "cb56aa4b226ce8724e9bdf36f3c01f48e1ba89d4",
-  "bundle_checksum_sha256": "7ad740afc07af67a477baccd99b26da0affdca8fb3c62398a2c595b984e4fba6",
+  "source_commit": "b9e7630f9bbf71d5e9944514bd8d0a361e6b87fb",
+  "bundle_checksum_sha256": "6f581d63bd51ec12a447afce444f810dc337ef3f8d0a38103a5628a4eb4fbb57",
   "domains": [
     {
       "domain_id": "bam",
@@ -3769,7 +3769,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "9ed908a4a7266840162877854f0e8783da2ca7d503ff3e589cc564c168e4795a"
+      "checksum_sha256": "3259afa4224319a7d350da5b5445475c7b978fa84c09c03f72800c73d7fcfa52"
     },
     {
       "domain_id": "fastq",
@@ -12656,7 +12656,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "b76a01b01da25d55f6c415e6de1f1a7128de689a30a7606fa80e8ce3be7e6f6a"
+      "checksum_sha256": "632a327223383ee80ee0cfb252ed011a407722251141fb61950e28556d7bff1e"
     },
     {
       "domain_id": "vcf",
@@ -12718,6 +12718,7 @@
         "vcf.impute",
         "vcf.pca",
         "vcf.phasing",
+        "vcf.population_structure",
         "vcf.postprocess",
         "vcf.prepare_reference_panel",
         "vcf.qc",
@@ -13692,8 +13693,8 @@
         },
         {
           "stage_id": "vcf.population_structure",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.population_structure in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -13721,27 +13722,22 @@
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "pca_variance_explained",
+              "metric_id": "sample_count",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             },
             {
-              "metric_id": "pc_axes",
+              "metric_id": "pair_count",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             },
             {
-              "metric_id": "cluster_assignments",
+              "metric_id": "within_population_pair_count",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             },
             {
-              "metric_id": "admixture_k_selected",
-              "meaning": "",
-              "schema_version": "bijux.stage.v1"
-            },
-            {
-              "metric_id": "admixture_cross_validation_error",
+              "metric_id": "cross_population_pair_count",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             }
@@ -13753,8 +13749,8 @@
             "plink2"
           ],
           "assumptions": [
-            "diploid_assumptions",
-            "ld_pruning_and_missingness_thresholds_are_fixed_per_run",
+            "sample_population_labels_are_required",
+            "pca_and_admixture_outputs_are_consumed_from_the_same_run",
             "population_structure_outputs_emit_metrics_json_with_schema_bijux.vcf.population_structure.v1"
           ],
           "invariants": [
@@ -13766,9 +13762,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "full scientific validation pending downstream admission"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "vcf.postprocess",
@@ -14644,6 +14638,10 @@
           "schema_version": "bijux.metrics.v1"
         },
         {
+          "metric_id": "cross_population_pair_count",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
           "metric_id": "ct_ga_masked_sites",
           "schema_version": "bijux.metrics.v1"
         },
@@ -14761,6 +14759,10 @@
         },
         {
           "metric_id": "ne_time_series",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "pair_count",
           "schema_version": "bijux.metrics.v1"
         },
         {
@@ -14893,6 +14895,10 @@
         },
         {
           "metric_id": "variants_total",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "within_population_pair_count",
           "schema_version": "bijux.metrics.v1"
         }
       ],
@@ -15092,6 +15098,14 @@
           "override_policy": "explicit profile override required"
         },
         {
+          "stage_id": "vcf.population_structure",
+          "tool_id": "plink2",
+          "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+          "rationale": "the governed population-structure baseline keeps consumed PCA and admixture evidence on the admitted PLINK-family structure path with explicit sample-group distance summaries.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
           "stage_id": "vcf.postprocess",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -15251,6 +15265,21 @@
           "fixture_path": "domain/vcf/fixtures/vcf.phasing/shapeit5.txt"
         },
         {
+          "stage_id": "vcf.population_structure",
+          "tool_id": "eigensoft",
+          "fixture_path": "domain/vcf/fixtures/vcf.population_structure/eigensoft.txt"
+        },
+        {
+          "stage_id": "vcf.population_structure",
+          "tool_id": "plink",
+          "fixture_path": "domain/vcf/fixtures/vcf.population_structure/plink.txt"
+        },
+        {
+          "stage_id": "vcf.population_structure",
+          "tool_id": "plink2",
+          "fixture_path": "domain/vcf/fixtures/vcf.population_structure/plink2.txt"
+        },
+        {
           "stage_id": "vcf.postprocess",
           "tool_id": "bcftools",
           "fixture_path": "domain/vcf/fixtures/vcf.postprocess/bcftools.txt"
@@ -15282,7 +15311,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "d6081bf3493fd588bbd8d35cce50f3279edacae78d44a3768a70ab64b87081d1"
+      "checksum_sha256": "d977562041f291b58acb69524eb268857ab789ff7180a8d0df183ab8b85f6932"
     }
   ]
 }

@@ -509,6 +509,14 @@
         "override_policy": "explicit profile override required"
       },
       {
+        "stage_id": "vcf.population_structure",
+        "tool_id": "plink2",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "the governed population-structure baseline keeps consumed PCA and admixture evidence on the admitted PLINK-family structure path with explicit sample-group distance summaries.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
         "stage_id": "vcf.postprocess",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",

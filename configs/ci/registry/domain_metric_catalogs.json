@@ -661,6 +661,10 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "cross_population_pair_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "ct_ga_masked_sites",
         "schema_version": "bijux.metrics.v1"
       },
@@ -778,6 +782,10 @@
       },
       {
         "metric_id": "ne_time_series",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "pair_count",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -910,6 +918,10 @@
       },
       {
         "metric_id": "variants_total",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "within_population_pair_count",
         "schema_version": "bijux.metrics.v1"
       }
     ]

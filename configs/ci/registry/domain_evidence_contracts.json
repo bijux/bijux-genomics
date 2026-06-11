@@ -1103,11 +1103,11 @@
       },
       {
         "stage_id": "vcf.population_structure",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "diploid_assumptions",
-          "ld_pruning_and_missingness_thresholds_are_fixed_per_run",
+          "sample_population_labels_are_required",
+          "pca_and_admixture_outputs_are_consumed_from_the_same_run",
           "population_structure_outputs_emit_metrics_json_with_schema_bijux.vcf.population_structure.v1"
         ],
         "invariants": [
