@@ -181,6 +181,13 @@ fn stage_catalog_rows_keep_expected_output_contract_ids() {
     )
     .unwrap_or_else(|| panic!("ibd outputs"));
     assert_eq!(ibd_outputs, ["ibd_segments"]);
+
+    let demography_outputs =
+        bijux_dna_stages_vcf::stage_specs::vcf_domain_stage_expected_output_ids(
+            bijux_dna_domain_vcf::VcfDomainStage::Demography,
+        )
+        .unwrap_or_else(|| panic!("demography outputs"));
+    assert_eq!(demography_outputs, ["demography_report"]);
 }
 
 #[test]

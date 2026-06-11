@@ -224,6 +224,44 @@ fn vcf_ibd_fixture_bank_keeps_normalized_pair_fields() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn vcf_demography_fixture_bank_keeps_normalized_ne_fields() -> Result<()> {
+    let case = VCF_SEGMENT_FIXTURE_CASES
+        .iter()
+        .find(|case| {
+            case.tool_id == "ibdne"
+                && case.stage == VcfDomainStage::Demography
+                && case.case_id == "complete"
+        })
+        .copied()
+        .expect("ibdne demography fixture case");
+    let normalized = parse_segment_stage_metrics(case.tool_id, case.stage, &fixture_dir(&case))?;
+
+    assert_eq!(normalized.get("method").and_then(serde_json::Value::as_str), Some("ibdne"));
+    assert_eq!(
+        normalized.get("inference_status").and_then(serde_json::Value::as_str),
+        Some("fallback_estimate")
+    );
+    assert_eq!(normalized.get("status").and_then(serde_json::Value::as_str), Some("complete"));
+    assert_eq!(
+        normalized.get("time_bins").and_then(serde_json::Value::as_array).map(Vec::len),
+        Some(3)
+    );
+    assert_eq!(
+        normalized.get("ne_estimates").and_then(serde_json::Value::as_array).map(Vec::len),
+        Some(3)
+    );
+    let insufficient_probe = normalized
+        .get("insufficient_data_probe")
+        .unwrap_or_else(|| panic!("normalized demography probe missing"));
+    assert_eq!(
+        insufficient_probe.get("status").and_then(serde_json::Value::as_str),
+        Some("not_run")
+    );
+
+    Ok(())
+}
+
 fn render_case(case: &VcfSegmentFixtureCase) -> Result<serde_json::Value> {
     let normalized = parse_segment_stage_metrics(case.tool_id, case.stage, &fixture_dir(case))
         .with_context(|| {

@@ -8,9 +8,6 @@
   "segments_validated": 0,
   "time_bins": [],
   "ne_estimates": [],
-  "ne_recent": null,
-  "ne_time_series": [],
-  "ne_confidence_interval": "generated_per_generation",
   "tool_attempts": {
     "ibdne": false
   }

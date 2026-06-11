@@ -185,6 +185,9 @@ mod contracts {
             .unwrap_or_else(|err| panic!("read ibd stage yaml: {err}"));
         let roh_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/roh.yaml"))
             .unwrap_or_else(|err| panic!("read roh stage yaml: {err}"));
+        let demography_raw =
+            std::fs::read_to_string(repo_root.join("domain/vcf/stages/demography.yaml"))
+                .unwrap_or_else(|err| panic!("read demography stage yaml: {err}"));
         let stats_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/stats.yaml"))
             .unwrap_or_else(|err| panic!("read stats stage yaml: {err}"));
         let artifacts_raw = std::fs::read_to_string(repo_root.join("domain/vcf/artifacts.yaml"))
@@ -279,7 +282,7 @@ mod contracts {
             );
         }
 
-        assert!(ibd_raw.contains("status: \"supported\""));
+        assert!(ibd_raw.contains("status: \"planned\""));
         assert!(ibd_raw.contains("- name: \"ibd_segments\""));
         assert!(ibd_raw.contains("required_outputs: [\"ibd_segments\"]"));
         for metric_id in [
@@ -314,6 +317,31 @@ mod contracts {
             assert!(
                 roh_raw.contains(&format!("  - name: \"{metric_id}\"")),
                 "authored roh stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        assert!(demography_raw.contains("status: \"planned\""));
+        assert!(demography_raw.contains("- name: \"demography_report\""));
+        assert!(demography_raw.contains("required_inputs: [\"ibd_segments\"]"));
+        assert!(demography_raw.contains("required_outputs: [\"demography_report\"]"));
+        assert!(demography_raw.contains("data_type: \"tsv\""));
+        assert!(demography_raw.contains("planned_out_of_scope: []"));
+        for metric_id in [
+            "method",
+            "inference_status",
+            "status",
+            "insufficient_reason",
+            "time_bins",
+            "ne_estimates",
+            "insufficient_data_probe",
+        ] {
+            assert!(
+                demography_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored demography stage yaml is missing `{metric_id}`"
             );
             assert!(
                 metrics_raw.contains(&format!("- id: {metric_id}")),
@@ -393,6 +421,12 @@ mod contracts {
         let ibd = stage_io_contract(VcfDomainStage::Ibd)
             .unwrap_or_else(|| panic!("missing stage IO contract for ibd"));
         assert_eq!(ibd.required_outputs, vec!["ibd_segments"]);
+
+        let demography = stage_io_contract(VcfDomainStage::Demography)
+            .unwrap_or_else(|| panic!("missing stage IO contract for demography"));
+        assert_eq!(demography.required_inputs, vec!["ibd_segments"]);
+        assert_eq!(demography.inputs[0].data_type, "tsv");
+        assert_eq!(demography.required_outputs, vec!["demography_report"]);
 
         let stats = stage_io_contract(VcfDomainStage::Stats)
             .unwrap_or_else(|| panic!("missing stage IO contract for stats"));

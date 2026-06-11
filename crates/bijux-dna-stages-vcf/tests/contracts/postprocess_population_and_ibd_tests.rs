@@ -749,10 +749,35 @@ fn demography_stage_consumes_ibd_segments_and_emits_ne_metrics() {
         demography_json.get("insufficient_data_reason").and_then(|value| value.as_str()),
         None
     );
-    assert!(demography_json
+    let time_bins = demography_json
+        .get("time_bins")
+        .and_then(|value| value.as_array())
+        .unwrap_or_else(|| panic!("demography time_bins missing"));
+    let ne_estimates = demography_json
         .get("ne_estimates")
         .and_then(|value| value.as_array())
-        .is_some_and(|rows| !rows.is_empty()));
+        .unwrap_or_else(|| panic!("demography ne_estimates missing"));
+    assert!(!time_bins.is_empty());
+    assert_eq!(time_bins.len(), ne_estimates.len());
+
+    let metrics_raw = std::fs::read_to_string(&out.demography_metrics_json)
+        .unwrap_or_else(|err| panic!("read demography metrics json: {err}"));
+    let metrics_json: serde_json::Value = serde_json::from_str(&metrics_raw)
+        .unwrap_or_else(|err| panic!("parse demography metrics json: {err}"));
+    assert_eq!(metrics_json.get("method").and_then(|value| value.as_str()), Some("ibdne"));
+    assert_eq!(
+        metrics_json.get("inference_status").and_then(|value| value.as_str()),
+        demography_json.get("inference_status").and_then(|value| value.as_str())
+    );
+    assert_eq!(
+        metrics_json.get("time_bins").and_then(|value| value.as_array()).map(Vec::len),
+        Some(time_bins.len())
+    );
+    assert_eq!(
+        metrics_json.get("ne_estimates").and_then(|value| value.as_array()).map(Vec::len),
+        Some(ne_estimates.len())
+    );
+    assert!(metrics_json.get("ne_recent").is_none());
 }
 
 #[test]
@@ -793,6 +818,19 @@ fn demography_stage_reports_structured_insufficient_data_without_abort() {
         demography_json.get("ne_estimates").and_then(|value| value.as_array()).map(Vec::len),
         Some(0)
     );
+    let metrics_raw = std::fs::read_to_string(&out.demography_metrics_json)
+        .unwrap_or_else(|err| panic!("read demography metrics json: {err}"));
+    let metrics_json: serde_json::Value = serde_json::from_str(&metrics_raw)
+        .unwrap_or_else(|err| panic!("parse demography metrics json: {err}"));
+    assert_eq!(
+        metrics_json.get("status").and_then(|value| value.as_str()),
+        Some("insufficient_data")
+    );
+    assert_eq!(
+        metrics_json.get("time_bins").and_then(|value| value.as_array()).map(Vec::len),
+        Some(0)
+    );
+    assert!(metrics_json.get("ne_time_series").is_none());
     let trajectory_tsv = std::fs::read_to_string(&out.ne_trajectory_tsv)
         .unwrap_or_else(|err| panic!("read trajectory tsv: {err}"));
     assert_eq!(trajectory_tsv, "generation\tne\tci_low\tci_high\n");
