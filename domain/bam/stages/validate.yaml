@@ -18,7 +18,7 @@ outputs:
     data_type: "json"
     cardinality: "One"
   - name: "flagstat"
-    data_type: "txt"
+    data_type: "text"
     cardinality: "One"
   - name: "stage_metrics"
     data_type: "json"

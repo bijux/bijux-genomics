@@ -12,7 +12,7 @@ outputs:
     data_type: "json"
     cardinality: "One"
   - name: "complexity_curve"
-    data_type: "txt"
+    data_type: "tsv"
     cardinality: "One"
   - name: "summary"
     data_type: "json"

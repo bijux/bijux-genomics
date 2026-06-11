@@ -40,8 +40,9 @@ execution_contract:
     - "reads_r2"
   expected_outputs:
     - "corrected_reads_r1"
-    - "corrected_reads_r2"
     - "report_json"
+  optional_outputs:
+    - "corrected_reads_r2"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 

@@ -12,7 +12,7 @@ outputs:
     data_type: "json"
     cardinality: "One"
   - name: "terminal_position_metrics"
-    data_type: "json"
+    data_type: "tsv"
     cardinality: "One"
   - name: "parser_output"
     data_type: "json"

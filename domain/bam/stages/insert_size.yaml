@@ -9,10 +9,10 @@ inputs:
     cardinality: "One"
 outputs:
   - name: "insert_size_report"
-    data_type: "txt"
+    data_type: "json"
     cardinality: "One"
   - name: "insert_size_histogram"
-    data_type: "pdf"
+    data_type: "png"
     cardinality: "One"
   - name: "summary"
     data_type: "json"

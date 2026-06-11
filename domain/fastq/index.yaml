@@ -235,6 +235,8 @@ stage_tool_compatibility:
   - seqfu
   - seqkit_stats
   fastq.profile_reads:
+  - seqfu
+  - seqkit
   - seqkit_stats
   fastq.remove_chimeras:
   - vsearch
@@ -715,10 +717,25 @@ stage_default_settings:
       profile: adna_sane_default
       notes: sequence counting preset for overrepresentation summaries
   fastq.profile_read_lengths:
+    fastp:
+      profile: adna_sane_default
+      notes: report-only read-length profiling preset
+    prinseq:
+      profile: adna_sane_default
+      notes: non-destructive read-length profiling preset
+    seqfu:
+      profile: adna_sane_default
+      notes: seqfu compatibility-wrapper read-length profiling preset
     seqkit_stats:
       profile: adna_sane_default
       notes: deterministic read-length histogram preset
   fastq.profile_reads:
+    seqfu:
+      profile: adna_sane_default
+      notes: seqfu compatibility-wrapper read profiling preset
+    seqkit:
+      profile: adna_sane_default
+      notes: stream-safe FASTQ statistics preset
     seqkit_stats:
       profile: adna_sane_default
       notes: neutral FASTQ statistics preset

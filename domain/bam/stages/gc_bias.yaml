@@ -12,10 +12,10 @@ inputs:
     cardinality: "One"
 outputs:
   - name: "gc_bias_report"
-    data_type: "txt"
+    data_type: "json"
     cardinality: "One"
   - name: "gc_bias_plot"
-    data_type: "pdf"
+    data_type: "png"
     cardinality: "One"
   - name: "summary"
     data_type: "json"

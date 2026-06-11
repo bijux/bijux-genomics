@@ -40,12 +40,16 @@ struct DomainToolOutput {
 struct DomainToolExecutionContract {
     #[serde(default)]
     expected_outputs: Vec<String>,
+    #[serde(default)]
+    optional_outputs: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
 struct DomainToolStageContract {
     #[serde(default)]
     expected_artifacts: Vec<String>,
+    #[serde(default)]
+    execution_contract: Option<DomainToolExecutionContract>,
 }
 
 /// # Errors
@@ -68,10 +72,9 @@ pub fn load_fastq_domain_tool_stage_output_contract(
         ));
     }
 
-    let stage_expected_artifact_ids = parsed
+    let stage_contract = parsed
         .stage_contracts
         .get(stage_id.as_str())
-        .map(|contract| contract.expected_artifacts.clone())
         .ok_or_else(|| {
             anyhow!(
                 "governed tool yaml {} is missing a stage_contract for {}",
@@ -79,17 +82,32 @@ pub fn load_fastq_domain_tool_stage_output_contract(
                 stage_id.as_str()
             )
         })?;
+    let stage_expected_artifact_ids = stage_contract.expected_artifacts.clone();
+    let execution_expected_output_ids = execution_expected_output_ids(&parsed, stage_contract);
 
     Ok(FastqDomainToolStageOutputContract {
         tool_id: tool_id.clone(),
         stage_id: stage_id.clone(),
         declared_output_ids: parsed.outputs.into_iter().map(|output| output.name).collect(),
-        execution_expected_output_ids: parsed
-            .execution_contract
-            .map(|contract| contract.expected_outputs)
-            .unwrap_or_default(),
+        execution_expected_output_ids,
         stage_expected_artifact_ids,
     })
+}
+
+fn execution_expected_output_ids(
+    parsed: &DomainToolYaml,
+    stage_contract: &DomainToolStageContract,
+) -> Vec<String> {
+    let contract = stage_contract.execution_contract.as_ref().or(parsed.execution_contract.as_ref());
+    let mut expected_output_ids = Vec::<String>::new();
+    if let Some(contract) = contract {
+        for artifact_id in contract.expected_outputs.iter().chain(contract.optional_outputs.iter()) {
+            if !expected_output_ids.iter().any(|existing| existing == artifact_id) {
+                expected_output_ids.push(artifact_id.clone());
+            }
+        }
+    }
+    expected_output_ids
 }
 
 fn admitted_stage_ids(parsed: &DomainToolYaml) -> Vec<String> {
@@ -202,6 +220,47 @@ mod tests {
         assert_eq!(
             contract.stage_expected_artifact_ids,
             vec!["duplicate_signal_report".to_string()]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn load_fastq_domain_tool_stage_output_contract_includes_optional_mate_outputs() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("fastq.correct_errors".to_string());
+        let tool_id = ToolId::new("bayeshammer");
+
+        let contract =
+            load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(
+            contract.execution_expected_output_ids,
+            vec![
+                "corrected_reads_r1".to_string(),
+                "report_json".to_string(),
+                "corrected_reads_r2".to_string(),
+            ]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn load_fastq_domain_tool_stage_output_contract_prefers_stage_execution_contract() -> Result<()>
+    {
+        let repo_root = repo_root();
+        let stage_id = StageId::new("fastq.profile_read_lengths".to_string());
+        let tool_id = ToolId::new("fastp");
+
+        let contract =
+            load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(
+            contract.execution_expected_output_ids,
+            vec![
+                "report_json".to_string(),
+                "length_distribution_tsv".to_string(),
+                "length_distribution_json".to_string(),
+            ]
         );
         Ok(())
     }

@@ -105,4 +105,4 @@ bank_hooks:
   - "taxonomy_database_lock"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope:
-  []
+  - diamond

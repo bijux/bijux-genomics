@@ -60,6 +60,8 @@ allowed_missingness:
   - "reads_r2"
   - "qc_plots_dir"
 compatible_tools:
+  - seqfu
+  - seqkit
   - seqkit_stats
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
@@ -69,6 +71,3 @@ assumptions:
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
-planned_out_of_scope:
-  - "seqkit"
-  - "seqfu"

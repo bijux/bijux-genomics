@@ -73,6 +73,8 @@ artifact_ids:
   - normalized_reads_r2
   - otu_representatives
   - otu_table
+  - otu_table_tsv
+  - representative_sequences_fasta
   - otu_clustering_tool_benchmark_cohort_json
   - otu_clustering_tool_comparison_json
   - otu_clustering_tool_normalization_json
@@ -105,6 +107,8 @@ artifact_ids:
   - raw_backend_report_json
   - raw_backend_report_txt
   - report_json
+  - rrna_removed_reads_r1
+  - rrna_removed_reads_r2
   - rrna_filtered_reads_r1
   - rrna_filtered_reads_r2
   - rrna_depletion_tool_benchmark_cohort_json

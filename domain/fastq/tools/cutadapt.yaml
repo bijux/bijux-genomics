@@ -35,7 +35,7 @@ outputs:
     data_type: "json"
     cardinality: "One"
   - name: "primer_orientation_report"
-    data_type: "json"
+    data_type: "tsv"
     cardinality: "One"
   - name: "primer_stats_json"
     data_type: "json"

@@ -9,10 +9,10 @@ inputs:
     cardinality: "One"
 outputs:
   - name: "coverage_summary"
-    data_type: "text"
+    data_type: "json"
     cardinality: "One"
   - name: "coverage_depth"
-    data_type: "text"
+    data_type: "tsv"
     cardinality: "One"
   - name: "stage_metrics"
     data_type: "json"

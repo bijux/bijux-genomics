@@ -37,8 +37,9 @@ execution_contract:
     - "reads_r2"
   expected_outputs:
     - "trimmed_reads_r1"
-    - "trimmed_reads_r2"
     - "report_json"
+  optional_outputs:
+    - "trimmed_reads_r2"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 upstream: "https://github.com/FelixKrueger/TrimGalore"

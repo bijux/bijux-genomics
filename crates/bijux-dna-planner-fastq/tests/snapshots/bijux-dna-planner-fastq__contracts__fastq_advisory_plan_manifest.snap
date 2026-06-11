@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/plan/planner_manifest_contract.rs
-assertion_line: 203
 expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(true)?)"
 ---
 {
@@ -576,7 +575,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
     }
   ],
   "pipeline_id": "fastq-to-fastq__default__v1",
-  "plan_fingerprint": "27267914c4b54deb29508536512d2276556ebc4bcdd973186741c729d5989a0e",
+  "plan_fingerprint": "6aacfcc5f91fa5713a294b0a6075f8ab9b13fbd59f438b0cf5545d6b14ec7307",
   "planner_version": "bijux-dna-planner-fastq.v1",
   "policy": "PreferAccuracy",
   "profile_id": "fastq-to-fastq__default__v1",

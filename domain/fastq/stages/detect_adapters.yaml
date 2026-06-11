@@ -35,6 +35,8 @@ metrics:
     meaning: "Number of bases preserved after governed adapter inspection."
   - name: "mean_q"
     meaning: "Mean base quality observed across the inspected reads."
+  - name: "adapter_report"
+    meaning: "Canonical adapter-inspection report path emitted for governed benchmark collection."
   - name: "candidate_adapter_count"
     meaning: "Number of governed adapter candidates detected in the evidence report"
   - name: "detected_adapter_ids"

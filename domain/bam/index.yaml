@@ -251,32 +251,52 @@ reference_index_compatibility:
 active_defaults:
   bam.align: bwa
   bam.validate: samtools
+  bam.qc_pre: samtools
   bam.mapping_summary: samtools
   bam.filter: samtools
   bam.mapq_filter: samtools
   bam.length_filter: samtools
+  bam.markdup: samtools
   bam.duplication_metrics: samtools
+  bam.complexity: preseq
   bam.coverage: mosdepth
+  bam.insert_size: picard
+  bam.gc_bias: picard
   bam.endogenous_content: samtools
+  bam.overlap_correction: bamutil
   bam.damage: mapdamage2
   bam.authenticity: authenticct
   bam.contamination: schmutzi
   bam.sex: rxy
+  bam.bias_mitigation: mapdamage2
+  bam.recalibration: gatk
+  bam.haplogroups: yleaf
+  bam.genotyping: angsd
   bam.kinship: king
 active_default_rationale:
   bam.align: "Alignment baseline selected for broad BAM ecosystem compatibility."
   bam.validate: "Validation baseline favors deterministic diagnostics and ubiquity."
+  bam.qc_pre: "Early BAM sanity checks stay grounded in deterministic samtools count summaries."
   bam.mapping_summary: "Mapping summary baseline uses deterministic samtools summaries."
   bam.filter: "Filtering baseline minimizes contract variance across workflows."
   bam.mapq_filter: "MAPQ filtering baseline uses ubiquitous deterministic filtering behavior."
   bam.length_filter: "Length filtering baseline emphasizes transparent minimum-length provenance."
+  bam.markdup: "Duplicate marking baseline preserves deterministic BAM audit artifacts and repeatable burden summaries."
   bam.duplication_metrics: "Duplication metrics baseline favors deterministic duplicate summaries."
+  bam.complexity: "Complexity baseline preserves the governed preseq extrapolation surface."
   bam.coverage: "Coverage default offers stable low-overhead reporting."
+  bam.insert_size: "Insert-size baseline preserves deterministic paired-template QC summaries."
+  bam.gc_bias: "GC-bias baseline preserves the single admitted Picard reporting surface."
   bam.endogenous_content: "Endogenous estimate baseline derives from deterministic mapping summaries."
+  bam.overlap_correction: "Overlap correction baseline preserves deterministic overlap clipping and before/after audit artifacts."
   bam.damage: "Damage baseline preserves comparability with historical aDNA runs."
   bam.authenticity: "Authenticity baseline chosen for clear operator interpretation."
   bam.contamination: "Contamination default is established for mtDNA-focused checks."
   bam.sex: "Sex inference baseline is lightweight and deterministic."
+  bam.bias_mitigation: "Bias mitigation baseline preserves the admitted mapdamage2 projection surface."
+  bam.recalibration: "Recalibration baseline preserves the governed BQSR execution surface."
+  bam.haplogroups: "Haplogroup baseline preserves deterministic assignment through the admitted Yleaf surface."
+  bam.genotyping: "Genotyping baseline preserves the governed low-depth ANGSD execution surface."
   bam.kinship: "Kinship baseline prioritized for stable pairwise outputs."
 stage_completeness_checklist:
   bam.align: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]

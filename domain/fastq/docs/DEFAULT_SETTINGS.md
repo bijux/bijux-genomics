@@ -99,7 +99,7 @@ extract_umis_benchmark_policy: fastq.extract_umis
 
 profile_read_lengths_benchmark_policy: fastq.profile_read_lengths
 - default benchmark backend is `seqkit_stats`
-- `fastp`, `prinseq`, and `seqfu` are governed comparison backends for read-length agreement studies
+- governed comparison backends are `fastp`, `prinseq`, and `seqfu` for read-length agreement studies
 - every governed `fastq.profile_read_lengths` row must emit `read_count`, `min_read_length`, `mean_read_length`, `median_read_length`, and `max_read_length`
 - `fastp` must run in report-only mode with trimming and filtering disabled so the benchmark remains pre-trim length profiling instead of quietly reusing a trim contract
 - `prinseq` length profiling may stream all output classes to `/dev/null`, but the invocation must remain non-destructive and produce the governed report plus histogram artifacts
@@ -199,7 +199,7 @@ filter_low_complexity_benchmark_policy: fastq.filter_low_complexity
 
 profile_reads_benchmark_policy: fastq.profile_reads
 - default benchmark backend is `seqkit_stats`
-- `seqkit` and `seqfu` are governed comparison backends for general read profiling studies
+- governed comparison backends are `seqkit` and `seqfu` for general read profiling studies
 - `fastq.report_qc` must reuse any governed `fastq.profile_reads` backend artifacts already present in the benchmark output tree instead of forcing a second profiling backend run
 - the current `seqfu` benchmark route runs through the admitted seqfu compatibility wrapper runtime surface, so its profile-read command line must remain compatible with the wrapped stats entrypoint
 
