@@ -132,39 +132,39 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 - References: `domain/vcf/stages/phasing.yaml`, `docs/20-science/vcf/IMPUTATION_SCOPE.md`.
 
 ### vcf.prepare_reference_panel {#vcf-prepare-reference-panel}
-- Status: planned.
+- Status: supported.
 - Purpose: normalize and prepare reference panels before phasing or imputation entry.
 - Inputs/Outputs: raw panel VCF/BCF → prepared panel report.
 - Metrics: panel normalization status, prepared variant count.
 - Tools: bcftools.
-- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/prepare_reference_panel.yaml`, `docs/20-science/vcf/IMPUTATION_SCOPE.md`.
 
 ### vcf.imputation_metrics {#vcf-imputation-metrics}
-- Status: planned.
-- Purpose: describe the multi-tool imputation family admitted for downstream panel-based inference.
-- Inputs/Outputs: phased VCF plus panel metadata → imputation report.
-- Metrics: imputation status, imputed variant count.
+- Status: supported.
+- Purpose: summarize governed imputation-quality evidence as a reportable stage.
+- Inputs/Outputs: phased VCF plus panel metadata → imputation metrics report.
+- Metrics: concordance, INFO or dosage R2 when available, low-confidence sites, masked-truth sites.
 - Tools: beagle, glimpse, impute5, minimac4.
-- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
-- References: `domain/vcf/stages/imputation.yaml`, `docs/20-science/vcf/IMPUTATION_METHODS.md`.
+- Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- References: `domain/vcf/stages/imputation_metrics.yaml`, `docs/20-science/vcf/IMPUTATION_METHODS.md`.
 
 ### vcf.impute {#vcf-impute}
-- Status: planned.
+- Status: supported.
 - Purpose: execute explicit imputation with a pinned panel-backed backend.
 - Inputs/Outputs: phased VCF plus panel metadata → imputed VCF and report.
 - Metrics: imputed site count, retained posterior or dosage summaries.
 - Tools: beagle, glimpse, impute5, minimac4.
-- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/impute.yaml`, `docs/20-science/vcf/IMPUTATION_METHODS.md`.
 
 ### vcf.postprocess {#vcf-postprocess}
-- Status: planned.
+- Status: supported.
 - Purpose: normalize INFO, FILTER, and FORMAT surfaces after imputation or downstream transforms.
 - Inputs/Outputs: imputed VCF → postprocessed VCF and report.
 - Metrics: normalized record count, INFO/FILTER rewrite count.
 - Tools: bcftools.
-- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/postprocess.yaml`, `domain/vcf/docs/IMPUTATION_CONTRACT.md`.
 
 ### vcf.ibd {#vcf-ibd}

@@ -1,7 +1,7 @@
 # VCF Imputation Methods
 
 ## Purpose
-Provide reference-grade method defaults for planned VCF imputation workflows in bijux.
+Provide reference-grade method defaults for governed VCF imputation workflows in bijux.
 
 ## Scope
 Covers two recommended paths:

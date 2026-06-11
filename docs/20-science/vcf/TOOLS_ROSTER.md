@@ -31,9 +31,9 @@ The VCF science layer needs a readable tool inventory that mirrors the stage man
 | vcf.population_structure | planned | plink, plink2, eigensoft | Population-structure summaries admit both PLINK-family and EIGENSOFT-family tooling. |
 | vcf.phasing | supported | beagle, shapeit5, eagle | Shapeit5 is the governed active phasing path while Beagle, Eagle, and retained alternatives stay explicit for comparative readiness. |
 | vcf.prepare_reference_panel | supported | bcftools | Reference-panel preparation stays deterministic even while downstream imputation remains planned. |
-| vcf.imputation_metrics | planned | beagle, glimpse, impute5, minimac4 | Imputation-metrics admission stays broad while promotion evidence is still incomplete. |
-| vcf.impute | planned | beagle, glimpse, impute5, minimac4 | Explicit imputation execution mirrors the admitted imputation family. |
-| vcf.postprocess | planned | bcftools | Post-imputation normalization remains deterministic and single-tool. |
+| vcf.imputation_metrics | supported | beagle, glimpse, impute5, minimac4 | Imputation metrics stay explicitly multi-tool while the governed beagle path anchors benchmark-ready reporting. |
+| vcf.impute | supported | beagle, glimpse, impute5, minimac4 | Explicit imputation execution mirrors the admitted imputation family. |
+| vcf.postprocess | supported | bcftools | Post-imputation normalization remains deterministic and single-tool. |
 | vcf.ibd | planned | germline, ibdhap | IBD remains a comparative multi-backend planned surface. |
 | vcf.roh | planned | plink2 | ROH remains a planned but deterministic single-tool surface. |
 | vcf.demography | planned | ibdne | Demography currently stays coupled to the admitted IBDNe-style downstream summary path. |
