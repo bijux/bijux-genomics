@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "1231bc113d5f7955524bab90841f6ede09ab5f93",
-  "bundle_checksum_sha256": "f28f93e373be5681dd1d372904beba31308b6a78f4ce9aa045afb699e65617bc",
+  "source_commit": "8e1a3ddd013519f2b7afe4d68153770e98ccf6d9",
+  "bundle_checksum_sha256": "a5a9c061ccbbc5a36bbd140e775faeebd5afc7a115cb0c4267623286d83b0026",
   "domains": [
     {
       "domain_id": "bam",
@@ -3769,7 +3769,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "bba7c208ca7e0b9ae1a06bea92c02606471cde0973c95b8805b66f465a1afde9"
+      "checksum_sha256": "a91fa1ce133f97ff06cb80e94863d604bd60c37c6652ddac7f46f438b76f6f6f"
     },
     {
       "domain_id": "fastq",
@@ -12656,7 +12656,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "eac11f927b5bca7d2d324e5c72cba05e4b017ed960bbb9c939a3b1a3f6473f6f"
+      "checksum_sha256": "2862a96bceb4e5024876afa7c93c965d3bd02b09282e84b232a3087a23475a5c"
     },
     {
       "domain_id": "vcf",
@@ -13513,8 +13513,8 @@
         },
         {
           "stage_id": "vcf.pca",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.pca in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -13553,7 +13553,9 @@
             "plink2"
           ],
           "assumptions": [
-            "planned_stage"
+            "diploid_assumptions",
+            "ld_pruning_and_missingness_thresholds_are_fixed_per_run",
+            "pca_outputs_emit_metrics_json_with_schema_bijux.vcf.pca.v1"
           ],
           "invariants": [
             "stable_artifact_contract"
@@ -13564,9 +13566,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "full scientific validation pending downstream admission"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "vcf.phasing",
@@ -14163,14 +14163,14 @@
         },
         {
           "tool_id": "eigensoft",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
-          "default_version": "planned",
+          "default_version": "8.0.0",
           "upstream": "https://github.com/DReichLab/EIG",
           "pin_strategy": "container_digest",
           "license": "GPL-2.0",
-          "citation": "planned",
+          "citation": "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC1713260/",
           "version_cmd": "smartpca --version",
           "help_cmd": "smartpca --help",
           "stage_ids": [
@@ -14188,10 +14188,10 @@
             "SE"
           ],
           "metrics_schema_id": "bijux.vcf.population_structure.v1",
-          "comparability_notes": "Planned tool; compare only within pinned profile and reference build.",
+          "comparability_notes": "Comparable only when the EIGENSTRAT conversion path, smartpca projection settings, and reference build stay identical.",
           "container": {
             "image": "containers/apptainer/lunarc/eigensoft.def",
-            "digest": "planned"
+            "digest": "sha256:fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9"
           }
         },
         {
@@ -14415,14 +14415,14 @@
         },
         {
           "tool_id": "plink2",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
-          "default_version": "planned",
+          "default_version": "2.00a5",
           "upstream": "https://www.cog-genomics.org/plink/2.0/",
           "pin_strategy": "container_digest",
           "license": "GPL-3.0",
-          "citation": "planned",
+          "citation": "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4342193/",
           "version_cmd": "plink2 --version",
           "help_cmd": "plink2 --help",
           "stage_ids": [
@@ -14446,10 +14446,10 @@
             "SE"
           ],
           "metrics_schema_id": "bijux.vcf.population_structure.v1",
-          "comparability_notes": "Planned tool; compare only within pinned profile and reference build.",
+          "comparability_notes": "Comparable only when LD pruning, missingness thresholds, PCA component count, and reference build stay identical.",
           "container": {
             "image": "containers/docker/arm64/Dockerfile.plink2",
-            "digest": "planned"
+            "digest": "sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec"
           }
         },
         {
@@ -14961,6 +14961,16 @@
           "fixture_path": "domain/vcf/fixtures/vcf.impute/minimac4.txt"
         },
         {
+          "stage_id": "vcf.pca",
+          "tool_id": "eigensoft",
+          "fixture_path": "domain/vcf/fixtures/vcf.pca/eigensoft.txt"
+        },
+        {
+          "stage_id": "vcf.pca",
+          "tool_id": "plink2",
+          "fixture_path": "domain/vcf/fixtures/vcf.pca/plink2.txt"
+        },
+        {
           "stage_id": "vcf.phasing",
           "tool_id": "beagle",
           "fixture_path": "domain/vcf/fixtures/vcf.phasing/beagle.txt"
@@ -14992,7 +15002,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "6c626bd21e69792ad62afd1fa907f2be71bf21613a3148d345308905e06896cf"
+      "checksum_sha256": "e0be01bb33275ff39a137ae9f014d82d7af277ef0fd560266e4928d38ee72a15"
     }
   ]
 }

@@ -49,6 +49,7 @@ governed_stage_ids:
   - vcf.gl_propagation
   - vcf.imputation_metrics
   - vcf.impute
+  - vcf.pca
   - vcf.phasing
   - vcf.postprocess
   - vcf.prepare_reference_panel
@@ -56,6 +57,8 @@ governed_stage_ids:
 governed_tool_ids:
   - bcftools
   - beagle
+  - eigensoft
+  - plink2
   - shapeit5
 stage_tool_compatibility:
   vcf.admixture:
@@ -208,6 +211,7 @@ active_defaults:
   vcf.gl_propagation: "bcftools"
   vcf.imputation_metrics: "beagle"
   vcf.impute: "beagle"
+  vcf.pca: "plink2"
   vcf.phasing: "shapeit5"
   vcf.postprocess: "bcftools"
   vcf.prepare_reference_panel: "bcftools"
@@ -222,6 +226,7 @@ active_default_rationale:
   vcf.gl_propagation: "preserves GL fields across downstream handoffs in the current governed profile."
   vcf.imputation_metrics: "keep the governed imputation-metrics contract anchored to the same backend family that produces the source imputation evidence."
   vcf.impute: "current governed production default keeps explicit panel-aware imputation runnable while retained alternatives stay comparative."
+  vcf.pca: "current governed PCA default keeps sample-complete eigenvector output, eigenvalue reporting, and metadata joins anchored to the PLINK2 smoke-backed cohort path while retained `eigensoft` stays comparative."
   vcf.phasing: "current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle and Eagle stay comparative."
   vcf.postprocess: "deterministic normalization/filter baseline for governed post-imputation outputs."
   vcf.prepare_reference_panel: "deterministic reference panel prep baseline."

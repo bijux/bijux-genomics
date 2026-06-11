@@ -1075,10 +1075,12 @@
       },
       {
         "stage_id": "vcf.pca",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "planned_stage"
+          "diploid_assumptions",
+          "ld_pruning_and_missingness_thresholds_are_fixed_per_run",
+          "pca_outputs_emit_metrics_json_with_schema_bijux.vcf.pca.v1"
         ],
         "invariants": [
           "stable_artifact_contract"
