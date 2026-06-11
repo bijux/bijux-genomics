@@ -40,6 +40,7 @@ tool_ids:
   - plink2
   - shapeit5
 governed_stage_ids:
+  - vcf.admixture
   - vcf.call
   - vcf.call_diploid
   - vcf.call_gl
@@ -203,6 +204,7 @@ stage_outputs:
   vcf.ibd: ["ibd_segments"]
   vcf.demography: ["demography_report"]
 active_defaults:
+  vcf.admixture: "plink2"
   vcf.call: "bcftools"
   vcf.call_diploid: "bcftools"
   vcf.call_gl: "bcftools"
@@ -219,6 +221,7 @@ active_defaults:
   vcf.qc: "plink2"
   vcf.stats: "bcftools"
 active_default_rationale:
+  vcf.admixture: "the governed admixture baseline keeps cohort preparation, K selection, and normalized cluster fractions anchored to the admitted PLINK-family execution surface."
   vcf.call: "deterministic baseline caller for current production profile."
   vcf.call_diploid: "deterministic diploid baseline for the current governed production profile."
   vcf.call_gl: "current governed production default keeps GL emission runnable while `angsd` remains a planned low-coverage alternative."
