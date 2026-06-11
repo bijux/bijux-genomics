@@ -3,23 +3,24 @@
   "output_path": "benchmarks/readiness/all-domains/no-placeholder-command-check.json",
   "script_output_path": "benchmarks/readiness/rendered-commands-all-domains.sh",
   "argv_output_path": "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl",
-  "row_count": 125,
-  "result_id_count": 125,
-  "stage_count": 58,
-  "tool_count": 66,
-  "command_step_count": 139,
-  "shell_wrapped_step_count": 82,
-  "direct_step_count": 57,
-  "valid_row_count": 125,
+  "row_count": 126,
+  "result_id_count": 126,
+  "stage_count": 59,
+  "tool_count": 67,
+  "command_step_count": 141,
+  "shell_wrapped_step_count": 83,
+  "direct_step_count": 58,
+  "valid_row_count": 126,
   "invalid_row_count": 0,
   "domain_counts": {
     "bam": 49,
     "fastq": 63,
-    "vcf": 13
+    "vcf": 14
   },
   "command_source_counts": {
     "fastq_bam_command_adapter": 112,
     "vcf_bcftools_adapter": 11,
+    "vcf_phasing_family_adapter": 1,
     "vcf_plink_family_adapter": 2
   },
   "finding_type_counts": {},
@@ -1338,12 +1339,13 @@
           "command_heads": [
             "samtools",
             "samtools",
-            "gatk",
+            "picard",
+            "samtools",
             "samtools",
             "samtools",
             "python",
             "import",
-            "payload",
+            "human_like_duplicate_cluster.sam,",
             "print(json.dumps(payload,",
             "py"
           ],
@@ -4642,6 +4644,46 @@
         },
         {
           "step_id": "index_gl_propagated_vcf",
+          "step_kind": "index",
+          "executable": "bcftools",
+          "is_shell_wrapper": false,
+          "command_heads": [],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        }
+      ]
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5",
+      "domain": "vcf",
+      "stage_id": "vcf.phasing",
+      "tool_id": "shapeit5",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "command_source": "vcf_phasing_family_adapter",
+      "command_step_count": 2,
+      "script_command_count": 2,
+      "has_real_invocation": true,
+      "finding_count": 0,
+      "finding_types": [],
+      "ok": true,
+      "step_audits": [
+        {
+          "step_id": "phase",
+          "step_kind": "phasing",
+          "executable": "sh",
+          "is_shell_wrapper": true,
+          "command_heads": [
+            "shapeit5",
+            "1"
+          ],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        },
+        {
+          "step_id": "index_phased_vcf",
           "step_kind": "index",
           "executable": "bcftools",
           "is_shell_wrapper": false,

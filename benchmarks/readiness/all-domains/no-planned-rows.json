@@ -1,14 +1,14 @@
 {
   "schema_version": "bijux.bench.readiness.all_domain_no_planned_rows.v1",
   "output_path": "benchmarks/readiness/all-domains/no-planned-rows.json",
-  "active_row_count": 125,
-  "active_stage_count": 58,
-  "active_tool_count": 66,
-  "removed_row_count": 14,
-  "removed_stage_count": 13,
-  "removed_tool_count": 10,
+  "active_row_count": 126,
+  "active_stage_count": 59,
+  "active_tool_count": 67,
+  "removed_row_count": 13,
+  "removed_stage_count": 12,
+  "removed_tool_count": 9,
   "removed_status_counts": {
-    "planned": 14
+    "planned": 13
   },
   "violation_count": 0,
   "ok": true,
@@ -132,17 +132,6 @@
       "adapter_id": "vcf.adapter.population_structure",
       "parser_id": "vcf.parser.report_json",
       "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.pca.v1",
-      "status": "planned"
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.phasing",
-      "tool_id": "shapeit5",
-      "corpus_id": "vcf_production_regression",
-      "asset_profile_id": "vcf_cohort_with_panel",
-      "adapter_id": "vcf.adapter.panel_workflow",
-      "parser_id": "vcf.parser.vcf_output",
-      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.phasing.v1",
       "status": "planned"
     },
     {

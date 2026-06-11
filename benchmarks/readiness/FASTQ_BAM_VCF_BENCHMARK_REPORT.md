@@ -1,12 +1,12 @@
 # FASTQ + BAM + VCF Benchmark Report
 
-- Report rows: 126
-- Expected-result rows: 125
+- Report rows: 127
+- Expected-result rows: 126
 - Explicit unsupported rows: 1
-- Present rows: 122
+- Present rows: 123
 - Missing-result rows: 3
 - Unsupported-pair rows: 1
-- Failure rows: 125
+- Failure rows: 126
 - Comparable metric rows: 103
 
 ## Stage-Centric
@@ -67,6 +67,7 @@
 | vcf | vcf.damage_filter | 1 | 1 | 0 | 0 | bcftools | adna-pseudohaploid-fastq-bam-vcf |
 | vcf | vcf.filter | 2 | 1 | 0 | 1 | bcftools, samtools | bam-genotyping-to-vcf-downstream, core-germline-fastq-bam-vcf, diploid-small-fastq-bam-vcf |
 | vcf | vcf.gl_propagation | 1 | 1 | 0 | 0 | bcftools | adna-gl-fastq-bam-vcf |
+| vcf | vcf.phasing | 1 | 1 | 0 | 0 | shapeit5 | diploid-small-fastq-bam-vcf, reference-panel-imputation |
 | vcf | vcf.postprocess | 1 | 1 | 0 | 0 | bcftools |  |
 | vcf | vcf.prepare_reference_panel | 1 | 1 | 0 | 0 | bcftools | reference-panel-imputation |
 | vcf | vcf.qc | 3 | 3 | 0 | 0 | bcftools, plink, plink2 | adna-gl-fastq-bam-vcf, bam-genotyping-to-vcf-downstream, core-germline-fastq-bam-vcf, diploid-small-fastq-bam-vcf, popgen-structure-vcf, reference-panel-imputation, relatedness-segments-vcf |
@@ -134,6 +135,7 @@
 | seqkit | 5 | 5 | 0 | 0 | fastq | fastq.filter_reads, fastq.normalize_abundance, fastq.profile_reads, fastq.trim_reads, fastq.trim_terminal_damage |
 | seqkit_stats | 2 | 2 | 0 | 0 | fastq | fastq.profile_read_lengths, fastq.profile_reads |
 | seqtk | 1 | 1 | 0 | 0 | fastq | fastq.validate_reads |
+| shapeit5 | 1 | 1 | 0 | 0 | vcf | vcf.phasing |
 | skewer | 1 | 1 | 0 | 0 | fastq | fastq.trim_reads |
 | sortmerna | 1 | 1 | 0 | 0 | fastq | fastq.deplete_rrna |
 | trim_galore | 1 | 1 | 0 | 0 | fastq | fastq.trim_reads |
@@ -156,7 +158,7 @@
 | corpus-02-edna-mini | 4 | 3 | 1 | 0 | fastq | fastq.screen_taxonomy |
 | corpus-03-amplicon-mini | 5 | 5 | 0 | 0 | fastq | fastq.cluster_otus, fastq.infer_asvs, fastq.normalize_abundance, fastq.normalize_primers, fastq.remove_chimeras |
 | not_applicable | 1 | 0 | 0 | 1 | vcf | vcf.filter |
-| vcf_production_regression | 13 | 12 | 1 | 0 | vcf | vcf.call, vcf.call_diploid, vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.filter, vcf.gl_propagation, vcf.postprocess, vcf.prepare_reference_panel, vcf.qc, vcf.stats |
+| vcf_production_regression | 14 | 13 | 1 | 0 | vcf | vcf.call, vcf.call_diploid, vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.filter, vcf.gl_propagation, vcf.phasing, vcf.postprocess, vcf.prepare_reference_panel, vcf.qc, vcf.stats |
 
 ## Pipeline-Centric
 
@@ -170,10 +172,10 @@
 | amplicon-asv-otu-no-vcf | 6 | 6 | 0 | 0 | fastq | fastq.cluster_otus, fastq.infer_asvs, fastq.normalize_abundance, fastq.normalize_primers, fastq.remove_chimeras, fastq.validate_reads |
 | bam-genotyping-to-vcf-downstream | 6 | 4 | 2 | 0 | bam, vcf | bam.coverage, bam.filter, bam.recalibration, vcf.filter, vcf.qc, vcf.stats |
 | core-germline-fastq-bam-vcf | 12 | 10 | 2 | 0 | bam, fastq, vcf | bam.align, bam.coverage, bam.qc_pre, bam.validate, fastq.filter_reads, fastq.profile_reads, fastq.trim_reads, fastq.validate_reads, vcf.call, vcf.filter, vcf.qc, vcf.stats |
-| diploid-small-fastq-bam-vcf | 15 | 13 | 2 | 0 | bam, fastq, vcf | bam.align, bam.coverage, bam.filter, bam.mapping_summary, bam.qc_pre, bam.recalibration, bam.validate, fastq.filter_reads, fastq.profile_reads, fastq.trim_reads, fastq.validate_reads, vcf.call_diploid, vcf.filter, vcf.qc, vcf.stats |
+| diploid-small-fastq-bam-vcf | 16 | 14 | 2 | 0 | bam, fastq, vcf | bam.align, bam.coverage, bam.filter, bam.mapping_summary, bam.qc_pre, bam.recalibration, bam.validate, fastq.filter_reads, fastq.profile_reads, fastq.trim_reads, fastq.validate_reads, vcf.call_diploid, vcf.filter, vcf.phasing, vcf.qc, vcf.stats |
 | edna-taxonomy-no-vcf | 5 | 4 | 1 | 0 | fastq | fastq.detect_adapters, fastq.filter_reads, fastq.screen_taxonomy, fastq.trim_reads, fastq.validate_reads |
 | popgen-structure-vcf | 1 | 1 | 0 | 0 | vcf | vcf.qc |
-| reference-panel-imputation | 2 | 2 | 0 | 0 | vcf | vcf.prepare_reference_panel, vcf.qc |
+| reference-panel-imputation | 3 | 3 | 0 | 0 | vcf | vcf.phasing, vcf.prepare_reference_panel, vcf.qc |
 | relatedness-segments-vcf | 1 | 1 | 0 | 0 | vcf | vcf.qc |
 
 ## Runtime
@@ -292,7 +294,7 @@
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqvalidator | fastq | fastq.validate_reads | fastqvalidator | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:fqtools | fastq | fastq.validate_reads | fqtools | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:seqtk | fastq | fastq.validate_reads | seqtk | present | 1.250 |  | fake_run_simulated |
-| vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools | vcf | vcf.call | bcftools | present | 1.750 | 0.159 | fake_run_and_real_smoke |
+| vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools | vcf | vcf.call | bcftools | present | 1.750 | 0.162 | fake_run_and_real_smoke |
 | vcf:vcf_production_regression:vcf.call_diploid:bam_bundle:bcftools | vcf | vcf.call_diploid | bcftools | present | 1.750 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.call_gl:bam_bundle:bcftools | vcf | vcf.call_gl | bcftools | present | 1.750 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.call_pseudohaploid:bam_bundle:bcftools | vcf | vcf.call_pseudohaploid | bcftools | present | 1.750 |  | fake_run_simulated |
@@ -300,12 +302,13 @@
 | vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools | vcf | vcf.filter | bcftools | present | 1.500 |  | fake_run_simulated |
 | unsupported:vcf:vcf.filter:samtools | vcf | vcf.filter | samtools | unsupported_pair |  |  | not_applicable |
 | vcf:vcf_production_regression:vcf.gl_propagation:vcf_single_sample:bcftools | vcf | vcf.gl_propagation | bcftools | present | 1.500 |  | fake_run_simulated |
+| vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5 | vcf | vcf.phasing | shapeit5 | present | 1.500 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools | vcf | vcf.postprocess | bcftools | present | 1.500 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools | vcf | vcf.prepare_reference_panel | bcftools | present | 1.500 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools | vcf | vcf.qc | bcftools | present | 1.500 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink | vcf | vcf.qc | plink | present | 1.250 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2 | vcf | vcf.qc | plink2 | present | 1.250 |  | fake_run_simulated |
-| vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools | vcf | vcf.stats | bcftools | missing_result | 1.250 | 0.040 | fake_run_and_real_smoke |
+| vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools | vcf | vcf.stats | bcftools | missing_result | 1.250 | 0.042 | fake_run_and_real_smoke |
 
 ## Memory
 
@@ -431,6 +434,7 @@
 | vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools | vcf | vcf.filter | bcftools | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | unsupported:vcf:vcf.filter:samtools | vcf | vcf.filter | samtools | unsupported_pair |  |  |  |  | not_applicable |
 | vcf:vcf_production_regression:vcf.gl_propagation:vcf_single_sample:bcftools | vcf | vcf.gl_propagation | bcftools | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
+| vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5 | vcf | vcf.phasing | shapeit5 | present | 4096.000 | 8 |  |  | declared_stage_tool_resource |
 | vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools | vcf | vcf.postprocess | bcftools | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools | vcf | vcf.prepare_reference_panel | bcftools | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools | vcf | vcf.qc | bcftools | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
@@ -440,7 +444,7 @@
 
 ## Failures
 
-- Simulated failure rows: 125
+- Simulated failure rows: 126
 - Failure classification rows: 7
 
 | Failure Class | Domain | Stage | Tool | Source Surface | Status | Detail |

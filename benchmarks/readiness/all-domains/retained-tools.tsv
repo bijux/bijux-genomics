@@ -57,6 +57,7 @@ seqfu	fastq	2	2	2	2	benchmark_ready	fastq.profile_read_lengths,fastq.profile_rea
 seqkit	fastq	5	5	5	5	benchmark_ready	fastq.filter_reads,fastq.normalize_abundance,fastq.profile_reads,fastq.trim_reads,fastq.trim_terminal_damage	fastq.filter_reads,fastq.normalize_abundance,fastq.profile_reads,fastq.trim_reads,fastq.trim_terminal_damage
 seqkit_stats	fastq	2	2	2	2	benchmark_ready	fastq.profile_read_lengths,fastq.profile_reads	fastq.profile_read_lengths,fastq.profile_reads
 seqtk	fastq	1	1	1	1	benchmark_ready	fastq.validate_reads	fastq.validate_reads
+shapeit5	vcf	1	1	1	1	benchmark_ready	vcf.phasing	vcf.phasing
 skewer	fastq	1	1	1	1	benchmark_ready	fastq.trim_reads	fastq.trim_reads
 sortmerna	fastq	1	1	1	1	benchmark_ready	fastq.deplete_rrna	fastq.deplete_rrna
 trim_galore	fastq	1	1	1	1	benchmark_ready	fastq.trim_reads	fastq.trim_reads

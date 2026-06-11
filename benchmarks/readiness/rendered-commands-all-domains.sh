@@ -1198,6 +1198,10 @@ bcftools index -t benchmarks/readiness/adapters/bcftools/vcf.filter/filtered_vcf
 bcftools annotate -x 'INFO,^FORMAT/GL,^FORMAT/PL,^FORMAT/GP' benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf -Oz -o benchmarks/readiness/adapters/bcftools/vcf.gl_propagation/gl_propagated_vcf.vcf.gz
 bcftools index -t benchmarks/readiness/adapters/bcftools/vcf.gl_propagation/gl_propagated_vcf.vcf.gz
 
+# vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5 / vcf / vcf.phasing / shapeit5
+sh -lc 'shapeit5 phase_common --input '"'"'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf'"'"' --reference '"'"'benchmarks/readiness/adapters/shapeit5/vcf.phasing/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz'"'"' --map '"'"'benchmarks/readiness/adapters/shapeit5/vcf.phasing/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz'"'"' --region 1:1-1000000 --thread 8 --seed 42 --output '"'"'benchmarks/readiness/adapters/shapeit5/vcf.phasing/phased.vcf.gz'"'"' > '"'"'benchmarks/readiness/adapters/shapeit5/vcf.phasing/logs.txt'"'"' 2>&1'
+bcftools index -t benchmarks/readiness/adapters/shapeit5/vcf.phasing/phased.vcf.gz
+
 # vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools / vcf / vcf.postprocess / bcftools
 bcftools '+fill-tags' benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_filtered_single_sample.vcf -Oz -o benchmarks/readiness/adapters/bcftools/vcf.postprocess/postprocess_vcf.vcf.gz -- -t 'AC,AN,AF'
 bcftools index -t benchmarks/readiness/adapters/bcftools/vcf.postprocess/postprocess_vcf.vcf.gz
