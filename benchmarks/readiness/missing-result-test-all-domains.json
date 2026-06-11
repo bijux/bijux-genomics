@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.all_domain_missing_result_test.v1",
   "output_path": "benchmarks/readiness/missing-result-test-all-domains.json",
   "fake_result_root": "runs/bench/readiness-probes/all-domains/missing-result-test",
-  "expected_row_count": 126,
-  "present_result_row_count": 123,
+  "expected_row_count": 127,
+  "present_result_row_count": 124,
   "missing_result_row_count": 3,
   "passes_behavior_test": true,
   "removed_result_ids": [
@@ -19,7 +19,7 @@
   "domain_counts": {
     "bam": 49,
     "fastq": 63,
-    "vcf": 14
+    "vcf": 15
   },
   "rows": [
     {
@@ -3658,6 +3658,60 @@
       ],
       "report_section": "likelihood_postprocess",
       "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.gl_propagation:vcf_single_sample:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.impute:vcf_cohort_with_panel:beagle",
+      "domain": "vcf",
+      "stage_id": "vcf.impute",
+      "tool_id": "beagle",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.impute/vcf_cohort_with_panel/beagle/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.impute/vcf_cohort_with_panel/beagle/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "imputed_vcf",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_qc_tsv",
+        "maf_bin_quality_tsv",
+        "info_hist_json",
+        "warnings_json",
+        "overlap_stats_json",
+        "panel_mismatch_diagnostics_json",
+        "imputed_tbi"
+      ],
+      "observed_output_artifact_ids": [
+        "imputed_vcf",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_qc_tsv",
+        "maf_bin_quality_tsv",
+        "info_hist_json",
+        "warnings_json",
+        "overlap_stats_json",
+        "panel_mismatch_diagnostics_json",
+        "imputed_tbi"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "missing_before",
+        "missing_after",
+        "imputed_genotypes",
+        "low_confidence_count",
+        "masked_truth_site_count",
+        "masked_truth_match_count",
+        "unresolved_count",
+        "not_imputable_reasons",
+        "sample_count",
+        "sample_ids"
+      ],
+      "report_section": "imputation",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.impute:vcf_cohort_with_panel:beagle` remains present with a validated fake-run manifest"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5",

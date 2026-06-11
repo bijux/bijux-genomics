@@ -12,7 +12,7 @@
       "surface": "vcf stage catalog",
       "output_path": "benchmarks/configs/local/vcf-stage-catalog.toml",
       "ok": true,
-      "detail": "wrote 20 rows with 12 supported and 8 planned stages"
+      "detail": "wrote 20 rows with 13 supported and 7 planned stages"
     },
     {
       "goal_id": 202,
@@ -61,7 +61,7 @@
       "surface": "vcf smoke root",
       "output_path": "runs/bench/local-smoke/vcf/SMOKE_ROOT.json",
       "ok": true,
-      "detail": "rendered deterministic smoke root `vcf-local-smoke-67afc08c4c21` with 20 stages and 20 tool pairs"
+      "detail": "rendered deterministic smoke root `vcf-local-smoke-f4166d57024e` with 20 stages and 20 tool pairs"
     },
     {
       "goal_id": 209,
