@@ -477,6 +477,14 @@
         "override_policy": "explicit profile override required"
       },
       {
+        "stage_id": "vcf.ibd",
+        "tool_id": "germline",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "the governed IBD baseline keeps normalized pairwise segment rows and insufficient-overlap reporting explicit while retained alternatives stay comparative.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
         "stage_id": "vcf.imputation_metrics",
         "tool_id": "beagle",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",

@@ -749,6 +749,14 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "insufficient_overlap_probe",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "insufficient_reason",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "low_confidence_sites",
         "schema_version": "bijux.metrics.v1"
       },
@@ -866,6 +874,10 @@
       },
       {
         "metric_id": "roh_total_mb",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "rows",
         "schema_version": "bijux.metrics.v1"
       },
       {

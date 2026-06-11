@@ -1041,7 +1041,7 @@
       },
       {
         "stage_id": "vcf.ibd",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "phasing_quality_thresholds_are_fixed_per_run",

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: 610a9dea039d2253e622bb79d19870fdc3dbd4cf
+# source_commit: fad22cb7260a68cf7a3b3fda4a408011ddfbe283
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -289,6 +289,37 @@ apptainer_def = "containers/apptainer/shared/ibdne.def"
 require_labels = true
 
 [[tools]]
+id = "ibdseq"
+tool_id = "ibdseq"
+domain = "vcf"
+status = "planned"
+stage_ids = ["vcf.ibd"]
+version = "planned"
+default_version = "planned"
+upstream = "https://faculty.washington.edu/browning/ibdseq.shtml"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "planned"
+pinned_commit = "planned"
+pin_strategy = "container_digest"
+container_ref = "containers/apptainer/lunarc/ibdseq.def@planned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "ibdseq --version"
+help_cmd = "ibdseq --help"
+smoke_version_cmd = "ibdseq --version"
+smoke_help_cmd = "ibdseq --help"
+expected_version_regex = "ibdseq [0-9]+([.][0-9]+)?"
+healthcheck_cmd = "ibdseq --help"
+expected_bin = "ibdseq"
+expected_artifacts = ["ibd_segments", "metrics.json"]
+metrics_schema = "bijux.vcf.ibd.v1"
+comparability_notes = "Planned tool; compare only within pinned profile and reference build."
+dockerfile = "containers/docker/arm64/Dockerfile.ibdseq"
+apptainer_def = "containers/apptainer/shared/ibdseq.def"
+require_labels = true
+
+[[tools]]
 id = "impute5"
 tool_id = "impute5"
 domain = "vcf"
@@ -536,6 +567,18 @@ validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = "preserves GL fields across downstream handoffs in the current governed profile."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "vcf.ibd"
+required_tool_roles = ["transform"]
+primary_tools = ["germline"]
+optional_alternatives = ["ibdseq", "ibdhap"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "the governed IBD baseline keeps normalized pairwise segment rows and insufficient-overlap reporting explicit while retained alternatives stay comparative."
 requires_validation = false
 requires_reporting = false
 
