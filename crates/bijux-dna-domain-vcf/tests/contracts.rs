@@ -169,12 +169,15 @@ mod contracts {
     }
 
     #[test]
-    fn authored_qc_pca_and_stats_catalogs_match_governed_contract_ids() {
+    fn authored_qc_pca_admixture_and_stats_catalogs_match_governed_contract_ids() {
         let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../");
         let qc_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/qc.yaml"))
             .unwrap_or_else(|err| panic!("read qc stage yaml: {err}"));
         let pca_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/pca.yaml"))
             .unwrap_or_else(|err| panic!("read pca stage yaml: {err}"));
+        let admixture_raw =
+            std::fs::read_to_string(repo_root.join("domain/vcf/stages/admixture.yaml"))
+                .unwrap_or_else(|err| panic!("read admixture stage yaml: {err}"));
         let stats_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/stats.yaml"))
             .unwrap_or_else(|err| panic!("read stats stage yaml: {err}"));
         let artifacts_raw = std::fs::read_to_string(repo_root.join("domain/vcf/artifacts.yaml"))
@@ -231,6 +234,22 @@ mod contracts {
             );
         }
 
+        assert!(admixture_raw.contains("status: \"supported\""));
+        assert!(admixture_raw.contains("- name: \"admixture_report\""));
+        assert!(admixture_raw.contains("required_outputs: [\"admixture_report\"]"));
+        assert!(!admixture_raw.contains("- name: \"admixture_out\""));
+        assert!(!admixture_raw.contains("required_outputs: [\"admixture_out\"]"));
+        for metric_id in ["selected_k", "sample_count", "population_count", "status"] {
+            assert!(
+                admixture_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored admixture stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
         for metric_id in [
             "variant_count",
             "snp_count",
@@ -250,7 +269,7 @@ mod contracts {
             );
         }
 
-        for artifact_id in ["qc_report", "pca_report"] {
+        for artifact_id in ["qc_report", "pca_report", "admixture_report"] {
             assert!(
                 artifacts_raw.contains(&format!("- id: {artifact_id}")),
                 "VCF artifact vocabulary is missing `{artifact_id}`"
@@ -258,6 +277,7 @@ mod contracts {
         }
         assert!(!artifacts_raw.contains("qc_out"));
         assert!(!artifacts_raw.contains("pca_out"));
+        assert!(!artifacts_raw.contains("admixture_out"));
     }
 
     #[test]
@@ -281,6 +301,10 @@ mod contracts {
         let pca = stage_io_contract(VcfDomainStage::Pca)
             .unwrap_or_else(|| panic!("missing stage IO contract for pca"));
         assert_eq!(pca.required_outputs, vec!["pca_report"]);
+
+        let admixture = stage_io_contract(VcfDomainStage::Admixture)
+            .unwrap_or_else(|| panic!("missing stage IO contract for admixture"));
+        assert_eq!(admixture.required_outputs, vec!["admixture_report"]);
 
         let stats = stage_io_contract(VcfDomainStage::Stats)
             .unwrap_or_else(|| panic!("missing stage IO contract for stats"));

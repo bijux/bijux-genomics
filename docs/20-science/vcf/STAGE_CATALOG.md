@@ -105,12 +105,12 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 - References: `domain/vcf/stages/pca.yaml`, `docs/20-science/vcf/POPULATION_STRUCTURE.md`.
 
 ### vcf.admixture {#vcf-admixture}
-- Status: planned.
+- Status: supported.
 - Purpose: estimate ancestry-mixture style summaries from cohort-level variant matrices.
 - Inputs/Outputs: VCF matrix → admixture report.
-- Metrics: ancestry-component summaries, admixture status.
+- Metrics: selected K, sample count, population count, and normalized per-sample cluster fractions.
 - Tools: plink, plink2.
-- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/admixture.yaml`, `docs/20-science/vcf/POPULATION_STRUCTURE.md`.
 
 ### vcf.population_structure {#vcf-population-structure}

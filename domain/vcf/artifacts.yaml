@@ -2,7 +2,7 @@
 schema_version: bijux.artifacts.v1
 domain: vcf
 artifacts:
-- id: admixture_out
+- id: admixture_report
   type: json
 - id: called_vcf
   type: vcf

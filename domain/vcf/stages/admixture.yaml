@@ -1,6 +1,6 @@
 schema_version: "bijux.stage.v1"
 stage_id: "vcf.admixture"
-status: "planned"
+status: "supported"
 scope: "post_vcf"
 domain: "vcf"
 description: "VCF stage contract for vcf.admixture in the governed domain registry."
@@ -9,19 +9,25 @@ inputs:
     data_type: "vcf"
     cardinality: "One"
 outputs:
-  - name: "admixture_out"
+  - name: "admixture_report"
     data_type: "json"
     cardinality: "One"
 required_inputs: ["vcf"]
-required_outputs: ["admixture_out"]
+required_outputs: ["admixture_report"]
 tool_capability_requirements: []
 metrics:
-  - name: "admixture_status"
+  - name: "selected_k"
+  - name: "sample_count"
+  - name: "population_count"
+  - name: "status"
 compatible_tools: ["plink", "plink2"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
-assumptions: ["planned_stage"]
+assumptions:
+  - "sample_population_labels_are_required"
+  - "cluster_assignments_sum_to_one_within_tolerance_per_sample"
+  - "admixture_outputs_emit_metrics_json_with_schema_bijux.vcf.admixture.v1"
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness:
   - "none"
-planned_out_of_scope: ["full scientific validation pending downstream admission"]
+planned_out_of_scope: []

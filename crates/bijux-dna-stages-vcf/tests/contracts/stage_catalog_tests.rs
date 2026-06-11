@@ -155,6 +155,13 @@ fn stage_catalog_rows_keep_expected_output_contract_ids() {
     )
     .unwrap_or_else(|| panic!("pca outputs"));
     assert_eq!(pca_outputs, ["pca_report"]);
+
+    let admixture_outputs =
+        bijux_dna_stages_vcf::stage_specs::vcf_domain_stage_expected_output_ids(
+            bijux_dna_domain_vcf::VcfDomainStage::Admixture,
+        )
+        .unwrap_or_else(|| panic!("admixture outputs"));
+    assert_eq!(admixture_outputs, ["admixture_report"]);
 }
 
 #[test]

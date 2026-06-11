@@ -27,7 +27,7 @@ The VCF science layer needs a readable tool inventory that mirrors the stage man
 | vcf.stats | supported | bcftools | Required VCF summary metrics remain bound to the current production baseline. |
 | vcf.qc | supported | bcftools, plink, plink2 | Cohort-level QC is governed on the admitted deterministic and cohort-analysis backends so missingness and frequency gates stay explicit before downstream inference. |
 | vcf.pca | supported | plink2, eigensoft | PCA support is governed across the admitted PLINK2 and EIGENSOFT structure-analysis families so sample-complete projections stay comparative. |
-| vcf.admixture | planned | plink, plink2 | Admixture-oriented staging remains planned and anchored to the current admitted matrix-tool surface. |
+| vcf.admixture | supported | plink, plink2 | Admixture reporting is governed on the admitted PLINK-family matrix-tool surface so normalized cluster fractions stay explicit and reproducible. |
 | vcf.population_structure | planned | plink, plink2, eigensoft | Population-structure summaries admit both PLINK-family and EIGENSOFT-family tooling. |
 | vcf.phasing | supported | beagle, shapeit5, eagle | Shapeit5 is the governed active phasing path while Beagle, Eagle, and retained alternatives stay explicit for comparative readiness. |
 | vcf.prepare_reference_panel | supported | bcftools | Reference-panel preparation stays deterministic while the governed Beagle family consumes panel outputs downstream. |

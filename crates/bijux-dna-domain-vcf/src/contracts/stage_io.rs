@@ -95,17 +95,24 @@ pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
             required_outputs: vec!["pca_report"],
             required_indices: vec!["vcf.tbi"],
         },
-        VcfDomainStage::PopulationStructure
-        | VcfDomainStage::Admixture
-        | VcfDomainStage::Roh
-        | VcfDomainStage::Ibd => StageIoContract {
+        VcfDomainStage::Admixture => StageIoContract {
+            stage,
+            inputs: vec![port("vcf", "vcf", one)],
+            outputs: vec![port("admixture_report", "json", one)],
+            required_inputs: vec!["vcf"],
+            required_outputs: vec!["admixture_report"],
+            required_indices: vec!["vcf.tbi"],
+        },
+        VcfDomainStage::PopulationStructure | VcfDomainStage::Roh | VcfDomainStage::Ibd => {
+            StageIoContract {
             stage,
             inputs: vec![port("filtered_vcf", "vcf", one)],
             outputs: vec![port("report_json", "json", one)],
             required_inputs: vec!["filtered_vcf"],
             required_outputs: vec!["report_json"],
             required_indices: vec!["vcf.tbi"],
-        },
+        }
+        }
         VcfDomainStage::Demography => StageIoContract {
             stage,
             inputs: vec![port("ibd_segments", "json", one)],

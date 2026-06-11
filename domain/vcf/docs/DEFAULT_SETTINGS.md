@@ -22,7 +22,7 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.stats` -> `stats_json`
 - `vcf.qc` -> `qc_report`
 - `vcf.pca` -> `pca_report`
-- `vcf.admixture` -> `admixture_json`
+- `vcf.admixture` -> `admixture_report`
 - `vcf.ibd` -> `ibd_json`
 - `vcf.phasing` -> `phased_vcf`
 - `vcf.imputation_metrics` -> `imputation_metrics_json`
@@ -52,7 +52,7 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.stats` default: `bcftools`. rationale: minimal required metrics for quality gating.
 - `vcf.qc` default: `plink2`. rationale: the governed cohort-QC baseline keeps missingness, MAF, and HWE summaries anchored to the admitted PLINK-family execution surface while retaining deterministic bcftools compatibility for comparison.
 - `vcf.pca` default: `plink2`. rationale: current governed PCA default keeps sample-complete eigenvector output, eigenvalue reporting, and metadata joins anchored to the PLINK2 smoke-backed cohort path while retained `eigensoft` stays comparative.
-- `vcf.admixture` default: `plink2` (planned). rationale: keep the planned admixture surface anchored to an admitted matrix-preparation backend until a dedicated admixture tool is formally admitted.
+- `vcf.admixture` default: `plink2`. rationale: the governed admixture baseline keeps cohort preparation, K selection, and normalized cluster fractions anchored to the admitted PLINK-family execution surface.
 - `vcf.ibd` default: `germline` (planned). rationale: current planned IBD baseline names the intended segment caller while alternative tools stay comparative.
 - `vcf.phasing` default: `shapeit5`. rationale: current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle and Eagle stay comparative.
 - `vcf.imputation_metrics` default: `beagle`. rationale: keep the governed imputation-metrics contract anchored to the same backend family that produces the source imputation evidence.
