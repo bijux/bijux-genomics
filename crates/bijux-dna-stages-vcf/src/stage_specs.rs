@@ -142,7 +142,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.phasing",
-            status: "planned",
+            status: "supported",
             default_tool_id: "shapeit5",
             metrics_schema: "bijux.vcf.phasing.v1",
             smoke_supported: true,

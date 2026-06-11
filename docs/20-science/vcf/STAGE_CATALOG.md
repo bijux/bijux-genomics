@@ -123,12 +123,12 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 - References: `domain/vcf/stages/population_structure.yaml`, `docs/20-science/vcf/POPULATION_STRUCTURE.md`.
 
 ### vcf.phasing {#vcf-phasing}
-- Status: planned.
+- Status: supported.
 - Purpose: phase cohort haplotypes before downstream imputation or IBD inference.
-- Inputs/Outputs: filtered VCF plus panel metadata → phasing report.
-- Metrics: phased sample count, switch-error-compatible status.
+- Inputs/Outputs: filtered VCF plus panel metadata → phased VCF, phasing QC, and phase-set-aware metrics.
+- Metrics: phased genotype count, unphased genotype count, phase-set count, switch-error-compatible status.
 - Tools: beagle, shapeit5, eagle.
-- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/phasing.yaml`, `docs/20-science/vcf/IMPUTATION_SCOPE.md`.
 
 ### vcf.prepare_reference_panel {#vcf-prepare-reference-panel}

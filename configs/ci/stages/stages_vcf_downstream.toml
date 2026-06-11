@@ -15,10 +15,10 @@ tools = ["plink", "plink2"]
 
 [[stages]]
 id = "vcf.phasing"
-status = "planned"
+status = "supported"
 experimental = true
 metrics_schema = "bijux.vcf.phasing.v1"
-smoke_required = false
+smoke_required = true
 tools = ["beagle", "shapeit5", "eagle"]
 
 [[stages]]

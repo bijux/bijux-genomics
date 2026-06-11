@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: d29294f1d99e7328a02453f1e7734f06c7986b58
+# source_commit: 24810fba3200f2a49ba7b294ab51b19ceb22553c
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -128,8 +128,8 @@ tools = ["plink2", "eigensoft"]
 
 [[stages]]
 id = "vcf.phasing"
-status = "planned"
-output_kinds = ["json"]
+status = "supported"
+output_kinds = ["vcf"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true

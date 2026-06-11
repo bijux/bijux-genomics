@@ -47,7 +47,9 @@ governed_stage_ids:
   - vcf.damage_filter
   - vcf.filter
   - vcf.gl_propagation
+  - vcf.phasing
   - vcf.postprocess
+  - vcf.prepare_reference_panel
   - vcf.stats
 governed_tool_ids:
   - bcftools

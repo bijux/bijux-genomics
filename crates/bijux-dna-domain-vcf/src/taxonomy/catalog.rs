@@ -132,7 +132,7 @@ pub const VCF_STAGE_TAXONOMY: &[VcfStageTaxonomyRecord] = &[
     VcfStageTaxonomyRecord {
         stage: VcfDomainStage::Phasing,
         kind: VcfStageKind::Phasing,
-        status: DomainSupportStatus::Planned,
+        status: DomainSupportStatus::Supported,
         coverage_regimes: &[CoverageRegime::Diploid, CoverageRegime::LowCovGl],
     },
     VcfStageTaxonomyRecord {

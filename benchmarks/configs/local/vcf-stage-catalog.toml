@@ -138,7 +138,7 @@ local_smoke_mode = "vcf_cohort"
 [[rows]]
 stage_id = "vcf.phasing"
 stage_name = "Haplotype Phasing"
-support_status = "planned"
+support_status = "supported"
 default_tool_id = "shapeit5"
 metrics_schema_id = "bijux.vcf.phasing.v1"
 input_types = ["vcf"]

@@ -29,7 +29,7 @@ The VCF science layer needs a readable tool inventory that mirrors the stage man
 | vcf.pca | planned | plink2, eigensoft | PCA support stays comparative across the two admitted structure-analysis families. |
 | vcf.admixture | planned | plink, plink2 | Admixture-oriented staging remains planned and anchored to the current admitted matrix-tool surface. |
 | vcf.population_structure | planned | plink, plink2, eigensoft | Population-structure summaries admit both PLINK-family and EIGENSOFT-family tooling. |
-| vcf.phasing | planned | beagle, shapeit5, eagle | Phasing remains a planned multi-backend comparative surface. |
+| vcf.phasing | supported | beagle, shapeit5, eagle | Shapeit5 is the governed active phasing path while Beagle, Eagle, and retained alternatives stay explicit for comparative readiness. |
 | vcf.prepare_reference_panel | supported | bcftools | Reference-panel preparation stays deterministic even while downstream imputation remains planned. |
 | vcf.imputation_metrics | planned | beagle, glimpse, impute5, minimac4 | Imputation-metrics admission stays broad while promotion evidence is still incomplete. |
 | vcf.impute | planned | beagle, glimpse, impute5, minimac4 | Explicit imputation execution mirrors the admitted imputation family. |
