@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: c85d9af692845c42972254ee502a8098a60ee5dc
+# source_commit: cb56aa4b226ce8724e9bdf36f3c01f48e1ba89d4
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -442,6 +442,18 @@ comparability_notes = "Comparable only when panel build, genetic map, and pinned
 dockerfile = "containers/docker/arm64/Dockerfile.shapeit5"
 apptainer_def = "containers/apptainer/shared/shapeit5.def"
 require_labels = true
+
+[[stages]]
+id = "vcf.admixture"
+required_tool_roles = ["transform"]
+primary_tools = ["plink2"]
+optional_alternatives = ["plink"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "the governed admixture baseline keeps cohort preparation, K selection, and normalized cluster fractions anchored to the admitted PLINK-family execution surface."
+requires_validation = false
+requires_reporting = false
 
 [[stages]]
 id = "vcf.call"

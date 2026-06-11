@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "c85d9af692845c42972254ee502a8098a60ee5dc",
-  "bundle_checksum_sha256": "29f50de8cec2563c73429892037cdbda57f6db4f25d08b558a5e2cc6bb0b51ec",
+  "source_commit": "cb56aa4b226ce8724e9bdf36f3c01f48e1ba89d4",
+  "bundle_checksum_sha256": "7ad740afc07af67a477baccd99b26da0affdca8fb3c62398a2c595b984e4fba6",
   "domains": [
     {
       "domain_id": "bam",
@@ -3769,7 +3769,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "1eeca97e2bd4f6406063f6148f2d07915bfc308b57359de53ba5bcc37bf385f8"
+      "checksum_sha256": "9ed908a4a7266840162877854f0e8783da2ca7d503ff3e589cc564c168e4795a"
     },
     {
       "domain_id": "fastq",
@@ -12656,7 +12656,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "e0327b04c6d19e93176adff91356e5a184c5da97fa0ab2e9811cf82735394265"
+      "checksum_sha256": "b76a01b01da25d55f6c415e6de1f1a7128de689a30a7606fa80e8ce3be7e6f6a"
     },
     {
       "domain_id": "vcf",
@@ -12706,6 +12706,7 @@
         "shapeit5"
       ],
       "governed_stage_ids": [
+        "vcf.admixture",
         "vcf.call",
         "vcf.call_diploid",
         "vcf.call_gl",
@@ -12731,8 +12732,8 @@
       "stages": [
         {
           "stage_id": "vcf.admixture",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.admixture in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -12746,7 +12747,7 @@
           ],
           "outputs": [
             {
-              "name": "admixture_out",
+              "name": "admixture_report",
               "data_type": "json",
               "cardinality": "One"
             }
@@ -12755,12 +12756,27 @@
             "vcf"
           ],
           "required_outputs": [
-            "admixture_out"
+            "admixture_report"
           ],
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "admixture_status",
+              "metric_id": "selected_k",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "sample_count",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "population_count",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "status",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             }
@@ -12771,7 +12787,9 @@
             "plink2"
           ],
           "assumptions": [
-            "planned_stage"
+            "sample_population_labels_are_required",
+            "cluster_assignments_sum_to_one_within_tolerance_per_sample",
+            "admixture_outputs_emit_metrics_json_with_schema_bijux.vcf.admixture.v1"
           ],
           "invariants": [
             "stable_artifact_contract"
@@ -12782,9 +12800,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "full scientific validation pending downstream admission"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "vcf.call",
@@ -14772,6 +14788,10 @@
           "schema_version": "bijux.metrics.v1"
         },
         {
+          "metric_id": "population_count",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
           "metric_id": "postprocess_status",
           "schema_version": "bijux.metrics.v1"
         },
@@ -14832,6 +14852,10 @@
           "schema_version": "bijux.metrics.v1"
         },
         {
+          "metric_id": "selected_k",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
           "metric_id": "snp_count",
           "schema_version": "bijux.metrics.v1"
         },
@@ -14874,7 +14898,7 @@
       ],
       "artifacts": [
         {
-          "artifact_id": "admixture_out",
+          "artifact_id": "admixture_report",
           "artifact_type": "json"
         },
         {
@@ -14971,6 +14995,14 @@
         }
       ],
       "defaults": [
+        {
+          "stage_id": "vcf.admixture",
+          "tool_id": "plink2",
+          "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+          "rationale": "the governed admixture baseline keeps cohort preparation, K selection, and normalized cluster fractions anchored to the admitted PLINK-family execution surface.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
         {
           "stage_id": "vcf.call",
           "tool_id": "bcftools",
@@ -15093,6 +15125,16 @@
         }
       ],
       "fixtures": [
+        {
+          "stage_id": "vcf.admixture",
+          "tool_id": "plink",
+          "fixture_path": "domain/vcf/fixtures/vcf.admixture/plink.txt"
+        },
+        {
+          "stage_id": "vcf.admixture",
+          "tool_id": "plink2",
+          "fixture_path": "domain/vcf/fixtures/vcf.admixture/plink2.txt"
+        },
         {
           "stage_id": "vcf.call",
           "tool_id": "bcftools",
@@ -15240,7 +15282,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "9db36101c1f48ce0f5a4ee56cb9fc7e1b7807b63dd0e1d8d184e2f4f6a9d3f59"
+      "checksum_sha256": "d6081bf3493fd588bbd8d35cce50f3279edacae78d44a3768a70ab64b87081d1"
     }
   ]
 }

@@ -928,10 +928,12 @@
     "evidence": [
       {
         "stage_id": "vcf.admixture",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "planned_stage"
+          "sample_population_labels_are_required",
+          "cluster_assignments_sum_to_one_within_tolerance_per_sample",
+          "admixture_outputs_emit_metrics_json_with_schema_bijux.vcf.admixture.v1"
         ],
         "invariants": [
           "stable_artifact_contract"

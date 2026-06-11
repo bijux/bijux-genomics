@@ -805,6 +805,10 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "population_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "postprocess_status",
         "schema_version": "bijux.metrics.v1"
       },
@@ -862,6 +866,10 @@
       },
       {
         "metric_id": "sample_missingness_exclusion_threshold",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "selected_k",
         "schema_version": "bijux.metrics.v1"
       },
       {

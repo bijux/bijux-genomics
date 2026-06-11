@@ -1309,7 +1309,7 @@
     "domain_id": "vcf",
     "artifacts": [
       {
-        "artifact_id": "admixture_out",
+        "artifact_id": "admixture_report",
         "artifact_type": "json"
       },
       {
@@ -1407,7 +1407,7 @@
     ],
     "stage_outputs": {
       "vcf.admixture": [
-        "admixture_out"
+        "admixture_report"
       ],
       "vcf.call": [
         "called_vcf"

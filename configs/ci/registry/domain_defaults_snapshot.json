@@ -413,6 +413,14 @@
     "domain_id": "vcf",
     "defaults": [
       {
+        "stage_id": "vcf.admixture",
+        "tool_id": "plink2",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "the governed admixture baseline keeps cohort preparation, K selection, and normalized cluster fractions anchored to the admitted PLINK-family execution surface.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
         "stage_id": "vcf.call",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
