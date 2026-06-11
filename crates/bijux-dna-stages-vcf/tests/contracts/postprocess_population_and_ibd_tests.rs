@@ -357,6 +357,14 @@ fn admixture_stage_emits_q_matrix_and_selection_artifacts() {
     let q_matrix_raw = std::fs::read_to_string(&out.q_matrix_tsv)
         .unwrap_or_else(|err| panic!("read q matrix: {err}"));
     assert_eq!(q_matrix_raw.lines().next(), Some("sample\tcluster_1\tcluster_2"));
+    for row in q_matrix_raw.lines().skip(1) {
+        let total = row
+            .split('\t')
+            .skip(1)
+            .map(|value| value.parse::<f64>().unwrap_or_else(|err| panic!("parse cluster value: {err}")))
+            .sum::<f64>();
+        assert!((total - 1.0).abs() <= 1e-6, "expected admixture row `{row}` to sum to 1.0");
+    }
     let manifest_raw = std::fs::read_to_string(&out.k_selection_json)
         .unwrap_or_else(|err| panic!("read admixture manifest: {err}"));
     let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)

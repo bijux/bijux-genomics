@@ -603,12 +603,43 @@ pub fn run_admixture_stage(
         let q_path = out_dir.join(format!("admixture_plink.{}.Q", selected_k));
         if let Ok(q_raw) = std::fs::read_to_string(&q_path) {
             execution_mode = "real_tool";
+            let q_rows = q_raw.lines().collect::<Vec<_>>();
+            if q_rows.len() != samples.len() {
+                bail!(
+                    "vcf.admixture refusal: q-matrix row count {} does not match sample count {}",
+                    q_rows.len(),
+                    samples.len()
+                );
+            }
             q_tsv = format!("sample\t{}\n", cluster_headers.join("\t"));
-            for (sample, row) in samples.iter().zip(q_raw.lines()) {
+            for (sample, row) in samples.iter().zip(q_rows) {
+                let fractions = row
+                    .split_whitespace()
+                    .take(selected_k.max(1))
+                    .map(|value| {
+                        value.parse::<f64>().map_err(|_| {
+                            anyhow!(
+                                "vcf.admixture refusal: q-matrix value `{value}` for sample `{sample}` is not numeric"
+                            )
+                        })
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+                if fractions.len() != cluster_headers.len() {
+                    bail!(
+                        "vcf.admixture refusal: q-matrix column count {} does not match cluster count {} for sample `{sample}`",
+                        fractions.len(),
+                        cluster_headers.len()
+                    );
+                }
+                let total_fraction = fractions.iter().sum::<f64>();
+                if (total_fraction - 1.0).abs() > 1e-6 {
+                    bail!(
+                        "vcf.admixture refusal: cluster fractions for sample `{sample}` sum to {total_fraction:.6}, expected 1.0"
+                    );
+                }
                 q_tsv.push_str(sample);
-                for value in row.split_whitespace().take(selected_k.max(1)) {
-                    q_tsv.push('\t');
-                    q_tsv.push_str(value);
+                for value in fractions {
+                    q_tsv.push_str(&format!("\t{value:.6}"));
                 }
                 q_tsv.push('\n');
             }
