@@ -164,8 +164,8 @@ pub enum BenchReadinessCommand {
     RenderVcfReportMap(BenchReadinessRenderVcfReportMapArgs),
     #[command(name = "render-vcf-parsers-report-ready")]
     RenderVcfParsersReportReady(BenchReadinessRenderVcfParsersReportReadyArgs),
-    #[command(name = "render-vcf-parser-coverage")]
-    RenderVcfParserCoverage(BenchReadinessRenderVcfParserCoverageArgs),
+    #[command(name = "render-vcf-parser-fixture-coverage")]
+    RenderVcfParserFixtureCoverage(BenchReadinessRenderVcfParserFixtureCoverageArgs),
     #[command(name = "render-vcf-normalized-metrics-schema")]
     RenderVcfNormalizedMetricsSchema(BenchReadinessRenderVcfNormalizedMetricsSchemaArgs),
     #[command(name = "render-vcf-parser-failure-tests")]
@@ -415,7 +415,7 @@ pub struct BenchReadinessRenderVcfParsersReportReadyArgs {
 }
 
 #[derive(Debug, Args)]
-pub struct BenchReadinessRenderVcfParserCoverageArgs {
+pub struct BenchReadinessRenderVcfParserFixtureCoverageArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

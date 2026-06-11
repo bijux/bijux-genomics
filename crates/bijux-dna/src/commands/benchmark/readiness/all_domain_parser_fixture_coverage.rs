@@ -14,8 +14,9 @@ use super::bam_parser_coverage::{
 use super::fastq_parser_coverage::{
     collect_fastq_parser_coverage_rows, FastqParserCoverageKind, FastqParserCoverageRow,
 };
-use super::vcf_parser_coverage::{
-    collect_vcf_parser_coverage_rows, VcfParserCoverageRow, VcfParserCoverageStatus,
+use super::vcf_parser_fixture_coverage::{
+    collect_vcf_parser_fixture_coverage_rows, VcfParserFixtureCoverageRow,
+    VcfParserFixtureCoverageStatus,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -27,11 +28,11 @@ const ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION: &str =
 const COVERAGE_STATUS_COVERED: &str = "covered";
 const COVERAGE_STATUS_MISSING_ACTIVE_BINDING: &str = "missing_active_binding";
 const FIXTURE_REFERENCE_KIND_CORPUS: &str = "fixture_corpus";
-const FIXTURE_REFERENCE_KIND_INVENTORY_PATH: &str = "fixture_inventory_path";
+const FIXTURE_REFERENCE_KIND_VCF_FIXTURE_DIRECTORY: &str = "fixture_directory";
 const FIXTURE_REFERENCE_KIND_NONE: &str = "none";
 const PROOF_SOURCE_FASTQ: &str = "fastq_parser_coverage";
 const PROOF_SOURCE_BAM: &str = "bam_parser_coverage";
-const PROOF_SOURCE_VCF: &str = "vcf_parser_coverage";
+const PROOF_SOURCE_VCF: &str = "vcf_parser_fixture_coverage";
 const NO_VALUE: &str = "none";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -285,7 +286,7 @@ fn collect_parser_proof_by_key(repo_root: &Path) -> Result<BTreeMap<CoverageKey,
         )?;
     }
 
-    let (_, _, vcf_rows) = collect_vcf_parser_coverage_rows(repo_root)?;
+    let (_, _, vcf_rows) = collect_vcf_parser_fixture_coverage_rows(repo_root)?;
     for row in vcf_rows {
         insert_parser_proof_row(
             &mut rows,
@@ -347,58 +348,50 @@ fn render_bam_parser_proof_row(row: BamParserCoverageRow) -> ParserProofRow {
     }
 }
 
-fn render_vcf_parser_proof_row(row: VcfParserCoverageRow) -> ParserProofRow {
+fn render_vcf_parser_proof_row(row: VcfParserFixtureCoverageRow) -> ParserProofRow {
     let coverage_status = match row.coverage_status {
-        VcfParserCoverageStatus::Covered => COVERAGE_STATUS_COVERED.to_string(),
-        VcfParserCoverageStatus::MissingFixture => "missing_fixture".to_string(),
-        VcfParserCoverageStatus::MissingSchema => "missing_schema".to_string(),
-        VcfParserCoverageStatus::MissingInventory => "missing_inventory".to_string(),
+        VcfParserFixtureCoverageStatus::Covered => COVERAGE_STATUS_COVERED.to_string(),
+        VcfParserFixtureCoverageStatus::MissingFixtureInventory => {
+            "missing_fixture_inventory".to_string()
+        }
+        VcfParserFixtureCoverageStatus::MissingFixtureDirectory => {
+            "missing_fixture_directory".to_string()
+        }
+        VcfParserFixtureCoverageStatus::MissingExpectedNormalizedJson => {
+            "missing_expected_normalized_json".to_string()
+        }
+        VcfParserFixtureCoverageStatus::MissingRawFixtures => "missing_raw_fixtures".to_string(),
+        VcfParserFixtureCoverageStatus::InvalidExpectedNormalizedJson => {
+            "invalid_expected_normalized_json".to_string()
+        }
     };
-    let parser_fixture_reference = if row.fixture_path.trim().is_empty() {
+    let parser_fixture_reference = if row.parser_fixture_root_path.trim().is_empty() {
         NO_VALUE.to_string()
     } else {
-        row.fixture_path.clone()
+        row.parser_fixture_root_path.clone()
     };
-    let parser_fixture_reference_kind = if row.fixture_path.trim().is_empty() {
+    let parser_fixture_reference_kind = if row.parser_fixture_root_path.trim().is_empty() {
         FIXTURE_REFERENCE_KIND_NONE.to_string()
     } else {
-        FIXTURE_REFERENCE_KIND_INVENTORY_PATH.to_string()
-    };
-    let reason = match row.coverage_status {
-        VcfParserCoverageStatus::Covered => format!(
-            "row `{}` / `{}` is benchmark_ready with parser fixture inventory `{}` and schema `{}`",
-            row.stage_id, row.tool_id, row.fixture_path, row.schema_id
-        ),
-        VcfParserCoverageStatus::MissingFixture => format!(
-            "row `{}` / `{}` is benchmark_ready but fixture path `{}` is missing",
-            row.stage_id, row.tool_id, row.fixture_path
-        ),
-        VcfParserCoverageStatus::MissingSchema => format!(
-            "row `{}` / `{}` is benchmark_ready but parser schema coverage is missing",
-            row.stage_id, row.tool_id
-        ),
-        VcfParserCoverageStatus::MissingInventory => format!(
-            "row `{}` / `{}` is benchmark_ready but parser fixture inventory is missing",
-            row.stage_id, row.tool_id
-        ),
+        FIXTURE_REFERENCE_KIND_VCF_FIXTURE_DIRECTORY.to_string()
     };
 
     ParserProofRow {
-        parser_fixture_parser_id: if row.parser_id.trim().is_empty() {
+        parser_fixture_parser_id: if row.parser_fixture_parser_id.trim().is_empty() {
             NO_VALUE.to_string()
         } else {
-            row.parser_id
+            row.parser_fixture_parser_id
         },
-        parser_fixture_schema_id: if row.schema_id.trim().is_empty() {
+        parser_fixture_schema_id: if row.parser_fixture_schema_id.trim().is_empty() {
             NO_VALUE.to_string()
         } else {
-            row.schema_id
+            row.parser_fixture_schema_id
         },
         parser_fixture_reference,
         parser_fixture_reference_kind,
         proof_source: PROOF_SOURCE_VCF.to_string(),
         coverage_status,
-        reason,
+        reason: row.reason,
     }
 }
 
@@ -625,11 +618,11 @@ mod tests {
                 && row.tool_id == "bcftools"
                 && row.parser_fixture_parser_id == "parse_bcftools_postprocess_metrics"
                 && row.parser_fixture_schema_id == "bijux.vcf.postprocess.v1"
-                && row.parser_fixture_reference_kind == "fixture_inventory_path"
+                && row.parser_fixture_reference_kind == "fixture_directory"
                 && row.parser_fixture_reference.starts_with(
                     "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.postprocess",
                 )
-                && row.proof_source == "vcf_parser_coverage"
+                && row.proof_source == "vcf_parser_fixture_coverage"
         }));
     }
 }

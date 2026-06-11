@@ -8,7 +8,9 @@ use super::vcf_adapter_output_coverage::{
     VcfAdapterOutputCoverageStatus, DEFAULT_VCF_ADAPTER_OUTPUT_COVERAGE_PATH,
 };
 use super::vcf_expected_benchmark_results::DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH;
-use super::vcf_parser_coverage::{VcfParserCoverageStatus, DEFAULT_VCF_PARSER_COVERAGE_PATH};
+use super::vcf_parser_fixture_coverage::{
+    VcfParserFixtureCoverageStatus, DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH,
+};
 use super::vcf_rendered_commands::VcfRenderedCommandsReport;
 use super::vcf_report_map::DEFAULT_VCF_REPORT_MAP_PATH;
 use super::vcf_stage_readiness_support::{
@@ -263,13 +265,15 @@ fn build_vcf_call_diploid_ready_row(
     }
 
     let parser_ready = binding.parser_row.as_ref().is_some_and(|row| {
-        row.coverage_status == VcfParserCoverageStatus::Covered
+        row.coverage_status == VcfParserFixtureCoverageStatus::Covered
             && !row.parser_id.trim().is_empty()
-            && !row.fixture_path.trim().is_empty()
+            && !row.parser_fixture_root_path.trim().is_empty()
+            && !row.expected_normalized_path.trim().is_empty()
+            && row.raw_fixture_count > 0
             && !row.schema_id.trim().is_empty()
     });
     if !parser_ready {
-        missing_surfaces.push("vcf_parser_coverage".to_string());
+        missing_surfaces.push("vcf_parser_fixture_coverage".to_string());
     }
 
     let expected_result_ready = binding.expected_row.as_ref().is_some_and(|row| {
@@ -399,21 +403,21 @@ fn build_vcf_call_diploid_ready_row(
             .map(|row| row.index_outputs.clone())
             .unwrap_or_default(),
         parser_ready,
-        parser_proof_path: DEFAULT_VCF_PARSER_COVERAGE_PATH.to_string(),
+        parser_proof_path: DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH.to_string(),
         parser_fixture_parser_id: binding
             .parser_row
             .as_ref()
-            .map(|row| row.parser_id.clone())
+            .map(|row| row.parser_fixture_parser_id.clone())
             .unwrap_or_else(no_value_string),
         parser_fixture_schema_id: binding
             .parser_row
             .as_ref()
-            .map(|row| row.schema_id.clone())
+            .map(|row| row.parser_fixture_schema_id.clone())
             .unwrap_or_else(no_value_string),
         parser_fixture_path: binding
             .parser_row
             .as_ref()
-            .map(|row| row.fixture_path.clone())
+            .map(|row| row.parser_fixture_root_path.clone())
             .unwrap_or_else(no_value_string),
         expected_result_ready,
         expected_result_proof_path: DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH.to_string(),

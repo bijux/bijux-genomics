@@ -560,8 +560,8 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
-                    cli::BenchReadinessCommand::RenderVcfParserCoverage(args) => {
-                        crate::commands::benchmark::readiness::vcf_parser_coverage::run_render_vcf_parser_coverage(
+                    cli::BenchReadinessCommand::RenderVcfParserFixtureCoverage(args) => {
+                        crate::commands::benchmark::readiness::vcf_parser_fixture_coverage::run_render_vcf_parser_fixture_coverage(
                             args,
                         )?;
                     }

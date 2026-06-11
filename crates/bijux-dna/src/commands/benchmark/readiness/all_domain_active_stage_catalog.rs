@@ -13,7 +13,9 @@ use super::fastq_normalized_metrics_schema::collect_fastq_normalized_metrics_sch
 use super::fastq_parser_coverage::collect_fastq_parser_coverage_rows;
 use super::fastq_report_map::collect_fastq_report_map_rows;
 use super::vcf_normalized_metrics_schema::collect_vcf_normalized_metrics_schema_report_rows;
-use super::vcf_parser_coverage::{collect_vcf_parser_coverage_rows, VcfParserCoverageStatus};
+use super::vcf_parser_fixture_coverage::{
+    collect_vcf_parser_fixture_coverage_rows, VcfParserFixtureCoverageStatus,
+};
 use super::vcf_report_map::collect_vcf_report_map_rows;
 use crate::commands::benchmark::local_stage_inventory::{
     load_local_stage_inventory, BenchLocalDomain,
@@ -243,7 +245,7 @@ fn collect_inventory_readiness_by_stage(
 fn collect_parser_stage_rows(repo_root: &Path) -> Result<Vec<ParserStageRow>> {
     let (_, _, fastq_rows) = collect_fastq_parser_coverage_rows(repo_root)?;
     let (_, _, bam_rows, _) = collect_bam_parser_coverage_rows(repo_root)?;
-    let (_, _, vcf_rows) = collect_vcf_parser_coverage_rows(repo_root)?;
+    let (_, _, vcf_rows) = collect_vcf_parser_fixture_coverage_rows(repo_root)?;
 
     let mut rows = Vec::new();
     rows.extend(fastq_rows.into_iter().map(|row| ParserStageRow {
@@ -260,7 +262,7 @@ fn collect_parser_stage_rows(repo_root: &Path) -> Result<Vec<ParserStageRow>> {
     rows.extend(vcf_rows.into_iter().map(|row| ParserStageRow {
         domain: "vcf".to_string(),
         stage_id: row.stage_id,
-        covered: row.coverage_status == VcfParserCoverageStatus::Covered,
+        covered: row.coverage_status == VcfParserFixtureCoverageStatus::Covered,
     }));
     Ok(rows)
 }

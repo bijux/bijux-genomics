@@ -15,7 +15,9 @@ use super::vcf_adapter_output_coverage::{
 use super::vcf_expected_benchmark_results::{
     collect_vcf_expected_benchmark_result_rows, VcfExpectedBenchmarkResultRow,
 };
-use super::vcf_parser_coverage::{collect_vcf_parser_coverage_rows, VcfParserCoverageRow};
+use super::vcf_parser_fixture_coverage::{
+    collect_vcf_parser_fixture_coverage_rows, VcfParserFixtureCoverageRow,
+};
 use super::vcf_rendered_command_rows::VcfRenderedCommandRow;
 use super::vcf_rendered_commands::{
     render_vcf_commands, VcfRenderedCommandsReport, DEFAULT_VCF_RENDERED_COMMANDS_PATH,
@@ -36,7 +38,7 @@ pub(crate) struct VcfStageReadinessBinding {
     pub(crate) active_row: Option<AllDomainActiveStageToolMatrixRow>,
     pub(crate) command_row: Option<VcfRenderedCommandRow>,
     pub(crate) output_row: Option<VcfAdapterOutputCoverageRow>,
-    pub(crate) parser_row: Option<VcfParserCoverageRow>,
+    pub(crate) parser_row: Option<VcfParserFixtureCoverageRow>,
     pub(crate) expected_row: Option<VcfExpectedBenchmarkResultRow>,
     pub(crate) report_row: Option<VcfReportMapRow>,
 }
@@ -77,7 +79,7 @@ pub(crate) fn collect_vcf_stage_readiness_bindings(
         .filter(|row| row.stage_id == stage_id)
         .map(|row| (row.tool_id.clone(), row))
         .collect::<BTreeMap<_, _>>();
-    let parser_by_tool = collect_vcf_parser_coverage_rows(repo_root)?
+    let parser_by_tool = collect_vcf_parser_fixture_coverage_rows(repo_root)?
         .2
         .into_iter()
         .filter(|row| row.stage_id == stage_id)

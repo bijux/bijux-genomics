@@ -15,7 +15,9 @@ use super::vcf_missing_result_report::{
     render_vcf_missing_result_report, DEFAULT_VCF_MISSING_RESULT_REPORT_TEST_PATH,
 };
 use super::vcf_normalized_metrics_schema::render_vcf_normalized_metrics_schema;
-use super::vcf_parser_coverage::{render_vcf_parser_coverage, DEFAULT_VCF_PARSER_COVERAGE_PATH};
+use super::vcf_parser_fixture_coverage::{
+    render_vcf_parser_fixture_coverage, DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH,
+};
 use super::vcf_parser_failure_tests::{
     render_vcf_parser_failure_tests, DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH,
 };
@@ -52,7 +54,7 @@ pub(crate) struct VcfParsersReportReadyReport {
     pub(crate) failed_goal_count: usize,
     pub(crate) failing_goal_ids: Vec<u32>,
     pub(crate) parser_fixture_row_count: usize,
-    pub(crate) benchmark_ready_parser_row_count: usize,
+    pub(crate) active_parser_fixture_row_count: usize,
     pub(crate) expected_result_row_count: usize,
     pub(crate) report_map_row_count: usize,
     pub(crate) comparable_metric_row_count: usize,
@@ -87,7 +89,7 @@ pub(crate) fn render_vcf_parsers_report_ready(
 
     let mut checks = Vec::new();
     let parser_fixture_row_count = vcf_parser_fixture_inventory().len();
-    let mut benchmark_ready_parser_row_count = 0usize;
+    let mut active_parser_fixture_row_count = 0usize;
     let mut expected_result_row_count = 0usize;
     let mut report_map_row_count = 0usize;
     let mut comparable_metric_row_count = 0usize;
@@ -310,25 +312,25 @@ pub(crate) fn render_vcf_parsers_report_ready(
     record_goal_check(
         &mut checks,
         256,
-        "vcf parser coverage",
-        Some(DEFAULT_VCF_PARSER_COVERAGE_PATH.to_string()),
+        "vcf parser fixture coverage",
+        Some(DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH.to_string()),
         || {
-            let report = render_vcf_parser_coverage(
+            let report = render_vcf_parser_fixture_coverage(
                 repo_root,
-                PathBuf::from(DEFAULT_VCF_PARSER_COVERAGE_PATH),
+                PathBuf::from(DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH),
             )?;
             if report.stage_count != 15
                 || report.tool_count != 6
                 || report.row_count != 18
                 || report.covered_row_count != 18
                 || report.missing_row_count != 0
-                || report.parser_coverage_percent != 100.0
+                || report.parser_fixture_coverage_percent != 100.0
             {
-                bail!("VCF parser coverage drifted from the governed benchmark-ready slice");
+                bail!("VCF parser fixture coverage drifted from the governed active slice");
             }
-            benchmark_ready_parser_row_count = report.covered_row_count;
+            active_parser_fixture_row_count = report.covered_row_count;
             parser_coverage_report = Some(report);
-            Ok("validated full parser coverage across the 18 benchmark-ready VCF rows".to_string())
+            Ok("validated full parser-fixture coverage across the 18 active VCF rows".to_string())
         },
     );
 
@@ -445,7 +447,7 @@ pub(crate) fn render_vcf_parsers_report_ready(
         &absolute_output_path,
         checks,
         parser_fixture_row_count,
-        benchmark_ready_parser_row_count,
+        active_parser_fixture_row_count,
         expected_result_row_count,
         report_map_row_count,
         comparable_metric_row_count,
@@ -573,7 +575,7 @@ fn build_vcf_parsers_report_ready_report(
     output_path: &Path,
     checks: Vec<VcfParsersReportReadyGoalCheck>,
     parser_fixture_row_count: usize,
-    benchmark_ready_parser_row_count: usize,
+    active_parser_fixture_row_count: usize,
     expected_result_row_count: usize,
     report_map_row_count: usize,
     comparable_metric_row_count: usize,
@@ -592,7 +594,7 @@ fn build_vcf_parsers_report_ready_report(
         failed_goal_count,
         failing_goal_ids,
         parser_fixture_row_count,
-        benchmark_ready_parser_row_count,
+        active_parser_fixture_row_count,
         expected_result_row_count,
         report_map_row_count,
         comparable_metric_row_count,
@@ -667,7 +669,7 @@ mod tests {
         assert_eq!(report.failed_goal_count, 1);
         assert_eq!(report.failing_goal_ids, vec![260]);
         assert_eq!(report.parser_fixture_row_count, 39);
-        assert_eq!(report.benchmark_ready_parser_row_count, 15);
+        assert_eq!(report.active_parser_fixture_row_count, 15);
         assert_eq!(report.expected_result_row_count, 15);
         assert_eq!(report.report_map_row_count, 15);
         assert_eq!(report.comparable_metric_row_count, 33);

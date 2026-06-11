@@ -260,8 +260,8 @@ pub(crate) fn render_operational_benchmark_ready(
         },
         |report| {
             report.ok.then_some(format!(
-                "parser_fixture_row_count={}, benchmark_ready_parser_row_count={}",
-                report.parser_fixture_row_count, report.benchmark_ready_parser_row_count
+                "parser_fixture_row_count={}, active_parser_fixture_row_count={}",
+                report.parser_fixture_row_count, report.active_parser_fixture_row_count
             ))
         },
         |report| report.ok,
