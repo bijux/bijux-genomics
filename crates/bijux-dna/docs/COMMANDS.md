@@ -871,14 +871,18 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench readiness render-vcf-parsers-report-ready`
   `render-vcf-parsers-report-ready` writes `benchmarks/readiness/VCF_PARSERS_REPORT_READY.json`
   and fail-closes across Goals 246–260. The gate reruns the governed VCF schema, parser-fixture,
-  parser-failure, parser-coverage, expected-result, missing-result, comparable-metric, and
-  report-map surfaces, then validates that parser coverage, expected results, and report mapping
-  stay aligned on the same benchmark-ready VCF pair slice.
-- `bijux-dna bench readiness render-vcf-parser-coverage`
-  `render-vcf-parser-coverage` writes `benchmarks/readiness/vcf-parser-coverage.tsv` with one
-  row per benchmark-ready VCF stage-tool parser surface. Each row keeps `stage_id`, `tool_id`,
-  `parser_id`, `fixture_path`, `schema_id`, and `coverage_status`, and the command fails closed
-  unless every benchmark-ready VCF row has a governed parser fixture and schema mapping.
+  parser-failure, parser-fixture-coverage, expected-result, missing-result, comparable-metric,
+  and report-map surfaces, then validates that parser fixture coverage, expected results, and
+  report mapping stay aligned on the same active VCF pair slice.
+- `bijux-dna bench readiness render-vcf-parser-fixture-coverage`
+  `render-vcf-parser-fixture-coverage` writes
+  `benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv` with one row per active VCF
+  stage-tool parser surface. Each row keeps `stage_id`, `tool_id`, `corpus_id`,
+  `asset_profile_id`, `adapter_id`, `parser_id`, `schema_id`, `parser_fixture_parser_id`,
+  `parser_fixture_schema_id`, `parser_fixture_root_path`, `expected_normalized_path`,
+  `raw_fixture_count`, `raw_fixture_paths`, `coverage_status`, and `reason`, and the command
+  fails closed unless every active VCF row has governed raw parser fixtures plus
+  `expected.normalized.json`.
 - `bijux-dna bench readiness render-vcf-normalized-metrics-schema`
   `render-vcf-normalized-metrics-schema` writes
   `benchmarks/schemas/vcf-normalized-metrics.v1.json` plus one stage-specific schema file under
