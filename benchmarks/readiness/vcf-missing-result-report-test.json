@@ -2,15 +2,15 @@
   "schema_version": "bijux.bench.readiness.vcf_missing_result_report.v1",
   "output_path": "benchmarks/readiness/vcf-missing-result-report-test.json",
   "fake_result_root": "benchmarks/readiness/vcf-missing-result-report-fixture",
-  "expected_row_count": 15,
-  "present_result_row_count": 14,
+  "expected_row_count": 16,
+  "present_result_row_count": 15,
   "missing_result_row_count": 1,
   "passes_behavior_test": true,
   "removed_result_row_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
   "removed_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.stats/vcf_cohort/bcftools/stage-result.json",
   "report_section_counts": {
     "damage_aware_filtering": 1,
-    "imputation": 1,
+    "imputation": 2,
     "likelihood_postprocess": 1,
     "normalization": 1,
     "phasing": 1,
@@ -211,6 +211,33 @@
       ],
       "report_section": "likelihood_postprocess",
       "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.gl_propagation:vcf_single_sample:bcftools` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
+      "domain": "vcf",
+      "stage_id": "vcf.imputation_metrics",
+      "tool_id": "beagle",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.imputation_metrics/vcf_cohort_with_panel/beagle/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.imputation_metrics/vcf_cohort_with_panel/beagle/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "imputation_metrics_json"
+      ],
+      "observed_output_artifact_ids": [
+        "imputation_metrics_json"
+      ],
+      "expected_metrics": [
+        "status",
+        "mean_info_score",
+        "r2_available",
+        "low_confidence_sites",
+        "masked_truth_sites",
+        "missing_quality_fields"
+      ],
+      "report_section": "imputation",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle` remains present with a validated stage-result manifest"
     },
     {
       "result_row_id": "vcf:vcf_production_regression:vcf.impute:vcf_cohort_with_panel:beagle",

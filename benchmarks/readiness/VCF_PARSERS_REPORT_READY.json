@@ -6,9 +6,9 @@
   "failed_goal_count": 0,
   "failing_goal_ids": [],
   "parser_fixture_row_count": 39,
-  "benchmark_ready_parser_row_count": 15,
-  "expected_result_row_count": 15,
-  "report_map_row_count": 15,
+  "benchmark_ready_parser_row_count": 16,
+  "expected_result_row_count": 16,
+  "report_map_row_count": 16,
   "comparable_metric_row_count": 33,
   "ok": true,
   "checks": [
@@ -115,7 +115,7 @@
       "surface": "vcf parser/report ready pair completeness",
       "output_path": "benchmarks/readiness/VCF_PARSERS_REPORT_READY.json",
       "ok": true,
-      "detail": "validated 15 benchmark-ready VCF rows across parser coverage, expected results, and report-map coverage"
+      "detail": "validated 16 benchmark-ready VCF rows across parser coverage, expected results, and report-map coverage"
     }
   ]
 }

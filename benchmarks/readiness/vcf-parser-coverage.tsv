@@ -6,6 +6,7 @@ vcf.call_pseudohaploid	bcftools	parse_bcftools_call_pseudohaploid_metrics	benchm
 vcf.damage_filter	bcftools	parse_bcftools_damage_filter_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter	bijux.vcf.damage_filter.v1	covered
 vcf.filter	bcftools	parse_bcftools_filter_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.filter	bijux.vcf.filter.v1	covered
 vcf.gl_propagation	bcftools	parse_bcftools_gl_propagation_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.gl_propagation	bijux.vcf.gl_propagation.v1	covered
+vcf.imputation_metrics	beagle	parse_beagle_imputation_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics	bijux.vcf.imputation_metrics.v1	covered
 vcf.impute	beagle	parse_beagle_impute_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute	bijux.vcf.impute.v1	covered
 vcf.phasing	shapeit5	parse_shapeit5_phasing_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/phasing/shapeit5	bijux.vcf.phasing.v1	covered
 vcf.postprocess	bcftools	parse_bcftools_postprocess_metrics	benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.postprocess	bijux.vcf.postprocess.v1	covered
