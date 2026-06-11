@@ -175,6 +175,12 @@ fn stage_catalog_rows_keep_expected_output_contract_ids() {
     )
     .unwrap_or_else(|| panic!("roh outputs"));
     assert_eq!(roh_outputs, ["roh_report"]);
+
+    let ibd_outputs = bijux_dna_stages_vcf::stage_specs::vcf_domain_stage_expected_output_ids(
+        bijux_dna_domain_vcf::VcfDomainStage::Ibd,
+    )
+    .unwrap_or_else(|| panic!("ibd outputs"));
+    assert_eq!(ibd_outputs, ["ibd_segments"]);
 }
 
 #[test]

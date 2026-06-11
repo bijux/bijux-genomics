@@ -169,8 +169,7 @@ mod contracts {
     }
 
     #[test]
-    fn authored_supported_report_stage_catalogs_match_governed_contract_ids(
-    ) {
+    fn authored_supported_report_and_segment_stage_catalogs_match_governed_contract_ids() {
         let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../");
         let qc_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/qc.yaml"))
             .unwrap_or_else(|err| panic!("read qc stage yaml: {err}"));
@@ -182,6 +181,8 @@ mod contracts {
         let population_structure_raw =
             std::fs::read_to_string(repo_root.join("domain/vcf/stages/population_structure.yaml"))
                 .unwrap_or_else(|err| panic!("read population_structure stage yaml: {err}"));
+        let ibd_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/ibd.yaml"))
+            .unwrap_or_else(|err| panic!("read ibd stage yaml: {err}"));
         let roh_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/roh.yaml"))
             .unwrap_or_else(|err| panic!("read roh stage yaml: {err}"));
         let stats_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/stats.yaml"))
@@ -271,6 +272,26 @@ mod contracts {
             assert!(
                 population_structure_raw.contains(&format!("  - name: \"{metric_id}\"")),
                 "authored population_structure stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        assert!(ibd_raw.contains("status: \"supported\""));
+        assert!(ibd_raw.contains("- name: \"ibd_segments\""));
+        assert!(ibd_raw.contains("required_outputs: [\"ibd_segments\"]"));
+        for metric_id in [
+            "pair_count",
+            "rows",
+            "status",
+            "insufficient_reason",
+            "insufficient_overlap_probe",
+        ] {
+            assert!(
+                ibd_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored ibd stage yaml is missing `{metric_id}`"
             );
             assert!(
                 metrics_raw.contains(&format!("- id: {metric_id}")),
@@ -368,6 +389,10 @@ mod contracts {
         let roh = stage_io_contract(VcfDomainStage::Roh)
             .unwrap_or_else(|| panic!("missing stage IO contract for roh"));
         assert_eq!(roh.required_outputs, vec!["roh_report"]);
+
+        let ibd = stage_io_contract(VcfDomainStage::Ibd)
+            .unwrap_or_else(|| panic!("missing stage IO contract for ibd"));
+        assert_eq!(ibd.required_outputs, vec!["ibd_segments"]);
 
         let stats = stage_io_contract(VcfDomainStage::Stats)
             .unwrap_or_else(|| panic!("missing stage IO contract for stats"));

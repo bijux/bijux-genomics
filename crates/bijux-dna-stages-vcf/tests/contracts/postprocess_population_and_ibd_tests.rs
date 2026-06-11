@@ -612,6 +612,18 @@ fn ibd_stage_emits_segments_filtered_and_metrics() {
         .unwrap_or_else(|err| panic!("parse ibd summary: {err}"));
     assert!(ibd_summary_json.get("execution_mode").is_some());
     assert_eq!(ibd_summary_json.get("status").and_then(|value| value.as_str()), Some("complete"));
+    assert!(ibd_summary_json.pointer("/tool_attempts/germline").is_some());
+    assert!(ibd_summary_json.pointer("/tool_attempts/ibdseq").is_some());
+    assert!(ibd_summary_json.pointer("/tool_attempts/ibdhap").is_some());
+
+    let filtered_raw = std::fs::read_to_string(&out.ibd_filtered_segments_tsv)
+        .unwrap_or_else(|err| panic!("read filtered IBD segments: {err}"));
+    let filtered_rows = filtered_raw.lines().collect::<Vec<_>>();
+    assert_eq!(
+        filtered_rows.first().copied(),
+        Some("sample_a\tsample_b\tcontig\tstart\tend\tlength_cm\tmarker_count")
+    );
+    assert!(filtered_rows.len() > 1, "expected at least one filtered IBD segment row");
 }
 
 #[test]

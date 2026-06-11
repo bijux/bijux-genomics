@@ -16,7 +16,7 @@
         "sample_b": "sample_c",
         "segment_count": 2,
         "total_length": 11.5,
-        "marker_count_total": 51,
+        "overlap_marker_count": 51,
         "status": "complete"
       }
     ],
