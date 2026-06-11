@@ -26,7 +26,7 @@ artifacts:
   type: vcf
 - id: ibd_segments
   type: json
-- id: imputation_out
+- id: imputation_metrics_json
   type: json
 - id: imputed_vcf
   type: vcf

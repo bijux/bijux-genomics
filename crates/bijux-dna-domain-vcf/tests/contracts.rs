@@ -129,6 +129,46 @@ mod contracts {
     }
 
     #[test]
+    fn authored_imputation_metrics_catalog_matches_governed_contract_ids() {
+        let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../");
+        let stage_raw = std::fs::read_to_string(
+            repo_root.join("domain/vcf/stages/imputation_metrics.yaml"),
+        )
+        .unwrap_or_else(|err| panic!("read imputation_metrics stage yaml: {err}"));
+        let artifacts_raw = std::fs::read_to_string(repo_root.join("domain/vcf/artifacts.yaml"))
+            .unwrap_or_else(|err| panic!("read VCF artifact vocabulary: {err}"));
+        let metrics_raw = std::fs::read_to_string(repo_root.join("domain/vcf/metrics.yaml"))
+            .unwrap_or_else(|err| panic!("read VCF metric vocabulary: {err}"));
+
+        assert!(stage_raw.contains("- name: \"imputation_metrics_json\""));
+        assert!(stage_raw.contains("required_outputs: [\"imputation_metrics_json\"]"));
+        assert!(!stage_raw.contains("imputation_out"));
+        assert!(!stage_raw.contains("imputation_status"));
+
+        for metric_id in [
+            "status",
+            "mean_info_score",
+            "r2_available",
+            "low_confidence_sites",
+            "masked_truth_sites",
+            "missing_quality_fields",
+        ] {
+            assert!(
+                stage_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        assert!(artifacts_raw.contains("- id: imputation_metrics_json"));
+        assert!(!artifacts_raw.contains("imputation_out"));
+        assert!(!metrics_raw.contains("- id: imputation_status"));
+    }
+
+    #[test]
     fn stats_and_qc_metric_contracts_cover_governed_summary_ids() {
         let stats = stage_metrics_contract(VcfDomainStage::Stats);
         assert!(stats.required_metrics.contains(&"sample_count"));

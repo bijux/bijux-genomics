@@ -22,9 +22,12 @@ metrics:
 - id: ibd_length_bins_cM
 - id: ibd_segment_count
 - id: ibd_total_length_cM
-- id: imputation_status
 - id: impute_status
+- id: low_confidence_sites
 - id: mean_gl_depth
+- id: mean_info_score
+- id: missing_quality_fields
+- id: masked_truth_sites
 - id: ne_confidence_interval
 - id: ne_recent
 - id: ne_time_series
@@ -39,11 +42,13 @@ metrics:
 - id: pseudo_missing_rate
 - id: pseudo_sampling_seed
 - id: qc_status
+- id: r2_available
 - id: reference_panel_status
 - id: roh_count
 - id: roh_length_bins_mb
 - id: roh_max_length_mb
 - id: roh_mean_length_mb
 - id: roh_total_mb
+- id: status
 - id: ti_tv
 - id: variants_total

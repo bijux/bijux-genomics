@@ -9,17 +9,25 @@ inputs:
     data_type: "vcf"
     cardinality: "One"
 outputs:
-  - name: "imputation_out"
+  - name: "imputation_metrics_json"
     data_type: "json"
     cardinality: "One"
 required_inputs: ["vcf"]
-required_outputs: ["imputation_out"]
+required_outputs: ["imputation_metrics_json"]
 tool_capability_requirements: []
 metrics:
-  - name: "imputation_status"
+  - name: "status"
+  - name: "mean_info_score"
+  - name: "r2_available"
+  - name: "low_confidence_sites"
+  - name: "masked_truth_sites"
+  - name: "missing_quality_fields"
 compatible_tools: ["beagle", "glimpse", "impute5", "minimac4"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
-assumptions: ["panel_required", "genetic_map_required"]
+assumptions:
+  - "panel_required"
+  - "genetic_map_required"
+  - "imputation_metrics_outputs_emit_metrics_json_with_schema_bijux.vcf.imputation_metrics.v1"
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness:
