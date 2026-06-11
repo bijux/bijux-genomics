@@ -115,7 +115,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.ibd",
-            status: "supported",
+            status: "planned",
             default_tool_id: "germline",
             metrics_schema: "bijux.vcf.ibd.v1",
             smoke_supported: true,

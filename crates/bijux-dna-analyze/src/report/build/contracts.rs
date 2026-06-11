@@ -14,7 +14,15 @@ pub fn required_vcf_metric_keys(stage_id: &str) -> &'static [&'static str] {
         "vcf.impute" => &["imputation_info_mean", "rsq_mean", "missingness_post"],
         "vcf.roh" => &["segment_count", "total_length"],
         "vcf.ibd" => &["pair_count", "rows"],
-        "vcf.demography" => &["ne_recent"],
+        "vcf.demography" => &[
+            "method",
+            "inference_status",
+            "status",
+            "insufficient_reason",
+            "time_bins",
+            "ne_estimates",
+            "insufficient_data_probe",
+        ],
         _ => &[],
     }
 }

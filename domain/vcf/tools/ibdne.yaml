@@ -15,7 +15,7 @@ version_cmd: "ibdne --version"
 help_cmd: "ibdne --help"
 expected_artifacts: ["demography_report", "metrics.json"]
 capabilities: ["SE", "PE"]
-metrics_schema_id: "bijux.vcf.ibd.v1"
+metrics_schema_id: "bijux.vcf.demography.v1"
 comparability_notes: "Planned tool; compare only within pinned profile and reference build."
 container:
   image: "containers/apptainer/lunarc/ibdne.def"

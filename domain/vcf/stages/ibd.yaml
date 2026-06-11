@@ -1,6 +1,6 @@
 schema_version: "bijux.stage.v1"
 stage_id: "vcf.ibd"
-status: "supported"
+status: "planned"
 scope: "post_vcf"
 domain: "vcf"
 description: "VCF stage contract for vcf.ibd in the governed domain registry."
@@ -22,7 +22,7 @@ metrics:
   - name: "insufficient_reason"
   - name: "insufficient_overlap_probe"
 compatible_tools: ["germline", "ibdseq", "ibdhap"]
-single_tool_justification: "germline is the governed IBD baseline because it keeps normalized pairwise segment rows and the insufficient-overlap probe explicit while retained alternatives stay comparative."
+single_tool_justification: "germline remains the planned default because it matches the active normalized pair-row contract while retained alternatives stay comparative."
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "phasing_quality_thresholds_are_fixed_per_run"

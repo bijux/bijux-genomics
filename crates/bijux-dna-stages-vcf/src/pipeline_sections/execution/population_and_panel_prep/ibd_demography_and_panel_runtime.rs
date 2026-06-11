@@ -86,9 +86,6 @@ pub fn run_demography_stage(
                 "segments_validated": valid_segments,
                 "time_bins": [],
                 "ne_estimates": [],
-                "ne_recent": serde_json::Value::Null,
-                "ne_time_series": [],
-                "ne_confidence_interval": "generated_per_generation",
                 "tool_attempts": {
                     "ibdne": false
                 }
@@ -183,9 +180,6 @@ pub fn run_demography_stage(
             "segments_validated": valid_segments,
             "time_bins": time_bins,
             "ne_estimates": ne_estimates,
-            "ne_recent": series.first().and_then(|v| v.get("ne")).unwrap_or(&serde_json::Value::Null),
-            "ne_time_series": series,
-            "ne_confidence_interval": "generated_per_generation",
             "tool_attempts": {
                 "ibdne": ibdne_ok
             }
