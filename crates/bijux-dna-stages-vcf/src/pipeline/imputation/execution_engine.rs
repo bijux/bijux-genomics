@@ -18,15 +18,6 @@ pub(crate) fn run_impute_stage_inner(
     }
 
     let panel = resolve_panel(&params.species_id, &params.build_id, params.panel_id.as_deref())?;
-    let map = if matches!(params.backend, ImputeBackend::Impute5 | ImputeBackend::Minimac4) {
-        Some(resolve_map(&params.species_id, &params.build_id, params.map_id.as_deref())?)
-    } else {
-        params
-            .map_id
-            .as_deref()
-            .map(|map_id| resolve_map(&params.species_id, &params.build_id, Some(map_id)))
-            .transpose()?
-    };
     let run_started = std::time::Instant::now();
     let raw = if input_vcf
         .extension()
@@ -132,6 +123,15 @@ pub(crate) fn run_impute_stage_inner(
     if has_sex_chr && species_context.par_policy.eq_ignore_ascii_case("unsupported") {
         bail!("sex chromosome imputation requires explicit PAR policy in SpeciesContext");
     }
+
+    let map = if params.map_id.is_some()
+        || matches!(params.backend, ImputeBackend::Impute5 | ImputeBackend::Minimac4)
+        || (matches!(params.backend, ImputeBackend::Beagle) && has_phased_gt)
+    {
+        Some(resolve_map(&params.species_id, &params.build_id, params.map_id.as_deref())?)
+    } else {
+        None
+    };
 
     let backend_evidence = if has_gl_or_gp {
         BackendEvidence::GlLikelihood
