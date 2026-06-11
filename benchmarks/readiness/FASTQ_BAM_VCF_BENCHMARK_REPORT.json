@@ -2,30 +2,30 @@
   "schema_version": "bijux.bench.readiness.full_benchmark_report.v1",
   "markdown_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md",
   "json_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-  "row_count": 129,
-  "expected_result_row_count": 128,
+  "row_count": 131,
+  "expected_result_row_count": 130,
   "explicit_unsupported_row_count": 1,
-  "present_row_count": 125,
+  "present_row_count": 127,
   "missing_result_row_count": 3,
   "unsupported_pair_row_count": 1,
-  "stage_centric_row_count": 61,
-  "tool_centric_row_count": 68,
+  "stage_centric_row_count": 62,
+  "tool_centric_row_count": 69,
   "corpus_centric_row_count": 10,
   "pipeline_centric_row_count": 10,
-  "runtime_row_count": 129,
-  "memory_row_count": 129,
+  "runtime_row_count": 131,
+  "memory_row_count": 131,
   "comparable_metric_row_count": 103,
-  "failure_row_count": 128,
+  "failure_row_count": 130,
   "failure_class_row_count": 7,
   "passes_behavior_test": true,
   "domain_counts": {
     "bam": 49,
     "fastq": 63,
-    "vcf": 17
+    "vcf": 19
   },
   "row_status_counts": {
     "missing_result": 3,
-    "present": 125,
+    "present": 127,
     "unsupported_pair": 1
   },
   "rows": [
@@ -2928,7 +2928,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.164104417,
+      "real_smoke_elapsed_seconds": 0.164214417,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -3181,6 +3181,59 @@
       "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.impute:vcf_cohort_with_panel:beagle` remains present with a validated fake-run manifest"
     },
     {
+      "report_row_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft",
+      "row_status": "present",
+      "result_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft",
+      "domain": "vcf",
+      "stage_id": "vcf.pca",
+      "tool_id": "eigensoft",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "report_section": "population_structure",
+      "pipeline_ids": [],
+      "expected_output_count": 1,
+      "expected_metric_count": 5,
+      "comparable_metric_count": 2,
+      "simulated_elapsed_seconds": 2.0,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/eigensoft/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/eigensoft/stage-result.json",
+      "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft` remains present with a validated fake-run manifest"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2",
+      "row_status": "present",
+      "result_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.pca",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "report_section": "population_structure",
+      "pipeline_ids": [
+        "bam-genotyping-to-vcf-downstream",
+        "popgen-structure-vcf"
+      ],
+      "expected_output_count": 1,
+      "expected_metric_count": 5,
+      "comparable_metric_count": 2,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/plink2/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/plink2/stage-result.json",
+      "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2` remains present with a validated fake-run manifest"
+    },
+    {
       "report_row_id": "vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5",
       "row_status": "present",
       "result_id": "vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5",
@@ -3364,7 +3417,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.059368708,
+      "real_smoke_elapsed_seconds": 0.061360208,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -4554,6 +4607,28 @@
     },
     {
       "domain": "vcf",
+      "stage_id": "vcf.pca",
+      "row_count": 2,
+      "present_row_count": 2,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "tool_ids": [
+        "eigensoft",
+        "plink2"
+      ],
+      "corpus_ids": [
+        "vcf_production_regression"
+      ],
+      "pipeline_ids": [
+        "bam-genotyping-to-vcf-downstream",
+        "popgen-structure-vcf"
+      ],
+      "report_sections": [
+        "population_structure"
+      ]
+    },
+    {
+      "domain": "vcf",
       "stage_id": "vcf.phasing",
       "row_count": 1,
       "present_row_count": 1,
@@ -5113,6 +5188,23 @@
       "pipeline_ids": []
     },
     {
+      "tool_id": "eigensoft",
+      "row_count": 1,
+      "present_row_count": 1,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "domains": [
+        "vcf"
+      ],
+      "stage_ids": [
+        "vcf.pca"
+      ],
+      "corpus_ids": [
+        "vcf_production_regression"
+      ],
+      "pipeline_ids": []
+    },
+    {
       "tool_id": "fastp",
       "row_count": 4,
       "present_row_count": 4,
@@ -5540,14 +5632,15 @@
     },
     {
       "tool_id": "plink2",
-      "row_count": 1,
-      "present_row_count": 1,
+      "row_count": 2,
+      "present_row_count": 2,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
         "vcf"
       ],
       "stage_ids": [
+        "vcf.pca",
         "vcf.qc"
       ],
       "corpus_ids": [
@@ -6250,8 +6343,8 @@
     },
     {
       "corpus_id": "vcf_production_regression",
-      "row_count": 16,
-      "present_row_count": 15,
+      "row_count": 18,
+      "present_row_count": 17,
       "missing_result_row_count": 1,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -6267,6 +6360,7 @@
         "vcf.gl_propagation",
         "vcf.imputation_metrics",
         "vcf.impute",
+        "vcf.pca",
         "vcf.phasing",
         "vcf.postprocess",
         "vcf.prepare_reference_panel",
@@ -6276,6 +6370,7 @@
       "tool_ids": [
         "bcftools",
         "beagle",
+        "eigensoft",
         "plink",
         "plink2",
         "shapeit5"
@@ -6294,7 +6389,7 @@
   ],
   "pipeline_centric": {
     "row_count": 10,
-    "unmapped_row_count": 92,
+    "unmapped_row_count": 93,
     "rows": [
       {
         "pipeline_id": "adna-gl-fastq-bam-vcf",
@@ -6408,8 +6503,8 @@
       },
       {
         "pipeline_id": "bam-genotyping-to-vcf-downstream",
-        "row_count": 6,
-        "present_row_count": 4,
+        "row_count": 7,
+        "present_row_count": 5,
         "missing_result_row_count": 2,
         "unsupported_pair_row_count": 0,
         "domains": [
@@ -6421,6 +6516,7 @@
           "bam.filter",
           "bam.recalibration",
           "vcf.filter",
+          "vcf.pca",
           "vcf.qc",
           "vcf.stats"
         ],
@@ -6532,14 +6628,15 @@
       },
       {
         "pipeline_id": "popgen-structure-vcf",
-        "row_count": 1,
-        "present_row_count": 1,
+        "row_count": 2,
+        "present_row_count": 2,
         "missing_result_row_count": 0,
         "unsupported_pair_row_count": 0,
         "domains": [
           "vcf"
         ],
         "stage_ids": [
+          "vcf.pca",
           "vcf.qc"
         ],
         "tool_ids": [
@@ -7828,7 +7925,7 @@
       "row_status": "present",
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.164104417,
+      "real_smoke_elapsed_seconds": 0.164214417,
       "runtime_source": "fake_run_and_real_smoke"
     },
     {
@@ -7931,6 +8028,28 @@
       "runtime_source": "fake_run_simulated"
     },
     {
+      "report_row_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft",
+      "domain": "vcf",
+      "stage_id": "vcf.pca",
+      "tool_id": "eigensoft",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 2.0,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.pca",
+      "tool_id": "plink2",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
       "report_row_id": "vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5",
       "domain": "vcf",
       "stage_id": "vcf.phasing",
@@ -8004,7 +8123,7 @@
       "row_status": "missing_result",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.059368708,
+      "real_smoke_elapsed_seconds": 0.061360208,
       "runtime_source": "fake_run_and_real_smoke"
     }
   ],
@@ -9474,6 +9593,30 @@
       "memory_source": "declared_stage_tool_resource"
     },
     {
+      "report_row_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft",
+      "domain": "vcf",
+      "stage_id": "vcf.pca",
+      "tool_id": "eigensoft",
+      "row_status": "present",
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.pca",
+      "tool_id": "plink2",
+      "row_status": "present",
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
       "report_row_id": "vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5",
       "domain": "vcf",
       "stage_id": "vcf.phasing",
@@ -9559,12 +9702,12 @@
     }
   ],
   "failures": {
-    "simulated_failure_row_count": 128,
+    "simulated_failure_row_count": 130,
     "failure_class_row_count": 7,
     "simulated_failure_domain_counts": {
       "bam": 49,
       "fastq": 63,
-      "vcf": 16
+      "vcf": 18
     },
     "rows": [
       {
@@ -10654,6 +10797,24 @@
         "tool_id": "beagle",
         "result_id": "vcf:vcf_production_regression:vcf.impute:vcf_cohort_with_panel:beagle",
         "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/vcf/vcf_production_regression/vcf.impute/vcf_cohort_with_panel/beagle/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft",
+        "domain": "vcf",
+        "stage_id": "vcf.pca",
+        "tool_id": "eigensoft",
+        "result_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/vcf/vcf_production_regression/vcf.pca/vcf_cohort/eigensoft/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2",
+        "domain": "vcf",
+        "stage_id": "vcf.pca",
+        "tool_id": "plink2",
+        "result_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/vcf/vcf_production_regression/vcf.pca/vcf_cohort/plink2/failure.json",
         "detail": "fake failure recorded exit_code=7"
       },
       {

@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.all_domain_missing_result_test.v1",
   "output_path": "benchmarks/readiness/missing-result-test-all-domains.json",
   "fake_result_root": "runs/bench/readiness-probes/all-domains/missing-result-test",
-  "expected_row_count": 128,
-  "present_result_row_count": 125,
+  "expected_row_count": 130,
+  "present_result_row_count": 127,
   "missing_result_row_count": 3,
   "passes_behavior_test": true,
   "removed_result_ids": [
@@ -19,7 +19,7 @@
   "domain_counts": {
     "bam": 49,
     "fastq": 63,
-    "vcf": 16
+    "vcf": 18
   },
   "rows": [
     {
@@ -3753,6 +3753,80 @@
       ],
       "report_section": "imputation",
       "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.impute:vcf_cohort_with_panel:beagle` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft",
+      "domain": "vcf",
+      "stage_id": "vcf.pca",
+      "tool_id": "eigensoft",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/eigensoft/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/eigensoft/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "convertf_par",
+        "smartpca_par",
+        "eigensoft_geno",
+        "eigensoft_snp",
+        "eigensoft_ind",
+        "smartpca_eigenvec",
+        "smartpca_eigenval",
+        "smartpca_log",
+        "pca_report"
+      ],
+      "observed_output_artifact_ids": [
+        "convertf_par",
+        "smartpca_par",
+        "eigensoft_geno",
+        "eigensoft_snp",
+        "eigensoft_ind",
+        "smartpca_eigenvec",
+        "smartpca_eigenval",
+        "smartpca_log",
+        "pca_report"
+      ],
+      "expected_metrics": [
+        "sample_count",
+        "variant_count",
+        "excluded_samples",
+        "unexpected_samples",
+        "eigenvalues"
+      ],
+      "report_section": "population_structure",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.pca",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/plink2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/plink2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "pca_eigenvec",
+        "pca_eigenval",
+        "plink2_log",
+        "pca_report"
+      ],
+      "observed_output_artifact_ids": [
+        "pca_eigenvec",
+        "pca_eigenval",
+        "plink2_log",
+        "pca_report"
+      ],
+      "expected_metrics": [
+        "sample_count",
+        "variant_count",
+        "excluded_samples",
+        "unexpected_samples",
+        "eigenvalues"
+      ],
+      "report_section": "population_structure",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2` remains present with a validated fake-run manifest"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5",

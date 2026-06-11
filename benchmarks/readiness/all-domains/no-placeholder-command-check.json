@@ -3,26 +3,27 @@
   "output_path": "benchmarks/readiness/all-domains/no-placeholder-command-check.json",
   "script_output_path": "benchmarks/readiness/rendered-commands-all-domains.sh",
   "argv_output_path": "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl",
-  "row_count": 128,
-  "result_id_count": 128,
-  "stage_count": 61,
-  "tool_count": 68,
-  "command_step_count": 146,
-  "shell_wrapped_step_count": 86,
-  "direct_step_count": 60,
-  "valid_row_count": 128,
+  "row_count": 130,
+  "result_id_count": 130,
+  "stage_count": 62,
+  "tool_count": 69,
+  "command_step_count": 151,
+  "shell_wrapped_step_count": 89,
+  "direct_step_count": 62,
+  "valid_row_count": 130,
   "invalid_row_count": 0,
   "domain_counts": {
     "bam": 49,
     "fastq": 63,
-    "vcf": 16
+    "vcf": 18
   },
   "command_source_counts": {
     "fastq_bam_command_adapter": 112,
     "vcf_bcftools_adapter": 11,
+    "vcf_eigensoft_adapter": 1,
     "vcf_imputation_family_adapter": 2,
     "vcf_phasing_family_adapter": 1,
-    "vcf_plink_family_adapter": 2
+    "vcf_plink_family_adapter": 3
   },
   "finding_type_counts": {},
   "violation_count": 0,
@@ -4743,6 +4744,114 @@
           "step_id": "index_imputed_vcf",
           "step_kind": "index",
           "executable": "bcftools",
+          "is_shell_wrapper": false,
+          "command_heads": [],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        }
+      ]
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft",
+      "domain": "vcf",
+      "stage_id": "vcf.pca",
+      "tool_id": "eigensoft",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_source": "vcf_eigensoft_adapter",
+      "command_step_count": 4,
+      "script_command_count": 4,
+      "has_real_invocation": true,
+      "finding_count": 0,
+      "finding_types": [],
+      "ok": true,
+      "step_audits": [
+        {
+          "step_id": "write_convertf_par",
+          "step_kind": "config_render",
+          "executable": "sh",
+          "is_shell_wrapper": true,
+          "command_heads": [
+            "cat",
+            "genotypename:",
+            "snpname:",
+            "indivname:",
+            "outputformat:",
+            "genotypeoutname:",
+            "snpoutname:",
+            "indivoutname:",
+            "familynames:",
+            "eof"
+          ],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        },
+        {
+          "step_id": "convertf",
+          "step_kind": "format_conversion",
+          "executable": "convertf",
+          "is_shell_wrapper": false,
+          "command_heads": [],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        },
+        {
+          "step_id": "write_smartpca_par",
+          "step_kind": "config_render",
+          "executable": "sh",
+          "is_shell_wrapper": true,
+          "command_heads": [
+            "cat",
+            "genotypename:",
+            "snpname:",
+            "indivname:",
+            "evecoutname:",
+            "evaloutname:",
+            "numoutevec:",
+            "familynames:",
+            "eof"
+          ],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        },
+        {
+          "step_id": "smartpca",
+          "step_kind": "principal_components",
+          "executable": "sh",
+          "is_shell_wrapper": true,
+          "command_heads": [
+            "smartpca",
+            "1"
+          ],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        }
+      ]
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.pca",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_source": "vcf_plink_family_adapter",
+      "command_step_count": 1,
+      "script_command_count": 1,
+      "has_real_invocation": true,
+      "finding_count": 0,
+      "finding_types": [],
+      "ok": true,
+      "step_audits": [
+        {
+          "step_id": "pca",
+          "step_kind": "principal_components",
+          "executable": "plink2",
           "is_shell_wrapper": false,
           "command_heads": [],
           "has_real_invocation": true,
