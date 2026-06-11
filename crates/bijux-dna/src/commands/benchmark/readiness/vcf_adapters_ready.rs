@@ -190,7 +190,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 report.decision_counts.get("future_not_benchmark_ready").copied().unwrap_or(0);
             let limit_to_specialized_tool =
                 report.decision_counts.get("limit_to_specialized_tool").copied().unwrap_or(0);
-            if future_not_benchmark_ready != 8 || limit_to_specialized_tool != 3 {
+            if future_not_benchmark_ready != 11 || limit_to_specialized_tool != 0 {
                 bail!(
                     "VCF undercovered-stage decisions drifted: future_not_benchmark_ready={}, limit_to_specialized_tool={}",
                     future_not_benchmark_ready,
@@ -220,11 +220,11 @@ pub(crate) fn render_vcf_adapters_ready(
                 || report.get("stage_count").and_then(serde_json::Value::as_u64) != Some(20)
                 || report.get("matrix_row_count").and_then(serde_json::Value::as_u64) != Some(22)
                 || report.get("registry_pair_count").and_then(serde_json::Value::as_u64)
-                    != Some(47)
+                    != Some(44)
                 || report
                     .get("benchmark_ready_registry_pair_count")
                     .and_then(serde_json::Value::as_u64)
-                    != Some(10)
+                    != Some(13)
                 || report
                     .get("unregistered_matrix_pair_count")
                     .and_then(serde_json::Value::as_u64)

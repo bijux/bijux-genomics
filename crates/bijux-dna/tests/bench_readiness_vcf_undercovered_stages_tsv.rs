@@ -41,20 +41,19 @@ fn bench_readiness_vcf_undercovered_stages_writes_governed_tsv_columns() {
         Some("stage_id\tvalid_tool_classes\tregistered_tools\tmissing_tools\tdecision")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 12, "TSV must retain the governed VCF undercovered row count");
+    assert_eq!(rows.len(), 11, "TSV must retain the governed VCF undercovered row count");
     for row in [
-        "vcf.admixture\tcohort_analysis,variant_processing\tplink2\tbcftools,plink\tlimit_to_specialized_tool",
+        "vcf.admixture\tcohort_analysis\tplink2\tplink\tfuture_not_benchmark_ready",
         "vcf.call_gl\tgenotype_likelihood_calling,variant_processing\tbcftools\tangsd\tfuture_not_benchmark_ready",
         "vcf.call_pseudohaploid\tgenotype_likelihood_calling,variant_processing\tbcftools\tangsd\tfuture_not_benchmark_ready",
         "vcf.damage_filter\tgenotype_likelihood_calling,variant_processing\tbcftools\tangsd\tfuture_not_benchmark_ready",
         "vcf.gl_propagation\tgenotype_likelihood_calling,variant_processing\tbcftools\tangsd\tfuture_not_benchmark_ready",
         "vcf.ibd\tdemography,relatedness\tgermline\tibdhap,ibdne,ibdseq\tfuture_not_benchmark_ready",
-        "vcf.imputation_metrics\timputation,phasing,variant_processing\tbeagle\tbcftools,beagle-imputation,glimpse,impute5,minimac4\tlimit_to_specialized_tool",
+        "vcf.imputation_metrics\timputation,phasing\tbeagle\tbeagle-imputation,glimpse,impute5,minimac4\tfuture_not_benchmark_ready",
         "vcf.impute\timputation,phasing\tbeagle\tbeagle-imputation,glimpse,impute5,minimac4\tfuture_not_benchmark_ready",
-        "vcf.pca\tcohort_analysis,population_structure,variant_processing\tplink2\tbcftools,eigensoft\tlimit_to_specialized_tool",
-        "vcf.phasing\tphasing,variant_processing\tshapeit5\tbcftools,beagle,eagle,shapeit\tlimit_to_specialized_tool",
+        "vcf.pca\tcohort_analysis,population_structure\tplink2\teigensoft\tfuture_not_benchmark_ready",
+        "vcf.phasing\tphasing\tshapeit5\tbeagle,eagle,shapeit\tfuture_not_benchmark_ready",
         "vcf.population_structure\tcohort_analysis,population_structure\tplink2\teigensoft,plink\tfuture_not_benchmark_ready",
-        "vcf.qc\tcohort_analysis,variant_processing\tplink2\tbcftools,plink\tlimit_to_specialized_tool",
     ] {
         assert!(
             rows.iter().any(|candidate| candidate == &row),

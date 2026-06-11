@@ -45,6 +45,7 @@ pub(crate) struct VcfMatrixRegistryConsistencyReport {
 struct VcfRegistryToolRecord {
     tool_id: String,
     stage_ids: BTreeSet<String>,
+    production_stage_ids: BTreeSet<String>,
     statuses: BTreeSet<String>,
 }
 
@@ -124,7 +125,10 @@ pub(crate) fn render_vcf_matrix_registry_consistency(
                     stage_support_by_id.get(stage_id.as_str()).is_some_and(|status| status == "supported")
                         && registry_by_tool
                             .get(tool_id.as_str())
-                            .is_some_and(|record| record.statuses.contains("production"))
+                            .is_some_and(|record| {
+                                record.statuses.contains("production")
+                                    && record.production_stage_ids.contains(stage_id.as_str())
+                            })
                 })
                 .cloned()
                 .map(|tool_id| (stage_id.clone(), tool_id))
@@ -256,8 +260,12 @@ fn load_vcf_registry_snapshot(repo_root: &Path) -> Result<VcfRegistrySnapshot> {
             let record = records.entry(tool_id.clone()).or_insert_with(|| VcfRegistryToolRecord {
                 tool_id,
                 stage_ids: BTreeSet::new(),
+                production_stage_ids: BTreeSet::new(),
                 statuses: BTreeSet::new(),
             });
+            if status == "production" {
+                record.production_stage_ids.extend(stage_ids.iter().cloned());
+            }
             record.stage_ids.extend(stage_ids);
             record.statuses.insert(status.to_string());
         }
@@ -345,8 +353,8 @@ mod tests {
         assert!(report.passes_gate);
         assert_eq!(report.stage_count, 20);
         assert_eq!(report.matrix_row_count, 22);
-        assert_eq!(report.registry_pair_count, 47);
-        assert_eq!(report.benchmark_ready_registry_pair_count, 10);
+        assert_eq!(report.registry_pair_count, 44);
+        assert_eq!(report.benchmark_ready_registry_pair_count, 13);
         assert_eq!(report.unregistered_matrix_pair_count, 0);
         assert_eq!(report.missing_benchmark_ready_registry_pair_count, 0);
         assert!(report.rows.is_empty());

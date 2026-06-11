@@ -56,14 +56,7 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
             .get("decision_counts")
             .and_then(|value| value.get("future_not_benchmark_ready"))
             .and_then(serde_json::Value::as_u64),
-        Some(8)
-    );
-    assert_eq!(
-        payload
-            .get("decision_counts")
-            .and_then(|value| value.get("limit_to_specialized_tool"))
-            .and_then(serde_json::Value::as_u64),
-        Some(3)
+        Some(11)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -92,10 +85,24 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
     };
 
     assert!(has_row(
+        "vcf.admixture",
+        &["cohort_analysis"],
+        &["plink2"],
+        &["plink"],
+        "future_not_benchmark_ready",
+    ));
+    assert!(has_row(
         "vcf.phasing",
         &["phasing"],
         &["shapeit5"],
         &["beagle", "eagle", "shapeit"],
+        "future_not_benchmark_ready",
+    ));
+    assert!(has_row(
+        "vcf.ibd",
+        &["demography", "relatedness"],
+        &["germline"],
+        &["ibdhap", "ibdne", "ibdseq"],
         "future_not_benchmark_ready",
     ));
     assert!(has_row(
@@ -106,11 +113,25 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
         "future_not_benchmark_ready",
     ));
     assert!(has_row(
+        "vcf.pca",
+        &["cohort_analysis", "population_structure"],
+        &["plink2"],
+        &["eigensoft"],
+        "future_not_benchmark_ready",
+    ));
+    assert!(has_row(
         "vcf.imputation_metrics",
-        &["imputation", "phasing", "variant_processing"],
+        &["imputation", "phasing"],
         &["beagle"],
-        &["bcftools", "beagle-imputation", "glimpse", "impute5", "minimac4"],
-        "limit_to_specialized_tool",
+        &["beagle-imputation", "glimpse", "impute5", "minimac4"],
+        "future_not_benchmark_ready",
+    ));
+    assert!(has_row(
+        "vcf.population_structure",
+        &["cohort_analysis", "population_structure"],
+        &["plink2"],
+        &["eigensoft", "plink"],
+        "future_not_benchmark_ready",
     ));
     assert!(!rows
         .iter()
