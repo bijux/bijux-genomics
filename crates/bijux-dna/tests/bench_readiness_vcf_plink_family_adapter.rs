@@ -54,7 +54,7 @@ fn bench_readiness_vcf_plink_adapter_reports_governed_rows() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(0)
+        Some(1)
     );
     assert_eq!(
         payload.get("missing_input_test_passed_row_count").and_then(serde_json::Value::as_u64),
@@ -68,6 +68,10 @@ fn bench_readiness_vcf_plink_adapter_reports_governed_rows() {
         .iter()
         .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc"))
         .expect("plink qc row");
+    assert_eq!(
+        qc_row.get("benchmark_status").and_then(serde_json::Value::as_str),
+        Some("benchmark_ready")
+    );
     assert_eq!(
         qc_row.get("normalized_metrics_artifact_id").and_then(serde_json::Value::as_str),
         Some("qc_report")
@@ -103,6 +107,10 @@ fn bench_readiness_vcf_plink_adapter_reports_governed_rows() {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.admixture")
         })
         .expect("plink admixture row");
+    assert_eq!(
+        admixture_row.get("benchmark_status").and_then(serde_json::Value::as_str),
+        Some("not_benchmark_ready")
+    );
     assert_eq!(
         admixture_row.get("normalized_metrics_artifact_id").and_then(serde_json::Value::as_str),
         Some("admixture_report")

@@ -1,0 +1,147 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_eagle_adapter.v1",
+  "domain": "vcf",
+  "tool_id": "eagle",
+  "tool_status": "experimental",
+  "output_path": "benchmarks/readiness/adapters/eagle.vcf.json",
+  "row_count": 1,
+  "benchmark_ready_row_count": 0,
+  "parser_output_row_count": 1,
+  "indexed_row_count": 1,
+  "missing_input_test_passed_row_count": 1,
+  "rows": [
+    {
+      "tool_id": "eagle",
+      "tool_status": "experimental",
+      "stage_id": "vcf.phasing",
+      "stage_status": "planned",
+      "benchmark_status": "not_benchmark_ready",
+      "adapter_id": "vcf.adapter.panel_workflow",
+      "parser_id": "vcf.parser.vcf_output",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "command_contract_source": "domain/vcf/fixtures/vcf.phasing/eagle.txt",
+      "output_root": "benchmarks/readiness/adapters/eagle/vcf.phasing",
+      "output_prefix": "benchmarks/readiness/adapters/eagle/vcf.phasing/phased",
+      "panel_id": "hsapiens_grch38_mini",
+      "map_id": "hsapiens_grch38_chr_map",
+      "input_vcf_path": "benchmarks/readiness/adapters/eagle/vcf.phasing/artifacts/input/phasing_input.vcf.gz",
+      "panel_vcf_path": "benchmarks/readiness/adapters/eagle/vcf.phasing/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz",
+      "genetic_map_path": "benchmarks/readiness/adapters/eagle/vcf.phasing/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+      "phased_vcf_path": "benchmarks/readiness/adapters/eagle/vcf.phasing/phased.vcf.gz",
+      "phased_vcf_tbi_path": "benchmarks/readiness/adapters/eagle/vcf.phasing/phased.vcf.gz.tbi",
+      "phase_block_stats_path": "benchmarks/readiness/adapters/eagle/vcf.phasing/phase_block_stats.tsv",
+      "switch_error_proxy_path": "benchmarks/readiness/adapters/eagle/vcf.phasing/switch_error_proxy.tsv",
+      "phasing_qc_path": "benchmarks/readiness/adapters/eagle/vcf.phasing/phasing_qc.json",
+      "phasing_manifest_path": "benchmarks/readiness/adapters/eagle/vcf.phasing/phasing_manifest.json",
+      "logs_path": "benchmarks/readiness/adapters/eagle/vcf.phasing/logs.txt",
+      "stage_output_ids": [
+        "phased_vcf"
+      ],
+      "raw_output_ids": [
+        "phased_vcf",
+        "phased_vcf_tbi",
+        "phase_block_stats",
+        "switch_error_proxy",
+        "phasing_log"
+      ],
+      "parser_output_ids": [
+        "phasing_qc",
+        "phasing_manifest"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/eagle/vcf.phasing/artifacts/input/phasing_input.vcf.gz"
+        },
+        {
+          "artifact_id": "vcf_index",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/eagle/vcf.phasing/artifacts/input/phasing_input.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "reference_panel_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/eagle/vcf.phasing/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz"
+        },
+        {
+          "artifact_id": "genetic_map_tsv",
+          "role": "reference",
+          "path": "benchmarks/readiness/adapters/eagle/vcf.phasing/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "phased_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/eagle/vcf.phasing/phased.vcf.gz"
+        },
+        {
+          "artifact_id": "phased_vcf_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/eagle/vcf.phasing/phased.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "phase_block_stats",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/eagle/vcf.phasing/phase_block_stats.tsv"
+        },
+        {
+          "artifact_id": "switch_error_proxy",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/eagle/vcf.phasing/switch_error_proxy.tsv"
+        },
+        {
+          "artifact_id": "phasing_qc",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/eagle/vcf.phasing/phasing_qc.json"
+        },
+        {
+          "artifact_id": "phasing_manifest",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/eagle/vcf.phasing/phasing_manifest.json"
+        },
+        {
+          "artifact_id": "phasing_log",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/eagle/vcf.phasing/logs.txt"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "phase",
+          "step_kind": "phasing",
+          "argv": [
+            "sh",
+            "-lc",
+            "eagle --vcfTarget 'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf' --vcfRef 'benchmarks/readiness/adapters/eagle/vcf.phasing/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz' --geneticMapFile 'benchmarks/readiness/adapters/eagle/vcf.phasing/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' --outPrefix 'benchmarks/readiness/adapters/eagle/vcf.phasing/phased' --numThreads 8 > 'benchmarks/readiness/adapters/eagle/vcf.phasing/logs.txt' 2>&1"
+          ],
+          "declared_output_artifact_ids": [
+            "phased_vcf",
+            "phasing_log"
+          ]
+        },
+        {
+          "step_id": "index_phased_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/eagle/vcf.phasing/phased.vcf.gz"
+          ],
+          "declared_output_artifact_ids": [
+            "phased_vcf_tbi"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF phasing-family adapter for `vcf.phasing` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.phasing/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.phasing` / `eagle` renders a concrete phasing command with explicit panel `hsapiens_grch38_mini`, map `hsapiens_grch38_chr_map`, indexed phased output `benchmarks/readiness/adapters/eagle/vcf.phasing/phased.vcf.gz`, and parser-visible phasing evidence"
+    }
+  ]
+}

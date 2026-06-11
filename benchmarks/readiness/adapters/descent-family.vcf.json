@@ -1,0 +1,409 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_descent_family_adapter.v1",
+  "domain": "vcf",
+  "output_path": "benchmarks/readiness/adapters/descent-family.vcf.json",
+  "row_count": 5,
+  "tool_count": 5,
+  "benchmark_ready_row_count": 3,
+  "parser_output_row_count": 5,
+  "normalized_output_row_count": 5,
+  "missing_input_test_passed_row_count": 5,
+  "rows": [
+    {
+      "tool_id": "ibdne",
+      "tool_status": "planned",
+      "stage_id": "vcf.demography",
+      "stage_status": "planned",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.demography",
+      "parser_id": "vcf.parser.report_json",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "json_ibd_segments",
+      "command_contract_source": "domain/vcf/fixtures/vcf.demography/ibdne.txt",
+      "output_root": "benchmarks/readiness/adapters/descent/ibdne/vcf.demography",
+      "output_prefix": "benchmarks/readiness/adapters/descent/ibdne/vcf.demography/demography_report",
+      "input_vcf_path": null,
+      "input_ibd_segments_path": "benchmarks/readiness/adapters/descent/ibdne/vcf.demography/artifacts/input/ibd_segments.tsv",
+      "normalized_output_artifact_id": "demography_report",
+      "normalized_output_path": "benchmarks/readiness/adapters/descent/ibdne/vcf.demography/demography_report.json",
+      "log_output_path": "benchmarks/readiness/adapters/descent/ibdne/vcf.demography/demography_report.log",
+      "stage_output_ids": [
+        "demography_report"
+      ],
+      "raw_output_ids": [
+        "ne_trajectory_tsv",
+        "logs_txt"
+      ],
+      "parser_output_ids": [
+        "demography_report"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "ibd_segments",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/descent/ibdne/vcf.demography/artifacts/input/ibd_segments.tsv"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "ne_trajectory_tsv",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/descent/ibdne/vcf.demography/ne_trajectory.tsv"
+        },
+        {
+          "artifact_id": "logs_txt",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/descent/ibdne/vcf.demography/demography_report.log"
+        },
+        {
+          "artifact_id": "demography_report",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/descent/ibdne/vcf.demography/demography_report.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "demography",
+          "step_kind": "effective_population_size",
+          "argv": [
+            "sh",
+            "-lc",
+            "ibdne --ibd 'benchmarks/readiness/adapters/descent/ibdne/vcf.demography/artifacts/input/ibd_segments.tsv' --out 'benchmarks/readiness/adapters/descent/ibdne/vcf.demography/demography_report' > 'benchmarks/readiness/adapters/descent/ibdne/vcf.demography/demography_report.log' 2>&1"
+          ],
+          "declared_output_artifact_ids": [
+            "ne_trajectory_tsv",
+            "logs_txt"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "ibd_segments",
+      "missing_input_expected_error_fragment": "required input `ibd_segments`",
+      "missing_input_observed_error": "VCF descent-family adapter for `vcf.demography` is missing required input `ibd_segments` at `artifacts/bench-readiness/adapters/probes/vcf.demography/ibd_segments.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.demography` / `ibdne` keeps `demography_report` explicit at `benchmarks/readiness/adapters/descent/ibdne/vcf.demography/demography_report.json` and remains admitted for benchmark job generation"
+    },
+    {
+      "tool_id": "germline",
+      "tool_status": "experimental",
+      "stage_id": "vcf.ibd",
+      "stage_status": "planned",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.ibd",
+      "parser_id": "vcf.parser.report_json",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_contract_source": "domain/vcf/fixtures/vcf.ibd/germline.txt",
+      "output_root": "benchmarks/readiness/adapters/descent/germline/vcf.ibd",
+      "output_prefix": "benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments",
+      "input_vcf_path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf",
+      "input_ibd_segments_path": null,
+      "normalized_output_artifact_id": "ibd_segments",
+      "normalized_output_path": "benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.tsv",
+      "log_output_path": "benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.log",
+      "stage_output_ids": [
+        "ibd_segments"
+      ],
+      "raw_output_ids": [
+        "cohort_bed",
+        "cohort_bim",
+        "cohort_fam",
+        "germline_match",
+        "logs_txt"
+      ],
+      "parser_output_ids": [
+        "ibd_segments"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "cohort_bed",
+          "role": "bed",
+          "path": "benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.cohort.bed"
+        },
+        {
+          "artifact_id": "cohort_bim",
+          "role": "bim",
+          "path": "benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.cohort.bim"
+        },
+        {
+          "artifact_id": "cohort_fam",
+          "role": "fam",
+          "path": "benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.cohort.fam"
+        },
+        {
+          "artifact_id": "germline_match",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.match"
+        },
+        {
+          "artifact_id": "logs_txt",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.log"
+        },
+        {
+          "artifact_id": "ibd_segments",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.tsv"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "ibd",
+          "step_kind": "relatedness_segments",
+          "argv": [
+            "sh",
+            "-lc",
+            "plink2 --vcf 'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf' --double-id --allow-extra-chr --make-bed --out 'benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.cohort' >/dev/null 2>&1 && germline -input 'benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.cohort' -bits 128 -min_m 3 -err_hom 2 -err_het 1 -output 'benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments' > 'benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.log' 2>&1"
+          ],
+          "declared_output_artifact_ids": [
+            "cohort_bed",
+            "cohort_bim",
+            "cohort_fam",
+            "germline_match",
+            "logs_txt"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF descent-family adapter for `vcf.ibd` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.ibd/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.ibd` / `germline` keeps `ibd_segments` explicit at `benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.tsv` and remains admitted for benchmark job generation"
+    },
+    {
+      "tool_id": "ibdhap",
+      "tool_status": "planned",
+      "stage_id": "vcf.ibd",
+      "stage_status": "planned",
+      "benchmark_status": "not_benchmark_ready",
+      "adapter_id": "vcf.adapter.ibd",
+      "parser_id": "vcf.parser.report_json",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_contract_source": "domain/vcf/fixtures/vcf.ibd/ibdhap.txt",
+      "output_root": "benchmarks/readiness/adapters/descent/ibdhap/vcf.ibd",
+      "output_prefix": "benchmarks/readiness/adapters/descent/ibdhap/vcf.ibd/ibd_segments",
+      "input_vcf_path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf",
+      "input_ibd_segments_path": null,
+      "normalized_output_artifact_id": "ibd_segments",
+      "normalized_output_path": "benchmarks/readiness/adapters/descent/ibdhap/vcf.ibd/ibd_segments.tsv",
+      "log_output_path": "benchmarks/readiness/adapters/descent/ibdhap/vcf.ibd/ibd_segments.log",
+      "stage_output_ids": [
+        "ibd_segments"
+      ],
+      "raw_output_ids": [
+        "ibdhap_segments_tsv",
+        "logs_txt"
+      ],
+      "parser_output_ids": [
+        "ibd_segments"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "ibdhap_segments_tsv",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/descent/ibdhap/vcf.ibd/ibd_segments.segments.tsv"
+        },
+        {
+          "artifact_id": "logs_txt",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/descent/ibdhap/vcf.ibd/ibd_segments.log"
+        },
+        {
+          "artifact_id": "ibd_segments",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/descent/ibdhap/vcf.ibd/ibd_segments.tsv"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "ibd",
+          "step_kind": "relatedness_segments",
+          "argv": [
+            "sh",
+            "-lc",
+            "ibdhap --vcf 'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf' --out 'benchmarks/readiness/adapters/descent/ibdhap/vcf.ibd/ibd_segments.segments.tsv' > 'benchmarks/readiness/adapters/descent/ibdhap/vcf.ibd/ibd_segments.log' 2>&1"
+          ],
+          "declared_output_artifact_ids": [
+            "ibdhap_segments_tsv",
+            "logs_txt"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF descent-family adapter for `vcf.ibd` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.ibd/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.ibd` / `ibdhap` keeps `ibd_segments` explicit at `benchmarks/readiness/adapters/descent/ibdhap/vcf.ibd/ibd_segments.tsv` and stays visible as retained but not benchmark-ready"
+    },
+    {
+      "tool_id": "ibdseq",
+      "tool_status": "planned",
+      "stage_id": "vcf.ibd",
+      "stage_status": "planned",
+      "benchmark_status": "not_benchmark_ready",
+      "adapter_id": "vcf.adapter.ibd",
+      "parser_id": "vcf.parser.report_json",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_contract_source": "domain/vcf/fixtures/vcf.ibd/ibdseq.txt",
+      "output_root": "benchmarks/readiness/adapters/descent/ibdseq/vcf.ibd",
+      "output_prefix": "benchmarks/readiness/adapters/descent/ibdseq/vcf.ibd/ibd_segments",
+      "input_vcf_path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf",
+      "input_ibd_segments_path": null,
+      "normalized_output_artifact_id": "ibd_segments",
+      "normalized_output_path": "benchmarks/readiness/adapters/descent/ibdseq/vcf.ibd/ibd_segments.tsv",
+      "log_output_path": "benchmarks/readiness/adapters/descent/ibdseq/vcf.ibd/ibd_segments.log",
+      "stage_output_ids": [
+        "ibd_segments"
+      ],
+      "raw_output_ids": [
+        "ibdseq_segments_tsv",
+        "logs_txt"
+      ],
+      "parser_output_ids": [
+        "ibd_segments"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "ibdseq_segments_tsv",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/descent/ibdseq/vcf.ibd/ibd_segments.segments.tsv"
+        },
+        {
+          "artifact_id": "logs_txt",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/descent/ibdseq/vcf.ibd/ibd_segments.log"
+        },
+        {
+          "artifact_id": "ibd_segments",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/descent/ibdseq/vcf.ibd/ibd_segments.tsv"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "ibd",
+          "step_kind": "relatedness_segments",
+          "argv": [
+            "sh",
+            "-lc",
+            "ibdseq --vcf 'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf' --out 'benchmarks/readiness/adapters/descent/ibdseq/vcf.ibd/ibd_segments.segments.tsv' > 'benchmarks/readiness/adapters/descent/ibdseq/vcf.ibd/ibd_segments.log' 2>&1"
+          ],
+          "declared_output_artifact_ids": [
+            "ibdseq_segments_tsv",
+            "logs_txt"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF descent-family adapter for `vcf.ibd` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.ibd/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.ibd` / `ibdseq` keeps `ibd_segments` explicit at `benchmarks/readiness/adapters/descent/ibdseq/vcf.ibd/ibd_segments.tsv` and stays visible as retained but not benchmark-ready"
+    },
+    {
+      "tool_id": "plink2",
+      "tool_status": "experimental",
+      "stage_id": "vcf.roh",
+      "stage_status": "planned",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.roh",
+      "parser_id": "vcf.parser.report_json",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_contract_source": "domain/vcf/fixtures/vcf.roh/plink2.txt",
+      "output_root": "benchmarks/readiness/adapters/descent/plink2/vcf.roh",
+      "output_prefix": "benchmarks/readiness/adapters/descent/plink2/vcf.roh/roh_report",
+      "input_vcf_path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf",
+      "input_ibd_segments_path": null,
+      "normalized_output_artifact_id": "roh_report",
+      "normalized_output_path": "benchmarks/readiness/adapters/descent/plink2/vcf.roh/roh_report.json",
+      "log_output_path": "benchmarks/readiness/adapters/descent/plink2/vcf.roh/roh_report.log",
+      "stage_output_ids": [
+        "roh_report"
+      ],
+      "raw_output_ids": [
+        "roh_hom",
+        "logs_txt"
+      ],
+      "parser_output_ids": [
+        "roh_report"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "roh_hom",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/descent/plink2/vcf.roh/roh_report.hom"
+        },
+        {
+          "artifact_id": "logs_txt",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/descent/plink2/vcf.roh/roh_report.log"
+        },
+        {
+          "artifact_id": "roh_report",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/descent/plink2/vcf.roh/roh_report.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "roh",
+          "step_kind": "runs_of_homozygosity",
+          "argv": [
+            "plink2",
+            "--vcf",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf",
+            "--double-id",
+            "--allow-extra-chr",
+            "--homozyg",
+            "--out",
+            "benchmarks/readiness/adapters/descent/plink2/vcf.roh/roh_report"
+          ],
+          "declared_output_artifact_ids": [
+            "roh_hom",
+            "logs_txt"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF descent-family adapter for `vcf.roh` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.roh/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.roh` / `plink2` keeps `roh_report` explicit at `benchmarks/readiness/adapters/descent/plink2/vcf.roh/roh_report.json` and remains admitted for benchmark job generation"
+    }
+  ]
+}

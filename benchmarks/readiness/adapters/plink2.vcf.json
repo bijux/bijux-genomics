@@ -1,0 +1,505 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_plink2_adapter.v1",
+  "domain": "vcf",
+  "tool_id": "plink2",
+  "tool_status": "experimental",
+  "output_path": "benchmarks/readiness/adapters/plink2.vcf.json",
+  "row_count": 5,
+  "benchmark_ready_row_count": 5,
+  "parser_output_row_count": 5,
+  "normalized_metrics_row_count": 5,
+  "raw_output_declared_row_count": 5,
+  "missing_input_test_passed_row_count": 5,
+  "rows": [
+    {
+      "tool_id": "plink2",
+      "tool_status": "experimental",
+      "stage_id": "vcf.admixture",
+      "stage_status": "planned",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.population_structure",
+      "parser_id": "vcf.parser.report_json",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_contract_source": "domain/vcf/fixtures/vcf.admixture/plink2.txt",
+      "output_root": "benchmarks/readiness/adapters/plink2/vcf.admixture",
+      "output_prefix": "benchmarks/readiness/adapters/plink2/vcf.admixture/admixture",
+      "normalized_metrics_artifact_id": "admixture_report",
+      "normalized_metrics_path": "benchmarks/readiness/adapters/plink2/vcf.admixture/admixture_report.json",
+      "stage_output_ids": [
+        "admixture_report"
+      ],
+      "raw_output_ids": [
+        "admixture_proxy_eigenvec",
+        "admixture_proxy_eigenval",
+        "plink2_log"
+      ],
+      "parser_output_ids": [
+        "admixture_report"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf"
+        },
+        {
+          "artifact_id": "sample_metadata_manifest",
+          "role": "sample_metadata",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "admixture_proxy_eigenvec",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.admixture/admixture.eigenvec"
+        },
+        {
+          "artifact_id": "admixture_proxy_eigenval",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.admixture/admixture.eigenval"
+        },
+        {
+          "artifact_id": "plink2_log",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.admixture/admixture.log"
+        },
+        {
+          "artifact_id": "admixture_report",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.admixture/admixture_report.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "admixture_proxy",
+          "step_kind": "population_proxy",
+          "argv": [
+            "plink2",
+            "--vcf",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf",
+            "--double-id",
+            "--allow-extra-chr",
+            "--pca",
+            "2",
+            "--out",
+            "benchmarks/readiness/adapters/plink2/vcf.admixture/admixture"
+          ],
+          "declared_output_artifact_ids": [
+            "admixture_proxy_eigenvec",
+            "admixture_proxy_eigenval",
+            "plink2_log"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF plink-family adapter for `vcf.admixture` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.admixture/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.admixture` / `plink2` keeps the PLINK2 PCA-proxy raw outputs explicit and maps them to `admixture_report` instead of pretending PLINK2 owns a native Q-matrix"
+    },
+    {
+      "tool_id": "plink2",
+      "tool_status": "experimental",
+      "stage_id": "vcf.pca",
+      "stage_status": "planned",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.population_structure",
+      "parser_id": "vcf.parser.report_json",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_contract_source": "domain/vcf/fixtures/vcf.pca/plink2.txt",
+      "output_root": "benchmarks/readiness/adapters/plink2/vcf.pca",
+      "output_prefix": "benchmarks/readiness/adapters/plink2/vcf.pca/pca",
+      "normalized_metrics_artifact_id": "pca_report",
+      "normalized_metrics_path": "benchmarks/readiness/adapters/plink2/vcf.pca/pca_report.json",
+      "stage_output_ids": [
+        "pca_report"
+      ],
+      "raw_output_ids": [
+        "pca_eigenvec",
+        "pca_eigenval",
+        "plink2_log"
+      ],
+      "parser_output_ids": [
+        "pca_report"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf"
+        },
+        {
+          "artifact_id": "sample_metadata_manifest",
+          "role": "sample_metadata",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "pca_eigenvec",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.pca/pca.eigenvec"
+        },
+        {
+          "artifact_id": "pca_eigenval",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.pca/pca.eigenval"
+        },
+        {
+          "artifact_id": "plink2_log",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.pca/pca.log"
+        },
+        {
+          "artifact_id": "pca_report",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.pca/pca_report.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "pca",
+          "step_kind": "principal_components",
+          "argv": [
+            "plink2",
+            "--vcf",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf",
+            "--double-id",
+            "--allow-extra-chr",
+            "--pca",
+            "10",
+            "--out",
+            "benchmarks/readiness/adapters/plink2/vcf.pca/pca"
+          ],
+          "declared_output_artifact_ids": [
+            "pca_eigenvec",
+            "pca_eigenval",
+            "plink2_log"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF plink-family adapter for `vcf.pca` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.pca/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.pca` / `plink2` renders concrete cohort-analysis argv with 3 declared raw output(s) and maps them to `pca_report`"
+    },
+    {
+      "tool_id": "plink2",
+      "tool_status": "experimental",
+      "stage_id": "vcf.population_structure",
+      "stage_status": "planned",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.population_structure",
+      "parser_id": "vcf.parser.report_json",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_contract_source": "domain/vcf/fixtures/vcf.population_structure/plink2.txt",
+      "output_root": "benchmarks/readiness/adapters/plink2/vcf.population_structure",
+      "output_prefix": "benchmarks/readiness/adapters/plink2/vcf.population_structure/population_structure",
+      "normalized_metrics_artifact_id": "population_structure_report",
+      "normalized_metrics_path": "benchmarks/readiness/adapters/plink2/vcf.population_structure/population_structure_report.json",
+      "stage_output_ids": [
+        "population_structure_report"
+      ],
+      "raw_output_ids": [
+        "ld_prune_in",
+        "ld_prune_out",
+        "population_pca_eigenvec",
+        "population_pca_eigenval",
+        "prune_log",
+        "pca_log"
+      ],
+      "parser_output_ids": [
+        "population_structure_report"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf"
+        },
+        {
+          "artifact_id": "sample_metadata_manifest",
+          "role": "sample_metadata",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "ld_prune_in",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.population_structure/population_structure.prune.prune.in"
+        },
+        {
+          "artifact_id": "ld_prune_out",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.population_structure/population_structure.prune.prune.out"
+        },
+        {
+          "artifact_id": "population_pca_eigenvec",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.population_structure/population_structure.pca.eigenvec"
+        },
+        {
+          "artifact_id": "population_pca_eigenval",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.population_structure/population_structure.pca.eigenval"
+        },
+        {
+          "artifact_id": "prune_log",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.population_structure/population_structure.prune.log"
+        },
+        {
+          "artifact_id": "pca_log",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.population_structure/population_structure.pca.log"
+        },
+        {
+          "artifact_id": "population_structure_report",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.population_structure/population_structure_report.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "ld_prune",
+          "step_kind": "ld_pruning",
+          "argv": [
+            "plink2",
+            "--vcf",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf",
+            "--double-id",
+            "--allow-extra-chr",
+            "--indep-pairwise",
+            "50",
+            "5",
+            "0.2",
+            "--out",
+            "benchmarks/readiness/adapters/plink2/vcf.population_structure/population_structure.prune"
+          ],
+          "declared_output_artifact_ids": [
+            "ld_prune_in",
+            "ld_prune_out",
+            "prune_log"
+          ]
+        },
+        {
+          "step_id": "population_pca",
+          "step_kind": "principal_components",
+          "argv": [
+            "plink2",
+            "--vcf",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf",
+            "--double-id",
+            "--allow-extra-chr",
+            "--pca",
+            "10",
+            "--out",
+            "benchmarks/readiness/adapters/plink2/vcf.population_structure/population_structure.pca"
+          ],
+          "declared_output_artifact_ids": [
+            "population_pca_eigenvec",
+            "population_pca_eigenval",
+            "pca_log"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF plink-family adapter for `vcf.population_structure` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.population_structure/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.population_structure` / `plink2` renders concrete cohort-analysis argv with 6 declared raw output(s) and maps them to `population_structure_report`"
+    },
+    {
+      "tool_id": "plink2",
+      "tool_status": "experimental",
+      "stage_id": "vcf.qc",
+      "stage_status": "supported",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.quality_control",
+      "parser_id": "vcf.parser.qc_report",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_contract_source": "domain/vcf/fixtures/vcf.qc/plink2.txt",
+      "output_root": "benchmarks/readiness/adapters/plink2/vcf.qc",
+      "output_prefix": "benchmarks/readiness/adapters/plink2/vcf.qc/qc",
+      "normalized_metrics_artifact_id": "qc_report",
+      "normalized_metrics_path": "benchmarks/readiness/adapters/plink2/vcf.qc/qc_report.json",
+      "stage_output_ids": [
+        "qc_report"
+      ],
+      "raw_output_ids": [
+        "sample_missingness_smiss",
+        "variant_missingness_vmiss",
+        "allele_frequency_afreq",
+        "heterozygosity_het",
+        "hardy_weinberg_hardy",
+        "plink2_log"
+      ],
+      "parser_output_ids": [
+        "qc_report"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "sample_missingness_smiss",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.qc/qc.smiss"
+        },
+        {
+          "artifact_id": "variant_missingness_vmiss",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.qc/qc.vmiss"
+        },
+        {
+          "artifact_id": "allele_frequency_afreq",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.qc/qc.afreq"
+        },
+        {
+          "artifact_id": "heterozygosity_het",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.qc/qc.het"
+        },
+        {
+          "artifact_id": "hardy_weinberg_hardy",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.qc/qc.hardy"
+        },
+        {
+          "artifact_id": "plink2_log",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.qc/qc.log"
+        },
+        {
+          "artifact_id": "qc_report",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.qc/qc_report.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "qc",
+          "step_kind": "quality_control",
+          "argv": [
+            "plink2",
+            "--vcf",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf",
+            "--double-id",
+            "--allow-extra-chr",
+            "--missing",
+            "--freq",
+            "--het",
+            "--hardy",
+            "--out",
+            "benchmarks/readiness/adapters/plink2/vcf.qc/qc"
+          ],
+          "declared_output_artifact_ids": [
+            "sample_missingness_smiss",
+            "variant_missingness_vmiss",
+            "allele_frequency_afreq",
+            "heterozygosity_het",
+            "hardy_weinberg_hardy",
+            "plink2_log"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF plink-family adapter for `vcf.qc` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.qc/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.qc` / `plink2` renders concrete cohort-analysis argv with 6 declared raw output(s) and maps them to `qc_report`"
+    },
+    {
+      "tool_id": "plink2",
+      "tool_status": "experimental",
+      "stage_id": "vcf.roh",
+      "stage_status": "planned",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.roh",
+      "parser_id": "vcf.parser.report_json",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_contract_source": "domain/vcf/fixtures/vcf.roh/plink2.txt",
+      "output_root": "benchmarks/readiness/adapters/plink2/vcf.roh",
+      "output_prefix": "benchmarks/readiness/adapters/plink2/vcf.roh/roh",
+      "normalized_metrics_artifact_id": "roh_report",
+      "normalized_metrics_path": "benchmarks/readiness/adapters/plink2/vcf.roh/roh_report.json",
+      "stage_output_ids": [
+        "roh_report"
+      ],
+      "raw_output_ids": [
+        "roh_hom",
+        "plink2_log"
+      ],
+      "parser_output_ids": [
+        "roh_report"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "roh_hom",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.roh/roh.hom"
+        },
+        {
+          "artifact_id": "plink2_log",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.roh/roh.log"
+        },
+        {
+          "artifact_id": "roh_report",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/plink2/vcf.roh/roh_report.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "roh",
+          "step_kind": "runs_of_homozygosity",
+          "argv": [
+            "plink2",
+            "--vcf",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf",
+            "--double-id",
+            "--allow-extra-chr",
+            "--homozyg",
+            "--out",
+            "benchmarks/readiness/adapters/plink2/vcf.roh/roh"
+          ],
+          "declared_output_artifact_ids": [
+            "roh_hom",
+            "plink2_log"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF plink-family adapter for `vcf.roh` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.roh/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.roh` / `plink2` renders concrete cohort-analysis argv with 2 declared raw output(s) and maps them to `roh_report`"
+    }
+  ]
+}
