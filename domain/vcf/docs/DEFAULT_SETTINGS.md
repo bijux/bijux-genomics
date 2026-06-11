@@ -54,9 +54,9 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.pca` default: `plink2` (planned). rationale: current planned PCA baseline stays aligned with the governed population-structure tooling family.
 - `vcf.admixture` default: `plink2` (planned). rationale: keep the planned admixture surface anchored to an admitted matrix-preparation backend until a dedicated admixture tool is formally admitted.
 - `vcf.ibd` default: `germline` (planned). rationale: current planned IBD baseline names the intended segment caller while alternative tools stay comparative.
-- `vcf.phasing` default: `shapeit5` (planned). rationale: current planned phasing baseline tracks the intended modern phasing backend instead of a placeholder.
+- `vcf.phasing` default: `shapeit5`. rationale: current governed production default tracks the modern phasing backend while retained alternatives stay comparative.
 - `vcf.imputation_metrics` default: `beagle` (planned). rationale: keep the planned imputation-metrics contract anchored to the same governed backend family that produces the source imputation evidence.
-- `vcf.impute` default: `beagle` (planned). rationale: planned explicit imputation execution must stay aligned with the active default recorded in `domain/vcf/index.yaml`.
+- `vcf.impute` default: `beagle`. rationale: current governed production default keeps explicit imputation runnable while retained alternatives stay comparative.
 - `vcf.postprocess` default: `bcftools`. rationale: deterministic normalization/filter baseline for governed post-imputation outputs.
 - `vcf.prepare_reference_panel` default: `bcftools`. rationale: deterministic reference panel prep baseline.
 - `vcf.call_gl` default: `bcftools`. rationale: current governed production default keeps GL emission runnable while `angsd` remains a planned low-coverage alternative.

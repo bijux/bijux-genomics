@@ -25,10 +25,10 @@ Covers every `domain/vcf/stages/*.yaml` entry, including supported calling stage
 | vcf.pca | downstream inference | inference | planned | Estimate PCA-based structure projections. |
 | vcf.admixture | downstream inference | inference | planned | Estimate ancestry-mixture-style summaries. |
 | vcf.population_structure | downstream inference | inference | planned | Emit broader structure summaries from filtered cohorts. |
-| vcf.phasing | panel mediation | mutation | planned | Phase haplotypes before imputation or IBD. |
+| vcf.phasing | panel mediation | mutation | supported | Phase haplotypes before imputation or IBD. |
 | vcf.prepare_reference_panel | panel mediation | mutation | supported | Normalize and prepare reference panels. |
 | vcf.imputation_metrics | panel mediation | report | planned | Summarize imputation-quality evidence from governed imputation outputs. |
-| vcf.impute | panel mediation | mutation | planned | Execute explicit imputation with a pinned backend. |
+| vcf.impute | panel mediation | mutation | supported | Execute explicit imputation with a pinned backend. |
 | vcf.postprocess | normalization | mutation | supported | Normalize INFO/FILTER/FORMAT surfaces after imputation with the governed deterministic bcftools baseline. |
 | vcf.ibd | downstream inference | inference | planned | Estimate pairwise IBD segments. |
 | vcf.roh | downstream inference | inference | planned | Estimate runs of homozygosity burden and segments. |
