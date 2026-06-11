@@ -5,10 +5,10 @@
   "passed_goal_count": 15,
   "failed_goal_count": 0,
   "failing_goal_ids": [],
-  "benchmark_ready_pair_count": 16,
-  "adapter_complete_pair_count": 16,
-  "output_complete_pair_count": 16,
-  "rendered_command_pair_count": 16,
+  "benchmark_ready_pair_count": 18,
+  "adapter_complete_pair_count": 18,
+  "output_complete_pair_count": 18,
+  "rendered_command_pair_count": 18,
   "ok": true,
   "checks": [
     {
@@ -16,21 +16,21 @@
       "surface": "vcf tool-serving map",
       "output_path": "benchmarks/readiness/vcf-tool-serving-map.tsv",
       "ok": true,
-      "detail": "validated 22 governed VCF stage-tool rows with 16 canonical benchmark-ready pairs"
+      "detail": "validated 23 governed VCF stage-tool rows with 18 canonical benchmark-ready pairs"
     },
     {
       "goal_id": 232,
       "surface": "vcf orphan tools",
       "output_path": "benchmarks/readiness/vcf-orphan-tools.tsv",
       "ok": true,
-      "detail": "validated 10 governed orphan VCF tools with explicit future_not_benchmark_ready decisions"
+      "detail": "validated 9 governed orphan VCF tools with explicit future_not_benchmark_ready decisions"
     },
     {
       "goal_id": 233,
       "surface": "vcf undercovered stages",
       "output_path": "benchmarks/readiness/vcf-undercovered-stages.tsv",
       "ok": true,
-      "detail": "validated 11 governed undercovered VCF stages with explicit future vs specialized decisions"
+      "detail": "validated 10 governed undercovered VCF stages with explicit future vs specialized decisions"
     },
     {
       "goal_id": 234,
@@ -114,7 +114,7 @@
       "surface": "vcf adapter benchmark-ready pair completeness",
       "output_path": "benchmarks/readiness/VCF_ADAPTERS_READY.json",
       "ok": true,
-      "detail": "validated 16 benchmark-ready VCF pairs across tool-serving map, executable adapters, output declarations, and rendered commands"
+      "detail": "validated 18 benchmark-ready VCF pairs across tool-serving map, executable adapters, output declarations, and rendered commands"
     }
   ]
 }

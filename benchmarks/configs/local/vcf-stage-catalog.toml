@@ -213,7 +213,7 @@ local_smoke_mode = "vcf_cohort"
 [[rows]]
 stage_id = "vcf.pca"
 stage_name = "Principal Component Analysis"
-support_status = "planned"
+support_status = "supported"
 default_tool_id = "plink2"
 metrics_schema_id = "bijux.vcf.pca.v1"
 input_types = ["vcf"]

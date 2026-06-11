@@ -40,6 +40,32 @@ sh -lc 'printf '"'"'%s\n'"'"' '"'"'{"schema_version":"bijux.vcf.imputation_metri
 sh -lc 'beagle gt='"'"'benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/input/vcf_impute.vcf.gz'"'"' ref='"'"'benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz'"'"' map='"'"'benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz'"'"' out='"'"'benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputed'"'"' impute=true nthreads=8 seed=42 > '"'"'benchmarks/readiness/adapters/imputation/beagle/vcf.impute/logs.txt'"'"' 2>&1'
 bcftools index -t benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputed.vcf.gz
 
+# vcf.pca / eigensoft
+sh -lc 'cat > '"'"'benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.convertf.par'"'"' <<'"'"'EOF'"'"'
+genotypename: benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf
+snpname: benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.snp
+indivname: benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.ind
+outputformat: EIGENSTRAT
+genotypeoutname: benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.geno
+snpoutname: benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.snp
+indivoutname: benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.ind
+familynames: NO
+EOF'
+convertf -p benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.convertf.par
+sh -lc 'cat > '"'"'benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.smartpca.par'"'"' <<'"'"'EOF'"'"'
+genotypename: benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.geno
+snpname: benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.snp
+indivname: benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.ind
+evecoutname: benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.evec
+evaloutname: benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.eval
+numoutevec: 10
+familynames: NO
+EOF'
+sh -lc 'smartpca -p '"'"'benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.smartpca.par'"'"' > '"'"'benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.smartpca.log'"'"' 2>&1'
+
+# vcf.pca / plink2
+plink2 --vcf benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf --double-id --allow-extra-chr --pca 10 --out benchmarks/readiness/adapters/plink2/vcf.pca/pca
+
 # vcf.phasing / shapeit5
 sh -lc 'shapeit5 phase_common --input '"'"'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf'"'"' --reference '"'"'benchmarks/readiness/adapters/shapeit5/vcf.phasing/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz'"'"' --map '"'"'benchmarks/readiness/adapters/shapeit5/vcf.phasing/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz'"'"' --region 1:1-1000000 --thread 8 --seed 42 --output '"'"'benchmarks/readiness/adapters/shapeit5/vcf.phasing/phased.vcf.gz'"'"' > '"'"'benchmarks/readiness/adapters/shapeit5/vcf.phasing/logs.txt'"'"' 2>&1'
 bcftools index -t benchmarks/readiness/adapters/shapeit5/vcf.phasing/phased.vcf.gz

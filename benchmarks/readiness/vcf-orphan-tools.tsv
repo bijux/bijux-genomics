@@ -2,7 +2,6 @@ tool_id	registered_binary	served_stage_count	decision
 angsd	angsd	0	future_not_benchmark_ready
 beagle-imputation	beagle	0	future_not_benchmark_ready
 eagle	eagle	0	future_not_benchmark_ready
-eigensoft	smartpca	0	future_not_benchmark_ready
 glimpse	glimpse	0	future_not_benchmark_ready
 ibdhap	ibdhap	0	future_not_benchmark_ready
 ibdseq	ibdseq	0	future_not_benchmark_ready
