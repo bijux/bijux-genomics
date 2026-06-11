@@ -1055,7 +1055,8 @@
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "panel_required",
-          "genetic_map_required"
+          "genetic_map_required",
+          "imputation_metrics_outputs_emit_metrics_json_with_schema_bijux.vcf.imputation_metrics.v1"
         ],
         "invariants": [
           "stable_artifact_contract"

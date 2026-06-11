@@ -485,6 +485,14 @@
         "override_policy": "explicit profile override required"
       },
       {
+        "stage_id": "vcf.pca",
+        "tool_id": "plink2",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "current governed PCA default keeps sample-complete eigenvector output, eigenvalue reporting, and metadata joins anchored to the PLINK2 smoke-backed cohort path while retained `eigensoft` stays comparative.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
         "stage_id": "vcf.phasing",
         "tool_id": "shapeit5",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",

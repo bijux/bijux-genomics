@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "8e1a3ddd013519f2b7afe4d68153770e98ccf6d9",
-  "bundle_checksum_sha256": "a5a9c061ccbbc5a36bbd140e775faeebd5afc7a115cb0c4267623286d83b0026",
+  "source_commit": "c9495503c7eec675eaba0fed2e48b204ac20965b",
+  "bundle_checksum_sha256": "ba8c7c77d839a87f9fabe1a61005ed14ce2f373538b90cf5894e5fc62329c1d4",
   "domains": [
     {
       "domain_id": "bam",
@@ -3769,7 +3769,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "a91fa1ce133f97ff06cb80e94863d604bd60c37c6652ddac7f46f438b76f6f6f"
+      "checksum_sha256": "1d0883fccdc8cf488c45e6e792a43c03a8124d5169b3f2ab781174757fa76fab"
     },
     {
       "domain_id": "fastq",
@@ -12656,7 +12656,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "2862a96bceb4e5024876afa7c93c965d3bd02b09282e84b232a3087a23475a5c"
+      "checksum_sha256": "f9995e27541e96ab97a430709c327ed5b91e612e3dcece65483e835825857301"
     },
     {
       "domain_id": "vcf",
@@ -12715,6 +12715,7 @@
         "vcf.gl_propagation",
         "vcf.imputation_metrics",
         "vcf.impute",
+        "vcf.pca",
         "vcf.phasing",
         "vcf.postprocess",
         "vcf.prepare_reference_panel",
@@ -12723,6 +12724,7 @@
       "governed_tool_ids": [
         "bcftools",
         "beagle",
+        "plink2",
         "shapeit5"
       ],
       "stages": [
@@ -13412,7 +13414,7 @@
           ],
           "outputs": [
             {
-              "name": "imputation_out",
+              "name": "imputation_metrics_json",
               "data_type": "json",
               "cardinality": "One"
             }
@@ -13421,12 +13423,37 @@
             "vcf"
           ],
           "required_outputs": [
-            "imputation_out"
+            "imputation_metrics_json"
           ],
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "imputation_status",
+              "metric_id": "status",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "mean_info_score",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "r2_available",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "low_confidence_sites",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "masked_truth_sites",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "missing_quality_fields",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             }
@@ -13440,7 +13467,8 @@
           ],
           "assumptions": [
             "panel_required",
-            "genetic_map_required"
+            "genetic_map_required",
+            "imputation_metrics_outputs_emit_metrics_json_with_schema_bijux.vcf.imputation_metrics.v1"
           ],
           "invariants": [
             "stable_artifact_contract"
@@ -14565,15 +14593,27 @@
           "schema_version": "bijux.metrics.v1"
         },
         {
-          "metric_id": "imputation_status",
-          "schema_version": "bijux.metrics.v1"
-        },
-        {
           "metric_id": "impute_status",
           "schema_version": "bijux.metrics.v1"
         },
         {
+          "metric_id": "low_confidence_sites",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "masked_truth_sites",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
           "metric_id": "mean_gl_depth",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "mean_info_score",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "missing_quality_fields",
           "schema_version": "bijux.metrics.v1"
         },
         {
@@ -14633,6 +14673,10 @@
           "schema_version": "bijux.metrics.v1"
         },
         {
+          "metric_id": "r2_available",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
           "metric_id": "reference_panel_status",
           "schema_version": "bijux.metrics.v1"
         },
@@ -14654,6 +14698,10 @@
         },
         {
           "metric_id": "roh_total_mb",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "status",
           "schema_version": "bijux.metrics.v1"
         },
         {
@@ -14715,7 +14763,7 @@
           "artifact_type": "json"
         },
         {
-          "artifact_id": "imputation_out",
+          "artifact_id": "imputation_metrics_json",
           "artifact_type": "json"
         },
         {
@@ -14833,6 +14881,14 @@
           "tool_id": "beagle",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
           "rationale": "current governed production default keeps explicit panel-aware imputation runnable while retained alternatives stay comparative.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
+          "stage_id": "vcf.pca",
+          "tool_id": "plink2",
+          "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+          "rationale": "current governed PCA default keeps sample-complete eigenvector output, eigenvalue reporting, and metadata joins anchored to the PLINK2 smoke-backed cohort path while retained `eigensoft` stays comparative.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -15002,7 +15058,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "e0be01bb33275ff39a137ae9f014d82d7af277ef0fd560266e4928d38ee72a15"
+      "checksum_sha256": "58c3359882c49fb1700433daa38bb722e1708ab32d6c865cb5fb99c2e6c22ee2"
     }
   ]
 }

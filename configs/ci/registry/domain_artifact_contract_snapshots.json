@@ -1357,7 +1357,7 @@
         "artifact_type": "json"
       },
       {
-        "artifact_id": "imputation_out",
+        "artifact_id": "imputation_metrics_json",
         "artifact_type": "json"
       },
       {
@@ -1441,7 +1441,7 @@
         "ibd_segments"
       ],
       "vcf.imputation_metrics": [
-        "imputation_out"
+        "imputation_metrics_json"
       ],
       "vcf.impute": [
         "imputed_vcf"

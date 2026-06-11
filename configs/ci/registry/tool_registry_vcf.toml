@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: 8e1a3ddd013519f2b7afe4d68153770e98ccf6d9
+# source_commit: c9495503c7eec675eaba0fed2e48b204ac20965b
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -559,7 +559,7 @@ optional_alternatives = ["eigensoft"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "current governed PCA default keeps sample-complete eigenvector output, eigenvalue reporting, and metadata joins anchored to the PLINK2 smoke-backed cohort path while retained `eigensoft` stays comparative."
 requires_validation = false
 requires_reporting = false
 
