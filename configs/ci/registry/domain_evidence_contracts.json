@@ -1085,10 +1085,11 @@
       },
       {
         "stage_id": "vcf.phasing",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "planned_stage"
+          "panel_required",
+          "genetic_map_required"
         ],
         "invariants": [
           "stable_artifact_contract"

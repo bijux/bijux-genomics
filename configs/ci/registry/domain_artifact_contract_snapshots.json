@@ -1450,7 +1450,7 @@
         "pca_out"
       ],
       "vcf.phasing": [
-        "phasing_out"
+        "phased_vcf"
       ],
       "vcf.population_structure": [
         "population_structure_report"

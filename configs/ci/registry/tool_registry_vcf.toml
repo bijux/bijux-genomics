@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: d29294f1d99e7328a02453f1e7734f06c7986b58
+# source_commit: 24810fba3200f2a49ba7b294ab51b19ceb22553c
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -45,7 +45,7 @@ id = "bcftools"
 tool_id = "bcftools"
 domain = "vcf"
 status = "production"
-stage_ids = ["vcf.call", "vcf.call_gl", "vcf.call_diploid", "vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.gl_propagation", "vcf.filter", "vcf.stats", "vcf.admixture", "vcf.imputation_metrics", "vcf.pca", "vcf.phasing", "vcf.postprocess", "vcf.prepare_reference_panel", "vcf.qc"]
+stage_ids = ["vcf.call", "vcf.call_gl", "vcf.call_diploid", "vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.gl_propagation", "vcf.filter", "vcf.stats", "vcf.admixture", "vcf.imputation_metrics", "vcf.pca", "vcf.postprocess", "vcf.prepare_reference_panel", "vcf.qc"]
 version = "1.20"
 default_version = "1.20"
 upstream = "https://github.com/samtools/bcftools"
@@ -524,6 +524,18 @@ validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = "retain GL/PL tags across downstream handoffs in the current governed profile"
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "vcf.phasing"
+required_tool_roles = ["transform"]
+primary_tools = ["beagle"]
+optional_alternatives = ["shapeit5", "eagle"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = ""
 requires_validation = false
 requires_reporting = false
 

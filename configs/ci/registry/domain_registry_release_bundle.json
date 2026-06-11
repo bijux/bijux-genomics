@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "d29294f1d99e7328a02453f1e7734f06c7986b58",
-  "bundle_checksum_sha256": "51b9aa238614847b83c0305f4ef733c5b545feb862cf14632693ac95eaec6875",
+  "source_commit": "24810fba3200f2a49ba7b294ab51b19ceb22553c",
+  "bundle_checksum_sha256": "afcafd6c2cbcc2a4b772e79ec8ddf1acaa7b70d20a9568b1574c316aed31d5b8",
   "domains": [
     {
       "domain_id": "bam",
@@ -3769,7 +3769,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "5c37b044a802c744000cbd5e100846b7acb22361f532a4ad1a63e8643f5d5043"
+      "checksum_sha256": "16dda04993186e78191db7c66249f1537305eef31ca3be68e73e88a76c56de97"
     },
     {
       "domain_id": "fastq",
@@ -12656,7 +12656,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "39b53be17b0d19928a68d07eafa578319b540f850deb644f8eeb6d4e5775a9ac"
+      "checksum_sha256": "46c97570778d3545086d9c5e6f61d773dd40682ed49fe6c07e313f24f41869eb"
     },
     {
       "domain_id": "vcf",
@@ -13570,8 +13570,8 @@
         },
         {
           "stage_id": "vcf.phasing",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.phasing in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -13585,8 +13585,8 @@
           ],
           "outputs": [
             {
-              "name": "phasing_out",
-              "data_type": "json",
+              "name": "phased_vcf",
+              "data_type": "vcf",
               "cardinality": "One"
             }
           ],
@@ -13594,7 +13594,7 @@
             "vcf"
           ],
           "required_outputs": [
-            "phasing_out"
+            "phased_vcf"
           ],
           "parameters": [],
           "metrics": [
@@ -13611,7 +13611,8 @@
             "shapeit5"
           ],
           "assumptions": [
-            "planned_stage"
+            "panel_required",
+            "genetic_map_required"
           ],
           "invariants": [
             "stable_artifact_contract"
@@ -13622,9 +13623,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "full scientific validation pending downstream admission"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "vcf.population_structure",
@@ -14072,7 +14071,6 @@
             "vcf.admixture",
             "vcf.imputation_metrics",
             "vcf.pca",
-            "vcf.phasing",
             "vcf.postprocess",
             "vcf.prepare_reference_panel",
             "vcf.qc"
@@ -14905,6 +14903,21 @@
           "fixture_path": "domain/vcf/fixtures/vcf.gl_propagation/bcftools.txt"
         },
         {
+          "stage_id": "vcf.phasing",
+          "tool_id": "beagle",
+          "fixture_path": "domain/vcf/fixtures/vcf.phasing/beagle.txt"
+        },
+        {
+          "stage_id": "vcf.phasing",
+          "tool_id": "eagle",
+          "fixture_path": "domain/vcf/fixtures/vcf.phasing/eagle.txt"
+        },
+        {
+          "stage_id": "vcf.phasing",
+          "tool_id": "shapeit5",
+          "fixture_path": "domain/vcf/fixtures/vcf.phasing/shapeit5.txt"
+        },
+        {
           "stage_id": "vcf.postprocess",
           "tool_id": "bcftools",
           "fixture_path": "domain/vcf/fixtures/vcf.postprocess/bcftools.txt"
@@ -14921,7 +14934,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "e6b9b8b44c2436d640f3f3f81e4a6bad63605bfce50b25c22d7c65e6d3aa2f94"
+      "checksum_sha256": "f6f69c035c49db17d67627a31ade950f306161eafc8fb705efc73ab6abb67296"
     }
   ]
 }
