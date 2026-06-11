@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod adapter_missing_input_contracts;
+pub(crate) mod active_scope;
 pub(crate) mod adapter_missing_input_tests;
 pub(crate) mod all_domain_active_scope_blockers;
 pub(crate) mod all_domain_active_scope_complete;

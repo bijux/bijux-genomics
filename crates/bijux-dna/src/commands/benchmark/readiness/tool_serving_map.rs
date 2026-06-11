@@ -17,6 +17,7 @@ use bijux_dna_planner_bam::stage_api::{
 };
 use serde::Serialize;
 
+use super::active_scope::include_fastq_active_benchmark_pair;
 use crate::commands::benchmark::local_corpus_stage_compatibility::{
     validate_corpus_stage_compatibility_path, DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH,
 };
@@ -169,13 +170,7 @@ pub(crate) fn render_fastq_tool_serving_map(
 }
 
 fn include_fastq_readiness_binding(stage_id: &StageId, tool_id: &ToolId) -> bool {
-    if stage_id.as_str() != "fastq.screen_taxonomy" {
-        return true;
-    }
-    matches!(
-        tool_id.as_str(),
-        "centrifuge" | "kaiju" | "kraken2" | "krakenuniq"
-    )
+    include_fastq_active_benchmark_pair(stage_id.as_str(), tool_id.as_str())
 }
 
 fn ensure_fastq_amplicon_fixture_coverage(rows: &[ToolServingMapRow]) -> Result<()> {

@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use serde::Serialize;
 
+use super::active_scope::include_fastq_active_benchmark_pair;
 use super::catalog::{load_benchmark_stage_ids, load_tool_contracts, ReadinessDomain};
 use super::tool_serving_map::{
     render_bam_tool_serving_map, render_fastq_tool_serving_map, DEFAULT_BAM_TOOL_SERVING_MAP_PATH,
@@ -84,7 +85,21 @@ pub(crate) fn render_orphan_tools(
                 continue;
             }
             let declared_stage_ids = contract.admitted_stage_ids();
-            let benchmark_stage_ids = contract.benchmark_stage_overlap(&benchmark_stage_ids);
+            if domain == ReadinessDomain::Fastq
+                && !declared_stage_ids.iter().any(|stage_id| {
+                    include_fastq_active_benchmark_pair(stage_id, &contract.tool_id)
+                })
+            {
+                continue;
+            }
+            let benchmark_stage_ids = contract
+                .benchmark_stage_overlap(&benchmark_stage_ids)
+                .into_iter()
+                .filter(|stage_id| {
+                    domain != ReadinessDomain::Fastq
+                        || include_fastq_active_benchmark_pair(stage_id, &contract.tool_id)
+                })
+                .collect::<Vec<_>>();
             let (decision, reason) =
                 orphan_decision(&contract.tool_id, &declared_stage_ids, &benchmark_stage_ids);
             rows.push(OrphanToolRow {
@@ -206,26 +221,10 @@ mod tests {
             .expect("render orphan tools");
 
         assert_eq!(report.schema_version, ORPHAN_TOOLS_SCHEMA_VERSION);
-        assert!(!report.rows.is_empty(), "orphan tool report must retain governed orphan rows");
-        assert_eq!(report.orphan_count, 3);
-        assert!(report.rows.iter().any(|row| {
-            row.domain == "bam"
-                && row.tool_id == "addeam"
-                && row.decision == "register_to_stage"
-                && row.benchmark_stage_ids == vec!["bam.damage".to_string()]
-        }));
-        assert!(report.rows.iter().any(|row| {
-            row.domain == "bam"
-                && row.tool_id == "damageprofiler"
-                && row.decision == "register_to_stage"
-                && row.benchmark_stage_ids
-                    == vec!["bam.authenticity".to_string(), "bam.damage".to_string()]
-        }));
-        assert!(report.rows.iter().any(|row| {
-            row.domain == "bam"
-                && row.tool_id == "ngsbriggs"
-                && row.decision == "register_to_stage"
-                && row.benchmark_stage_ids == vec!["bam.damage".to_string()]
-        }));
+        assert_eq!(report.orphan_count, 0);
+        assert!(
+            report.rows.is_empty(),
+            "orphan tool report must be empty once the active benchmark scope is fully registered"
+        );
     }
 }

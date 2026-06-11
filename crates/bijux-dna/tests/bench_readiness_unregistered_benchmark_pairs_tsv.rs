@@ -43,7 +43,7 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 5, "TSV must retain the governed unregistered-pair row count");
+    assert_eq!(rows.len(), 7, "TSV must retain the governed unregistered-pair row count");
     assert!(
         !rows
             .iter()
@@ -84,7 +84,7 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"fastq\tfastq.normalize_abundance\tseqfu\tplanned_contract\ttool_registered_pair_missing\tfastq.profile_read_lengths,fastq.profile_reads\tbenchmark matrix references `fastq.normalize_abundance` / `seqfu` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `seqfu`: fastq.profile_read_lengths, fastq.profile_reads"
+            row == &"fastq\tfastq.normalize_abundance\tseqfu\tplanned_contract\ttool_missing\t\tbenchmark matrix references `fastq.normalize_abundance` / `seqfu` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `seqfu`: <none>"
         }),
         "TSV must retain the governed fastq.normalize_abundance / seqfu registry drift row"
     );
@@ -112,12 +112,22 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         !rows.iter().any(|row| row.starts_with("bam\tbam.damage\tdamageprofiler\t")),
         "TSV must not retain a registry-drift row for bam.damage / damageprofiler once it is registered"
     );
-    for tool_id in ["prinseq", "seqfu"] {
+    for tool_id in ["prinseq"] {
         assert!(
             !rows.iter().any(|row| {
                 row.starts_with(&format!("fastq\tfastq.profile_read_lengths\t{tool_id}\t"))
             }),
             "TSV must no longer retain a registry-drift row for fastq.profile_read_lengths / {tool_id}"
+        );
+    }
+    for stage_id in ["fastq.profile_read_lengths", "fastq.profile_reads"] {
+        assert!(
+            rows.iter().any(|row| {
+                row.starts_with(&format!(
+                    "fastq\t{stage_id}\tseqfu\tgoverned_benchmark_cohort\ttool_missing\t\t"
+                ))
+            }),
+            "TSV must retain the governed {stage_id} / seqfu missing-tool row while seqfu stays experimental"
         );
     }
     for tool_id in [
@@ -254,7 +264,7 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
     assert!(
         rows.iter().any(|row| {
             row.starts_with(
-                "fastq\tfastq.normalize_abundance\tseqfu\tplanned_contract\ttool_registered_pair_missing\t",
+                "fastq\tfastq.normalize_abundance\tseqfu\tplanned_contract\ttool_missing\t\t",
             )
         }),
         "TSV must retain the planned fastq.normalize_abundance / seqfu registry-drift row"

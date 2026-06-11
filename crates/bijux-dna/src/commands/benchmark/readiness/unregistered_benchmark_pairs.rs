@@ -201,9 +201,9 @@ mod tests {
         .expect("render unregistered benchmark pairs");
 
         assert_eq!(report.schema_version, UNREGISTERED_BENCHMARK_PAIRS_SCHEMA_VERSION);
-        assert_eq!(report.unregistered_pair_count, 5);
+        assert_eq!(report.unregistered_pair_count, 7);
         assert!(!report.ok, "report must fail while registry drift remains");
-        assert_eq!(report.domain_counts.get("fastq"), Some(&5));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&7));
         assert_eq!(report.domain_counts.get("bam"), None);
         assert!(report.rows.iter().any(|row| {
             row.domain == "fastq"
@@ -228,5 +228,26 @@ mod tests {
             }),
             "bam.haplogroups / yleaf must leave the registry-drift slice once yleaf is registered in production"
         );
+        assert!(report.rows.iter().any(|row| {
+            row.domain == "fastq"
+                && row.stage_id == "fastq.normalize_abundance"
+                && row.tool_id == "seqfu"
+                && row.registry_status == "tool_missing"
+                && row.registered_stage_ids.is_empty()
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.domain == "fastq"
+                && row.stage_id == "fastq.profile_read_lengths"
+                && row.tool_id == "seqfu"
+                && row.registry_status == "tool_missing"
+                && row.registered_stage_ids.is_empty()
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.domain == "fastq"
+                && row.stage_id == "fastq.profile_reads"
+                && row.tool_id == "seqfu"
+                && row.registry_status == "tool_missing"
+                && row.registered_stage_ids.is_empty()
+        }));
     }
 }

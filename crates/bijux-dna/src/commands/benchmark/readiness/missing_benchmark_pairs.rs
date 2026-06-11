@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use serde::Serialize;
 
+use super::active_scope::include_fastq_active_benchmark_pair;
 use super::catalog::{load_stage_admissions, ReadinessDomain};
 use super::tool_serving_map::{
     render_bam_tool_serving_map, render_fastq_tool_serving_map, ToolServingMapRow,
@@ -84,6 +85,11 @@ pub(crate) fn render_missing_benchmark_pairs(
                 .collect::<Vec<_>>();
             let registered_tool_set = registered_tool_ids.iter().cloned().collect::<BTreeSet<_>>();
             for admission in admissions {
+                if domain == ReadinessDomain::Fastq
+                    && !include_fastq_active_benchmark_pair(stage_id.as_str(), &admission.tool_id)
+                {
+                    continue;
+                }
                 if registered_tool_set.contains(&admission.tool_id) {
                     continue;
                 }
