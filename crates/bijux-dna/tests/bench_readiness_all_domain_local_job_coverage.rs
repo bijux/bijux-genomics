@@ -59,8 +59,8 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
     assert!(payload
         .get("stage_count")
         .and_then(serde_json::Value::as_u64)
-        .is_some_and(|count| count >= 61));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(68));
+        .is_some_and(|count| count >= 62));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(
         payload.get("local_job_binding_count").and_then(serde_json::Value::as_u64),
         Some(row_count)
@@ -74,6 +74,7 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(support::object_u64(domain_counts, "fastq"), Some(63));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
+    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(18));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let command_source_counts = payload
@@ -90,13 +91,17 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
     );
     assert_eq!(
         command_source_counts.get("vcf_plink_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(3)
     );
     assert_eq!(
         command_source_counts
             .get("vcf_imputation_family_adapter")
             .and_then(serde_json::Value::as_u64),
         Some(2)
+    );
+    assert_eq!(
+        command_source_counts.get("vcf_eigensoft_adapter").and_then(serde_json::Value::as_u64),
+        Some(1)
     );
 
     let coverage_status_counts = support::json_object(&payload, "coverage_status_counts");
@@ -163,6 +168,13 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
                         == vec!["bcftools", "bcftools"]
                 },
             )
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("result_id").and_then(serde_json::Value::as_str)
+            == Some("vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft")
+            && row.get("command_source").and_then(serde_json::Value::as_str)
+                == Some("vcf_eigensoft_adapter")
+            && row.get("command_step_count").and_then(serde_json::Value::as_u64) == Some(4)
     }));
 
     let violations =

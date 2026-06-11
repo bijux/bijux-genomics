@@ -53,15 +53,15 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
     assert_eq!(support::json_u64(&payload, "result_id_count"), Some(row_count));
-    assert_eq!(support::json_u64(&payload, "stage_count"), Some(61));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(68));
+    assert_eq!(support::json_u64(&payload, "stage_count"), Some(62));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(13));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(16));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(18));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let section_counts = support::json_object(&payload, "report_section_counts");
@@ -180,4 +180,16 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
         .get("expected_metrics")
         .and_then(serde_json::Value::as_array)
         .is_some_and(|metrics| metrics.iter().any(|value| value.as_str() == Some("mean_info_score"))));
+
+    let vcf_pca = rows
+        .iter()
+        .find(|row| {
+            row.get("result_id").and_then(serde_json::Value::as_str)
+                == Some("vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft")
+        })
+        .expect("VCF PCA result row");
+    assert_eq!(
+        vcf_pca.get("report_section").and_then(serde_json::Value::as_str),
+        Some("population_structure")
+    );
 }

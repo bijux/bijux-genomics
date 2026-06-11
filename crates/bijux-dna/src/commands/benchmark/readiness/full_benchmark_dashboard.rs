@@ -337,7 +337,7 @@ fn ensure_full_benchmark_dashboard_contract(
             "full benchmark dashboard total stages drifted from the governed all-domain stage inventory"
         ));
     }
-    if report.total_tools != expected_results.tool_count || report.total_tools != 68 {
+    if report.total_tools != expected_results.tool_count || report.total_tools != 69 {
         return Err(anyhow!(
             "full benchmark dashboard total tools drifted from the governed expected-result slice"
         ));

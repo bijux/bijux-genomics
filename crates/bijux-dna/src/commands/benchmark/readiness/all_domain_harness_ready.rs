@@ -184,11 +184,11 @@ pub(crate) fn render_all_domain_harness_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_STAGE_TOOL_TABLE_PATH),
             )?;
-            if report.row_count != 145
+            if report.row_count != 146
                 || report.benchmark_ready_row_count != report.benchmark_ready_unique_binding_count
                 || report.domain_counts.get("fastq").copied() != Some(74)
                 || report.domain_counts.get("bam").copied() != Some(49)
-                || report.domain_counts.get("vcf").copied() != Some(22)
+                || report.domain_counts.get("vcf").copied() != Some(23)
                 || report.benchmark_ready_domain_counts.get("fastq").copied().unwrap_or_default()
                     == 0
                 || report.benchmark_ready_domain_counts.get("bam").copied().unwrap_or_default()
@@ -222,8 +222,8 @@ pub(crate) fn render_all_domain_harness_ready(
                 .context("goal 279 stage tool table report is required")?;
             if report.row_count != benchmark_ready_binding_count
                 || report.result_id_count != benchmark_ready_binding_count
-                || report.stage_count != 61
-                || report.tool_count != 68
+                || report.stage_count != 62
+                || report.tool_count != 69
                 || report.corpus_count != 9
                 || report.asset_profile_count != 13
                 || report.domain_counts != stage_tool_report.benchmark_ready_domain_counts
@@ -260,11 +260,12 @@ pub(crate) fn render_all_domain_harness_ready(
                 || report.command_source_counts.get("fastq_bam_command_adapter").copied()
                     != Some(112)
                 || report.command_source_counts.get("vcf_bcftools_adapter").copied() != Some(11)
+                || report.command_source_counts.get("vcf_eigensoft_adapter").copied() != Some(1)
                 || report.command_source_counts.get("vcf_imputation_family_adapter").copied()
                     != Some(2)
                 || report.command_source_counts.get("vcf_phasing_family_adapter").copied()
                     != Some(1)
-                || report.command_source_counts.get("vcf_plink_family_adapter").copied() != Some(2)
+                || report.command_source_counts.get("vcf_plink_family_adapter").copied() != Some(3)
             {
                 bail!("all-domain rendered commands drifted from the governed binding slice");
             }
@@ -414,7 +415,7 @@ pub(crate) fn render_all_domain_harness_ready(
                 || report.real_smoke_row_count != 4
                 || report.domain_counts.get("fastq").copied() != Some(64)
                 || report.domain_counts.get("bam").copied() != Some(50)
-                || report.domain_counts.get("vcf").copied() != Some(18)
+                || report.domain_counts.get("vcf").copied() != Some(20)
             {
                 bail!(
                     "all-domain parser collector drifted from the governed fake-run and smoke set"

@@ -62,7 +62,7 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(16));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(18));
 
     let failure_reason_counts = payload
         .get("failure_reason_counts")

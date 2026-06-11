@@ -531,6 +531,7 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::env;
     use std::path::PathBuf;
 
     use super::{render_all_domain_commands, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH};
@@ -542,9 +543,28 @@ mod tests {
             .expect("canonicalize repo root")
     }
 
+    struct CurrentDirGuard {
+        previous: PathBuf,
+    }
+
+    impl CurrentDirGuard {
+        fn change_to(path: &PathBuf) -> Self {
+            let previous = env::current_dir().expect("current dir");
+            env::set_current_dir(path).expect("set current dir");
+            Self { previous }
+        }
+    }
+
+    impl Drop for CurrentDirGuard {
+        fn drop(&mut self) {
+            env::set_current_dir(&self.previous).expect("restore current dir");
+        }
+    }
+
     #[test]
     fn all_domain_rendered_commands_report_tracks_governed_rows() {
         let root = repo_root();
+        let _cwd_guard = CurrentDirGuard::change_to(&root);
         let report = render_all_domain_commands(
             &root,
             PathBuf::from(DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH),
@@ -560,13 +580,14 @@ mod tests {
         assert_eq!(report.result_id_count, report.row_count);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&16));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&18));
         assert_eq!(report.benchmark_status_counts.get("benchmark_ready"), Some(&report.row_count));
         assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&112));
         assert_eq!(report.command_source_counts.get("vcf_bcftools_adapter"), Some(&11));
+        assert_eq!(report.command_source_counts.get("vcf_eigensoft_adapter"), Some(&1));
         assert_eq!(report.command_source_counts.get("vcf_imputation_family_adapter"), Some(&2));
         assert_eq!(report.command_source_counts.get("vcf_phasing_family_adapter"), Some(&1));
-        assert_eq!(report.command_source_counts.get("vcf_plink_family_adapter"), Some(&2));
+        assert_eq!(report.command_source_counts.get("vcf_plink_family_adapter"), Some(&3));
         assert!(report.rows.iter().all(|row| !row.command_steps.is_empty()));
     }
 }

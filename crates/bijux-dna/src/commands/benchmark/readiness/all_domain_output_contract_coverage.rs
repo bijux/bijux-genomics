@@ -886,8 +886,8 @@ mod tests {
         assert_eq!(report.schema_version, ALL_DOMAIN_OUTPUT_CONTRACT_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_OUTPUT_CONTRACT_COVERAGE_PATH);
         assert_eq!(report.result_id_count, report.row_count);
-        assert_eq!(report.stage_count, 61);
-        assert_eq!(report.tool_count, 68);
+        assert_eq!(report.stage_count, 62);
+        assert_eq!(report.tool_count, 69);
         assert_eq!(report.output_declaration_binding_count, report.row_count);
         assert_eq!(report.source_proof_binding_count, report.row_count);
         assert_eq!(report.covered_row_count, report.row_count);
@@ -899,7 +899,7 @@ mod tests {
         assert_eq!(report.manifest_declared_row_count, report.row_count);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&16));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&18));
         assert_eq!(report.proof_source_counts.get(PROOF_SOURCE_FASTQ), Some(&63));
         assert_eq!(report.proof_source_counts.get(PROOF_SOURCE_BAM), Some(&49));
         assert_eq!(report.proof_source_counts.values().copied().sum::<usize>(), report.row_count);

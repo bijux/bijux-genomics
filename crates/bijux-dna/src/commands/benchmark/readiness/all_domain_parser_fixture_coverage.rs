@@ -584,15 +584,15 @@ mod tests {
 
         assert_eq!(report.schema_version, ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_PATH);
-        assert_eq!(report.stage_count, 61);
-        assert_eq!(report.tool_count, 68);
+        assert_eq!(report.stage_count, 62);
+        assert_eq!(report.tool_count, 69);
         assert_eq!(report.parser_proof_binding_count, report.row_count);
         assert_eq!(report.covered_row_count, report.row_count);
         assert_eq!(report.missing_row_count, 0);
         assert_eq!(report.coverage_percent, 100.0);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&16));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&18));
         assert_eq!(report.proof_source_counts.get("fastq_parser_coverage"), Some(&63));
         assert_eq!(report.proof_source_counts.get("bam_parser_coverage"), Some(&49));
         assert_eq!(report.proof_source_counts.values().copied().sum::<usize>(), report.row_count);
