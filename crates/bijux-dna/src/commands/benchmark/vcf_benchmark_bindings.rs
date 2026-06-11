@@ -29,6 +29,12 @@ const EXPLICIT_VCF_BENCHMARK_BINDINGS: &[ExplicitVcfBenchmarkBinding] = &[
         corpus_id: "vcf_production_regression",
         asset_profile_id: "vcf_cohort",
     },
+    ExplicitVcfBenchmarkBinding {
+        stage: VcfDomainStage::Pca,
+        tool_id: "eigensoft",
+        corpus_id: "vcf_production_regression",
+        asset_profile_id: "vcf_cohort",
+    },
 ];
 
 pub(crate) fn collect_vcf_benchmark_binding_rows() -> Result<Vec<VcfStageMatrixRow>> {

@@ -51,7 +51,7 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.filter` default: `bcftools`. rationale: stable filtering semantics for regression comparability.
 - `vcf.stats` default: `bcftools`. rationale: minimal required metrics for quality gating.
 - `vcf.qc` default: `plink2` (planned). rationale: keep planned cohort-QC behavior on an admitted downstream matrix tool instead of inventing a VCF-only placeholder.
-- `vcf.pca` default: `plink2` (planned). rationale: current planned PCA baseline stays aligned with the governed population-structure tooling family.
+- `vcf.pca` default: `plink2`. rationale: current governed PCA default keeps sample-complete eigenvector output, eigenvalue reporting, and metadata joins anchored to the PLINK2 smoke-backed cohort path while retained `eigensoft` stays comparative.
 - `vcf.admixture` default: `plink2` (planned). rationale: keep the planned admixture surface anchored to an admitted matrix-preparation backend until a dedicated admixture tool is formally admitted.
 - `vcf.ibd` default: `germline` (planned). rationale: current planned IBD baseline names the intended segment caller while alternative tools stay comparative.
 - `vcf.phasing` default: `shapeit5`. rationale: current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle and Eagle stay comparative.

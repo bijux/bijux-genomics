@@ -4,19 +4,19 @@ stage_ids: ["vcf.qc", "vcf.pca", "vcf.admixture", "vcf.population_structure", "v
 role: "analysis"
 authoritative: false
 strict_capable: true
-status: "planned"
+status: "supported"
 scope: "post_vcf"
-default_version: "planned"
+default_version: "2.00a5"
 upstream: "https://www.cog-genomics.org/plink/2.0/"
 pin_strategy: "container_digest"
 license: "GPL-3.0"
-citation: "planned"
+citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4342193/"
 version_cmd: "plink2 --version"
 help_cmd: "plink2 --help"
 expected_artifacts: ["qc_report", "pca_report", "admixture_report", "population_structure_report", "roh_report", "metrics.json"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.population_structure.v1"
-comparability_notes: "Planned tool; compare only within pinned profile and reference build."
+comparability_notes: "Comparable only when LD pruning, missingness thresholds, PCA component count, and reference build stay identical."
 container:
   image: "containers/docker/arm64/Dockerfile.plink2"
-  digest: "planned"
+  digest: "sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec"
