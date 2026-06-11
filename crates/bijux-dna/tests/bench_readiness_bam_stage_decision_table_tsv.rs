@@ -62,7 +62,7 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bam.qc_pre\tbenchmark_ready\tmultiqc\tmultiqc\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.qc_pre` is benchmark_ready via `multiqc` with a fixture-backed parser-validated BAM benchmark row"
+            row == &"bam.qc_pre\tbenchmark_ready\tsamtools\tsamtools\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.qc_pre` is benchmark_ready via `samtools` with a fixture-backed parser-validated BAM benchmark row"
         }),
         "TSV must retain the governed benchmark-ready bam.qc_pre row"
     );
@@ -102,7 +102,7 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bam.markdup\tbenchmark_ready\tpicard\tpicard\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.markdup` is benchmark_ready via `picard` with a fixture-backed parser-validated BAM benchmark row"
+            row == &"bam.markdup\tbenchmark_ready\tsamtools\tsamtools\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tstage `bam.markdup` is benchmark_ready via `samtools` with a fixture-backed parser-validated BAM benchmark row"
         }),
         "TSV must retain the governed benchmark-ready bam.markdup row"
     );
