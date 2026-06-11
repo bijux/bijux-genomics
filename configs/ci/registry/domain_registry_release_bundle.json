@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "b9e7630f9bbf71d5e9944514bd8d0a361e6b87fb",
-  "bundle_checksum_sha256": "6f581d63bd51ec12a447afce444f810dc337ef3f8d0a38103a5628a4eb4fbb57",
+  "source_commit": "610a9dea039d2253e622bb79d19870fdc3dbd4cf",
+  "bundle_checksum_sha256": "cd334e2c2a2b5a387580926a90f4a2b835c19bdec5e46e6dc5cff08110056a97",
   "domains": [
     {
       "domain_id": "bam",
@@ -3769,7 +3769,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "3259afa4224319a7d350da5b5445475c7b978fa84c09c03f72800c73d7fcfa52"
+      "checksum_sha256": "aa93b85fb553f55c6e82d1886bdd5307a8144e56539359dea18ec712486a1cde"
     },
     {
       "domain_id": "fastq",
@@ -12656,7 +12656,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "632a327223383ee80ee0cfb252ed011a407722251141fb61950e28556d7bff1e"
+      "checksum_sha256": "0588f60f4a6cf5449e5a114011c4898d1a4f15490296fb75cd1498003a6190f3"
     },
     {
       "domain_id": "vcf",
@@ -12722,6 +12722,7 @@
         "vcf.postprocess",
         "vcf.prepare_reference_panel",
         "vcf.qc",
+        "vcf.roh",
         "vcf.stats"
       ],
       "governed_tool_ids": [
@@ -13977,8 +13978,8 @@
         },
         {
           "stage_id": "vcf.roh",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.roh in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -14006,27 +14007,32 @@
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "roh_count",
+              "metric_id": "sample_count",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             },
             {
-              "metric_id": "roh_total_mb",
+              "metric_id": "segment_count",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             },
             {
-              "metric_id": "roh_length_bins_mb",
+              "metric_id": "total_length",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             },
             {
-              "metric_id": "roh_mean_length_mb",
+              "metric_id": "segments",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             },
             {
-              "metric_id": "roh_max_length_mb",
+              "metric_id": "per_sample_summary",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "status",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             }
@@ -14048,9 +14054,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "full scientific validation pending downstream admission"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "vcf.stats",
@@ -14782,6 +14786,10 @@
           "schema_version": "bijux.metrics.v1"
         },
         {
+          "metric_id": "per_sample_summary",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
           "metric_id": "phasing_status",
           "schema_version": "bijux.metrics.v1"
         },
@@ -14854,6 +14862,14 @@
           "schema_version": "bijux.metrics.v1"
         },
         {
+          "metric_id": "segment_count",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "segments",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
           "metric_id": "selected_k",
           "schema_version": "bijux.metrics.v1"
         },
@@ -14867,6 +14883,10 @@
         },
         {
           "metric_id": "ti_tv",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "total_length",
           "schema_version": "bijux.metrics.v1"
         },
         {
@@ -15130,6 +15150,14 @@
           "override_policy": "explicit profile override required"
         },
         {
+          "stage_id": "vcf.roh",
+          "tool_id": "plink2",
+          "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+          "rationale": "deterministic ROH interval extraction with normalized segment and per-sample summaries.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
           "stage_id": "vcf.stats",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -15305,13 +15333,18 @@
           "fixture_path": "domain/vcf/fixtures/vcf.qc/plink2.txt"
         },
         {
+          "stage_id": "vcf.roh",
+          "tool_id": "plink2",
+          "fixture_path": "domain/vcf/fixtures/vcf.roh/plink2.txt"
+        },
+        {
           "stage_id": "vcf.stats",
           "tool_id": "bcftools",
           "fixture_path": "domain/vcf/fixtures/vcf.stats/bcftools.txt"
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "d977562041f291b58acb69524eb268857ab789ff7180a8d0df183ab8b85f6932"
+      "checksum_sha256": "277e476c20124713279c6a5b2bd6e25d0183d14ff29b5ea84c300b13f6e7ebba"
     }
   ]
 }

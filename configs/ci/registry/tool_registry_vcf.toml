@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: b9e7630f9bbf71d5e9944514bd8d0a361e6b87fb
+# source_commit: 610a9dea039d2253e622bb79d19870fdc3dbd4cf
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -632,6 +632,18 @@ validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = "the governed cohort-QC baseline keeps missingness, MAF, and HWE summaries anchored to the admitted PLINK-family execution surface while retaining deterministic bcftools compatibility for comparison."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "vcf.roh"
+required_tool_roles = ["transform"]
+primary_tools = ["plink2"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "deterministic ROH interval extraction with normalized segment and per-sample summaries."
 requires_validation = false
 requires_reporting = false
 

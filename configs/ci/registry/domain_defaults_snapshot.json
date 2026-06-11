@@ -541,6 +541,14 @@
         "override_policy": "explicit profile override required"
       },
       {
+        "stage_id": "vcf.roh",
+        "tool_id": "plink2",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "deterministic ROH interval extraction with normalized segment and per-sample summaries.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
         "stage_id": "vcf.stats",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",

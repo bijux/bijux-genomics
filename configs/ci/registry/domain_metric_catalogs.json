@@ -805,6 +805,10 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "per_sample_summary",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "phasing_status",
         "schema_version": "bijux.metrics.v1"
       },
@@ -877,6 +881,14 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "segment_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "segments",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "selected_k",
         "schema_version": "bijux.metrics.v1"
       },
@@ -890,6 +902,10 @@
       },
       {
         "metric_id": "ti_tv",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "total_length",
         "schema_version": "bijux.metrics.v1"
       },
       {

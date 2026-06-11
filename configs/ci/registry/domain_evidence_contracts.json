@@ -1151,7 +1151,7 @@
       },
       {
         "stage_id": "vcf.roh",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "roh_min_kb_and_density_thresholds_are_fixed_per_run",
