@@ -45,10 +45,10 @@ fn bench_readiness_vcf_parser_coverage_reports_benchmark_ready_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-parser-coverage.tsv")
     );
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(13));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(14));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(5));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(15));
-    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(16));
+    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(16));
     assert_eq!(payload.get("missing_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("parser_coverage_percent").and_then(serde_json::Value::as_f64),
@@ -56,7 +56,7 @@ fn bench_readiness_vcf_parser_coverage_reports_benchmark_ready_rows() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 15);
+    assert_eq!(rows.len(), 16);
 
     assert!(rows.iter().all(|row| {
         row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
@@ -88,6 +88,15 @@ fn bench_readiness_vcf_parser_coverage_reports_benchmark_ready_rows() {
                 == Some("parse_bcftools_call_gl_metrics")
             && row.get("schema_id").and_then(serde_json::Value::as_str)
                 == Some("bijux.vcf.call_gl.v1")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str)
+            == Some("vcf.imputation_metrics")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
+            && row.get("parser_id").and_then(serde_json::Value::as_str)
+                == Some("parse_beagle_imputation_metrics")
+            && row.get("schema_id").and_then(serde_json::Value::as_str)
+                == Some("bijux.vcf.imputation_metrics.v1")
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.impute")

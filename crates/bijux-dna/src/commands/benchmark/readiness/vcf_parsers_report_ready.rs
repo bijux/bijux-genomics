@@ -317,10 +317,10 @@ pub(crate) fn render_vcf_parsers_report_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_PARSER_COVERAGE_PATH),
             )?;
-            if report.stage_count != 13
+            if report.stage_count != 14
                 || report.tool_count != 5
-                || report.row_count != 15
-                || report.covered_row_count != 15
+                || report.row_count != 16
+                || report.covered_row_count != 16
                 || report.missing_row_count != 0
                 || report.parser_coverage_percent != 100.0
             {
@@ -342,8 +342,8 @@ pub(crate) fn render_vcf_parsers_report_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH),
             )?;
-            if report.row_count != 15
-                || report.stage_count != 13
+            if report.row_count != 16
+                || report.stage_count != 14
                 || report.tool_count != 5
                 || report.corpus_count != 1
                 || report.asset_profile_count != 5
@@ -366,8 +366,8 @@ pub(crate) fn render_vcf_parsers_report_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_MISSING_RESULT_REPORT_TEST_PATH),
             )?;
-            if report.expected_row_count != 15
-                || report.present_result_row_count != 14
+            if report.expected_row_count != 16
+                || report.present_result_row_count != 15
                 || report.missing_result_row_count != 1
                 || !report.passes_behavior_test
             {
@@ -386,8 +386,8 @@ pub(crate) fn render_vcf_parsers_report_ready(
         || {
             let report =
                 render_vcf_report_map(repo_root, PathBuf::from(DEFAULT_VCF_REPORT_MAP_PATH))?;
-            if report.row_count != 15
-                || report.stage_count != 13
+            if report.row_count != 16
+                || report.stage_count != 14
                 || report.tool_count != 5
                 || report.section_count != 8
                 || report.summary_table_count != 8

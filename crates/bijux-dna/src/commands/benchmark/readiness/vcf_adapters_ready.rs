@@ -125,8 +125,8 @@ pub(crate) fn render_vcf_adapters_ready(
             if report.row_count != 22
                 || report.stage_count != 20
                 || report.tool_count != 7
-                || report.benchmark_ready_row_count != 15
-                || report.not_benchmark_ready_row_count != 7
+                || report.benchmark_ready_row_count != 16
+                || report.not_benchmark_ready_row_count != 6
             {
                 bail!(
                     "VCF tool-serving map drifted: rows={}, stages={}, tools={}, benchmark_ready={}, not_benchmark_ready={}",
@@ -139,7 +139,7 @@ pub(crate) fn render_vcf_adapters_ready(
             }
             benchmark_ready_pair_count = report.benchmark_ready_row_count;
             tool_serving_map_report = Some(report);
-            Ok("validated 22 governed VCF stage-tool rows with 15 canonical benchmark-ready pairs"
+            Ok("validated 22 governed VCF stage-tool rows with 16 canonical benchmark-ready pairs"
                 .to_string())
         },
     );
@@ -224,7 +224,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 || report
                     .get("benchmark_ready_registry_pair_count")
                     .and_then(serde_json::Value::as_u64)
-                    != Some(11)
+                    != Some(10)
                 || report
                     .get("unregistered_matrix_pair_count")
                     .and_then(serde_json::Value::as_u64)
@@ -490,8 +490,8 @@ pub(crate) fn render_vcf_adapters_ready(
                 PathBuf::from(DEFAULT_VCF_ADAPTER_OUTPUT_COVERAGE_PATH),
             )?;
             if report.row_count != 39
-                || report.benchmark_ready_row_count != 15
-                || report.benchmark_ready_complete_row_count != 15
+                || report.benchmark_ready_row_count != 16
+                || report.benchmark_ready_complete_row_count != 16
                 || report.benchmark_ready_incomplete_row_count != 0
                 || report.complete_row_count != 36
                 || report.incomplete_row_count != 3
@@ -542,7 +542,7 @@ pub(crate) fn render_vcf_adapters_ready(
         || {
             let report =
                 render_vcf_commands(repo_root, PathBuf::from(DEFAULT_VCF_RENDERED_COMMANDS_PATH))?;
-            if report.row_count != 15 {
+            if report.row_count != 16 {
                 bail!(
                     "VCF rendered commands drifted from the governed benchmark-ready command slice"
                 );

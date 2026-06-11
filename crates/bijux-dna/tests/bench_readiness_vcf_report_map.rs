@@ -45,8 +45,8 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-report-map.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(15));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(13));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(16));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(14));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(8));
@@ -76,11 +76,11 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
             .get("section_counts")
             .and_then(|value| value.get("imputation"))
             .and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(2)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 15);
+    assert_eq!(rows.len(), 16);
 
     let call = rows
         .iter()
@@ -194,6 +194,23 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
     assert_eq!(impute.get("section_id").and_then(serde_json::Value::as_str), Some("imputation"));
     assert_eq!(
         impute.get("summary_table").and_then(serde_json::Value::as_str),
+        Some("imputation_metrics")
+    );
+
+    let imputation_metrics = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.imputation_metrics")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
+        })
+        .expect("vcf.imputation_metrics row");
+    assert_eq!(
+        imputation_metrics.get("section_id").and_then(serde_json::Value::as_str),
+        Some("imputation")
+    );
+    assert_eq!(
+        imputation_metrics.get("summary_table").and_then(serde_json::Value::as_str),
         Some("imputation_metrics")
     );
 }

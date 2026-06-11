@@ -309,9 +309,9 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "VCF expected-result table must keep one row per benchmark-ready stage-tool-corpus-asset binding"
         ));
     }
-    if rows.len() != 15 {
+    if rows.len() != 16 {
         return Err(anyhow!(
-            "VCF expected-result table must retain exactly 15 benchmark-ready rows, found {}",
+            "VCF expected-result table must retain exactly 16 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -373,6 +373,15 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "prepared_panel",
             "normalization_status",
             "reference_panel_preparation",
+        ),
+        (
+            "vcf.imputation_metrics",
+            "beagle",
+            "vcf_production_regression",
+            "vcf_cohort_with_panel",
+            "imputation_metrics_json",
+            "mean_info_score",
+            "imputation",
         ),
         (
             "vcf.impute",
@@ -463,13 +472,13 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH);
-        assert_eq!(report.row_count, 15);
-        assert_eq!(report.stage_count, 13);
+        assert_eq!(report.row_count, 16);
+        assert_eq!(report.stage_count, 14);
         assert_eq!(report.tool_count, 5);
         assert_eq!(report.corpus_count, 1);
         assert_eq!(report.asset_profile_count, 5);
         assert_eq!(report.report_section_counts.get("damage_aware_filtering"), Some(&1));
-        assert_eq!(report.report_section_counts.get("imputation"), Some(&1));
+        assert_eq!(report.report_section_counts.get("imputation"), Some(&2));
         assert_eq!(report.report_section_counts.get("likelihood_postprocess"), Some(&1));
         assert_eq!(report.report_section_counts.get("phasing"), Some(&1));
         assert_eq!(report.report_section_counts.get("variant_calling"), Some(&4));
@@ -490,6 +499,14 @@ mod tests {
                 && row.expected_outputs == vec!["called_vcf".to_string()]
                 && row.expected_metrics.iter().any(|metric| metric == "variant_count")
                 && row.report_section == "variant_calling"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.imputation_metrics"
+                && row.tool_id == "beagle"
+                && row.asset_profile_id == "vcf_cohort_with_panel"
+                && row.expected_outputs == vec!["imputation_metrics_json".to_string()]
+                && row.expected_metrics.iter().any(|metric| metric == "mean_info_score")
+                && row.report_section == "imputation"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.impute"

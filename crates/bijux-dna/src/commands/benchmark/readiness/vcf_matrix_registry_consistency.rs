@@ -48,6 +48,17 @@ struct VcfRegistryToolRecord {
     statuses: BTreeSet<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct VcfRegistryStagePolicy {
+    tool_ids: BTreeSet<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct VcfRegistrySnapshot {
+    tool_records: Vec<VcfRegistryToolRecord>,
+    stage_policies: BTreeMap<String, VcfRegistryStagePolicy>,
+}
+
 pub(crate) fn run_render_vcf_matrix_registry_consistency(
     args: &parse::BenchReadinessRenderVcfMatrixRegistryConsistencyArgs,
 ) -> Result<()> {
@@ -76,7 +87,8 @@ pub(crate) fn render_vcf_matrix_registry_consistency(
         .map(|row| (row.stage_id, row.support_status))
         .collect::<BTreeMap<_, _>>();
     let matrix_rows = collect_vcf_benchmark_binding_rows()?;
-    let registry_records = load_vcf_registry_tool_records(repo_root)?;
+    let registry_snapshot = load_vcf_registry_snapshot(repo_root)?;
+    let registry_records = registry_snapshot.tool_records;
 
     let registry_pair_count = registry_records.iter().map(|record| record.stage_ids.len()).sum();
     let registry_by_tool = registry_records
@@ -101,20 +113,21 @@ pub(crate) fn render_vcf_matrix_registry_consistency(
         .map(|row| (row.stage_id.clone(), row.tool_id.clone()))
         .collect::<BTreeSet<_>>();
 
-    let benchmark_ready_registry_pairs = registry_records
+    let benchmark_ready_registry_pairs = registry_snapshot
+        .stage_policies
         .iter()
-        .flat_map(|record| {
-            record
-                .stage_ids
+        .flat_map(|(stage_id, policy)| {
+            policy
+                .tool_ids
                 .iter()
-                .filter(|stage_id| {
-                    record.statuses.contains("production")
-                        && stage_support_by_id
-                            .get(stage_id.as_str())
-                            .is_some_and(|status| status == "supported")
+                .filter(|tool_id| {
+                    stage_support_by_id.get(stage_id.as_str()).is_some_and(|status| status == "supported")
+                        && registry_by_tool
+                            .get(tool_id.as_str())
+                            .is_some_and(|record| record.statuses.contains("production"))
                 })
                 .cloned()
-                .map(|stage_id| (stage_id, record.tool_id.clone()))
+                .map(|tool_id| (stage_id.clone(), tool_id))
                 .collect::<Vec<_>>()
         })
         .collect::<BTreeSet<_>>();
@@ -206,8 +219,9 @@ pub(crate) fn render_vcf_matrix_registry_consistency(
     Ok(report)
 }
 
-fn load_vcf_registry_tool_records(repo_root: &Path) -> Result<Vec<VcfRegistryToolRecord>> {
+fn load_vcf_registry_snapshot(repo_root: &Path) -> Result<VcfRegistrySnapshot> {
     let mut records = BTreeMap::<String, VcfRegistryToolRecord>::new();
+    let mut stage_policies = BTreeMap::<String, VcfRegistryStagePolicy>::new();
     for relative_path in [
         "configs/ci/registry/tool_registry_vcf.toml",
         "configs/ci/registry/tool_registry_vcf_downstream.toml",
@@ -247,8 +261,36 @@ fn load_vcf_registry_tool_records(repo_root: &Path) -> Result<Vec<VcfRegistryToo
             record.stage_ids.extend(stage_ids);
             record.statuses.insert(status.to_string());
         }
+
+        if relative_path != "configs/ci/registry/tool_registry_vcf.toml" {
+            continue;
+        }
+
+        let Some(stage_entries) = parsed.get("stages").and_then(toml::Value::as_array) else {
+            continue;
+        };
+        for entry in stage_entries {
+            let stage_id = entry
+                .get("id")
+                .and_then(toml::Value::as_str)
+                .ok_or_else(|| anyhow!("stage entry in {relative_path} is missing id"))?
+                .to_string();
+            let tool_ids = ["primary_tools", "optional_alternatives", "validation_tools", "reporting_tools"]
+                .into_iter()
+                .flat_map(|field| {
+                    entry.get(field)
+                        .and_then(toml::Value::as_array)
+                        .into_iter()
+                        .flatten()
+                        .filter_map(toml::Value::as_str)
+                        .map(str::to_string)
+                        .collect::<Vec<_>>()
+                })
+                .collect::<BTreeSet<_>>();
+            stage_policies.insert(stage_id, VcfRegistryStagePolicy { tool_ids });
+        }
     }
-    Ok(records.into_values().collect())
+    Ok(VcfRegistrySnapshot { tool_records: records.into_values().collect(), stage_policies })
 }
 
 fn sorted_status_label(statuses: &BTreeSet<String>) -> String {
@@ -304,7 +346,7 @@ mod tests {
         assert_eq!(report.stage_count, 20);
         assert_eq!(report.matrix_row_count, 22);
         assert_eq!(report.registry_pair_count, 47);
-        assert_eq!(report.benchmark_ready_registry_pair_count, 11);
+        assert_eq!(report.benchmark_ready_registry_pair_count, 10);
         assert_eq!(report.unregistered_matrix_pair_count, 0);
         assert_eq!(report.missing_benchmark_ready_registry_pair_count, 0);
         assert!(report.rows.is_empty());

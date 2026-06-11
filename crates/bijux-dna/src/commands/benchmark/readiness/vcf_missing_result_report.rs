@@ -346,21 +346,21 @@ fn collect_vcf_missing_result_report_rows(
 fn ensure_vcf_missing_result_report_contract(
     mut report: VcfMissingResultReport,
 ) -> Result<VcfMissingResultReport> {
-    if report.rows.len() != 15 {
+    if report.rows.len() != 16 {
         return Err(anyhow!(
-            "VCF missing-result report must retain exactly 15 expected benchmark rows, found {}",
+            "VCF missing-result report must retain exactly 16 expected benchmark rows, found {}",
             report.rows.len()
         ));
     }
-    if report.expected_row_count != 15 {
+    if report.expected_row_count != 16 {
         return Err(anyhow!(
-            "VCF missing-result report must track exactly 15 expected rows, found {}",
+            "VCF missing-result report must track exactly 16 expected rows, found {}",
             report.expected_row_count
         ));
     }
-    if report.present_result_row_count != 14 {
+    if report.present_result_row_count != 15 {
         return Err(anyhow!(
-            "VCF missing-result report must retain exactly 14 present benchmark rows after removing one result, found {}",
+            "VCF missing-result report must retain exactly 15 present benchmark rows after removing one result, found {}",
             report.present_result_row_count
         ));
     }

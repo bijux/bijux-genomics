@@ -42,7 +42,7 @@ fn bench_readiness_vcf_parser_coverage_writes_governed_tsv_columns() {
         Some("stage_id\ttool_id\tparser_id\tfixture_path\tschema_id\tcoverage_status")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 12);
+    assert_eq!(rows.len(), 16);
     assert!(
         rows.iter().any(|row| {
             row == &"vcf.qc\tbcftools\tparse_bcftools_qc_metrics\tbenchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.qc\tbijux.vcf.qc.v1\tcovered"
@@ -66,5 +66,11 @@ fn bench_readiness_vcf_parser_coverage_writes_governed_tsv_columns() {
             row == &"vcf.stats\tbcftools\tparse_bcftools_stats_metrics\tbenchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.stats\tbijux.vcf.stats.v1\tcovered"
         }),
         "TSV must retain the governed VCF stats parser coverage row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"vcf.imputation_metrics\tbeagle\tparse_beagle_imputation_metrics\tbenchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics\tbijux.vcf.imputation_metrics.v1\tcovered"
+        }),
+        "TSV must retain the governed VCF imputation-metrics parser coverage row"
     );
 }
