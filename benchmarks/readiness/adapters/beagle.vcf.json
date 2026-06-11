@@ -14,7 +14,7 @@
       "tool_id": "beagle",
       "tool_status": "experimental",
       "stage_id": "vcf.phasing",
-      "stage_status": "planned",
+      "stage_status": "supported",
       "benchmark_status": "not_benchmark_ready",
       "adapter_id": "vcf.adapter.panel_workflow",
       "parser_id": "vcf.parser.vcf_output",

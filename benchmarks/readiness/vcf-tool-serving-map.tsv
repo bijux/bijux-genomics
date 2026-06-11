@@ -20,4 +20,4 @@ plink2	vcf.pca	planned	declared_only	parse_normalized	fixture:vcf_production_reg
 plink2	vcf.population_structure	planned	declared_only	parse_normalized	fixture:vcf_production_regression	assigned	not_benchmark_ready
 plink2	vcf.qc	supported	runnable	parse_normalized	fixture:vcf_production_regression	assigned	benchmark_ready
 plink2	vcf.roh	planned	declared_only	parse_normalized	fixture:vcf_production_regression	assigned	not_benchmark_ready
-shapeit5	vcf.phasing	planned	declared_only	parse_normalized	fixture:vcf_production_regression	assigned	not_benchmark_ready
+shapeit5	vcf.phasing	supported	runnable	parse_normalized	fixture:vcf_production_regression	assigned	benchmark_ready

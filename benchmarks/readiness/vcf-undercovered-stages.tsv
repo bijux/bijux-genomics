@@ -8,5 +8,5 @@ vcf.ibd	demography,relatedness	germline	ibdhap,ibdne,ibdseq	future_not_benchmark
 vcf.imputation_metrics	imputation,phasing,variant_processing	beagle	bcftools,beagle-imputation,glimpse,impute5,minimac4	limit_to_specialized_tool
 vcf.impute	imputation,phasing	beagle	beagle-imputation,glimpse,impute5,minimac4	future_not_benchmark_ready
 vcf.pca	cohort_analysis,population_structure,variant_processing	plink2	bcftools,eigensoft	limit_to_specialized_tool
-vcf.phasing	phasing,variant_processing	shapeit5	bcftools,beagle,eagle,shapeit	limit_to_specialized_tool
+vcf.phasing	phasing	shapeit5	beagle,eagle,shapeit	future_not_benchmark_ready
 vcf.population_structure	cohort_analysis,population_structure	plink2	eigensoft,plink	future_not_benchmark_ready
