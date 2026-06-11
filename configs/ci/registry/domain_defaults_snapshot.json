@@ -416,7 +416,7 @@
         "stage_id": "vcf.call",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-        "rationale": "deterministic baseline caller",
+        "rationale": "deterministic baseline caller for current production profile.",
         "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },
@@ -424,7 +424,7 @@
         "stage_id": "vcf.call_diploid",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-        "rationale": "deterministic diploid baseline for the current governed production profile",
+        "rationale": "deterministic diploid baseline for the current governed production profile.",
         "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },
@@ -432,7 +432,7 @@
         "stage_id": "vcf.call_gl",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-        "rationale": "current governed production default while angsd remains a planned low-coverage alternative",
+        "rationale": "current governed production default keeps GL emission runnable while `angsd` remains a planned low-coverage alternative.",
         "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },
@@ -440,7 +440,7 @@
         "stage_id": "vcf.call_pseudohaploid",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-        "rationale": "current governed production default while angsd remains a planned low-coverage alternative",
+        "rationale": "current governed production default preserves the pseudohaploid contract while `angsd` remains a planned alternative.",
         "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },
@@ -448,7 +448,7 @@
         "stage_id": "vcf.damage_filter",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-        "rationale": "deterministic transition and PMD masking baseline for the current governed profile",
+        "rationale": "deterministic PMD/C>T-G>A masking contract anchor for the current governed profile.",
         "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },
@@ -456,7 +456,7 @@
         "stage_id": "vcf.filter",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-        "rationale": "deterministic pass filter",
+        "rationale": "stable filtering semantics for regression comparability.",
         "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },
@@ -464,7 +464,15 @@
         "stage_id": "vcf.gl_propagation",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-        "rationale": "retain GL/PL tags across downstream handoffs in the current governed profile",
+        "rationale": "preserves GL fields across downstream handoffs in the current governed profile.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "vcf.imputation_metrics",
+        "tool_id": "beagle",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "keep the governed imputation-metrics contract anchored to the same backend family that produces the source imputation evidence.",
         "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },
@@ -472,7 +480,15 @@
         "stage_id": "vcf.impute",
         "tool_id": "beagle",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-        "rationale": "planned pinned imputation baseline",
+        "rationale": "current governed production default keeps explicit panel-aware imputation runnable while retained alternatives stay comparative.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "vcf.phasing",
+        "tool_id": "shapeit5",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle and Eagle stay comparative.",
         "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },
@@ -480,7 +496,7 @@
         "stage_id": "vcf.postprocess",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-        "rationale": "deterministic post-imputation normalization baseline",
+        "rationale": "deterministic normalization/filter baseline for governed post-imputation outputs.",
         "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },
@@ -488,7 +504,7 @@
         "stage_id": "vcf.prepare_reference_panel",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-        "rationale": "deterministic panel preparation baseline",
+        "rationale": "deterministic reference panel prep baseline.",
         "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },
@@ -496,7 +512,7 @@
         "stage_id": "vcf.stats",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-        "rationale": "required summary metrics",
+        "rationale": "minimal required metrics for quality gating.",
         "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       }

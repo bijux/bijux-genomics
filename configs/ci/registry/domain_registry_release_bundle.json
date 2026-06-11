@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "7237e485678fa9670e71b11f23173fdf4e07097d",
-  "bundle_checksum_sha256": "5eed3fa1499db427235b31e472e206d548a288e41a5ac8e972079705526ed22b",
+  "source_commit": "1231bc113d5f7955524bab90841f6ede09ab5f93",
+  "bundle_checksum_sha256": "f28f93e373be5681dd1d372904beba31308b6a78f4ce9aa045afb699e65617bc",
   "domains": [
     {
       "domain_id": "bam",
@@ -3769,7 +3769,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "7cccbbb7012e9d62d3dfbd541e05d7e6fedb9de17c9846839ca25f22f6475da1"
+      "checksum_sha256": "bba7c208ca7e0b9ae1a06bea92c02606471cde0973c95b8805b66f465a1afde9"
     },
     {
       "domain_id": "fastq",
@@ -12656,7 +12656,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "d4a9f9ebe0f98137ba066663493e1e5b65243dd1a31d3cd37a128a4550fb622a"
+      "checksum_sha256": "eac11f927b5bca7d2d324e5c72cba05e4b017ed960bbb9c939a3b1a3f6473f6f"
     },
     {
       "domain_id": "vcf",
@@ -12713,14 +12713,17 @@
         "vcf.damage_filter",
         "vcf.filter",
         "vcf.gl_propagation",
+        "vcf.imputation_metrics",
         "vcf.impute",
+        "vcf.phasing",
         "vcf.postprocess",
         "vcf.prepare_reference_panel",
         "vcf.stats"
       ],
       "governed_tool_ids": [
         "bcftools",
-        "beagle"
+        "beagle",
+        "shapeit5"
       ],
       "stages": [
         {
@@ -13394,8 +13397,8 @@
         },
         {
           "stage_id": "vcf.imputation_metrics",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.imputation_metrics in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -13436,7 +13439,8 @@
             "minimac4"
           ],
           "assumptions": [
-            "planned_stage"
+            "panel_required",
+            "genetic_map_required"
           ],
           "invariants": [
             "stable_artifact_contract"
@@ -13447,9 +13451,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "full scientific validation pending downstream admission"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "vcf.impute",
@@ -13849,6 +13851,7 @@
           ],
           "tool_capability_requirements": [],
           "compatible_tools": [
+            "bcftools",
             "plink",
             "plink2"
           ],
@@ -14063,6 +14066,7 @@
             "vcf.damage_filter",
             "vcf.filter",
             "vcf.gl_propagation",
+            "vcf.qc",
             "vcf.stats"
           ],
           "planned_stage_ids": [
@@ -14070,8 +14074,7 @@
             "vcf.imputation_metrics",
             "vcf.pca",
             "vcf.postprocess",
-            "vcf.prepare_reference_panel",
-            "vcf.qc"
+            "vcf.prepare_reference_panel"
           ],
           "expected_artifacts": [
             "damage_bias_audit_report",
@@ -14096,10 +14099,10 @@
         },
         {
           "tool_id": "beagle",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
-          "default_version": "planned",
+          "default_version": "5.4",
           "upstream": "https://faculty.washington.edu/browning/beagle/beagle.html",
           "pin_strategy": "container_digest",
           "license": "GPL-3.0",
@@ -14108,10 +14111,11 @@
           "help_cmd": "beagle --help",
           "stage_ids": [
             "vcf.imputation_metrics",
-            "vcf.impute",
+            "vcf.impute"
+          ],
+          "planned_stage_ids": [
             "vcf.phasing"
           ],
-          "planned_stage_ids": [],
           "expected_artifacts": [
             "imputed_vcf",
             "phased_vcf"
@@ -14121,10 +14125,10 @@
             "SE"
           ],
           "metrics_schema_id": "bijux.vcf.phasing.v1",
-          "comparability_notes": "Planned tool; compare only within pinned profile and reference build.",
+          "comparability_notes": "Comparable only when panel build, genetic map, and pinned Beagle profile stay identical.",
           "container": {
             "image": "containers/apptainer/lunarc/beagle.def",
-            "digest": "planned"
+            "digest": "sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"
           }
         },
         {
@@ -14450,10 +14454,10 @@
         },
         {
           "tool_id": "shapeit5",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
-          "default_version": "planned",
+          "default_version": "5.1.1",
           "upstream": "https://odelaneau.github.io/shapeit5/",
           "pin_strategy": "external_tool",
           "license": "MIT",
@@ -14472,7 +14476,7 @@
             "SE"
           ],
           "metrics_schema_id": "bijux.vcf.phasing.v1",
-          "comparability_notes": "External planned tool for phasing; containerization pending.",
+          "comparability_notes": "Comparable only when panel build, genetic map, and pinned Shapeit5 profile stay identical.",
           "container": {
             "image": "external",
             "digest": "external"
@@ -14764,7 +14768,7 @@
           "stage_id": "vcf.call",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-          "rationale": "deterministic baseline caller",
+          "rationale": "deterministic baseline caller for current production profile.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -14772,7 +14776,7 @@
           "stage_id": "vcf.call_diploid",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-          "rationale": "deterministic diploid baseline for the current governed production profile",
+          "rationale": "deterministic diploid baseline for the current governed production profile.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -14780,7 +14784,7 @@
           "stage_id": "vcf.call_gl",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-          "rationale": "current governed production default while angsd remains a planned low-coverage alternative",
+          "rationale": "current governed production default keeps GL emission runnable while `angsd` remains a planned low-coverage alternative.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -14788,7 +14792,7 @@
           "stage_id": "vcf.call_pseudohaploid",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-          "rationale": "current governed production default while angsd remains a planned low-coverage alternative",
+          "rationale": "current governed production default preserves the pseudohaploid contract while `angsd` remains a planned alternative.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -14796,7 +14800,7 @@
           "stage_id": "vcf.damage_filter",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-          "rationale": "deterministic transition and PMD masking baseline for the current governed profile",
+          "rationale": "deterministic PMD/C>T-G>A masking contract anchor for the current governed profile.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -14804,7 +14808,7 @@
           "stage_id": "vcf.filter",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-          "rationale": "deterministic pass filter",
+          "rationale": "stable filtering semantics for regression comparability.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -14812,7 +14816,15 @@
           "stage_id": "vcf.gl_propagation",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-          "rationale": "retain GL/PL tags across downstream handoffs in the current governed profile",
+          "rationale": "preserves GL fields across downstream handoffs in the current governed profile.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
+          "stage_id": "vcf.imputation_metrics",
+          "tool_id": "beagle",
+          "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+          "rationale": "keep the governed imputation-metrics contract anchored to the same backend family that produces the source imputation evidence.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -14820,7 +14832,15 @@
           "stage_id": "vcf.impute",
           "tool_id": "beagle",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-          "rationale": "planned pinned imputation baseline",
+          "rationale": "current governed production default keeps explicit panel-aware imputation runnable while retained alternatives stay comparative.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
+          "stage_id": "vcf.phasing",
+          "tool_id": "shapeit5",
+          "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+          "rationale": "current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle and Eagle stay comparative.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -14828,7 +14848,7 @@
           "stage_id": "vcf.postprocess",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-          "rationale": "deterministic post-imputation normalization baseline",
+          "rationale": "deterministic normalization/filter baseline for governed post-imputation outputs.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -14836,7 +14856,7 @@
           "stage_id": "vcf.prepare_reference_panel",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-          "rationale": "deterministic panel preparation baseline",
+          "rationale": "deterministic reference panel prep baseline.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -14844,7 +14864,7 @@
           "stage_id": "vcf.stats",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-          "rationale": "required summary metrics",
+          "rationale": "minimal required metrics for quality gating.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         }
@@ -14901,6 +14921,26 @@
           "fixture_path": "domain/vcf/fixtures/vcf.gl_propagation/bcftools.txt"
         },
         {
+          "stage_id": "vcf.imputation_metrics",
+          "tool_id": "beagle",
+          "fixture_path": "domain/vcf/fixtures/vcf.imputation_metrics/beagle.txt"
+        },
+        {
+          "stage_id": "vcf.imputation_metrics",
+          "tool_id": "glimpse",
+          "fixture_path": "domain/vcf/fixtures/vcf.imputation_metrics/glimpse.txt"
+        },
+        {
+          "stage_id": "vcf.imputation_metrics",
+          "tool_id": "impute5",
+          "fixture_path": "domain/vcf/fixtures/vcf.imputation_metrics/impute5.txt"
+        },
+        {
+          "stage_id": "vcf.imputation_metrics",
+          "tool_id": "minimac4",
+          "fixture_path": "domain/vcf/fixtures/vcf.imputation_metrics/minimac4.txt"
+        },
+        {
           "stage_id": "vcf.impute",
           "tool_id": "beagle",
           "fixture_path": "domain/vcf/fixtures/vcf.impute/beagle.txt"
@@ -14952,7 +14992,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "1cfae1136d353305350b4ac0ca0889cf63ce7e1e04f450c90c2588c8f03ebfed"
+      "checksum_sha256": "6c626bd21e69792ad62afd1fa907f2be71bf21613a3148d345308905e06896cf"
     }
   ]
 }

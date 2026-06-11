@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: 7237e485678fa9670e71b11f23173fdf4e07097d
+# source_commit: 1231bc113d5f7955524bab90841f6ede09ab5f93
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -101,7 +101,7 @@ tools = ["germline", "ibdhap"]
 
 [[stages]]
 id = "vcf.imputation_metrics"
-status = "planned"
+status = "supported"
 output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
@@ -169,7 +169,7 @@ output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
-tools = ["plink", "plink2"]
+tools = ["bcftools", "plink", "plink2"]
 
 [[stages]]
 id = "vcf.roh"

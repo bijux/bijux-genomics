@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: 7237e485678fa9670e71b11f23173fdf4e07097d
+# source_commit: 1231bc113d5f7955524bab90841f6ede09ab5f93
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -45,7 +45,7 @@ id = "bcftools"
 tool_id = "bcftools"
 domain = "vcf"
 status = "production"
-stage_ids = ["vcf.call", "vcf.call_gl", "vcf.call_diploid", "vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.gl_propagation", "vcf.filter", "vcf.stats", "vcf.admixture", "vcf.imputation_metrics", "vcf.pca", "vcf.postprocess", "vcf.prepare_reference_panel", "vcf.qc"]
+stage_ids = ["vcf.call", "vcf.call_diploid", "vcf.call_gl", "vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.filter", "vcf.gl_propagation", "vcf.postprocess", "vcf.prepare_reference_panel", "vcf.qc", "vcf.stats"]
 version = "1.20"
 default_version = "1.20"
 upstream = "https://github.com/samtools/bcftools"
@@ -75,17 +75,17 @@ require_labels = true
 id = "beagle"
 tool_id = "beagle"
 domain = "vcf"
-status = "planned"
-stage_ids = ["vcf.phasing", "vcf.imputation_metrics", "vcf.impute"]
-version = "planned"
-default_version = "planned"
+status = "production"
+stage_ids = ["vcf.imputation_metrics", "vcf.impute"]
+version = "5.4"
+default_version = "5.4"
 upstream = "https://faculty.washington.edu/browning/beagle/beagle.html"
 version_rule = "pinned"
 license = "GPL-3.0"
 citation = "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC6128308/"
-pinned_commit = "planned"
+pinned_commit = "sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"
 pin_strategy = "container_digest"
-container_ref = "containers/apptainer/lunarc/beagle.def@planned"
+container_ref = "containers/apptainer/lunarc/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "beagle --version"
@@ -97,7 +97,7 @@ healthcheck_cmd = "beagle --help"
 expected_bin = "beagle"
 expected_artifacts = ["phased_vcf", "imputed_vcf"]
 metrics_schema = "bijux.vcf.phasing.v1"
-comparability_notes = "Planned tool; compare only within pinned profile and reference build."
+comparability_notes = "Comparable only when panel build, genetic map, and pinned Beagle profile stay identical."
 dockerfile = "containers/docker/arm64/Dockerfile.beagle"
 apptainer_def = "containers/apptainer/shared/beagle.def"
 require_labels = true
@@ -355,7 +355,7 @@ id = "plink"
 tool_id = "plink"
 domain = "vcf"
 status = "planned"
-stage_ids = ["vcf.qc", "vcf.admixture", "vcf.population_structure"]
+stage_ids = ["vcf.admixture", "vcf.population_structure", "vcf.qc"]
 version = "planned"
 default_version = "planned"
 upstream = "https://www.cog-genomics.org/plink/"
@@ -386,7 +386,7 @@ id = "plink2"
 tool_id = "plink2"
 domain = "vcf"
 status = "planned"
-stage_ids = ["vcf.qc", "vcf.pca", "vcf.admixture", "vcf.population_structure", "vcf.roh"]
+stage_ids = ["vcf.admixture", "vcf.pca", "vcf.population_structure", "vcf.qc", "vcf.roh"]
 version = "planned"
 default_version = "planned"
 upstream = "https://www.cog-genomics.org/plink/2.0/"
@@ -416,10 +416,10 @@ require_labels = true
 id = "shapeit5"
 tool_id = "shapeit5"
 domain = "vcf"
-status = "planned"
+status = "production"
 stage_ids = ["vcf.phasing"]
-version = "planned"
-default_version = "planned"
+version = "5.1.1"
+default_version = "5.1.1"
 upstream = "https://odelaneau.github.io/shapeit5/"
 version_rule = "pinned"
 license = "MIT"
@@ -438,7 +438,7 @@ healthcheck_cmd = "shapeit5 --help"
 expected_bin = "shapeit5"
 expected_artifacts = ["phased_vcf"]
 metrics_schema = "bijux.vcf.phasing.v1"
-comparability_notes = "External planned tool for phasing; containerization pending."
+comparability_notes = "Comparable only when panel build, genetic map, and pinned Shapeit5 profile stay identical."
 dockerfile = "containers/docker/arm64/Dockerfile.shapeit5"
 apptainer_def = "containers/apptainer/shared/shapeit5.def"
 require_labels = true
@@ -451,7 +451,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "deterministic baseline caller"
+default_rationale = "deterministic baseline caller for current production profile."
 requires_validation = false
 requires_reporting = false
 
@@ -463,7 +463,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "deterministic diploid baseline for the current governed production profile"
+default_rationale = "deterministic diploid baseline for the current governed production profile."
 requires_validation = false
 requires_reporting = false
 
@@ -475,7 +475,7 @@ optional_alternatives = ["angsd"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "current governed production default while angsd remains a planned low-coverage alternative"
+default_rationale = "current governed production default keeps GL emission runnable while `angsd` remains a planned low-coverage alternative."
 requires_validation = false
 requires_reporting = false
 
@@ -487,7 +487,7 @@ optional_alternatives = ["angsd"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "current governed production default while angsd remains a planned low-coverage alternative"
+default_rationale = "current governed production default preserves the pseudohaploid contract while `angsd` remains a planned alternative."
 requires_validation = false
 requires_reporting = false
 
@@ -499,7 +499,7 @@ optional_alternatives = ["angsd"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "deterministic transition and PMD masking baseline for the current governed profile"
+default_rationale = "deterministic PMD/C>T-G>A masking contract anchor for the current governed profile."
 requires_validation = false
 requires_reporting = false
 
@@ -511,7 +511,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "deterministic pass filter"
+default_rationale = "stable filtering semantics for regression comparability."
 requires_validation = false
 requires_reporting = false
 
@@ -523,7 +523,19 @@ optional_alternatives = ["angsd"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "retain GL/PL tags across downstream handoffs in the current governed profile"
+default_rationale = "preserves GL fields across downstream handoffs in the current governed profile."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "vcf.imputation_metrics"
+required_tool_roles = ["transform"]
+primary_tools = ["beagle"]
+optional_alternatives = ["glimpse", "impute5", "minimac4"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "keep the governed imputation-metrics contract anchored to the same backend family that produces the source imputation evidence."
 requires_validation = false
 requires_reporting = false
 
@@ -535,19 +547,19 @@ optional_alternatives = ["glimpse", "impute5", "minimac4"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "planned pinned imputation baseline"
+default_rationale = "current governed production default keeps explicit panel-aware imputation runnable while retained alternatives stay comparative."
 requires_validation = false
 requires_reporting = false
 
 [[stages]]
 id = "vcf.phasing"
 required_tool_roles = ["transform"]
-primary_tools = ["beagle"]
-optional_alternatives = ["shapeit5", "eagle"]
+primary_tools = ["shapeit5"]
+optional_alternatives = ["beagle", "eagle"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle and Eagle stay comparative."
 requires_validation = false
 requires_reporting = false
 
@@ -559,7 +571,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "deterministic post-imputation normalization baseline"
+default_rationale = "deterministic normalization/filter baseline for governed post-imputation outputs."
 requires_validation = false
 requires_reporting = false
 
@@ -571,7 +583,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "deterministic panel preparation baseline"
+default_rationale = "deterministic reference panel prep baseline."
 requires_validation = false
 requires_reporting = false
 
@@ -583,7 +595,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "required summary metrics"
+default_rationale = "minimal required metrics for quality gating."
 requires_validation = false
 requires_reporting = false
 

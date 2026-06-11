@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 7237e485678fa9670e71b11f23173fdf4e07097d
+# source_commit: 1231bc113d5f7955524bab90841f6ede09ab5f93
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -47,8 +47,7 @@ version = "39.01"
 version = "1.20"
 
 [beagle]
-version = "planned"
-enabled = false
+version = "5.4"
 
 [bedtools]
 version = "2.31.1"
@@ -235,8 +234,7 @@ version = "planned"
 enabled = false
 
 [shapeit5]
-version = "planned"
-enabled = false
+version = "5.1.1"
 
 [skewer]
 version = "978e8e46cba4"
