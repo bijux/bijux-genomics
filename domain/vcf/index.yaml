@@ -49,7 +49,6 @@ governed_stage_ids:
   - vcf.damage_filter
   - vcf.filter
   - vcf.gl_propagation
-  - vcf.ibd
   - vcf.imputation_metrics
   - vcf.impute
   - vcf.pca
@@ -218,7 +217,6 @@ active_defaults:
   vcf.damage_filter: "bcftools"
   vcf.filter: "bcftools"
   vcf.gl_propagation: "bcftools"
-  vcf.ibd: "germline"
   vcf.imputation_metrics: "beagle"
   vcf.impute: "beagle"
   vcf.pca: "plink2"
@@ -238,7 +236,6 @@ active_default_rationale:
   vcf.damage_filter: "deterministic PMD/C>T-G>A masking contract anchor for the current governed profile."
   vcf.filter: "stable filtering semantics for regression comparability."
   vcf.gl_propagation: "preserves GL fields across downstream handoffs in the current governed profile."
-  vcf.ibd: "the governed IBD baseline keeps normalized pairwise segment rows and insufficient-overlap reporting explicit while retained alternatives stay comparative."
   vcf.imputation_metrics: "keep the governed imputation-metrics contract anchored to the same backend family that produces the source imputation evidence."
   vcf.impute: "current governed production default keeps explicit panel-aware imputation runnable while retained alternatives stay comparative."
   vcf.pca: "current governed PCA default keeps sample-complete eigenvector output, eigenvalue reporting, and metadata joins anchored to the PLINK2 smoke-backed cohort path while retained `eigensoft` stays comparative."
