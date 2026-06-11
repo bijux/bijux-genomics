@@ -133,7 +133,7 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
             && row.get("parser_fixture_schema_id").and_then(serde_json::Value::as_str)
                 == Some("bijux.vcf.postprocess.v1")
             && row.get("parser_fixture_reference_kind").and_then(serde_json::Value::as_str)
-                == Some("fixture_inventory_path")
+                == Some("fixture_directory")
             && row.get("parser_fixture_reference").and_then(serde_json::Value::as_str).is_some_and(
                 |value| {
                     value.starts_with(
@@ -142,7 +142,7 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
                 },
             )
             && row.get("proof_source").and_then(serde_json::Value::as_str)
-                == Some("vcf_parser_coverage")
+                == Some("vcf_parser_fixture_coverage")
     }));
 
     let violations =

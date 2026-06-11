@@ -57,12 +57,12 @@ fn bench_readiness_all_domain_parser_fixture_coverage_writes_governed_tsv_file()
     }));
     assert!(rows.iter().any(|row| {
         row.starts_with(
-            "vcf\tvcf.postprocess\tbcftools\tvcf_production_regression\tvcf_single_sample\tvcf.adapter.transform\tvcf.parser.vcf_output\tbijux.schemas.bench.vcf-normalized-metrics.postprocess.v1\tparse_bcftools_postprocess_metrics\tbijux.vcf.postprocess.v1\tfixture_inventory_path\tbenchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.postprocess\tvcf_parser_coverage\tcovered\trow `vcf.postprocess` / `bcftools` is benchmark_ready with parser fixture inventory `benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.postprocess` and schema `bijux.vcf.postprocess.v1`"
+            "vcf\tvcf.postprocess\tbcftools\tvcf_production_regression\tvcf_single_sample\tvcf.adapter.transform\tvcf.parser.vcf_output\tbijux.schemas.bench.vcf-normalized-metrics.postprocess.v1\tparse_bcftools_postprocess_metrics\tbijux.vcf.postprocess.v1\tfixture_directory\tbenchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.postprocess\tvcf_parser_fixture_coverage\tcovered\tactive row `vcf.postprocess` / `bcftools` keeps 4 governed raw fixture file(s) under `benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.postprocess` plus expected normalized JSON `benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.postprocess/expected.normalized.json`"
         )
     }));
     assert!(rows.iter().any(|row| {
         row.starts_with(
-            "vcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.imputation-metrics.v1\tparse_vcf_report_json\tbijux.vcf.report_json.v1\tfixture_inventory_path\tbenchmarks/tests/fixtures/bench/parsers/vcf/beagle/vcf.imputation_metrics\tvcf_parser_coverage\tcovered\t"
+            "vcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.imputation-metrics.v1\tparse_beagle_imputation_metrics\tbijux.vcf.imputation_metrics.v1\tfixture_directory\tbenchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics\tvcf_parser_fixture_coverage\tcovered\tactive row `vcf.imputation_metrics` / `beagle` keeps 7 governed raw fixture file(s) under `benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics` plus expected normalized JSON `benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics/expected.normalized.json`"
         )
     }));
     assert!(
