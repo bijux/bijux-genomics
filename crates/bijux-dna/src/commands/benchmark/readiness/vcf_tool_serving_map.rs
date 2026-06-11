@@ -379,8 +379,8 @@ mod tests {
         assert_eq!(report.row_count, 22);
         assert_eq!(report.stage_count, 20);
         assert_eq!(report.tool_count, 7);
-        assert_eq!(report.benchmark_ready_row_count, 13);
-        assert_eq!(report.not_benchmark_ready_row_count, 9);
+        assert_eq!(report.benchmark_ready_row_count, 14);
+        assert_eq!(report.not_benchmark_ready_row_count, 8);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bcftools"
                 && row.stage_id == "vcf.call"
@@ -424,12 +424,12 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "shapeit5"
                 && row.stage_id == "vcf.phasing"
-                && row.support_status == "planned"
-                && row.adapter_status == "declared_only"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
                 && row.parser_status == "parse_normalized"
                 && row.corpus_status == "fixture:vcf_production_regression"
                 && row.asset_status == "assigned"
-                && row.benchmark_status == "not_benchmark_ready"
+                && row.benchmark_status == "benchmark_ready"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "ibdne"

@@ -45,10 +45,10 @@ fn bench_readiness_vcf_parser_coverage_reports_benchmark_ready_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-parser-coverage.tsv")
     );
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(11));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(3));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(13));
-    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(13));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(12));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(14));
+    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(14));
     assert_eq!(payload.get("missing_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("parser_coverage_percent").and_then(serde_json::Value::as_f64),
@@ -56,7 +56,7 @@ fn bench_readiness_vcf_parser_coverage_reports_benchmark_ready_rows() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 13);
+    assert_eq!(rows.len(), 14);
 
     assert!(rows.iter().all(|row| {
         row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")

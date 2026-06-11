@@ -311,10 +311,10 @@ fn ensure_vcf_undercovered_stage_contract(rows: &[VcfUndercoveredStageRow]) -> R
         ),
         (
             "vcf.phasing",
-            &["phasing", "variant_processing"][..],
+            &["phasing"][..],
             &["shapeit5"][..],
-            &["bcftools", "beagle", "eagle", "shapeit"][..],
-            "limit_to_specialized_tool",
+            &["beagle", "eagle", "shapeit"][..],
+            "future_not_benchmark_ready",
         ),
         (
             "vcf.population_structure",
@@ -437,12 +437,14 @@ mod tests {
         assert_eq!(report.domain, "vcf");
         assert_eq!(report.stage_count, 20);
         assert_eq!(report.undercovered_stage_count, 11);
-        assert_eq!(report.decision_counts.get("future_not_benchmark_ready").copied(), Some(7));
-        assert_eq!(report.decision_counts.get("limit_to_specialized_tool").copied(), Some(4));
+        assert_eq!(report.decision_counts.get("future_not_benchmark_ready").copied(), Some(8));
+        assert_eq!(report.decision_counts.get("limit_to_specialized_tool").copied(), Some(3));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.phasing"
                 && row.registered_tools == vec!["shapeit5".to_string()]
-                && row.decision == "limit_to_specialized_tool"
+                && row.missing_tools
+                    == vec!["beagle".to_string(), "eagle".to_string(), "shapeit".to_string()]
+                && row.decision == "future_not_benchmark_ready"
         }));
         assert!(report.rows.iter().all(|row| row.stage_id != "vcf.qc"));
         assert!(report.rows.iter().any(|row| {

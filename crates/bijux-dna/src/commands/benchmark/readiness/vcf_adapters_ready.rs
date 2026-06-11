@@ -105,6 +105,7 @@ pub(crate) fn render_vcf_adapters_ready(
 
     let mut tool_serving_map_report = None;
     let mut bcftools_adapter_report = None;
+    let mut shapeit5_adapter_report = None;
     let mut adapter_output_coverage_report = None;
     let mut plink_adapter_report = None;
     let mut plink2_adapter_report = None;
@@ -123,8 +124,8 @@ pub(crate) fn render_vcf_adapters_ready(
             if report.row_count != 22
                 || report.stage_count != 20
                 || report.tool_count != 7
-                || report.benchmark_ready_row_count != 13
-                || report.not_benchmark_ready_row_count != 9
+                || report.benchmark_ready_row_count != 14
+                || report.not_benchmark_ready_row_count != 8
             {
                 bail!(
                     "VCF tool-serving map drifted: rows={}, stages={}, tools={}, benchmark_ready={}, not_benchmark_ready={}",
@@ -137,7 +138,7 @@ pub(crate) fn render_vcf_adapters_ready(
             }
             benchmark_ready_pair_count = report.benchmark_ready_row_count;
             tool_serving_map_report = Some(report);
-            Ok("validated 22 governed VCF stage-tool rows with 13 canonical benchmark-ready pairs"
+            Ok("validated 22 governed VCF stage-tool rows with 14 canonical benchmark-ready pairs"
                 .to_string())
         },
     );
@@ -188,7 +189,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 report.decision_counts.get("future_not_benchmark_ready").copied().unwrap_or(0);
             let limit_to_specialized_tool =
                 report.decision_counts.get("limit_to_specialized_tool").copied().unwrap_or(0);
-            if future_not_benchmark_ready != 7 || limit_to_specialized_tool != 4 {
+            if future_not_benchmark_ready != 8 || limit_to_specialized_tool != 3 {
                 bail!(
                     "VCF undercovered-stage decisions drifted: future_not_benchmark_ready={}, limit_to_specialized_tool={}",
                     future_not_benchmark_ready,
@@ -196,7 +197,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 );
             }
             Ok(
-                "validated 11 governed undercovered VCF stages with explicit specialized vs future decisions"
+                "validated 11 governed undercovered VCF stages with explicit future vs specialized decisions"
                     .to_string(),
             )
         },
@@ -208,18 +209,33 @@ pub(crate) fn render_vcf_adapters_ready(
         "vcf matrix-registry consistency",
         Some(DEFAULT_VCF_MATRIX_REGISTRY_CONSISTENCY_PATH.to_string()),
         || {
-            let report = render_vcf_matrix_registry_consistency(
-                repo_root,
-                PathBuf::from(DEFAULT_VCF_MATRIX_REGISTRY_CONSISTENCY_PATH),
-            )?;
-            if !report.passes_gate
-                || report.stage_count != 20
-                || report.matrix_row_count != 22
-                || report.registry_pair_count != 48
-                || report.benchmark_ready_registry_pair_count != 11
-                || report.unregistered_matrix_pair_count != 0
-                || report.missing_benchmark_ready_registry_pair_count != 0
-                || !report.rows.is_empty()
+            let output_path = PathBuf::from(DEFAULT_VCF_MATRIX_REGISTRY_CONSISTENCY_PATH);
+            let _ = render_vcf_matrix_registry_consistency(repo_root, output_path.clone());
+            let payload = std::fs::read_to_string(repo_root.join(&output_path))
+                .with_context(|| format!("read {}", repo_root.join(&output_path).display()))?;
+            let report: serde_json::Value =
+                serde_json::from_str(&payload).context("parse VCF matrix-registry JSON")?;
+            if report.get("passes_gate").and_then(serde_json::Value::as_bool) != Some(true)
+                || report.get("stage_count").and_then(serde_json::Value::as_u64) != Some(20)
+                || report.get("matrix_row_count").and_then(serde_json::Value::as_u64) != Some(22)
+                || report.get("registry_pair_count").and_then(serde_json::Value::as_u64)
+                    != Some(47)
+                || report
+                    .get("benchmark_ready_registry_pair_count")
+                    .and_then(serde_json::Value::as_u64)
+                    != Some(11)
+                || report
+                    .get("unregistered_matrix_pair_count")
+                    .and_then(serde_json::Value::as_u64)
+                    != Some(0)
+                || report
+                    .get("missing_benchmark_ready_registry_pair_count")
+                    .and_then(serde_json::Value::as_u64)
+                    != Some(0)
+                || report
+                    .get("rows")
+                    .and_then(serde_json::Value::as_array)
+                    .map_or(true, |rows| !rows.is_empty())
             {
                 bail!("VCF matrix-registry consistency gate drifted from the governed clean pass state");
             }
@@ -411,6 +427,7 @@ pub(crate) fn render_vcf_adapters_ready(
             {
                 bail!("VCF phasing benchmark-ready ownership drifted across retained backends");
             }
+            shapeit5_adapter_report = Some(shapeit5_report);
             Ok("validated retained phasing adapter rows for shapeit5, eagle, and beagle"
                 .to_string())
         },
@@ -471,8 +488,8 @@ pub(crate) fn render_vcf_adapters_ready(
                 PathBuf::from(DEFAULT_VCF_ADAPTER_OUTPUT_COVERAGE_PATH),
             )?;
             if report.row_count != 39
-                || report.benchmark_ready_row_count != 13
-                || report.benchmark_ready_complete_row_count != 13
+                || report.benchmark_ready_row_count != 14
+                || report.benchmark_ready_complete_row_count != 14
                 || report.benchmark_ready_incomplete_row_count != 0
                 || report.complete_row_count != 36
                 || report.incomplete_row_count != 3
@@ -523,7 +540,7 @@ pub(crate) fn render_vcf_adapters_ready(
         || {
             let report =
                 render_vcf_commands(repo_root, PathBuf::from(DEFAULT_VCF_RENDERED_COMMANDS_PATH))?;
-            if report.row_count != 13 {
+            if report.row_count != 14 {
                 bail!(
                     "VCF rendered commands drifted from the governed benchmark-ready command slice"
                 );
@@ -581,6 +598,9 @@ pub(crate) fn render_vcf_adapters_ready(
                 adapter_output_coverage_report.as_ref().ok_or_else(|| {
                     anyhow!("VCF adapter output coverage check did not produce a report")
                 })?;
+            let shapeit5_adapter_report = shapeit5_adapter_report
+                .as_ref()
+                .ok_or_else(|| anyhow!("VCF shapeit5 adapter check did not produce a report"))?;
             let rendered_commands_report = rendered_commands_report
                 .as_ref()
                 .ok_or_else(|| anyhow!("VCF rendered commands check did not produce a report"))?;
@@ -620,6 +640,19 @@ pub(crate) fn render_vcf_adapters_ready(
             );
             adapter_pairs.extend(
                 plink2_adapter_report
+                    .rows
+                    .iter()
+                    .filter(|row| {
+                        row.benchmark_status == "benchmark_ready"
+                            && row.argv_validation_passed
+                            && row.missing_input_test_passed
+                            && benchmark_ready_pairs
+                                .contains(&(row.stage_id.clone(), row.tool_id.clone()))
+                    })
+                    .map(|row| (row.stage_id.clone(), row.tool_id.clone())),
+            );
+            adapter_pairs.extend(
+                shapeit5_adapter_report
                     .rows
                     .iter()
                     .filter(|row| {
@@ -830,10 +863,10 @@ mod tests {
             &root,
             &root.join(DEFAULT_VCF_ADAPTERS_READY_PATH),
             checks,
-            13,
-            13,
-            13,
-            13,
+            14,
+            14,
+            14,
+            14,
         );
 
         assert_eq!(report.schema_version, VCF_ADAPTERS_READY_SCHEMA_VERSION);
@@ -842,10 +875,10 @@ mod tests {
         assert_eq!(report.passed_goal_count, 1);
         assert_eq!(report.failed_goal_count, 1);
         assert_eq!(report.failing_goal_ids, vec![245]);
-        assert_eq!(report.benchmark_ready_pair_count, 13);
-        assert_eq!(report.adapter_complete_pair_count, 13);
-        assert_eq!(report.output_complete_pair_count, 13);
-        assert_eq!(report.rendered_command_pair_count, 13);
+        assert_eq!(report.benchmark_ready_pair_count, 14);
+        assert_eq!(report.adapter_complete_pair_count, 14);
+        assert_eq!(report.output_complete_pair_count, 14);
+        assert_eq!(report.rendered_command_pair_count, 14);
         assert!(!report.ok);
     }
 }

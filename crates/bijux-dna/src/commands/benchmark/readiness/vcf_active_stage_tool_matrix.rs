@@ -420,10 +420,10 @@ fn ensure_vcf_active_stage_tool_matrix_contract(
             "vcf.phasing",
             "eagle",
             "experimental,planned",
-            "planned",
+            "supported",
             REMOVED_FROM_SCOPE_STATE,
-            LIFECYCLE_NOT_ACTIVE_SCOPE_DETAIL,
-            LIFECYCLE_NOT_ACTIVE_SCOPE_PROOF_PATH,
+            BENCHMARK_NOT_READY_SCOPE_DETAIL,
+            BENCHMARK_NOT_READY_SCOPE_PROOF_PATH,
         ),
     ];
 

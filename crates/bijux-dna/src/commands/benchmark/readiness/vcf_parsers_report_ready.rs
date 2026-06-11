@@ -317,10 +317,10 @@ pub(crate) fn render_vcf_parsers_report_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_PARSER_COVERAGE_PATH),
             )?;
-            if report.stage_count != 11
-                || report.tool_count != 3
-                || report.row_count != 13
-                || report.covered_row_count != 13
+            if report.stage_count != 12
+                || report.tool_count != 4
+                || report.row_count != 14
+                || report.covered_row_count != 14
                 || report.missing_row_count != 0
                 || report.parser_coverage_percent != 100.0
             {
@@ -328,7 +328,7 @@ pub(crate) fn render_vcf_parsers_report_ready(
             }
             benchmark_ready_parser_row_count = report.covered_row_count;
             parser_coverage_report = Some(report);
-            Ok("validated full parser coverage across the 13 benchmark-ready VCF rows".to_string())
+            Ok("validated full parser coverage across the 14 benchmark-ready VCF rows".to_string())
         },
     );
 
@@ -342,17 +342,17 @@ pub(crate) fn render_vcf_parsers_report_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH),
             )?;
-            if report.row_count != 13
-                || report.stage_count != 11
-                || report.tool_count != 3
+            if report.row_count != 14
+                || report.stage_count != 12
+                || report.tool_count != 4
                 || report.corpus_count != 1
-                || report.asset_profile_count != 4
+                || report.asset_profile_count != 5
             {
                 bail!("VCF expected benchmark results drifted from the governed ready slice");
             }
             expected_result_row_count = report.row_count;
             expected_results_report = Some(report);
-            Ok("validated 13 governed expected benchmark-ready VCF result rows".to_string())
+            Ok("validated 14 governed expected benchmark-ready VCF result rows".to_string())
         },
     );
 
@@ -366,8 +366,8 @@ pub(crate) fn render_vcf_parsers_report_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_MISSING_RESULT_REPORT_TEST_PATH),
             )?;
-            if report.expected_row_count != 13
-                || report.present_result_row_count != 12
+            if report.expected_row_count != 14
+                || report.present_result_row_count != 13
                 || report.missing_result_row_count != 1
                 || !report.passes_behavior_test
             {
@@ -386,11 +386,11 @@ pub(crate) fn render_vcf_parsers_report_ready(
         || {
             let report =
                 render_vcf_report_map(repo_root, PathBuf::from(DEFAULT_VCF_REPORT_MAP_PATH))?;
-            if report.row_count != 13
-                || report.stage_count != 11
-                || report.tool_count != 3
-                || report.section_count != 6
-                || report.summary_table_count != 6
+            if report.row_count != 14
+                || report.stage_count != 12
+                || report.tool_count != 4
+                || report.section_count != 7
+                || report.summary_table_count != 7
             {
                 bail!("VCF report map drifted from the governed expected-result slice");
             }
@@ -654,9 +654,9 @@ mod tests {
             &root.join(DEFAULT_VCF_PARSERS_REPORT_READY_PATH),
             checks,
             39,
-            13,
-            13,
-            13,
+            14,
+            14,
+            14,
             33,
         );
 
@@ -667,9 +667,9 @@ mod tests {
         assert_eq!(report.failed_goal_count, 1);
         assert_eq!(report.failing_goal_ids, vec![260]);
         assert_eq!(report.parser_fixture_row_count, 39);
-        assert_eq!(report.benchmark_ready_parser_row_count, 13);
-        assert_eq!(report.expected_result_row_count, 13);
-        assert_eq!(report.report_map_row_count, 13);
+        assert_eq!(report.benchmark_ready_parser_row_count, 14);
+        assert_eq!(report.expected_result_row_count, 14);
+        assert_eq!(report.report_map_row_count, 14);
         assert_eq!(report.comparable_metric_row_count, 33);
         assert!(!report.ok);
     }

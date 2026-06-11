@@ -219,9 +219,9 @@ fn ensure_vcf_report_map_contract(rows: &[VcfReportMapRow]) -> Result<()> {
             "VCF report map must keep one row per expected VCF stage-tool result binding"
         ));
     }
-    if rows.len() != 13 {
+    if rows.len() != 14 {
         return Err(anyhow!(
-            "VCF report map must retain exactly 13 benchmark-ready rows, found {}",
+            "VCF report map must retain exactly 14 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -244,9 +244,9 @@ fn ensure_vcf_report_map_contract(rows: &[VcfReportMapRow]) -> Result<()> {
         rows.iter().map(|row| row.section_id.as_str()).collect::<BTreeSet<_>>().len();
     let summary_table_count =
         rows.iter().map(|row| row.summary_table.as_str()).collect::<BTreeSet<_>>().len();
-    if section_count != 6 || summary_table_count != 6 {
+    if section_count != 7 || summary_table_count != 7 {
         return Err(anyhow!(
-            "VCF report map must retain 6 sections and 6 summary tables for the governed ready slice, found {section_count} sections and {summary_table_count} tables"
+            "VCF report map must retain 7 sections and 7 summary tables for the governed ready slice, found {section_count} sections and {summary_table_count} tables"
         ));
     }
 
@@ -373,11 +373,11 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_REPORT_MAP_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_REPORT_MAP_PATH);
-        assert_eq!(report.row_count, 13);
-        assert_eq!(report.stage_count, 11);
-        assert_eq!(report.tool_count, 3);
-        assert_eq!(report.section_count, 6);
-        assert_eq!(report.summary_table_count, 6);
+        assert_eq!(report.row_count, 14);
+        assert_eq!(report.stage_count, 12);
+        assert_eq!(report.tool_count, 4);
+        assert_eq!(report.section_count, 7);
+        assert_eq!(report.summary_table_count, 7);
         assert_eq!(report.section_counts.get("variant_calling"), Some(&4));
         assert_eq!(report.section_counts.get("quality_control"), Some(&5));
         assert_eq!(report.section_counts.get("normalization"), Some(&1));

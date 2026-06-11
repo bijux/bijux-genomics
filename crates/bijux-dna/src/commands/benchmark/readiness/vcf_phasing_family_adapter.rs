@@ -256,6 +256,14 @@ fn collect_vcf_phasing_family_adapter_rows(
     Ok(rows)
 }
 
+pub(crate) fn collect_vcf_phasing_family_adapter_rows_for_tool(
+    repo_root: &Path,
+    tool_id: &str,
+) -> Result<Vec<VcfPhasingFamilyAdapterRow>> {
+    let registry_tool = load_registry_tool_contract(repo_root, tool_id)?;
+    collect_vcf_phasing_family_adapter_rows(repo_root, &registry_tool)
+}
+
 fn build_phasing_family_row(
     repo_root: &Path,
     registry_tool: &RegistryToolContract,

@@ -56,14 +56,14 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
             .get("decision_counts")
             .and_then(|value| value.get("future_not_benchmark_ready"))
             .and_then(serde_json::Value::as_u64),
-        Some(7)
+        Some(8)
     );
     assert_eq!(
         payload
             .get("decision_counts")
             .and_then(|value| value.get("limit_to_specialized_tool"))
             .and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(3)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -93,10 +93,10 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
 
     assert!(has_row(
         "vcf.phasing",
-        &["phasing", "variant_processing"],
+        &["phasing"],
         &["shapeit5"],
-        &["bcftools", "beagle", "eagle", "shapeit"],
-        "limit_to_specialized_tool",
+        &["beagle", "eagle", "shapeit"],
+        "future_not_benchmark_ready",
     ));
     assert!(has_row(
         "vcf.impute",

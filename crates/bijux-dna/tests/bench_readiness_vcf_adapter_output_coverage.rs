@@ -48,11 +48,11 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(39));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(13)
+        Some(14)
     );
     assert_eq!(
         payload.get("benchmark_ready_complete_row_count").and_then(serde_json::Value::as_u64),
-        Some(13)
+        Some(14)
     );
     assert_eq!(
         payload.get("benchmark_ready_incomplete_row_count").and_then(serde_json::Value::as_u64),
@@ -193,7 +193,7 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
         .expect("shapeit5 row");
     assert_eq!(
         phasing.get("benchmark_status").and_then(serde_json::Value::as_str),
-        Some("not_benchmark_ready")
+        Some("benchmark_ready")
     );
     assert_eq!(phasing.get("status").and_then(serde_json::Value::as_str), Some("complete"));
     assert!(

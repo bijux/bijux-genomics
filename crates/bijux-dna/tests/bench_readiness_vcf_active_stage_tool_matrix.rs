@@ -46,21 +46,21 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf/vcf-active-stage-tool-matrix.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(48));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(47));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(17));
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(13));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(14));
     assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(35));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(33));
 
     let scope_state_counts = payload
         .get("scope_state_counts")
         .and_then(serde_json::Value::as_object)
         .expect("scope state counts");
-    assert_eq!(scope_state_counts.get("active").and_then(serde_json::Value::as_u64), Some(13));
+    assert_eq!(scope_state_counts.get("active").and_then(serde_json::Value::as_u64), Some(14));
     assert_eq!(
         scope_state_counts.get("removed_from_scope").and_then(serde_json::Value::as_u64),
-        Some(35)
+        Some(33)
     );
     assert!(
         scope_state_counts.get("complete").is_none(),
@@ -71,18 +71,18 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
         .get("scope_detail_counts")
         .and_then(serde_json::Value::as_object)
         .expect("scope detail counts");
-    assert_eq!(scope_detail_counts.get("active").and_then(serde_json::Value::as_u64), Some(13));
+    assert_eq!(scope_detail_counts.get("active").and_then(serde_json::Value::as_u64), Some(14));
     assert_eq!(
         scope_detail_counts.get("benchmark_not_ready").and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(7)
     );
     assert_eq!(
         scope_detail_counts.get("lifecycle_not_active").and_then(serde_json::Value::as_u64),
-        Some(31)
+        Some(26)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 48);
+    assert_eq!(rows.len(), 47);
 
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.call")
@@ -134,5 +134,19 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
                 == Some("lifecycle_not_active")
             && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
                 == Some("benchmarks/readiness/all-domains/no-planned-rows.json")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.phasing")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("eagle")
+            && row.get("tool_status").and_then(serde_json::Value::as_str)
+                == Some("experimental,planned")
+            && row.get("stage_support_status").and_then(serde_json::Value::as_str)
+                == Some("supported")
+            && row.get("scope_state").and_then(serde_json::Value::as_str)
+                == Some("removed_from_scope")
+            && row.get("scope_detail").and_then(serde_json::Value::as_str)
+                == Some("benchmark_not_ready")
+            && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
+                == Some("benchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json")
     }));
 }
