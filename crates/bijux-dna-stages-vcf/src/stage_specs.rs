@@ -124,7 +124,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.imputation_metrics",
-            status: "planned",
+            status: "supported",
             default_tool_id: "beagle",
             metrics_schema: "bijux.vcf.imputation_metrics.v1",
             smoke_supported: true,

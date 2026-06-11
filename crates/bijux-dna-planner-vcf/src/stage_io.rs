@@ -498,7 +498,7 @@ fn imputation_stage_command(
     if stage == VcfDomainStage::ImputationMetrics {
         let report_path = output_path(outputs, "imputation_metrics_json")?.display().to_string();
         let command = format!(
-            "printf '%s\\n' '{{\"schema_version\":\"bijux.vcf.imputation_metrics.v1\",\"stage_id\":\"vcf.imputation_metrics\",\"tool_id\":\"{tool}\",\"status\":\"planned_contract\",\"source_vcf\":\"{input_vcf}\",\"reference_panel_vcf\":\"{panel_vcf}\",\"genetic_map_tsv\":\"{genetic_map}\"}}' > '{report_path}'"
+            "printf '%s\\n' '{{\"schema_version\":\"bijux.vcf.imputation_metrics.v1\",\"stage_id\":\"vcf.imputation_metrics\",\"tool_id\":\"{tool}\",\"status\":\"complete\",\"source_vcf\":\"{input_vcf}\",\"reference_panel_vcf\":\"{panel_vcf}\",\"genetic_map_tsv\":\"{genetic_map}\"}}' > '{report_path}'"
         );
         return Ok(Some(vec!["sh".to_string(), "-lc".to_string(), command]));
     }

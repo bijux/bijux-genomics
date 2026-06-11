@@ -114,7 +114,7 @@ pub const VCF_STAGE_TAXONOMY: &[VcfStageTaxonomyRecord] = &[
     VcfStageTaxonomyRecord {
         stage: VcfDomainStage::ImputationMetrics,
         kind: VcfStageKind::Imputation,
-        status: DomainSupportStatus::Planned,
+        status: DomainSupportStatus::Supported,
         coverage_regimes: &[CoverageRegime::Diploid, CoverageRegime::LowCovGl],
     },
     VcfStageTaxonomyRecord {

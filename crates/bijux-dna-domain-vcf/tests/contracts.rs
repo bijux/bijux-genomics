@@ -243,7 +243,7 @@ mod contracts {
     #[test]
     fn vcf_parser_fixture_inventory_covers_governed_tool_stage_rows() {
         let rows = vcf_parser_fixture_inventory();
-        assert_eq!(rows.len(), 38);
+        assert_eq!(rows.len(), 39);
 
         let unique_rows = rows
             .iter()
