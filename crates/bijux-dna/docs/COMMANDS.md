@@ -597,6 +597,14 @@ Visible aliases are part of the operator surface:
   `parser_id`, `schema_id`, `scope_state`, `scope_detail`, and the proof path that explains why
   the binding is currently active, complete, or removed from scope. The command fails closed
   unless every retained VCF binding is classified exactly once.
+- `bijux-dna bench readiness render-vcf-local-container-smoke`
+  `render-vcf-local-container-smoke` writes
+  `benchmarks/readiness/vcf/vcf-local-container-smoke.tsv` with one governed row per retained VCF
+  stage-tool binding, resolving each row to either an exact host tiny-fixture stage smoke wrapper
+  or a governed Docker/Apptainer smoke wrapper for the registered external binary. Each row keeps
+  `registered_binary`, retained-scope status, selected smoke runtime, the concrete wrapper
+  command, the tracked wrapper support path, and any minimal-smoke rationale carried by the VCF
+  registry so removed-from-scope VCF tools still have an honest local exercise path.
 - `bijux-dna bench readiness render-vcf-damage-filter-ready`
   `render-vcf-damage-filter-ready` writes
   `benchmarks/readiness/vcf/damage-filter-ready.json` with one governed row per active retained
