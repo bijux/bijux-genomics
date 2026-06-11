@@ -1,6 +1,6 @@
 schema_version: "bijux.stage.v1"
 stage_id: "vcf.roh"
-status: "planned"
+status: "supported"
 scope: "post_vcf"
 domain: "vcf"
 description: "VCF stage contract for vcf.roh in the governed domain registry."
@@ -16,13 +16,14 @@ required_inputs: ["filtered_vcf"]
 required_outputs: ["roh_report"]
 tool_capability_requirements: []
 metrics:
-  - name: "roh_count"
-  - name: "roh_total_mb"
-  - name: "roh_length_bins_mb"
-  - name: "roh_mean_length_mb"
-  - name: "roh_max_length_mb"
+  - name: "sample_count"
+  - name: "segment_count"
+  - name: "total_length"
+  - name: "segments"
+  - name: "per_sample_summary"
+  - name: "status"
 compatible_tools: ["plink2"]
-single_tool_justification: "plink2 is the current planned baseline for ROH calls with stable CLI contracts."
+single_tool_justification: "plink2 is the governed ROH baseline because it emits deterministic homozygosity segments with a stable CLI contract."
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "roh_min_kb_and_density_thresholds_are_fixed_per_run"
@@ -31,4 +32,4 @@ bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness:
   - "none"
-planned_out_of_scope: ["full scientific validation pending downstream admission"]
+planned_out_of_scope: []

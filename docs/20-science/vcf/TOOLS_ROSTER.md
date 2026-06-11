@@ -35,5 +35,5 @@ The VCF science layer needs a readable tool inventory that mirrors the stage man
 | vcf.impute | supported | beagle, glimpse, impute5, minimac4 | Explicit imputation execution is governed through the Beagle baseline while retained alternatives stay comparative. |
 | vcf.postprocess | supported | bcftools | Post-imputation normalization remains deterministic and single-tool. |
 | vcf.ibd | planned | germline, ibdhap | IBD remains a comparative multi-backend planned surface. |
-| vcf.roh | planned | plink2 | ROH remains a planned but deterministic single-tool surface. |
+| vcf.roh | supported | plink2 | ROH stays intentionally single-tool because the governed PLINK2 path already emits normalized segment and per-sample evidence. |
 | vcf.demography | planned | ibdne | Demography currently stays coupled to the admitted IBDNe-style downstream summary path. |

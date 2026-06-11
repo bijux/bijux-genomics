@@ -6,7 +6,7 @@ Define the governed ROH inference boundary for runs-of-homozygosity summaries af
 ## Scope
 This science surface covers:
 - `vcf.qc` as the upstream missingness and marker-quality gate for interpretable ROH calling.
-- `vcf.roh` as the planned interval-detection and aggregate burden stage.
+- `vcf.roh` as the supported interval-detection and aggregate burden stage.
 
 ## Non-goals
 - Claiming equivalence across heterogeneous ROH parameterizations.
@@ -14,11 +14,12 @@ This science surface covers:
 
 ## Contracts
 - `vcf.roh` emits `roh_report` with schema `bijux.vcf.roh.v1`.
-- The admitted and default planned backend is `plink2`, matching `domain/vcf/stages/roh.yaml` and `domain/vcf/docs/DEFAULT_SETTINGS.md`.
-- Required metrics include `roh_count`, `roh_total_mb`, `roh_length_bins_mb`, `roh_mean_length_mb`, and `roh_max_length_mb`.
+- The admitted and default backend is `plink2`, matching `domain/vcf/stages/roh.yaml` and `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Required metrics include `sample_count`, `segment_count`, `total_length`, `segments`, `per_sample_summary`, and `status`.
+- Every normalized segment row must keep `sample_id`, `contig`, `start`, `end`, `length`, and `variant_count`.
 - ROH thresholds must stay traceable to the same QC-filtered matrix that passed `vcf.qc`.
 
 ## Validity Limits
 - ROH sensitivity depends on marker density, genotype quality, and the missingness decisions applied in `vcf.qc`.
 - Parameter drift invalidates direct cross-cohort comparison.
-- ROH bin interpretation is only comparable when min-length, density, and pruning settings are held constant.
+- ROH segment interpretation is only comparable when min-length, density, and pruning settings are held constant.

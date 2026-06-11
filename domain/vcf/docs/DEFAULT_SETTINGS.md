@@ -66,7 +66,7 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.damage_filter` default: `bcftools`. rationale: deterministic PMD/C>T-G>A masking contract anchor for the current governed profile.
 - `vcf.gl_propagation` default: `bcftools`. rationale: preserves GL fields across downstream handoffs in the current governed profile.
 - `vcf.population_structure` default: `plink2`. rationale: the governed population-structure baseline keeps consumed PCA and admixture evidence on the admitted PLINK-family structure path with explicit sample-group distance summaries.
-- `vcf.roh` default: `plink2` (planned). rationale: deterministic ROH interval extraction and summary bins.
+- `vcf.roh` default: `plink2`. rationale: deterministic ROH interval extraction with normalized segment and per-sample summaries.
 - `vcf.demography` default: `ibdne` (planned). rationale: deterministic effective population size summary from IBD-derived inputs.
 
 single_tool_justification: vcf.call

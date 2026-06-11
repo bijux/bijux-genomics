@@ -31,5 +31,5 @@ Covers every `domain/vcf/stages/*.yaml` entry, including supported calling stage
 | vcf.impute | panel mediation | mutation | supported | Execute explicit imputation with a pinned backend. |
 | vcf.postprocess | normalization | mutation | supported | Normalize INFO/FILTER/FORMAT surfaces after imputation with the governed deterministic bcftools baseline. |
 | vcf.ibd | downstream inference | inference | planned | Estimate pairwise IBD segments. |
-| vcf.roh | downstream inference | inference | planned | Estimate runs of homozygosity burden and segments. |
+| vcf.roh | downstream inference | inference | supported | Estimate runs of homozygosity burden and normalized segment output. |
 | vcf.demography | downstream inference | inference | planned | Estimate recent demography summaries from IBD-derived evidence. |

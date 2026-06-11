@@ -111,7 +111,15 @@ pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
             required_outputs: vec!["population_structure_report"],
             required_indices: vec!["vcf.tbi"],
         },
-        VcfDomainStage::Roh | VcfDomainStage::Ibd => StageIoContract {
+        VcfDomainStage::Roh => StageIoContract {
+            stage,
+            inputs: vec![port("filtered_vcf", "vcf", one)],
+            outputs: vec![port("roh_report", "json", one)],
+            required_inputs: vec!["filtered_vcf"],
+            required_outputs: vec!["roh_report"],
+            required_indices: vec!["vcf.tbi"],
+        },
+        VcfDomainStage::Ibd => StageIoContract {
             stage,
             inputs: vec![port("filtered_vcf", "vcf", one)],
             outputs: vec![port("report_json", "json", one)],

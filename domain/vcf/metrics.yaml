@@ -54,10 +54,14 @@ metrics:
 - id: roh_max_length_mb
 - id: roh_mean_length_mb
 - id: roh_total_mb
+- id: segment_count
+- id: segments
+- id: per_sample_summary
 - id: sample_count
 - id: selected_k
 - id: snp_count
 - id: status
+- id: total_length
 - id: ti_tv
 - id: within_population_pair_count
 - id: cross_population_pair_count

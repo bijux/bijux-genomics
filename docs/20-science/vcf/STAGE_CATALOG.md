@@ -177,12 +177,12 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 - References: `domain/vcf/stages/ibd.yaml`, `docs/20-science/vcf/IBD.md`.
 
 ### vcf.roh {#vcf-roh}
-- Status: planned.
-- Purpose: estimate runs of homozygosity burden and segment distribution.
+- Status: supported.
+- Purpose: estimate runs of homozygosity burden with normalized per-segment and per-sample summaries.
 - Inputs/Outputs: cohort VCF → ROH report.
-- Metrics: ROH count, total ROH length, length-bin summaries.
+- Metrics: sample count, segment count, total length, normalized segments, per-sample summary, status.
 - Tools: plink2.
-- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/roh.yaml`, `docs/20-science/vcf/ROH.md`.
 
 ### vcf.demography {#vcf-demography}
