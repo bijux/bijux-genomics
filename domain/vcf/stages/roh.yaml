@@ -1,6 +1,6 @@
 schema_version: "bijux.stage.v1"
 stage_id: "vcf.roh"
-status: "supported"
+status: "planned"
 scope: "post_vcf"
 domain: "vcf"
 description: "VCF stage contract for vcf.roh in the governed domain registry."

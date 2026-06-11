@@ -88,7 +88,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.population_structure",
-            status: "supported",
+            status: "planned",
             default_tool_id: "plink2",
             metrics_schema: "bijux.vcf.population_structure.v1",
             smoke_supported: true,
@@ -97,7 +97,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.admixture",
-            status: "supported",
+            status: "planned",
             default_tool_id: "plink2",
             metrics_schema: "bijux.vcf.admixture.v1",
             smoke_supported: true,
@@ -106,7 +106,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.roh",
-            status: "supported",
+            status: "planned",
             default_tool_id: "plink2",
             metrics_schema: "bijux.vcf.roh.v1",
             smoke_supported: true,

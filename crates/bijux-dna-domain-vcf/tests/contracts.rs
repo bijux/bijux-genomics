@@ -131,10 +131,9 @@ mod contracts {
     #[test]
     fn authored_imputation_metrics_catalog_matches_governed_contract_ids() {
         let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../");
-        let stage_raw = std::fs::read_to_string(
-            repo_root.join("domain/vcf/stages/imputation_metrics.yaml"),
-        )
-        .unwrap_or_else(|err| panic!("read imputation_metrics stage yaml: {err}"));
+        let stage_raw =
+            std::fs::read_to_string(repo_root.join("domain/vcf/stages/imputation_metrics.yaml"))
+                .unwrap_or_else(|err| panic!("read imputation_metrics stage yaml: {err}"));
         let artifacts_raw = std::fs::read_to_string(repo_root.join("domain/vcf/artifacts.yaml"))
             .unwrap_or_else(|err| panic!("read VCF artifact vocabulary: {err}"));
         let metrics_raw = std::fs::read_to_string(repo_root.join("domain/vcf/metrics.yaml"))
@@ -244,7 +243,7 @@ mod contracts {
             );
         }
 
-        assert!(admixture_raw.contains("status: \"supported\""));
+        assert!(admixture_raw.contains("status: \"planned\""));
         assert!(admixture_raw.contains("- name: \"admixture_report\""));
         assert!(admixture_raw.contains("required_outputs: [\"admixture_report\"]"));
         assert!(!admixture_raw.contains("- name: \"admixture_out\""));
@@ -260,12 +259,10 @@ mod contracts {
             );
         }
 
-        assert!(population_structure_raw.contains("status: \"supported\""));
+        assert!(population_structure_raw.contains("status: \"planned\""));
         assert!(population_structure_raw.contains("- name: \"population_structure_report\""));
-        assert!(
-            population_structure_raw
-                .contains("required_outputs: [\"population_structure_report\"]")
-        );
+        assert!(population_structure_raw
+            .contains("required_outputs: [\"population_structure_report\"]"));
         for metric_id in [
             "sample_count",
             "pair_count",
@@ -285,13 +282,9 @@ mod contracts {
         assert!(ibd_raw.contains("status: \"planned\""));
         assert!(ibd_raw.contains("- name: \"ibd_segments\""));
         assert!(ibd_raw.contains("required_outputs: [\"ibd_segments\"]"));
-        for metric_id in [
-            "pair_count",
-            "rows",
-            "status",
-            "insufficient_reason",
-            "insufficient_overlap_probe",
-        ] {
+        for metric_id in
+            ["pair_count", "rows", "status", "insufficient_reason", "insufficient_overlap_probe"]
+        {
             assert!(
                 ibd_raw.contains(&format!("  - name: \"{metric_id}\"")),
                 "authored ibd stage yaml is missing `{metric_id}`"
@@ -302,7 +295,7 @@ mod contracts {
             );
         }
 
-        assert!(roh_raw.contains("status: \"supported\""));
+        assert!(roh_raw.contains("status: \"planned\""));
         assert!(roh_raw.contains("- name: \"roh_report\""));
         assert!(roh_raw.contains("required_outputs: [\"roh_report\"]"));
         assert!(roh_raw.contains("planned_out_of_scope: []"));
@@ -368,12 +361,9 @@ mod contracts {
             );
         }
 
-        for artifact_id in [
-            "qc_report",
-            "pca_report",
-            "admixture_report",
-            "population_structure_report",
-        ] {
+        for artifact_id in
+            ["qc_report", "pca_report", "admixture_report", "population_structure_report"]
+        {
             assert!(
                 artifacts_raw.contains(&format!("- id: {artifact_id}")),
                 "VCF artifact vocabulary is missing `{artifact_id}`"
