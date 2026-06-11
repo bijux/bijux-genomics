@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: f0b600318fd047ad9a102722933e9c31c7716b31
+# source_commit: d29294f1d99e7328a02453f1e7734f06c7986b58
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1778,40 +1778,6 @@ apptainer_def = "containers/apptainer/shared/schmutzi.def"
 require_labels = true
 
 [[tools]]
-id = "seqfu"
-tool_id = "seqfu"
-domain = "fastq"
-domains = ["fastq"]
-status = "planned"
-stage_ids = ["fastq.profile_read_lengths", "fastq.profile_reads"]
-bindings = ["fastq.profile_read_lengths", "fastq.profile_reads"]
-tool_role = "transform"
-version = "planned"
-default_version = "planned"
-upstream = "https://github.com/telatin/seqfu2"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC8148589/"
-pinned_commit = "release:planned"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/seqfu:planned"
-runtimes = ["docker", "apptainer"]
-container = false
-version_cmd = "seqfu --version"
-help_cmd = "seqfu --help"
-smoke_version_cmd = "seqfu --version"
-smoke_help_cmd = "seqfu --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "seqfu --help"
-expected_bin = "seqfu"
-expected_artifacts = ["length_distribution_tsv", "length_distribution_json", "normalized_abundance_tsv", "report_json", "qc_json", "qc_tsv"]
-metrics_schema = "bijux.fastq.stats.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.seqfu"
-apptainer_def = "containers/apptainer/shared/seqfu.def"
-require_labels = true
-
-[[tools]]
 id = "seqkit"
 tool_id = "seqkit"
 domain = "fastq"
@@ -2251,7 +2217,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Bias mitigation baseline preserves the admitted mapdamage2 projection surface."
 requires_validation = false
 requires_reporting = false
 
@@ -2263,7 +2229,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Complexity baseline preserves the governed preseq extrapolation surface."
 requires_validation = false
 requires_reporting = false
 
@@ -2347,7 +2313,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "GC-bias baseline preserves the single admitted Picard reporting surface."
 requires_validation = false
 requires_reporting = false
 
@@ -2359,7 +2325,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Genotyping baseline preserves the governed low-depth ANGSD execution surface."
 requires_validation = false
 requires_reporting = false
 
@@ -2371,7 +2337,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Haplogroup baseline preserves deterministic assignment through the admitted Yleaf surface."
 requires_validation = false
 requires_reporting = false
 
@@ -2383,7 +2349,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Insert-size baseline preserves deterministic paired-template QC summaries."
 requires_validation = false
 requires_reporting = false
 
@@ -2438,12 +2404,12 @@ requires_reporting = false
 [[stages]]
 id = "bam.markdup"
 required_tool_roles = ["transform"]
-primary_tools = ["picard"]
-optional_alternatives = ["samtools"]
+primary_tools = ["samtools"]
+optional_alternatives = ["picard"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Duplicate marking baseline preserves deterministic BAM audit artifacts and repeatable burden summaries."
 requires_validation = false
 requires_reporting = false
 
@@ -2455,19 +2421,19 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Overlap correction baseline preserves deterministic overlap clipping and before/after audit artifacts."
 requires_validation = false
 requires_reporting = false
 
 [[stages]]
 id = "bam.qc_pre"
 required_tool_roles = ["qc", "transform"]
-primary_tools = ["multiqc"]
-optional_alternatives = ["samtools"]
+primary_tools = ["samtools"]
+optional_alternatives = ["multiqc"]
 validation_tools = []
 reporting_tools = ["multiqc"]
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Early BAM sanity checks stay grounded in deterministic samtools count summaries."
 requires_validation = false
 requires_reporting = true
 
@@ -2479,7 +2445,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Recalibration baseline preserves the governed BQSR execution surface."
 requires_validation = false
 requires_reporting = false
 
@@ -2703,7 +2669,7 @@ requires_reporting = false
 id = "fastq.profile_read_lengths"
 required_tool_roles = ["transform"]
 primary_tools = ["seqkit_stats"]
-optional_alternatives = ["fastp", "prinseq", "seqfu"]
+optional_alternatives = ["fastp", "prinseq"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -2715,10 +2681,10 @@ requires_reporting = false
 id = "fastq.profile_reads"
 required_tool_roles = ["transform"]
 primary_tools = ["seqkit_stats"]
-optional_alternatives = []
+optional_alternatives = ["seqkit"]
 validation_tools = []
 reporting_tools = []
-planned_out_of_scope = ["seqkit", "seqfu"]
+planned_out_of_scope = []
 default_rationale = "Neutral stats baseline is lightweight and deterministic."
 requires_validation = false
 requires_reporting = false
@@ -2766,7 +2732,7 @@ primary_tools = ["kraken2"]
 optional_alternatives = ["centrifuge", "kaiju", "krakenuniq"]
 validation_tools = []
 reporting_tools = []
-planned_out_of_scope = []
+planned_out_of_scope = ["diamond"]
 default_rationale = "Default classifier maximizes comparability with existing reports."
 requires_validation = false
 requires_reporting = false

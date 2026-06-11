@@ -97,7 +97,7 @@ pub(super) fn build_tool_registries_toml(
             "production"
         };
 
-        let out = if is_experimental {
+        let out = if is_planned || is_experimental {
             &mut experimental_toml
         } else {
             production_tool_ids.insert(tool.id.clone());

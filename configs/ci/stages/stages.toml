@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: f0b600318fd047ad9a102722933e9c31c7716b31
+# source_commit: d29294f1d99e7328a02453f1e7734f06c7986b58
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -12,7 +12,7 @@
 [[stages]]
 id = "bam.align"
 status = "supported"
-output_kinds = ["bai", "bam", "json", "txt"]
+output_kinds = ["bai", "bam", "json", "text"]
 ordering_after = []
 prerequisites = []
 resource_memory_gb = 24
@@ -88,7 +88,7 @@ tools = ["contammix", "schmutzi", "verifybamid2"]
 [[stages]]
 id = "bam.coverage"
 status = "supported"
-output_kinds = ["json", "text"]
+output_kinds = ["json", "tsv"]
 ordering_after = ["bam.filter"]
 prerequisites = ["bam.filter"]
 resource_memory_gb = 8
@@ -107,7 +107,7 @@ tools = ["bedtools", "mosdepth", "samtools"]
 [[stages]]
 id = "bam.damage"
 status = "supported"
-output_kinds = ["json"]
+output_kinds = ["json", "tsv"]
 ordering_after = ["bam.filter"]
 prerequisites = ["bam.filter"]
 resource_memory_gb = 12
@@ -126,7 +126,7 @@ tools = ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pyd
 [[stages]]
 id = "bam.duplication_metrics"
 status = "supported"
-output_kinds = ["json", "txt"]
+output_kinds = ["json", "png"]
 ordering_after = ["bam.length_filter"]
 prerequisites = ["bam.length_filter"]
 resource_memory_gb = 10
@@ -164,7 +164,7 @@ tools = ["samtools"]
 [[stages]]
 id = "bam.filter"
 status = "supported"
-output_kinds = ["bai", "bam", "json", "txt"]
+output_kinds = ["bai", "bam", "json", "text"]
 ordering_after = ["bam.validate"]
 prerequisites = ["bam.validate"]
 resource_memory_gb = 8
@@ -240,7 +240,7 @@ tools = ["angsd", "king"]
 [[stages]]
 id = "bam.length_filter"
 status = "supported"
-output_kinds = ["bai", "bam", "json", "txt"]
+output_kinds = ["bai", "bam", "json", "text"]
 ordering_after = ["bam.mapq_filter"]
 prerequisites = ["bam.mapq_filter"]
 resource_memory_gb = 8
@@ -259,7 +259,7 @@ tools = ["picard", "samtools"]
 [[stages]]
 id = "bam.mapping_summary"
 status = "supported"
-output_kinds = ["json", "txt"]
+output_kinds = ["json", "text"]
 ordering_after = ["bam.validate"]
 prerequisites = ["bam.validate"]
 resource_memory_gb = 6
@@ -278,7 +278,7 @@ tools = ["picard", "samtools"]
 [[stages]]
 id = "bam.mapq_filter"
 status = "supported"
-output_kinds = ["bai", "bam", "json", "txt"]
+output_kinds = ["bai", "bam", "json", "text"]
 ordering_after = ["bam.validate"]
 prerequisites = ["bam.validate"]
 resource_memory_gb = 8
@@ -297,7 +297,7 @@ tools = ["bamtools", "samtools"]
 [[stages]]
 id = "bam.overlap_correction"
 status = "supported"
-output_kinds = ["bai", "bam", "json", "txt"]
+output_kinds = ["bai", "bam", "json", "text"]
 ordering_after = ["bam.length_filter"]
 prerequisites = ["bam.length_filter"]
 resource_memory_gb = 8
@@ -335,7 +335,7 @@ tools = ["angsd", "rxy", "yleaf"]
 [[stages]]
 id = "bam.validate"
 status = "supported"
-output_kinds = ["json", "txt"]
+output_kinds = ["json", "text"]
 ordering_after = ["bam.align"]
 prerequisites = ["bam.align"]
 resource_memory_gb = 6
@@ -645,7 +645,7 @@ prerequisites = ["fastq.profile_reads"]
 resource_memory_gb = 4
 resource_time_minutes = 15
 resource_threads = 2
-sanity_metrics = ["reads_total"]
+sanity_metrics = ["sequence_count", "flagged_sequences", "top_fraction"]
 output_size_estimates_mb = ["overrepresented_sequences_json:2", "overrepresented_sequences_tsv:4", "report_json:4"]
 qc_thresholds = ["reads_removed_contaminant_kmer|warn=>0.2|fail=>0.5"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
@@ -672,7 +672,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["fastp", "prinseq", "seqfu", "seqkit_stats"]
+tools = ["fastp", "prinseq", "seqkit_stats"]
 
 [[stages]]
 id = "fastq.profile_reads"
@@ -691,7 +691,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["seqkit_stats"]
+tools = ["seqkit", "seqkit_stats"]
 
 [[stages]]
 id = "fastq.remove_chimeras"

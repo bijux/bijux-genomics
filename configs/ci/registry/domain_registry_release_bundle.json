@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "f0b600318fd047ad9a102722933e9c31c7716b31",
-  "bundle_checksum_sha256": "c4f5f0440e85fd9bb04f9c1fa4ec1ea279612c2d270d0532d36e01efad6dc569",
+  "source_commit": "d29294f1d99e7328a02453f1e7734f06c7986b58",
+  "bundle_checksum_sha256": "51b9aa238614847b83c0305f4ef733c5b545feb862cf14632693ac95eaec6875",
   "domains": [
     {
       "domain_id": "bam",
@@ -68,28 +68,44 @@
       "governed_stage_ids": [
         "bam.align",
         "bam.authenticity",
+        "bam.bias_mitigation",
+        "bam.complexity",
         "bam.contamination",
         "bam.coverage",
         "bam.damage",
         "bam.duplication_metrics",
         "bam.endogenous_content",
         "bam.filter",
+        "bam.gc_bias",
+        "bam.genotyping",
+        "bam.haplogroups",
+        "bam.insert_size",
         "bam.kinship",
         "bam.length_filter",
         "bam.mapping_summary",
         "bam.mapq_filter",
+        "bam.markdup",
+        "bam.overlap_correction",
+        "bam.qc_pre",
+        "bam.recalibration",
         "bam.sex",
         "bam.validate"
       ],
       "governed_tool_ids": [
+        "angsd",
         "authenticct",
+        "bamutil",
         "bwa",
+        "gatk",
         "king",
         "mapdamage2",
         "mosdepth",
+        "picard",
+        "preseq",
         "rxy",
         "samtools",
-        "schmutzi"
+        "schmutzi",
+        "yleaf"
       ],
       "stages": [
         {
@@ -140,17 +156,17 @@
             },
             {
               "name": "flagstat",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "idxstats",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "stats",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
@@ -172,12 +188,12 @@
           "parameters": [
             {
               "name": "preset",
-              "param_type": "",
+              "param_type": "string",
               "default_value": ""
             },
             {
               "name": "read_group",
-              "param_type": "",
+              "param_type": "string",
               "default_value": ""
             }
           ],
@@ -247,13 +263,28 @@
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "score",
+              "meaning": "Governed authenticity evidence score preserved across admitted BAM authenticity tools",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "confidence",
+              "meaning": "Confidence assigned to the governed BAM authenticity evidence score",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "pmd_like_signal_present",
+              "meaning": "PMD-like authenticity signal retained in the governed BAM authenticity comparison surface",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "consumed_metric_ids",
+              "meaning": "Upstream evidence inputs consumed by the governed BAM authenticity stage metrics contract",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "missing_metric_ids",
+              "meaning": "Expected authenticity evidence inputs that remained unavailable for the governed BAM authenticity benchmark row",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -365,7 +396,7 @@
             },
             {
               "name": "complexity_curve",
-              "data_type": "txt",
+              "data_type": "tsv",
               "cardinality": "One"
             },
             {
@@ -454,13 +485,28 @@
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "scope",
+              "meaning": "Contamination scope preserved for the governed BAM contamination benchmark row",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "prerequisites_passed",
+              "meaning": "Whether the admitted BAM contamination tool satisfied the governed prerequisite checks",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "estimate",
+              "meaning": "Contamination estimate preserved across admitted BAM contamination tools when prerequisites pass",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "ci_low",
+              "meaning": "Lower confidence interval bound preserved for the governed BAM contamination estimate",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "ci_high",
+              "meaning": "Upper confidence interval bound preserved for the governed BAM contamination estimate",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -506,12 +552,12 @@
           "outputs": [
             {
               "name": "coverage_summary",
-              "data_type": "text",
+              "data_type": "json",
               "cardinality": "One"
             },
             {
               "name": "coverage_depth",
-              "data_type": "text",
+              "data_type": "tsv",
               "cardinality": "One"
             },
             {
@@ -546,13 +592,13 @@
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "observed_region_count",
+              "meaning": "Count of governed target regions materialized in the BAM coverage comparison output",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "region_ids",
+              "meaning": "Governed ordered region identifiers preserved in the BAM coverage comparison output",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -603,7 +649,7 @@
             },
             {
               "name": "terminal_position_metrics",
-              "data_type": "json",
+              "data_type": "tsv",
               "cardinality": "One"
             },
             {
@@ -704,7 +750,7 @@
             },
             {
               "name": "duplication_histogram",
-              "data_type": "txt",
+              "data_type": "png",
               "cardinality": "One"
             },
             {
@@ -892,22 +938,22 @@
             },
             {
               "name": "flagstat_before",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "flagstat_after",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "idxstats_before",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "idxstats_after",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
@@ -1004,12 +1050,12 @@
           "outputs": [
             {
               "name": "gc_bias_report",
-              "data_type": "txt",
+              "data_type": "json",
               "cardinality": "One"
             },
             {
               "name": "gc_bias_plot",
-              "data_type": "pdf",
+              "data_type": "png",
               "cardinality": "One"
             },
             {
@@ -1228,12 +1274,12 @@
           "outputs": [
             {
               "name": "insert_size_report",
-              "data_type": "txt",
+              "data_type": "json",
               "cardinality": "One"
             },
             {
               "name": "insert_size_histogram",
-              "data_type": "pdf",
+              "data_type": "png",
               "cardinality": "One"
             },
             {
@@ -1344,13 +1390,23 @@
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "observed_max_overlap_snps",
+              "meaning": "Maximum observed SNP overlap preserved in the governed BAM kinship comparison surface",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "pair_count",
+              "meaning": "Count of pairwise kinship results emitted by the governed BAM kinship benchmark row",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "status",
+              "meaning": "Governed kinship result status preserved across admitted BAM kinship tools",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "pairwise_results",
+              "meaning": "Governed pairwise kinship results carrying comparable relationship labels and concordance outputs",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -1404,22 +1460,22 @@
             },
             {
               "name": "flagstat_before",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "flagstat_after",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "idxstats_before",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "idxstats_after",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
@@ -1510,17 +1566,17 @@
           "outputs": [
             {
               "name": "flagstat",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "idxstats",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "stats",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
@@ -1623,22 +1679,22 @@
             },
             {
               "name": "flagstat_before",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "flagstat_after",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "idxstats_before",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "idxstats_after",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
@@ -1739,22 +1795,22 @@
             },
             {
               "name": "flagstat_before",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "flagstat_after",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "idxstats_before",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "idxstats_after",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
@@ -1854,22 +1910,22 @@
             },
             {
               "name": "flagstat_before",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "flagstat_after",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "idxstats_before",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "idxstats_after",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
@@ -1964,17 +2020,17 @@
           "outputs": [
             {
               "name": "flagstat",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "idxstats",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
               "name": "stats",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
@@ -2136,13 +2192,33 @@
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "runtime_s",
-              "meaning": "Wall-clock runtime in seconds",
+              "metric_id": "x_coverage",
+              "meaning": "Observed X-chromosome coverage preserved in the governed BAM sex-inference comparison surface",
               "schema_version": "bijux.stage.v3"
             },
             {
-              "metric_id": "memory_mb",
-              "meaning": "Peak memory usage in MB",
+              "metric_id": "y_coverage",
+              "meaning": "Observed Y-chromosome coverage preserved in the governed BAM sex-inference comparison surface",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "autosomal_coverage",
+              "meaning": "Observed autosomal coverage preserved in the governed BAM sex-inference comparison surface",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "call",
+              "meaning": "Governed sex-inference call preserved across admitted BAM sex-inference tools",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "confidence",
+              "meaning": "Confidence assigned to the governed BAM sex-inference call",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "status",
+              "meaning": "Governed BAM sex-inference status preserved when admitted tools cannot emit a final call",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -2202,7 +2278,7 @@
             },
             {
               "name": "flagstat",
-              "data_type": "txt",
+              "data_type": "text",
               "cardinality": "One"
             },
             {
@@ -2234,6 +2310,11 @@
             {
               "metric_id": "validation_warnings",
               "meaning": "Non-fatal validation findings reserved for future warning-grade checks",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "input_bam_identity",
+              "meaning": "Governed input BAM identity payload preserved for cross-tool validation comparison",
               "schema_version": "bijux.stage.v3"
             }
           ],
@@ -3300,6 +3381,22 @@
           "override_policy": "explicit profile override required"
         },
         {
+          "stage_id": "bam.bias_mitigation",
+          "tool_id": "mapdamage2",
+          "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+          "rationale": "Bias mitigation baseline preserves the admitted mapdamage2 projection surface.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
+          "stage_id": "bam.complexity",
+          "tool_id": "preseq",
+          "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+          "rationale": "Complexity baseline preserves the governed preseq extrapolation surface.",
+          "governance_status": "advisory",
+          "override_policy": "explicit profile override required"
+        },
+        {
           "stage_id": "bam.contamination",
           "tool_id": "schmutzi",
           "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
@@ -3348,6 +3445,38 @@
           "override_policy": "explicit profile override required"
         },
         {
+          "stage_id": "bam.gc_bias",
+          "tool_id": "picard",
+          "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+          "rationale": "GC-bias baseline preserves the single admitted Picard reporting surface.",
+          "governance_status": "advisory",
+          "override_policy": "explicit profile override required"
+        },
+        {
+          "stage_id": "bam.genotyping",
+          "tool_id": "angsd",
+          "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+          "rationale": "Genotyping baseline preserves the governed low-depth ANGSD execution surface.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
+          "stage_id": "bam.haplogroups",
+          "tool_id": "yleaf",
+          "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+          "rationale": "Haplogroup baseline preserves deterministic assignment through the admitted Yleaf surface.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
+          "stage_id": "bam.insert_size",
+          "tool_id": "picard",
+          "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+          "rationale": "Insert-size baseline preserves deterministic paired-template QC summaries.",
+          "governance_status": "advisory",
+          "override_policy": "explicit profile override required"
+        },
+        {
           "stage_id": "bam.kinship",
           "tool_id": "king",
           "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
@@ -3377,6 +3506,38 @@
           "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
           "rationale": "MAPQ filtering baseline uses ubiquitous deterministic filtering behavior.",
           "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
+          "stage_id": "bam.markdup",
+          "tool_id": "samtools",
+          "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+          "rationale": "Duplicate marking baseline preserves deterministic BAM audit artifacts and repeatable burden summaries.",
+          "governance_status": "advisory",
+          "override_policy": "explicit profile override required"
+        },
+        {
+          "stage_id": "bam.overlap_correction",
+          "tool_id": "bamutil",
+          "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+          "rationale": "Overlap correction baseline preserves deterministic overlap clipping and before/after audit artifacts.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
+          "stage_id": "bam.qc_pre",
+          "tool_id": "samtools",
+          "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+          "rationale": "Early BAM sanity checks stay grounded in deterministic samtools count summaries.",
+          "governance_status": "advisory",
+          "override_policy": "explicit profile override required"
+        },
+        {
+          "stage_id": "bam.recalibration",
+          "tool_id": "gatk",
+          "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+          "rationale": "Recalibration baseline preserves the governed BQSR execution surface.",
+          "governance_status": "advisory",
           "override_policy": "explicit profile override required"
         },
         {
@@ -3608,7 +3769,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "648cb35faee05c40f60c6da27134b9fc70d8b4ad2d0068fcbf2919a39de9f47e"
+      "checksum_sha256": "5c37b044a802c744000cbd5e100846b7acb22361f532a4ad1a63e8643f5d5043"
     },
     {
       "domain_id": "fastq",
@@ -5156,6 +5317,11 @@
             {
               "metric_id": "mean_q",
               "meaning": "Mean base quality observed across the inspected reads.",
+              "schema_version": "bijux.stage.v3"
+            },
+            {
+              "metric_id": "adapter_report",
+              "meaning": "Canonical adapter-inspection report path emitted for governed benchmark collection.",
               "schema_version": "bijux.stage.v3"
             },
             {
@@ -7251,6 +7417,8 @@
           ],
           "tool_capability_requirements": [],
           "compatible_tools": [
+            "seqfu",
+            "seqkit",
             "seqkit_stats"
           ],
           "assumptions": [
@@ -7269,10 +7437,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "seqfu",
-            "seqkit"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "fastq.remove_chimeras",
@@ -8050,7 +8215,9 @@
           "bank_hooks": [
             "taxonomy_database_lock"
           ],
-          "planned_out_of_scope": []
+          "planned_out_of_scope": [
+            "diamond"
+          ]
         },
         {
           "stage_id": "fastq.subsample_reads",
@@ -9506,7 +9673,9 @@
           "version_cmd": "diamond --version",
           "help_cmd": "diamond help",
           "stage_ids": [],
-          "planned_stage_ids": [],
+          "planned_stage_ids": [
+            "fastq.screen_taxonomy"
+          ],
           "expected_artifacts": [
             "classification_report_json",
             "screen_report_tsv"
@@ -11581,6 +11750,10 @@
           "artifact_type": null
         },
         {
+          "artifact_id": "otu_table_tsv",
+          "artifact_type": null
+        },
+        {
           "artifact_id": "overrepresented_sequence_tool_benchmark_cohort_json",
           "artifact_type": null
         },
@@ -11737,6 +11910,10 @@
           "artifact_type": null
         },
         {
+          "artifact_id": "representative_sequences_fasta",
+          "artifact_type": null
+        },
+        {
           "artifact_id": "rrna_database",
           "artifact_type": null
         },
@@ -11758,6 +11935,14 @@
         },
         {
           "artifact_id": "rrna_filtered_reads_r2",
+          "artifact_type": null
+        },
+        {
+          "artifact_id": "rrna_removed_reads_r1",
+          "artifact_type": null
+        },
+        {
+          "artifact_id": "rrna_removed_reads_r2",
           "artifact_type": null
         },
         {
@@ -12301,6 +12486,16 @@
         },
         {
           "stage_id": "fastq.profile_reads",
+          "tool_id": "seqfu",
+          "fixture_path": "domain/fastq/fixtures/fastq.profile_reads/seqfu.txt"
+        },
+        {
+          "stage_id": "fastq.profile_reads",
+          "tool_id": "seqkit",
+          "fixture_path": "domain/fastq/fixtures/fastq.profile_reads/seqkit.txt"
+        },
+        {
+          "stage_id": "fastq.profile_reads",
           "tool_id": "seqkit_stats",
           "fixture_path": "domain/fastq/fixtures/fastq.profile_reads/seqkit_stats.txt"
         },
@@ -12461,7 +12656,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "2322fd95c65194a926973219e6f9924326397728c3e0766692e778e7b0b1a457"
+      "checksum_sha256": "39b53be17b0d19928a68d07eafa578319b540f850deb644f8eeb6d4e5775a9ac"
     },
     {
       "domain_id": "vcf",
@@ -12483,7 +12678,7 @@
         "vcf.filter",
         "vcf.gl_propagation",
         "vcf.ibd",
-        "vcf.imputation",
+        "vcf.imputation_metrics",
         "vcf.impute",
         "vcf.pca",
         "vcf.phasing",
@@ -13198,11 +13393,11 @@
           ]
         },
         {
-          "stage_id": "vcf.imputation",
+          "stage_id": "vcf.imputation_metrics",
           "status": "planned",
           "evidence_status": "planned",
           "scope": "post_vcf",
-          "description": "VCF stage contract for vcf.imputation in the governed domain registry.",
+          "description": "VCF stage contract for vcf.imputation_metrics in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "",
           "inputs": [
@@ -13513,8 +13708,8 @@
         },
         {
           "stage_id": "vcf.postprocess",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.postprocess in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -13552,7 +13747,7 @@
             "bcftools"
           ],
           "assumptions": [
-            "planned_stage"
+            "governed_stage"
           ],
           "invariants": [
             "stable_artifact_contract"
@@ -13563,14 +13758,12 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "full scientific validation pending downstream admission"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "vcf.prepare_reference_panel",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.prepare_reference_panel in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -13608,7 +13801,6 @@
             "bcftools"
           ],
           "assumptions": [
-            "planned_stage",
             "reference_build_fixed"
           ],
           "invariants": [
@@ -13620,9 +13812,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "full scientific validation pending downstream admission"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "vcf.qc",
@@ -13880,9 +14070,11 @@
           ],
           "planned_stage_ids": [
             "vcf.admixture",
-            "vcf.imputation",
+            "vcf.imputation_metrics",
             "vcf.pca",
             "vcf.phasing",
+            "vcf.postprocess",
+            "vcf.prepare_reference_panel",
             "vcf.qc"
           ],
           "expected_artifacts": [
@@ -13919,7 +14111,7 @@
           "version_cmd": "beagle --version",
           "help_cmd": "beagle --help",
           "stage_ids": [
-            "vcf.imputation",
+            "vcf.imputation_metrics",
             "vcf.impute",
             "vcf.phasing"
           ],
@@ -14056,7 +14248,7 @@
             "PE",
             "SE"
           ],
-          "metrics_schema_id": "bijux.vcf.imputation.v1",
+          "metrics_schema_id": "bijux.vcf.imputation_metrics.v1",
           "comparability_notes": "External planned tool for low-coverage/aDNA-oriented imputation workflows.",
           "container": {
             "image": "external",
@@ -14149,7 +14341,7 @@
             "PE",
             "SE"
           ],
-          "metrics_schema_id": "bijux.vcf.imputation.v1",
+          "metrics_schema_id": "bijux.vcf.imputation_metrics.v1",
           "comparability_notes": "External planned tool pending container policy and licensing review.",
           "container": {
             "image": "external",
@@ -14179,7 +14371,7 @@
             "PE",
             "SE"
           ],
-          "metrics_schema_id": "bijux.vcf.imputation.v1",
+          "metrics_schema_id": "bijux.vcf.imputation_metrics.v1",
           "comparability_notes": "External planned tool for imputation; containerization pending.",
           "container": {
             "image": "external",
@@ -14641,7 +14833,7 @@
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
           "rationale": "deterministic post-imputation normalization baseline",
-          "governance_status": "advisory",
+          "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
         {
@@ -14649,7 +14841,7 @@
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
           "rationale": "deterministic panel preparation baseline",
-          "governance_status": "advisory",
+          "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
         {
@@ -14713,13 +14905,23 @@
           "fixture_path": "domain/vcf/fixtures/vcf.gl_propagation/bcftools.txt"
         },
         {
+          "stage_id": "vcf.postprocess",
+          "tool_id": "bcftools",
+          "fixture_path": "domain/vcf/fixtures/vcf.postprocess/bcftools.txt"
+        },
+        {
+          "stage_id": "vcf.prepare_reference_panel",
+          "tool_id": "bcftools",
+          "fixture_path": "domain/vcf/fixtures/vcf.prepare_reference_panel/bcftools.txt"
+        },
+        {
           "stage_id": "vcf.stats",
           "tool_id": "bcftools",
           "fixture_path": "domain/vcf/fixtures/vcf.stats/bcftools.txt"
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "46c85ee5089c2808b49aad03b935e063f3c78c5a988508faf1edbe18fe7f7f38"
+      "checksum_sha256": "e6b9b8b44c2436d640f3f3f81e4a6bad63605bfce50b25c22d7c65e6d3aa2f94"
     }
   ]
 }

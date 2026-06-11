@@ -19,6 +19,22 @@
         "override_policy": "explicit profile override required"
       },
       {
+        "stage_id": "bam.bias_mitigation",
+        "tool_id": "mapdamage2",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Bias mitigation baseline preserves the admitted mapdamage2 projection surface.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.complexity",
+        "tool_id": "preseq",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Complexity baseline preserves the governed preseq extrapolation surface.",
+        "governance_status": "advisory",
+        "override_policy": "explicit profile override required"
+      },
+      {
         "stage_id": "bam.contamination",
         "tool_id": "schmutzi",
         "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
@@ -67,6 +83,38 @@
         "override_policy": "explicit profile override required"
       },
       {
+        "stage_id": "bam.gc_bias",
+        "tool_id": "picard",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "GC-bias baseline preserves the single admitted Picard reporting surface.",
+        "governance_status": "advisory",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.genotyping",
+        "tool_id": "angsd",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Genotyping baseline preserves the governed low-depth ANGSD execution surface.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.haplogroups",
+        "tool_id": "yleaf",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Haplogroup baseline preserves deterministic assignment through the admitted Yleaf surface.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.insert_size",
+        "tool_id": "picard",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Insert-size baseline preserves deterministic paired-template QC summaries.",
+        "governance_status": "advisory",
+        "override_policy": "explicit profile override required"
+      },
+      {
         "stage_id": "bam.kinship",
         "tool_id": "king",
         "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
@@ -96,6 +144,38 @@
         "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "rationale": "MAPQ filtering baseline uses ubiquitous deterministic filtering behavior.",
         "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.markdup",
+        "tool_id": "samtools",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Duplicate marking baseline preserves deterministic BAM audit artifacts and repeatable burden summaries.",
+        "governance_status": "advisory",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.overlap_correction",
+        "tool_id": "bamutil",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Overlap correction baseline preserves deterministic overlap clipping and before/after audit artifacts.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.qc_pre",
+        "tool_id": "samtools",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Early BAM sanity checks stay grounded in deterministic samtools count summaries.",
+        "governance_status": "advisory",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.recalibration",
+        "tool_id": "gatk",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Recalibration baseline preserves the governed BQSR execution surface.",
+        "governance_status": "advisory",
         "override_policy": "explicit profile override required"
       },
       {
@@ -401,7 +481,7 @@
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "rationale": "deterministic post-imputation normalization baseline",
-        "governance_status": "advisory",
+        "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },
       {
@@ -409,7 +489,7 @@
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "rationale": "deterministic panel preparation baseline",
-        "governance_status": "advisory",
+        "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },
       {

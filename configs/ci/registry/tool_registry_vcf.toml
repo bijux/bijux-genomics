@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: d104a1d20885b684d1dd0da4760a0f8ddd33cf1a
+# source_commit: d29294f1d99e7328a02453f1e7734f06c7986b58
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -528,6 +528,30 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
+id = "vcf.postprocess"
+required_tool_roles = ["transform"]
+primary_tools = ["bcftools"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "deterministic post-imputation normalization baseline"
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "vcf.prepare_reference_panel"
+required_tool_roles = ["transform"]
+primary_tools = ["bcftools"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "deterministic panel preparation baseline"
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
 id = "vcf.stats"
 required_tool_roles = ["qc"]
 primary_tools = ["bcftools"]
@@ -538,3 +562,4 @@ planned_out_of_scope = []
 default_rationale = "required summary metrics"
 requires_validation = false
 requires_reporting = false
+

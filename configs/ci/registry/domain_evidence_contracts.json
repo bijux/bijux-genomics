@@ -1109,10 +1109,10 @@
       },
       {
         "stage_id": "vcf.postprocess",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "planned_stage"
+          "governed_stage"
         ],
         "invariants": [
           "stable_artifact_contract"
@@ -1120,10 +1120,9 @@
       },
       {
         "stage_id": "vcf.prepare_reference_panel",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "planned_stage",
           "reference_build_fixed"
         ],
         "invariants": [

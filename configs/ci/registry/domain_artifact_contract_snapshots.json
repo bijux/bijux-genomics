@@ -731,6 +731,10 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "otu_table_tsv",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "overrepresented_sequence_tool_benchmark_cohort_json",
         "artifact_type": null
       },
@@ -887,6 +891,10 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "representative_sequences_fasta",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "rrna_database",
         "artifact_type": null
       },
@@ -908,6 +916,14 @@
       },
       {
         "artifact_id": "rrna_filtered_reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "rrna_removed_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "rrna_removed_reads_r2",
         "artifact_type": null
       },
       {
