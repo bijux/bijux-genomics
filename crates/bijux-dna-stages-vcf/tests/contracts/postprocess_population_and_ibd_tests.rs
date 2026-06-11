@@ -301,6 +301,13 @@ fn population_structure_stage_emits_structured_outputs() {
         report.pointer("/pca/execution_mode").and_then(serde_json::Value::as_str).is_some(),
         "expected nested PCA execution evidence"
     );
+    assert!(
+        report
+            .pointer("/pca/manifest_json")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|path| !path.trim().is_empty()),
+        "expected consumed PCA manifest path"
+    );
     assert_eq!(
         report.pointer("/admixture/sample_count").and_then(serde_json::Value::as_u64),
         Some(2)
@@ -312,6 +319,13 @@ fn population_structure_stage_emits_structured_outputs() {
     assert_eq!(
         report.pointer("/admixture/status").and_then(serde_json::Value::as_str),
         Some("complete")
+    );
+    assert!(
+        report
+            .pointer("/admixture/k_selection_json")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|path| !path.trim().is_empty()),
+        "expected consumed admixture manifest path"
     );
 }
 
@@ -325,6 +339,28 @@ fn population_structure_refuses_without_metadata_manifest() {
     )
     .expect_err("population_structure should refuse without sample metadata manifest");
     assert!(err.to_string().contains("sample metadata manifest"));
+}
+
+#[test]
+fn population_structure_refuses_without_consumed_admixture() {
+    let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+    let metadata = dir.path().join("population_labels.json");
+    std::fs::write(
+        &metadata,
+        r#"{"samples":[{"sample":"sample1","population":"POP_A"}]}"#,
+    )
+    .unwrap_or_else(|err| panic!("write metadata: {err}"));
+    let err = run_population_structure_stage(
+        Path::new("tests/fixtures/vcf/default/input.vcf"),
+        dir.path(),
+        &PopulationStructureStageParams {
+            run_admixture: false,
+            sample_metadata_manifest: Some(metadata),
+            ..PopulationStructureStageParams::default()
+        },
+    )
+    .expect_err("population_structure should refuse without consumed admixture output");
+    assert!(err.to_string().contains("consumed admixture output"));
 }
 
 #[test]

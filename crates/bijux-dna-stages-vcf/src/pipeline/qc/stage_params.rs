@@ -270,7 +270,7 @@ impl Default for PopulationStructureStageParams {
         Self {
             toolchain: "plink2".to_string(),
             smartpca: true,
-            run_admixture: false,
+            run_admixture: true,
             sample_metadata_manifest: None,
             admixture_params: None,
             preprocessing: PopulationPreprocessingParams::default(),

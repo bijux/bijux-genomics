@@ -302,6 +302,11 @@ pub fn run_population_structure_stage(
     params: &PopulationStructureStageParams,
 ) -> Result<PopulationStructureStageOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
+    if !params.run_admixture {
+        bail!(
+            "vcf.population_structure refusal: consumed admixture output is required for governed population-structure summaries"
+        );
+    }
     let raw = read_vcf_text(input_vcf)?;
     let mut samples = Vec::<String>::new();
     let ld_policy = require_ld_pruning_policy(
@@ -365,25 +370,35 @@ pub fn run_population_structure_stage(
     )?;
     let pca_manifest_raw = std::fs::read_to_string(&pca.pca_manifest_json)?;
     let pca_manifest: serde_json::Value = serde_json::from_str(&pca_manifest_raw)?;
-    let admixture = if params.run_admixture {
-        Some(run_admixture_stage(
-            input_vcf,
-            out_dir,
-            &params.admixture_params.clone().unwrap_or_else(|| AdmixtureStageParams {
-                sample_metadata_manifest: Some(metadata_manifest.clone()),
-                ..AdmixtureStageParams::default()
-            }),
-        )?)
-    } else {
-        None
-    };
+    let admixture = run_admixture_stage(
+        input_vcf,
+        out_dir,
+        &params.admixture_params.clone().unwrap_or_else(|| AdmixtureStageParams {
+            sample_metadata_manifest: Some(metadata_manifest.clone()),
+            ..AdmixtureStageParams::default()
+        }),
+    )?;
     let admixture_manifest = admixture
-        .as_ref()
-        .map(|out| -> Result<serde_json::Value> {
-            let raw = std::fs::read_to_string(&out.k_selection_json)?;
-            Ok(serde_json::from_str(&raw)?)
-        })
-        .transpose()?;
+        .k_selection_json
+        .as_path();
+    let admixture_manifest_raw = std::fs::read_to_string(admixture_manifest)?;
+    let admixture_manifest: serde_json::Value = serde_json::from_str(&admixture_manifest_raw)?;
+    for required in [&pca.eigenvec_tsv, &pca.eigenval_tsv, &pca.pca_manifest_json] {
+        if !required.exists() {
+            bail!(
+                "vcf.population_structure refusal: consumed PCA path is missing: {}",
+                required.display()
+            );
+        }
+    }
+    for required in [&admixture.q_matrix_tsv, &admixture.k_selection_json] {
+        if !required.exists() {
+            bail!(
+                "vcf.population_structure refusal: consumed admixture path is missing: {}",
+                required.display()
+            );
+        }
+    }
     atomic_write_bytes(
         &plink_input_tsv,
         format!("variant_id\n{}\n", passing.join("\n")).as_bytes(),
@@ -444,26 +459,22 @@ pub fn run_population_structure_stage(
                     .and_then(serde_json::Value::as_bool),
                 "sample_count": pca_manifest.get("sample_count").and_then(serde_json::Value::as_u64)
             },
-            "admixture": admixture.as_ref().map(|out| serde_json::json!({
-                "q_matrix_tsv": out.q_matrix_tsv,
-                "k_selection_json": out.k_selection_json,
+            "admixture": {
+                "q_matrix_tsv": admixture.q_matrix_tsv,
+                "k_selection_json": admixture.k_selection_json,
                 "status": admixture_manifest
-                    .as_ref()
-                    .and_then(|row| row.get("status"))
+                    .get("status")
                     .and_then(serde_json::Value::as_str),
                 "execution_mode": admixture_manifest
-                    .as_ref()
-                    .and_then(|row| row.get("execution_mode"))
+                    .get("execution_mode")
                     .and_then(serde_json::Value::as_str),
                 "selected_k": admixture_manifest
-                    .as_ref()
-                    .and_then(|row| row.get("selected_k"))
+                    .get("selected_k")
                     .and_then(serde_json::Value::as_u64),
                 "sample_count": admixture_manifest
-                    .as_ref()
-                    .and_then(|row| row.get("sample_count"))
+                    .get("sample_count")
                     .and_then(serde_json::Value::as_u64)
-            })),
+            },
             "outputs": {
                 "pruned_variants_tsv": pruned_variants_tsv,
                 "population_structure_json": population_structure_json
@@ -477,7 +488,7 @@ pub fn run_population_structure_stage(
             params.toolchain,
             params.smartpca,
             plink_prune_ok,
-            params.run_admixture
+            true
         )
         .as_bytes(),
     )?;
