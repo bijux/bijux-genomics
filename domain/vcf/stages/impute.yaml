@@ -1,6 +1,6 @@
 schema_version: "bijux.stage.v1"
 stage_id: "vcf.impute"
-status: "planned"
+status: "supported"
 scope: "post_vcf"
 domain: "vcf"
 description: "VCF stage contract for vcf.impute in the governed domain registry."
@@ -19,9 +19,9 @@ metrics:
   - name: "impute_status"
 compatible_tools: ["beagle", "glimpse", "impute5", "minimac4"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
-assumptions: ["planned_stage", "panel_required"]
+assumptions: ["panel_required", "genetic_map_required"]
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness:
   - "none"
-planned_out_of_scope: ["full scientific validation pending downstream admission"]
+planned_out_of_scope: []

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: 24810fba3200f2a49ba7b294ab51b19ceb22553c
+# source_commit: 7237e485678fa9670e71b11f23173fdf4e07097d
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -110,7 +110,7 @@ tools = ["beagle", "glimpse", "impute5", "minimac4"]
 
 [[stages]]
 id = "vcf.impute"
-status = "planned"
+status = "supported"
 output_kinds = ["vcf"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"

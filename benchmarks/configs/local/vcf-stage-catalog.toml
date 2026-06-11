@@ -170,7 +170,7 @@ local_smoke_mode = "vcf_cohort_with_panel"
 [[rows]]
 stage_id = "vcf.impute"
 stage_name = "Imputed Genotype Refinement"
-support_status = "planned"
+support_status = "supported"
 default_tool_id = "beagle"
 metrics_schema_id = "bijux.vcf.impute.v1"
 input_types = ["vcf"]

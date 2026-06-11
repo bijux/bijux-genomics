@@ -133,7 +133,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.impute",
-            status: "planned",
+            status: "supported",
             default_tool_id: "beagle",
             metrics_schema: "bijux.vcf.impute.v1",
             smoke_supported: true,

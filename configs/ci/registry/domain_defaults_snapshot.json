@@ -473,7 +473,7 @@
         "tool_id": "beagle",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "rationale": "planned pinned imputation baseline",
-        "governance_status": "advisory",
+        "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },
       {

@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "24810fba3200f2a49ba7b294ab51b19ceb22553c",
-  "bundle_checksum_sha256": "afcafd6c2cbcc2a4b772e79ec8ddf1acaa7b70d20a9568b1574c316aed31d5b8",
+  "source_commit": "7237e485678fa9670e71b11f23173fdf4e07097d",
+  "bundle_checksum_sha256": "5eed3fa1499db427235b31e472e206d548a288e41a5ac8e972079705526ed22b",
   "domains": [
     {
       "domain_id": "bam",
@@ -3769,7 +3769,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "16dda04993186e78191db7c66249f1537305eef31ca3be68e73e88a76c56de97"
+      "checksum_sha256": "7cccbbb7012e9d62d3dfbd541e05d7e6fedb9de17c9846839ca25f22f6475da1"
     },
     {
       "domain_id": "fastq",
@@ -12656,7 +12656,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "46c97570778d3545086d9c5e6f61d773dd40682ed49fe6c07e313f24f41869eb"
+      "checksum_sha256": "d4a9f9ebe0f98137ba066663493e1e5b65243dd1a31d3cd37a128a4550fb622a"
     },
     {
       "domain_id": "vcf",
@@ -13453,8 +13453,8 @@
         },
         {
           "stage_id": "vcf.impute",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.impute in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -13495,8 +13495,8 @@
             "minimac4"
           ],
           "assumptions": [
-            "planned_stage",
-            "panel_required"
+            "panel_required",
+            "genetic_map_required"
           ],
           "invariants": [
             "stable_artifact_contract"
@@ -13507,9 +13507,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "full scientific validation pending downstream admission"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "vcf.pca",
@@ -14823,7 +14821,7 @@
           "tool_id": "beagle",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
           "rationale": "planned pinned imputation baseline",
-          "governance_status": "advisory",
+          "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
         {
@@ -14903,6 +14901,26 @@
           "fixture_path": "domain/vcf/fixtures/vcf.gl_propagation/bcftools.txt"
         },
         {
+          "stage_id": "vcf.impute",
+          "tool_id": "beagle",
+          "fixture_path": "domain/vcf/fixtures/vcf.impute/beagle.txt"
+        },
+        {
+          "stage_id": "vcf.impute",
+          "tool_id": "glimpse",
+          "fixture_path": "domain/vcf/fixtures/vcf.impute/glimpse.txt"
+        },
+        {
+          "stage_id": "vcf.impute",
+          "tool_id": "impute5",
+          "fixture_path": "domain/vcf/fixtures/vcf.impute/impute5.txt"
+        },
+        {
+          "stage_id": "vcf.impute",
+          "tool_id": "minimac4",
+          "fixture_path": "domain/vcf/fixtures/vcf.impute/minimac4.txt"
+        },
+        {
           "stage_id": "vcf.phasing",
           "tool_id": "beagle",
           "fixture_path": "domain/vcf/fixtures/vcf.phasing/beagle.txt"
@@ -14934,7 +14952,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "f6f69c035c49db17d67627a31ade950f306161eafc8fb705efc73ab6abb67296"
+      "checksum_sha256": "1cfae1136d353305350b4ac0ca0889cf63ce7e1e04f450c90c2588c8f03ebfed"
     }
   ]
 }
