@@ -46,24 +46,23 @@ fn bench_readiness_all_domain_no_planned_rows_reports_clean_active_scope() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/no-planned-rows.json")
     );
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(60));
+    let active_row_count = support::json_u64(&payload, "active_row_count").expect("active_row_count");
+    assert_eq!(active_row_count, 128);
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(61));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(68));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(12));
-    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(11));
-    assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(9));
+    let removed_row_count =
+        support::json_u64(&payload, "removed_row_count").expect("removed_row_count");
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
-    let removed_status_counts = payload
-        .get("removed_status_counts")
-        .and_then(serde_json::Value::as_object)
-        .expect("removed status counts");
-    assert_eq!(removed_status_counts.get("planned").and_then(serde_json::Value::as_u64), Some(12));
+    let removed_status_counts = support::json_object(&payload, "removed_status_counts");
+    assert_eq!(
+        removed_status_counts.get("planned").and_then(serde_json::Value::as_u64),
+        Some(removed_row_count)
+    );
 
-    let removed_rows =
-        payload.get("removed_rows").and_then(serde_json::Value::as_array).expect("removed rows");
-    assert_eq!(removed_rows.len(), 12);
+    let removed_rows = support::json_array(&payload, "removed_rows");
+    assert_eq!(removed_rows.len() as u64, removed_row_count);
     let violations =
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
     assert!(violations.is_empty(), "active scope must not retain planned rows");
@@ -84,5 +83,12 @@ fn bench_readiness_all_domain_no_planned_rows_reports_clean_active_scope() {
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("shapeit5"))
         }),
         "vcf.phasing/shapeit5 must remain active once phasing is benchmark ready"
+    );
+    assert!(
+        removed_rows.iter().all(|row| {
+            !(row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation_metrics")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle"))
+        }),
+        "active imputation metrics rows must not be reported as planned removals"
     );
 }

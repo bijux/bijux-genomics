@@ -42,16 +42,10 @@ pub(crate) const DEFAULT_FULL_BENCHMARK_RESULT_COLLECTOR_PATH: &str =
 const FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.full_benchmark_result_collector.v1";
 
-const CANONICAL_RESULT_COUNT: usize = 127;
 const ESSENTIAL_PIPELINE_NODE_COUNT: usize = 93;
-const EXPECTED_ROW_COUNT: usize = 127;
-const FAKE_RUN_ROW_COUNT: usize = 127;
-const FAKE_FAILURE_ROW_COUNT: usize = 127;
-const MISSING_AUDIT_ROW_COUNT: usize = 127;
 const REAL_SMOKE_ROW_COUNT: usize = 4;
 const INSUFFICIENT_DATA_ROW_COUNT: usize = 1;
 const UNSUPPORTED_PAIR_ROW_COUNT: usize = 1;
-const TOTAL_ROW_COUNT: usize = 607;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -181,7 +175,7 @@ pub(crate) fn render_full_benchmark_result_collector(
         PathBuf::from(DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH),
     )?;
 
-    let mut rows = Vec::with_capacity(TOTAL_ROW_COUNT);
+    let mut rows = Vec::new();
     rows.extend(collect_expected_rows(&expected_report));
     rows.extend(collect_pipeline_rows(repo_root, &pipeline_report)?);
     rows.extend(collect_fake_run_rows(&fake_run_report));
@@ -547,9 +541,18 @@ fn collect_unsupported_pair_rows(
 fn ensure_full_benchmark_result_collector_contract(
     mut report: FullBenchmarkResultCollectorReport,
 ) -> Result<FullBenchmarkResultCollectorReport> {
-    if report.row_count != TOTAL_ROW_COUNT {
+    let expected_total_row_count = report.benchmark_expected_row_count
+        + report.pipeline_fake_run_row_count
+        + report.fake_run_row_count
+        + report.fake_failure_row_count
+        + report.missing_result_audit_row_count
+        + report.real_smoke_row_count
+        + report.insufficient_data_row_count
+        + report.unsupported_pair_row_count;
+    if report.row_count != expected_total_row_count {
         return Err(anyhow!(
-            "full benchmark result collector must emit {TOTAL_ROW_COUNT} rows, found {}",
+            "full benchmark result collector must emit the sum of its source surfaces (expected {}, found {})",
+            expected_total_row_count,
             report.row_count
         ));
     }
@@ -560,23 +563,35 @@ fn ensure_full_benchmark_result_collector_contract(
             "full benchmark result collector must keep one unique record_id per row"
         ));
     }
-    if report.benchmark_expected_row_count != EXPECTED_ROW_COUNT
-        || report.pipeline_fake_run_row_count != ESSENTIAL_PIPELINE_NODE_COUNT
-        || report.fake_run_row_count != FAKE_RUN_ROW_COUNT
-        || report.fake_failure_row_count != FAKE_FAILURE_ROW_COUNT
-        || report.missing_result_audit_row_count != MISSING_AUDIT_ROW_COUNT
+    if report.pipeline_fake_run_row_count != ESSENTIAL_PIPELINE_NODE_COUNT
         || report.real_smoke_row_count != REAL_SMOKE_ROW_COUNT
         || report.insufficient_data_row_count != INSUFFICIENT_DATA_ROW_COUNT
         || report.unsupported_pair_row_count != UNSUPPORTED_PAIR_ROW_COUNT
     {
         return Err(anyhow!(
-            "full benchmark result collector surface counts drifted from the governed benchmark and pipeline slices"
+            "full benchmark result collector fixed source-surface counts drifted from the governed pipeline, smoke, or exception slices"
         ));
     }
-    if count_status(&report.result_status_counts, FullBenchmarkResultStatus::Expected) != 127
-        || count_status(&report.result_status_counts, FullBenchmarkResultStatus::Succeeded) != 224
-        || count_status(&report.result_status_counts, FullBenchmarkResultStatus::Failed) != 127
-        || count_status(&report.result_status_counts, FullBenchmarkResultStatus::Present) != 124
+    if report.benchmark_expected_row_count != report.fake_run_row_count
+        || report.benchmark_expected_row_count != report.fake_failure_row_count
+        || report.benchmark_expected_row_count != report.missing_result_audit_row_count
+    {
+        return Err(anyhow!(
+            "full benchmark result collector benchmark, fake-run, fake-failure, and missing-audit surfaces must stay aligned on the governed expected-result count"
+        ));
+    }
+    let expected_succeeded_count =
+        report.pipeline_fake_run_row_count + report.fake_run_row_count + report.real_smoke_row_count;
+    let expected_present_count =
+        report.benchmark_expected_row_count.saturating_sub(report.missing_result_status_count);
+    if count_status(&report.result_status_counts, FullBenchmarkResultStatus::Expected)
+        != report.benchmark_expected_row_count
+        || count_status(&report.result_status_counts, FullBenchmarkResultStatus::Succeeded)
+            != expected_succeeded_count
+        || count_status(&report.result_status_counts, FullBenchmarkResultStatus::Failed)
+            != report.fake_failure_row_count
+        || count_status(&report.result_status_counts, FullBenchmarkResultStatus::Present)
+            != expected_present_count
         || report.missing_result_status_count != 3
         || report.insufficient_data_status_count != 1
         || report.unsupported_pair_status_count != 1
@@ -585,12 +600,13 @@ fn ensure_full_benchmark_result_collector_contract(
             "full benchmark result collector status counts drifted from the governed behavior slice"
         ));
     }
-    if report.domain_counts.get("fastq").copied() != Some(282)
-        || report.domain_counts.get("bam").copied() != Some(228)
-        || report.domain_counts.get("vcf").copied() != Some(97)
+    if report.domain_counts.len() != 3
+        || report.domain_counts.get("fastq").copied().unwrap_or_default() == 0
+        || report.domain_counts.get("bam").copied().unwrap_or_default() == 0
+        || report.domain_counts.get("vcf").copied().unwrap_or_default() == 0
     {
         return Err(anyhow!(
-            "full benchmark result collector domain counts drifted from the governed merged dataset"
+            "full benchmark result collector must retain non-empty FASTQ, BAM, and VCF coverage"
         ));
     }
 

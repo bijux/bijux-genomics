@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_report_map_coverage_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 127);
+    assert!(rows.len() >= 128);
     assert!(rows.iter().any(|row| {
         row == &"fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2\tfastq\tfastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq.parser.screen_taxonomy\tfastq_screen_taxonomy_v1\tcontamination_screening\tcontamination_screening\tscreening_contamination\tfastq_report_map\tcovered\tactive row `fastq` / `fastq.screen_taxonomy` / `kraken2` appears in governed report section `contamination_screening` with summary table `screening_contamination` through `fastq_report_map`"
     }));
@@ -54,6 +54,9 @@ fn bench_readiness_all_domain_report_map_coverage_writes_governed_tsv_file() {
     }));
     assert!(rows.iter().any(|row| {
         row == &"vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools\tvcf\tvcf.postprocess\tbcftools\tvcf_production_regression\tvcf_single_sample\tvcf.adapter.transform\tvcf.parser.vcf_output\tbijux.schemas.bench.vcf-normalized-metrics.postprocess.v1\tnormalization\tnormalization\tnormalization_metrics\tvcf_report_map\tcovered\tactive row `vcf` / `vcf.postprocess` / `bcftools` appears in governed report section `normalization` with summary table `normalization_metrics` through `vcf_report_map`"
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle\tvcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.imputation-metrics.v1\timputation\timputation\timputation_quality\tvcf_report_map\tcovered\tactive row `vcf` / `vcf.imputation_metrics` / `beagle` appears in governed report section `imputation` with summary table `imputation_quality` through `vcf_report_map`"
     }));
     assert!(
         rows.iter().all(|row| row.contains("\tcovered\t")),

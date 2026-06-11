@@ -520,9 +520,9 @@ fn ensure_completion_row_alignment(
     output_rows: &BTreeMap<String, AllDomainOutputDeclarationRow>,
     fake_run_rows: &BTreeMap<String, AllDomainFakeRunResultReport>,
 ) -> Result<()> {
-    if expected_rows.len() != 127 || output_rows.len() != 127 || fake_run_rows.len() != 127 {
+    if expected_rows.len() != output_rows.len() || expected_rows.len() != fake_run_rows.len() {
         return Err(anyhow!(
-            "all-domain completion checker requires exactly 127 expected-result, output-declaration, and fake-run rows"
+            "all-domain completion checker requires exact row-count alignment across expected results, output declarations, and fake runs"
         ));
     }
     let expected_ids = expected_rows.keys().cloned().collect::<BTreeSet<_>>();
@@ -539,15 +539,18 @@ fn ensure_completion_row_alignment(
 fn ensure_all_domain_completion_check_contract(
     mut report: AllDomainCompletionCheckReport,
 ) -> Result<AllDomainCompletionCheckReport> {
-    if report.row_count != 127 {
-        return Err(anyhow!(
-            "all-domain completion checker must report exactly 127 rows, found {}",
-            report.row_count
-        ));
-    }
     if report.complete_row_count + report.incomplete_row_count != report.row_count {
         return Err(anyhow!(
             "all-domain completion checker row counts do not sum to the total row count"
+        ));
+    }
+    let expected_incomplete_row_count = report.seeded_mutations.len();
+    let expected_complete_row_count = report.row_count.saturating_sub(expected_incomplete_row_count);
+    if report.incomplete_row_count != expected_incomplete_row_count {
+        return Err(anyhow!(
+            "all-domain completion checker incomplete rows must equal the seeded mutation count (incomplete={}, seeded={})",
+            report.incomplete_row_count,
+            expected_incomplete_row_count
         ));
     }
     let passes_behavior_test = {
@@ -559,8 +562,8 @@ fn ensure_all_domain_completion_check_contract(
             .map(|mutation| (mutation.mutation_id.as_str(), mutation.result_id.as_str()))
             .collect::<BTreeMap<_, _>>();
 
-        report.complete_row_count == 122
-            && report.incomplete_row_count == 5
+        report.complete_row_count == expected_complete_row_count
+            && report.incomplete_row_count == expected_incomplete_row_count
             && matches_seeded_reason(
                 &row_by_result_id,
                 mutation_by_id.get(MUTATION_MISSING_DECLARED_OUTPUT).copied(),

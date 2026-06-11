@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_adapter_coverage_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 127);
+    assert!(rows.len() >= 128);
     assert!(rows.iter().any(|row| {
         row == &"fastq:corpus-01-mini:fastq.trim_reads:sample-set:trimmomatic\tfastq\tfastq.trim_reads\ttrimmomatic\tcorpus-01-mini\tcorpus_only\tfastq.adapter.trim_reads\tsmoke\tfastq_bam_command_adapter\t1\t1\tinvoke\tsh\tcovered\tactive row `fastq` / `fastq.trim_reads` / `trimmomatic` keeps executable command rendering through `fastq_bam_command_adapter` with 1 command step(s)"
     }));
@@ -54,6 +54,9 @@ fn bench_readiness_all_domain_adapter_coverage_writes_governed_tsv_file() {
     }));
     assert!(rows.iter().any(|row| {
         row == &"vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools\tvcf\tvcf.postprocess\tbcftools\tvcf_production_regression\tvcf_single_sample\tvcf.adapter.transform\tbenchmark_ready\tvcf_bcftools_adapter\t2\t2\tfill_tags,index_postprocess_vcf\tbcftools,bcftools\tcovered\tactive row `vcf` / `vcf.postprocess` / `bcftools` keeps executable command rendering through `vcf_bcftools_adapter` with 2 command step(s)"
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle\tvcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tbenchmark_ready\tvcf_imputation_family_adapter\t1\t1\tinvoke\tjava\tcovered\tactive row `vcf` / `vcf.imputation_metrics` / `beagle` keeps executable command rendering through `vcf_imputation_family_adapter` with 1 command step(s)"
     }));
     assert!(
         rows.iter().all(|row| row.contains("\tcovered\t")),

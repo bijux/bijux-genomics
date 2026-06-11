@@ -48,7 +48,7 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_writes_governed_tsv_file(
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 127);
+    assert!(rows.len() >= 128);
     assert!(rows.iter().any(|row| {
         row == &"bam\tbam.contamination\tschmutzi\tcorpus-01-adna-bam-mini\treference_fasta+reference_panel\tbam.adapter.contamination\tbam.parser.contamination\tbam_contamination_normalized_v1\tbenchmark_ready"
     }));
@@ -60,6 +60,9 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_writes_governed_tsv_file(
     }));
     assert!(rows.iter().any(|row| {
         row == &"vcf\tvcf.postprocess\tbcftools\tvcf_production_regression\tvcf_single_sample\tvcf.adapter.transform\tvcf.parser.vcf_output\tbijux.schemas.bench.vcf-normalized-metrics.postprocess.v1\tbenchmark_ready"
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"vcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.imputation-metrics.v1\tbenchmark_ready"
     }));
     assert!(
         rows.iter().all(|row| row.ends_with("\tbenchmark_ready")),

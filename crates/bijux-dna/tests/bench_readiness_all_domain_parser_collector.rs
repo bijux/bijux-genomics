@@ -55,25 +55,30 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
         payload.get("fake_run_root").and_then(serde_json::Value::as_str),
         Some("runs/bench/readiness-probes/all-domains/parser-collector/fake-runs")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(131));
-    assert_eq!(payload.get("fake_run_row_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("real_smoke_row_count").and_then(serde_json::Value::as_u64), Some(4));
+    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
+    let fake_run_row_count = support::json_u64(&payload, "fake_run_row_count").expect("fake_run_row_count");
+    let real_smoke_row_count =
+        support::json_u64(&payload, "real_smoke_row_count").expect("real_smoke_row_count");
+    assert_eq!(row_count, fake_run_row_count + real_smoke_row_count);
+    assert_eq!(real_smoke_row_count, 4);
 
-    let source_kind_counts = payload
-        .get("source_kind_counts")
-        .and_then(serde_json::Value::as_object)
-        .expect("source kind counts");
-    assert_eq!(source_kind_counts.get("fake_run").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(source_kind_counts.get("real_smoke").and_then(serde_json::Value::as_u64), Some(4));
+    let source_kind_counts = support::json_object(&payload, "source_kind_counts");
+    assert_eq!(
+        source_kind_counts.get("fake_run").and_then(serde_json::Value::as_u64),
+        Some(fake_run_row_count)
+    );
+    assert_eq!(
+        source_kind_counts.get("real_smoke").and_then(serde_json::Value::as_u64),
+        Some(real_smoke_row_count)
+    );
 
-    let domain_counts =
-        payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
+    let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(64));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(50));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(17));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(18));
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 131);
+    let rows = support::json_array(&payload, "rows");
+    assert_eq!(rows.len() as u64, row_count);
 
     let fake_result_ids = rows
         .iter()
@@ -82,7 +87,7 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
         })
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(fake_result_ids.len(), 127);
+    assert_eq!(fake_result_ids.len() as u64, fake_run_row_count);
 
     let fastq_smoke = rows
         .iter()

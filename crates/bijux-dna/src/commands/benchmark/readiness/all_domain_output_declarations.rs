@@ -307,13 +307,6 @@ pub(crate) fn collect_all_domain_output_declaration_rows(
 fn ensure_all_domain_output_declaration_contract(
     rows: &[AllDomainOutputDeclarationRow],
 ) -> Result<()> {
-    if rows.len() != 127 {
-        return Err(anyhow!(
-            "all-domain output declarations must retain exactly 127 benchmark-ready rows, found {}",
-            rows.len()
-        ));
-    }
-
     let mut seen_result_ids = BTreeSet::<&str>::new();
     for row in rows {
         if row.result_id.trim().is_empty()

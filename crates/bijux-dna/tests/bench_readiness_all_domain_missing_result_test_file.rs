@@ -60,11 +60,13 @@ fn bench_readiness_all_domain_missing_result_test_writes_governed_report_and_fix
         persisted.get("missing_result_row_count").and_then(serde_json::Value::as_u64),
         Some(3)
     );
-    assert_eq!(persisted.get("expected_row_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(
-        persisted.get("present_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(124)
-    );
+    let expected_row_count =
+        persisted.get("expected_row_count").and_then(serde_json::Value::as_u64).expect("expected_row_count");
+    let present_result_row_count = persisted
+        .get("present_result_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("present_result_row_count");
+    assert_eq!(present_result_row_count + 3, expected_row_count);
 
     let fixture_root =
         repo_root.join("runs/bench/readiness-probes/all-domains/missing-result-test");

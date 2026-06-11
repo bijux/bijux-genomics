@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_output_declarations_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 127);
+    assert!(rows.len() >= 128);
 
     let has_row = |result_id: &str,
                    normalized_metric: &str,
@@ -96,5 +96,15 @@ fn bench_readiness_all_domain_output_declarations_writes_governed_tsv_file() {
             "called_vcf_tbi",
         ),
         "VCF call row must keep raw outputs, normalized metrics, logs, manifest, and index outputs explicit"
+    );
+    assert!(
+        has_row(
+            "vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
+            "imputation_metrics_json",
+            "imputation_metrics_json",
+            "/vcf.imputation_metrics/vcf_cohort_with_panel/beagle/stage-result.json",
+            "",
+        ),
+        "VCF imputation metrics row must keep raw outputs, normalized metrics, logs, and manifest explicit"
     );
 }

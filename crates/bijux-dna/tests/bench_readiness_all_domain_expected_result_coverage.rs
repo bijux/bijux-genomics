@@ -50,25 +50,25 @@ fn bench_readiness_all_domain_expected_result_coverage_reports_complete_active_r
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/expected-result-coverage.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(60));
+    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
+    assert_eq!(support::json_u64(&payload, "result_id_count"), Some(row_count));
+    assert_eq!(support::json_u64(&payload, "stage_count"), Some(61));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(68));
     assert_eq!(
         payload.get("expected_result_binding_count").and_then(serde_json::Value::as_u64),
-        Some(127)
+        Some(row_count)
     );
-    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(127));
+    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(row_count));
     assert_eq!(payload.get("missing_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("coverage_percent").and_then(serde_json::Value::as_f64), Some(100.0));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
-    let domain_counts =
-        payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
+    let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(16));
+    assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let report_section_counts = payload
         .get("report_section_counts")
@@ -87,17 +87,14 @@ fn bench_readiness_all_domain_expected_result_coverage_reports_complete_active_r
         Some(1)
     );
 
-    let coverage_status_counts = payload
-        .get("coverage_status_counts")
-        .and_then(serde_json::Value::as_object)
-        .expect("coverage status counts");
+    let coverage_status_counts = support::json_object(&payload, "coverage_status_counts");
     assert_eq!(
         coverage_status_counts.get("covered").and_then(serde_json::Value::as_u64),
-        Some(127)
+        Some(row_count)
     );
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 127);
+    let rows = support::json_array(&payload, "rows");
+    assert_eq!(rows.len() as u64, row_count);
     assert!(rows.iter().all(|row| {
         row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
     }));
@@ -137,6 +134,14 @@ fn bench_readiness_all_domain_expected_result_coverage_reports_complete_active_r
                 == Some("bijux.schemas.bench.vcf-normalized-metrics.postprocess.v1")
             && row.get("report_section").and_then(serde_json::Value::as_str)
                 == Some("normalization")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("result_id").and_then(serde_json::Value::as_str)
+            == Some(
+                "vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
+            )
+            && row.get("report_section").and_then(serde_json::Value::as_str) == Some("imputation")
+            && row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
     }));
 
     let violations =

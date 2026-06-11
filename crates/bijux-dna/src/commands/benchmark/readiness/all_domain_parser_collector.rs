@@ -674,14 +674,13 @@ mod tests {
             report.fake_run_root,
             "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs"
         );
-        assert_eq!(report.row_count, 131);
-        assert_eq!(report.fake_run_row_count, 127);
+        assert_eq!(report.row_count, report.fake_run_row_count + report.real_smoke_row_count);
         assert_eq!(report.real_smoke_row_count, 4);
-        assert_eq!(report.source_kind_counts.get("fake_run"), Some(&127));
+        assert_eq!(report.source_kind_counts.get("fake_run"), Some(&report.fake_run_row_count));
         assert_eq!(report.source_kind_counts.get("real_smoke"), Some(&4));
         assert_eq!(report.domain_counts.get("fastq"), Some(&64));
         assert_eq!(report.domain_counts.get("bam"), Some(&50));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&17));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&18));
 
         let fastq_smoke = report
             .rows

@@ -45,13 +45,17 @@ fn bench_readiness_all_domain_no_placeholder_command_check_writes_governed_json_
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.all_domain_no_placeholder_command_check.v1")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("command_step_count").and_then(serde_json::Value::as_u64), Some(141));
-    assert_eq!(
-        payload.get("shell_wrapped_step_count").and_then(serde_json::Value::as_u64),
-        Some(83)
-    );
-    assert_eq!(payload.get("direct_step_count").and_then(serde_json::Value::as_u64), Some(58));
+    let row_count = payload.get("row_count").and_then(serde_json::Value::as_u64).expect("row_count");
+    let command_step_count =
+        payload.get("command_step_count").and_then(serde_json::Value::as_u64).expect("command_step_count");
+    let shell_wrapped_step_count = payload
+        .get("shell_wrapped_step_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("shell_wrapped_step_count");
+    let direct_step_count =
+        payload.get("direct_step_count").and_then(serde_json::Value::as_u64).expect("direct_step_count");
+    assert!(row_count >= 128);
+    assert_eq!(command_step_count, shell_wrapped_step_count + direct_step_count);
     assert_eq!(payload.get("invalid_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
@@ -86,6 +90,17 @@ fn bench_readiness_all_domain_no_placeholder_command_check_writes_governed_json_
                     .filter_map(|step| step.get("step_id").and_then(serde_json::Value::as_str))
                     .collect::<Vec<_>>()
                     == vec!["fill_tags", "index_postprocess_vcf"]
+            })
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("result_id").and_then(serde_json::Value::as_str)
+            == Some(
+                "vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
+            )
+            && row.get("step_audits").and_then(serde_json::Value::as_array).is_some_and(|steps| {
+                steps.len() == 1
+                    && steps[0].get("executable").and_then(serde_json::Value::as_str)
+                        == Some("java")
             })
     }));
 

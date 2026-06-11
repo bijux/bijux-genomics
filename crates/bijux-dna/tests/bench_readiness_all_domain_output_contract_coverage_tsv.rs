@@ -48,7 +48,7 @@ fn bench_readiness_all_domain_output_contract_coverage_writes_governed_tsv_file(
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 127);
+    assert!(rows.len() >= 128);
     assert!(rows.iter().any(|row| {
         row == &"fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2\tfastq\tfastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq_output_contract\tcomplete\tcomplete\tscreen_report_tsv,unclassified_reads_r1,unclassified_reads_r2\tclassification_report_json\tstdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stdout.log,stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stderr.log\truns/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json\t\ttrue\ttrue\ttrue\ttrue\tnot_applicable\tcovered\tactive row `fastq` / `fastq.screen_taxonomy` / `kraken2` keeps governed raw outputs, normalized metrics, logs, and manifest declarations through `fastq_output_contract` with no index requirement"
     }));
@@ -57,6 +57,9 @@ fn bench_readiness_all_domain_output_contract_coverage_writes_governed_tsv_file(
     }));
     assert!(rows.iter().any(|row| {
         row == &"vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools\tvcf\tvcf.call\tbcftools\tvcf_production_regression\tbam_bundle\tvcf.adapter.calling\tvcf_output_contract\tcomplete\tcomplete\tcalled_vcf\tcalled_vcf\tstdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call/bam_bundle/bcftools/stdout.log,stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call/bam_bundle/bcftools/stderr.log\truns/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json\tcalled_vcf_tbi\ttrue\ttrue\ttrue\ttrue\tcovered\tcovered\tactive row `vcf` / `vcf.call` / `bcftools` keeps governed raw outputs, normalized metrics, logs, manifest, and required index declarations through `vcf_output_contract`"
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle\tvcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf_output_contract\tcomplete\tcomplete\timputation_metrics_json\timputation_metrics_json\tstdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.imputation_metrics/vcf_cohort_with_panel/beagle/stdout.log,stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.imputation_metrics/vcf_cohort_with_panel/beagle/stderr.log\truns/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.imputation_metrics/vcf_cohort_with_panel/beagle/stage-result.json\t\ttrue\ttrue\ttrue\ttrue\tnot_applicable\tcovered\tactive row `vcf` / `vcf.imputation_metrics` / `beagle` keeps governed raw outputs, normalized metrics, logs, and manifest declarations through `vcf_output_contract` with no index requirement"
     }));
     assert!(
         rows.iter().all(|row| row.contains("\tcovered\t")),

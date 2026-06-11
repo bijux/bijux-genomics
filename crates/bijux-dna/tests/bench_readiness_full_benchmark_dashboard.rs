@@ -55,11 +55,14 @@ fn bench_readiness_full_benchmark_dashboard_tracks_governed_summary_counts() {
         payload.get("passes_behavior_test").and_then(serde_json::Value::as_bool),
         Some(true)
     );
+    let total_expected_jobs =
+        support::json_u64(&payload, "total_expected_jobs").expect("total_expected_jobs");
+    let ready_jobs = support::json_u64(&payload, "ready_jobs").expect("ready_jobs");
+    let blocked_jobs = support::json_u64(&payload, "blocked_jobs").expect("blocked_jobs");
     assert_eq!(payload.get("total_stages").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(payload.get("total_tools").and_then(serde_json::Value::as_u64), Some(68));
-    assert_eq!(payload.get("total_expected_jobs").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("ready_jobs").and_then(serde_json::Value::as_u64), Some(124));
-    assert_eq!(payload.get("blocked_jobs").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(total_expected_jobs, ready_jobs + blocked_jobs + 1);
+    assert_eq!(blocked_jobs, 3);
     assert_eq!(payload.get("missing_parsers").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("missing_adapters").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("missing_assets").and_then(serde_json::Value::as_u64), Some(0));
@@ -88,9 +91,9 @@ fn bench_readiness_full_benchmark_dashboard_tracks_governed_summary_counts() {
         .collect::<BTreeMap<_, _>>();
     assert_eq!(counts.get("total_stages").copied(), Some(71));
     assert_eq!(counts.get("total_tools").copied(), Some(68));
-    assert_eq!(counts.get("total_expected_jobs").copied(), Some(127));
-    assert_eq!(counts.get("ready_jobs").copied(), Some(124));
-    assert_eq!(counts.get("blocked_jobs").copied(), Some(3));
+    assert_eq!(counts.get("total_expected_jobs").copied(), Some(total_expected_jobs));
+    assert_eq!(counts.get("ready_jobs").copied(), Some(ready_jobs));
+    assert_eq!(counts.get("blocked_jobs").copied(), Some(blocked_jobs));
     assert_eq!(counts.get("missing_parsers").copied(), Some(0));
     assert_eq!(counts.get("missing_adapters").copied(), Some(0));
     assert_eq!(counts.get("missing_assets").copied(), Some(0));

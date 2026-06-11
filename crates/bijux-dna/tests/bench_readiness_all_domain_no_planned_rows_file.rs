@@ -38,8 +38,8 @@ fn bench_readiness_all_domain_no_planned_rows_writes_governed_json_file() {
         .expect("read all-domain no-planned-rows report");
     let payload: serde_json::Value = serde_json::from_str(&payload).expect("parse report json");
 
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(13));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(128));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(11));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
@@ -53,5 +53,12 @@ fn bench_readiness_all_domain_no_planned_rows_writes_governed_json_file() {
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("shapeit5"))
         }),
         "vcf.phasing/shapeit5 must remain active once phasing is benchmark ready"
+    );
+    assert!(
+        removed_rows.iter().all(|row| {
+            !(row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation_metrics")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle"))
+        }),
+        "active imputation metrics rows must not appear in the no-planned-rows file"
     );
 }

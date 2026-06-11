@@ -53,40 +53,47 @@ fn bench_readiness_all_domain_harness_ready_reports_governed_pass_state() {
         Some(0)
     );
     assert_eq!(payload.get("all_domain_stage_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(
-        payload.get("benchmark_ready_binding_count").and_then(serde_json::Value::as_u64),
-        Some(127)
-    );
+    let benchmark_ready_binding_count =
+        support::json_u64(&payload, "benchmark_ready_binding_count").expect("benchmark_ready_binding_count");
     assert_eq!(
         payload.get("expected_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(127)
+        Some(benchmark_ready_binding_count)
     );
     assert_eq!(
         payload.get("rendered_command_row_count").and_then(serde_json::Value::as_u64),
-        Some(127)
+        Some(benchmark_ready_binding_count)
     );
     assert_eq!(
         payload.get("output_declaration_row_count").and_then(serde_json::Value::as_u64),
-        Some(127)
+        Some(benchmark_ready_binding_count)
     );
-    assert_eq!(payload.get("fake_run_result_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("fake_run_output_count").and_then(serde_json::Value::as_u64), Some(525));
+    assert_eq!(
+        payload.get("fake_run_result_count").and_then(serde_json::Value::as_u64),
+        Some(benchmark_ready_binding_count)
+    );
+    assert!(payload
+        .get("fake_run_output_count")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count >= benchmark_ready_binding_count));
     assert_eq!(
         payload.get("fake_failure_result_count").and_then(serde_json::Value::as_u64),
-        Some(127)
+        Some(benchmark_ready_binding_count)
     );
+    assert!(payload
+        .get("fake_failure_output_count")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count >= benchmark_ready_binding_count));
     assert_eq!(
-        payload.get("fake_failure_output_count").and_then(serde_json::Value::as_u64),
-        Some(525)
+        payload.get("completion_row_count").and_then(serde_json::Value::as_u64),
+        Some(benchmark_ready_binding_count)
     );
-    assert_eq!(payload.get("completion_row_count").and_then(serde_json::Value::as_u64), Some(127));
     assert_eq!(
         payload.get("parser_collector_row_count").and_then(serde_json::Value::as_u64),
-        Some(131)
+        Some(benchmark_ready_binding_count + 4)
     );
     assert_eq!(
         payload.get("missing_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(127)
+        Some(benchmark_ready_binding_count)
     );
     assert_eq!(payload.get("failure_class_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(

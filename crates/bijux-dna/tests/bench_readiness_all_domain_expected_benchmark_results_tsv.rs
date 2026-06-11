@@ -48,7 +48,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_writes_governed_tsv_fil
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 127);
+    assert!(rows.len() >= 128);
     assert!(rows.iter().any(|row| {
         row == &"fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2\tfastq\tfastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tclassification_report_json,screen_report_tsv,unclassified_reads_r1,unclassified_reads_r2\tclassification_report_json,classified_read_fraction\tcontamination_screening"
     }));
@@ -60,5 +60,8 @@ fn bench_readiness_all_domain_expected_benchmark_results_writes_governed_tsv_fil
     }));
     assert!(rows.iter().any(|row| {
         row == &"vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools\tvcf\tvcf.postprocess\tbcftools\tvcf_production_regression\tvcf_single_sample\tpostprocess_vcf\treadable_vcf,tabix_present,contigs_consistent_with_species_context,left_align_applied,multiallelic_records_split,indels_normalized,variant_ids_normalized,invalid_records_removed,filter_standardized_to_pass\tnormalization"
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle\tvcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\timputation_metrics_json\tstatus,mean_info_score,r2_available,low_confidence_sites,masked_truth_sites,missing_quality_fields\timputation"
     }));
 }

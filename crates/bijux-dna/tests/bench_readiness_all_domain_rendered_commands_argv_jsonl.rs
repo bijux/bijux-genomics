@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used)]
 
+use std::collections::BTreeSet;
 use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -37,7 +38,12 @@ fn bench_readiness_all_domain_rendered_commands_write_governed_argv_jsonl() {
 
     let jsonl = std::fs::read_to_string(&jsonl_path).expect("read all-domain command argv JSONL");
     let rows = jsonl.lines().collect::<Vec<_>>();
-    assert_eq!(rows.len(), 127);
+    let result_ids = rows
+        .iter()
+        .filter_map(|line| serde_json::from_str::<serde_json::Value>(line).ok())
+        .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str).map(str::to_string))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(rows.len(), result_ids.len());
     assert!(rows.iter().all(|line| {
         serde_json::from_str::<serde_json::Value>(line).ok().is_some_and(|row| {
             row.get("result_id").and_then(serde_json::Value::as_str).is_some()
@@ -84,6 +90,16 @@ fn bench_readiness_all_domain_rendered_commands_write_governed_argv_jsonl() {
                 == Some("vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools")
                 && row.get("command_source").and_then(serde_json::Value::as_str)
                     == Some("vcf_bcftools_adapter")
+        })
+    }));
+    assert!(rows.iter().any(|line| {
+        serde_json::from_str::<serde_json::Value>(line).ok().is_some_and(|row| {
+            row.get("result_id").and_then(serde_json::Value::as_str)
+                == Some(
+                    "vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
+                )
+                && row.get("command_source").and_then(serde_json::Value::as_str)
+                    == Some("vcf_imputation_family_adapter")
         })
     }));
 }

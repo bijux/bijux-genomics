@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 
 use anyhow::{anyhow, Result};
+use serde_json::{Map, Value};
 
 #[path = "../../support/workspace_paths.rs"]
 mod test_support;
@@ -44,6 +45,7 @@ pub fn repo_root() -> Result<PathBuf> {
     test_support::repo_root()
 }
 
+#[allow(dead_code)]
 pub fn with_repo_root<F, T>(f: F) -> Result<T>
 where
     F: FnOnce() -> Result<T>,
@@ -53,4 +55,34 @@ where
     let repo_root = test_support::repo_root()?;
     std::env::set_current_dir(&repo_root)?;
     f()
+}
+
+#[allow(dead_code)]
+pub fn json_u64<'a>(value: &'a Value, key: &str) -> Option<u64> {
+    value.get(key).and_then(Value::as_u64)
+}
+
+#[allow(dead_code)]
+pub fn json_bool<'a>(value: &'a Value, key: &str) -> Option<bool> {
+    value.get(key).and_then(Value::as_bool)
+}
+
+#[allow(dead_code)]
+pub fn json_object<'a>(value: &'a Value, key: &str) -> &'a Map<String, Value> {
+    value.get(key).and_then(Value::as_object).expect(key)
+}
+
+#[allow(dead_code)]
+pub fn json_array<'a>(value: &'a Value, key: &str) -> &'a Vec<Value> {
+    value.get(key).and_then(Value::as_array).expect(key)
+}
+
+#[allow(dead_code)]
+pub fn object_u64(map: &Map<String, Value>, key: &str) -> Option<u64> {
+    map.get(key).and_then(Value::as_u64)
+}
+
+#[allow(dead_code)]
+pub fn object_u64_sum(map: &Map<String, Value>) -> u64 {
+    map.values().filter_map(Value::as_u64).sum()
 }

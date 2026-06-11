@@ -337,15 +337,15 @@ fn ensure_all_domain_local_job_coverage_contract(
             "all-domain local-job coverage must keep governed local benchmark job coverage for every active row"
         ));
     }
-    if report.row_count != 127
-        || report.result_id_count != 127
-        || report.local_job_binding_count != 127
+    if report.result_id_count != report.row_count
+        || report.local_job_binding_count != rendered_keys.len()
     {
         return Err(anyhow!(
-            "all-domain local-job coverage must retain exactly 125 governed active result rows, found {} rows, {} result ids, and {} local job rows",
+            "all-domain local-job coverage must keep one unique result id and one local job binding per active row (rows={}, result_ids={}, local_job_bindings={}, expected_bindings={})",
             report.row_count,
             report.result_id_count,
-            report.local_job_binding_count
+            report.local_job_binding_count,
+            rendered_keys.len(),
         ));
     }
     if report.script_output_path != DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH

@@ -53,27 +53,25 @@ fn bench_local_fake_run_all_domain_failures_json_reports_governed_result_slice()
         payload.get("failure_root").and_then(serde_json::Value::as_str),
         Some("runs/bench/local-fake-runs/all-domains-failures")
     );
-    assert_eq!(payload.get("result_count").and_then(serde_json::Value::as_u64), Some(127));
+    let result_count = support::json_u64(&payload, "result_count").expect("result_count");
     assert_eq!(payload.get("exit_code").and_then(serde_json::Value::as_i64), Some(13));
     assert!(payload
         .get("failed_output_count")
         .and_then(serde_json::Value::as_u64)
         .is_some_and(|count| count >= 120));
 
-    let domain_counts =
-        payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(15));
+    let domain_counts = support::json_object(&payload, "domain_counts");
+    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(63));
+    assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
+    assert_eq!(support::object_u64_sum(domain_counts), result_count);
 
-    let failures =
-        payload.get("failures").and_then(serde_json::Value::as_array).expect("failures array");
-    assert_eq!(failures.len(), 127);
+    let failures = support::json_array(&payload, "failures");
+    assert_eq!(failures.len() as u64, result_count);
     let result_ids = failures
         .iter()
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(result_ids.len(), 127);
+    assert_eq!(result_ids.len() as u64, result_count);
 
     let taxonomy = failures
         .iter()

@@ -47,28 +47,27 @@ fn bench_readiness_all_domain_output_declarations_tracks_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/output-declarations-all-domains.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(127));
+    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
+    assert_eq!(support::json_u64(&payload, "result_id_count"), Some(row_count));
+    assert_eq!(support::json_u64(&payload, "complete_row_count"), Some(row_count));
     assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(0));
 
-    let domain_counts =
-        payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
+    let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(16));
+    assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
-    let status_counts =
-        payload.get("status_counts").and_then(serde_json::Value::as_object).expect("status counts");
-    assert_eq!(status_counts.get("complete").and_then(serde_json::Value::as_u64), Some(127));
+    let status_counts = support::json_object(&payload, "status_counts");
+    assert_eq!(status_counts.get("complete").and_then(serde_json::Value::as_u64), Some(row_count));
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 127);
+    let rows = support::json_array(&payload, "rows");
+    assert_eq!(rows.len() as u64, row_count);
     let result_ids = rows
         .iter()
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(result_ids.len(), 127);
+    assert_eq!(result_ids.len() as u64, row_count);
 
     let taxonomy = rows
         .iter()
@@ -146,4 +145,22 @@ fn bench_readiness_all_domain_output_declarations_tracks_governed_rows() {
             "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json"
         )
     );
+
+    let imputation_metrics = rows
+        .iter()
+        .find(|row| {
+            row.get("result_id").and_then(serde_json::Value::as_str)
+                == Some(
+                    "vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
+                )
+        })
+        .expect("VCF imputation metrics row");
+    assert_eq!(
+        imputation_metrics.get("status").and_then(serde_json::Value::as_str),
+        Some("complete")
+    );
+    assert!(imputation_metrics
+        .get("raw_outputs")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|outputs| outputs.iter().any(|value| value.as_str() == Some("imputation_metrics_json"))));
 }

@@ -50,23 +50,22 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(60));
+    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(61));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(68));
 
-    let domain_counts =
-        payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
+    let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(16));
+    assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
-    let status_counts =
-        payload.get("status_counts").and_then(serde_json::Value::as_object).expect("status counts");
-    assert_eq!(status_counts.get("benchmark_ready").and_then(serde_json::Value::as_u64), Some(127));
+    let status_counts = support::json_object(&payload, "status_counts");
+    assert_eq!(status_counts.get("benchmark_ready").and_then(serde_json::Value::as_u64), Some(row_count));
     assert_eq!(status_counts.len(), 1);
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 127);
+    let rows = support::json_array(&payload, "rows");
+    assert_eq!(rows.len() as u64, row_count);
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -130,6 +129,15 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
                 == Some("vcf.parser.vcf_output")
             && row.get("schema_id").and_then(serde_json::Value::as_str)
                 == Some("bijux.schemas.bench.vcf-normalized-metrics.postprocess.v1")
+            && row.get("status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
+            && row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.imputation_metrics")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
+            && row.get("asset_profile_id").and_then(serde_json::Value::as_str)
+                == Some("vcf_cohort_with_panel")
             && row.get("status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
     }));
 

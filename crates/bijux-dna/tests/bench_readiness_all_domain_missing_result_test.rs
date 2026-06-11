@@ -51,22 +51,20 @@ fn bench_readiness_all_domain_missing_result_test_tracks_three_governed_missing_
         payload.get("fake_result_root").and_then(serde_json::Value::as_str),
         Some("runs/bench/readiness-probes/all-domains/missing-result-test")
     );
-    assert_eq!(payload.get("expected_row_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(
-        payload.get("present_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(124)
-    );
-    assert_eq!(
-        payload.get("missing_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(3)
-    );
+    let expected_row_count =
+        support::json_u64(&payload, "expected_row_count").expect("expected_row_count");
+    let present_result_row_count =
+        support::json_u64(&payload, "present_result_row_count").expect("present_result_row_count");
+    let missing_result_row_count =
+        support::json_u64(&payload, "missing_result_row_count").expect("missing_result_row_count");
+    assert_eq!(present_result_row_count + missing_result_row_count, expected_row_count);
+    assert_eq!(missing_result_row_count, 3);
     assert_eq!(payload.get("passes_behavior_test"), Some(&serde_json::Value::Bool(true)));
 
-    let domain_counts =
-        payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
+    let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(16));
 
     let removed_result_ids = payload
         .get("removed_result_ids")
@@ -86,8 +84,8 @@ fn bench_readiness_all_domain_missing_result_test_tracks_three_governed_missing_
         .collect()
     );
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 127);
+    let rows = support::json_array(&payload, "rows");
+    assert_eq!(rows.len() as u64, expected_row_count);
 
     let missing_rows = rows
         .iter()

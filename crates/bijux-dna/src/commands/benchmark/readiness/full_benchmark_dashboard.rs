@@ -347,18 +347,17 @@ fn ensure_full_benchmark_dashboard_contract(
             "full benchmark dashboard total tools must equal full benchmark report tool rows"
         ));
     }
-    if report.total_expected_jobs != expected_results.row_count || report.total_expected_jobs != 127
-    {
+    if report.total_expected_jobs != expected_results.row_count {
         return Err(anyhow!(
             "full benchmark dashboard total expected jobs drifted from the governed expected-result slice"
         ));
     }
-    if report.ready_jobs != full_report.present_row_count || report.ready_jobs != 124 {
+    if report.ready_jobs != full_report.present_row_count {
         return Err(anyhow!(
             "full benchmark dashboard ready jobs drifted from the governed full benchmark report"
         ));
     }
-    if report.blocked_jobs != full_report.missing_result_row_count || report.blocked_jobs != 3 {
+    if report.blocked_jobs != full_report.missing_result_row_count {
         return Err(anyhow!(
             "full benchmark dashboard blocked jobs drifted from the governed missing-result count"
         ));

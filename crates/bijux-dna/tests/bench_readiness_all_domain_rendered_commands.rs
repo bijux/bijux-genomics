@@ -50,19 +50,16 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/rendered-commands-all-domains.argv.jsonl")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(127));
+    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
+    assert_eq!(support::json_u64(&payload, "result_id_count"), Some(row_count));
 
-    let domain_counts =
-        payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
+    let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(16));
+    assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
-    let command_source_counts = payload
-        .get("command_source_counts")
-        .and_then(serde_json::Value::as_object)
-        .expect("command source counts");
+    let command_source_counts = support::json_object(&payload, "command_source_counts");
     assert_eq!(
         command_source_counts.get("fastq_bam_command_adapter").and_then(serde_json::Value::as_u64),
         Some(112)
@@ -75,14 +72,26 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
         command_source_counts.get("vcf_plink_family_adapter").and_then(serde_json::Value::as_u64),
         Some(2)
     );
+    assert_eq!(
+        command_source_counts
+            .get("vcf_imputation_family_adapter")
+            .and_then(serde_json::Value::as_u64),
+        Some(2)
+    );
+    assert_eq!(
+        command_source_counts
+            .get("vcf_phasing_family_adapter")
+            .and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 127);
+    let rows = support::json_array(&payload, "rows");
+    assert_eq!(rows.len() as u64, row_count);
     let result_ids = rows
         .iter()
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(result_ids.len(), 127);
+    assert_eq!(result_ids.len() as u64, row_count);
 
     let bias_mitigation = rows
         .iter()
@@ -179,4 +188,18 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
                     })
                 })
         }));
+
+    let imputation_metrics = rows
+        .iter()
+        .find(|row| {
+            row.get("result_id").and_then(serde_json::Value::as_str)
+                == Some(
+                    "vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
+                )
+        })
+        .expect("VCF imputation metrics row");
+    assert_eq!(
+        imputation_metrics.get("command_source").and_then(serde_json::Value::as_str),
+        Some("vcf_imputation_family_adapter")
+    );
 }

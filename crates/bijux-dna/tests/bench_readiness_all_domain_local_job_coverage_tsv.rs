@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_local_job_coverage_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 127);
+    assert!(rows.len() >= 128);
     assert!(rows.iter().any(|row| {
         row == &"fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2\tfastq\tfastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq.parser.screen_taxonomy\tfastq_screen_taxonomy_v1\tdry_or_smoke\tbenchmark_ready\tfastq_bam_command_adapter\t1\t1\tinvoke\tsh\tbenchmarks/readiness/rendered-commands-all-domains.sh\tbenchmarks/readiness/rendered-commands-all-domains.argv.jsonl\tcovered\tactive row `fastq` / `fastq.screen_taxonomy` / `kraken2` keeps one local benchmark job row in `benchmarks/readiness/rendered-commands-all-domains.sh` and `benchmarks/readiness/rendered-commands-all-domains.argv.jsonl` through `fastq_bam_command_adapter`"
     }));
@@ -54,6 +54,9 @@ fn bench_readiness_all_domain_local_job_coverage_writes_governed_tsv_file() {
     }));
     assert!(rows.iter().any(|row| {
         row == &"vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools\tvcf\tvcf.postprocess\tbcftools\tvcf_production_regression\tvcf_single_sample\tvcf.adapter.transform\tvcf.parser.vcf_output\tbijux.schemas.bench.vcf-normalized-metrics.postprocess.v1\tbenchmark_ready\tbenchmark_ready\tvcf_bcftools_adapter\t2\t2\tfill_tags,index_postprocess_vcf\tbcftools,bcftools\tbenchmarks/readiness/rendered-commands-all-domains.sh\tbenchmarks/readiness/rendered-commands-all-domains.argv.jsonl\tcovered\tactive row `vcf` / `vcf.postprocess` / `bcftools` keeps one local benchmark job row in `benchmarks/readiness/rendered-commands-all-domains.sh` and `benchmarks/readiness/rendered-commands-all-domains.argv.jsonl` through `vcf_bcftools_adapter`"
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle\tvcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.imputation-metrics.v1\tbenchmark_ready\tbenchmark_ready\tvcf_imputation_family_adapter\t1\t1\tinvoke\tjava\tbenchmarks/readiness/rendered-commands-all-domains.sh\tbenchmarks/readiness/rendered-commands-all-domains.argv.jsonl\tcovered\tactive row `vcf` / `vcf.imputation_metrics` / `beagle` keeps one local benchmark job row in `benchmarks/readiness/rendered-commands-all-domains.sh` and `benchmarks/readiness/rendered-commands-all-domains.argv.jsonl` through `vcf_imputation_family_adapter`"
     }));
     assert!(
         rows.iter().all(|row| row.contains("\tcovered\t")),

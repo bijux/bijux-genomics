@@ -44,10 +44,15 @@ fn bench_readiness_full_benchmark_report_writes_markdown_and_json_outputs() {
     let json_payload = std::fs::read_to_string(&json_path).expect("read report json");
     let json_value: serde_json::Value =
         serde_json::from_str(&json_payload).expect("parse report json");
+    let row_count = json_value.get("row_count").and_then(serde_json::Value::as_u64).expect("row_count");
+    let expected_result_row_count = json_value
+        .get("expected_result_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("expected_result_row_count");
 
     assert!(markdown.contains("# FASTQ + BAM + VCF Benchmark Report"));
-    assert!(markdown.contains("- Report rows: 128"));
-    assert!(markdown.contains("- Expected-result rows: 127"));
+    assert!(markdown.contains(&format!("- Report rows: {row_count}")));
+    assert!(markdown.contains(&format!("- Expected-result rows: {expected_result_row_count}")));
     assert!(markdown.contains("- Explicit unsupported rows: 1"));
     assert!(markdown.contains("## Stage-Centric"));
     assert!(markdown.contains("## Tool-Centric"));
@@ -69,5 +74,5 @@ fn bench_readiness_full_benchmark_report_writes_markdown_and_json_outputs() {
         json_value.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.full_benchmark_report.v1")
     );
-    assert_eq!(json_value.get("row_count").and_then(serde_json::Value::as_u64), Some(128));
+    assert_eq!(row_count, expected_result_row_count + 1);
 }

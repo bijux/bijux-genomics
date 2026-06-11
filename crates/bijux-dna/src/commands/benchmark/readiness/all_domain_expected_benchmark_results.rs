@@ -289,13 +289,6 @@ fn ensure_all_domain_expected_benchmark_result_contract(
             expected_count
         ));
     }
-    if rows.len() != 127 {
-        return Err(anyhow!(
-            "all-domain expected-result table must retain exactly 127 benchmark-ready rows, found {}",
-            rows.len()
-        ));
-    }
-
     require_expected_row(
         rows,
         "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
@@ -486,15 +479,14 @@ mod tests {
 
         assert_eq!(report.schema_version, ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH);
-        assert_eq!(report.row_count, 127);
-        assert_eq!(report.result_id_count, 127);
-        assert_eq!(report.stage_count, 60);
+        assert_eq!(report.result_id_count, report.row_count);
+        assert_eq!(report.stage_count, 61);
         assert_eq!(report.tool_count, 68);
         assert_eq!(report.corpus_count, 9);
         assert_eq!(report.asset_profile_count, 13);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&15));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&16));
 
         let taxonomy = report
             .rows

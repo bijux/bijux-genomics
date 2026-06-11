@@ -51,16 +51,18 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
         payload.get("fixture_root").and_then(serde_json::Value::as_str),
         Some("runs/bench/readiness-probes/all-domains/completion-check")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(122));
-    assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(5));
+    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
+    let complete_row_count = support::json_u64(&payload, "complete_row_count").expect("complete_row_count");
+    let incomplete_row_count =
+        support::json_u64(&payload, "incomplete_row_count").expect("incomplete_row_count");
+    assert_eq!(complete_row_count + incomplete_row_count, row_count);
+    assert_eq!(incomplete_row_count, 5);
     assert_eq!(payload.get("passes_behavior_test"), Some(&serde_json::Value::Bool(true)));
 
-    let domain_counts =
-        payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
+    let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(16));
 
     let failure_reason_counts = payload
         .get("failure_reason_counts")
@@ -121,8 +123,8 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
         Some("bam:corpus-01-bam-mini:bam.qc_pre:sample-set:multiqc")
     );
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 127);
+    let rows = support::json_array(&payload, "rows");
+    assert_eq!(rows.len() as u64, row_count);
 
     let missing_declared = rows
         .iter()

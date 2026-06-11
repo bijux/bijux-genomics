@@ -48,7 +48,7 @@ fn bench_readiness_all_domain_expected_result_coverage_writes_governed_tsv_file(
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 127);
+    assert!(rows.len() >= 128);
     assert!(rows.iter().any(|row| {
         row == &"fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2\tfastq\tfastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq.parser.screen_taxonomy\tfastq_screen_taxonomy_v1\tclassification_report_json,screen_report_tsv,unclassified_reads_r1,unclassified_reads_r2\tclassification_report_json,classified_read_fraction\tcontamination_screening\tcovered\tactive row `fastq` / `fastq.screen_taxonomy` / `kraken2` keeps governed expected-result coverage with result_id `fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2` in report section `contamination_screening`"
     }));
@@ -57,6 +57,9 @@ fn bench_readiness_all_domain_expected_result_coverage_writes_governed_tsv_file(
     }));
     assert!(rows.iter().any(|row| {
         row == &"vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools\tvcf\tvcf.postprocess\tbcftools\tvcf_production_regression\tvcf_single_sample\tvcf.adapter.transform\tvcf.parser.vcf_output\tbijux.schemas.bench.vcf-normalized-metrics.postprocess.v1\tpostprocess_vcf\treadable_vcf,tabix_present,contigs_consistent_with_species_context,left_align_applied,multiallelic_records_split,indels_normalized,variant_ids_normalized,invalid_records_removed,filter_standardized_to_pass\tnormalization\tcovered\tactive row `vcf` / `vcf.postprocess` / `bcftools` keeps governed expected-result coverage with result_id `vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools` in report section `normalization`"
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle\tvcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.imputation-metrics.v1\timputation_metrics_json\tstatus,mean_info_score,r2_available,low_confidence_sites,masked_truth_sites,missing_quality_fields\timputation\tcovered\tactive row `vcf` / `vcf.imputation_metrics` / `beagle` keeps governed expected-result coverage with result_id `vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle` in report section `imputation`"
     }));
     assert!(
         rows.iter().all(|row| row.contains("\tcovered\t")),

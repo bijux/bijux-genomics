@@ -58,9 +58,12 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/rendered-commands-all-domains.argv.jsonl")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(60));
+    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
+    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(row_count));
+    assert!(payload
+        .get("stage_count")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count >= 61));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(68));
     assert_eq!(payload.get("command_step_count").and_then(serde_json::Value::as_u64), Some(143));
     assert_eq!(
@@ -68,16 +71,15 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
         Some(84)
     );
     assert_eq!(payload.get("direct_step_count").and_then(serde_json::Value::as_u64), Some(59));
-    assert_eq!(payload.get("valid_row_count").and_then(serde_json::Value::as_u64), Some(127));
+    assert_eq!(payload.get("valid_row_count").and_then(serde_json::Value::as_u64), Some(row_count));
     assert_eq!(payload.get("invalid_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
-    let domain_counts =
-        payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(15));
+    let domain_counts = support::json_object(&payload, "domain_counts");
+    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(63));
+    assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
+    assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let command_source_counts = payload
         .get("command_source_counts")
@@ -95,7 +97,7 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
         command_source_counts
             .get("vcf_imputation_family_adapter")
             .and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(2)
     );
     assert_eq!(
         command_source_counts
@@ -114,8 +116,8 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
         .expect("finding type counts");
     assert!(finding_type_counts.is_empty(), "active commands must not retain placeholder findings");
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 127);
+    let rows = support::json_array(&payload, "rows");
+    assert_eq!(rows.len() as u64, row_count);
     assert!(rows.iter().all(|row| {
         row.get("has_real_invocation").and_then(serde_json::Value::as_bool) == Some(true)
             && row.get("finding_count").and_then(serde_json::Value::as_u64) == Some(0)

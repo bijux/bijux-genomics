@@ -51,37 +51,21 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(127));
+    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(127)
+        Some(row_count)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(127)
+        Some(row_count)
     );
-    assert_eq!(
-        payload
-            .get("domain_counts")
-            .and_then(|value| value.get("fastq"))
-            .and_then(serde_json::Value::as_u64),
-        Some(63)
-    );
-    assert_eq!(
-        payload
-            .get("domain_counts")
-            .and_then(|value| value.get("bam"))
-            .and_then(serde_json::Value::as_u64),
-        Some(49)
-    );
-    assert_eq!(
-        payload
-            .get("domain_counts")
-            .and_then(|value| value.get("vcf"))
-            .and_then(serde_json::Value::as_u64),
-        Some(15)
-    );
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    let domain_counts = support::json_object(&payload, "domain_counts");
+    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(63));
+    assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
+    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(16));
+    assert_eq!(support::object_u64_sum(domain_counts), row_count);
+    let rows = support::json_array(&payload, "rows");
     let bwa_align = rows
         .iter()
         .find(|row| {

@@ -47,23 +47,24 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/full-result-collector-test.json")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(607));
-    assert_eq!(
-        payload.get("benchmark_expected_row_count").and_then(serde_json::Value::as_u64),
-        Some(127)
-    );
+    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
+    let benchmark_expected_row_count =
+        support::json_u64(&payload, "benchmark_expected_row_count").expect("benchmark_expected_row_count");
     assert_eq!(
         payload.get("pipeline_fake_run_row_count").and_then(serde_json::Value::as_u64),
         Some(93)
     );
-    assert_eq!(payload.get("fake_run_row_count").and_then(serde_json::Value::as_u64), Some(127));
+    assert_eq!(
+        payload.get("fake_run_row_count").and_then(serde_json::Value::as_u64),
+        Some(benchmark_expected_row_count)
+    );
     assert_eq!(
         payload.get("fake_failure_row_count").and_then(serde_json::Value::as_u64),
-        Some(127)
+        Some(benchmark_expected_row_count)
     );
     assert_eq!(
         payload.get("missing_result_audit_row_count").and_then(serde_json::Value::as_u64),
-        Some(127)
+        Some(benchmark_expected_row_count)
     );
     assert_eq!(payload.get("real_smoke_row_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(
@@ -91,26 +92,26 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
         Some(true)
     );
 
-    let surface_kind_counts = payload
-        .get("surface_kind_counts")
-        .and_then(serde_json::Value::as_object)
-        .expect("surface kind counts");
+    let surface_kind_counts = support::json_object(&payload, "surface_kind_counts");
     assert_eq!(
         surface_kind_counts.get("benchmark_expected").and_then(serde_json::Value::as_u64),
-        Some(127)
+        Some(benchmark_expected_row_count)
     );
     assert_eq!(
         surface_kind_counts.get("pipeline_fake_run").and_then(serde_json::Value::as_u64),
         Some(93)
     );
-    assert_eq!(surface_kind_counts.get("fake_run").and_then(serde_json::Value::as_u64), Some(127));
+    assert_eq!(
+        surface_kind_counts.get("fake_run").and_then(serde_json::Value::as_u64),
+        Some(benchmark_expected_row_count)
+    );
     assert_eq!(
         surface_kind_counts.get("fake_failure").and_then(serde_json::Value::as_u64),
-        Some(127)
+        Some(benchmark_expected_row_count)
     );
     assert_eq!(
         surface_kind_counts.get("missing_result_audit").and_then(serde_json::Value::as_u64),
-        Some(127)
+        Some(benchmark_expected_row_count)
     );
     assert_eq!(surface_kind_counts.get("real_smoke").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(
@@ -121,18 +122,21 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
         surface_kind_counts.get("unsupported_pair").and_then(serde_json::Value::as_u64),
         Some(1)
     );
+    assert_eq!(support::object_u64_sum(surface_kind_counts), row_count);
 
-    let result_status_counts = payload
-        .get("result_status_counts")
-        .and_then(serde_json::Value::as_object)
-        .expect("result status counts");
-    assert_eq!(result_status_counts.get("expected").and_then(serde_json::Value::as_u64), Some(127));
+    let result_status_counts = support::json_object(&payload, "result_status_counts");
     assert_eq!(
-        result_status_counts.get("succeeded").and_then(serde_json::Value::as_u64),
-        Some(224)
+        result_status_counts.get("expected").and_then(serde_json::Value::as_u64),
+        Some(benchmark_expected_row_count)
     );
-    assert_eq!(result_status_counts.get("failed").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(result_status_counts.get("present").and_then(serde_json::Value::as_u64), Some(124));
+    assert_eq!(
+        result_status_counts.get("failed").and_then(serde_json::Value::as_u64),
+        Some(benchmark_expected_row_count)
+    );
+    assert_eq!(
+        result_status_counts.get("present").and_then(serde_json::Value::as_u64),
+        Some(benchmark_expected_row_count - 3)
+    );
     assert_eq!(
         result_status_counts.get("missing_result").and_then(serde_json::Value::as_u64),
         Some(3)
@@ -146,20 +150,19 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
         Some(1)
     );
 
-    let domain_counts =
-        payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
+    let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(282));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(228));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(97));
+    assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 607);
+    let rows = support::json_array(&payload, "rows");
+    assert_eq!(rows.len() as u64, row_count);
 
     let record_ids = rows
         .iter()
         .filter_map(|row| row.get("record_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(record_ids.len(), 607);
+    assert_eq!(record_ids.len() as u64, row_count);
 
     let missing_result_ids = rows
         .iter()

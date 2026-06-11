@@ -50,22 +50,15 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_s
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json")
     );
-    assert_eq!(
-        payload.get("executable_active_row_count").and_then(serde_json::Value::as_u64),
-        Some(133)
-    );
-    assert_eq!(
-        payload.get("executable_active_stage_count").and_then(serde_json::Value::as_u64),
-        Some(63)
-    );
-    assert_eq!(
-        payload.get("executable_active_tool_count").and_then(serde_json::Value::as_u64),
-        Some(70)
-    );
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(127));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(60));
+    let executable_active_row_count = support::json_u64(&payload, "executable_active_row_count")
+        .expect("executable_active_row_count");
+    let active_row_count = support::json_u64(&payload, "active_row_count").expect("active_row_count");
+    let removed_row_count = support::json_u64(&payload, "removed_row_count").expect("removed_row_count");
+    assert_eq!(executable_active_row_count, active_row_count + removed_row_count);
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(128));
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(61));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(68));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(6));
+    assert_eq!(removed_row_count, 6);
     assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
@@ -80,9 +73,8 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_s
         Some(6)
     );
 
-    let removed_rows =
-        payload.get("removed_rows").and_then(serde_json::Value::as_array).expect("removed rows");
-    assert_eq!(removed_rows.len(), 6);
+    let removed_rows = support::json_array(&payload, "removed_rows");
+    assert_eq!(removed_rows.len() as u64, removed_row_count);
     let violations =
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
     assert!(violations.is_empty(), "active scope must not retain not_benchmark_ready rows");

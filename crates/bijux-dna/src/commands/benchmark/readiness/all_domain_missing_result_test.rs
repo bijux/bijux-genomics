@@ -234,12 +234,10 @@ fn collect_all_domain_missing_result_rows(
     let output_rows_by_id =
         output_rows.iter().map(|row| (row.result_id.as_str(), row)).collect::<BTreeMap<_, _>>();
 
-    if fake_runs_by_id.len() != expected_rows.len()
-        || output_rows_by_id.len() != expected_rows.len()
-        || expected_rows.len() != 127
+    if fake_runs_by_id.len() != expected_rows.len() || output_rows_by_id.len() != expected_rows.len()
     {
         return Err(anyhow!(
-            "all-domain missing-result test requires exact 127-row alignment between expected results, output declarations, and fake runs"
+            "all-domain missing-result test requires exact row-count alignment between expected results, output declarations, and fake runs"
         ));
     }
 
@@ -351,33 +349,33 @@ fn collect_all_domain_missing_result_rows(
 fn ensure_all_domain_missing_result_contract(
     mut report: AllDomainMissingResultTestReport,
 ) -> Result<AllDomainMissingResultTestReport> {
-    if report.rows.len() != 127 {
+    if report.rows.len() != report.expected_row_count {
         return Err(anyhow!(
-            "all-domain missing-result test must retain exactly 127 expected rows, found {}",
-            report.rows.len()
-        ));
-    }
-    if report.expected_row_count != 127 {
-        return Err(anyhow!(
-            "all-domain missing-result test must track exactly 127 expected rows, found {}",
+            "all-domain missing-result rows must stay aligned with expected rows (rows={}, expected={})",
+            report.rows.len(),
             report.expected_row_count
         ));
     }
-    if report.present_result_row_count != 124 {
+    let expected_missing_row_count = report.removed_result_ids.len();
+    let expected_present_row_count =
+        report.expected_row_count.saturating_sub(expected_missing_row_count);
+    if report.present_result_row_count != expected_present_row_count {
         return Err(anyhow!(
-            "all-domain missing-result test must retain exactly 124 present rows after removing three results, found {}",
-            report.present_result_row_count
+            "all-domain missing-result present rows must equal expected rows minus removed results (present={}, expected_present={})",
+            report.present_result_row_count,
+            expected_present_row_count
         ));
     }
-    if report.missing_result_row_count != 3 {
+    if report.missing_result_row_count != expected_missing_row_count {
         return Err(anyhow!(
-            "all-domain missing-result test must emit exactly three missing_result rows, found {}",
-            report.missing_result_row_count
+            "all-domain missing-result rows must equal the removed-result count (missing={}, removed={})",
+            report.missing_result_row_count,
+            expected_missing_row_count
         ));
     }
-    if report.removed_result_ids.len() != 3 || report.removed_manifest_paths.len() != 3 {
+    if report.removed_manifest_paths.len() != expected_missing_row_count {
         return Err(anyhow!(
-            "all-domain missing-result test must record exactly three removed result ids and manifest paths"
+            "all-domain missing-result test must record one removed manifest path per removed result id"
         ));
     }
 
@@ -486,13 +484,15 @@ mod tests {
             report.fake_result_root,
             "runs/bench/readiness-probes/all-domains/missing-result-test"
         );
-        assert_eq!(report.expected_row_count, 127);
-        assert_eq!(report.present_result_row_count, 124);
+        assert_eq!(
+            report.present_result_row_count + report.missing_result_row_count,
+            report.expected_row_count
+        );
         assert_eq!(report.missing_result_row_count, 3);
         assert!(report.passes_behavior_test);
         assert_eq!(report.domain_counts.get("fastq").copied(), Some(63));
         assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
-        assert_eq!(report.domain_counts.get("vcf").copied(), Some(15));
+        assert_eq!(report.domain_counts.get("vcf").copied(), Some(16));
 
         let removed_ids =
             report.removed_result_ids.iter().map(String::as_str).collect::<BTreeSet<_>>();
