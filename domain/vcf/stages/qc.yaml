@@ -1,6 +1,6 @@
 schema_version: "bijux.stage.v1"
 stage_id: "vcf.qc"
-status: "planned"
+status: "supported"
 scope: "post_vcf"
 domain: "vcf"
 description: "VCF stage contract for vcf.qc in the governed domain registry."
@@ -9,19 +9,31 @@ inputs:
     data_type: "vcf"
     cardinality: "One"
 outputs:
-  - name: "qc_out"
+  - name: "qc_report"
     data_type: "json"
     cardinality: "One"
 required_inputs: ["vcf"]
-required_outputs: ["qc_out"]
+required_outputs: ["qc_report"]
 tool_capability_requirements: []
 metrics:
-  - name: "qc_status"
+  - name: "variant_count"
+  - name: "sample_missingness"
+  - name: "variant_missingness"
+  - name: "maf_summary"
+  - name: "heterozygosity"
+  - name: "hwe_summary"
+  - name: "excluded_samples"
+  - name: "excluded_variants"
+  - name: "sample_missingness_exclusion_threshold"
+  - name: "variant_missingness_exclusion_threshold"
 compatible_tools: ["bcftools", "plink", "plink2"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
-assumptions: ["planned_stage"]
+assumptions:
+  - "cohort_missingness_thresholds_are_fixed_per_run"
+  - "ancient_dna_hwe_policy_is_explicit"
+  - "qc_outputs_emit_metrics_json_with_schema_bijux.vcf.qc.v1"
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness:
   - "none"
-planned_out_of_scope: ["full scientific validation pending downstream admission"]
+planned_out_of_scope: []

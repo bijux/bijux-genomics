@@ -87,21 +87,21 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 - References: `domain/vcf/stages/stats.yaml`, `domain/vcf/index.yaml`.
 
 ### vcf.qc {#vcf-qc}
-- Status: planned.
+- Status: supported.
 - Purpose: apply cohort-level QC summaries and threshold checks before downstream structure or imputation analysis.
 - Inputs/Outputs: filtered or stats-enriched VCF → QC report.
-- Metrics: missingness summaries, MAF guardrails, QC status.
+- Metrics: variant count, missingness summaries, MAF guardrails, heterozygosity, and HWE summaries.
 - Tools: plink, plink2.
-- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/qc.yaml`, `domain/vcf/docs/IMPUTATION_CONTRACT.md`.
 
 ### vcf.pca {#vcf-pca}
-- Status: planned.
+- Status: supported.
 - Purpose: compute principal-component projections for population-structure interpretation.
 - Inputs/Outputs: LD-pruned VCF matrix → PCA report.
-- Metrics: explained variance, PC projections.
+- Metrics: sample count, variant count, excluded or unexpected samples, and eigenvalues.
 - Tools: plink2, eigensoft.
-- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/pca.yaml`, `docs/20-science/vcf/POPULATION_STRUCTURE.md`.
 
 ### vcf.admixture {#vcf-admixture}

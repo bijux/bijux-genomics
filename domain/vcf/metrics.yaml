@@ -12,6 +12,7 @@ metrics:
 - id: damage_bias_before_after_summary
 - id: damage_strategy_applied
 - id: diploid_called_variants
+- id: eigenvalues
 - id: filtered_variants
 - id: genotyped_sites
 - id: gl_fields_retained
@@ -28,6 +29,7 @@ metrics:
 - id: mean_info_score
 - id: missing_quality_fields
 - id: masked_truth_sites
+- id: maf_summary
 - id: ne_confidence_interval
 - id: ne_recent
 - id: ne_time_series
@@ -41,6 +43,8 @@ metrics:
 - id: pseudo_called_sites
 - id: pseudo_missing_rate
 - id: pseudo_sampling_seed
+- id: sample_missingness
+- id: sample_missingness_exclusion_threshold
 - id: qc_status
 - id: r2_available
 - id: reference_panel_status
@@ -49,6 +53,15 @@ metrics:
 - id: roh_max_length_mb
 - id: roh_mean_length_mb
 - id: roh_total_mb
+- id: sample_count
 - id: status
 - id: ti_tv
+- id: unexpected_samples
+- id: variant_count
+- id: variant_missingness
+- id: variant_missingness_exclusion_threshold
 - id: variants_total
+- id: heterozygosity
+- id: hwe_summary
+- id: excluded_samples
+- id: excluded_variants

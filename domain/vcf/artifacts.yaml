@@ -30,7 +30,7 @@ artifacts:
   type: json
 - id: imputed_vcf
   type: vcf
-- id: pca_out
+- id: pca_report
   type: json
 - id: phasing_out
   type: json
@@ -44,7 +44,7 @@ artifacts:
   type: json
 - id: pseudohaploid_vcf
   type: vcf
-- id: qc_out
+- id: qc_report
   type: json
 - id: roh_report
   type: json

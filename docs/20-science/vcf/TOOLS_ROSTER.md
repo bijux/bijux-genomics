@@ -25,8 +25,8 @@ The VCF science layer needs a readable tool inventory that mirrors the stage man
 | vcf.filter | supported | bcftools | Deterministic filtering is still a single admitted normalization path. |
 | vcf.gl_propagation | supported | bcftools, angsd | GL/PL retention is governed across both the baseline and planned low-coverage tool families. |
 | vcf.stats | supported | bcftools | Required VCF summary metrics remain bound to the current production baseline. |
-| vcf.qc | planned | bcftools, plink, plink2 | Cohort-level QC remains planned while the admitted deterministic and cohort-analysis backends stay explicit for downstream promotion. |
-| vcf.pca | planned | plink2, eigensoft | PCA support stays comparative across the two admitted structure-analysis families. |
+| vcf.qc | supported | bcftools, plink, plink2 | Cohort-level QC is governed on the admitted deterministic and cohort-analysis backends so missingness and frequency gates stay explicit before downstream inference. |
+| vcf.pca | supported | plink2, eigensoft | PCA support is governed across the admitted PLINK2 and EIGENSOFT structure-analysis families so sample-complete projections stay comparative. |
 | vcf.admixture | planned | plink, plink2 | Admixture-oriented staging remains planned and anchored to the current admitted matrix-tool surface. |
 | vcf.population_structure | planned | plink, plink2, eigensoft | Population-structure summaries admit both PLINK-family and EIGENSOFT-family tooling. |
 | vcf.phasing | supported | beagle, shapeit5, eagle | Shapeit5 is the governed active phasing path while Beagle, Eagle, and retained alternatives stay explicit for comparative readiness. |

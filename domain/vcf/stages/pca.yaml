@@ -9,14 +9,18 @@ inputs:
     data_type: "vcf"
     cardinality: "One"
 outputs:
-  - name: "pca_out"
+  - name: "pca_report"
     data_type: "json"
     cardinality: "One"
 required_inputs: ["vcf"]
-required_outputs: ["pca_out"]
+required_outputs: ["pca_report"]
 tool_capability_requirements: []
 metrics:
-  - name: "pca_status"
+  - name: "sample_count"
+  - name: "variant_count"
+  - name: "excluded_samples"
+  - name: "unexpected_samples"
+  - name: "eigenvalues"
 compatible_tools: ["plink2", "eigensoft"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:

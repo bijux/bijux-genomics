@@ -15,12 +15,12 @@ This science surface covers:
 - Pretending that PCA, admixture, and final structure reporting are interchangeable stages.
 
 ## Contracts
-- `vcf.qc` emits the planned cohort-QC report contract before downstream inference is admitted.
+- `vcf.qc` emits the governed cohort-QC report contract before downstream inference is interpreted.
 - `vcf.pca` emits PCA-oriented summaries from the admitted `plink2` and `eigensoft` tool family.
 - `vcf.admixture` stays planned on the admitted `plink` and `plink2` matrix-tool surface rather than inventing a fake dedicated backend.
 - `vcf.population_structure` emits `population_structure_report` with schema `bijux.vcf.population_structure.v1`.
 - Required `vcf.population_structure` metrics include PCA variance, PC axes, cluster assignments, `admixture_k_selected`, and `admixture_cross_validation_error`.
-- Planned defaults remain `plink2` for `vcf.qc`, `vcf.pca`, `vcf.admixture`, and `vcf.population_structure` until a stronger justified baseline is promoted in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Governed defaults currently stay `plink2` for `vcf.qc` and `vcf.pca`; `vcf.admixture` and `vcf.population_structure` remain planned until a stronger justified baseline is promoted in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 
 ## Validity Limits
 - LD pruning, missingness filtering, and cohort composition materially change `vcf.pca`, `vcf.admixture`, and `vcf.population_structure` outputs.
