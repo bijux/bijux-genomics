@@ -54,14 +54,14 @@ fn bench_readiness_stage_tool_alias_check_reports_migration_only_aliases() {
         Some(0)
     );
     assert_eq!(payload.get("candidate_row_count").and_then(serde_json::Value::as_u64), Some(145));
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(126));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(127));
     assert_eq!(
         payload.get("expected_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(126)
+        Some(127)
     );
     assert_eq!(
         payload.get("rendered_command_row_count").and_then(serde_json::Value::as_u64),
-        Some(126)
+        Some(127)
     );
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));

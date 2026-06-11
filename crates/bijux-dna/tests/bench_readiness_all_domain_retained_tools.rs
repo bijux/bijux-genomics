@@ -46,14 +46,14 @@ fn bench_readiness_all_domain_retained_tools_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/retained-tools.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(67));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(68));
     assert_eq!(
         payload.get("active_matrix_tool_count").and_then(serde_json::Value::as_u64),
-        Some(67)
+        Some(68)
     );
     assert_eq!(
         payload.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64),
-        Some(67)
+        Some(68)
     );
     assert_eq!(payload.get("mixed_status_tool_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
@@ -67,10 +67,10 @@ fn bench_readiness_all_domain_retained_tools_reports_governed_rows() {
         .expect("domain counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(39));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(25));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(5));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 66);
+    assert_eq!(rows.len(), 68);
 
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("kraken2")

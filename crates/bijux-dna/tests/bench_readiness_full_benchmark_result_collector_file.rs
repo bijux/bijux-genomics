@@ -51,7 +51,7 @@ fn bench_readiness_full_benchmark_result_collector_writes_report_and_keeps_statu
         &std::fs::read(&report_path).expect("read full benchmark result collector report"),
     )
     .expect("parse full benchmark result collector report");
-    assert_eq!(persisted.get("row_count").and_then(serde_json::Value::as_u64), Some(599));
+    assert_eq!(persisted.get("row_count").and_then(serde_json::Value::as_u64), Some(607));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
 

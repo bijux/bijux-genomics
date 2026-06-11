@@ -48,7 +48,7 @@ fn bench_readiness_all_domain_expected_result_coverage_writes_governed_tsv_file(
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 126);
+    assert_eq!(rows.len(), 127);
     assert!(rows.iter().any(|row| {
         row == &"fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2\tfastq\tfastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq.parser.screen_taxonomy\tfastq_screen_taxonomy_v1\tclassification_report_json,screen_report_tsv,unclassified_reads_r1,unclassified_reads_r2\tclassification_report_json,classified_read_fraction\tcontamination_screening\tcovered\tactive row `fastq` / `fastq.screen_taxonomy` / `kraken2` keeps governed expected-result coverage with result_id `fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2` in report section `contamination_screening`"
     }));

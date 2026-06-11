@@ -53,7 +53,7 @@ fn bench_local_fake_run_all_domain_failures_json_reports_governed_result_slice()
         payload.get("failure_root").and_then(serde_json::Value::as_str),
         Some("runs/bench/local-fake-runs/all-domains-failures")
     );
-    assert_eq!(payload.get("result_count").and_then(serde_json::Value::as_u64), Some(126));
+    assert_eq!(payload.get("result_count").and_then(serde_json::Value::as_u64), Some(127));
     assert_eq!(payload.get("exit_code").and_then(serde_json::Value::as_i64), Some(13));
     assert!(payload
         .get("failed_output_count")
@@ -64,16 +64,16 @@ fn bench_local_fake_run_all_domain_failures_json_reports_governed_result_slice()
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(14));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(15));
 
     let failures =
         payload.get("failures").and_then(serde_json::Value::as_array).expect("failures array");
-    assert_eq!(failures.len(), 126);
+    assert_eq!(failures.len(), 127);
     let result_ids = failures
         .iter()
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(result_ids.len(), 126);
+    assert_eq!(result_ids.len(), 127);
 
     let taxonomy = failures
         .iter()

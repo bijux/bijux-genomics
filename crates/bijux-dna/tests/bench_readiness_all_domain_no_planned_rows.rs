@@ -46,11 +46,11 @@ fn bench_readiness_all_domain_no_planned_rows_reports_clean_active_scope() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/no-planned-rows.json")
     );
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(126));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(59));
-    assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(67));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(13));
-    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(12));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(127));
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(60));
+    assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(68));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(12));
+    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(11));
     assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
@@ -59,11 +59,11 @@ fn bench_readiness_all_domain_no_planned_rows_reports_clean_active_scope() {
         .get("removed_status_counts")
         .and_then(serde_json::Value::as_object)
         .expect("removed status counts");
-    assert_eq!(removed_status_counts.get("planned").and_then(serde_json::Value::as_u64), Some(13));
+    assert_eq!(removed_status_counts.get("planned").and_then(serde_json::Value::as_u64), Some(12));
 
     let removed_rows =
         payload.get("removed_rows").and_then(serde_json::Value::as_array).expect("removed rows");
-    assert_eq!(removed_rows.len(), 13);
+    assert_eq!(removed_rows.len(), 12);
     let violations =
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
     assert!(violations.is_empty(), "active scope must not retain planned rows");

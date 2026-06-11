@@ -46,7 +46,7 @@ fn bench_local_fake_run_all_domains_json_reports_governed_result_slice() {
         payload.get("fake_run_root").and_then(serde_json::Value::as_str),
         Some("runs/bench/local-fake-runs/all-domains")
     );
-    assert_eq!(payload.get("result_count").and_then(serde_json::Value::as_u64), Some(126));
+    assert_eq!(payload.get("result_count").and_then(serde_json::Value::as_u64), Some(127));
     assert!(payload
         .get("created_output_count")
         .and_then(serde_json::Value::as_u64)
@@ -56,16 +56,16 @@ fn bench_local_fake_run_all_domains_json_reports_governed_result_slice() {
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(14));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(15));
 
     let results =
         payload.get("results").and_then(serde_json::Value::as_array).expect("results array");
-    assert_eq!(results.len(), 126);
+    assert_eq!(results.len(), 127);
     let result_ids = results
         .iter()
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(result_ids.len(), 126);
+    assert_eq!(result_ids.len(), 127);
 
     let taxonomy = results
         .iter()
