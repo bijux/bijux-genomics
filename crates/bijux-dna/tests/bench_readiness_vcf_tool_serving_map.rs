@@ -51,11 +51,11 @@ fn bench_readiness_vcf_tool_serving_map_reports_owned_matrix_rows() {
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(14)
+        Some(15)
     );
     assert_eq!(
         payload.get("not_benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(8)
+        Some(7)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -189,6 +189,19 @@ fn bench_readiness_vcf_tool_serving_map_reports_owned_matrix_rows() {
             "benchmark_ready",
         ),
         "VCF tool-serving map must retain the governed phasing row"
+    );
+    assert!(
+        has_row(
+            "beagle",
+            "vcf.impute",
+            "supported",
+            "runnable",
+            "parse_normalized",
+            "fixture:vcf_production_regression",
+            "assigned",
+            "benchmark_ready",
+        ),
+        "VCF tool-serving map must retain the governed imputation row"
     );
     assert!(
         has_row(

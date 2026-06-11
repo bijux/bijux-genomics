@@ -48,11 +48,11 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(39));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(14)
+        Some(15)
     );
     assert_eq!(
         payload.get("benchmark_ready_complete_row_count").and_then(serde_json::Value::as_u64),
-        Some(14)
+        Some(15)
     );
     assert_eq!(
         payload.get("benchmark_ready_incomplete_row_count").and_then(serde_json::Value::as_u64),
@@ -205,6 +205,29 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
             .filter_map(serde_json::Value::as_str)
             .any(|entry| entry.contains(".tbi")),
         "shapeit5 row must keep the phased VCF index explicit"
+    );
+
+    let impute = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.impute")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
+        })
+        .expect("beagle impute row");
+    assert_eq!(
+        impute.get("benchmark_status").and_then(serde_json::Value::as_str),
+        Some("benchmark_ready")
+    );
+    assert_eq!(impute.get("status").and_then(serde_json::Value::as_str), Some("complete"));
+    assert!(
+        impute
+            .get("index_outputs")
+            .and_then(serde_json::Value::as_array)
+            .expect("impute index outputs")
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .any(|entry| entry.contains(".tbi")),
+        "beagle impute row must keep the imputed VCF index explicit"
     );
 
     let demography = rows

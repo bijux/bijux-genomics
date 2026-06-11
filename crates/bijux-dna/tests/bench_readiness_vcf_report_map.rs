@@ -45,11 +45,11 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-report-map.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(14));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(12));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(4));
-    assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(7));
-    assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(13));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(
         payload
             .get("section_counts")
@@ -71,9 +71,16 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
             .and_then(serde_json::Value::as_u64),
         Some(1)
     );
+    assert_eq!(
+        payload
+            .get("section_counts")
+            .and_then(|value| value.get("imputation"))
+            .and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 14);
+    assert_eq!(rows.len(), 15);
 
     let call = rows
         .iter()
@@ -175,5 +182,18 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
     assert_eq!(
         prepare_reference_panel.get("summary_table").and_then(serde_json::Value::as_str),
         Some("reference_panel_readiness")
+    );
+
+    let impute = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.impute")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
+        })
+        .expect("vcf.impute row");
+    assert_eq!(impute.get("section_id").and_then(serde_json::Value::as_str), Some("imputation"));
+    assert_eq!(
+        impute.get("summary_table").and_then(serde_json::Value::as_str),
+        Some("imputation_metrics")
     );
 }

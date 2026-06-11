@@ -44,7 +44,7 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 14);
+    assert_eq!(rows.len(), 15);
     assert!(
         rows.iter().any(|row| {
             row == &"vcf\tvcf.call\tbcftools\tvcf_production_regression\tbam_bundle\tcalled_vcf\tvariant_count,snp_count,indel_count,sample_count\tvariant_calling"
@@ -56,6 +56,12 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
             row == &"vcf\tvcf.qc\tbcftools\tvcf_production_regression\tvcf_cohort\tqc_report\tvariant_count,sample_missingness,variant_missingness,maf_summary,heterozygosity,hwe_summary,excluded_samples,excluded_variants,sample_missingness_exclusion_threshold,variant_missingness_exclusion_threshold\tquality_control"
         }),
         "TSV must retain the governed bcftools QC expected-result row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"vcf\tvcf.impute\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\timputed_vcf\tvariant_count,missing_before,missing_after,imputed_genotypes,low_confidence_count,masked_truth_site_count,masked_truth_match_count,unresolved_count,not_imputable_reasons,sample_count,sample_ids\timputation"
+        }),
+        "TSV must retain the governed VCF imputation expected-result row"
     );
     assert!(
         rows.iter().any(|row| {
