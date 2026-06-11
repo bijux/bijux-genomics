@@ -166,6 +166,34 @@ fn vcf_segment_fixture_bank_parses_insufficient_cases_as_structured_reports() ->
     Ok(())
 }
 
+#[test]
+fn vcf_roh_fixture_bank_keeps_normalized_segment_fields() -> Result<()> {
+    let case = VCF_SEGMENT_FIXTURE_CASES
+        .iter()
+        .find(|case| case.tool_id == "plink2" && case.stage == VcfDomainStage::Roh)
+        .copied()
+        .expect("plink2 roh fixture case");
+    let normalized = parse_segment_stage_metrics(case.tool_id, case.stage, &fixture_dir(&case))?;
+
+    assert_eq!(normalized.get("segment_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(normalized.get("sample_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(normalized.get("total_length").and_then(serde_json::Value::as_u64), Some(8));
+
+    let segments = normalized
+        .get("segments")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| panic!("normalized ROH segments missing"));
+    let first = segments.first().unwrap_or_else(|| panic!("normalized ROH segments empty"));
+    assert_eq!(first.get("sample_id").and_then(serde_json::Value::as_str), Some("sample_a"));
+    assert_eq!(first.get("contig").and_then(serde_json::Value::as_str), Some("chr1"));
+    assert_eq!(first.get("start").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(first.get("end").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(first.get("length").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(first.get("variant_count").and_then(serde_json::Value::as_u64), Some(1));
+
+    Ok(())
+}
+
 fn render_case(case: &VcfSegmentFixtureCase) -> Result<serde_json::Value> {
     let normalized = parse_segment_stage_metrics(case.tool_id, case.stage, &fixture_dir(case))
         .with_context(|| {

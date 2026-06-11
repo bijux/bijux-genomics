@@ -506,6 +506,31 @@ fn roh_stage_emits_segments_and_metrics() {
     let roh_json: serde_json::Value =
         serde_json::from_str(&roh_raw).unwrap_or_else(|err| panic!("parse roh json: {err}"));
     assert!(roh_json.get("execution_mode").is_some());
+
+    let segments_raw = std::fs::read_to_string(&out.roh_segments_tsv)
+        .unwrap_or_else(|err| panic!("read roh segments: {err}"));
+    let rows = segments_raw.lines().collect::<Vec<_>>();
+    assert_eq!(rows.first().copied(), Some("sample\tcontig\tstart\tend\tlength_bp\tn_sites"));
+    assert!(rows.len() > 1, "expected at least one ROH segment row");
+    assert_eq!(
+        roh_json.get("segment_count").and_then(serde_json::Value::as_u64),
+        Some((rows.len() - 1) as u64)
+    );
+    assert!(
+        roh_json
+            .get("total_length_bp")
+            .and_then(serde_json::Value::as_u64)
+            .is_some_and(|value| value > 0)
+    );
+
+    let per_sample_raw = std::fs::read_to_string(&out.roh_per_sample_tsv)
+        .unwrap_or_else(|err| panic!("read roh per-sample summary: {err}"));
+    let per_sample_rows = per_sample_raw.lines().collect::<Vec<_>>();
+    assert_eq!(
+        per_sample_rows.first().copied(),
+        Some("sample\tsegment_count\ttotal_length_bp\tmean_length_bp")
+    );
+    assert!(per_sample_rows.len() > 1, "expected at least one per-sample summary row");
 }
 
 #[test]

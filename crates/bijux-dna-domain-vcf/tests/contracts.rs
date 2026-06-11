@@ -169,7 +169,7 @@ mod contracts {
     }
 
     #[test]
-    fn authored_qc_pca_admixture_population_structure_and_stats_catalogs_match_governed_contract_ids(
+    fn authored_supported_report_stage_catalogs_match_governed_contract_ids(
     ) {
         let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../");
         let qc_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/qc.yaml"))
@@ -182,6 +182,8 @@ mod contracts {
         let population_structure_raw =
             std::fs::read_to_string(repo_root.join("domain/vcf/stages/population_structure.yaml"))
                 .unwrap_or_else(|err| panic!("read population_structure stage yaml: {err}"));
+        let roh_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/roh.yaml"))
+            .unwrap_or_else(|err| panic!("read roh stage yaml: {err}"));
         let stats_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/stats.yaml"))
             .unwrap_or_else(|err| panic!("read stats stage yaml: {err}"));
         let artifacts_raw = std::fs::read_to_string(repo_root.join("domain/vcf/artifacts.yaml"))
@@ -276,6 +278,28 @@ mod contracts {
             );
         }
 
+        assert!(roh_raw.contains("status: \"supported\""));
+        assert!(roh_raw.contains("- name: \"roh_report\""));
+        assert!(roh_raw.contains("required_outputs: [\"roh_report\"]"));
+        assert!(roh_raw.contains("planned_out_of_scope: []"));
+        for metric_id in [
+            "sample_count",
+            "segment_count",
+            "total_length",
+            "segments",
+            "per_sample_summary",
+            "status",
+        ] {
+            assert!(
+                roh_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored roh stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
         for metric_id in [
             "variant_count",
             "snp_count",
@@ -340,6 +364,10 @@ mod contracts {
         let population_structure = stage_io_contract(VcfDomainStage::PopulationStructure)
             .unwrap_or_else(|| panic!("missing stage IO contract for population_structure"));
         assert_eq!(population_structure.required_outputs, vec!["population_structure_report"]);
+
+        let roh = stage_io_contract(VcfDomainStage::Roh)
+            .unwrap_or_else(|| panic!("missing stage IO contract for roh"));
+        assert_eq!(roh.required_outputs, vec!["roh_report"]);
 
         let stats = stage_io_contract(VcfDomainStage::Stats)
             .unwrap_or_else(|| panic!("missing stage IO contract for stats"));

@@ -227,3 +227,48 @@ fn vcf_downstream_missing_required_metrics_fails_loudly() {
     );
     assert!(msg.contains("vcf.impute:imputation_info_mean"));
 }
+
+#[test]
+fn vcf_roh_missing_total_length_fails_loudly() {
+    let row = FactsRowV1 {
+        schema_version: "bijux.facts.v1".to_string(),
+        run_id: "run-vcf-roh-contract".to_string(),
+        stage_id: "vcf.roh".to_string(),
+        tool_id: "plink2".to_string(),
+        tool_version: "2.0".to_string(),
+        image_digest: Some(
+            "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_string(),
+        ),
+        trace_id: "trace".to_string(),
+        span_id: "span".to_string(),
+        params_hash: "params".to_string(),
+        input_hash: "input".to_string(),
+        output_hashes: vec![],
+        runtime_s: 1.0,
+        memory_mb: 128.0,
+        exit_code: 0,
+        bank_hashes: serde_json::json!({}),
+        reads_in: None,
+        reads_out: None,
+        bases_in: None,
+        bases_out: None,
+        pairs_in: None,
+        pairs_out: None,
+        metrics: serde_json::json!({
+            "schema_version": "bijux.vcf.roh.v1",
+            "segment_count": 8
+        }),
+        reports: serde_json::json!({
+            "stage_report": "missing-stage-report.json"
+        }),
+        artifacts: serde_json::json!({}),
+    };
+    let err = build_run_report_model(std::path::Path::new("."), &[row])
+        .expect_err("expected VCF ROH contract violation");
+    let msg = err.to_string();
+    assert!(
+        msg.contains("vcf downstream report contract violation"),
+        "unexpected error message: {msg}"
+    );
+    assert!(msg.contains("vcf.roh:total_length"));
+}
