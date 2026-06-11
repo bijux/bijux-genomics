@@ -169,6 +169,98 @@ mod contracts {
     }
 
     #[test]
+    fn authored_qc_pca_and_stats_catalogs_match_governed_contract_ids() {
+        let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../");
+        let qc_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/qc.yaml"))
+            .unwrap_or_else(|err| panic!("read qc stage yaml: {err}"));
+        let pca_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/pca.yaml"))
+            .unwrap_or_else(|err| panic!("read pca stage yaml: {err}"));
+        let stats_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/stats.yaml"))
+            .unwrap_or_else(|err| panic!("read stats stage yaml: {err}"));
+        let artifacts_raw = std::fs::read_to_string(repo_root.join("domain/vcf/artifacts.yaml"))
+            .unwrap_or_else(|err| panic!("read VCF artifact vocabulary: {err}"));
+        let metrics_raw = std::fs::read_to_string(repo_root.join("domain/vcf/metrics.yaml"))
+            .unwrap_or_else(|err| panic!("read VCF metric vocabulary: {err}"));
+
+        assert!(qc_raw.contains("status: \"supported\""));
+        assert!(qc_raw.contains("- name: \"qc_report\""));
+        assert!(qc_raw.contains("required_outputs: [\"qc_report\"]"));
+        assert!(!qc_raw.contains("- name: \"qc_out\""));
+        assert!(!qc_raw.contains("required_outputs: [\"qc_out\"]"));
+
+        for metric_id in [
+            "variant_count",
+            "sample_missingness",
+            "variant_missingness",
+            "maf_summary",
+            "heterozygosity",
+            "hwe_summary",
+            "excluded_samples",
+            "excluded_variants",
+            "sample_missingness_exclusion_threshold",
+            "variant_missingness_exclusion_threshold",
+        ] {
+            assert!(
+                qc_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored qc stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        assert!(pca_raw.contains("- name: \"pca_report\""));
+        assert!(pca_raw.contains("required_outputs: [\"pca_report\"]"));
+        assert!(!pca_raw.contains("- name: \"pca_out\""));
+        assert!(!pca_raw.contains("required_outputs: [\"pca_out\"]"));
+        for metric_id in [
+            "sample_count",
+            "variant_count",
+            "excluded_samples",
+            "unexpected_samples",
+            "eigenvalues",
+        ] {
+            assert!(
+                pca_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored pca stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        for metric_id in [
+            "variant_count",
+            "snp_count",
+            "indel_count",
+            "transition_count",
+            "transversion_count",
+            "ti_tv",
+            "sample_count",
+        ] {
+            assert!(
+                stats_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored stats stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        for artifact_id in ["qc_report", "pca_report"] {
+            assert!(
+                artifacts_raw.contains(&format!("- id: {artifact_id}")),
+                "VCF artifact vocabulary is missing `{artifact_id}`"
+            );
+        }
+        assert!(!artifacts_raw.contains("qc_out"));
+        assert!(!artifacts_raw.contains("pca_out"));
+    }
+
+    #[test]
     fn stats_and_qc_metric_contracts_cover_governed_summary_ids() {
         let stats = stage_metrics_contract(VcfDomainStage::Stats);
         assert!(stats.required_metrics.contains(&"sample_count"));
@@ -178,6 +270,21 @@ mod contracts {
         assert!(qc.required_metrics.contains(&"sample_missingness"));
         assert!(qc.required_metrics.contains(&"variant_missingness"));
         assert!(qc.required_metrics.contains(&"hwe_summary"));
+    }
+
+    #[test]
+    fn stage_io_contracts_use_report_specific_output_ids() {
+        let qc = stage_io_contract(VcfDomainStage::Qc)
+            .unwrap_or_else(|| panic!("missing stage IO contract for qc"));
+        assert_eq!(qc.required_outputs, vec!["qc_report"]);
+
+        let pca = stage_io_contract(VcfDomainStage::Pca)
+            .unwrap_or_else(|| panic!("missing stage IO contract for pca"));
+        assert_eq!(pca.required_outputs, vec!["pca_report"]);
+
+        let stats = stage_io_contract(VcfDomainStage::Stats)
+            .unwrap_or_else(|| panic!("missing stage IO contract for stats"));
+        assert_eq!(stats.required_outputs, vec!["stats_json"]);
     }
 
     #[test]

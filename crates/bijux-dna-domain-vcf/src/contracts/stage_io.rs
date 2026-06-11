@@ -55,14 +55,28 @@ pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
         | VcfDomainStage::GlPropagation
         | VcfDomainStage::Phasing
         | VcfDomainStage::Impute
-        | VcfDomainStage::Postprocess
-        | VcfDomainStage::Qc
-        | VcfDomainStage::Stats => StageIoContract {
+        | VcfDomainStage::Postprocess => StageIoContract {
             stage,
             inputs: vec![port("vcf", "vcf", one)],
             outputs: vec![port("vcf_out", "vcf", one)],
             required_inputs: vec!["vcf"],
             required_outputs: vec!["vcf_out"],
+            required_indices: vec!["vcf.tbi"],
+        },
+        VcfDomainStage::Qc => StageIoContract {
+            stage,
+            inputs: vec![port("vcf", "vcf", one)],
+            outputs: vec![port("qc_report", "json", one)],
+            required_inputs: vec!["vcf"],
+            required_outputs: vec!["qc_report"],
+            required_indices: vec!["vcf.tbi"],
+        },
+        VcfDomainStage::Stats => StageIoContract {
+            stage,
+            inputs: vec![port("vcf", "vcf", one)],
+            outputs: vec![port("stats_json", "json", one)],
+            required_inputs: vec!["vcf"],
+            required_outputs: vec!["stats_json"],
             required_indices: vec!["vcf.tbi"],
         },
         VcfDomainStage::ImputationMetrics => StageIoContract {
@@ -73,8 +87,15 @@ pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
             required_outputs: vec!["imputation_metrics_json"],
             required_indices: vec!["vcf.tbi"],
         },
+        VcfDomainStage::Pca => StageIoContract {
+            stage,
+            inputs: vec![port("vcf", "vcf", one)],
+            outputs: vec![port("pca_report", "json", one)],
+            required_inputs: vec!["vcf"],
+            required_outputs: vec!["pca_report"],
+            required_indices: vec!["vcf.tbi"],
+        },
         VcfDomainStage::PopulationStructure
-        | VcfDomainStage::Pca
         | VcfDomainStage::Admixture
         | VcfDomainStage::Roh
         | VcfDomainStage::Ibd => StageIoContract {

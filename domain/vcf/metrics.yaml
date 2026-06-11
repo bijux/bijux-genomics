@@ -54,9 +54,13 @@ metrics:
 - id: roh_mean_length_mb
 - id: roh_total_mb
 - id: sample_count
+- id: snp_count
 - id: status
 - id: ti_tv
+- id: transversion_count
+- id: transition_count
 - id: unexpected_samples
+- id: indel_count
 - id: variant_count
 - id: variant_missingness
 - id: variant_missingness_exclusion_threshold
