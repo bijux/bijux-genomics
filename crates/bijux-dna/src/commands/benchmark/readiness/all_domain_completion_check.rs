@@ -520,9 +520,9 @@ fn ensure_completion_row_alignment(
     output_rows: &BTreeMap<String, AllDomainOutputDeclarationRow>,
     fake_run_rows: &BTreeMap<String, AllDomainFakeRunResultReport>,
 ) -> Result<()> {
-    if expected_rows.len() != 126 || output_rows.len() != 126 || fake_run_rows.len() != 126 {
+    if expected_rows.len() != 127 || output_rows.len() != 127 || fake_run_rows.len() != 127 {
         return Err(anyhow!(
-            "all-domain completion checker requires exactly 126 expected-result, output-declaration, and fake-run rows"
+            "all-domain completion checker requires exactly 127 expected-result, output-declaration, and fake-run rows"
         ));
     }
     let expected_ids = expected_rows.keys().cloned().collect::<BTreeSet<_>>();
@@ -539,9 +539,9 @@ fn ensure_completion_row_alignment(
 fn ensure_all_domain_completion_check_contract(
     mut report: AllDomainCompletionCheckReport,
 ) -> Result<AllDomainCompletionCheckReport> {
-    if report.row_count != 126 {
+    if report.row_count != 127 {
         return Err(anyhow!(
-            "all-domain completion checker must report exactly 126 rows, found {}",
+            "all-domain completion checker must report exactly 127 rows, found {}",
             report.row_count
         ));
     }
@@ -559,7 +559,7 @@ fn ensure_all_domain_completion_check_contract(
             .map(|mutation| (mutation.mutation_id.as_str(), mutation.result_id.as_str()))
             .collect::<BTreeMap<_, _>>();
 
-        report.complete_row_count == 121
+        report.complete_row_count == 122
             && report.incomplete_row_count == 5
             && matches_seeded_reason(
                 &row_by_result_id,

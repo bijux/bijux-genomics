@@ -1457,17 +1457,17 @@ mod tests {
         )
         .expect("render full benchmark report");
 
-        assert_eq!(report.row_count, 127);
-        assert_eq!(report.expected_result_row_count, 126);
+        assert_eq!(report.row_count, 128);
+        assert_eq!(report.expected_result_row_count, 127);
         assert_eq!(report.explicit_unsupported_row_count, 1);
-        assert_eq!(report.present_row_count, 123);
+        assert_eq!(report.present_row_count, 124);
         assert_eq!(report.missing_result_row_count, 3);
         assert_eq!(report.unsupported_pair_row_count, 1);
-        assert_eq!(report.failure_row_count, 126);
+        assert_eq!(report.failure_row_count, 127);
         assert_eq!(report.failure_class_row_count, 7);
-        assert_eq!(report.rows.len(), 127);
-        assert_eq!(report.runtime.len(), 127);
-        assert_eq!(report.memory.len(), 127);
+        assert_eq!(report.rows.len(), 128);
+        assert_eq!(report.runtime.len(), 128);
+        assert_eq!(report.memory.len(), 128);
         assert_eq!(report.missing_results.len(), 3);
         assert_eq!(report.unsupported_pairs.len(), 1);
         assert!(report.passes_behavior_test);

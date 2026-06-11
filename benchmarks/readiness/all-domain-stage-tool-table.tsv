@@ -133,7 +133,7 @@ vcf	vcf.filter	bcftools	vcf_production_regression	vcf_single_sample	vcf.adapter.
 vcf	vcf.gl_propagation	bcftools	vcf_production_regression	vcf_single_sample	vcf.adapter.transform	vcf.parser.vcf_output	benchmark_ready
 vcf	vcf.ibd	germline	vcf_production_regression	vcf_cohort	vcf.adapter.ibd	vcf.parser.report_json	not_benchmark_ready
 vcf	vcf.imputation_metrics	beagle	vcf_production_regression	vcf_cohort_with_panel	vcf.adapter.panel_workflow	vcf.parser.report_json	not_benchmark_ready
-vcf	vcf.impute	beagle	vcf_production_regression	vcf_cohort_with_panel	vcf.adapter.panel_workflow	vcf.parser.vcf_output	not_benchmark_ready
+vcf	vcf.impute	beagle	vcf_production_regression	vcf_cohort_with_panel	vcf.adapter.panel_workflow	vcf.parser.vcf_output	benchmark_ready
 vcf	vcf.pca	plink2	vcf_production_regression	vcf_cohort	vcf.adapter.population_structure	vcf.parser.report_json	not_benchmark_ready
 vcf	vcf.phasing	shapeit5	vcf_production_regression	vcf_cohort_with_panel	vcf.adapter.panel_workflow	vcf.parser.vcf_output	benchmark_ready
 vcf	vcf.population_structure	plink2	vcf_production_regression	vcf_cohort	vcf.adapter.population_structure	vcf.parser.report_json	not_benchmark_ready
