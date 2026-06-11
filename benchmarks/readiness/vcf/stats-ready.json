@@ -61,7 +61,7 @@
       "manifest_output": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/vcf.stats/{sample_scope}/bcftools/stage-result.json",
       "index_outputs": [],
       "parser_ready": true,
-      "parser_proof_path": "benchmarks/readiness/vcf-parser-coverage.tsv",
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
       "parser_fixture_parser_id": "parse_bcftools_stats_metrics",
       "parser_fixture_schema_id": "bijux.vcf.stats.v1",
       "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.stats",

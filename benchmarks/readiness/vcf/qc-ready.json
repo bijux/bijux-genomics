@@ -18,7 +18,8 @@
     "variant_missingness_exclusion_threshold"
   ],
   "tool_status_counts": {
-    "experimental,planned": 2,
+    "experimental,planned": 1,
+    "experimental,production": 1,
     "production": 1
   },
   "coverage_status_counts": {
@@ -71,7 +72,7 @@
       "manifest_output": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/vcf.qc/{sample_scope}/bcftools/stage-result.json",
       "index_outputs": [],
       "parser_ready": true,
-      "parser_proof_path": "benchmarks/readiness/vcf-parser-coverage.tsv",
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
       "parser_fixture_parser_id": "parse_bcftools_qc_metrics",
       "parser_fixture_schema_id": "bijux.vcf.qc.v1",
       "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.qc",
@@ -280,7 +281,7 @@
       "manifest_output": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/vcf.qc/{sample_scope}/plink/stage-result.json",
       "index_outputs": [],
       "parser_ready": true,
-      "parser_proof_path": "benchmarks/readiness/vcf-parser-coverage.tsv",
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
       "parser_fixture_parser_id": "parse_plink_qc_metrics",
       "parser_fixture_schema_id": "bijux.vcf.qc.v1",
       "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/plink/vcf.qc",
@@ -451,7 +452,7 @@
       "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2",
       "stage_id": "vcf.qc",
       "tool_id": "plink2",
-      "tool_status": "experimental,planned",
+      "tool_status": "experimental,production",
       "corpus_id": "vcf_production_regression",
       "asset_profile_id": "vcf_cohort",
       "adapter_id": "vcf.adapter.quality_control",
@@ -489,7 +490,7 @@
       "manifest_output": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/vcf.qc/{sample_scope}/plink2/stage-result.json",
       "index_outputs": [],
       "parser_ready": true,
-      "parser_proof_path": "benchmarks/readiness/vcf-parser-coverage.tsv",
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
       "parser_fixture_parser_id": "parse_plink2_qc_metrics",
       "parser_fixture_schema_id": "bijux.vcf.qc.v1",
       "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.qc",

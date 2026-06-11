@@ -64,7 +64,7 @@
         "gl_propagated_vcf_tbi=benchmarks/readiness/adapters/bcftools/vcf.gl_propagation/gl_propagated_vcf.vcf.gz.tbi"
       ],
       "parser_ready": true,
-      "parser_proof_path": "benchmarks/readiness/vcf-parser-coverage.tsv",
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
       "parser_fixture_parser_id": "parse_bcftools_gl_propagation_metrics",
       "parser_fixture_schema_id": "bijux.vcf.gl_propagation.v1",
       "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.gl_propagation",

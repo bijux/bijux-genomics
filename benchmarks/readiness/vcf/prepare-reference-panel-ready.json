@@ -63,7 +63,7 @@
         "prepared_panel_tbi=benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz.tbi"
       ],
       "parser_ready": true,
-      "parser_proof_path": "benchmarks/readiness/vcf-parser-coverage.tsv",
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
       "parser_fixture_parser_id": "parse_bcftools_prepare_reference_panel_metrics",
       "parser_fixture_schema_id": "bijux.vcf.prepare_reference_panel.v1",
       "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.prepare_reference_panel",

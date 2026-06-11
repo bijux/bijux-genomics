@@ -67,7 +67,7 @@
         "damage_filtered_vcf_tbi=benchmarks/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz.tbi"
       ],
       "parser_ready": true,
-      "parser_proof_path": "benchmarks/readiness/vcf-parser-coverage.tsv",
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
       "parser_fixture_parser_id": "parse_bcftools_damage_filter_metrics",
       "parser_fixture_schema_id": "bijux.vcf.damage_filter.v1",
       "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter",
