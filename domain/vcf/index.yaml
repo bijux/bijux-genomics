@@ -52,6 +52,7 @@ governed_stage_ids:
   - vcf.impute
   - vcf.pca
   - vcf.phasing
+  - vcf.population_structure
   - vcf.postprocess
   - vcf.prepare_reference_panel
   - vcf.qc
@@ -216,6 +217,7 @@ active_defaults:
   vcf.impute: "beagle"
   vcf.pca: "plink2"
   vcf.phasing: "shapeit5"
+  vcf.population_structure: "plink2"
   vcf.postprocess: "bcftools"
   vcf.prepare_reference_panel: "bcftools"
   vcf.qc: "plink2"
@@ -233,6 +235,7 @@ active_default_rationale:
   vcf.impute: "current governed production default keeps explicit panel-aware imputation runnable while retained alternatives stay comparative."
   vcf.pca: "current governed PCA default keeps sample-complete eigenvector output, eigenvalue reporting, and metadata joins anchored to the PLINK2 smoke-backed cohort path while retained `eigensoft` stays comparative."
   vcf.phasing: "current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle and Eagle stay comparative."
+  vcf.population_structure: "the governed population-structure baseline keeps consumed PCA and admixture evidence on the admitted PLINK-family structure path with explicit sample-group distance summaries."
   vcf.postprocess: "deterministic normalization/filter baseline for governed post-imputation outputs."
   vcf.prepare_reference_panel: "deterministic reference panel prep baseline."
   vcf.qc: "the governed cohort-QC baseline keeps missingness, MAF, and HWE summaries anchored to the admitted PLINK-family execution surface while retaining deterministic bcftools compatibility for comparison."
