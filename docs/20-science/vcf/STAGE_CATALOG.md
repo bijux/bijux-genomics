@@ -114,12 +114,12 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 - References: `domain/vcf/stages/admixture.yaml`, `docs/20-science/vcf/POPULATION_STRUCTURE.md`.
 
 ### vcf.population_structure {#vcf-population-structure}
-- Status: planned.
+- Status: supported.
 - Purpose: emit higher-level structure summaries that combine PCA- or clustering-oriented evidence.
 - Inputs/Outputs: filtered cohort VCF → population-structure report.
-- Metrics: PCA variance, cluster assignment summaries.
+- Metrics: sample count, pair count, within-population pair count, and cross-population pair count.
 - Tools: plink, plink2, eigensoft.
-- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/population_structure.yaml`, `docs/20-science/vcf/POPULATION_STRUCTURE.md`.
 
 ### vcf.phasing {#vcf-phasing}

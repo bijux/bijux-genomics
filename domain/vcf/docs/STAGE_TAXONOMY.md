@@ -24,7 +24,7 @@ Covers every `domain/vcf/stages/*.yaml` entry, including supported calling stage
 | vcf.qc | downstream gating | report | supported | Apply cohort-level QC summaries and thresholds. |
 | vcf.pca | downstream inference | inference | supported | Estimate PCA-based structure projections with normalized per-sample component output. |
 | vcf.admixture | downstream inference | inference | supported | Estimate ancestry-mixture-style summaries. |
-| vcf.population_structure | downstream inference | inference | planned | Emit broader structure summaries from filtered cohorts. |
+| vcf.population_structure | downstream inference | inference | supported | Emit broader structure summaries from consumed PCA and admixture evidence. |
 | vcf.phasing | panel mediation | mutation | supported | Phase haplotypes before imputation or IBD. |
 | vcf.prepare_reference_panel | panel mediation | mutation | supported | Normalize and prepare reference panels. |
 | vcf.imputation_metrics | panel mediation | report | supported | Summarize imputation-quality evidence from governed imputation outputs. |

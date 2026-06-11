@@ -1,6 +1,6 @@
 schema_version: "bijux.stage.v1"
 stage_id: "vcf.population_structure"
-status: "planned"
+status: "supported"
 scope: "post_vcf"
 domain: "vcf"
 description: "VCF stage contract for vcf.population_structure in the governed domain registry."
@@ -16,19 +16,18 @@ required_inputs: ["filtered_vcf"]
 required_outputs: ["population_structure_report"]
 tool_capability_requirements: []
 metrics:
-  - name: "pca_variance_explained"
-  - name: "pc_axes"
-  - name: "cluster_assignments"
-  - name: "admixture_k_selected"
-  - name: "admixture_cross_validation_error"
+  - name: "sample_count"
+  - name: "pair_count"
+  - name: "within_population_pair_count"
+  - name: "cross_population_pair_count"
 compatible_tools: ["plink", "plink2", "eigensoft"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "diploid_assumptions"
-  - "ld_pruning_and_missingness_thresholds_are_fixed_per_run"
+  - "sample_population_labels_are_required"
+  - "pca_and_admixture_outputs_are_consumed_from_the_same_run"
   - "population_structure_outputs_emit_metrics_json_with_schema_bijux.vcf.population_structure.v1"
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness:
   - "none"
-planned_out_of_scope: ["full scientific validation pending downstream admission"]
+planned_out_of_scope: []

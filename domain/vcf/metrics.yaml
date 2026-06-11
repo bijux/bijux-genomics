@@ -34,6 +34,7 @@ metrics:
 - id: ne_recent
 - id: ne_time_series
 - id: pairwise_ibd_sharing_matrix
+- id: pair_count
 - id: pc_axes
 - id: pca_status
 - id: pca_variance_explained
@@ -58,6 +59,8 @@ metrics:
 - id: snp_count
 - id: status
 - id: ti_tv
+- id: within_population_pair_count
+- id: cross_population_pair_count
 - id: population_count
 - id: transversion_count
 - id: transition_count

@@ -169,7 +169,8 @@ mod contracts {
     }
 
     #[test]
-    fn authored_qc_pca_admixture_and_stats_catalogs_match_governed_contract_ids() {
+    fn authored_qc_pca_admixture_population_structure_and_stats_catalogs_match_governed_contract_ids(
+    ) {
         let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../");
         let qc_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/qc.yaml"))
             .unwrap_or_else(|err| panic!("read qc stage yaml: {err}"));
@@ -178,6 +179,9 @@ mod contracts {
         let admixture_raw =
             std::fs::read_to_string(repo_root.join("domain/vcf/stages/admixture.yaml"))
                 .unwrap_or_else(|err| panic!("read admixture stage yaml: {err}"));
+        let population_structure_raw =
+            std::fs::read_to_string(repo_root.join("domain/vcf/stages/population_structure.yaml"))
+                .unwrap_or_else(|err| panic!("read population_structure stage yaml: {err}"));
         let stats_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/stats.yaml"))
             .unwrap_or_else(|err| panic!("read stats stage yaml: {err}"));
         let artifacts_raw = std::fs::read_to_string(repo_root.join("domain/vcf/artifacts.yaml"))
@@ -250,6 +254,28 @@ mod contracts {
             );
         }
 
+        assert!(population_structure_raw.contains("status: \"supported\""));
+        assert!(population_structure_raw.contains("- name: \"population_structure_report\""));
+        assert!(
+            population_structure_raw
+                .contains("required_outputs: [\"population_structure_report\"]")
+        );
+        for metric_id in [
+            "sample_count",
+            "pair_count",
+            "within_population_pair_count",
+            "cross_population_pair_count",
+        ] {
+            assert!(
+                population_structure_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored population_structure stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
         for metric_id in [
             "variant_count",
             "snp_count",
@@ -269,7 +295,12 @@ mod contracts {
             );
         }
 
-        for artifact_id in ["qc_report", "pca_report", "admixture_report"] {
+        for artifact_id in [
+            "qc_report",
+            "pca_report",
+            "admixture_report",
+            "population_structure_report",
+        ] {
             assert!(
                 artifacts_raw.contains(&format!("- id: {artifact_id}")),
                 "VCF artifact vocabulary is missing `{artifact_id}`"
@@ -306,6 +337,10 @@ mod contracts {
             .unwrap_or_else(|| panic!("missing stage IO contract for admixture"));
         assert_eq!(admixture.required_outputs, vec!["admixture_report"]);
 
+        let population_structure = stage_io_contract(VcfDomainStage::PopulationStructure)
+            .unwrap_or_else(|| panic!("missing stage IO contract for population_structure"));
+        assert_eq!(population_structure.required_outputs, vec!["population_structure_report"]);
+
         let stats = stage_io_contract(VcfDomainStage::Stats)
             .unwrap_or_else(|| panic!("missing stage IO contract for stats"));
         assert_eq!(stats.required_outputs, vec!["stats_json"]);
@@ -320,6 +355,11 @@ mod contracts {
         let admixture = stage_metrics_contract(VcfDomainStage::Admixture);
         assert_eq!(admixture.metrics_schema_id, "bijux.vcf.admixture.v1");
         assert!(admixture.required_metrics.contains(&"selected_k"));
+
+        let population_structure = stage_metrics_contract(VcfDomainStage::PopulationStructure);
+        assert_eq!(population_structure.metrics_schema_id, "bijux.vcf.population_structure.v1");
+        assert!(population_structure.required_metrics.contains(&"pair_count"));
+        assert!(population_structure.required_metrics.contains(&"cross_population_pair_count"));
 
         let impute = stage_metrics_contract(VcfDomainStage::Impute);
         assert_eq!(impute.metrics_schema_id, "bijux.vcf.impute.v1");

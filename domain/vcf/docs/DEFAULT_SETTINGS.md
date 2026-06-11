@@ -23,6 +23,7 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.qc` -> `qc_report`
 - `vcf.pca` -> `pca_report`
 - `vcf.admixture` -> `admixture_report`
+- `vcf.population_structure` -> `population_structure_report`
 - `vcf.ibd` -> `ibd_json`
 - `vcf.phasing` -> `phased_vcf`
 - `vcf.imputation_metrics` -> `imputation_metrics_json`
@@ -64,7 +65,7 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.call_pseudohaploid` default: `bcftools`. rationale: current governed production default preserves the pseudohaploid contract while `angsd` remains a planned alternative.
 - `vcf.damage_filter` default: `bcftools`. rationale: deterministic PMD/C>T-G>A masking contract anchor for the current governed profile.
 - `vcf.gl_propagation` default: `bcftools`. rationale: preserves GL fields across downstream handoffs in the current governed profile.
-- `vcf.population_structure` default: `plink2` (planned). rationale: deterministic PCA/pop-structure baseline with stable metrics schema.
+- `vcf.population_structure` default: `plink2`. rationale: the governed population-structure baseline keeps consumed PCA and admixture evidence on the admitted PLINK-family structure path with explicit sample-group distance summaries.
 - `vcf.roh` default: `plink2` (planned). rationale: deterministic ROH interval extraction and summary bins.
 - `vcf.demography` default: `ibdne` (planned). rationale: deterministic effective population size summary from IBD-derived inputs.
 
