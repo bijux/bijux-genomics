@@ -56,9 +56,9 @@ fn bench_readiness_full_benchmark_dashboard_tracks_governed_summary_counts() {
         Some(true)
     );
     assert_eq!(payload.get("total_stages").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(payload.get("total_tools").and_then(serde_json::Value::as_u64), Some(66));
-    assert_eq!(payload.get("total_expected_jobs").and_then(serde_json::Value::as_u64), Some(125));
-    assert_eq!(payload.get("ready_jobs").and_then(serde_json::Value::as_u64), Some(122));
+    assert_eq!(payload.get("total_tools").and_then(serde_json::Value::as_u64), Some(67));
+    assert_eq!(payload.get("total_expected_jobs").and_then(serde_json::Value::as_u64), Some(126));
+    assert_eq!(payload.get("ready_jobs").and_then(serde_json::Value::as_u64), Some(123));
     assert_eq!(payload.get("blocked_jobs").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(payload.get("missing_parsers").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("missing_adapters").and_then(serde_json::Value::as_u64), Some(0));
@@ -87,9 +87,9 @@ fn bench_readiness_full_benchmark_dashboard_tracks_governed_summary_counts() {
         })
         .collect::<BTreeMap<_, _>>();
     assert_eq!(counts.get("total_stages").copied(), Some(71));
-    assert_eq!(counts.get("total_tools").copied(), Some(66));
-    assert_eq!(counts.get("total_expected_jobs").copied(), Some(125));
-    assert_eq!(counts.get("ready_jobs").copied(), Some(122));
+    assert_eq!(counts.get("total_tools").copied(), Some(67));
+    assert_eq!(counts.get("total_expected_jobs").copied(), Some(126));
+    assert_eq!(counts.get("ready_jobs").copied(), Some(123));
     assert_eq!(counts.get("blocked_jobs").copied(), Some(3));
     assert_eq!(counts.get("missing_parsers").copied(), Some(0));
     assert_eq!(counts.get("missing_adapters").copied(), Some(0));

@@ -51,14 +51,14 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_command_resources")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(125));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(126));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(125)
+        Some(126)
     );
     assert_eq!(
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
-        Some(125)
+        Some(126)
     );
     assert_eq!(
         payload
@@ -79,7 +79,7 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
             .get("domain_counts")
             .and_then(|value| value.get("vcf"))
             .and_then(serde_json::Value::as_u64),
-        Some(13)
+        Some(14)
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let bwa_align = rows

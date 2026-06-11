@@ -48,9 +48,9 @@ fn bench_readiness_full_benchmark_dashboard_writes_markdown_and_json_outputs() {
     assert!(markdown.contains("# Full Benchmark Dashboard"));
     assert!(markdown.contains("| metric | count | source path | source field | detail |"));
     assert!(markdown.contains("| total_stages | 71 |"));
-    assert!(markdown.contains("| total_tools | 66 |"));
-    assert!(markdown.contains("| total_expected_jobs | 125 |"));
-    assert!(markdown.contains("| ready_jobs | 122 |"));
+    assert!(markdown.contains("| total_tools | 67 |"));
+    assert!(markdown.contains("| total_expected_jobs | 126 |"));
+    assert!(markdown.contains("| ready_jobs | 123 |"));
     assert!(markdown.contains("| blocked_jobs | 3 |"));
     assert!(markdown.contains("| missing_parsers | 0 |"));
     assert!(markdown.contains("| missing_adapters | 0 |"));
@@ -64,6 +64,6 @@ fn bench_readiness_full_benchmark_dashboard_writes_markdown_and_json_outputs() {
     );
     assert_eq!(
         json_value.get("total_expected_jobs").and_then(serde_json::Value::as_u64),
-        Some(125)
+        Some(126)
     );
 }

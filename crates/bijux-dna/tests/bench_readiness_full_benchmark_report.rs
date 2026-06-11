@@ -50,16 +50,16 @@ fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() {
         payload.get("json_output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(126));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(127));
     assert_eq!(
         payload.get("expected_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(125)
+        Some(126)
     );
     assert_eq!(
         payload.get("explicit_unsupported_row_count").and_then(serde_json::Value::as_u64),
         Some(1)
     );
-    assert_eq!(payload.get("present_row_count").and_then(serde_json::Value::as_u64), Some(122));
+    assert_eq!(payload.get("present_row_count").and_then(serde_json::Value::as_u64), Some(123));
     assert_eq!(
         payload.get("missing_result_row_count").and_then(serde_json::Value::as_u64),
         Some(3)
@@ -68,7 +68,7 @@ fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() {
         payload.get("unsupported_pair_row_count").and_then(serde_json::Value::as_u64),
         Some(1)
     );
-    assert_eq!(payload.get("failure_row_count").and_then(serde_json::Value::as_u64), Some(125));
+    assert_eq!(payload.get("failure_row_count").and_then(serde_json::Value::as_u64), Some(126));
     assert_eq!(payload.get("failure_class_row_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(
         payload.get("passes_behavior_test").and_then(serde_json::Value::as_bool),
@@ -79,18 +79,18 @@ fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() {
         .get("row_status_counts")
         .and_then(serde_json::Value::as_object)
         .expect("row status counts");
-    assert_eq!(status_counts.get("present").and_then(serde_json::Value::as_u64), Some(122));
+    assert_eq!(status_counts.get("present").and_then(serde_json::Value::as_u64), Some(123));
     assert_eq!(status_counts.get("missing_result").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(status_counts.get("unsupported_pair").and_then(serde_json::Value::as_u64), Some(1));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 126);
+    assert_eq!(rows.len(), 127);
 
     let result_ids = rows
         .iter()
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(result_ids.len(), 125);
+    assert_eq!(result_ids.len(), 126);
 
     let missing_result_ids = rows
         .iter()
@@ -128,14 +128,14 @@ fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() {
 
     let runtime =
         payload.get("runtime").and_then(serde_json::Value::as_array).expect("runtime rows");
-    assert_eq!(runtime.len(), 126);
+    assert_eq!(runtime.len(), 127);
     let memory = payload.get("memory").and_then(serde_json::Value::as_array).expect("memory rows");
-    assert_eq!(memory.len(), 126);
+    assert_eq!(memory.len(), 127);
 
     let failures = payload.get("failures").expect("failures section");
     assert_eq!(
         failures.get("simulated_failure_row_count").and_then(serde_json::Value::as_u64),
-        Some(125)
+        Some(126)
     );
     assert_eq!(
         failures.get("failure_class_row_count").and_then(serde_json::Value::as_u64),
