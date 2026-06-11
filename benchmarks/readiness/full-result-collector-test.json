@@ -6062,7 +6062,7 @@
       "report_section": "read_cleanup",
       "evidence_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "manifest_path": null,
-      "declared_output_count": 11,
+      "declared_output_count": 3,
       "normalized_metric_count": 2,
       "detail": "canonical benchmark-ready result binding"
     },
@@ -7238,7 +7238,7 @@
       "report_section": "quality_profiling",
       "evidence_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "manifest_path": null,
-      "declared_output_count": 11,
+      "declared_output_count": 3,
       "normalized_metric_count": 2,
       "detail": "canonical benchmark-ready result binding"
     },
@@ -8666,7 +8666,7 @@
       "report_section": "read_cleanup",
       "evidence_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "manifest_path": null,
-      "declared_output_count": 11,
+      "declared_output_count": 4,
       "normalized_metric_count": 2,
       "detail": "canonical benchmark-ready result binding"
     },
@@ -9170,7 +9170,7 @@
       "report_section": "read_cleanup",
       "evidence_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "manifest_path": null,
-      "declared_output_count": 11,
+      "declared_output_count": 4,
       "normalized_metric_count": 3,
       "detail": "canonical benchmark-ready result binding"
     },

@@ -7,8 +7,8 @@
   "existing_root_count": 6,
   "tracked_marker_count": 6,
   "ignored_root_count": 0,
-  "readiness_snapshot_count": 115,
-  "readiness_json_snapshot_count": 85,
+  "readiness_snapshot_count": 116,
+  "readiness_json_snapshot_count": 86,
   "readiness_tsv_snapshot_count": 30,
   "root_tests_regular_file_count": 1,
   "root_tests_readme_tracked_by_git": true,
@@ -138,6 +138,7 @@
     "benchmarks/readiness/vcf/damage-filter-ready.json",
     "benchmarks/readiness/vcf/filter-ready.json",
     "benchmarks/readiness/vcf/gl-propagation-ready.json",
+    "benchmarks/readiness/vcf/prepare-reference-panel-ready.json",
     "benchmarks/readiness/vcf/qc-ready.json",
     "benchmarks/readiness/vcf/stats-ready.json",
     "benchmarks/readiness/vcf/vcf-active-stage-tool-matrix.tsv"

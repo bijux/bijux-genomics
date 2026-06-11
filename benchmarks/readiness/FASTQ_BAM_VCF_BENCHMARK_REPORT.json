@@ -1666,7 +1666,7 @@
         "diploid-small-fastq-bam-vcf",
         "edna-taxonomy-no-vcf"
       ],
-      "expected_output_count": 11,
+      "expected_output_count": 3,
       "expected_metric_count": 2,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -1972,7 +1972,7 @@
       "asset_profile_id": "corpus_only",
       "report_section": "quality_profiling",
       "pipeline_ids": [],
-      "expected_output_count": 11,
+      "expected_output_count": 3,
       "expected_metric_count": 2,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -2357,7 +2357,7 @@
       "asset_profile_id": "corpus_only",
       "report_section": "read_cleanup",
       "pipeline_ids": [],
-      "expected_output_count": 11,
+      "expected_output_count": 4,
       "expected_metric_count": 2,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -2511,7 +2511,7 @@
         "diploid-small-fastq-bam-vcf",
         "edna-taxonomy-no-vcf"
       ],
-      "expected_output_count": 11,
+      "expected_output_count": 4,
       "expected_metric_count": 3,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -2928,7 +2928,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.15675375,
+      "real_smoke_elapsed_seconds": 0.159264,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -3282,7 +3282,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.059379917,
+      "real_smoke_elapsed_seconds": 0.040152958,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -7633,7 +7633,7 @@
       "row_status": "present",
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.15675375,
+      "real_smoke_elapsed_seconds": 0.159264,
       "runtime_source": "fake_run_and_real_smoke"
     },
     {
@@ -7776,7 +7776,7 @@
       "row_status": "missing_result",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.059379917,
+      "real_smoke_elapsed_seconds": 0.040152958,
       "runtime_source": "fake_run_and_real_smoke"
     }
   ],

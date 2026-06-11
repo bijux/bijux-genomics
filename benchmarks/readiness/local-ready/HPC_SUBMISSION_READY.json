@@ -768,7 +768,7 @@
       "surface": "generated SLURM script bodies call real repo commands and contain no placeholders",
       "output_path": "runs/bench/slurm-dry-run/no-placeholder-report.json",
       "ok": true,
-      "detail": "SLURM script body validation passed across 264 scripts"
+      "detail": "SLURM script body validation passed across 269 scripts"
     },
     {
       "goal_id": 95,
@@ -776,7 +776,7 @@
       "surface": "generated SLURM scripts pass bash syntax validation",
       "output_path": "runs/bench/slurm-dry-run/bash-n-report.json",
       "ok": true,
-      "detail": "SLURM shell syntax validation passed across 264 scripts"
+      "detail": "SLURM shell syntax validation passed across 269 scripts"
     },
     {
       "goal_id": 96,
