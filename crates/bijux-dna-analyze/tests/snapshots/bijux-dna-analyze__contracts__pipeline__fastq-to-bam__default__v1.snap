@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-analyze/tests/contracts/pipeline/pipeline_e2e.rs
-assertion_line: 180
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -23,7 +22,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     {
       "banks": {},
       "stage_id": "bam.damage",
-      "tool_id": "pydamage"
+      "tool_id": "mapdamage2"
     },
     {
       "banks": {},
@@ -257,7 +256,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.damage",
       "stage_id": "bam.damage",
-      "tool_id": "pydamage",
+      "tool_id": "mapdamage2",
       "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
@@ -406,7 +405,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "mapdamage2"
         },
         {
           "bases": 800,
@@ -549,7 +548,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "results": [],
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "mapdamage2"
         },
         {
           "results": [],
@@ -670,7 +669,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "mapdamage2",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -928,7 +927,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "pydamage",
+          "tool_id": "mapdamage2",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1032,7 +1031,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "banks": {},
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "mapdamage2"
         },
         {
           "banks": {},
@@ -1205,7 +1204,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.damage",
           "telemetry_decisions": [],
-          "tool_id": "pydamage",
+          "tool_id": "mapdamage2",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -1579,7 +1578,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "mapdamage2",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -1689,7 +1688,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "mapdamage2",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -2776,7 +2775,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "tools": {
           "bam.align": "bwa",
           "bam.coverage": "mosdepth",
-          "bam.damage": "pydamage",
+          "bam.damage": "mapdamage2",
           "bam.filter": "samtools",
           "bam.mapping_summary": "samtools",
           "bam.qc_pre": "samtools",
@@ -2847,7 +2846,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.damage",
           "tier_rationale": "unknown_tool",
-          "tool_id": "pydamage",
+          "tool_id": "mapdamage2",
           "tool_tier": "experimental",
           "tool_version": "99.99.99+fixture"
         },
@@ -3066,7 +3065,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "definitions": []
     },
     "run_provenance": {
-      "domain_snapshot_hash": "7f92f74f3d6b5fa90319ebb5b71976f79393927f",
+      "domain_snapshot_hash": "d29294f1d99e7328a02453f1e7734f06c7986b58",
       "graph_hash": "unknown",
       "input_hashes": [],
       "manifest_signature_sha256": "unknown",
@@ -3113,7 +3112,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "mapdamage2",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -3448,7 +3447,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "mapdamage2"
         },
         {
           "bucket": "high",
@@ -3560,7 +3559,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "mapdamage2"
         },
         {
           "base_retention": 0.8,
@@ -3772,7 +3771,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.damage",
       "stage_report_path": "bam.damage/stage_report.json",
-      "tool_id": "pydamage",
+      "tool_id": "mapdamage2",
       "tool_invocation_path": "",
       "tool_version": "99.99.99+fixture"
     },

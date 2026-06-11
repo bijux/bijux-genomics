@@ -3,7 +3,6 @@
 use std::collections::BTreeMap;
 
 use bijux_dna_core::ids::{StageId, ToolId};
-use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::params::BamEffectiveParams;
 use bijux_dna_domain_bam::BamStage;
 
@@ -31,43 +30,21 @@ pub(super) fn defaults_for(
 }
 
 pub(super) fn to_effective_defaults(defaults: &[BamStageDefault]) -> EffectiveDefaults {
+    let registry_defaults = registry_default_tools();
     let mut tools = BTreeMap::new();
     let mut params = BTreeMap::new();
     let mut rationales = BTreeMap::new();
     for entry in defaults {
-        let default_tool = match entry.stage {
-            BamStage::Align => id_catalog::TOOL_BWA,
-            BamStage::Validate => id_catalog::TOOL_SAMTOOLS,
-            BamStage::QcPre => id_catalog::TOOL_SAMTOOLS,
-            BamStage::MappingSummary => id_catalog::TOOL_SAMTOOLS,
-            BamStage::Filter => id_catalog::TOOL_SAMTOOLS,
-            BamStage::MapqFilter => id_catalog::TOOL_SAMTOOLS,
-            BamStage::LengthFilter => id_catalog::TOOL_SAMTOOLS,
-            BamStage::Markdup => id_catalog::TOOL_GATK,
-            BamStage::DuplicationMetrics => id_catalog::TOOL_SAMTOOLS,
-            BamStage::Complexity => id_catalog::TOOL_PRESEQ,
-            BamStage::Coverage => id_catalog::TOOL_MOSDEPTH,
-            BamStage::InsertSize => id_catalog::TOOL_GATK,
-            BamStage::GcBias => id_catalog::TOOL_GATK,
-            BamStage::EndogenousContent => id_catalog::TOOL_SAMTOOLS,
-            BamStage::OverlapCorrection => id_catalog::TOOL_SAMTOOLS,
-            BamStage::Damage => id_catalog::TOOL_PYDAMAGE,
-            BamStage::Authenticity => id_catalog::TOOL_AUTHENTICCT,
-            BamStage::Contamination => id_catalog::TOOL_AUTHENTICCT,
-            BamStage::Sex => id_catalog::TOOL_RXY,
-            BamStage::BiasMitigation => id_catalog::TOOL_ANGSD,
-            BamStage::Recalibration => id_catalog::TOOL_GATK,
-            BamStage::Haplogroups => id_catalog::TOOL_YLEAF,
-            BamStage::Genotyping => id_catalog::TOOL_ANGSD,
-            BamStage::Kinship => id_catalog::TOOL_KING,
-        };
-        tools.insert(StageId::from_static(entry.stage.as_str()), ToolId::from_static(default_tool));
+        let stage_id = entry.stage.as_str();
+        let default_tool = registry_defaults.get(stage_id).unwrap_or_else(|| {
+            panic!("missing governed BAM default tool for stage {stage_id} in tool_registry.toml")
+        });
+        tools.insert(StageId::from_static(stage_id), ToolId::new(default_tool.clone()));
         params.insert(
-            StageId::from_static(entry.stage.as_str()),
+            StageId::from_static(stage_id),
             DefaultParams::Bam(entry.params.clone()),
         );
-        rationales
-            .insert(StageId::from_static(entry.stage.as_str()), "pipeline default".to_string());
+        rationales.insert(StageId::from_static(stage_id), "pipeline default".to_string());
     }
     EffectiveDefaults { tools, params, rationales }
 }
@@ -77,8 +54,39 @@ pub(super) fn filter_downstream(stages: &mut Vec<BamStage>) {
         return;
     }
     stages.retain(|stage| {
-        !matches!(stage, BamStage::Haplogroups | BamStage::Genotyping | BamStage::Kinship)
+        !matches!(
+            stage,
+            BamStage::BiasMitigation
+                | BamStage::Haplogroups
+                | BamStage::Genotyping
+                | BamStage::Kinship
+        )
     });
+}
+
+fn registry_default_tools() -> BTreeMap<String, String> {
+    let parsed: toml::Value = include_str!("../../../../configs/ci/registry/tool_registry.toml")
+        .parse()
+        .expect("generated configs/ci/registry/tool_registry.toml must parse");
+    parsed
+        .get("stages")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|entry| {
+            let stage_id = entry.get("id").and_then(toml::Value::as_str)?;
+            if !stage_id.starts_with("bam.") {
+                return None;
+            }
+            let default_tool = entry
+                .get("primary_tools")
+                .and_then(toml::Value::as_array)
+                .and_then(|tools| tools.first())
+                .and_then(toml::Value::as_str)?;
+            Some((stage_id.to_string(), default_tool.to_string()))
+        })
+        .collect()
 }
 
 pub(super) fn stable_bam_stages() -> Vec<BamStage> {

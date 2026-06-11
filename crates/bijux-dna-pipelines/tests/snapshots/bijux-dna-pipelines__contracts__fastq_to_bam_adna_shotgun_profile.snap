@@ -175,6 +175,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "min_length": 0,
         "remove_duplicates": false
       },
+      "bam.overlap_correction": {
+        "base_quality_threshold": 20,
+        "exclude_flags": [],
+        "include_flags": [],
+        "mapq_threshold": 0,
+        "min_length": 0,
+        "remove_duplicates": false
+      },
       "bam.qc_pre": {
         "regions": null
       },
@@ -440,6 +448,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bam.length_filter": "pipeline default",
       "bam.mapping_summary": "pipeline default",
       "bam.mapq_filter": "pipeline default",
+      "bam.overlap_correction": "pipeline default",
       "bam.qc_pre": "cross-domain compatibility bridge for BAM pre-QC defaults",
       "bam.sex": "pipeline default",
       "bam.validate": "pipeline default",
@@ -470,15 +479,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "tools": {
       "bam.align": "bwa",
       "bam.authenticity": "authenticct",
-      "bam.contamination": "authenticct",
+      "bam.contamination": "schmutzi",
       "bam.coverage": "mosdepth",
-      "bam.damage": "pydamage",
+      "bam.damage": "mapdamage2",
       "bam.duplication_metrics": "samtools",
       "bam.endogenous_content": "samtools",
       "bam.filter": "samtools",
       "bam.length_filter": "samtools",
       "bam.mapping_summary": "samtools",
       "bam.mapq_filter": "samtools",
+      "bam.overlap_correction": "bamutil",
       "bam.qc_pre": "samtools",
       "bam.sex": "rxy",
       "bam.validate": "samtools",
