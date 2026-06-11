@@ -236,10 +236,10 @@ fn collect_all_domain_missing_result_rows(
 
     if fake_runs_by_id.len() != expected_rows.len()
         || output_rows_by_id.len() != expected_rows.len()
-        || expected_rows.len() != 125
+        || expected_rows.len() != 126
     {
         return Err(anyhow!(
-            "all-domain missing-result test requires exact 125-row alignment between expected results, output declarations, and fake runs"
+            "all-domain missing-result test requires exact 126-row alignment between expected results, output declarations, and fake runs"
         ));
     }
 
@@ -351,21 +351,21 @@ fn collect_all_domain_missing_result_rows(
 fn ensure_all_domain_missing_result_contract(
     mut report: AllDomainMissingResultTestReport,
 ) -> Result<AllDomainMissingResultTestReport> {
-    if report.rows.len() != 125 {
+    if report.rows.len() != 126 {
         return Err(anyhow!(
-            "all-domain missing-result test must retain exactly 125 expected rows, found {}",
+            "all-domain missing-result test must retain exactly 126 expected rows, found {}",
             report.rows.len()
         ));
     }
-    if report.expected_row_count != 125 {
+    if report.expected_row_count != 126 {
         return Err(anyhow!(
-            "all-domain missing-result test must track exactly 125 expected rows, found {}",
+            "all-domain missing-result test must track exactly 126 expected rows, found {}",
             report.expected_row_count
         ));
     }
-    if report.present_result_row_count != 122 {
+    if report.present_result_row_count != 123 {
         return Err(anyhow!(
-            "all-domain missing-result test must retain exactly 122 present rows after removing three results, found {}",
+            "all-domain missing-result test must retain exactly 123 present rows after removing three results, found {}",
             report.present_result_row_count
         ));
     }

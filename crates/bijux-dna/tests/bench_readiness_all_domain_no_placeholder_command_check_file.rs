@@ -45,13 +45,13 @@ fn bench_readiness_all_domain_no_placeholder_command_check_writes_governed_json_
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.all_domain_no_placeholder_command_check.v1")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(125));
-    assert_eq!(payload.get("command_step_count").and_then(serde_json::Value::as_u64), Some(139));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(126));
+    assert_eq!(payload.get("command_step_count").and_then(serde_json::Value::as_u64), Some(141));
     assert_eq!(
         payload.get("shell_wrapped_step_count").and_then(serde_json::Value::as_u64),
-        Some(82)
+        Some(83)
     );
-    assert_eq!(payload.get("direct_step_count").and_then(serde_json::Value::as_u64), Some(57));
+    assert_eq!(payload.get("direct_step_count").and_then(serde_json::Value::as_u64), Some(58));
     assert_eq!(payload.get("invalid_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));

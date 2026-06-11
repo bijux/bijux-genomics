@@ -51,18 +51,18 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/expected-benchmark-results-all-domains.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(125));
-    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(125));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(58));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(66));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(126));
+    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(126));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(59));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(67));
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(9));
-    assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(12));
+    assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(13));
 
     let domain_counts =
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(13));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(14));
 
     let section_counts = payload
         .get("report_section_counts")
@@ -72,13 +72,13 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     assert_eq!(section_counts.get("variant_calling").and_then(serde_json::Value::as_u64), Some(4));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 125);
+    assert_eq!(rows.len(), 126);
 
     let result_ids = rows
         .iter()
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(result_ids.len(), 125);
+    assert_eq!(result_ids.len(), 126);
 
     let taxonomy = rows
         .iter()

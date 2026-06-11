@@ -48,7 +48,7 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_writes_governed_tsv_file(
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 125);
+    assert_eq!(rows.len(), 126);
     assert!(rows.iter().any(|row| {
         row == &"bam\tbam.contamination\tschmutzi\tcorpus-01-adna-bam-mini\treference_fasta+reference_panel\tbam.adapter.contamination\tbam.parser.contamination\tbam_contamination_normalized_v1\tbenchmark_ready"
     }));

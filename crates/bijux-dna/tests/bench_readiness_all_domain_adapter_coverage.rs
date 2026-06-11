@@ -46,15 +46,15 @@ fn bench_readiness_all_domain_adapter_coverage_reports_complete_active_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/adapter-coverage.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(125));
-    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(125));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(58));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(66));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(126));
+    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(126));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(59));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(67));
     assert_eq!(
         payload.get("rendered_command_binding_count").and_then(serde_json::Value::as_u64),
-        Some(125)
+        Some(126)
     );
-    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(125));
+    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(126));
     assert_eq!(payload.get("missing_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("coverage_percent").and_then(serde_json::Value::as_f64), Some(100.0));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
@@ -64,7 +64,7 @@ fn bench_readiness_all_domain_adapter_coverage_reports_complete_active_rows() {
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(13));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(14));
 
     let command_source_counts = payload
         .get("command_source_counts")
@@ -89,12 +89,12 @@ fn bench_readiness_all_domain_adapter_coverage_reports_complete_active_rows() {
         .expect("coverage status counts");
     assert_eq!(
         coverage_status_counts.get("covered").and_then(serde_json::Value::as_u64),
-        Some(125)
+        Some(126)
     );
     assert_eq!(coverage_status_counts.len(), 1);
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 125);
+    assert_eq!(rows.len(), 126);
     assert!(rows.iter().all(|row| {
         row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
     }));

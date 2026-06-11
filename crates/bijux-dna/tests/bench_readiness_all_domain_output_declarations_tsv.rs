@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_output_declarations_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 125);
+    assert_eq!(rows.len(), 126);
 
     let has_row = |result_id: &str,
                    normalized_metric: &str,

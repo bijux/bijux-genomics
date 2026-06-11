@@ -46,14 +46,14 @@ fn bench_readiness_all_domain_retained_tools_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/retained-tools.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(66));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(67));
     assert_eq!(
         payload.get("active_matrix_tool_count").and_then(serde_json::Value::as_u64),
-        Some(66)
+        Some(67)
     );
     assert_eq!(
         payload.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64),
-        Some(66)
+        Some(67)
     );
     assert_eq!(payload.get("mixed_status_tool_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(

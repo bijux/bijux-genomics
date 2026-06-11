@@ -60,10 +60,10 @@ fn bench_readiness_all_domain_missing_result_test_writes_governed_report_and_fix
         persisted.get("missing_result_row_count").and_then(serde_json::Value::as_u64),
         Some(3)
     );
-    assert_eq!(persisted.get("expected_row_count").and_then(serde_json::Value::as_u64), Some(125));
+    assert_eq!(persisted.get("expected_row_count").and_then(serde_json::Value::as_u64), Some(126));
     assert_eq!(
         persisted.get("present_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(122)
+        Some(123)
     );
 
     let fixture_root =

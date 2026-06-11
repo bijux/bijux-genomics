@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_report_map_coverage_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 125);
+    assert_eq!(rows.len(), 126);
     assert!(rows.iter().any(|row| {
         row == &"fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2\tfastq\tfastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq.parser.screen_taxonomy\tfastq_screen_taxonomy_v1\tcontamination_screening\tcontamination_screening\tscreening_contamination\tfastq_report_map\tcovered\tactive row `fastq` / `fastq.screen_taxonomy` / `kraken2` appears in governed report section `contamination_screening` with summary table `screening_contamination` through `fastq_report_map`"
     }));
