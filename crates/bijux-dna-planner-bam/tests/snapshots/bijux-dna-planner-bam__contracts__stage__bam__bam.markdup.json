@@ -5,7 +5,7 @@
     "template": [
       "/bin/sh",
       "-c",
-      "samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/flagstat.before.txt && samtools idxstats tests/fixtures/plan_inputs/default/sample.bam > out/idxstats.before.txt && gatk MarkDuplicatesSpark -I tests/fixtures/plan_inputs/default/sample.bam -O out/markdup.bam --REMOVE_DUPLICATES false --CREATE_INDEX true && samtools flagstat out/markdup.bam > out/flagstat.after.txt && samtools idxstats out/markdup.bam > out/idxstats.after.txt && python - <<'PY' > out/markdup.summary.json\nimport json\npayload = {\"input_bam\": \"tests/fixtures/plan_inputs/default/sample.bam\", \"output_bam\": \"out/markdup.bam\", \"remove_duplicates\": false, \"artifacts\": {\"flagstat_before\": \"out/flagstat.before.txt\", \"flagstat_after\": \"out/flagstat.after.txt\", \"idxstats_before\": \"out/idxstats.before.txt\", \"idxstats_after\": \"out/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
+      "samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/flagstat.before.txt && samtools idxstats tests/fixtures/plan_inputs/default/sample.bam > out/idxstats.before.txt && samtools markdup tests/fixtures/plan_inputs/default/sample.bam out/markdup.bam && samtools index out/markdup.bam out/markdup.bam.bai && samtools flagstat out/markdup.bam > out/flagstat.after.txt && samtools idxstats out/markdup.bam > out/idxstats.after.txt && python - <<'PY' > out/markdup.summary.json\nimport json\npayload = {\"input_bam\": \"tests/fixtures/plan_inputs/default/sample.bam\", \"output_bam\": \"out/markdup.bam\", \"remove_duplicates\": false, \"artifacts\": {\"flagstat_before\": \"out/flagstat.before.txt\", \"flagstat_after\": \"out/flagstat.after.txt\", \"idxstats_before\": \"out/idxstats.before.txt\", \"idxstats_after\": \"out/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
     ]
   },
   "effective_params": {
@@ -109,7 +109,7 @@
       }
     },
     "kind": "default",
-    "summary": "tool picard selected by planner"
+    "summary": "tool samtools selected by planner"
   },
   "resources": {
     "mem_gb": 1,
@@ -119,6 +119,6 @@
   },
   "stage_id": "bam.markdup",
   "stage_version": 1,
-  "tool_id": "picard",
+  "tool_id": "samtools",
   "tool_version": "1.0.0"
 }

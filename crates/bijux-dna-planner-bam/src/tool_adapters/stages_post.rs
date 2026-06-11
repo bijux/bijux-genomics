@@ -41,6 +41,16 @@ pub mod markdup {
                 &summary,
                 params,
             ),
+            "picard" => crate::tool_adapters::tools::core::picard::markdup_args_with_audit(
+                bam,
+                &out_bam,
+                &flagstat_before,
+                &flagstat_after,
+                &idxstats_before,
+                &idxstats_after,
+                &summary,
+                params,
+            ),
             _ => crate::tool_adapters::tools::gatk::markdup_args_with_audit(
                 bam,
                 &out_bam,

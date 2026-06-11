@@ -14,6 +14,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
       "to": "bam.contamination"
     },
     {
+      "from": "bam.bias_mitigation",
+      "to": "bam.haplogroups"
+    },
+    {
       "from": "bam.contamination",
       "to": "bam.sex"
     },
@@ -31,11 +35,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
     },
     {
       "from": "bam.endogenous_content",
-      "to": "bam.damage"
+      "to": "bam.overlap_correction"
     },
     {
       "from": "bam.filter",
       "to": "bam.mapq_filter"
+    },
+    {
+      "from": "bam.genotyping",
+      "to": "bam.kinship"
+    },
+    {
+      "from": "bam.haplogroups",
+      "to": "bam.genotyping"
     },
     {
       "from": "bam.length_filter",
@@ -50,8 +62,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
       "to": "bam.length_filter"
     },
     {
+      "from": "bam.overlap_correction",
+      "to": "bam.damage"
+    },
+    {
       "from": "bam.sex",
-      "to": "bam.kinship"
+      "to": "bam.bias_mitigation"
     },
     {
       "from": "bam.validate",
@@ -74,7 +90,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
         "template": [
           "/bin/sh",
           "-c",
-          "samtools flagstat <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.flagstat.txt && samtools stats <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.stats.txt && python - <<'PY' <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.flagstat.txt <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.stats.txt > <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.json\nimport json,sys\nflagstat,stats=sys.argv[1],sys.argv[2]\nprint(json.dumps({\"method\":\"signal_aggregate\",\"flagstat\":flagstat,\"stats\":stats,\"mode\":\"aggregate\"}, indent=2))\nPY && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.summary.json\nimport json\nprint(json.dumps({\"method\": \"signal_aggregate\", \"mode\": \"aggregate\", \"status\": \"ok\"}, indent=2))\nPY"
+          "samtools flagstat <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam > <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.flagstat.txt && samtools stats <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam > <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.stats.txt && python - <<'PY' <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.flagstat.txt <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.stats.txt > <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.json\nimport json,sys\nflagstat,stats=sys.argv[1],sys.argv[2]\nprint(json.dumps({\"method\":\"signal_aggregate\",\"flagstat\":flagstat,\"stats\":stats,\"mode\":\"aggregate\"}, indent=2))\nPY && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.summary.json\nimport json\nprint(json.dumps({\"method\": \"signal_aggregate\", \"mode\": \"aggregate\", \"status\": \"ok\"}, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
@@ -91,7 +107,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
           {
             "name": "bam",
             "optional": false,
-            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam",
             "role": "bam"
           }
         ],
@@ -133,9 +149,68 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
       "aux_images": {},
       "command": {
         "template": [
+          "bwa"
+        ]
+      },
+      "expected_artifact_ids": [
+        "bias_report",
+        "summary",
+        "stage_metrics"
+      ],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "bias_report",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_bias_mitigation/bias.json",
+            "role": "report_json"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_bias_mitigation/bias.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_bias_mitigation/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_bias_mitigation",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.bias_mitigation",
+      "step_id": "bam.bias_mitigation"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
           "/bin/sh",
           "-c",
-          "schmutzi --bam <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam --outdir <TMPDIR>/<TMP>/out/bam_contamination && if [ -f <TMPDIR>/<TMP>/out/bam_contamination/contamination.txt ]; then cp <TMPDIR>/<TMP>/out/bam_contamination/contamination.txt <TMPDIR>/<TMP>/out/bam_contamination/contamination.json; else : > <TMPDIR>/<TMP>/out/bam_contamination/contamination.json; fi && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_contamination/contamination.summary.json\nimport json\nprint(json.dumps({\"method\": \"schmutzi\", \"scope\": \"mt\"}, indent=2))\nPY"
+          "schmutzi --bam <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam --reference <TMPDIR>/<TMP>/mt_reference.fasta --outdir <TMPDIR>/<TMP>/out/bam_contamination && if [ -f <TMPDIR>/<TMP>/out/bam_contamination/contamination.txt ]; then cp <TMPDIR>/<TMP>/out/bam_contamination/contamination.txt <TMPDIR>/<TMP>/out/bam_contamination/contamination.json; else : > <TMPDIR>/<TMP>/out/bam_contamination/contamination.json; fi && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_contamination/contamination.summary.json\nimport json\nprint(json.dumps(json.loads(\"{\\n  \\\"assumptions\\\": null,\\n  \\\"emit_confidence_caveats\\\": true,\\n  \\\"method\\\": \\\"schmutzi\\\",\\n  \\\"minimum_mean_coverage\\\": 0.5,\\n  \\\"reference\\\": \\\"<TMPDIR>/<TMP>/mt_reference.fasta\\\",\\n  \\\"reference_panels\\\": [],\\n  \\\"scope\\\": \\\"both\\\",\\n  \\\"tool_scope\\\": \\\"mt\\\"\\n}\"), indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
@@ -152,8 +227,20 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
           {
             "name": "bam",
             "optional": false,
-            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam",
             "role": "bam"
+          },
+          {
+            "name": "bam_bai",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam.bai",
+            "role": "index"
+          },
+          {
+            "name": "reference",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/mt_reference.fasta",
+            "role": "reference"
           }
         ],
         "outputs": [
@@ -201,6 +288,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
       },
       "expected_artifact_ids": [
         "coverage_summary",
+        "coverage_depth",
         "stage_metrics"
       ],
       "image": {
@@ -222,6 +310,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
             "optional": false,
             "path": "<TMPDIR>/<TMP>/out/bam_coverage/coverage.mosdepth.summary.txt",
             "role": "report_json"
+          },
+          {
+            "name": "coverage_depth",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_coverage/coverage.depth.txt",
+            "role": "unknown"
           },
           {
             "name": "stage_metrics",
@@ -250,12 +344,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
         "template": [
           "/bin/sh",
           "-c",
-          "mapDamage --bam <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam --folder <TMPDIR>/<TMP>/out/bam_damage && if [ -f <TMPDIR>/<TMP>/out/bam_damage/misincorporation.txt ]; then cp <TMPDIR>/<TMP>/out/bam_damage/misincorporation.txt <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; elif [ -f <TMPDIR>/<TMP>/out/bam_damage/5pCtoT.txt ]; then cp <TMPDIR>/<TMP>/out/bam_damage/5pCtoT.txt <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; else : > <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; fi"
+          "mapDamage --bam <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam --folder <TMPDIR>/<TMP>/out/bam_damage && if [ -f <TMPDIR>/<TMP>/out/bam_damage/misincorporation.txt ]; then cp <TMPDIR>/<TMP>/out/bam_damage/misincorporation.txt <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; elif [ -f <TMPDIR>/<TMP>/out/bam_damage/5pCtoT.txt ]; then cp <TMPDIR>/<TMP>/out/bam_damage/5pCtoT.txt <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; else : > <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; fi"
         ]
       },
       "expected_artifact_ids": [
-        "damage_pydamage",
-        "damage_mapdamage2",
+        "damage_report",
+        "terminal_position_metrics",
+        "parser_output",
         "stage_metrics"
       ],
       "image": {
@@ -267,21 +362,27 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
           {
             "name": "bam",
             "optional": false,
-            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam",
             "role": "bam"
           }
         ],
         "outputs": [
           {
-            "name": "damage_pydamage",
+            "name": "damage_report",
             "optional": false,
-            "path": "<TMPDIR>/<TMP>/out/bam_damage/damage.pydamage.json",
-            "role": "unknown"
+            "path": "<TMPDIR>/<TMP>/out/bam_damage/damage.summary.json",
+            "role": "report_json"
           },
           {
-            "name": "damage_mapdamage2",
+            "name": "terminal_position_metrics",
             "optional": false,
-            "path": "<TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_damage/damage.unified_metrics.json",
+            "role": "metrics_json"
+          },
+          {
+            "name": "parser_output",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_damage/damage.parser_output.json",
             "role": "unknown"
           },
           {
@@ -379,13 +480,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
         "template": [
           "/bin/sh",
           "-c",
-          "samtools depth -a <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_endogenous_content/coverage.depth.txt && awk '{sum+=$3; if($3>0) cov++} END {mean=(NR>0)?sum/NR:0; print \"total\", NR, cov, mean}' <TMPDIR>/<TMP>/out/bam_endogenous_content/coverage.depth.txt > <TMPDIR>/<TMP>/out/bam_endogenous_content/coverage.mosdepth.summary.txt"
+          "samtools flagstat <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_endogenous_content/flagstat.txt && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_endogenous_content/endogenous.content.json\nimport json\npayload = {\"stage\": \"bam.endogenous_content\", \"method\": \"mapped_fraction_from_flagstat\", \"flagstat\": \"<TMPDIR>/<TMP>/out/bam_endogenous_content/flagstat.txt\", \"host_reference_scope\": \"host_reference_required\", \"host_reference_digest\": null, \"refuse_without_host_reference\": true}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
-        "coverage_summary",
-        "stage_metrics",
-        "coverage_depth"
+        "endogenous_report",
+        "summary",
+        "stage_metrics"
       ],
       "image": {
         "digest": "sha256:bwa",
@@ -402,9 +503,15 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
         ],
         "outputs": [
           {
-            "name": "coverage_summary",
+            "name": "endogenous_report",
             "optional": false,
-            "path": "<TMPDIR>/<TMP>/out/bam_endogenous_content/coverage.mosdepth.summary.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_endogenous_content/endogenous.content.json",
+            "role": "report_json"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_endogenous_content/endogenous.summary.json",
             "role": "report_json"
           },
           {
@@ -412,12 +519,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
             "optional": false,
             "path": "<TMPDIR>/<TMP>/out/bam_endogenous_content/stage.metrics.json",
             "role": "metrics_json"
-          },
-          {
-            "name": "coverage_depth",
-            "optional": false,
-            "path": "<TMPDIR>/<TMP>/out/bam_endogenous_content/coverage.depth.txt",
-            "role": "report_json"
           }
         ]
       },
@@ -536,7 +637,156 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
         "template": [
           "/bin/sh",
           "-c",
-          "king -b <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam --kinship --related --prefix <TMPDIR>/<TMP>/out/bam_kinship/kinship && if [ -f <TMPDIR>/<TMP>/out/bam_kinship/kinship.kin0 ]; then cp <TMPDIR>/<TMP>/out/bam_kinship/kinship.kin0 <TMPDIR>/<TMP>/out/bam_kinship/kinship.segments.tsv; else : > <TMPDIR>/<TMP>/out/bam_kinship/kinship.segments.tsv; fi && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_kinship/kinship.summary.json\nimport json\nprint(json.dumps({\"method\": \"king\", \"reference_panel\": \"panel.vcf\", \"min_overlap_snps\": 200}, indent=2))\nPY && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_kinship/kinship.json\nimport json\nprint(json.dumps({\"status\": \"ok\", \"tool\": \"king\", \"segments\": \"<TMPDIR>/<TMP>/out/bam_kinship/kinship.segments.tsv\"}, indent=2))\nPY"
+          "angsd -i <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam -doGlf 2 -doMajorMinor 1 -doMaf 1 -out <TMPDIR>/<TMP>/out/bam_genotyping/genotyping && bcftools view <TMPDIR>/<TMP>/out/bam_genotyping/genotyping.bcf -Oz -o <TMPDIR>/<TMP>/out/bam_genotyping/genotyping.vcf.gz && tabix -f -p vcf <TMPDIR>/<TMP>/out/bam_genotyping/genotyping.vcf.gz && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_genotyping/genotyping.gl.json\nimport json\nprint(json.dumps({\"producer\": \"angsd\", \"gl_source\": \"<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.glf.gz\", \"bcf_source\": \"<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.bcf\"}, indent=2))\nPY && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_genotyping/genotyping.summary.json\nimport json\nprint(json.dumps({\"caller\": \"angsd\", \"reference\": \"\", \"sites\": \"\", \"regions\": \"\", \"bcf\": \"<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.bcf\", \"vcf\": \"<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.vcf.gz\", \"tbi\": \"<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.vcf.gz.tbi\", \"min_posterior\": 0.8, \"min_call_rate\": 0.7}, indent=2))\nPY && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_genotyping/genotyping.json\nimport json\nprint(json.dumps({\"status\": \"ok\", \"producer\": \"bam.genotyping\", \"reference\": \"\", \"sites\": \"\", \"regions\": \"\", \"output_bcf\": \"<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.bcf\", \"output_vcf\": \"<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.vcf.gz\"}, indent=2))\nPY"
+        ]
+      },
+      "expected_artifact_ids": [
+        "genotyping_report",
+        "summary",
+        "stage_metrics",
+        "genotyping_vcf",
+        "genotyping_vcf_tbi",
+        "genotyping_gl"
+      ],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "genotyping_report",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.json",
+            "role": "report_json"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_genotyping/stage.metrics.json",
+            "role": "metrics_json"
+          },
+          {
+            "name": "genotyping_vcf",
+            "optional": true,
+            "path": "<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.vcf.gz",
+            "role": "variant"
+          },
+          {
+            "name": "genotyping_vcf_tbi",
+            "optional": true,
+            "path": "<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.vcf.gz.tbi",
+            "role": "index"
+          },
+          {
+            "name": "genotyping_gl",
+            "optional": true,
+            "path": "<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.gl.json",
+            "role": "report_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_genotyping",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.genotyping",
+      "step_id": "bam.genotyping"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "test -f <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam.bai && test -f rcrs.fasta && yleaf -bam <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam -o <TMPDIR>/<TMP>/out/bam_haplogroups/haplogroups --reference_genome rCRS && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_haplogroups/haplogroups.summary.json\nimport json\nprint(json.dumps(json.loads({\"method\":\"yleaf\",\"min_coverage\":5.0,\"population_scope\":\"mitochondrial_haplogroup_reference\",\"reference_build\":\"rCRS\",\"reference_panel\":\"rcrs.fasta\",\"refuse_without_population_context\":true}), indent=2))\nPY && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_haplogroups/haplogroups.json\nimport json\nprint(json.dumps(json.loads({\"assignment_output_prefix\":\"<TMPDIR>/<TMP>/out/bam_haplogroups/haplogroups\",\"classification_scope\":\"y_haplogroup_inference\",\"coverage_gate\":{\"min_coverage\":5.0},\"population_scope\":\"mitochondrial_haplogroup_reference\",\"reference_build\":\"rCRS\",\"reference_panel\":\"rcrs.fasta\",\"refuse_without_population_context\":true,\"schema_version\":\"bijux.bam.haplogroups.v1\",\"summary_output\":\"<TMPDIR>/<TMP>/out/bam_haplogroups/haplogroups.summary.json\",\"tool\":\"yleaf\"}), indent=2))\nPY"
+        ]
+      },
+      "expected_artifact_ids": [
+        "haplogroups",
+        "summary",
+        "stage_metrics"
+      ],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam",
+            "role": "bam"
+          },
+          {
+            "name": "bam_bai",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam.bai",
+            "role": "index"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "haplogroups",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_haplogroups/haplogroups.json",
+            "role": "unknown"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_haplogroups/haplogroups.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_haplogroups/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_haplogroups",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.haplogroups",
+      "step_id": "bam.haplogroups"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "king -b <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam --kinship --related --prefix <TMPDIR>/<TMP>/out/bam_kinship/kinship && if [ -f <TMPDIR>/<TMP>/out/bam_kinship/kinship.kin0 ]; then cp <TMPDIR>/<TMP>/out/bam_kinship/kinship.kin0 <TMPDIR>/<TMP>/out/bam_kinship/kinship.segments.tsv; else : > <TMPDIR>/<TMP>/out/bam_kinship/kinship.segments.tsv; fi && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_kinship/kinship.summary.json\nimport json\nprint(json.dumps({\"method\": \"king\", \"reference_panel\": \"panel.vcf\", \"min_overlap_snps\": 200}, indent=2))\nPY && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_kinship/kinship.json\nimport json\nprint(json.dumps({\"status\": \"ok\", \"tool\": \"king\", \"segments\": \"<TMPDIR>/<TMP>/out/bam_kinship/kinship.segments.tsv\"}, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
@@ -553,7 +803,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
           {
             "name": "bam",
             "optional": false,
-            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam",
             "role": "bam"
           }
         ],
@@ -663,7 +913,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
           {
             "name": "summary",
             "optional": false,
-            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filter.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/length_filter.summary.json",
             "role": "report_json"
           },
           {
@@ -834,7 +1084,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
           {
             "name": "summary",
             "optional": false,
-            "path": "<TMPDIR>/<TMP>/out/bam_mapq_filter/filter.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapq_filter/mapq_filter.summary.json",
             "role": "report_json"
           },
           {
@@ -864,7 +1114,103 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
         "template": [
           "/bin/sh",
           "-c",
-          "rxy --input <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_sex/sex.json && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_sex/sex.summary.json\nimport json\npayload = {\"method\": \"rxy\", \"x_to_y_ratio\": 0.0, \"confidence\": 0.0}\nprint(json.dumps(payload, indent=2))\nPY"
+          "samtools flagstat <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_overlap_correction/flagstat.before.txt && samtools idxstats <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_overlap_correction/idxstats.before.txt && bam clipOverlap --in <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam --out <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam --stats > <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap_correction.summary.json.clipoverlap.log 2>&1 && samtools index -@ 1 <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam.bai && samtools flagstat <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam > <TMPDIR>/<TMP>/out/bam_overlap_correction/flagstat.after.txt && samtools idxstats <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam > <TMPDIR>/<TMP>/out/bam_overlap_correction/idxstats.after.txt && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap_correction.summary.json\nimport json\nprint(json.dumps({\"method\": \"bamutil.clipOverlap\", \"input\": \"<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam\", \"output\": \"<TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam\"}, indent=2))\nPY"
+        ]
+      },
+      "expected_artifact_ids": [
+        "overlap_corrected_bam",
+        "overlap_corrected_bai",
+        "summary",
+        "stage_metrics",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after"
+      ],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "overlap_corrected_bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam",
+            "role": "bam"
+          },
+          {
+            "name": "overlap_corrected_bai",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam.bai",
+            "role": "index"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/overlap_correction.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/stage.metrics.json",
+            "role": "metrics_json"
+          },
+          {
+            "name": "flagstat_before",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/flagstat.before.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "flagstat_after",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/flagstat.after.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "idxstats_before",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/idxstats.before.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "idxstats_after",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/idxstats.after.txt",
+            "role": "report_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_overlap_correction",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.overlap_correction",
+      "step_id": "bam.overlap_correction"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "rxy --input <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam > <TMPDIR>/<TMP>/out/bam_sex/sex.json && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_sex/sex.summary.json\nimport json\npayload = {\"method\": \"rxy\", \"x_to_y_ratio\": 0.0, \"confidence\": 0.0}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
@@ -881,7 +1227,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
           {
             "name": "bam",
             "optional": false,
-            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam",
             "role": "bam"
           }
         ],

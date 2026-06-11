@@ -5,7 +5,7 @@
     "template": [
       "/bin/sh",
       "-c",
-      "angsd -i tests/fixtures/plan_inputs/default/sample.bam -doGlf 2 -doMajorMinor 1 -doMaf 1 -out out/genotyping && bcftools view out/genotyping.bcf -Oz -o out/genotyping.vcf.gz && tabix -f -p vcf out/genotyping.vcf.gz && python - <<'PY' > out/genotyping.gl.json\nimport json\nprint(json.dumps({\"producer\": \"angsd\", \"gl_source\": \"out/genotyping.glf.gz\"}, indent=2))\nPY && python - <<'PY' > out/genotyping.summary.json\nimport json\nprint(json.dumps({\"caller\": \"angsd\", \"vcf\": \"out/genotyping.vcf.gz\", \"tbi\": \"out/genotyping.vcf.gz.tbi\", \"min_posterior\": 0.8, \"min_call_rate\": 0.7}, indent=2))\nPY && python - <<'PY' > out/genotyping.json\nimport json\nprint(json.dumps({\"status\": \"ok\", \"producer\": \"bam.genotyping\"}, indent=2))\nPY"
+      "angsd -i tests/fixtures/plan_inputs/default/sample.bam -doGlf 2 -doMajorMinor 1 -doMaf 1 -out out/genotyping && bcftools view out/genotyping.bcf -Oz -o out/genotyping.vcf.gz && tabix -f -p vcf out/genotyping.vcf.gz && python - <<'PY' > out/genotyping.gl.json\nimport json\nprint(json.dumps({\"producer\": \"angsd\", \"gl_source\": \"out/genotyping.glf.gz\", \"bcf_source\": \"out/genotyping.bcf\"}, indent=2))\nPY && python - <<'PY' > out/genotyping.summary.json\nimport json\nprint(json.dumps({\"caller\": \"angsd\", \"reference\": \"\", \"sites\": \"\", \"regions\": \"\", \"bcf\": \"out/genotyping.bcf\", \"vcf\": \"out/genotyping.vcf.gz\", \"tbi\": \"out/genotyping.vcf.gz.tbi\", \"min_posterior\": 0.8, \"min_call_rate\": 0.7}, indent=2))\nPY && python - <<'PY' > out/genotyping.json\nimport json\nprint(json.dumps({\"status\": \"ok\", \"producer\": \"bam.genotyping\", \"reference\": \"\", \"sites\": \"\", \"regions\": \"\", \"output_bcf\": \"out/genotyping.bcf\", \"output_vcf\": \"out/genotyping.vcf.gz\"}, indent=2))\nPY"
     ]
   },
   "effective_params": {
@@ -49,7 +49,7 @@
         "name": "genotyping_vcf",
         "optional": true,
         "path": "out/genotyping.vcf.gz",
-        "role": "report_json"
+        "role": "variant"
       },
       {
         "name": "genotyping_vcf_tbi",
@@ -68,20 +68,25 @@
   "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
+    "bai": null,
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
     "caller": "angsd",
     "min_call_rate": 0.7,
     "min_posterior": 0.8,
     "producer_contract": {
+      "bcf": null,
       "gl": "out/genotyping.gl.json",
       "tbi": "out/genotyping.vcf.gz.tbi",
       "vcf": "out/genotyping.vcf.gz"
-    }
+    },
+    "reference": null,
+    "regions": null,
+    "sites": null
   },
   "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "c6c203e1be413de93f21bd94cb9722e949bcab5ef4822df34a50fc5b545f2674",
+      "contract_hash": "205ebeb748b41d4b87438e4070326d8337a79b1f30b6d8ded2881008c63976eb",
       "defaults_diff": {},
       "resource_plan": {
         "cpu_threads": 4,

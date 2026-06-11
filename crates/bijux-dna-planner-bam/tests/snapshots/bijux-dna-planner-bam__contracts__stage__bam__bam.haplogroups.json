@@ -2,7 +2,11 @@
   "aux_images": {},
   "canonical_contract": null,
   "command": {
-    "template": []
+    "template": [
+      "/bin/sh",
+      "-c",
+      "test -f tests/fixtures/plan_inputs/default/sample.bam.bai && test -f rcrs.fasta && yleaf -bam tests/fixtures/plan_inputs/default/sample.bam -o out/haplogroups --reference_genome rCRS && python - <<'PY' > out/haplogroups.summary.json\nimport json\nprint(json.dumps(json.loads({\"method\":\"yleaf\",\"min_coverage\":5.0,\"population_scope\":\"mitochondrial_haplogroup_reference\",\"reference_build\":\"rCRS\",\"reference_panel\":\"rcrs.fasta\",\"refuse_without_population_context\":true}), indent=2))\nPY && python - <<'PY' > out/haplogroups.json\nimport json\nprint(json.dumps(json.loads({\"assignment_output_prefix\":\"out/haplogroups\",\"classification_scope\":\"y_haplogroup_inference\",\"coverage_gate\":{\"min_coverage\":5.0},\"population_scope\":\"mitochondrial_haplogroup_reference\",\"reference_build\":\"rCRS\",\"reference_panel\":\"rcrs.fasta\",\"refuse_without_population_context\":true,\"schema_version\":\"bijux.bam.haplogroups.v1\",\"summary_output\":\"out/haplogroups.summary.json\",\"tool\":\"yleaf\"}), indent=2))\nPY"
+    ]
   },
   "effective_params": {
     "min_coverage": 5.0,
@@ -22,6 +26,12 @@
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
         "role": "bam"
+      },
+      {
+        "name": "bam_bai",
+        "optional": false,
+        "path": "tests/fixtures/plan_inputs/default/sample.bam.bai",
+        "role": "index"
       }
     ],
     "outputs": [
@@ -48,6 +58,7 @@
   "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
+    "bai": "tests/fixtures/plan_inputs/default/sample.bam.bai",
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
     "min_coverage": 5.0,
     "population_scope": "mitochondrial_haplogroup_reference",
@@ -79,7 +90,7 @@
       }
     },
     "kind": "default",
-    "summary": "tool samtools selected by planner"
+    "summary": "tool yleaf selected by planner"
   },
   "resources": {
     "mem_gb": 1,
@@ -89,6 +100,6 @@
   },
   "stage_id": "bam.haplogroups",
   "stage_version": 1,
-  "tool_id": "samtools",
+  "tool_id": "yleaf",
   "tool_version": "1.0.0"
 }
