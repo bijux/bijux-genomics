@@ -1,0 +1,65 @@
+{
+  "schema_version": "bijux.bench.stage_result.v2",
+  "stage_id": "fastq.merge_pairs",
+  "tool": {
+    "id": "pear"
+  },
+  "command": {
+    "rendered": "bijux-dna bench readiness missing-result-fixture --stage fastq.merge_pairs --tool pear"
+  },
+  "runtime": {
+    "mode": "fake_benchmark_result",
+    "status": "succeeded",
+    "started_at": "1970-01-01T00:00:00Z",
+    "finished_at": "1970-01-01T00:00:01Z",
+    "elapsed_seconds": 1.0,
+    "exit_code": 0
+  },
+  "resource_metrics": {
+    "source": "estimated",
+    "memory_mb": 512.0,
+    "cpu_threads": 1
+  },
+  "outputs": [
+    {
+      "artifact_id": "merged_reads",
+      "declared_path": "outputs/merged_reads.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.merge_pairs/sample-set/pear/outputs/merged_reads.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "unmerged_reads_r1",
+      "declared_path": "outputs/unmerged_reads_r1.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.merge_pairs/sample-set/pear/outputs/unmerged_reads_r1.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "unmerged_reads_r2",
+      "declared_path": "outputs/unmerged_reads_r2.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.merge_pairs/sample-set/pear/outputs/unmerged_reads_r2.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "report_json",
+      "declared_path": "outputs/report_json.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.merge_pairs/sample-set/pear/outputs/report_json.json",
+      "role": "normalized_metrics",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "raw_backend_report_txt",
+      "declared_path": "outputs/raw_backend_report_txt.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.merge_pairs/sample-set/pear/outputs/raw_backend_report_txt.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    }
+  ]
+}

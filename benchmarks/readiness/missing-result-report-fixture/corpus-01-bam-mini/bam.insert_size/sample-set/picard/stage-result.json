@@ -1,0 +1,177 @@
+{
+  "schema_version": "bijux.bench.stage_result.v2",
+  "stage_id": "bam.insert_size",
+  "tool": {
+    "id": "picard"
+  },
+  "command": {
+    "rendered": "bijux-dna bench readiness missing-result-fixture --stage bam.insert_size --tool picard"
+  },
+  "runtime": {
+    "mode": "fake_benchmark_result",
+    "status": "succeeded",
+    "started_at": "1970-01-01T00:00:00Z",
+    "finished_at": "1970-01-01T00:00:01Z",
+    "elapsed_seconds": 1.0,
+    "exit_code": 0
+  },
+  "resource_metrics": {
+    "source": "estimated",
+    "memory_mb": 512.0,
+    "cpu_threads": 1
+  },
+  "outputs": [
+    {
+      "artifact_id": "gc_bias_report",
+      "declared_path": "outputs/gc_bias_report.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/gc_bias_report.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "gc_bias_plot",
+      "declared_path": "outputs/gc_bias_plot.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/gc_bias_plot.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "summary",
+      "declared_path": "outputs/summary.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/summary.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "stage_metrics",
+      "declared_path": "outputs/stage_metrics.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/stage_metrics.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "insert_size_report",
+      "declared_path": "outputs/insert_size_report.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/insert_size_report.json",
+      "role": "normalized_metrics",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "insert_size_histogram",
+      "declared_path": "outputs/insert_size_histogram.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/insert_size_histogram.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "duplication_report",
+      "declared_path": "outputs/duplication_report.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/duplication_report.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "duplication_histogram",
+      "declared_path": "outputs/duplication_histogram.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/duplication_histogram.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "markdup_bam",
+      "declared_path": "outputs/markdup_bam.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/markdup_bam.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "markdup_bai",
+      "declared_path": "outputs/markdup_bai.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/markdup_bai.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "flagstat_before",
+      "declared_path": "outputs/flagstat_before.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/flagstat_before.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "flagstat_after",
+      "declared_path": "outputs/flagstat_after.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/flagstat_after.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "idxstats_before",
+      "declared_path": "outputs/idxstats_before.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/idxstats_before.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "idxstats_after",
+      "declared_path": "outputs/idxstats_after.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/idxstats_after.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "filtered_bam",
+      "declared_path": "outputs/filtered_bam.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/filtered_bam.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "filtered_bai",
+      "declared_path": "outputs/filtered_bai.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/filtered_bai.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "flagstat",
+      "declared_path": "outputs/flagstat.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/flagstat.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "idxstats",
+      "declared_path": "outputs/idxstats.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/idxstats.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "stats",
+      "declared_path": "outputs/stats.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.insert_size/sample-set/picard/outputs/stats.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    }
+  ]
+}

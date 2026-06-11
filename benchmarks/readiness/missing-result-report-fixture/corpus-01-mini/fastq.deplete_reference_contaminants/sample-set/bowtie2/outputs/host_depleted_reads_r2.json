@@ -1,0 +1,1 @@
+{"artifact_id":"host_depleted_reads_r2","stage_id":"fastq.deplete_reference_contaminants","tool_id":"bowtie2"}

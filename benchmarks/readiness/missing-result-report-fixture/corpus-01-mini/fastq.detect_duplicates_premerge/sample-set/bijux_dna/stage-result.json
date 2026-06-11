@@ -1,0 +1,33 @@
+{
+  "schema_version": "bijux.bench.stage_result.v2",
+  "stage_id": "fastq.detect_duplicates_premerge",
+  "tool": {
+    "id": "bijux_dna"
+  },
+  "command": {
+    "rendered": "bijux-dna bench readiness missing-result-fixture --stage fastq.detect_duplicates_premerge --tool bijux_dna"
+  },
+  "runtime": {
+    "mode": "fake_benchmark_result",
+    "status": "succeeded",
+    "started_at": "1970-01-01T00:00:00Z",
+    "finished_at": "1970-01-01T00:00:01Z",
+    "elapsed_seconds": 1.0,
+    "exit_code": 0
+  },
+  "resource_metrics": {
+    "source": "estimated",
+    "memory_mb": 512.0,
+    "cpu_threads": 1
+  },
+  "outputs": [
+    {
+      "artifact_id": "duplicate_signal_report",
+      "declared_path": "outputs/duplicate_signal_report.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.detect_duplicates_premerge/sample-set/bijux_dna/outputs/duplicate_signal_report.json",
+      "role": "normalized_metrics",
+      "optional": false,
+      "exists": true
+    }
+  ]
+}

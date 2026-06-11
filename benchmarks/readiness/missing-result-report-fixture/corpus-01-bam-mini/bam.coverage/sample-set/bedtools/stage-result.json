@@ -1,0 +1,121 @@
+{
+  "schema_version": "bijux.bench.stage_result.v2",
+  "stage_id": "bam.coverage",
+  "tool": {
+    "id": "bedtools"
+  },
+  "command": {
+    "rendered": "bijux-dna bench readiness missing-result-fixture --stage bam.coverage --tool bedtools"
+  },
+  "runtime": {
+    "mode": "fake_benchmark_result",
+    "status": "succeeded",
+    "started_at": "1970-01-01T00:00:00Z",
+    "finished_at": "1970-01-01T00:00:01Z",
+    "elapsed_seconds": 1.0,
+    "exit_code": 0
+  },
+  "resource_metrics": {
+    "source": "estimated",
+    "memory_mb": 512.0,
+    "cpu_threads": 1
+  },
+  "outputs": [
+    {
+      "artifact_id": "validation_report",
+      "declared_path": "outputs/validation_report.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.coverage/sample-set/bedtools/outputs/validation_report.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "flagstat",
+      "declared_path": "outputs/flagstat.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.coverage/sample-set/bedtools/outputs/flagstat.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "stage_metrics",
+      "declared_path": "outputs/stage_metrics.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.coverage/sample-set/bedtools/outputs/stage_metrics.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "filtered_bam",
+      "declared_path": "outputs/filtered_bam.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.coverage/sample-set/bedtools/outputs/filtered_bam.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "filtered_bai",
+      "declared_path": "outputs/filtered_bai.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.coverage/sample-set/bedtools/outputs/filtered_bai.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "flagstat_before",
+      "declared_path": "outputs/flagstat_before.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.coverage/sample-set/bedtools/outputs/flagstat_before.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "flagstat_after",
+      "declared_path": "outputs/flagstat_after.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.coverage/sample-set/bedtools/outputs/flagstat_after.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "idxstats_before",
+      "declared_path": "outputs/idxstats_before.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.coverage/sample-set/bedtools/outputs/idxstats_before.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "idxstats_after",
+      "declared_path": "outputs/idxstats_after.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.coverage/sample-set/bedtools/outputs/idxstats_after.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "summary",
+      "declared_path": "outputs/summary.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.coverage/sample-set/bedtools/outputs/summary.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "coverage_summary",
+      "declared_path": "outputs/coverage_summary.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.coverage/sample-set/bedtools/outputs/coverage_summary.json",
+      "role": "normalized_metrics",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "coverage_depth",
+      "declared_path": "outputs/coverage_depth.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.coverage/sample-set/bedtools/outputs/coverage_depth.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    }
+  ]
+}

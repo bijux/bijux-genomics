@@ -1,0 +1,57 @@
+{
+  "schema_version": "bijux.bench.stage_result.v2",
+  "stage_id": "bam.qc_pre",
+  "tool": {
+    "id": "multiqc"
+  },
+  "command": {
+    "rendered": "bijux-dna bench readiness missing-result-fixture --stage bam.qc_pre --tool multiqc"
+  },
+  "runtime": {
+    "mode": "fake_benchmark_result",
+    "status": "succeeded",
+    "started_at": "1970-01-01T00:00:00Z",
+    "finished_at": "1970-01-01T00:00:01Z",
+    "elapsed_seconds": 1.0,
+    "exit_code": 0
+  },
+  "resource_metrics": {
+    "source": "estimated",
+    "memory_mb": 512.0,
+    "cpu_threads": 1
+  },
+  "outputs": [
+    {
+      "artifact_id": "report_json",
+      "declared_path": "outputs/report_json.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.qc_pre/sample-set/multiqc/outputs/report_json.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "multiqc_report",
+      "declared_path": "outputs/multiqc_report.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.qc_pre/sample-set/multiqc/outputs/multiqc_report.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "multiqc_data",
+      "declared_path": "outputs/multiqc_data.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.qc_pre/sample-set/multiqc/outputs/multiqc_data.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "governed_qc_inputs_manifest",
+      "declared_path": "outputs/governed_qc_inputs_manifest.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-bam-mini/bam.qc_pre/sample-set/multiqc/outputs/governed_qc_inputs_manifest.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    }
+  ]
+}
