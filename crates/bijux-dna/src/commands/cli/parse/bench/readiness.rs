@@ -176,6 +176,8 @@ pub enum BenchReadinessCommand {
     RenderVcfAdaptersReady(BenchReadinessRenderVcfAdaptersReadyArgs),
     #[command(name = "render-vcf-active-stage-tool-matrix")]
     RenderVcfActiveStageToolMatrix(BenchReadinessRenderVcfActiveStageToolMatrixArgs),
+    #[command(name = "render-vcf-local-container-smoke")]
+    RenderVcfLocalContainerSmoke(BenchReadinessRenderVcfLocalContainerSmokeArgs),
     #[command(name = "render-vcf-damage-filter-ready")]
     RenderVcfDamageFilterReady(BenchReadinessRenderVcfDamageFilterReadyArgs),
     #[command(name = "render-vcf-filter-ready")]
@@ -496,6 +498,14 @@ pub struct BenchReadinessRenderVcfAdaptersReadyArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfActiveStageToolMatrixArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfLocalContainerSmokeArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

@@ -590,6 +590,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfLocalContainerSmoke(args) => {
+                        crate::commands::benchmark::readiness::vcf_local_container_smoke::run_render_vcf_local_container_smoke(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfDamageFilterReady(args) => {
                         crate::commands::benchmark::readiness::vcf_damage_filter_ready::run_render_vcf_damage_filter_ready(
                             args,
