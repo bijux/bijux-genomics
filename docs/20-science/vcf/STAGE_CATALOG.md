@@ -168,12 +168,12 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 - References: `domain/vcf/stages/postprocess.yaml`, `domain/vcf/docs/IMPUTATION_CONTRACT.md`.
 
 ### vcf.ibd {#vcf-ibd}
-- Status: supported.
+- Status: planned.
 - Purpose: estimate pairwise IBD segments for relatedness and demographic downstreams with normalized pair rows.
 - Inputs/Outputs: cohort VCF → IBD segments and report.
 - Metrics: pair count, normalized pair rows, status, insufficient reason, insufficient-overlap probe.
 - Tools: germline, ibdseq, ibdhap.
-- Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/ibd.yaml`, `docs/20-science/vcf/IBD.md`.
 
 ### vcf.roh {#vcf-roh}
@@ -188,8 +188,8 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 ### vcf.demography {#vcf-demography}
 - Status: planned.
 - Purpose: estimate recent Ne-style demography summaries from IBD-derived evidence.
-- Inputs/Outputs: IBD summaries → demography report.
-- Metrics: recent Ne, time-series summaries.
+- Inputs/Outputs: normalized IBD segments → demography report.
+- Metrics: method, inference status, status, insufficiency reason, time bins, and Ne estimates.
 - Tools: ibdne.
 - Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/demography.yaml`, `docs/20-science/vcf/DEMOGRAPHY.md`.

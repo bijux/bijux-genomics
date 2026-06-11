@@ -6,7 +6,7 @@ Define the governed relatedness-inference boundary for pairwise IBD segments wit
 ## Scope
 This science surface covers:
 - `vcf.phasing` as the upstream haplotype-preparation boundary when an admitted IBD backend requires phased input.
-- `vcf.ibd` as the supported pairwise segment-calling contract.
+- `vcf.ibd` as the planned pairwise segment-calling stage with an active normalized pairwise contract.
 - `vcf.demography` only as a downstream consumer of IBD summaries, not as part of the segment-calling output itself.
 
 ## Non-goals
@@ -15,7 +15,7 @@ This science surface covers:
 
 ## Contracts
 - `vcf.ibd` emits `ibd_segments` with schema `bijux.vcf.ibd.v1`.
-- Admitted tools are `germline`, `ibdseq`, and `ibdhap`; the governed baseline default stays `germline` in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Admitted tools are `germline`, `ibdseq`, and `ibdhap`; the planned default stays `germline` in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - Required metrics include `pair_count`, `rows`, `status`, `insufficient_reason`, and `insufficient_overlap_probe`.
 - Every normalized pair row must keep `sample_a`, `sample_b`, `segment_count`, `total_length`, `overlap_marker_count`, and `status`.
 - When `vcf.demography` is scheduled, its input contract must consume a filtered and version-pinned `vcf.ibd` output rather than re-deriving IBD implicitly.
