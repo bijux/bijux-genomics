@@ -23,7 +23,7 @@
 | `bbduk` | `bbduk` | `production` |
 | `bbmerge` | `bbmerge` | `production` |
 | `bcftools` | `bcftools` | `production` |
-| `beagle` | `beagle` | `experimental` |
+| `beagle` | `beagle` | `production` |
 | `bedtools` | `bedtools` | `production` |
 | `bowtie2` | `bowtie2` | `production` |
 | `bowtie2_build` | `bowtie2-build` | `production` |
@@ -88,7 +88,7 @@
 | `seqpurge` | `seqpurge` | `experimental` |
 | `seqtk` | `seqtk` | `production` |
 | `shapeit` | `shapeit` | `planned` |
-| `shapeit5` | `shapeit5` | `experimental` |
+| `shapeit5` | `shapeit5` | `production` |
 | `skewer` | `skewer` | `production` |
 | `sortmerna` | `sortmerna` | `production` |
 | `spades` | `spades.py` | `experimental` |

@@ -17,7 +17,7 @@ required_outputs: ["qc_out"]
 tool_capability_requirements: []
 metrics:
   - name: "qc_status"
-compatible_tools: ["plink", "plink2"]
+compatible_tools: ["bcftools", "plink", "plink2"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions: ["planned_stage"]
 bank_hooks: ["none"]

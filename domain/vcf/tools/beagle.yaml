@@ -1,12 +1,13 @@
 schema_version: "bijux.tool.v1"
 tool_id: "beagle"
-stage_ids: ["vcf.phasing", "vcf.imputation_metrics", "vcf.impute"]
+stage_ids: ["vcf.imputation_metrics", "vcf.impute"]
+planned_stage_ids: ["vcf.phasing"]
 role: "analysis"
 authoritative: false
 strict_capable: true
-status: "planned"
+status: "supported"
 scope: "post_vcf"
-default_version: "planned"
+default_version: "5.4"
 upstream: "https://faculty.washington.edu/browning/beagle/beagle.html"
 pin_strategy: "container_digest"
 license: "GPL-3.0"
@@ -16,7 +17,7 @@ help_cmd: "beagle --help"
 expected_artifacts: ["phased_vcf", "imputed_vcf"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.phasing.v1"
-comparability_notes: "Planned tool; compare only within pinned profile and reference build."
+comparability_notes: "Comparable only when panel build, genetic map, and pinned Beagle profile stay identical."
 container:
   image: "containers/apptainer/lunarc/beagle.def"
-  digest: "planned"
+  digest: "sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"

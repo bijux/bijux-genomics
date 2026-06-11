@@ -23,8 +23,8 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 ## VCF Downstream / IBD Toolkit
 
 - `angsd` (planned) : vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.gl_propagation
-- `bcftools` (production) : vcf.call, vcf.call_gl, vcf.call_diploid, vcf.call_pseudohaploid, vcf.damage_filter, vcf.gl_propagation, vcf.filter, vcf.stats, vcf.admixture, vcf.imputation_metrics, vcf.pca, vcf.phasing, vcf.qc
-- `beagle` (experimental) : vcf.phasing
+- `bcftools` (production) : vcf.call, vcf.call_gl, vcf.call_diploid, vcf.call_pseudohaploid, vcf.damage_filter, vcf.gl_propagation, vcf.filter, vcf.stats, vcf.qc, vcf.prepare_reference_panel, vcf.postprocess
+- `beagle` (production) : vcf.imputation_metrics, vcf.impute
 - `eagle` (experimental) : vcf.phasing
 - `eigensoft` (experimental) : vcf.pca, vcf.population_structure
 - `germline` (experimental) : vcf.ibd
@@ -37,7 +37,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 - `plink` (experimental) : vcf.qc, vcf.admixture
 - `plink2` (experimental) : vcf.qc, vcf.pca, vcf.population_structure, vcf.roh, vcf.admixture
 - `shapeit` (planned) : vcf.phasing
-- `shapeit5` (experimental) : vcf.phasing
+- `shapeit5` (production) : vcf.phasing
 
 | Tool ID | Purpose | Stage Bindings | Container Ref | Version | Citation | Status |
 |---|---|---|---|---|---|---|
@@ -52,8 +52,8 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `bayeshammer` | `corrector` | `fastq.correct_errors` | `bijuxdna/bayeshammer@sha256:99849ca7576f392a125ce5836e915481ada762cbb4fa9b69593b81c4ca359cd7` | `4.2.0` | paper:https://link.springer.com/article/10.1186/1471-2164-14-S1-S7 | `production` |
 | `bbduk` | `filter` | `fastq.filter_low_complexity, fastq.filter_reads, fastq.trim_polyg_tails, fastq.trim_reads` | `bijuxdna/bbduk@sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4` | `39.08` | software:https://bbmap.org/tools/bbduk | `production` |
 | `bbmerge` | `merger` | `fastq.merge_pairs` | `bijuxdna/bbmerge@sha256:6182848b989c8dbf094e06c486190b5d54243ac8eea542daa2c5c059a11bba54` | `39.01` | paper:https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0185056 | `production` |
-| `bcftools` | `unknown` | `vcf.call, vcf.call_gl, vcf.call_diploid, vcf.call_pseudohaploid, vcf.damage_filter, vcf.gl_propagation, vcf.filter, vcf.stats, vcf.admixture, vcf.imputation_metrics, vcf.pca, vcf.phasing, vcf.qc` | `quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6` | `1.20` | DOI:10.1093/gigascience/giab008 | `production` |
-| `beagle` | `phasing` | `vcf.phasing` | `registry_lock` | `5.4` | planned | `experimental` |
+| `bcftools` | `unknown` | `vcf.call, vcf.call_gl, vcf.call_diploid, vcf.call_pseudohaploid, vcf.damage_filter, vcf.gl_propagation, vcf.filter, vcf.stats, vcf.qc, vcf.prepare_reference_panel, vcf.postprocess` | `quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6` | `1.20` | DOI:10.1093/gigascience/giab008 | `production` |
+| `beagle` | `imputation` | `vcf.imputation_metrics, vcf.impute` | `registry_lock` | `5.4` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC6128308/ | `production` |
 | `bedtools` | `transform` | `bam.coverage, bam.filter, bam.validate` | `bijuxdna/bedtools:2.31.1:2.31.1` | `2.31.1` | paper:https://academic.oup.com/bioinformatics/article/26/6/841/244688 | `production` |
 | `bijux_dna` | `merger` | `fastq.detect_duplicates_premerge` | `bijuxdna/bijux_dna:workspace` | `workspace` | software:https://github.com/bijux/bijux-genomics | `production` |
 | `bowtie2` | `aligner` | `bam.align, fastq.deplete_host, fastq.deplete_reference_contaminants` | `bijuxdna/bowtie2:2.5.4` | `2.5.4` | paper:https://www.nature.com/articles/nmeth.1923 | `production` |
@@ -111,7 +111,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `seqkit_stats` | `transform` | `fastq.profile_read_lengths, fastq.profile_reads` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.7.0` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5051824/ | `production` |
 | `seqtk` | `validator` | `fastq.validate_reads` | `bijuxdna/seqtk@sha256:16e615286a66f1654278a862ad47c3d62bdfabbbf17cb2e12a568256d1b05024` | `1.5-r133` | software:https://github.com/lh3/seqtk | `production` |
 | `shapeit` | `phasing` | `vcf.phasing` | `registry_lock` | `4.2.2-planned` | planned | `planned` |
-| `shapeit5` | `phasing` | `vcf.phasing` | `registry_lock` | `5.4` | planned | `experimental` |
+| `shapeit5` | `phasing` | `vcf.phasing` | `registry_lock` | `5.1.1` | paper:https://www.nature.com/articles/s41588-023-01415-w | `production` |
 | `skewer` | `trimmer` | `fastq.trim_reads` | `bijuxdna/skewer:978e8e46cba4` | `978e8e46cba4` | paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-182 | `production` |
 | `sortmerna` | `transform` | `fastq.deplete_rrna` | `bijuxdna/sortmerna@sha256:2021b21d075d06404339ec019b9729f2dfb820685c86835df654c2fb7d8b447c` | `4.3.7` | paper:https://academic.oup.com/bioinformatics/article/28/24/3211/246053 | `production` |
 | `star` | `transform` | `fastq.index_reference` | `bijuxdna/star:2.7.11b` | `2.7.11b` | paper:https://academic.oup.com/bioinformatics/article/29/1/15/272537 | `production` |

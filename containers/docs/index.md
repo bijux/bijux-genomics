@@ -50,7 +50,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `bbduk` | `production` | `bijux` | `arm64` |
 | `bbmerge` | `production` | `bijux` | `arm64` |
 | `bcftools` | `production` | `non-bijux` | `arm64` |
-| `beagle` | `experimental` | `non-bijux` | `arm64` |
+| `beagle` | `production` | `non-bijux` | `arm64` |
 | `bedtools` | `production` | `bijux` | `arm64` |
 | `bowtie2` | `production` | `bijux` | `arm64` |
 | `bowtie2_build` | `production` | `bijux` | `arm64` |
@@ -115,7 +115,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `seqpurge` | `experimental` | `bijux` | `arm64` |
 | `seqtk` | `production` | `bijux` | `arm64` |
 | `shapeit` | `planned` | `bijux` | `none` |
-| `shapeit5` | `experimental` | `non-bijux` | `arm64` |
+| `shapeit5` | `production` | `non-bijux` | `arm64` |
 | `skewer` | `production` | `bijux` | `arm64` |
 | `sortmerna` | `production` | `bijux` | `arm64` |
 | `spades` | `experimental` | `bijux` | `arm64` |
