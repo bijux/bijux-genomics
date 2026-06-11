@@ -26,6 +26,10 @@ fn vcf_stage_default_rationale(index: &DomainIndex, stage: &DomainStage) -> Stri
     index.active_default_rationale.get(&stage.stage_id).cloned().unwrap_or_default()
 }
 
+fn vcf_metrics_schema(stage: &DomainStage) -> String {
+    format!("bijux.{}.v1", stage.stage_id)
+}
+
 fn vcf_registry_stage_ids(index: &DomainIndex, tool: &DomainToolLoose) -> Vec<String> {
     let mut stage_ids = tool.stage_ids.clone();
     stage_ids.extend(
@@ -99,19 +103,13 @@ pub(super) fn write_vcf_generated_views(
             stage.compatible_tools.clone()
         };
         let output_kinds = vcf_output_kinds(&stage);
-        let metrics_schema = if stage.stage_id == "vcf.stats" {
-            "bijux.vcf.stats.v1"
-        } else if stage.stage_id == "vcf.filter" {
-            "bijux.vcf.filter.v1"
-        } else {
-            "bijux.vcf.call.v1"
-        };
+        let metrics_schema = vcf_metrics_schema(&stage);
         let _ = writeln!(stages_vcf_toml, "[[stages]]");
         let _ = writeln!(stages_vcf_toml, "id = \"{}\"", stage.stage_id);
         let _ = writeln!(stages_vcf_toml, "status = \"{}\"", stage.status);
         let _ = writeln!(stages_vcf_toml, "output_kinds = {}", toml_array(&output_kinds));
         let _ = writeln!(stages_vcf_toml, "experimental = true");
-        let _ = writeln!(stages_vcf_toml, "metrics_schema = \"{metrics_schema}\"");
+        let _ = writeln!(stages_vcf_toml, "metrics_schema = \"{}\"", metrics_schema);
         let _ = writeln!(stages_vcf_toml, "smoke_required = true");
         let _ = writeln!(stages_vcf_toml, "tools = {}", toml_array(&tools));
         stages_vcf_toml.push('\n');
