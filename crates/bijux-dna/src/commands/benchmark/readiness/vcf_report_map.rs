@@ -219,9 +219,9 @@ fn ensure_vcf_report_map_contract(rows: &[VcfReportMapRow]) -> Result<()> {
             "VCF report map must keep one row per expected VCF stage-tool result binding"
         ));
     }
-    if rows.len() != 14 {
+    if rows.len() != 15 {
         return Err(anyhow!(
-            "VCF report map must retain exactly 14 benchmark-ready rows, found {}",
+            "VCF report map must retain exactly 15 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -244,9 +244,9 @@ fn ensure_vcf_report_map_contract(rows: &[VcfReportMapRow]) -> Result<()> {
         rows.iter().map(|row| row.section_id.as_str()).collect::<BTreeSet<_>>().len();
     let summary_table_count =
         rows.iter().map(|row| row.summary_table.as_str()).collect::<BTreeSet<_>>().len();
-    if section_count != 7 || summary_table_count != 7 {
+    if section_count != 8 || summary_table_count != 8 {
         return Err(anyhow!(
-            "VCF report map must retain 7 sections and 7 summary tables for the governed ready slice, found {section_count} sections and {summary_table_count} tables"
+            "VCF report map must retain 8 sections and 8 summary tables for the governed ready slice, found {section_count} sections and {summary_table_count} tables"
         ));
     }
 
@@ -292,6 +292,13 @@ fn ensure_vcf_report_map_contract(rows: &[VcfReportMapRow]) -> Result<()> {
         "bcftools",
         "reference_panel_preparation",
         "reference_panel_readiness",
+    )?;
+    require_row_mapping(
+        rows,
+        "vcf.impute",
+        "beagle",
+        "imputation",
+        "imputation_metrics",
     )?;
 
     Ok(())
@@ -373,13 +380,14 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_REPORT_MAP_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_REPORT_MAP_PATH);
-        assert_eq!(report.row_count, 14);
-        assert_eq!(report.stage_count, 12);
-        assert_eq!(report.tool_count, 4);
-        assert_eq!(report.section_count, 7);
-        assert_eq!(report.summary_table_count, 7);
+        assert_eq!(report.row_count, 15);
+        assert_eq!(report.stage_count, 13);
+        assert_eq!(report.tool_count, 5);
+        assert_eq!(report.section_count, 8);
+        assert_eq!(report.summary_table_count, 8);
         assert_eq!(report.section_counts.get("variant_calling"), Some(&4));
         assert_eq!(report.section_counts.get("quality_control"), Some(&5));
+        assert_eq!(report.section_counts.get("imputation"), Some(&1));
         assert_eq!(report.section_counts.get("normalization"), Some(&1));
         assert_eq!(report.section_counts.get("reference_panel_preparation"), Some(&1));
 

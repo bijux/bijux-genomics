@@ -256,13 +256,13 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_PARSER_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_PARSER_COVERAGE_PATH);
-        assert_eq!(report.stage_count, 12);
-        assert_eq!(report.tool_count, 4);
-        assert_eq!(report.row_count, 14);
-        assert_eq!(report.covered_row_count, 14);
+        assert_eq!(report.stage_count, 13);
+        assert_eq!(report.tool_count, 5);
+        assert_eq!(report.row_count, 15);
+        assert_eq!(report.covered_row_count, 15);
         assert_eq!(report.missing_row_count, 0);
         assert_eq!(report.parser_coverage_percent, 100.0);
-        assert_eq!(report.coverage_status_counts.get("covered"), Some(&14));
+        assert_eq!(report.coverage_status_counts.get("covered"), Some(&15));
         assert!(report.rows.iter().all(|row| {
             row.schema_id.starts_with("bijux.vcf.")
                 && coverage_status_label(row.coverage_status) == "covered"
@@ -281,6 +281,15 @@ mod tests {
             row.stage_id == "vcf.postprocess"
                 && row.parser_id == "parse_bcftools_postprocess_metrics"
                 && row.schema_id == "bijux.vcf.postprocess.v1"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.impute"
+                && row.tool_id == "beagle"
+                && row.parser_id == "parse_beagle_impute_metrics"
+                && row
+                    .fixture_path
+                    .starts_with("benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle")
+                && row.schema_id == "bijux.vcf.impute.v1"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.phasing"

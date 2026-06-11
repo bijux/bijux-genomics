@@ -613,8 +613,8 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_ADAPTER_OUTPUT_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.row_count, 39);
-        assert_eq!(report.benchmark_ready_row_count, 14);
-        assert_eq!(report.benchmark_ready_complete_row_count, 14);
+        assert_eq!(report.benchmark_ready_row_count, 15);
+        assert_eq!(report.benchmark_ready_complete_row_count, 15);
         assert_eq!(report.benchmark_ready_incomplete_row_count, 0);
         assert_eq!(report.complete_row_count, 36);
         assert_eq!(report.incomplete_row_count, 3);
@@ -668,6 +668,15 @@ mod tests {
         assert_eq!(shapeit5.benchmark_status, "benchmark_ready");
         assert_eq!(shapeit5.status, VcfAdapterOutputCoverageStatus::Complete);
         assert!(shapeit5.index_outputs.iter().any(|entry| entry.contains(".tbi")));
+
+        let impute = report
+            .rows
+            .iter()
+            .find(|row| row.stage_id == "vcf.impute" && row.tool_id == "beagle")
+            .expect("beagle impute row");
+        assert_eq!(impute.benchmark_status, "benchmark_ready");
+        assert_eq!(impute.status, VcfAdapterOutputCoverageStatus::Complete);
+        assert!(impute.index_outputs.iter().any(|entry| entry.contains(".tbi")));
 
         let demography = report
             .rows

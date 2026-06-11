@@ -187,7 +187,7 @@ pub(crate) fn render_vcf_imputation_family_adapter(
     Ok(report)
 }
 
-fn collect_vcf_imputation_family_adapter_rows(
+pub(crate) fn collect_vcf_imputation_family_adapter_rows(
     repo_root: &Path,
 ) -> Result<Vec<VcfImputationFamilyAdapterRow>> {
     let catalog_by_stage = build_vcf_stage_catalog_rows()?

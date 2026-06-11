@@ -5,10 +5,10 @@
   "passed_goal_count": 15,
   "failed_goal_count": 0,
   "failing_goal_ids": [],
-  "benchmark_ready_pair_count": 14,
-  "adapter_complete_pair_count": 14,
-  "output_complete_pair_count": 14,
-  "rendered_command_pair_count": 14,
+  "benchmark_ready_pair_count": 15,
+  "adapter_complete_pair_count": 15,
+  "output_complete_pair_count": 15,
+  "rendered_command_pair_count": 15,
   "ok": true,
   "checks": [
     {
@@ -16,7 +16,7 @@
       "surface": "vcf tool-serving map",
       "output_path": "benchmarks/readiness/vcf-tool-serving-map.tsv",
       "ok": true,
-      "detail": "validated 22 governed VCF stage-tool rows with 14 canonical benchmark-ready pairs"
+      "detail": "validated 22 governed VCF stage-tool rows with 15 canonical benchmark-ready pairs"
     },
     {
       "goal_id": 232,
@@ -114,7 +114,7 @@
       "surface": "vcf adapter benchmark-ready pair completeness",
       "output_path": "benchmarks/readiness/VCF_ADAPTERS_READY.json",
       "ok": true,
-      "detail": "validated 14 benchmark-ready VCF pairs across tool-serving map, executable adapters, output declarations, and rendered commands"
+      "detail": "validated 15 benchmark-ready VCF pairs across tool-serving map, executable adapters, output declarations, and rendered commands"
     }
   ]
 }
