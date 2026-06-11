@@ -238,6 +238,7 @@ dependencies = [
  "bijux-dna-infra",
  "bijux-dna-planner-bam",
  "bijux-dna-planner-fastq",
+ "bijux-dna-planner-vcf",
  "bijux-dna-policies",
  "bijux-dna-stage-contract",
  "bijux-dna-stages-fastq",
@@ -490,6 +491,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-policies",
+ "flate2",
  "schemars",
  "serde",
  "serde_json",
