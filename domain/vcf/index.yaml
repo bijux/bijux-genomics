@@ -53,6 +53,7 @@ governed_stage_ids:
   - vcf.phasing
   - vcf.postprocess
   - vcf.prepare_reference_panel
+  - vcf.qc
   - vcf.stats
 governed_tool_ids:
   - bcftools
@@ -215,6 +216,7 @@ active_defaults:
   vcf.phasing: "shapeit5"
   vcf.postprocess: "bcftools"
   vcf.prepare_reference_panel: "bcftools"
+  vcf.qc: "plink2"
   vcf.stats: "bcftools"
 active_default_rationale:
   vcf.call: "deterministic baseline caller for current production profile."
@@ -230,4 +232,5 @@ active_default_rationale:
   vcf.phasing: "current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle and Eagle stay comparative."
   vcf.postprocess: "deterministic normalization/filter baseline for governed post-imputation outputs."
   vcf.prepare_reference_panel: "deterministic reference panel prep baseline."
+  vcf.qc: "the governed cohort-QC baseline keeps missingness, MAF, and HWE summaries anchored to the admitted PLINK-family execution surface while retaining deterministic bcftools compatibility for comparison."
   vcf.stats: "minimal required metrics for quality gating."
