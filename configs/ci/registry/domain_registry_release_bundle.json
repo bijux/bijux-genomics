@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "c9495503c7eec675eaba0fed2e48b204ac20965b",
-  "bundle_checksum_sha256": "ba8c7c77d839a87f9fabe1a61005ed14ce2f373538b90cf5894e5fc62329c1d4",
+  "source_commit": "c85d9af692845c42972254ee502a8098a60ee5dc",
+  "bundle_checksum_sha256": "29f50de8cec2563c73429892037cdbda57f6db4f25d08b558a5e2cc6bb0b51ec",
   "domains": [
     {
       "domain_id": "bam",
@@ -3769,7 +3769,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "1d0883fccdc8cf488c45e6e792a43c03a8124d5169b3f2ab781174757fa76fab"
+      "checksum_sha256": "1eeca97e2bd4f6406063f6148f2d07915bfc308b57359de53ba5bcc37bf385f8"
     },
     {
       "domain_id": "fastq",
@@ -12656,7 +12656,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "f9995e27541e96ab97a430709c327ed5b91e612e3dcece65483e835825857301"
+      "checksum_sha256": "e0327b04c6d19e93176adff91356e5a184c5da97fa0ab2e9811cf82735394265"
     },
     {
       "domain_id": "vcf",
@@ -12719,6 +12719,7 @@
         "vcf.phasing",
         "vcf.postprocess",
         "vcf.prepare_reference_panel",
+        "vcf.qc",
         "vcf.stats"
       ],
       "governed_tool_ids": [
@@ -13556,7 +13557,7 @@
           ],
           "outputs": [
             {
-              "name": "pca_out",
+              "name": "pca_report",
               "data_type": "json",
               "cardinality": "One"
             }
@@ -13565,12 +13566,32 @@
             "vcf"
           ],
           "required_outputs": [
-            "pca_out"
+            "pca_report"
           ],
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "pca_status",
+              "metric_id": "sample_count",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "variant_count",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "excluded_samples",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "unexpected_samples",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "eigenvalues",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             }
@@ -13843,8 +13864,8 @@
         },
         {
           "stage_id": "vcf.qc",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.qc in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -13858,7 +13879,7 @@
           ],
           "outputs": [
             {
-              "name": "qc_out",
+              "name": "qc_report",
               "data_type": "json",
               "cardinality": "One"
             }
@@ -13867,12 +13888,57 @@
             "vcf"
           ],
           "required_outputs": [
-            "qc_out"
+            "qc_report"
           ],
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "qc_status",
+              "metric_id": "variant_count",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "sample_missingness",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "variant_missingness",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "maf_summary",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "heterozygosity",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "hwe_summary",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "excluded_samples",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "excluded_variants",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "sample_missingness_exclusion_threshold",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "variant_missingness_exclusion_threshold",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             }
@@ -13884,7 +13950,9 @@
             "plink2"
           ],
           "assumptions": [
-            "planned_stage"
+            "cohort_missingness_thresholds_are_fixed_per_run",
+            "ancient_dna_hwe_policy_is_explicit",
+            "qc_outputs_emit_metrics_json_with_schema_bijux.vcf.qc.v1"
           ],
           "invariants": [
             "stable_artifact_contract"
@@ -13895,9 +13963,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "full scientific validation pending downstream admission"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "vcf.roh",
@@ -14007,12 +14073,37 @@
           "parameters": [],
           "metrics": [
             {
-              "metric_id": "variants_total",
+              "metric_id": "variant_count",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "snp_count",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "indel_count",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "transition_count",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "transversion_count",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             },
             {
               "metric_id": "ti_tv",
+              "meaning": "",
+              "schema_version": "bijux.stage.v1"
+            },
+            {
+              "metric_id": "sample_count",
               "meaning": "",
               "schema_version": "bijux.stage.v1"
             }
@@ -14553,6 +14644,18 @@
           "schema_version": "bijux.metrics.v1"
         },
         {
+          "metric_id": "eigenvalues",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "excluded_samples",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "excluded_variants",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
           "metric_id": "filtered_variants",
           "schema_version": "bijux.metrics.v1"
         },
@@ -14581,6 +14684,14 @@
           "schema_version": "bijux.metrics.v1"
         },
         {
+          "metric_id": "heterozygosity",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "hwe_summary",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
           "metric_id": "ibd_length_bins_cM",
           "schema_version": "bijux.metrics.v1"
         },
@@ -14597,7 +14708,15 @@
           "schema_version": "bijux.metrics.v1"
         },
         {
+          "metric_id": "indel_count",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
           "metric_id": "low_confidence_sites",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "maf_summary",
           "schema_version": "bijux.metrics.v1"
         },
         {
@@ -14701,11 +14820,51 @@
           "schema_version": "bijux.metrics.v1"
         },
         {
+          "metric_id": "sample_count",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "sample_missingness",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "sample_missingness_exclusion_threshold",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "snp_count",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
           "metric_id": "status",
           "schema_version": "bijux.metrics.v1"
         },
         {
           "metric_id": "ti_tv",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "transition_count",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "transversion_count",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "unexpected_samples",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "variant_count",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "variant_missingness",
+          "schema_version": "bijux.metrics.v1"
+        },
+        {
+          "metric_id": "variant_missingness_exclusion_threshold",
           "schema_version": "bijux.metrics.v1"
         },
         {
@@ -14771,7 +14930,7 @@
           "artifact_type": "vcf"
         },
         {
-          "artifact_id": "pca_out",
+          "artifact_id": "pca_report",
           "artifact_type": "json"
         },
         {
@@ -14799,7 +14958,7 @@
           "artifact_type": "vcf"
         },
         {
-          "artifact_id": "qc_out",
+          "artifact_id": "qc_report",
           "artifact_type": "json"
         },
         {
@@ -14913,6 +15072,14 @@
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
           "rationale": "deterministic reference panel prep baseline.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
+          "stage_id": "vcf.qc",
+          "tool_id": "plink2",
+          "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+          "rationale": "the governed cohort-QC baseline keeps missingness, MAF, and HWE summaries anchored to the admitted PLINK-family execution surface while retaining deterministic bcftools compatibility for comparison.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -15052,13 +15219,28 @@
           "fixture_path": "domain/vcf/fixtures/vcf.prepare_reference_panel/bcftools.txt"
         },
         {
+          "stage_id": "vcf.qc",
+          "tool_id": "bcftools",
+          "fixture_path": "domain/vcf/fixtures/vcf.qc/bcftools.txt"
+        },
+        {
+          "stage_id": "vcf.qc",
+          "tool_id": "plink",
+          "fixture_path": "domain/vcf/fixtures/vcf.qc/plink.txt"
+        },
+        {
+          "stage_id": "vcf.qc",
+          "tool_id": "plink2",
+          "fixture_path": "domain/vcf/fixtures/vcf.qc/plink2.txt"
+        },
+        {
           "stage_id": "vcf.stats",
           "tool_id": "bcftools",
           "fixture_path": "domain/vcf/fixtures/vcf.stats/bcftools.txt"
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "58c3359882c49fb1700433daa38bb722e1708ab32d6c865cb5fb99c2e6c22ee2"
+      "checksum_sha256": "9db36101c1f48ce0f5a4ee56cb9fc7e1b7807b63dd0e1d8d184e2f4f6a9d3f59"
     }
   ]
 }

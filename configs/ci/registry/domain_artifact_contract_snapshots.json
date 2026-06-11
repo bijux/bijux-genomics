@@ -1365,7 +1365,7 @@
         "artifact_type": "vcf"
       },
       {
-        "artifact_id": "pca_out",
+        "artifact_id": "pca_report",
         "artifact_type": "json"
       },
       {
@@ -1393,7 +1393,7 @@
         "artifact_type": "vcf"
       },
       {
-        "artifact_id": "qc_out",
+        "artifact_id": "qc_report",
         "artifact_type": "json"
       },
       {
@@ -1447,7 +1447,7 @@
         "imputed_vcf"
       ],
       "vcf.pca": [
-        "pca_out"
+        "pca_report"
       ],
       "vcf.phasing": [
         "phased_vcf"
@@ -1462,7 +1462,7 @@
         "prepared_panel"
       ],
       "vcf.qc": [
-        "qc_out"
+        "qc_report"
       ],
       "vcf.roh": [
         "roh_report"

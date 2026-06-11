@@ -1136,10 +1136,12 @@
       },
       {
         "stage_id": "vcf.qc",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "planned_stage"
+          "cohort_missingness_thresholds_are_fixed_per_run",
+          "ancient_dna_hwe_policy_is_explicit",
+          "qc_outputs_emit_metrics_json_with_schema_bijux.vcf.qc.v1"
         ],
         "invariants": [
           "stable_artifact_contract"

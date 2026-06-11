@@ -677,6 +677,18 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "eigenvalues",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "excluded_samples",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "excluded_variants",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "filtered_variants",
         "schema_version": "bijux.metrics.v1"
       },
@@ -705,6 +717,14 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "heterozygosity",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "hwe_summary",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "ibd_length_bins_cM",
         "schema_version": "bijux.metrics.v1"
       },
@@ -721,7 +741,15 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "indel_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "low_confidence_sites",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "maf_summary",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -825,11 +853,51 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "sample_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "sample_missingness",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "sample_missingness_exclusion_threshold",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "snp_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "status",
         "schema_version": "bijux.metrics.v1"
       },
       {
         "metric_id": "ti_tv",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "transition_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "transversion_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "unexpected_samples",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "variant_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "variant_missingness",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "variant_missingness_exclusion_threshold",
         "schema_version": "bijux.metrics.v1"
       },
       {
