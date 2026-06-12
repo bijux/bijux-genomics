@@ -10,7 +10,7 @@ use super::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_VCF_REPORT_MAP_PATH: &str = "benchmarks/readiness/vcf-report-map.tsv";
+pub(crate) const DEFAULT_VCF_REPORT_MAP_PATH: &str = "benchmarks/readiness/vcf/vcf-report-map.tsv";
 const VCF_REPORT_MAP_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_report_map.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -293,13 +293,7 @@ fn ensure_vcf_report_map_contract(rows: &[VcfReportMapRow]) -> Result<()> {
         "reference_panel_preparation",
         "reference_panel_readiness",
     )?;
-    require_row_mapping(
-        rows,
-        "vcf.impute",
-        "beagle",
-        "imputation",
-        "imputation_metrics",
-    )?;
+    require_row_mapping(rows, "vcf.impute", "beagle", "imputation", "imputation_metrics")?;
     require_row_mapping(
         rows,
         "vcf.pca",
