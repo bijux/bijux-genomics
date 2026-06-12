@@ -71,7 +71,6 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_writes_governed_tsv_file(
     assert!(
         rows.iter().all(|row| {
             !row.contains("\tfastq.index_reference\t")
-                && !row.contains("\tfastq.profile_overrepresented_sequences\t")
                 && !row.contains("\tfastq.report_qc\t")
         }),
         "active scope TSV must exclude not-benchmark-ready-only stages"

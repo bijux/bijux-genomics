@@ -53,21 +53,21 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_ready_slice_and_excluded_pa
     assert_eq!(payload.get("expected_pair_count").and_then(serde_json::Value::as_u64), Some(123));
     assert_eq!(
         payload.get("benchmark_ready_pair_count").and_then(serde_json::Value::as_u64),
-        Some(112)
+        Some(115)
     );
-    assert_eq!(payload.get("excluded_pair_count").and_then(serde_json::Value::as_u64), Some(11));
+    assert_eq!(payload.get("excluded_pair_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("failing_pair_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("generated_job_pair_count").and_then(serde_json::Value::as_u64),
-        Some(112)
+        Some(115)
     );
     assert_eq!(
         payload.get("expected_result_pair_count").and_then(serde_json::Value::as_u64),
-        Some(112)
+        Some(115)
     );
     assert_eq!(
         payload.get("benchmark_ready_stage_count").and_then(serde_json::Value::as_u64),
-        Some(47)
+        Some(48)
     );
     assert_eq!(
         payload.get("excluded_registry_gap_count").and_then(serde_json::Value::as_u64),
@@ -88,8 +88,8 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_ready_slice_and_excluded_pa
     }));
     assert!(surfaces.iter().any(|surface| {
         surface.get("surface_id").and_then(serde_json::Value::as_str) == Some("command_adapters")
-            && surface.get("covered_count").and_then(serde_json::Value::as_u64) == Some(112)
-            && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(11)
+            && surface.get("covered_count").and_then(serde_json::Value::as_u64) == Some(115)
+            && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(8)
     }));
 
     let failing_pairs =
@@ -103,7 +103,7 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_ready_slice_and_excluded_pa
         .get("excluded_pairs")
         .and_then(serde_json::Value::as_array)
         .expect("excluded pairs");
-    assert_eq!(excluded_pairs.len(), 11);
+    assert_eq!(excluded_pairs.len(), 8);
     assert!(excluded_pairs.iter().any(|row| {
         row.get("row_id").and_then(serde_json::Value::as_str)
             == Some("fastq:fastq.trim_reads:seqpurge")

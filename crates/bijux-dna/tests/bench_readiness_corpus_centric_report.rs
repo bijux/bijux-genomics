@@ -49,11 +49,11 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
         Some("benchmarks/readiness/corpus-centric-report.md")
     );
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(7));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(48));
-    assert_eq!(payload.get("tool_row_count").and_then(serde_json::Value::as_u64), Some(117));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(49));
+    assert_eq!(payload.get("tool_row_count").and_then(serde_json::Value::as_u64), Some(120));
     assert_eq!(
         payload.get("benchmark_ready_tool_row_count").and_then(serde_json::Value::as_u64),
-        Some(112)
+        Some(115)
     );
     assert_eq!(payload.get("blocked_tool_row_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("blocked_corpus_count").and_then(serde_json::Value::as_u64), Some(2));
@@ -69,7 +69,7 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(24)
+        Some(25)
     );
     assert_eq!(
         payload

@@ -53,7 +53,7 @@ fn bench_readiness_all_domain_output_declarations_tracks_governed_rows() {
     assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(66));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
     assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);

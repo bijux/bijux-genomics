@@ -46,10 +46,10 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/active-stage-catalog.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(64));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(65));
     assert_eq!(
         payload.get("stages_with_benchmark_ready_tools").and_then(serde_json::Value::as_u64),
-        Some(64)
+        Some(65)
     );
     assert_eq!(
         payload.get("not_benchmark_ready_only_stage_count").and_then(serde_json::Value::as_u64),
@@ -57,22 +57,22 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("stages_with_parser_rows").and_then(serde_json::Value::as_u64),
-        Some(64)
+        Some(65)
     );
-    assert_eq!(payload.get("stages_with_schema").and_then(serde_json::Value::as_u64), Some(64));
+    assert_eq!(payload.get("stages_with_schema").and_then(serde_json::Value::as_u64), Some(65));
     assert_eq!(
         payload.get("stages_with_report_rows").and_then(serde_json::Value::as_u64),
-        Some(64)
+        Some(65)
     );
 
     let domain_counts =
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(23));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(17));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 64);
+    assert_eq!(rows.len(), 65);
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -179,8 +179,6 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
     assert!(
         rows.iter().all(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) != Some("fastq.index_reference")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    != Some("fastq.profile_overrepresented_sequences")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     != Some("fastq.report_qc")
         }),

@@ -102,7 +102,7 @@ fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_r
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(63));
+    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(66));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
     assert_eq!(support::object_u64(domain_counts, "vcf"), Some(20));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
@@ -113,7 +113,7 @@ fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_r
         .expect("proof source counts");
     assert_eq!(
         proof_source_counts.get("fastq_output_contract").and_then(serde_json::Value::as_u64),
-        Some(63)
+        Some(66)
     );
     assert_eq!(
         proof_source_counts.get("bam_output_contract").and_then(serde_json::Value::as_u64),

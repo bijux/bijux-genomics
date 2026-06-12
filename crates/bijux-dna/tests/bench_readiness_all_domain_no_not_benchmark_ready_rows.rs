@@ -57,12 +57,12 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_s
     let removed_row_count =
         support::json_u64(&payload, "removed_row_count").expect("removed_row_count");
     assert_eq!(executable_active_row_count, active_row_count + removed_row_count);
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(132));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(64));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(135));
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(65));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(removed_row_count, 6);
-    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(3));
-    assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(6));
+    assert_eq!(removed_row_count, 3);
+    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
@@ -72,7 +72,7 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_s
         .expect("removed status counts");
     assert_eq!(
         removed_status_counts.get("not_benchmark_ready").and_then(serde_json::Value::as_u64),
-        Some(6)
+        Some(3)
     );
 
     let removed_rows = support::json_array(&payload, "removed_rows");
@@ -86,13 +86,6 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_s
             && row.get("stage_id").and_then(serde_json::Value::as_str)
                 == Some("fastq.index_reference")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2_build")
-            && row.get("status").and_then(serde_json::Value::as_str) == Some("not_benchmark_ready")
-    }));
-    assert!(removed_rows.iter().any(|row| {
-        row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
-            && row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("fastq.profile_overrepresented_sequences")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqkit")
             && row.get("status").and_then(serde_json::Value::as_str) == Some("not_benchmark_ready")
     }));
     assert!(removed_rows.iter().any(|row| {

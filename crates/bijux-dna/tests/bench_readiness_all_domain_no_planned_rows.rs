@@ -48,8 +48,8 @@ fn bench_readiness_all_domain_no_planned_rows_reports_clean_active_scope() {
     );
     let active_row_count =
         support::json_u64(&payload, "active_row_count").expect("active_row_count");
-    assert_eq!(active_row_count, 132);
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(64));
+    assert_eq!(active_row_count, 135);
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(65));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(69));
     let removed_row_count =
         support::json_u64(&payload, "removed_row_count").expect("removed_row_count");

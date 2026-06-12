@@ -51,7 +51,7 @@ fn bench_readiness_stage_centric_report_writes_named_stage_sections() {
     assert!(markdown.contains("## fastq.profile_overrepresented_sequences"));
     assert!(markdown.contains("- Shared metric contract: declared"));
     assert!(markdown.contains("- Shared metrics: sequence_count, flagged_sequences, top_fraction"));
-    assert!(markdown.contains("| fastq_scan | not_benchmark_ready | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |"));
+    assert!(markdown.contains("| fastq_scan | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |"));
 
     assert!(markdown.contains("## bam.damage"));
     assert!(markdown.contains("- Shared metrics: terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb"));

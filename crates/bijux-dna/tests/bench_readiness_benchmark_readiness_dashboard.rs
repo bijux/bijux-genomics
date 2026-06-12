@@ -54,14 +54,14 @@ fn bench_readiness_benchmark_readiness_dashboard_tracks_governed_summary_counts(
         Some("benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.json")
     );
     assert_eq!(payload.get("expected_pair_count").and_then(serde_json::Value::as_u64), Some(123));
-    assert_eq!(payload.get("ready_pair_count").and_then(serde_json::Value::as_u64), Some(112));
-    assert_eq!(payload.get("blocked_pair_count").and_then(serde_json::Value::as_u64), Some(11));
+    assert_eq!(payload.get("ready_pair_count").and_then(serde_json::Value::as_u64), Some(115));
+    assert_eq!(payload.get("blocked_pair_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(
         payload
             .get("blocker_counts")
             .and_then(|value| value.get("corpus"))
             .and_then(serde_json::Value::as_u64),
-        Some(6)
+        Some(3)
     );
     assert_eq!(
         payload
@@ -102,15 +102,15 @@ fn bench_readiness_benchmark_readiness_dashboard_tracks_governed_summary_counts(
     let parsers = payload.get("parsers").expect("parser summary");
     assert_eq!(
         parsers.get("benchmark_reporting_pair_count").and_then(serde_json::Value::as_u64),
-        Some(112)
+        Some(115)
     );
     assert_eq!(parsers.get("blocked_pair_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(parsers.get("excluded_pair_count").and_then(serde_json::Value::as_u64), Some(11));
+    assert_eq!(parsers.get("excluded_pair_count").and_then(serde_json::Value::as_u64), Some(8));
 
     let corpora = payload.get("corpora").expect("corpus summary");
     assert_eq!(corpora.get("corpus_family_count").and_then(serde_json::Value::as_u64), Some(7));
-    assert_eq!(corpora.get("assigned_stage_count").and_then(serde_json::Value::as_u64), Some(48));
-    assert_eq!(corpora.get("blocked_pair_count").and_then(serde_json::Value::as_u64), Some(6));
+    assert_eq!(corpora.get("assigned_stage_count").and_then(serde_json::Value::as_u64), Some(49));
+    assert_eq!(corpora.get("blocked_pair_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(
         corpora
             .get("corpus_family_ids")
@@ -130,16 +130,16 @@ fn bench_readiness_benchmark_readiness_dashboard_tracks_governed_summary_counts(
     let assets = payload.get("assets").expect("asset summary");
     assert_eq!(
         assets.get("asset_required_pair_count").and_then(serde_json::Value::as_u64),
-        Some(19)
+        Some(18)
     );
-    assert_eq!(assets.get("ready_pair_count").and_then(serde_json::Value::as_u64), Some(19));
+    assert_eq!(assets.get("ready_pair_count").and_then(serde_json::Value::as_u64), Some(18));
     assert_eq!(assets.get("blocked_pair_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let reports = payload.get("reports").expect("report summary");
     assert_eq!(reports.get("output_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(
         reports.get("expected_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(112)
+        Some(115)
     );
     assert_eq!(reports.get("stage_section_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(reports.get("tool_section_count").and_then(serde_json::Value::as_u64), Some(67));
@@ -157,7 +157,7 @@ fn bench_readiness_benchmark_readiness_dashboard_tracks_governed_summary_counts(
 
     let blocked_pairs =
         payload.get("blocked_pairs").and_then(serde_json::Value::as_array).expect("blocked pairs");
-    assert_eq!(blocked_pairs.len(), 11);
+    assert_eq!(blocked_pairs.len(), 8);
     assert!(blocked_pairs.iter().any(|row| {
         row.get("row_id").and_then(serde_json::Value::as_str)
             == Some("fastq:fastq.index_reference:bowtie2_build")

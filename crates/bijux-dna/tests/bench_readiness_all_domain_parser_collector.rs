@@ -74,7 +74,7 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
     );
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(64));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(67));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(50));
     assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(22));
 

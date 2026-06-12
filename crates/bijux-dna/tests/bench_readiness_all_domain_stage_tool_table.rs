@@ -60,7 +60,7 @@ fn bench_readiness_all_domain_stage_tool_table_reports_governed_rows() {
     assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(23));
 
     let ready_domain_counts = support::json_object(&payload, "benchmark_ready_domain_counts");
-    assert_eq!(support::object_u64(ready_domain_counts, "fastq"), Some(63));
+    assert_eq!(support::object_u64(ready_domain_counts, "fastq"), Some(66));
     assert_eq!(support::object_u64(ready_domain_counts, "bam"), Some(49));
     assert_eq!(support::object_u64_sum(ready_domain_counts), benchmark_ready_row_count);
 
