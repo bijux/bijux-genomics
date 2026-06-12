@@ -82,27 +82,77 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
         .collect::<BTreeSet<_>>();
     assert_eq!(result_ids.len() as u64, row_count);
 
-    let taxonomy = rows
+    let taxonomy_rows = rows
         .iter()
-        .find(|row| {
-            row.get("result_id").and_then(serde_json::Value::as_str)
-                == Some("fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2")
+        .filter(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.screen_taxonomy")
         })
-        .expect("taxonomy result row");
-    assert_eq!(
-        taxonomy.get("asset_profile_id").and_then(serde_json::Value::as_str),
-        Some("database_artifact_id+taxonomy_database_root")
-    );
-    assert_eq!(
-        taxonomy.get("report_section").and_then(serde_json::Value::as_str),
-        Some("contamination_screening")
-    );
-    assert!(taxonomy.get("expected_outputs").and_then(serde_json::Value::as_array).is_some_and(
-        |outputs| outputs.iter().any(|value| value.as_str() == Some("classification_report_json"))
-    ));
-    assert!(taxonomy.get("expected_metrics").and_then(serde_json::Value::as_array).is_some_and(
-        |metrics| metrics.iter().any(|value| value.as_str() == Some("classified_read_fraction"))
-    ));
+        .collect::<Vec<_>>();
+    assert_eq!(taxonomy_rows.len(), 4);
+    for (tool_id, expected_outputs) in [
+        (
+            "centrifuge",
+            vec!["classification_report_json", "screen_report_tsv"],
+        ),
+        (
+            "kaiju",
+            vec!["classification_report_json", "screen_report_tsv"],
+        ),
+        (
+            "kraken2",
+            vec![
+                "classification_report_json",
+                "screen_report_tsv",
+                "unclassified_reads_r1",
+                "unclassified_reads_r2",
+            ],
+        ),
+        (
+            "krakenuniq",
+            vec!["classification_report_json", "screen_report_tsv"],
+        ),
+    ] {
+        let taxonomy = taxonomy_rows
+            .iter()
+            .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id))
+            .unwrap_or_else(|| panic!("taxonomy result row missing for {tool_id}"));
+        assert_eq!(
+            taxonomy.get("asset_profile_id").and_then(serde_json::Value::as_str),
+            Some("database_artifact_id+taxonomy_database_root")
+        );
+        assert_eq!(
+            taxonomy.get("report_section").and_then(serde_json::Value::as_str),
+            Some("contamination_screening")
+        );
+        let outputs = taxonomy
+            .get("expected_outputs")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| panic!("expected_outputs missing for {tool_id}"));
+        for output_id in expected_outputs {
+            assert!(
+                outputs.iter().any(|value| value.as_str() == Some(output_id)),
+                "taxonomy result row for {tool_id} must include expected output `{output_id}`"
+            );
+        }
+        let metrics = taxonomy
+            .get("expected_metrics")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| panic!("expected_metrics missing for {tool_id}"));
+        for metric_id in [
+            "classification_report_json",
+            "taxonomy_database_id",
+            "classified_reads",
+            "unclassified_reads",
+            "classified_fraction",
+            "unclassified_fraction",
+            "top_taxa",
+        ] {
+            assert!(
+                metrics.iter().any(|value| value.as_str() == Some(metric_id)),
+                "taxonomy result row for {tool_id} must include expected metric `{metric_id}`"
+            );
+        }
+    }
 
     let kinship = rows
         .iter()

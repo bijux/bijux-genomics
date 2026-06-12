@@ -102,18 +102,53 @@ fn bench_readiness_all_domain_expected_result_coverage_reports_complete_active_r
         row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
     }));
 
-    assert!(rows.iter().any(|row| {
-        row.get("result_id").and_then(serde_json::Value::as_str)
-            == Some("fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2")
-            && row.get("adapter_id").and_then(serde_json::Value::as_str)
-                == Some("fastq.adapter.screen_taxonomy")
-            && row.get("parser_id").and_then(serde_json::Value::as_str)
-                == Some("fastq.parser.screen_taxonomy")
-            && row.get("schema_id").and_then(serde_json::Value::as_str)
-                == Some("fastq_screen_taxonomy_v1")
-            && row.get("report_section").and_then(serde_json::Value::as_str)
-                == Some("contamination_screening")
-    }));
+    let taxonomy_rows = rows
+        .iter()
+        .filter(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.screen_taxonomy")
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(taxonomy_rows.len(), 4);
+    for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+        let taxonomy = taxonomy_rows
+            .iter()
+            .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id))
+            .unwrap_or_else(|| panic!("taxonomy coverage row missing for {tool_id}"));
+        assert_eq!(
+            taxonomy.get("adapter_id").and_then(serde_json::Value::as_str),
+            Some("fastq.adapter.screen_taxonomy")
+        );
+        assert_eq!(
+            taxonomy.get("parser_id").and_then(serde_json::Value::as_str),
+            Some("fastq.parser.screen_taxonomy")
+        );
+        assert_eq!(
+            taxonomy.get("schema_id").and_then(serde_json::Value::as_str),
+            Some("fastq_screen_taxonomy_v1")
+        );
+        assert_eq!(
+            taxonomy.get("report_section").and_then(serde_json::Value::as_str),
+            Some("contamination_screening")
+        );
+        let metrics = taxonomy
+            .get("expected_metrics")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| panic!("expected_metrics missing for {tool_id}"));
+        for metric_id in [
+            "classification_report_json",
+            "taxonomy_database_id",
+            "classified_reads",
+            "unclassified_reads",
+            "classified_fraction",
+            "unclassified_fraction",
+            "top_taxa",
+        ] {
+            assert!(
+                metrics.iter().any(|value| value.as_str() == Some(metric_id)),
+                "taxonomy coverage row for {tool_id} must include expected metric `{metric_id}`"
+            );
+        }
+    }
     assert!(rows.iter().any(|row| {
         row.get("result_id").and_then(serde_json::Value::as_str)
             == Some("bam:corpus-01-kinship-mini:bam.kinship:sample-set:king")
