@@ -192,6 +192,8 @@ pub enum BenchReadinessCommand {
     RenderVcfCallPseudohaploidReady(BenchReadinessRenderVcfCallPseudohaploidReadyArgs),
     #[command(name = "render-vcf-admixture-ready")]
     RenderVcfAdmixtureReady(BenchReadinessRenderVcfAdmixtureReadyArgs),
+    #[command(name = "render-vcf-population-structure-ready")]
+    RenderVcfPopulationStructureReady(BenchReadinessRenderVcfPopulationStructureReadyArgs),
     #[command(name = "render-vcf-pca-ready")]
     RenderVcfPcaReady(BenchReadinessRenderVcfPcaReadyArgs),
     #[command(name = "render-vcf-imputation-metrics-ready")]
@@ -576,6 +578,14 @@ pub struct BenchReadinessRenderVcfCallPseudohaploidReadyArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfAdmixtureReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfPopulationStructureReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

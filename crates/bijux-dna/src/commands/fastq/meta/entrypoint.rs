@@ -630,6 +630,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfPopulationStructureReady(args) => {
+                        crate::commands::benchmark::readiness::vcf_population_structure_ready::run_render_vcf_population_structure_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfPcaReady(args) => {
                         crate::commands::benchmark::readiness::vcf_pca_ready::run_render_vcf_pca_ready(
                             args,

@@ -681,6 +681,15 @@ Visible aliases are part of the operator surface:
   sum to 1.0 within tolerance, selected `K`, cluster headers, and sample/population metadata
   joins. The command fails closed unless every active retained `vcf.admixture` caller is complete
   across those surfaces.
+- `bijux-dna bench readiness render-vcf-population-structure-ready`
+  `render-vcf-population-structure-ready` writes
+  `benchmarks/readiness/vcf/population-structure-ready.json` with one governed row per active
+  retained `vcf.population_structure` caller. Each row keeps the retained-scope proof, final
+  active-row presence, rendered-command identity, tool-specific output-contract paths, parser
+  fixture proof, expected metrics, report-table placement, and real local smoke evidence that the
+  published population-structure summary consumed governed PCA/admixture evidence and emitted
+  complete sample-group and pair-distance metrics. The command fails closed unless every active
+  retained `vcf.population_structure` caller is complete across those surfaces.
 - `bijux-dna bench readiness render-vcf-pca-ready`
   `render-vcf-pca-ready` writes `benchmarks/readiness/vcf/pca-ready.json` with one governed row
   per active retained `vcf.pca` caller. Each row keeps the retained-scope proof, final
