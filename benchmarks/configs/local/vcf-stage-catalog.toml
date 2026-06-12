@@ -198,7 +198,7 @@ local_smoke_mode = "vcf_single_sample"
 [[rows]]
 stage_id = "vcf.population_structure"
 stage_name = "Population Structure Analysis"
-support_status = "planned"
+support_status = "supported"
 default_tool_id = "plink2"
 metrics_schema_id = "bijux.vcf.population_structure.v1"
 input_types = ["vcf"]

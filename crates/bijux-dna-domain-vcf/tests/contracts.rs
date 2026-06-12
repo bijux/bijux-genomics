@@ -259,7 +259,7 @@ mod contracts {
             );
         }
 
-        assert!(population_structure_raw.contains("status: \"planned\""));
+        assert!(population_structure_raw.contains("status: \"supported\""));
         assert!(population_structure_raw.contains("- name: \"population_structure_report\""));
         assert!(population_structure_raw
             .contains("required_outputs: [\"population_structure_report\"]"));
