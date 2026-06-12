@@ -86,6 +86,7 @@ pub(crate) mod vcf_adapter_missing_input_tests;
 pub(crate) mod vcf_adapter_output_coverage;
 pub(crate) mod vcf_adapters_ready;
 pub(crate) mod vcf_admixture_ready;
+pub(crate) mod vcf_all_retained_tools_complete;
 pub(crate) mod vcf_angsd_adapter;
 pub(crate) mod vcf_bcftools_adapter;
 pub(crate) mod vcf_call_diploid_ready;

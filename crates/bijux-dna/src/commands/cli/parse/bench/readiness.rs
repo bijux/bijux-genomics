@@ -194,6 +194,8 @@ pub enum BenchReadinessCommand {
     RenderVcfAdmixtureReady(BenchReadinessRenderVcfAdmixtureReadyArgs),
     #[command(name = "render-vcf-population-structure-ready")]
     RenderVcfPopulationStructureReady(BenchReadinessRenderVcfPopulationStructureReadyArgs),
+    #[command(name = "render-vcf-all-retained-tools-complete")]
+    RenderVcfAllRetainedToolsComplete(BenchReadinessRenderVcfAllRetainedToolsCompleteArgs),
     #[command(name = "render-vcf-pca-ready")]
     RenderVcfPcaReady(BenchReadinessRenderVcfPcaReadyArgs),
     #[command(name = "render-vcf-imputation-metrics-ready")]
@@ -586,6 +588,14 @@ pub struct BenchReadinessRenderVcfAdmixtureReadyArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfPopulationStructureReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfAllRetainedToolsCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

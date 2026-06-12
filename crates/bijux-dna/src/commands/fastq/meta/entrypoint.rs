@@ -635,6 +635,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfAllRetainedToolsComplete(args) => {
+                        crate::commands::benchmark::readiness::vcf_all_retained_tools_complete::run_render_vcf_all_retained_tools_complete(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfPcaReady(args) => {
                         crate::commands::benchmark::readiness::vcf_pca_ready::run_render_vcf_pca_ready(
                             args,
