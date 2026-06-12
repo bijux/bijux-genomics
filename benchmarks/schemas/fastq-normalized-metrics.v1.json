@@ -314,9 +314,12 @@
             },
             "required": [
               "filtered_fastq_r1",
+              "reads_dropped",
               "reads_in",
               "reads_out",
+              "reads_removed",
               "reads_removed_low_complexity",
+              "reads_retained",
               "report_json",
               "schema_version",
               "stage",

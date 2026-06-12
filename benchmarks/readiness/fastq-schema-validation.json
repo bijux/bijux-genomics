@@ -55,7 +55,7 @@
     {
       "stage_id": "fastq.filter_low_complexity",
       "extension_id": "fastq_low_complexity_v1",
-      "required_key_count": 8
+      "required_key_count": 11
     },
     {
       "stage_id": "fastq.filter_reads",
@@ -125,12 +125,12 @@
     {
       "stage_id": "fastq.trim_polyg_tails",
       "extension_id": "fastq_trim_polyg_tails_v1",
-      "required_key_count": 9
+      "required_key_count": 12
     },
     {
       "stage_id": "fastq.trim_reads",
       "extension_id": "fastq_trim_reads_v2",
-      "required_key_count": 9
+      "required_key_count": 12
     },
     {
       "stage_id": "fastq.trim_terminal_damage",
