@@ -375,6 +375,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderFastqValidateReadsReady(args) => {
+                        crate::commands::benchmark::readiness::fastq_validate_reads_ready::run_render_fastq_validate_reads_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderFastqToolServingMap(args) => {
                         crate::commands::benchmark::readiness::tool_serving_map::run_render_fastq_tool_serving_map(
                             args,
