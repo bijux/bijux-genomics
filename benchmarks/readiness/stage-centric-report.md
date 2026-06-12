@@ -5,9 +5,9 @@
 - Stage count: 51
 - Multi-tool stages: 30
 - Stage-tool rows: 123
-- Benchmark-ready rows: 115
-- Blocked rows: 8
-- Stages with blockers: 6
+- Benchmark-ready rows: 116
+- Blocked rows: 7
+- Stages with blockers: 5
 
 | Domain | Stage | Report section | Tools | Ready | Blocked | Shared metrics | Blocked tools |
 | --- | --- | --- | ---: | ---: | ---: | --- | --- |
@@ -39,7 +39,7 @@
 | fastq | fastq.profile_read_lengths | Quality Profiling | 4 | 4 | 0 | not_declared | none |
 | fastq | fastq.detect_adapters | Quality Profiling | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.detect_duplicates_premerge | Quality Profiling | 1 | 1 | 0 | not_applicable | none |
-| fastq | fastq.estimate_library_complexity_prealign | Quality Profiling | 1 | 0 | 1 | not_applicable | bijux_dna (support) |
+| fastq | fastq.estimate_library_complexity_prealign | Quality Profiling | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.trim_terminal_damage | Read Cleanup | 3 | 3 | 0 | not_declared | none |
 | fastq | fastq.normalize_primers | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.trim_polyg_tails | Read Cleanup | 2 | 2 | 0 | not_declared | none |
@@ -548,16 +548,16 @@
 - Domain: fastq
 - Report section: Quality Profiling
 - Summary table: Pre-merge Complexity
-- Anchor tool: bijux_dna (planned)
+- Anchor tool: bijux_dna (supported)
 - Tools: 1
-- Ready tools: 0
-- Blocked tools: 1
+- Ready tools: 1
+- Blocked tools: 0
 - Shared metric contract: not_applicable
 - Shared metrics: none
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| bijux_dna | not_benchmark_ready | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |
+| bijux_dna | benchmark_ready | none | governed_execution | runnable | parse_normalized | fixture:corpus-01-mini | not_required |
 
 ## fastq.trim_terminal_damage
 

@@ -449,6 +449,8 @@ sh -lc 'mkdir -p '"'"'benchmarks/readiness/stage-tool-commands/fastq/fastq/detec
 '"'"'fastqc'"'"' '"'"'--outdir'"'"' '"'"'benchmarks/readiness/stage-tool-commands/fastq/fastq/detect_adapters/fastqc/fastqc'"'"' '"'"'--threads'"'"' '"'"'4'"'"' '"'"'benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_adapter_hit_R1.fastq.gz'"'"''
 # fastq.detect_duplicates_premerge / bijux_dna
 bijux-dna
+# fastq.estimate_library_complexity_prealign / bijux_dna
+bijux-dna
 # fastq.extract_umis / umi_tools
 umi_tools extract --stdin benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_umi_prefix_signals_R1.fastq.gz --stdout benchmarks/readiness/stage-tool-commands/fastq/fastq/extract_umis/umi_tools/umi_tagged_R1.fastq.gz --read2-in benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_umi_prefix_signals_R2.fastq.gz --read2-out benchmarks/readiness/stage-tool-commands/fastq/fastq/extract_umis/umi_tools/umi_tagged_R2.fastq.gz --bc-pattern NNNN --log benchmarks/readiness/stage-tool-commands/fastq/fastq/extract_umis/umi_tools/umi_tools.extract.log
 # fastq.filter_low_complexity / bbduk
@@ -823,6 +825,13 @@ bash -lc 'set -euo pipefail
 cutadapt -g '"'"'file:assets/reference/primers/16S_universal_v1.fasta'"'"' --overlap 6 --error-rate 0.1 --revcomp --info-file '"'"'benchmarks/readiness/stage-tool-commands/fastq/fastq/normalize_primers/cutadapt/primer_orientation.tsv'"'"' --json '"'"'benchmarks/readiness/stage-tool-commands/fastq/fastq/normalize_primers/cutadapt/primer_stats.json'"'"' -o '"'"'benchmarks/readiness/stage-tool-commands/fastq/fastq/normalize_primers/cutadapt/primer_normalized.fastq.gz'"'"' '"'"'assets/toy/core-v1/fastq/reads_with_primers.fastq'"'"'
 printf '"'"'%s\n'"'"' '"'"'{"schema_version":"bijux.fastq.normalize_primers.report.v2","stage":"fastq.normalize_primers","stage_id":"fastq.normalize_primers","tool_id":"cutadapt","paired_mode":"single_end","primer_set_id":"16S_universal_v1","marker_id":"16S","primer_fasta":"assets/reference/primers/16S_universal_v1.fasta","orientation_policy":"normalize_to_forward_primer","max_mismatch_rate":0.1,"min_overlap_bp":6,"input_r1":"assets/toy/core-v1/fastq/reads_with_primers.fastq","input_r2":null,"output_r1":"benchmarks/readiness/stage-tool-commands/fastq/fastq/normalize_primers/cutadapt/primer_normalized.fastq.gz","output_r2":null,"reads_in":null,"reads_out":null,"bases_in":null,"bases_out":null,"pairs_in":null,"pairs_out":null,"primer_trimmed_reads":null,"primer_trimmed_fraction":null,"orientation_forward_fraction":null,"primer_orientation_report":"benchmarks/readiness/stage-tool-commands/fastq/fastq/normalize_primers/cutadapt/primer_orientation.tsv","primer_stats_json":"benchmarks/readiness/stage-tool-commands/fastq/fastq/normalize_primers/cutadapt/primer_stats.json","raw_backend_report":"benchmarks/readiness/stage-tool-commands/fastq/fastq/normalize_primers/cutadapt/primer_stats.json","raw_backend_report_format":"cutadapt_json","runtime_s":null,"memory_mb":null,"used_fallback":false,"backend_metrics":null}'"'"' > '"'"'benchmarks/readiness/stage-tool-commands/fastq/fastq/normalize_primers/cutadapt/normalize_primers_report.json'"'"'
 '
+# fastq.profile_overrepresented_sequences / fastq_scan
+fastq_scan assets/toy/core-v1/fastq/reads_with_overrepresented_sequences.fastq
+# fastq.profile_overrepresented_sequences / fastqc
+sh -lc 'mkdir -p '"'"'benchmarks/readiness/stage-tool-commands/fastq/fastq/profile_overrepresented_sequences/fastqc/fastqc_overrepresented'"'"'
+'"'"'fastqc'"'"' '"'"'--outdir'"'"' '"'"'benchmarks/readiness/stage-tool-commands/fastq/fastq/profile_overrepresented_sequences/fastqc/fastqc_overrepresented'"'"' '"'"'--threads'"'"' '"'"'1'"'"' '"'"'assets/toy/core-v1/fastq/reads_with_overrepresented_sequences.fastq'"'"''
+# fastq.profile_overrepresented_sequences / seqkit
+sh -lc ''"'"'seqkit'"'"' '"'"'fx2tab'"'"' '"'"'-j'"'"' '"'"'1'"'"' '"'"'-n'"'"' '"'"'-s'"'"' '"'"'assets/toy/core-v1/fastq/reads_with_overrepresented_sequences.fastq'"'"' > /dev/null'
 # fastq.profile_read_lengths / fastp
 fastp --in1 assets/toy/core-v1/fastq/reads_1.fastq --out1 /dev/null --thread 4 --json /dev/null --disable_adapter_trimming --disable_quality_filtering --disable_length_filtering --disable_trim_poly_g --dont_eval_duplication
 # fastq.profile_read_lengths / prinseq

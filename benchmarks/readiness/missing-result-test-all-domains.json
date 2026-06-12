@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.all_domain_missing_result_test.v1",
   "output_path": "benchmarks/readiness/missing-result-test-all-domains.json",
   "fake_result_root": "runs/bench/readiness-probes/all-domains/missing-result-test",
-  "expected_row_count": 132,
-  "present_result_row_count": 129,
+  "expected_row_count": 136,
+  "present_result_row_count": 133,
   "missing_result_row_count": 3,
   "passes_behavior_test": true,
   "removed_result_ids": [
@@ -18,7 +18,7 @@
   ],
   "domain_counts": {
     "bam": 49,
-    "fastq": 63,
+    "fastq": 67,
     "vcf": 20
   },
   "rows": [
@@ -1966,6 +1966,30 @@
       "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna` remains present with a validated fake-run manifest"
     },
     {
+      "result_id": "fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna",
+      "domain": "fastq",
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "tool_id": "bijux_dna",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "library_complexity_report"
+      ],
+      "observed_output_artifact_ids": [
+        "library_complexity_report"
+      ],
+      "expected_metrics": [
+        "estimated_complexity",
+        "estimated_duplicate_fraction",
+        "library_complexity_report"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna` remains present with a validated fake-run manifest"
+    },
+    {
       "result_id": "fastq:corpus-01-mini:fastq.extract_umis:sample-set:umi_tools",
       "domain": "fastq",
       "stage_id": "fastq.extract_umis",
@@ -2429,6 +2453,93 @@
       ],
       "report_section": "amplicon_interpretation",
       "reason": "expected all-domain benchmark result `fastq:corpus-03-amplicon-mini:fastq.normalize_primers:sample-set:cutadapt` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastq_scan",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "flagged_sequences",
+        "report_json",
+        "sequence_count",
+        "top_fraction"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastqc",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "flagged_sequences",
+        "report_json",
+        "sequence_count",
+        "top_fraction"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "seqkit",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "flagged_sequences",
+        "report_json",
+        "sequence_count",
+        "top_fraction"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit` remains present with a validated fake-run manifest"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp",

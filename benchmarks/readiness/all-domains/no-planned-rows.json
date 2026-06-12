@@ -1,29 +1,18 @@
 {
   "schema_version": "bijux.bench.readiness.all_domain_no_planned_rows.v1",
   "output_path": "benchmarks/readiness/all-domains/no-planned-rows.json",
-  "active_row_count": 135,
-  "active_stage_count": 65,
+  "active_row_count": 136,
+  "active_stage_count": 66,
   "active_tool_count": 69,
-  "removed_row_count": 8,
-  "removed_stage_count": 7,
-  "removed_tool_count": 8,
+  "removed_row_count": 7,
+  "removed_stage_count": 6,
+  "removed_tool_count": 7,
   "removed_status_counts": {
-    "planned": 8
+    "planned": 7
   },
   "violation_count": 0,
   "ok": true,
   "removed_rows": [
-    {
-      "domain": "fastq",
-      "stage_id": "fastq.estimate_library_complexity_prealign",
-      "tool_id": "bijux_dna",
-      "corpus_id": "corpus-01-mini",
-      "asset_profile_id": "corpus_only",
-      "adapter_id": "fastq.adapter.estimate_library_complexity_prealign",
-      "parser_id": "fastq.parser.estimate_library_complexity_prealign",
-      "schema_id": "fastq_estimate_library_complexity_prealign_v1",
-      "status": "planned"
-    },
     {
       "domain": "fastq",
       "stage_id": "fastq.filter_low_complexity",

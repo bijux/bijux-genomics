@@ -508,6 +508,9 @@ sh -lc 'mkdir -p '"'"'benchmarks/readiness/stage-tool-commands/fastq/fastq/detec
 # fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna / fastq / fastq.detect_duplicates_premerge / bijux_dna
 bijux-dna
 
+# fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna / fastq / fastq.estimate_library_complexity_prealign / bijux_dna
+bijux-dna
+
 # fastq:corpus-01-mini:fastq.extract_umis:sample-set:umi_tools / fastq / fastq.extract_umis / umi_tools
 umi_tools extract --stdin benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_umi_prefix_signals_R1.fastq.gz --stdout benchmarks/readiness/stage-tool-commands/fastq/fastq/extract_umis/umi_tools/umi_tagged_R1.fastq.gz --read2-in benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_umi_prefix_signals_R2.fastq.gz --read2-out benchmarks/readiness/stage-tool-commands/fastq/fastq/extract_umis/umi_tools/umi_tagged_R2.fastq.gz --bc-pattern NNNN --log benchmarks/readiness/stage-tool-commands/fastq/fastq/extract_umis/umi_tools/umi_tools.extract.log
 

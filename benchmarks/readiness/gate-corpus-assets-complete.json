@@ -3,11 +3,11 @@
   "output_path": "benchmarks/readiness/gate-corpus-assets-complete.json",
   "passes_gate": true,
   "row_count": 123,
-  "benchmark_ready_row_count": 115,
-  "gate_row_count": 115,
-  "gate_passed_row_count": 115,
+  "benchmark_ready_row_count": 116,
+  "gate_row_count": 116,
+  "gate_passed_row_count": 116,
   "gate_failed_row_count": 0,
-  "excluded_row_count": 8,
+  "excluded_row_count": 7,
   "benchmark_ready_asset_required_row_count": 18,
   "benchmark_ready_asset_assigned_row_count": 18,
   "benchmark_ready_asset_missing_row_count": 0,
@@ -25,11 +25,11 @@
   },
   "gate_domain_row_counts": {
     "bam": 49,
-    "fastq": 66
+    "fastq": 67
   },
   "excluded_readiness_gap_counts": {
     "corpus": 3,
-    "support": 5
+    "support": 4
   },
   "rows": [
     {
@@ -1178,19 +1178,19 @@
       "domain": "fastq",
       "stage_id": "fastq.estimate_library_complexity_prealign",
       "tool_id": "bijux_dna",
-      "gate_scope": "excluded",
-      "gate_status": "excluded",
-      "benchmark_status": "not_benchmark_ready",
-      "readiness_gap": "support",
-      "support_status": "planned_contract",
-      "adapter_status": "declared_only",
-      "parser_status": "not_normalized",
+      "gate_scope": "benchmark_submission",
+      "gate_status": "pass",
+      "benchmark_status": "benchmark_ready",
+      "readiness_gap": "none",
+      "support_status": "governed_execution",
+      "adapter_status": "runnable",
+      "parser_status": "parse_normalized",
       "corpus_status": "fixture:corpus-01-mini",
       "corpus_assignment_status": "assigned",
       "asset_assignment_status": "not_required",
       "required_asset_roles": [],
       "assigned_assets": [],
-      "reason": "row `fastq.estimate_library_complexity_prealign` / `bijux_dna` is not yet in governed benchmark support for HPC readiness (`planned_contract`)"
+      "reason": "row `fastq.estimate_library_complexity_prealign` / `bijux_dna` stays inside the fastq benchmark submission gate with governed corpus assignment and no required asset bindings"
     },
     {
       "domain": "fastq",

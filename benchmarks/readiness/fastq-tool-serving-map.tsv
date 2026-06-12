@@ -11,7 +11,7 @@ bbduk	fastq.trim_polyg_tails	governed_benchmark_cohort	runnable	benchmark_normal
 bbduk	fastq.trim_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 bbmerge	fastq.merge_pairs	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 bijux_dna	fastq.detect_duplicates_premerge	governed_execution	runnable	parse_normalized	fixture:corpus-01-mini
-bijux_dna	fastq.estimate_library_complexity_prealign	planned_contract	declared_only	not_normalized	fixture:corpus-01-mini
+bijux_dna	fastq.estimate_library_complexity_prealign	governed_execution	runnable	parse_normalized	fixture:corpus-01-mini
 bowtie2	fastq.deplete_host	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 bowtie2	fastq.deplete_reference_contaminants	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 bowtie2_build	fastq.index_reference	observer_specialized_benchmark	runnable	comparable	planner_only

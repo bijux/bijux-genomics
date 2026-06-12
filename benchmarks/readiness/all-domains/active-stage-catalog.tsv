@@ -30,6 +30,7 @@ fastq	fastq.deplete_reference_contaminants	dry_or_smoke	1	1	1	1	true	1	benchmark
 fastq	fastq.deplete_rrna	dry_or_smoke	1	1	1	1	true	1	benchmark_ready	sortmerna	sortmerna	contamination_screening
 fastq	fastq.detect_adapters	smoke	1	1	1	1	true	1	benchmark_ready	fastqc	fastqc	quality_profiling
 fastq	fastq.detect_duplicates_premerge	smoke	1	1	1	1	true	1	benchmark_ready	bijux_dna	bijux_dna	quality_profiling
+fastq	fastq.estimate_library_complexity_prealign	smoke	1	1	1	1	true	1	benchmark_ready	bijux_dna	bijux_dna	quality_profiling
 fastq	fastq.extract_umis	smoke	1	1	1	1	true	1	benchmark_ready	umi_tools	umi_tools	read_cleanup
 fastq	fastq.filter_low_complexity	smoke	2	2	2	2	true	1	benchmark_ready	bbduk,prinseq	bbduk,prinseq	read_cleanup
 fastq	fastq.filter_reads	smoke	4	4	4	4	true	1	benchmark_ready	bbduk,fastp,prinseq,seqkit	bbduk,fastp,prinseq,seqkit	read_cleanup

@@ -13,7 +13,7 @@ bbmerge	fastq	1	1	1	1	benchmark_ready	fastq.merge_pairs	fastq.merge_pairs
 bcftools	vcf	11	11	11	11	benchmark_ready	vcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.prepare_reference_panel,vcf.qc,vcf.stats	vcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.prepare_reference_panel,vcf.qc,vcf.stats
 beagle	vcf	2	2	2	2	benchmark_ready	vcf.imputation_metrics,vcf.impute	vcf.imputation_metrics,vcf.impute
 bedtools	bam	3	3	3	3	benchmark_ready	bam.coverage,bam.filter,bam.validate	bam.coverage,bam.filter,bam.validate
-bijux_dna	fastq	1	1	1	1	benchmark_ready	fastq.detect_duplicates_premerge	fastq.detect_duplicates_premerge
+bijux_dna	fastq	2	2	2	2	benchmark_ready	fastq.detect_duplicates_premerge,fastq.estimate_library_complexity_prealign	fastq.detect_duplicates_premerge,fastq.estimate_library_complexity_prealign
 bowtie2	bam,fastq	3	3	3	3	benchmark_ready	bam.align,fastq.deplete_host,fastq.deplete_reference_contaminants	bam.align,fastq.deplete_host,fastq.deplete_reference_contaminants
 bwa	bam	1	1	1	1	benchmark_ready	bam.align	bam.align
 centrifuge	fastq	1	1	1	1	benchmark_ready	fastq.screen_taxonomy	fastq.screen_taxonomy

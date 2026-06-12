@@ -5,13 +5,13 @@
 - Corpus count: 7
 - Assigned stages: 49
 - Assigned stage-tool rows: 120
-- Benchmark-ready rows: 115
-- Blocked rows: 5
+- Benchmark-ready rows: 116
+- Blocked rows: 4
 - Corpora with blocked stages: 2
 
 | Corpus | Domains | Fixtures | Stages | Tool rows | Ready | Blocked stages | Blocked stage ids |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
-| corpus-01 | bam, fastq | corpus-01-mini | 20 | 63 | 59 | 3 | fastq.estimate_library_complexity_prealign, fastq.trim_reads, fastq.filter_low_complexity |
+| corpus-01 | bam, fastq | corpus-01-mini | 20 | 63 | 60 | 2 | fastq.trim_reads, fastq.filter_low_complexity |
 | corpus-01-adna-bam | bam | corpus-01-adna-bam-mini, corpus-01-adna-damage-mini | 5 | 16 | 16 | 0 | none |
 | corpus-01-bam | bam | corpus-01-bam-mini | 16 | 28 | 28 | 0 | none |
 | corpus-01-genotyping | bam | corpus-01-genotyping-mini | 1 | 1 | 1 | 0 | none |
@@ -25,8 +25,8 @@
 - Fixtures: corpus-01-mini
 - Stages: 20
 - Tool rows: 63
-- Benchmark-ready rows: 59
-- Blocked stages: 3
+- Benchmark-ready rows: 60
+- Blocked stages: 2
 
 | Domain | Stage | Fixtures | Report section | Tools | Ready | Blocked | Shared metrics | Blocked tools |
 | --- | --- | --- | --- | ---: | ---: | ---: | --- | --- |
@@ -35,7 +35,7 @@
 | fastq | fastq.profile_read_lengths | corpus-01-mini | Quality Profiling | 4 | 4 | 0 | not_declared | none |
 | fastq | fastq.detect_adapters | corpus-01-mini | Quality Profiling | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.detect_duplicates_premerge | corpus-01-mini | Quality Profiling | 1 | 1 | 0 | not_applicable | none |
-| fastq | fastq.estimate_library_complexity_prealign | corpus-01-mini | Quality Profiling | 1 | 0 | 1 | not_applicable | bijux_dna (support) |
+| fastq | fastq.estimate_library_complexity_prealign | corpus-01-mini | Quality Profiling | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.trim_terminal_damage | corpus-01-mini | Read Cleanup | 3 | 3 | 0 | not_declared | none |
 | fastq | fastq.trim_polyg_tails | corpus-01-mini | Read Cleanup | 2 | 2 | 0 | not_declared | none |
 | fastq | fastq.trim_reads | corpus-01-mini | Read Cleanup | 14 | 13 | 1 | not_declared | seqpurge (support) |

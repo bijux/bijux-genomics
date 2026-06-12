@@ -3,20 +3,20 @@
   "output_path": "benchmarks/readiness/parser-collector-all-domains.json",
   "fixture_root": "runs/bench/readiness-probes/all-domains/parser-collector",
   "fake_run_root": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs",
-  "row_count": 139,
-  "fake_run_row_count": 135,
+  "row_count": 140,
+  "fake_run_row_count": 136,
   "real_smoke_row_count": 4,
   "source_kind_counts": {
-    "fake_run": 135,
+    "fake_run": 136,
     "real_smoke": 4
   },
   "domain_counts": {
     "bam": 50,
-    "fastq": 67,
+    "fastq": 68,
     "vcf": 22
   },
   "document_kind_counts": {
-    "all_domain_fake_run_metrics": 135,
+    "all_domain_fake_run_metrics": 136,
     "bam_local_smoke_report": 1,
     "fastq_local_smoke_report": 1,
     "vcf_local_prepare_reference_panel_metrics": 1,
@@ -2314,6 +2314,45 @@
         "tool_id"
       ],
       "manifest_path": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs/fastq/corpus-01-mini/fastq.detect_duplicates_premerge/corpus_only/bijux_dna/stage-result.json",
+      "manifest_status": "succeeded",
+      "manifest_exit_code": 0,
+      "declared_output_count": 1,
+      "normalized_snapshot": {
+        "command_step_count": 1,
+        "declared_output_count": 1,
+        "expected_metric_count": 3,
+        "simulated_elapsed_seconds": 1.25
+      }
+    },
+    {
+      "record_id": "fake-run:fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna",
+      "source_kind": "fake_run",
+      "document_kind": "all_domain_fake_run_metrics",
+      "domain": "fastq",
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "tool_id": "bijux_dna",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "result_id": "fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna",
+      "parsed_path": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/metrics.json",
+      "parsed_schema_version": "bijux.bench.local_all_domain_fake_run_metrics.v1",
+      "parsed_top_level_key_count": 13,
+      "parsed_top_level_keys": [
+        "asset_profile_id",
+        "command_step_count",
+        "corpus_id",
+        "declared_output_count",
+        "domain",
+        "expected_metric_count",
+        "expected_metrics",
+        "materialized_byte_count",
+        "result_id",
+        "schema_version",
+        "simulated_elapsed_seconds",
+        "stage_id",
+        "tool_id"
+      ],
+      "manifest_path": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/stage-result.json",
       "manifest_status": "succeeded",
       "manifest_exit_code": 0,
       "declared_output_count": 1,

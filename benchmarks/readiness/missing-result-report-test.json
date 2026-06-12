@@ -2,15 +2,15 @@
   "schema_version": "bijux.bench.readiness.missing_result_report.v1",
   "output_path": "benchmarks/readiness/missing-result-report-test.json",
   "fake_result_root": "benchmarks/readiness/missing-result-report-fixture",
-  "expected_row_count": 115,
-  "present_result_row_count": 114,
+  "expected_row_count": 116,
+  "present_result_row_count": 115,
   "missing_result_row_count": 1,
   "passes_behavior_test": true,
   "removed_result_row_id": "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
   "removed_manifest_path": "benchmarks/readiness/missing-result-report-fixture/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json",
   "domain_counts": {
     "bam": 49,
-    "fastq": 66
+    "fastq": 67
   },
   "rows": [
     {
@@ -2175,6 +2175,25 @@
       ],
       "normalized_metrics_output_id": "duplicate_signal_report",
       "reason": "expected benchmark result row `fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna",
+      "domain": "fastq",
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "tool_id": "bijux_dna",
+      "fixture_id": "corpus-01-mini",
+      "sample_scope": "sample-set",
+      "expected_manifest_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.estimate_library_complexity_prealign/sample-set/bijux_dna/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.estimate_library_complexity_prealign/sample-set/bijux_dna/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "library_complexity_report"
+      ],
+      "observed_output_artifact_ids": [
+        "library_complexity_report"
+      ],
+      "normalized_metrics_output_id": "library_complexity_report",
+      "reason": "expected benchmark result row `fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna` remains present with a validated stage-result manifest"
     },
     {
       "result_row_id": "fastq:corpus-01-mini:fastq.extract_umis:sample-set:umi_tools",

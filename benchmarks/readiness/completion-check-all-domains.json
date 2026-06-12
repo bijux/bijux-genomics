@@ -2,12 +2,12 @@
   "schema_version": "bijux.bench.readiness.all_domain_completion_check.v1",
   "output_path": "benchmarks/readiness/completion-check-all-domains.json",
   "fixture_root": "runs/bench/readiness-probes/all-domains/completion-check",
-  "row_count": 132,
-  "complete_row_count": 127,
+  "row_count": 136,
+  "complete_row_count": 131,
   "incomplete_row_count": 5,
   "domain_counts": {
     "bam": 49,
-    "fastq": 63,
+    "fastq": 67,
     "vcf": 20
   },
   "failure_reason_counts": {
@@ -3296,6 +3296,61 @@
       "failure_reasons": []
     },
     {
+      "result_id": "fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna",
+      "domain": "fastq",
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "tool_id": "bijux_dna",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "command_script_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/command.sh",
+      "stdout_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/stdout.txt",
+      "stderr_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/stderr.txt",
+      "metrics_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/metrics.json",
+      "stage_result_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/stage-result.json",
+      "manifest_exists": true,
+      "manifest_valid": true,
+      "manifest_output_match": true,
+      "exit_code_zero": true,
+      "runtime_status": "succeeded",
+      "exit_code": 0,
+      "declared_output_count": 1,
+      "present_declared_output_count": 1,
+      "missing_declared_output_ids": [],
+      "normalized_metrics_count": 1,
+      "present_normalized_metrics_count": 1,
+      "missing_normalized_metric_ids": [],
+      "required_file_count": 4,
+      "ready_required_file_count": 4,
+      "required_files": [
+        {
+          "file_id": "command_script",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/command.sh",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stdout",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/stdout.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stderr",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/stderr.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "metrics",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/metrics.json",
+          "exists": true,
+          "non_empty": true
+        }
+      ],
+      "completion_status": "complete",
+      "failure_reasons": []
+    },
+    {
       "result_id": "fastq:corpus-01-mini:fastq.extract_umis:sample-set:umi_tools",
       "domain": "fastq",
       "stage_id": "fastq.extract_umis",
@@ -4168,6 +4223,171 @@
         {
           "file_id": "metrics",
           "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-03-amplicon-mini/fastq.normalize_primers/corpus_only/cutadapt/metrics.json",
+          "exists": true,
+          "non_empty": true
+        }
+      ],
+      "completion_status": "complete",
+      "failure_reasons": []
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastq_scan",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "command_script_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/command.sh",
+      "stdout_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/stdout.txt",
+      "stderr_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/stderr.txt",
+      "metrics_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/metrics.json",
+      "stage_result_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/stage-result.json",
+      "manifest_exists": true,
+      "manifest_valid": true,
+      "manifest_output_match": true,
+      "exit_code_zero": true,
+      "runtime_status": "succeeded",
+      "exit_code": 0,
+      "declared_output_count": 3,
+      "present_declared_output_count": 3,
+      "missing_declared_output_ids": [],
+      "normalized_metrics_count": 1,
+      "present_normalized_metrics_count": 1,
+      "missing_normalized_metric_ids": [],
+      "required_file_count": 4,
+      "ready_required_file_count": 4,
+      "required_files": [
+        {
+          "file_id": "command_script",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/command.sh",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stdout",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/stdout.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stderr",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/stderr.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "metrics",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/metrics.json",
+          "exists": true,
+          "non_empty": true
+        }
+      ],
+      "completion_status": "complete",
+      "failure_reasons": []
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastqc",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "command_script_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/command.sh",
+      "stdout_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/stdout.txt",
+      "stderr_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/stderr.txt",
+      "metrics_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/metrics.json",
+      "stage_result_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/stage-result.json",
+      "manifest_exists": true,
+      "manifest_valid": true,
+      "manifest_output_match": true,
+      "exit_code_zero": true,
+      "runtime_status": "succeeded",
+      "exit_code": 0,
+      "declared_output_count": 3,
+      "present_declared_output_count": 3,
+      "missing_declared_output_ids": [],
+      "normalized_metrics_count": 1,
+      "present_normalized_metrics_count": 1,
+      "missing_normalized_metric_ids": [],
+      "required_file_count": 4,
+      "ready_required_file_count": 4,
+      "required_files": [
+        {
+          "file_id": "command_script",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/command.sh",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stdout",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/stdout.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stderr",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/stderr.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "metrics",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/metrics.json",
+          "exists": true,
+          "non_empty": true
+        }
+      ],
+      "completion_status": "complete",
+      "failure_reasons": []
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "seqkit",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "command_script_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/command.sh",
+      "stdout_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/stdout.txt",
+      "stderr_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/stderr.txt",
+      "metrics_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/metrics.json",
+      "stage_result_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/stage-result.json",
+      "manifest_exists": true,
+      "manifest_valid": true,
+      "manifest_output_match": true,
+      "exit_code_zero": true,
+      "runtime_status": "succeeded",
+      "exit_code": 0,
+      "declared_output_count": 3,
+      "present_declared_output_count": 3,
+      "missing_declared_output_ids": [],
+      "normalized_metrics_count": 1,
+      "present_normalized_metrics_count": 1,
+      "missing_normalized_metric_ids": [],
+      "required_file_count": 4,
+      "ready_required_file_count": 4,
+      "required_files": [
+        {
+          "file_id": "command_script",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/command.sh",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stdout",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/stdout.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stderr",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/stderr.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "metrics",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/metrics.json",
           "exists": true,
           "non_empty": true
         }

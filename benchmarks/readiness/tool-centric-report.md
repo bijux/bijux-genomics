@@ -4,9 +4,9 @@
 
 - Tool count: 67
 - Stage-tool rows: 123
-- Benchmark-ready rows: 115
-- Blocked rows: 8
-- Tools with blockers: 8
+- Benchmark-ready rows: 116
+- Blocked rows: 7
+- Tools with blockers: 7
 
 | Tool | Domains | Stage rows | Ready | Blocked | Blocked stages |
 | --- | --- | ---: | ---: | ---: | --- |
@@ -22,7 +22,7 @@
 | bbduk | fastq | 4 | 4 | 0 | none |
 | bbmerge | fastq | 1 | 1 | 0 | none |
 | bedtools | bam | 3 | 3 | 0 | none |
-| bijux_dna | fastq | 2 | 1 | 1 | fastq.estimate_library_complexity_prealign (support) |
+| bijux_dna | fastq | 2 | 2 | 0 | none |
 | bowtie2 | bam, fastq | 3 | 3 | 0 | none |
 | bowtie2_build | fastq | 1 | 0 | 1 | fastq.index_reference (corpus) |
 | bwa | bam | 1 | 1 | 0 | none |
@@ -237,14 +237,14 @@
 
 - Domains: fastq
 - Stage rows: 2
-- Benchmark-ready rows: 1
-- Blocked rows: 1
+- Benchmark-ready rows: 2
+- Blocked rows: 0
 - Report sections: quality_profiling
 
 | Domain | Stage | Report section | Summary table | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | fastq | fastq.detect_duplicates_premerge | Quality Profiling | Pre-merge Complexity | benchmark_ready | none | governed_execution | runnable | parse_normalized | fixture:corpus-01-mini | not_required |
-| fastq | fastq.estimate_library_complexity_prealign | Quality Profiling | Pre-merge Complexity | not_benchmark_ready | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |
+| fastq | fastq.estimate_library_complexity_prealign | Quality Profiling | Pre-merge Complexity | benchmark_ready | none | governed_execution | runnable | parse_normalized | fixture:corpus-01-mini | not_required |
 
 ## bowtie2
 

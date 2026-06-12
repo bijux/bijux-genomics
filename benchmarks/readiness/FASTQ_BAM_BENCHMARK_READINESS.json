@@ -3,19 +3,19 @@
   "markdown_output_path": "benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.md",
   "json_output_path": "benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.json",
   "expected_pair_count": 123,
-  "ready_pair_count": 115,
-  "blocked_pair_count": 8,
+  "ready_pair_count": 116,
+  "blocked_pair_count": 7,
   "blocker_counts": {
     "corpus": 3,
-    "support": 5
+    "support": 4
   },
   "matrix": {
     "surface_status": "attention_required",
     "scope": "all governed fastq and bam stage-tool pairs",
     "output_path": "benchmarks/readiness/pair-readiness.tsv",
     "expected_pair_count": 123,
-    "ready_pair_count": 115,
-    "blocked_pair_count": 8,
+    "ready_pair_count": 116,
+    "blocked_pair_count": 7,
     "stage_count": 51,
     "tool_count": 67,
     "domain_counts": {
@@ -24,19 +24,19 @@
     },
     "readiness_gap_counts": {
       "corpus": 3,
-      "none": 115,
-      "support": 5
+      "none": 116,
+      "support": 4
     }
   },
   "adapters": {
     "surface_status": "attention_required",
     "scope": "all governed fastq and bam stage-tool pairs",
     "total_pair_count": 123,
-    "ready_pair_count": 118,
-    "attention_required_pair_count": 5,
+    "ready_pair_count": 119,
+    "attention_required_pair_count": 4,
     "status_counts": {
-      "declared_only": 5,
-      "runnable": 118
+      "declared_only": 4,
+      "runnable": 119
     },
     "output_paths": [
       "benchmarks/readiness/fastq-command-adapter-coverage.tsv",
@@ -47,15 +47,15 @@
     "surface_status": "complete",
     "scope": "benchmark-reporting pairs only",
     "output_path": "benchmarks/readiness/gate-parser-complete.json",
-    "benchmark_reporting_pair_count": 115,
-    "ready_pair_count": 115,
+    "benchmark_reporting_pair_count": 116,
+    "ready_pair_count": 116,
     "blocked_pair_count": 0,
-    "excluded_pair_count": 8,
+    "excluded_pair_count": 7,
     "status_counts": {
       "benchmark_normalized": 55,
       "comparable": 12,
-      "not_normalized": 5,
-      "parse_normalized": 2,
+      "not_normalized": 4,
+      "parse_normalized": 3,
       "parser_fixture_validated": 49
     }
   },
@@ -111,7 +111,7 @@
     "output_count": 5,
     "ready_output_count": 5,
     "blocked_output_count": 0,
-    "expected_result_row_count": 115,
+    "expected_result_row_count": 116,
     "stage_section_count": 51,
     "tool_section_count": 67,
     "corpus_section_count": 7
@@ -127,7 +127,7 @@
       "report_id": "expected_benchmark_results",
       "output_path": "benchmarks/readiness/expected-benchmark-results.tsv",
       "item_kind": "expected_results",
-      "item_count": 115
+      "item_count": 116
     },
     {
       "report_id": "stage_centric_report",
@@ -149,19 +149,6 @@
     }
   ],
   "blocked_pairs": [
-    {
-      "row_id": "fastq:fastq.estimate_library_complexity_prealign:bijux_dna",
-      "domain": "fastq",
-      "stage_id": "fastq.estimate_library_complexity_prealign",
-      "tool_id": "bijux_dna",
-      "readiness_gap": "support",
-      "support_status": "planned_contract",
-      "adapter_status": "declared_only",
-      "parser_status": "not_normalized",
-      "corpus_status": "fixture:corpus-01-mini",
-      "asset_status": "not_required",
-      "reason": "row `fastq` / `fastq.estimate_library_complexity_prealign` / `bijux_dna` is blocked by benchmark support status `planned_contract`"
-    },
     {
       "row_id": "fastq:fastq.filter_low_complexity:dustmasker",
       "domain": "fastq",
