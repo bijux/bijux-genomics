@@ -898,6 +898,16 @@ cutadapt -g '"'"'file:assets/reference/primers/16S_universal_v1.fasta'"'"' --ove
 printf '"'"'%s\n'"'"' '"'"'{"schema_version":"bijux.fastq.normalize_primers.report.v2","stage":"fastq.normalize_primers","stage_id":"fastq.normalize_primers","tool_id":"cutadapt","paired_mode":"single_end","primer_set_id":"16S_universal_v1","marker_id":"16S","primer_fasta":"assets/reference/primers/16S_universal_v1.fasta","orientation_policy":"normalize_to_forward_primer","max_mismatch_rate":0.1,"min_overlap_bp":6,"input_r1":"assets/toy/core-v1/fastq/reads_with_primers.fastq","input_r2":null,"output_r1":"benchmarks/readiness/stage-tool-commands/fastq/fastq/normalize_primers/cutadapt/primer_normalized.fastq.gz","output_r2":null,"reads_in":null,"reads_out":null,"bases_in":null,"bases_out":null,"pairs_in":null,"pairs_out":null,"primer_trimmed_reads":null,"primer_trimmed_fraction":null,"orientation_forward_fraction":null,"primer_orientation_report":"benchmarks/readiness/stage-tool-commands/fastq/fastq/normalize_primers/cutadapt/primer_orientation.tsv","primer_stats_json":"benchmarks/readiness/stage-tool-commands/fastq/fastq/normalize_primers/cutadapt/primer_stats.json","raw_backend_report":"benchmarks/readiness/stage-tool-commands/fastq/fastq/normalize_primers/cutadapt/primer_stats.json","raw_backend_report_format":"cutadapt_json","runtime_s":null,"memory_mb":null,"used_fallback":false,"backend_metrics":null}'"'"' > '"'"'benchmarks/readiness/stage-tool-commands/fastq/fastq/normalize_primers/cutadapt/normalize_primers_report.json'"'"'
 '
 
+# fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan / fastq / fastq.profile_overrepresented_sequences / fastq_scan
+fastq_scan assets/toy/core-v1/fastq/reads_with_overrepresented_sequences.fastq
+
+# fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc / fastq / fastq.profile_overrepresented_sequences / fastqc
+sh -lc 'mkdir -p '"'"'benchmarks/readiness/stage-tool-commands/fastq/fastq/profile_overrepresented_sequences/fastqc/fastqc_overrepresented'"'"'
+'"'"'fastqc'"'"' '"'"'--outdir'"'"' '"'"'benchmarks/readiness/stage-tool-commands/fastq/fastq/profile_overrepresented_sequences/fastqc/fastqc_overrepresented'"'"' '"'"'--threads'"'"' '"'"'1'"'"' '"'"'assets/toy/core-v1/fastq/reads_with_overrepresented_sequences.fastq'"'"''
+
+# fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit / fastq / fastq.profile_overrepresented_sequences / seqkit
+sh -lc ''"'"'seqkit'"'"' '"'"'fx2tab'"'"' '"'"'-j'"'"' '"'"'1'"'"' '"'"'-n'"'"' '"'"'-s'"'"' '"'"'assets/toy/core-v1/fastq/reads_with_overrepresented_sequences.fastq'"'"' > /dev/null'
+
 # fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp / fastq / fastq.profile_read_lengths / fastp
 fastp --in1 assets/toy/core-v1/fastq/reads_1.fastq --out1 /dev/null --thread 4 --json /dev/null --disable_adapter_trimming --disable_quality_filtering --disable_length_filtering --disable_trim_poly_g --dont_eval_duplication
 

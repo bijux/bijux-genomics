@@ -3,22 +3,22 @@
   "output_path": "benchmarks/readiness/all-domains/no-placeholder-command-check.json",
   "script_output_path": "benchmarks/readiness/rendered-commands-all-domains.sh",
   "argv_output_path": "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl",
-  "row_count": 132,
-  "result_id_count": 132,
-  "stage_count": 64,
+  "row_count": 135,
+  "result_id_count": 135,
+  "stage_count": 65,
   "tool_count": 69,
-  "command_step_count": 154,
-  "shell_wrapped_step_count": 89,
-  "direct_step_count": 65,
-  "valid_row_count": 132,
+  "command_step_count": 157,
+  "shell_wrapped_step_count": 91,
+  "direct_step_count": 66,
+  "valid_row_count": 135,
   "invalid_row_count": 0,
   "domain_counts": {
     "bam": 49,
-    "fastq": 63,
+    "fastq": 66,
     "vcf": 20
   },
   "command_source_counts": {
-    "fastq_bam_command_adapter": 112,
+    "fastq_bam_command_adapter": 115,
     "vcf_bcftools_adapter": 11,
     "vcf_eigensoft_adapter": 1,
     "vcf_imputation_family_adapter": 2,
@@ -2943,6 +2943,92 @@
             "set",
             "cutadapt",
             "printf"
+          ],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        }
+      ]
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastq_scan",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "command_source": "fastq_bam_command_adapter",
+      "command_step_count": 1,
+      "script_command_count": 1,
+      "has_real_invocation": true,
+      "finding_count": 0,
+      "finding_types": [],
+      "ok": true,
+      "step_audits": [
+        {
+          "step_id": "invoke",
+          "step_kind": "exec",
+          "executable": "fastq_scan",
+          "is_shell_wrapper": false,
+          "command_heads": [],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        }
+      ]
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastqc",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "command_source": "fastq_bam_command_adapter",
+      "command_step_count": 1,
+      "script_command_count": 1,
+      "has_real_invocation": true,
+      "finding_count": 0,
+      "finding_types": [],
+      "ok": true,
+      "step_audits": [
+        {
+          "step_id": "invoke",
+          "step_kind": "exec",
+          "executable": "sh",
+          "is_shell_wrapper": true,
+          "command_heads": [
+            "mkdir",
+            "fastqc"
+          ],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        }
+      ]
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "seqkit",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "command_source": "fastq_bam_command_adapter",
+      "command_step_count": 1,
+      "script_command_count": 1,
+      "has_real_invocation": true,
+      "finding_count": 0,
+      "finding_types": [],
+      "ok": true,
+      "step_audits": [
+        {
+          "step_id": "invoke",
+          "step_kind": "exec",
+          "executable": "sh",
+          "is_shell_wrapper": true,
+          "command_heads": [
+            "seqkit"
           ],
           "has_real_invocation": true,
           "finding_types": [],

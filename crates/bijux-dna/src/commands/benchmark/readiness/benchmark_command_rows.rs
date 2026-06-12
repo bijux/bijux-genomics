@@ -541,6 +541,15 @@ fn fastq_stage_params_from_plan(
                 })?,
             ),
         ),
+        "fastq.profile_overrepresented_sequences" => Some(
+            bijux_dna_planner_fastq::FastqStageParameters::ProfileOverrepresented(
+                serde_json::from_value(effective_params.clone()).with_context(|| {
+                    format!(
+                        "decode effective params for `{stage_id}` as FastqOverrepresentedProfileParams"
+                    )
+                })?,
+            ),
+        ),
         "fastq.profile_reads" => Some(bijux_dna_planner_fastq::FastqStageParameters::ProfileReads(
             serde_json::from_value(effective_params.clone()).with_context(|| {
                 format!("decode effective params for `{stage_id}` as FastqStatsParams")
