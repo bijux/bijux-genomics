@@ -25,6 +25,259 @@ pub(crate) fn parse_first_u64_after_key(text: &str, key: &str) -> Option<u64> {
     None
 }
 
+fn insert_json_value<T: serde::Serialize>(
+    object: &mut serde_json::Map<String, serde_json::Value>,
+    key: &str,
+    value: T,
+) {
+    object.insert(
+        key.to_string(),
+        serde_json::to_value(value).expect("stage metrics fields must serialize"),
+    );
+}
+
+fn rrna_depletion_summary(
+    report: &bijux_dna_domain_fastq::DepleteRrnaReportV1,
+) -> serde_json::Value {
+    let mut object = serde_json::Map::new();
+    insert_json_value(&mut object, "reads_removed", report.reads_removed);
+    insert_json_value(&mut object, "bases_removed", report.bases_removed);
+    insert_json_value(&mut object, "output_r1", report.output_r1.clone());
+    insert_json_value(&mut object, "output_r2", report.output_r2.clone());
+    insert_json_value(&mut object, "removed_reads_r1", report.removed_reads_r1.clone());
+    insert_json_value(&mut object, "removed_reads_r2", report.removed_reads_r2.clone());
+    insert_json_value(&mut object, "report_tsv", report.rrna_report_tsv.clone());
+    insert_json_value(&mut object, "report_json", report.rrna_report_json.clone());
+    insert_json_value(&mut object, "database_artifact_id", report.database_artifact_id.clone());
+    insert_json_value(&mut object, "screening_engine", report.screening_engine.clone());
+    serde_json::Value::Object(object)
+}
+
+fn contaminant_depletion_summary(
+    report: &bijux_dna_domain_fastq::DepleteReferenceContaminantsReportV1,
+) -> serde_json::Value {
+    let mut object = serde_json::Map::new();
+    insert_json_value(&mut object, "reads_removed", report.reads_removed);
+    insert_json_value(&mut object, "bases_removed", report.bases_removed);
+    insert_json_value(&mut object, "output_r1", report.output_r1.clone());
+    insert_json_value(&mut object, "output_r2", report.output_r2.clone());
+    insert_json_value(&mut object, "removed_reads_r1", report.removed_reads_r1.clone());
+    insert_json_value(&mut object, "removed_reads_r2", report.removed_reads_r2.clone());
+    insert_json_value(&mut object, "report_json", report.report_json.clone());
+    insert_json_value(&mut object, "contaminant_reference", report.contaminant_reference.clone());
+    insert_json_value(
+        &mut object,
+        "reference_index_backend",
+        report.reference_index_backend.clone(),
+    );
+    insert_json_value(&mut object, "raw_backend_report", report.raw_backend_report.clone());
+    insert_json_value(
+        &mut object,
+        "raw_backend_report_format",
+        report.raw_backend_report_format.clone(),
+    );
+    serde_json::Value::Object(object)
+}
+
+fn host_depletion_summary(
+    report: &bijux_dna_domain_fastq::DepleteHostReportV1,
+) -> serde_json::Value {
+    let mut object = serde_json::Map::new();
+    insert_json_value(&mut object, "reads_removed", report.reads_removed);
+    insert_json_value(&mut object, "bases_removed", report.bases_removed);
+    insert_json_value(&mut object, "output_r1", report.output_r1.clone());
+    insert_json_value(&mut object, "output_r2", report.output_r2.clone());
+    insert_json_value(&mut object, "removed_host_r1", report.removed_host_r1.clone());
+    insert_json_value(&mut object, "removed_host_r2", report.removed_host_r2.clone());
+    insert_json_value(&mut object, "report_json", report.report_json.clone());
+    insert_json_value(&mut object, "reference_catalog_id", report.reference_catalog_id.clone());
+    insert_json_value(
+        &mut object,
+        "reference_index_backend",
+        report.reference_index_backend.clone(),
+    );
+    insert_json_value(&mut object, "raw_backend_report", report.raw_backend_report.clone());
+    insert_json_value(
+        &mut object,
+        "raw_backend_report_format",
+        report.raw_backend_report_format.clone(),
+    );
+    serde_json::Value::Object(object)
+}
+
+fn rrna_metrics_value(
+    report: bijux_dna_domain_fastq::DepleteRrnaReportV1,
+    report_path: std::path::PathBuf,
+) -> serde_json::Value {
+    let mut object = serde_json::Map::new();
+    insert_json_value(&mut object, "schema_version", "bijux.fastq_stage_metrics.v1");
+    insert_json_value(&mut object, "stage", "fastq.deplete_rrna");
+    insert_json_value(&mut object, "tool", report.tool_id.clone());
+    insert_json_value(&mut object, "paired_mode", report.paired_mode);
+    insert_json_value(&mut object, "threads", report.threads);
+    insert_json_value(&mut object, "rrna_db", report.rrna_db.clone());
+    insert_json_value(&mut object, "database_artifact_id", report.database_artifact_id.clone());
+    insert_json_value(&mut object, "database_build_id", report.database_build_id.clone());
+    insert_json_value(&mut object, "database_digest", report.database_digest.clone());
+    insert_json_value(&mut object, "screening_engine", report.screening_engine.clone());
+    insert_json_value(&mut object, "report_format", report.report_format.clone());
+    insert_json_value(&mut object, "emit_removed_reads", report.emit_removed_reads);
+    insert_json_value(&mut object, "min_identity", report.min_identity);
+    insert_json_value(&mut object, "retained_read_role", report.retained_read_role.clone());
+    insert_json_value(&mut object, "rejected_read_role", report.rejected_read_role.clone());
+    insert_json_value(&mut object, "rrna_filtered_reads_r1", report.output_r1.clone());
+    insert_json_value(&mut object, "rrna_filtered_reads_r2", report.output_r2.clone());
+    insert_json_value(&mut object, "rrna_removed_reads_r1", report.removed_reads_r1.clone());
+    insert_json_value(&mut object, "rrna_removed_reads_r2", report.removed_reads_r2.clone());
+    insert_json_value(&mut object, "reads_in", report.reads_in);
+    insert_json_value(&mut object, "reads_out", report.reads_out);
+    insert_json_value(&mut object, "retained_reads", report.reads_out);
+    insert_json_value(&mut object, "reads_removed", report.reads_removed);
+    insert_json_value(&mut object, "removed_reads", report.reads_removed);
+    insert_json_value(&mut object, "bases_in", report.bases_in);
+    insert_json_value(&mut object, "bases_out", report.bases_out);
+    insert_json_value(&mut object, "bases_removed", report.bases_removed);
+    insert_json_value(&mut object, "pairs_in", report.pairs_in);
+    insert_json_value(&mut object, "pairs_out", report.pairs_out);
+    insert_json_value(&mut object, "rrna_fraction_removed", report.rrna_fraction_removed);
+    insert_json_value(&mut object, "depletion_rate", report.rrna_fraction_removed);
+    insert_json_value(&mut object, "depletion_summary", rrna_depletion_summary(&report));
+    insert_json_value(&mut object, "raw_backend_report", report.raw_backend_report.clone());
+    insert_json_value(
+        &mut object,
+        "raw_backend_report_format",
+        report.raw_backend_report_format.clone(),
+    );
+    insert_json_value(&mut object, "report_json", report_path);
+    serde_json::Value::Object(object)
+}
+
+fn contaminant_metrics_value(
+    report: bijux_dna_domain_fastq::DepleteReferenceContaminantsReportV1,
+    report_path: std::path::PathBuf,
+) -> serde_json::Value {
+    let mut object = serde_json::Map::new();
+    insert_json_value(&mut object, "schema_version", "bijux.fastq_stage_metrics.v1");
+    insert_json_value(&mut object, "stage", "fastq.deplete_reference_contaminants");
+    insert_json_value(&mut object, "tool", report.tool_id.clone());
+    insert_json_value(&mut object, "paired_mode", report.paired_mode);
+    insert_json_value(&mut object, "threads", report.threads);
+    insert_json_value(&mut object, "reference_catalog_id", report.reference_catalog_id.clone());
+    insert_json_value(&mut object, "contaminant_reference", report.contaminant_reference.clone());
+    insert_json_value(
+        &mut object,
+        "reference_index_artifact_id",
+        report.reference_index_artifact_id.clone(),
+    );
+    insert_json_value(
+        &mut object,
+        "contaminant_index_artifact_id",
+        report.reference_index_artifact_id.clone(),
+    );
+    insert_json_value(
+        &mut object,
+        "reference_index_backend",
+        report.reference_index_backend.clone(),
+    );
+    insert_json_value(&mut object, "reference_build_id", report.reference_build_id.clone());
+    insert_json_value(&mut object, "reference_digest", report.reference_digest.clone());
+    insert_json_value(&mut object, "match_threshold", report.match_threshold);
+    insert_json_value(&mut object, "retained_read_role", report.retained_read_role.clone());
+    insert_json_value(&mut object, "rejected_read_role", report.rejected_read_role.clone());
+    insert_json_value(&mut object, "retain_unmapped_pairs", report.retain_unmapped_pairs);
+    insert_json_value(&mut object, "contaminant_screened_reads_r1", report.output_r1.clone());
+    insert_json_value(&mut object, "contaminant_screened_reads_r2", report.output_r2.clone());
+    insert_json_value(&mut object, "removed_contaminant_reads_r1", report.removed_reads_r1.clone());
+    insert_json_value(&mut object, "removed_contaminant_reads_r2", report.removed_reads_r2.clone());
+    insert_json_value(&mut object, "reads_in", report.reads_in);
+    insert_json_value(&mut object, "reads_out", report.reads_out);
+    insert_json_value(&mut object, "reads_removed", report.reads_removed);
+    insert_json_value(&mut object, "contaminant_reads", report.reads_removed);
+    insert_json_value(&mut object, "bases_in", report.bases_in);
+    insert_json_value(&mut object, "bases_out", report.bases_out);
+    insert_json_value(&mut object, "bases_removed", report.bases_removed);
+    insert_json_value(&mut object, "pairs_in", report.pairs_in);
+    insert_json_value(&mut object, "pairs_out", report.pairs_out);
+    insert_json_value(
+        &mut object,
+        "contaminant_fraction_removed",
+        report.contaminant_fraction_removed,
+    );
+    insert_json_value(&mut object, "contaminant_hit_rate", report.contaminant_fraction_removed);
+    insert_json_value(&mut object, "depletion_summary", contaminant_depletion_summary(&report));
+    insert_json_value(&mut object, "raw_backend_report", report.raw_backend_report.clone());
+    insert_json_value(
+        &mut object,
+        "raw_backend_report_format",
+        report.raw_backend_report_format.clone(),
+    );
+    insert_json_value(&mut object, "report_json", report_path);
+    serde_json::Value::Object(object)
+}
+
+fn host_metrics_value(
+    report: bijux_dna_domain_fastq::DepleteHostReportV1,
+    report_path: std::path::PathBuf,
+) -> serde_json::Value {
+    let mut object = serde_json::Map::new();
+    insert_json_value(&mut object, "schema_version", "bijux.fastq_stage_metrics.v1");
+    insert_json_value(&mut object, "stage", "fastq.deplete_host");
+    insert_json_value(&mut object, "tool", report.tool_id.clone());
+    insert_json_value(&mut object, "paired_mode", report.paired_mode);
+    insert_json_value(&mut object, "threads", report.threads);
+    insert_json_value(&mut object, "reference_scope", report.reference_scope.clone());
+    insert_json_value(&mut object, "reference_catalog_id", report.reference_catalog_id.clone());
+    insert_json_value(
+        &mut object,
+        "reference_index_artifact_id",
+        report.reference_index_artifact_id.clone(),
+    );
+    insert_json_value(
+        &mut object,
+        "host_index_artifact_id",
+        report.reference_index_artifact_id.clone(),
+    );
+    insert_json_value(
+        &mut object,
+        "reference_index_backend",
+        report.reference_index_backend.clone(),
+    );
+    insert_json_value(&mut object, "reference_build_id", report.reference_build_id.clone());
+    insert_json_value(&mut object, "reference_digest", report.reference_digest.clone());
+    insert_json_value(&mut object, "masking_policy", report.masking_policy.clone());
+    insert_json_value(&mut object, "decoy_policy", report.decoy_policy.clone());
+    insert_json_value(&mut object, "decoy_catalog_id", report.decoy_catalog_id.clone());
+    insert_json_value(&mut object, "identity_threshold", report.identity_threshold);
+    insert_json_value(&mut object, "retained_read_policy", report.retained_read_policy.clone());
+    insert_json_value(&mut object, "emit_removed_reads", report.emit_removed_reads);
+    insert_json_value(&mut object, "report_format", report.report_format.clone());
+    insert_json_value(&mut object, "retain_unmapped_pairs", report.retain_unmapped_pairs);
+    insert_json_value(&mut object, "host_depleted_reads_r1", report.output_r1.clone());
+    insert_json_value(&mut object, "host_depleted_reads_r2", report.output_r2.clone());
+    insert_json_value(&mut object, "removed_host_reads_r1", report.removed_host_r1.clone());
+    insert_json_value(&mut object, "removed_host_reads_r2", report.removed_host_r2.clone());
+    insert_json_value(&mut object, "reads_in", report.reads_in);
+    insert_json_value(&mut object, "reads_out", report.reads_out);
+    insert_json_value(&mut object, "reads_removed", report.reads_removed);
+    insert_json_value(&mut object, "depleted_reads", report.reads_removed);
+    insert_json_value(&mut object, "bases_in", report.bases_in);
+    insert_json_value(&mut object, "bases_out", report.bases_out);
+    insert_json_value(&mut object, "bases_removed", report.bases_removed);
+    insert_json_value(&mut object, "pairs_in", report.pairs_in);
+    insert_json_value(&mut object, "pairs_out", report.pairs_out);
+    insert_json_value(&mut object, "host_fraction_removed", report.host_fraction_removed);
+    insert_json_value(&mut object, "host_hit_rate", report.host_fraction_removed);
+    insert_json_value(&mut object, "depletion_summary", host_depletion_summary(&report));
+    insert_json_value(&mut object, "raw_backend_report", report.raw_backend_report.clone());
+    insert_json_value(
+        &mut object,
+        "raw_backend_report_format",
+        report.raw_backend_report_format.clone(),
+    );
+    insert_json_value(&mut object, "report_json", report_path);
+    serde_json::Value::Object(object)
+}
+
 pub(crate) fn parse_validate_reads_metrics(
     out_dir: &std::path::Path,
     execution: &StageResultV1,
@@ -1077,38 +1330,7 @@ pub(crate) fn parse_deplete_rrna_metrics(out_dir: &std::path::Path) -> serde_jso
     let report_path = out_dir.join("rrna_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_deplete_rrna_report(&raw) {
-            return serde_json::json!({
-                "schema_version": "bijux.fastq_stage_metrics.v1",
-                "stage": "fastq.deplete_rrna",
-                "tool": report.tool_id,
-                "paired_mode": report.paired_mode,
-                "threads": report.threads,
-                "rrna_db": report.rrna_db,
-                "database_artifact_id": report.database_artifact_id,
-                "database_build_id": report.database_build_id,
-                "database_digest": report.database_digest,
-                "screening_engine": report.screening_engine,
-                "report_format": report.report_format,
-                "emit_removed_reads": report.emit_removed_reads,
-                "min_identity": report.min_identity,
-                "retained_read_role": report.retained_read_role,
-                "rejected_read_role": report.rejected_read_role,
-                "reads_in": report.reads_in,
-                "reads_out": report.reads_out,
-                "retained_reads": report.reads_out,
-                "reads_removed": report.reads_removed,
-                "removed_reads": report.reads_removed,
-                "bases_in": report.bases_in,
-                "bases_out": report.bases_out,
-                "bases_removed": report.bases_removed,
-                "pairs_in": report.pairs_in,
-                "pairs_out": report.pairs_out,
-                "rrna_fraction_removed": report.rrna_fraction_removed,
-                "depletion_rate": report.rrna_fraction_removed,
-                "raw_backend_report": report.raw_backend_report,
-                "raw_backend_report_format": report.raw_backend_report_format,
-                "report_json": report_path,
-            });
+            return rrna_metrics_value(report, report_path);
         }
     }
     serde_json::json!({
@@ -1120,6 +1342,7 @@ pub(crate) fn parse_deplete_rrna_metrics(out_dir: &std::path::Path) -> serde_jso
         "depletion_rate": serde_json::Value::Null,
         "reads_removed": serde_json::Value::Null,
         "removed_reads": serde_json::Value::Null,
+        "depletion_summary": serde_json::Value::Null,
         "report_json": report_path,
     })
 }
@@ -1132,40 +1355,7 @@ pub(crate) fn parse_deplete_reference_contaminants_metrics(
         if let Ok(report) =
             bijux_dna_domain_fastq::observer::parse_deplete_reference_contaminants_report(&raw)
         {
-            return serde_json::json!({
-                "schema_version": "bijux.fastq_stage_metrics.v1",
-                "stage": "fastq.deplete_reference_contaminants",
-                "tool": report.tool_id,
-                "paired_mode": report.paired_mode,
-                "threads": report.threads,
-                "reference_catalog_id": report.reference_catalog_id,
-                "contaminant_reference": report.contaminant_reference,
-                "reference_index_artifact_id": report.reference_index_artifact_id,
-                "contaminant_index_artifact_id": report.reference_index_artifact_id,
-                "reference_index_backend": report.reference_index_backend,
-                "reference_build_id": report.reference_build_id,
-                "reference_digest": report.reference_digest,
-                "match_threshold": report.match_threshold,
-                "retained_read_role": report.retained_read_role,
-                "rejected_read_role": report.rejected_read_role,
-                "retain_unmapped_pairs": report.retain_unmapped_pairs,
-                "contaminant_screened_reads_r1": report.output_r1,
-                "contaminant_screened_reads_r2": report.output_r2,
-                "reads_in": report.reads_in,
-                "reads_out": report.reads_out,
-                "reads_removed": report.reads_removed,
-                "contaminant_reads": report.reads_removed,
-                "bases_in": report.bases_in,
-                "bases_out": report.bases_out,
-                "bases_removed": report.bases_removed,
-                "pairs_in": report.pairs_in,
-                "pairs_out": report.pairs_out,
-                "contaminant_fraction_removed": report.contaminant_fraction_removed,
-                "contaminant_hit_rate": report.contaminant_fraction_removed,
-                "raw_backend_report": report.raw_backend_report,
-                "raw_backend_report_format": report.raw_backend_report_format,
-                "report_json": report_path,
-            });
+            return contaminant_metrics_value(report, report_path);
         }
     }
     serde_json::json!({
@@ -1178,6 +1368,7 @@ pub(crate) fn parse_deplete_reference_contaminants_metrics(
         "contaminant_fraction_removed": serde_json::Value::Null,
         "contaminant_hit_rate": serde_json::Value::Null,
         "reads_removed": serde_json::Value::Null,
+        "depletion_summary": serde_json::Value::Null,
         "report_json": report_path,
     })
 }
@@ -1186,46 +1377,7 @@ pub(crate) fn parse_deplete_host_metrics(out_dir: &std::path::Path) -> serde_jso
     let report_path = out_dir.join("host_depletion_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_deplete_host_report(&raw) {
-            return serde_json::json!({
-                "schema_version": "bijux.fastq_stage_metrics.v1",
-                "stage": "fastq.deplete_host",
-                "tool": report.tool_id,
-                "paired_mode": report.paired_mode,
-                "threads": report.threads,
-                "reference_scope": report.reference_scope,
-                "reference_catalog_id": report.reference_catalog_id,
-                "reference_index_artifact_id": report.reference_index_artifact_id,
-                "host_index_artifact_id": report.reference_index_artifact_id,
-                "reference_index_backend": report.reference_index_backend,
-                "reference_build_id": report.reference_build_id,
-                "reference_digest": report.reference_digest,
-                "masking_policy": report.masking_policy,
-                "decoy_policy": report.decoy_policy,
-                "decoy_catalog_id": report.decoy_catalog_id,
-                "identity_threshold": report.identity_threshold,
-                "retained_read_policy": report.retained_read_policy,
-                "emit_removed_reads": report.emit_removed_reads,
-                "report_format": report.report_format,
-                "retain_unmapped_pairs": report.retain_unmapped_pairs,
-                "host_depleted_reads_r1": report.output_r1,
-                "host_depleted_reads_r2": report.output_r2,
-                "removed_host_reads_r1": report.removed_host_r1,
-                "removed_host_reads_r2": report.removed_host_r2,
-                "reads_in": report.reads_in,
-                "reads_out": report.reads_out,
-                "reads_removed": report.reads_removed,
-                "depleted_reads": report.reads_removed,
-                "bases_in": report.bases_in,
-                "bases_out": report.bases_out,
-                "bases_removed": report.bases_removed,
-                "pairs_in": report.pairs_in,
-                "pairs_out": report.pairs_out,
-                "host_fraction_removed": report.host_fraction_removed,
-                "host_hit_rate": report.host_fraction_removed,
-                "raw_backend_report": report.raw_backend_report,
-                "raw_backend_report_format": report.raw_backend_report_format,
-                "report_json": report_path,
-            });
+            return host_metrics_value(report, report_path);
         }
     }
     serde_json::json!({
@@ -1238,6 +1390,7 @@ pub(crate) fn parse_deplete_host_metrics(out_dir: &std::path::Path) -> serde_jso
         "host_fraction_removed": serde_json::Value::Null,
         "host_hit_rate": serde_json::Value::Null,
         "reads_removed": serde_json::Value::Null,
+        "depletion_summary": serde_json::Value::Null,
         "report_json": report_path,
     })
 }

@@ -292,6 +292,8 @@ const FASTQ_NORMALIZED_METRICS_STAGE_CONTRACTS: &[FastqNormalizedMetricsStageCon
             "retained_reads",
             "removed_reads",
             "depletion_rate",
+            "rrna_removed_reads_r1",
+            "depletion_summary",
         ],
     },
     FastqNormalizedMetricsStageContract {
@@ -302,8 +304,10 @@ const FASTQ_NORMALIZED_METRICS_STAGE_CONTRACTS: &[FastqNormalizedMetricsStageCon
             "contaminant_reference",
             "contaminant_index_artifact_id",
             "contaminant_screened_reads_r1",
+            "removed_contaminant_reads_r1",
             "contaminant_reads",
             "contaminant_hit_rate",
+            "depletion_summary",
         ],
     },
     FastqNormalizedMetricsStageContract {
@@ -313,8 +317,10 @@ const FASTQ_NORMALIZED_METRICS_STAGE_CONTRACTS: &[FastqNormalizedMetricsStageCon
             "tool",
             "host_index_artifact_id",
             "host_depleted_reads_r1",
+            "removed_host_reads_r1",
             "depleted_reads",
             "host_hit_rate",
+            "depletion_summary",
         ],
     },
     FastqNormalizedMetricsStageContract {

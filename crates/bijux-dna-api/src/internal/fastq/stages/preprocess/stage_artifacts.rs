@@ -29,6 +29,86 @@ fn derive_screen_taxonomy_read_counts(
     }
 }
 
+fn insert_json_value<T: serde::Serialize>(
+    object: &mut serde_json::Map<String, serde_json::Value>,
+    key: &str,
+    value: T,
+) {
+    object.insert(
+        key.to_string(),
+        serde_json::to_value(value).expect("depletion summary fields must serialize"),
+    );
+}
+
+fn contaminant_depletion_summary(
+    report: &bijux_dna_domain_fastq::DepleteReferenceContaminantsReportV1,
+) -> serde_json::Value {
+    let mut object = serde_json::Map::new();
+    insert_json_value(&mut object, "reads_removed", report.reads_removed);
+    insert_json_value(&mut object, "bases_removed", report.bases_removed);
+    insert_json_value(&mut object, "output_r1", report.output_r1.clone());
+    insert_json_value(&mut object, "output_r2", report.output_r2.clone());
+    insert_json_value(&mut object, "removed_reads_r1", report.removed_reads_r1.clone());
+    insert_json_value(&mut object, "removed_reads_r2", report.removed_reads_r2.clone());
+    insert_json_value(&mut object, "report_json", report.report_json.clone());
+    insert_json_value(&mut object, "contaminant_reference", report.contaminant_reference.clone());
+    insert_json_value(
+        &mut object,
+        "reference_index_backend",
+        report.reference_index_backend.clone(),
+    );
+    insert_json_value(&mut object, "raw_backend_report", report.raw_backend_report.clone());
+    insert_json_value(
+        &mut object,
+        "raw_backend_report_format",
+        report.raw_backend_report_format.clone(),
+    );
+    serde_json::Value::Object(object)
+}
+
+fn rrna_depletion_summary(
+    report: &bijux_dna_domain_fastq::DepleteRrnaReportV1,
+) -> serde_json::Value {
+    let mut object = serde_json::Map::new();
+    insert_json_value(&mut object, "reads_removed", report.reads_removed);
+    insert_json_value(&mut object, "bases_removed", report.bases_removed);
+    insert_json_value(&mut object, "output_r1", report.output_r1.clone());
+    insert_json_value(&mut object, "output_r2", report.output_r2.clone());
+    insert_json_value(&mut object, "removed_reads_r1", report.removed_reads_r1.clone());
+    insert_json_value(&mut object, "removed_reads_r2", report.removed_reads_r2.clone());
+    insert_json_value(&mut object, "report_tsv", report.rrna_report_tsv.clone());
+    insert_json_value(&mut object, "report_json", report.rrna_report_json.clone());
+    insert_json_value(&mut object, "database_artifact_id", report.database_artifact_id.clone());
+    insert_json_value(&mut object, "screening_engine", report.screening_engine.clone());
+    serde_json::Value::Object(object)
+}
+
+fn host_depletion_summary(
+    report: &bijux_dna_domain_fastq::DepleteHostReportV1,
+) -> serde_json::Value {
+    let mut object = serde_json::Map::new();
+    insert_json_value(&mut object, "reads_removed", report.reads_removed);
+    insert_json_value(&mut object, "bases_removed", report.bases_removed);
+    insert_json_value(&mut object, "output_r1", report.output_r1.clone());
+    insert_json_value(&mut object, "output_r2", report.output_r2.clone());
+    insert_json_value(&mut object, "removed_host_r1", report.removed_host_r1.clone());
+    insert_json_value(&mut object, "removed_host_r2", report.removed_host_r2.clone());
+    insert_json_value(&mut object, "report_json", report.report_json.clone());
+    insert_json_value(&mut object, "reference_catalog_id", report.reference_catalog_id.clone());
+    insert_json_value(
+        &mut object,
+        "reference_index_backend",
+        report.reference_index_backend.clone(),
+    );
+    insert_json_value(&mut object, "raw_backend_report", report.raw_backend_report.clone());
+    insert_json_value(
+        &mut object,
+        "raw_backend_report_format",
+        report.raw_backend_report_format.clone(),
+    );
+    serde_json::Value::Object(object)
+}
+
 pub(super) fn emit_fastq_stage_extra_artifacts(
     stage_root: &std::path::Path,
     stage_id: &str,
@@ -653,11 +733,14 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "retain_unmapped_pairs": governed.as_ref().map(|report| report.retain_unmapped_pairs),
                 "contaminant_screened_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
                 "contaminant_screened_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
+                "removed_contaminant_reads_r1": governed.as_ref().map(|report| report.removed_reads_r1.clone()),
+                "removed_contaminant_reads_r2": governed.as_ref().and_then(|report| report.removed_reads_r2.clone()),
                 "reads_removed": governed.as_ref().map(|report| report.reads_removed),
                 "contaminant_reads": governed.as_ref().map(|report| report.reads_removed),
                 "bases_removed": governed.as_ref().map(|report| report.bases_removed),
                 "contaminant_fraction_removed": governed.as_ref().map(|report| report.contaminant_fraction_removed),
                 "contaminant_hit_rate": governed.as_ref().map(|report| report.contaminant_fraction_removed),
+                "depletion_summary": governed.as_ref().map(contaminant_depletion_summary),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
                 "report_json": report_path,
@@ -685,12 +768,15 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "rejected_read_role": governed.as_ref().map(|report| report.rejected_read_role.clone()),
                 "rrna_filtered_r1": governed.as_ref().map(|report| report.output_r1.clone()),
                 "rrna_filtered_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
+                "rrna_removed_reads_r1": governed.as_ref().map(|report| report.removed_reads_r1.clone()),
+                "rrna_removed_reads_r2": governed.as_ref().and_then(|report| report.removed_reads_r2.clone()),
                 "retained_reads": governed.as_ref().map(|report| report.reads_out),
                 "reads_removed": governed.as_ref().map(|report| report.reads_removed),
                 "removed_reads": governed.as_ref().map(|report| report.reads_removed),
                 "bases_removed": governed.as_ref().map(|report| report.bases_removed),
                 "rrna_fraction_removed": governed.as_ref().map(|report| report.rrna_fraction_removed),
                 "depletion_rate": governed.as_ref().map(|report| report.rrna_fraction_removed),
+                "depletion_summary": governed.as_ref().map(rrna_depletion_summary),
                 "rrna_report_tsv": governed.as_ref().map(|report| report.rrna_report_tsv.clone()),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
@@ -742,6 +828,9 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "host_hit_rate": governed.as_ref().map(|report| report.host_fraction_removed),
                 "removed_host_r1": governed.as_ref().map(|report| report.removed_host_r1.clone()),
                 "removed_host_r2": governed.as_ref().and_then(|report| report.removed_host_r2.clone()),
+                "removed_host_reads_r1": governed.as_ref().map(|report| report.removed_host_r1.clone()),
+                "removed_host_reads_r2": governed.as_ref().and_then(|report| report.removed_host_r2.clone()),
+                "depletion_summary": governed.as_ref().map(host_depletion_summary),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
                 "report_json": report_path,
@@ -1228,6 +1317,8 @@ mod stage_artifact_tests {
                 "input_r2": null,
                 "output_r1": "contaminant_screened.fastq.gz",
                 "output_r2": null,
+                "removed_reads_r1": "removed_contaminant.fastq.gz",
+                "removed_reads_r2": null,
                 "report_json": "contaminant_screen_report.json",
                 "reads_in": 100,
                 "reads_out": 72,
@@ -2046,6 +2137,11 @@ mod stage_artifact_tests {
         assert_eq!(extra["host_fraction_removed"], serde_json::json!(0.30));
         assert_eq!(extra["host_hit_rate"], serde_json::json!(0.30));
         assert_eq!(extra["removed_host_r1"], serde_json::json!("removed_host.fastq.gz"));
+        assert_eq!(extra["removed_host_reads_r1"], serde_json::json!("removed_host.fastq.gz"));
+        assert_eq!(
+            extra["depletion_summary"]["removed_host_r1"],
+            serde_json::json!("removed_host.fastq.gz")
+        );
         Ok(())
     }
 
@@ -2069,10 +2165,18 @@ mod stage_artifact_tests {
             serde_json::json!("contaminant_screened.fastq.gz")
         );
         assert_eq!(extra["contaminant_screened_reads_r2"], serde_json::Value::Null);
+        assert_eq!(
+            extra["removed_contaminant_reads_r1"],
+            serde_json::json!("removed_contaminant.fastq.gz")
+        );
         assert_eq!(extra["reads_removed"], serde_json::json!(28));
         assert_eq!(extra["contaminant_reads"], serde_json::json!(28));
         assert_eq!(extra["contaminant_fraction_removed"], serde_json::json!(0.28));
         assert_eq!(extra["contaminant_hit_rate"], serde_json::json!(0.28));
+        assert_eq!(
+            extra["depletion_summary"]["removed_reads_r1"],
+            serde_json::json!("removed_contaminant.fastq.gz")
+        );
         Ok(())
     }
 
@@ -2102,6 +2206,8 @@ mod stage_artifact_tests {
                 "input_r2": null,
                 "output_r1": "rrna_filtered.fastq.gz",
                 "output_r2": null,
+                "removed_reads_r1": "removed_rrna.fastq.gz",
+                "removed_reads_r2": null,
                 "rrna_report_tsv": "rrna_report.tsv",
                 "rrna_report_json": "rrna_report.json",
                 "reads_in": 100,
@@ -2144,10 +2250,15 @@ mod stage_artifact_tests {
         assert_eq!(extra["rrna_db"], serde_json::json!("/refs/silva"));
         assert_eq!(extra["rrna_filtered_r1"], serde_json::json!("rrna_filtered.fastq.gz"));
         assert_eq!(extra["rrna_filtered_r2"], serde_json::Value::Null);
+        assert_eq!(extra["rrna_removed_reads_r1"], serde_json::json!("removed_rrna.fastq.gz"));
         assert_eq!(extra["retained_reads"], serde_json::json!(64));
         assert_eq!(extra["reads_removed"], serde_json::json!(36));
         assert_eq!(extra["removed_reads"], serde_json::json!(36));
         assert_eq!(extra["depletion_rate"], serde_json::json!(0.36));
+        assert_eq!(
+            extra["depletion_summary"]["removed_reads_r1"],
+            serde_json::json!("removed_rrna.fastq.gz")
+        );
         assert_eq!(extra["raw_backend_report"], serde_json::json!("sortmerna.log"));
         Ok(())
     }
@@ -2421,6 +2532,10 @@ mod stage_artifact_tests {
         assert_eq!(metrics["depleted_reads"], serde_json::json!(30));
         assert_eq!(metrics["host_fraction_removed"], serde_json::json!(0.30));
         assert_eq!(metrics["host_hit_rate"], serde_json::json!(0.30));
+        assert_eq!(
+            metrics["depletion_summary"]["removed_host_r1"],
+            serde_json::json!("removed_host.fastq.gz")
+        );
         Ok(())
     }
 
@@ -2496,10 +2611,18 @@ mod stage_artifact_tests {
             metrics["contaminant_screened_reads_r1"],
             serde_json::json!("contaminant_screened.fastq.gz")
         );
+        assert_eq!(
+            metrics["removed_contaminant_reads_r1"],
+            serde_json::json!("removed_contaminant.fastq.gz")
+        );
         assert_eq!(metrics["reads_removed"], serde_json::json!(28));
         assert_eq!(metrics["contaminant_reads"], serde_json::json!(28));
         assert_eq!(metrics["contaminant_fraction_removed"], serde_json::json!(0.28));
         assert_eq!(metrics["contaminant_hit_rate"], serde_json::json!(0.28));
+        assert_eq!(
+            metrics["depletion_summary"]["removed_reads_r1"],
+            serde_json::json!("removed_contaminant.fastq.gz")
+        );
         Ok(())
     }
 

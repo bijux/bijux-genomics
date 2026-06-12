@@ -305,6 +305,8 @@ fn build_rrna_report<S: ::std::hash::BuildHasher>(
             .context("decode rrna effective params")?;
     let output_r1 = required_rrna_output_path(inputs.plan, "rrna_filtered_reads_r1")?;
     let output_r2 = artifact_output_path(inputs.plan, "rrna_filtered_reads_r2");
+    let removed_reads_r1 = required_rrna_output_path(inputs.plan, "rrna_removed_reads_r1")?;
+    let removed_reads_r2 = artifact_output_path(inputs.plan, "rrna_removed_reads_r2");
     let rrna_report_tsv = required_rrna_output_path(inputs.plan, "rrna_report_tsv")?;
     let rrna_report_json = required_rrna_output_path(inputs.plan, "rrna_report_json")?;
     let output_stats_r1 =
@@ -348,6 +350,8 @@ fn build_rrna_report<S: ::std::hash::BuildHasher>(
             .map(|path| path.display().to_string()),
         output_r1: output_r1.display().to_string(),
         output_r2: output_r2.map(|path| path.display().to_string()),
+        removed_reads_r1: removed_reads_r1.display().to_string(),
+        removed_reads_r2: removed_reads_r2.map(|path| path.display().to_string()),
         rrna_report_tsv: rrna_report_tsv.display().to_string(),
         rrna_report_json: rrna_report_json.display().to_string(),
         reads_in,
@@ -385,6 +389,8 @@ fn rrna_metrics_from_report(report: &DepleteRrnaReportV1) -> FastqDepleteRrnaMet
             "bases_removed": report.bases_removed,
             "output_r1": report.output_r1,
             "output_r2": report.output_r2,
+            "removed_reads_r1": report.removed_reads_r1,
+            "removed_reads_r2": report.removed_reads_r2,
             "report_tsv": report.rrna_report_tsv,
             "report_json": report.rrna_report_json,
             "database_artifact_id": report.database_artifact_id,
@@ -482,6 +488,16 @@ fn validate_rrna_report_paths(plan: &StagePlanV1, report: &DepleteRrnaReportV1) 
         "output r2",
         artifact_output_path(plan, "rrna_filtered_reads_r2").as_deref(),
         report.output_r2.as_deref(),
+    )?;
+    validate_rrna_report_path(
+        "removed reads r1",
+        &required_rrna_output_path(plan, "rrna_removed_reads_r1")?,
+        &report.removed_reads_r1,
+    )?;
+    validate_rrna_optional_report_path(
+        "removed reads r2",
+        artifact_output_path(plan, "rrna_removed_reads_r2").as_deref(),
+        report.removed_reads_r2.as_deref(),
     )?;
     validate_rrna_report_path(
         "report tsv",
@@ -643,12 +659,16 @@ fn validate_rrna_written_artifacts(
 ) -> Result<()> {
     for path in [
         report.output_r1.as_str(),
+        report.removed_reads_r1.as_str(),
         report.rrna_report_tsv.as_str(),
         report.rrna_report_json.as_str(),
     ] {
         validate_rrna_nonempty_artifact(std::path::Path::new(path))?;
     }
     if let Some(path) = report.output_r2.as_deref() {
+        validate_rrna_nonempty_artifact(std::path::Path::new(path))?;
+    }
+    if let Some(path) = report.removed_reads_r2.as_deref() {
         validate_rrna_nonempty_artifact(std::path::Path::new(path))?;
     }
     validate_rrna_nonempty_artifact(&tool_plan.plan.out_dir.join("metrics.json"))

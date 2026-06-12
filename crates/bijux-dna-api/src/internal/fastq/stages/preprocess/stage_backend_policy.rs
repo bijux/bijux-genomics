@@ -1666,6 +1666,8 @@ mod tests {
                 "input_r2": null,
                 "output_r1": "rrna_filtered.fastq.gz",
                 "output_r2": null,
+                "removed_reads_r1": "removed_rrna.fastq.gz",
+                "removed_reads_r2": null,
                 "rrna_report_tsv": "rrna_report.tsv",
                 "rrna_report_json": "rrna_report.json",
                 "reads_in": 100,
@@ -1695,10 +1697,15 @@ mod tests {
         assert_eq!(metrics["database_digest"], serde_json::json!("sha256:silva"));
         assert_eq!(metrics["retained_read_role"], serde_json::json!("rrna_filtered_reads"));
         assert_eq!(metrics["retained_reads"], serde_json::json!(64));
+        assert_eq!(metrics["rrna_removed_reads_r1"], serde_json::json!("removed_rrna.fastq.gz"));
         assert_eq!(metrics["reads_removed"], serde_json::json!(36));
         assert_eq!(metrics["removed_reads"], serde_json::json!(36));
         assert_eq!(metrics["rrna_fraction_removed"], serde_json::json!(0.36));
         assert_eq!(metrics["depletion_rate"], serde_json::json!(0.36));
+        assert_eq!(
+            metrics["depletion_summary"]["removed_reads_r1"],
+            serde_json::json!("removed_rrna.fastq.gz")
+        );
     }
 
     #[test]
@@ -1728,6 +1735,8 @@ mod tests {
                 "input_r2": null,
                 "output_r1": "contaminant_screened.fastq.gz",
                 "output_r2": null,
+                "removed_reads_r1": "removed_contaminant.fastq.gz",
+                "removed_reads_r2": null,
                 "report_json": "contaminant_screen_report.json",
                 "reads_in": 100,
                 "reads_out": 72,
@@ -1758,10 +1767,18 @@ mod tests {
             metrics["contaminant_screened_reads_r1"],
             serde_json::json!("contaminant_screened.fastq.gz")
         );
+        assert_eq!(
+            metrics["removed_contaminant_reads_r1"],
+            serde_json::json!("removed_contaminant.fastq.gz")
+        );
         assert_eq!(metrics["reads_removed"], serde_json::json!(28));
         assert_eq!(metrics["contaminant_reads"], serde_json::json!(28));
         assert_eq!(metrics["contaminant_fraction_removed"], serde_json::json!(0.28));
         assert_eq!(metrics["contaminant_hit_rate"], serde_json::json!(0.28));
+        assert_eq!(
+            metrics["depletion_summary"]["removed_reads_r1"],
+            serde_json::json!("removed_contaminant.fastq.gz")
+        );
     }
 
     #[test]
@@ -1827,6 +1844,10 @@ mod tests {
         assert_eq!(metrics["depleted_reads"], serde_json::json!(30));
         assert_eq!(metrics["host_fraction_removed"], serde_json::json!(0.30));
         assert_eq!(metrics["host_hit_rate"], serde_json::json!(0.30));
+        assert_eq!(
+            metrics["depletion_summary"]["removed_host_r1"],
+            serde_json::json!("removed_host.fastq.gz")
+        );
     }
 
     #[test]
@@ -1946,8 +1967,6 @@ mod tests {
         assert_eq!(
             required_metrics_keys("fastq.remove_duplicates"),
             &[
-                "schema_version",
-                "stage",
                 "tool",
                 "threads",
                 "dedup_mode",

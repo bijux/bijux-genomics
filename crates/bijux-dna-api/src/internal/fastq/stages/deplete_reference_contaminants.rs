@@ -299,10 +299,15 @@ fn validate_reference_contaminants_written_artifacts(
     tool_plan: &ReferenceContaminantsToolPlan,
     report: &DepleteReferenceContaminantsReportV1,
 ) -> Result<()> {
-    for path in [report.output_r1.as_str(), report.report_json.as_str()] {
+    for path in
+        [report.output_r1.as_str(), report.removed_reads_r1.as_str(), report.report_json.as_str()]
+    {
         validate_reference_contaminants_nonempty_artifact(std::path::Path::new(path))?;
     }
     if let Some(path) = report.output_r2.as_deref() {
+        validate_reference_contaminants_nonempty_artifact(std::path::Path::new(path))?;
+    }
+    if let Some(path) = report.removed_reads_r2.as_deref() {
         validate_reference_contaminants_nonempty_artifact(std::path::Path::new(path))?;
     }
     if let Some(path) = report.raw_backend_report.as_deref() {
@@ -420,6 +425,9 @@ fn build_deplete_reference_contaminants_report<S: ::std::hash::BuildHasher>(
     let output_r1 =
         required_reference_contaminants_output_path(inputs.plan, "contaminant_screened_reads_r1")?;
     let output_r2 = artifact_output_path(inputs.plan, "contaminant_screened_reads_r2");
+    let removed_reads_r1 =
+        required_reference_contaminants_output_path(inputs.plan, "removed_contaminant_reads_r1")?;
+    let removed_reads_r2 = artifact_output_path(inputs.plan, "removed_contaminant_reads_r2");
     let report_json =
         required_reference_contaminants_output_path(inputs.plan, "contaminant_screen_report_json")?;
     let output_stats_r1 =
@@ -463,6 +471,8 @@ fn build_deplete_reference_contaminants_report<S: ::std::hash::BuildHasher>(
             .map(|path| path.display().to_string()),
         output_r1: output_r1.display().to_string(),
         output_r2: output_r2.map(|path| path.display().to_string()),
+        removed_reads_r1: removed_reads_r1.display().to_string(),
+        removed_reads_r2: removed_reads_r2.map(|path| path.display().to_string()),
         report_json: report_json.display().to_string(),
         reads_in,
         reads_out,
@@ -511,6 +521,8 @@ fn reference_contaminants_metrics_from_report(
             "bases_removed": report.bases_removed,
             "output_r1": report.output_r1,
             "output_r2": report.output_r2,
+            "removed_reads_r1": report.removed_reads_r1,
+            "removed_reads_r2": report.removed_reads_r2,
             "report_json": report.report_json,
             "contaminant_reference": report.contaminant_reference,
             "reference_index_backend": report.reference_index_backend,
@@ -619,6 +631,16 @@ fn validate_reference_contaminants_report_paths(
         "output r2",
         artifact_output_path(plan, "contaminant_screened_reads_r2").as_deref(),
         report.output_r2.as_deref(),
+    )?;
+    validate_reference_contaminants_report_path(
+        "removed reads r1",
+        &required_reference_contaminants_output_path(plan, "removed_contaminant_reads_r1")?,
+        &report.removed_reads_r1,
+    )?;
+    validate_reference_contaminants_optional_report_path(
+        "removed reads r2",
+        artifact_output_path(plan, "removed_contaminant_reads_r2").as_deref(),
+        report.removed_reads_r2.as_deref(),
     )?;
     validate_reference_contaminants_report_path(
         "report json",
