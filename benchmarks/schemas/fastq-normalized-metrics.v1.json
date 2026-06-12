@@ -733,9 +733,12 @@
               }
             },
             "required": [
+              "bases_removed",
               "bases_trimmed_polyg",
+              "reads_dropped",
               "reads_in",
               "reads_out",
+              "reads_retained",
               "report_json",
               "schema_version",
               "stage",
@@ -763,8 +766,11 @@
             "required": [
               "adapter_overrides",
               "adapter_policy",
+              "bases_removed",
+              "reads_dropped",
               "reads_in",
               "reads_out",
+              "reads_retained",
               "report_json",
               "schema_version",
               "stage",
