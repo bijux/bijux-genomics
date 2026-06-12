@@ -679,6 +679,26 @@ resource_origin = "tool_constraints_with_stage_walltime_profile"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.index_reference"
+tool_id = "bowtie2_build"
+threads = 1
+memory_gb = 1
+walltime_minutes = 20
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.index_reference"
+tool_id = "star"
+threads = 1
+memory_gb = 1
+walltime_minutes = 20
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.infer_asvs"
 tool_id = "dada2"
 threads = 4

@@ -90,15 +90,15 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.estimate_library_complexity_prealign")
                 && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("planned_contract")
+                    == Some("governed_execution")
                 && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("declared_only")
+                    == Some("runnable")
                 && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("not_normalized")
+                    == Some("parse_normalized")
                 && row.get("corpus_status").and_then(serde_json::Value::as_str)
                     == Some("fixture:corpus-01-mini")
         }),
-        "FASTQ readiness map must retain the fixture-backed planned estimate-library-complexity-prealign row"
+        "FASTQ readiness map must retain the governed estimate-library-complexity-prealign row"
     );
     for tool_id in ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"] {
         assert!(
@@ -426,7 +426,7 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
                     && row.get("parser_status").and_then(serde_json::Value::as_str)
                         == Some("comparable")
                     && row.get("corpus_status").and_then(serde_json::Value::as_str)
-                        == Some("planner_only")
+                        == Some("asset:reference-index-assets")
             }),
             "FASTQ readiness map must retain the governed index-reference row for {tool_id}"
         );

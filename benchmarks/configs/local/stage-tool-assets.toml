@@ -261,6 +261,24 @@ declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_param
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.index_reference"
+tool_id = "star"
+asset_role = "reference_fasta"
+asset_id = "phix174"
+asset_path = "assets/reference/contaminants/references/phix174.fasta"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.index_reference"
+tool_id = "star"
+asset_role = "reference_index_output"
+asset_id = "reference_index"
+asset_path = "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/star"
+declaration_origin = "canonical_local_stage_plan_inputs_and_governed_stage_params"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.screen_taxonomy"
 tool_id = "centrifuge"
 asset_role = "database_artifact_id"

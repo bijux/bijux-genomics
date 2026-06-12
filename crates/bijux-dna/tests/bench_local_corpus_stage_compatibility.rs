@@ -53,8 +53,12 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
         Some(49)
     );
     assert_eq!(
+        payload.get("asset_backed_stage_count").and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
+    assert_eq!(
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(1)
     );
     let corpus_family_counts = payload
         .get("corpus_family_counts")
@@ -422,6 +426,18 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
                     == Some("fixture")
         }),
         "bam.length_filter must map to the governed BAM corpus once the length-threshold fixture is owned there"
+    );
+    assert!(
+        stages.iter().any(|stage| {
+            stage.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.index_reference")
+                && stage.get("compatibility_kind").and_then(serde_json::Value::as_str)
+                    == Some("asset_backed")
+                && stage.get("benchmark_scope_id").and_then(serde_json::Value::as_str)
+                    == Some("reference-index-assets")
+                && stage.get("fixture_id").is_some_and(serde_json::Value::is_null)
+        }),
+        "index_reference must declare its asset-backed benchmark scope explicitly"
     );
     assert!(
         stages.iter().any(|stage| {

@@ -321,12 +321,12 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_containers.v1");
         assert_eq!(report.config_path, "benchmarks/configs/local/stage-tool-containers.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_runtime_declarations");
-        assert_eq!(report.row_count, 116);
-        assert_eq!(report.benchmark_ready_row_count, 116);
-        assert_eq!(report.external_row_count, 114);
-        assert_eq!(report.container_declared_row_count, 114);
-        assert_eq!(report.command_entrypoint_row_count, 116);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&67));
+        assert_eq!(report.row_count, 118);
+        assert_eq!(report.benchmark_ready_row_count, 118);
+        assert_eq!(report.external_row_count, 116);
+        assert_eq!(report.container_declared_row_count, 116);
+        assert_eq!(report.command_entrypoint_row_count, 118);
+        assert_eq!(report.domain_counts.get("fastq"), Some(&69));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
         assert!(report.rows.iter().all(|row| {
             row.container_id.is_some()
@@ -524,7 +524,7 @@ mod tests {
 
         assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_VERSION);
         assert_eq!(config.classification_scope, STAGE_TOOL_CONTAINERS_SCOPE);
-        assert_eq!(config.rows.len(), 108);
+        assert_eq!(config.rows.len(), 118);
         assert!(config.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()
@@ -566,6 +566,13 @@ mod tests {
                     == Some(
                         "bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
                     )
+        }));
+        assert!(config.rows.iter().any(|row| {
+            row.stage_id == "fastq.index_reference"
+                && row.tool_id == "bowtie2_build"
+                && row.execution_mode == "containerized"
+                && row.command_entrypoint.as_deref() == Some("bowtie2-build")
+                && row.container_id.as_deref() == Some("bijuxdna/bowtie2_build")
         }));
         assert!(config.rows.iter().any(|row| {
             row.stage_id == "fastq.detect_duplicates_premerge"

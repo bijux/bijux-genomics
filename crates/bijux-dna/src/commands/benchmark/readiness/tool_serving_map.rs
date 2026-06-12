@@ -358,6 +358,15 @@ pub(crate) fn load_corpus_status_by_stage(repo_root: &Path) -> Result<BTreeMap<S
                     })?;
                     Ok(format!("fixture:{fixture_id}"))
                 }
+                "asset_backed" => {
+                    let benchmark_scope_id = entry.benchmark_scope_id.as_deref().ok_or_else(|| {
+                        anyhow!(
+                            "stage `{}` is marked asset-backed without a benchmark_scope_id",
+                            entry.stage_id
+                        )
+                    })?;
+                    Ok(format!("asset:{benchmark_scope_id}"))
+                }
                 "planner_only" => Ok("planner_only".to_string()),
                 other => Err(anyhow!(
                     "stage `{}` declares unsupported corpus compatibility kind `{other}`",
@@ -517,13 +526,30 @@ mod tests {
                     && row.corpus_status == "fixture:corpus-02-edna-mini"
             }));
         }
-        for (tool_id, stage_id, support_status, adapter_status, parser_status) in [
+        for (tool_id, stage_id, support_status, adapter_status, parser_status, corpus_status) in [
+            (
+                "bowtie2_build",
+                "fastq.index_reference",
+                "observer_specialized_benchmark",
+                "runnable",
+                "comparable",
+                "asset:reference-index-assets",
+            ),
+            (
+                "star",
+                "fastq.index_reference",
+                "observer_specialized_benchmark",
+                "runnable",
+                "comparable",
+                "asset:reference-index-assets",
+            ),
             (
                 "cutadapt",
                 "fastq.normalize_primers",
                 "governed_benchmark_cohort",
                 "runnable",
                 "benchmark_normalized",
+                "fixture:corpus-03-amplicon-mini",
             ),
             (
                 "vsearch",
@@ -531,14 +557,23 @@ mod tests {
                 "governed_benchmark_cohort",
                 "runnable",
                 "benchmark_normalized",
+                "fixture:corpus-03-amplicon-mini",
             ),
-            ("dada2", "fastq.infer_asvs", "governed_execution", "runnable", "parse_normalized"),
+            (
+                "dada2",
+                "fastq.infer_asvs",
+                "governed_execution",
+                "runnable",
+                "parse_normalized",
+                "fixture:corpus-03-amplicon-mini",
+            ),
             (
                 "vsearch",
                 "fastq.cluster_otus",
                 "governed_benchmark_cohort",
                 "runnable",
                 "benchmark_normalized",
+                "fixture:corpus-03-amplicon-mini",
             ),
             (
                 "seqkit",
@@ -546,6 +581,7 @@ mod tests {
                 "governed_benchmark_cohort",
                 "runnable",
                 "benchmark_normalized",
+                "fixture:corpus-03-amplicon-mini",
             ),
             (
                 "seqfu",
@@ -553,6 +589,7 @@ mod tests {
                 "planned_contract",
                 "declared_only",
                 "not_normalized",
+                "fixture:corpus-03-amplicon-mini",
             ),
         ] {
             assert!(report.rows.iter().any(|row| {
@@ -561,7 +598,7 @@ mod tests {
                     && row.support_status == support_status
                     && row.adapter_status == adapter_status
                     && row.parser_status == parser_status
-                    && row.corpus_status == "fixture:corpus-03-amplicon-mini"
+                    && row.corpus_status == corpus_status
             }));
         }
         assert!(report.rows.iter().any(|row| {

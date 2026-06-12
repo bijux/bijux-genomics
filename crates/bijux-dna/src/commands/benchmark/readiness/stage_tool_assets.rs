@@ -156,9 +156,6 @@ pub(crate) fn collect_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<Stag
         let Some(plan) = fastq_base_plans.get(&row.stage_id) else {
             continue;
         };
-        if row.stage_id == "fastq.index_reference" && row.tool_id != plan.tool_id.as_str() {
-            continue;
-        }
         rows.extend(render_fastq_stage_tool_asset_rows(&row.stage_id, &row.tool_id, plan)?);
     }
 
@@ -331,7 +328,7 @@ fn render_fastq_stage_tool_asset_rows(
         }
         "fastq.index_reference" => {
             let reference_path = find_input_path(plan, &["reference_fasta"])?;
-            let index_path = find_output_path(plan, &["reference_index"])?;
+            let index_path = index_reference_output_path(plan, tool_id)?;
             Ok(vec![
                 asset_row(
                     "fastq",
@@ -352,6 +349,17 @@ fn render_fastq_stage_tool_asset_rows(
             ])
         }
         _ => Ok(Vec::new()),
+    }
+}
+
+fn index_reference_output_path(plan: &StagePlanV1, tool_id: &str) -> Result<PathBuf> {
+    let out_dir = &plan.out_dir;
+    match tool_id {
+        "bowtie2_build" => Ok(out_dir.join("reference_index").join("bowtie2").join("reference")),
+        "star" => Ok(out_dir.join("reference_index").join("star")),
+        other => Err(anyhow!(
+            "unsupported fastq.index_reference asset path derivation for tool `{other}`"
+        )),
     }
 }
 
@@ -467,6 +475,24 @@ fn ensure_taxonomy_database_asset_coverage(rows: &[StageToolAssetRow]) -> Result
         "reference_index_output",
         "reference_index",
         "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference",
+        "FASTQ reference indexing",
+    )?;
+    ensure_stage_tool_asset_row(
+        rows,
+        "fastq.index_reference",
+        "star",
+        "reference_fasta",
+        "phix174",
+        "assets/reference/contaminants/references/phix174.fasta",
+        "FASTQ reference indexing",
+    )?;
+    ensure_stage_tool_asset_row(
+        rows,
+        "fastq.index_reference",
+        "star",
+        "reference_index_output",
+        "reference_index",
+        "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/star",
         "FASTQ reference indexing",
     )?;
     Ok(())
@@ -941,19 +967,19 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_assets.v1");
         assert_eq!(report.config_path, "benchmarks/configs/local/stage-tool-assets.toml");
         assert_eq!(report.classification_scope, "governed_benchmark_command_assets");
-        assert_eq!(report.row_count, 36);
-        assert_eq!(report.declared_stage_tool_row_count, 19);
-        assert_eq!(report.asset_id_row_count, 36);
+        assert_eq!(report.row_count, 38);
+        assert_eq!(report.declared_stage_tool_row_count, 20);
+        assert_eq!(report.asset_id_row_count, 38);
         assert_eq!(report.unique_asset_id_count, 15);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&16));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&18));
         assert_eq!(report.domain_counts.get("bam"), Some(&20));
         assert_eq!(report.asset_role_counts.get("taxonomy_database_root"), Some(&4));
         assert_eq!(report.asset_role_counts.get("database_artifact_id"), Some(&5));
         assert_eq!(report.asset_role_counts.get("reference_catalog_id"), Some(&2));
         assert_eq!(report.asset_role_counts.get("reference_index_artifact_id"), Some(&2));
         assert_eq!(report.asset_role_counts.get("rrna_reference"), Some(&1));
-        assert_eq!(report.asset_role_counts.get("reference_fasta"), Some(&12));
-        assert_eq!(report.asset_role_counts.get("reference_index_output"), Some(&1));
+        assert_eq!(report.asset_role_counts.get("reference_fasta"), Some(&13));
+        assert_eq!(report.asset_role_counts.get("reference_index_output"), Some(&2));
         assert_eq!(report.asset_role_counts.get("reference_panel"), Some(&6));
         assert_eq!(report.asset_role_counts.get("sites_vcf"), Some(&1));
         assert_eq!(report.asset_role_counts.get("regions"), Some(&1));
@@ -1043,6 +1069,21 @@ mod tests {
                 && row.asset_id == "reference_index"
                 && row.asset_path
                     == "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "fastq.index_reference"
+                && row.tool_id == "star"
+                && row.asset_role == "reference_fasta"
+                && row.asset_id == "phix174"
+                && row.asset_path == "assets/reference/contaminants/references/phix174.fasta"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "fastq.index_reference"
+                && row.tool_id == "star"
+                && row.asset_role == "reference_index_output"
+                && row.asset_id == "reference_index"
+                && row.asset_path
+                    == "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/star"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.contamination"

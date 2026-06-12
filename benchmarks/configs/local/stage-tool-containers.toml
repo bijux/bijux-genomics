@@ -599,6 +599,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.estimate_library_complexity_prealign"
+tool_id = "bijux_dna"
+execution_mode = "internal"
+install_kind = "workspace_binary"
+command_entrypoint = "bijux-dna"
+host_binary_mode = "workspace_binary"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.extract_umis"
 tool_id = "umi_tools"
 execution_mode = "python"
@@ -665,6 +675,26 @@ execution_mode = "containerized"
 install_kind = "container"
 container_id = "bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
 command_entrypoint = "seqkit"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.index_reference"
+tool_id = "bowtie2_build"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bowtie2_build"
+command_entrypoint = "bowtie2-build"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.index_reference"
+tool_id = "star"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/star"
+command_entrypoint = "star"
 declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]

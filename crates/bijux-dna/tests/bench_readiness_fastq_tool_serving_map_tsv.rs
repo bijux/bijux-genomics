@@ -56,9 +56,9 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bijux_dna\tfastq.estimate_library_complexity_prealign\tplanned_contract\tdeclared_only\tnot_normalized\tfixture:corpus-01-mini"
+            row == &"bijux_dna\tfastq.estimate_library_complexity_prealign\tgoverned_execution\trunnable\tparse_normalized\tfixture:corpus-01-mini"
         }),
-        "TSV must retain the fixture-backed planned estimate-library-complexity-prealign row"
+        "TSV must retain the governed estimate-library-complexity-prealign row"
     );
     for tool_id in ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"] {
         assert!(
@@ -253,7 +253,7 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
         assert!(
             rows.iter().any(|row| {
                 row == &format!(
-                    "{tool_id}\tfastq.index_reference\tobserver_specialized_benchmark\trunnable\tcomparable\tplanner_only"
+                    "{tool_id}\tfastq.index_reference\tobserver_specialized_benchmark\trunnable\tcomparable\tasset:reference-index-assets"
                 )
             }),
             "TSV must retain the governed index-reference row for {tool_id}"

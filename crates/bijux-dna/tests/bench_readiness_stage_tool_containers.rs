@@ -51,27 +51,27 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(116));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(118));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(116)
+        Some(118)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(114));
+    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(116));
     assert_eq!(
         payload.get("container_declared_row_count").and_then(serde_json::Value::as_u64),
-        Some(114)
+        Some(116)
     );
     assert_eq!(
         payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
-        Some(116)
+        Some(118)
     );
-    assert_eq!(payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(67)
+        Some(69)
     );
     assert_eq!(
         payload
@@ -86,14 +86,14 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("execution_mode_counts")
             .and_then(|value| value.get("containerized"))
             .and_then(serde_json::Value::as_u64),
-        Some(93)
+        Some(95)
     );
     assert_eq!(
         payload
             .get("execution_mode_counts")
             .and_then(|value| value.get("internal"))
             .and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(2)
     );
     assert_eq!(
         payload
@@ -256,6 +256,27 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     assert_eq!(
         cutadapt.get("command_entrypoint").and_then(serde_json::Value::as_str),
         Some("cutadapt")
+    );
+    let index_reference = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.index_reference")
+                && row.get("tool_id").and_then(serde_json::Value::as_str)
+                    == Some("bowtie2_build")
+        })
+        .expect("fastq index_reference bowtie2_build row");
+    assert_eq!(
+        index_reference.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("containerized")
+    );
+    assert_eq!(
+        index_reference.get("command_entrypoint").and_then(serde_json::Value::as_str),
+        Some("bowtie2-build")
+    );
+    assert_eq!(
+        index_reference.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/bowtie2_build")
     );
     assert!(
         cutadapt

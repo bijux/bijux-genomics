@@ -23,6 +23,7 @@ const LOCAL_CORPUS_STAGE_COMPATIBILITY_VALIDATION_SCHEMA_VERSION: &str =
 #[serde(rename_all = "snake_case")]
 pub(crate) enum LocalCorpusStageCompatibilityKind {
     Fixture,
+    AssetBacked,
     PlannerOnly,
 }
 
@@ -30,6 +31,7 @@ impl LocalCorpusStageCompatibilityKind {
     fn as_str(self) -> &'static str {
         match self {
             Self::Fixture => "fixture",
+            Self::AssetBacked => "asset_backed",
             Self::PlannerOnly => "planner_only",
         }
     }
@@ -59,6 +61,7 @@ struct LocalCorpusStageMapping {
     compatibility_kind: LocalCorpusStageCompatibilityKind,
     corpus_family_id: Option<String>,
     fixture_id: Option<String>,
+    benchmark_scope_id: Option<String>,
     compatibility_note: String,
 }
 
@@ -77,6 +80,7 @@ pub(crate) struct LocalCorpusStageCompatibilityEntryReport {
     pub(crate) compatibility_kind: String,
     pub(crate) corpus_family_id: Option<String>,
     pub(crate) fixture_id: Option<String>,
+    pub(crate) benchmark_scope_id: Option<String>,
     pub(crate) compatibility_note: String,
 }
 
@@ -87,6 +91,7 @@ pub(crate) struct LocalCorpusStageCompatibilityValidationReport {
     pub(crate) fixture_count: usize,
     pub(crate) stage_count: usize,
     pub(crate) fixture_backed_stage_count: usize,
+    pub(crate) asset_backed_stage_count: usize,
     pub(crate) planner_only_stage_count: usize,
     pub(crate) corpus_family_counts: BTreeMap<String, usize>,
     pub(crate) valid: bool,
@@ -134,7 +139,14 @@ pub(crate) fn validate_corpus_stage_compatibility_path(
             entry.compatibility_kind == LocalCorpusStageCompatibilityKind::Fixture.as_str()
         })
         .count();
-    let planner_only_stage_count = stage_reports.len() - fixture_backed_stage_count;
+    let asset_backed_stage_count = stage_reports
+        .iter()
+        .filter(|entry| {
+            entry.compatibility_kind == LocalCorpusStageCompatibilityKind::AssetBacked.as_str()
+        })
+        .count();
+    let planner_only_stage_count =
+        stage_reports.len() - fixture_backed_stage_count - asset_backed_stage_count;
     let mut corpus_family_counts = BTreeMap::<String, usize>::new();
     for entry in &stage_reports {
         if let Some(corpus_family_id) = &entry.corpus_family_id {
@@ -162,6 +174,7 @@ pub(crate) fn validate_corpus_stage_compatibility_path(
         fixture_count: fixtures.len(),
         stage_count: stage_reports.len(),
         fixture_backed_stage_count,
+        asset_backed_stage_count,
         planner_only_stage_count,
         corpus_family_counts,
         valid: true,
@@ -379,13 +392,45 @@ fn validate_stage_mappings(
                     compatibility_kind: mapping.compatibility_kind.as_str().to_string(),
                     corpus_family_id: Some(corpus_family_id.to_string()),
                     fixture_id: Some(fixture_id.to_string()),
+                    benchmark_scope_id: None,
+                    compatibility_note: mapping.compatibility_note.clone(),
+                });
+            }
+            LocalCorpusStageCompatibilityKind::AssetBacked => {
+                if mapping.corpus_family_id.is_some() || mapping.fixture_id.is_some() {
+                    return Err(anyhow!(
+                        "asset-backed stage `{}` must not declare `corpus_family_id` or `fixture_id`",
+                        mapping.stage_id
+                    ));
+                }
+                let benchmark_scope_id = mapping
+                    .benchmark_scope_id
+                    .as_deref()
+                    .map(str::trim)
+                    .filter(|row| !row.is_empty())
+                    .ok_or_else(|| {
+                        anyhow!(
+                            "asset-backed stage `{}` must declare a non-empty `benchmark_scope_id`",
+                            mapping.stage_id
+                        )
+                    })?;
+                stage_reports.push(LocalCorpusStageCompatibilityEntryReport {
+                    stage_id: mapping.stage_id.clone(),
+                    readiness_kind: readiness_kind.as_str().to_string(),
+                    compatibility_kind: mapping.compatibility_kind.as_str().to_string(),
+                    corpus_family_id: None,
+                    fixture_id: None,
+                    benchmark_scope_id: Some(benchmark_scope_id.to_string()),
                     compatibility_note: mapping.compatibility_note.clone(),
                 });
             }
             LocalCorpusStageCompatibilityKind::PlannerOnly => {
-                if mapping.corpus_family_id.is_some() || mapping.fixture_id.is_some() {
+                if mapping.corpus_family_id.is_some()
+                    || mapping.fixture_id.is_some()
+                    || mapping.benchmark_scope_id.is_some()
+                {
                     return Err(anyhow!(
-                        "planner-only stage `{}` must not declare `corpus_family_id` or `fixture_id`",
+                        "planner-only stage `{}` must not declare `corpus_family_id`, `fixture_id`, or `benchmark_scope_id`",
                         mapping.stage_id
                     ));
                 }
@@ -395,6 +440,7 @@ fn validate_stage_mappings(
                     compatibility_kind: mapping.compatibility_kind.as_str().to_string(),
                     corpus_family_id: None,
                     fixture_id: None,
+                    benchmark_scope_id: None,
                     compatibility_note: mapping.compatibility_note.clone(),
                 });
             }
@@ -454,7 +500,12 @@ mod tests {
 
         assert_eq!(report.fixture_count, 8);
         assert_eq!(report.stage_count, 51);
-        assert_eq!(report.fixture_backed_stage_count + report.planner_only_stage_count, 51);
+        assert_eq!(
+            report.fixture_backed_stage_count
+                + report.asset_backed_stage_count
+                + report.planner_only_stage_count,
+            51
+        );
         assert_eq!(report.corpus_family_counts.get("corpus-01"), Some(&19));
         assert_eq!(report.corpus_family_counts.get("corpus-01-bam"), Some(&16));
         assert_eq!(report.corpus_family_counts.get("corpus-01-adna-bam"), Some(&5));
@@ -462,6 +513,14 @@ mod tests {
         assert_eq!(report.corpus_family_counts.get("corpus-01-kinship"), Some(&1));
         assert_eq!(report.corpus_family_counts.get("corpus-02"), Some(&1));
         assert_eq!(report.corpus_family_counts.get("corpus-03"), Some(&5));
+        assert!(
+            report.stages.iter().any(|stage| {
+                stage.stage_id == "fastq.index_reference"
+                    && stage.compatibility_kind == "asset_backed"
+                    && stage.benchmark_scope_id.as_deref() == Some("reference-index-assets")
+            }),
+            "fastq.index_reference must declare an explicit asset-backed benchmark scope"
+        );
         assert!(
             report.stages.iter().any(|stage| {
                 stage.stage_id == "fastq.detect_adapters"

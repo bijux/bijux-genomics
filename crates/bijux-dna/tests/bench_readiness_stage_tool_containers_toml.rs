@@ -48,7 +48,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         Some("benchmark_ready_runtime_declarations")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 116);
+    assert_eq!(rows.len(), 118);
     assert!(rows.iter().all(|row| {
         row.get("container_id").is_some()
             || row.get("command_entrypoint").is_some()
@@ -120,6 +120,15 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
                 .and_then(toml::Value::as_str)
                 .is_some_and(|value| value.starts_with("bijuxdna/cutadapt@sha256:"))
             && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("cutadapt")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.index_reference")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("bowtie2_build")
+            && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
+            && row.get("command_entrypoint").and_then(toml::Value::as_str)
+                == Some("bowtie2-build")
+            && row.get("container_id").and_then(toml::Value::as_str)
+                == Some("bijuxdna/bowtie2_build")
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.detect_adapters")

@@ -49,11 +49,24 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(payload.get("skip_count").and_then(serde_json::Value::as_u64), Some(343));
     assert_eq!(
+        payload.get("asset_backed_stage_count").and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
+    assert_eq!(
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(1)
     );
 
     let skips = payload.get("skips").and_then(serde_json::Value::as_array).expect("skips array");
+    let asset_backed_stages = payload
+        .get("asset_backed_stages")
+        .and_then(serde_json::Value::as_array)
+        .expect("asset_backed_stages array");
+    assert!(asset_backed_stages.iter().any(|stage| {
+        stage.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.index_reference")
+            && stage.get("benchmark_scope_id").and_then(serde_json::Value::as_str)
+                == Some("reference-index-assets")
+    }));
     assert!(
         skips.iter().any(|skip| {
             skip.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.kinship")

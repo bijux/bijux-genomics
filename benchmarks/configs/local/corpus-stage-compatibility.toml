@@ -57,8 +57,9 @@ summary = "Amplicon FASTQ corpus with governed primer, ASV, and chimera-control 
 
 [[mappings]]
 stage_id = "fastq.index_reference"
-compatibility_kind = "planner_only"
-compatibility_note = "This stage indexes governed references and does not consume corpus reads."
+compatibility_kind = "asset_backed"
+benchmark_scope_id = "reference-index-assets"
+compatibility_note = "This stage benchmarks governed reference-index preparation against owned reference assets rather than a read corpus."
 
 [[mappings]]
 stage_id = "fastq.validate_reads"
