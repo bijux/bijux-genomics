@@ -70,8 +70,10 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
     const PHASING_METRICS: &[&str] = &["switch_error_proxy", "phase_block_n50"];
     const IMPUTATION_METRICS: &[&str] = &[
         "status",
+        "concordance",
         "mean_info_score",
         "r2_available",
+        "dosage_r2",
         "low_confidence_sites",
         "masked_truth_sites",
         "missing_quality_fields",

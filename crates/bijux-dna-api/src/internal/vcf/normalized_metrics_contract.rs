@@ -107,8 +107,10 @@ const IBD_FIELDS: &[VcfNormalizedMetricsFieldContract] = &[
 ];
 const IMPUTATION_FIELDS: &[VcfNormalizedMetricsFieldContract] = &[
     field("status", FieldKind::String),
+    field("concordance", FieldKind::Number),
     field("mean_info_score", FieldKind::Number),
     field("r2_available", FieldKind::Boolean),
+    field("dosage_r2", FieldKind::NullableNumber),
     field("low_confidence_sites", FieldKind::Integer),
     field("masked_truth_sites", FieldKind::Integer),
     field("missing_quality_fields", FieldKind::StringArray),
@@ -188,6 +190,7 @@ pub(crate) enum FieldKind {
     String,
     Integer,
     Number,
+    NullableNumber,
     Boolean,
     StringArray,
     IntegerArray,
@@ -408,6 +411,7 @@ fn field_kind_schema(kind: FieldKind) -> serde_json::Value {
         FieldKind::String => serde_json::json!({ "type": "string" }),
         FieldKind::Integer => serde_json::json!({ "type": "integer", "minimum": 0 }),
         FieldKind::Number => serde_json::json!({ "type": "number" }),
+        FieldKind::NullableNumber => serde_json::json!({ "type": ["number", "null"] }),
         FieldKind::Boolean => serde_json::json!({ "type": "boolean" }),
         FieldKind::StringArray => {
             serde_json::json!({ "type": "array", "items": { "type": "string" } })
@@ -434,6 +438,7 @@ fn validate_field_type(
         FieldKind::String => value.is_string(),
         FieldKind::Integer => value.is_u64(),
         FieldKind::Number => value.is_number(),
+        FieldKind::NullableNumber => value.is_number() || value.is_null(),
         FieldKind::Boolean => value.is_boolean(),
         FieldKind::StringArray => {
             value.as_array().is_some_and(|items| items.iter().all(serde_json::Value::is_string))

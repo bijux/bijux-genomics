@@ -8,6 +8,15 @@
     {
       "additionalProperties": true,
       "properties": {
+        "concordance": {
+          "type": "number"
+        },
+        "dosage_r2": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
         "low_confidence_sites": {
           "minimum": 0,
           "type": "integer"
@@ -46,8 +55,10 @@
         "stage_id",
         "tool_id",
         "status",
+        "concordance",
         "mean_info_score",
         "r2_available",
+        "dosage_r2",
         "low_confidence_sites",
         "masked_truth_sites",
         "missing_quality_fields"
