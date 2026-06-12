@@ -329,6 +329,7 @@ fn correct_metrics(
     }
 }
 
+#[allow(clippy::too_many_lines)]
 fn umi_metrics(
     plan: &StagePlanV1,
     inputs: &[PathBuf],

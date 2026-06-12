@@ -256,8 +256,8 @@ fn rewrite_imputed_record(
     let mut low_confidence_count = 0_u64;
     let mut not_imputable_reasons = std::collections::BTreeMap::<String, u64>::new();
 
-    for sample_index in 9..columns.len() {
-        let mut values = columns[sample_index].split(':').map(str::to_string).collect::<Vec<_>>();
+    for column in columns.iter_mut().skip(9) {
+        let mut values = column.split(':').map(str::to_string).collect::<Vec<_>>();
         values.resize(format_keys.len(), ".".to_string());
 
         let mut final_gt =
@@ -302,7 +302,7 @@ fn rewrite_imputed_record(
                 .unwrap_or_else(|| ".".to_string());
         }
 
-        columns[sample_index] = values.join(":");
+        *column = values.join(":");
     }
 
     columns[8] = format_keys.join(":");
@@ -398,22 +398,19 @@ fn compare_masked_truth(
             }
 
             masked_truth_site_count += 1;
-            match canonicalize_diploid_genotype(imputed_gt) {
-                Some(observed) => {
-                    if canonicalize_diploid_genotype(expected_gt).as_deref()
-                        == Some(observed.as_str())
-                    {
-                        imputed_match_count += 1;
-                    } else {
-                        imputed_mismatch_count += 1;
-                    }
+            if let Some(observed) = canonicalize_diploid_genotype(imputed_gt) {
+                if canonicalize_diploid_genotype(expected_gt).as_deref()
+                    == Some(observed.as_str())
+                {
+                    imputed_match_count += 1;
+                } else {
+                    imputed_mismatch_count += 1;
                 }
-                None => {
-                    unresolved_count += 1;
-                    *unresolved_reasons
-                        .entry("insufficient_donor_support".to_string())
-                        .or_insert(0) += 1;
-                }
+            } else {
+                unresolved_count += 1;
+                *unresolved_reasons
+                    .entry("insufficient_donor_support".to_string())
+                    .or_insert(0) += 1;
             }
         }
     }
