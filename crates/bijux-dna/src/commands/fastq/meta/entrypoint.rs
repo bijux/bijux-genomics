@@ -625,6 +625,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfImputationMetricsReady(args) => {
+                        crate::commands::benchmark::readiness::vcf_imputation_metrics_ready::run_render_vcf_imputation_metrics_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVcfStatsReady(args) => {
                         crate::commands::benchmark::readiness::vcf_stats_ready::run_render_vcf_stats_ready(
                             args,
