@@ -17,7 +17,7 @@ use super::local_stage_result_manifest::{
     BenchStageResultResourceMetricsV1, BenchStageResultRuntimeV1, BenchStageResultStatus,
     BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
-use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
+use super::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -137,11 +137,16 @@ pub(crate) fn run_local_vcf_pca_smoke(
     let metadata_by_sample = build_metadata_by_sample(&sample_metadata, &expected_samples)?;
     let population_labels = load_population_labels(&population_metadata_source)?;
 
-    let output_root = repo_root.join(DEFAULT_VCF_PCA_SMOKE_ROOT).join(&contract.tool_id);
-    if output_root.exists() {
-        fs::remove_dir_all(&output_root)
-            .with_context(|| format!("remove {}", output_root.display()))?;
-    }
+    let published_output_root = repo_root.join(DEFAULT_VCF_PCA_SMOKE_ROOT).join(&contract.tool_id);
+    let staging_parent = published_output_root
+        .parent()
+        .ok_or_else(|| anyhow!("VCF PCA smoke root has no parent: {}", published_output_root.display()))?;
+    let staging_dir = bijux_dna_infra::temp_dir_in(
+        staging_parent,
+        &format!("{}-staging-", contract.tool_id),
+    )
+    .with_context(|| format!("create staging directory in {}", staging_parent.display()))?;
+    let output_root = staging_dir.path().to_path_buf();
     let artifacts_root = output_root.join("artifacts");
     let input_root = artifacts_root.join("input");
     let stage_root = artifacts_root.join("stage");
@@ -268,6 +273,24 @@ pub(crate) fn run_local_vcf_pca_smoke(
     bijux_dna_infra::atomic_write_bytes(&pca_tsv_path, build_pca_tsv(&rows).as_bytes())?;
     let pca_json_path = output_root.join(DEFAULT_OUTPUT_JSON_NAME);
     let stage_result_manifest_path = output_root.join(DEFAULT_STAGE_RESULT_NAME);
+    let published_artifacts_root = published_output_root.join("artifacts");
+    let published_input_root = published_artifacts_root.join("input");
+    let published_pca_tsv_path = published_output_root.join(DEFAULT_OUTPUT_TSV_NAME);
+    let published_pca_json_path = published_output_root.join(DEFAULT_OUTPUT_JSON_NAME);
+    let published_input_vcf_path = published_input_root.join(DEFAULT_INPUT_VCF_NAME);
+    let published_sample_metadata_path = published_input_root.join(DEFAULT_INPUT_SAMPLE_METADATA_NAME);
+    let published_population_metadata_path =
+        published_input_root.join(DEFAULT_INPUT_POPULATION_METADATA_NAME);
+    let published_population_labels_manifest_path =
+        published_input_root.join(DEFAULT_INPUT_POPULATION_LABELS_NAME);
+    let published_source_eigenvec_path =
+        published_output_root.join(DEFAULT_OUTPUT_SOURCE_EIGENVEC_NAME);
+    let published_source_eigenval_path =
+        published_output_root.join(DEFAULT_OUTPUT_SOURCE_EIGENVAL_NAME);
+    let published_source_pca_manifest_path =
+        published_output_root.join(DEFAULT_OUTPUT_SOURCE_MANIFEST_NAME);
+    let published_source_logs_path = published_output_root.join(DEFAULT_OUTPUT_SOURCE_LOGS_NAME);
+    let published_stage_result_manifest_path = published_output_root.join(DEFAULT_STAGE_RESULT_NAME);
     let elapsed_seconds = started.elapsed().as_secs_f64();
     let finished_at = timestamp_marker();
     let sample_count = u64::try_from(rows.len()).map_err(|_| anyhow!("sample count overflow"))?;
@@ -279,21 +302,24 @@ pub(crate) fn run_local_vcf_pca_smoke(
         corpus_id: contract.corpus_id.clone(),
         input_fixture_id: contract.input_fixture_id.clone(),
         fixture_manifest_path: path_relative_to_repo(repo_root, &fixture_manifest_path),
-        input_vcf_path: path_relative_to_repo(repo_root, &input_vcf_path),
-        sample_metadata_path: path_relative_to_repo(repo_root, &sample_metadata_path),
-        population_metadata_path: path_relative_to_repo(repo_root, &population_metadata_path),
+        input_vcf_path: path_relative_to_repo(repo_root, &published_input_vcf_path),
+        sample_metadata_path: path_relative_to_repo(repo_root, &published_sample_metadata_path),
+        population_metadata_path: path_relative_to_repo(repo_root, &published_population_metadata_path),
         population_labels_manifest_path: path_relative_to_repo(
             repo_root,
-            &population_labels_manifest_path,
+            &published_population_labels_manifest_path,
         ),
-        output_root: path_relative_to_repo(repo_root, &output_root),
-        pca_tsv_path: path_relative_to_repo(repo_root, &pca_tsv_path),
-        pca_json_path: path_relative_to_repo(repo_root, &pca_json_path),
-        source_eigenvec_path: path_relative_to_repo(repo_root, &source_eigenvec_path),
-        source_eigenval_path: path_relative_to_repo(repo_root, &source_eigenval_path),
-        source_pca_manifest_path: path_relative_to_repo(repo_root, &source_pca_manifest_path),
-        source_logs_path: path_relative_to_repo(repo_root, &source_logs_path),
-        stage_result_manifest_path: path_relative_to_repo(repo_root, &stage_result_manifest_path),
+        output_root: path_relative_to_repo(repo_root, &published_output_root),
+        pca_tsv_path: path_relative_to_repo(repo_root, &published_pca_tsv_path),
+        pca_json_path: path_relative_to_repo(repo_root, &published_pca_json_path),
+        source_eigenvec_path: path_relative_to_repo(repo_root, &published_source_eigenvec_path),
+        source_eigenval_path: path_relative_to_repo(repo_root, &published_source_eigenval_path),
+        source_pca_manifest_path: path_relative_to_repo(repo_root, &published_source_pca_manifest_path),
+        source_logs_path: path_relative_to_repo(repo_root, &published_source_logs_path),
+        stage_result_manifest_path: path_relative_to_repo(
+            repo_root,
+            &published_stage_result_manifest_path,
+        ),
         started_at: started_at.clone(),
         finished_at: finished_at.clone(),
         elapsed_seconds,
@@ -331,7 +357,7 @@ pub(crate) fn run_local_vcf_pca_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "pca_tsv".to_string(),
                 declared_path: DEFAULT_OUTPUT_TSV_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &pca_tsv_path),
+                realized_path: path_relative_to_repo(repo_root, &published_pca_tsv_path),
                 role: "table_output".to_string(),
                 optional: false,
                 exists: true,
@@ -339,7 +365,7 @@ pub(crate) fn run_local_vcf_pca_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "pca_json".to_string(),
                 declared_path: DEFAULT_OUTPUT_JSON_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &pca_json_path),
+                realized_path: path_relative_to_repo(repo_root, &published_pca_json_path),
                 role: "report_output".to_string(),
                 optional: false,
                 exists: true,
@@ -347,7 +373,7 @@ pub(crate) fn run_local_vcf_pca_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "source_eigenvec_tsv".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_EIGENVEC_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &source_eigenvec_path),
+                realized_path: path_relative_to_repo(repo_root, &published_source_eigenvec_path),
                 role: "table_output".to_string(),
                 optional: false,
                 exists: true,
@@ -355,7 +381,7 @@ pub(crate) fn run_local_vcf_pca_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "source_eigenval_tsv".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_EIGENVAL_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &source_eigenval_path),
+                realized_path: path_relative_to_repo(repo_root, &published_source_eigenval_path),
                 role: "table_output".to_string(),
                 optional: false,
                 exists: true,
@@ -363,7 +389,10 @@ pub(crate) fn run_local_vcf_pca_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "source_pca_manifest_json".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_MANIFEST_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &source_pca_manifest_path),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_source_pca_manifest_path,
+                ),
                 role: "report_output".to_string(),
                 optional: false,
                 exists: true,
@@ -371,7 +400,7 @@ pub(crate) fn run_local_vcf_pca_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "source_logs_txt".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &source_logs_path),
+                realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
                 role: "log_output".to_string(),
                 optional: false,
                 exists: true,
@@ -381,21 +410,29 @@ pub(crate) fn run_local_vcf_pca_smoke(
     validate_stage_result_manifest(&stage_result_manifest)?;
     bijux_dna_infra::atomic_write_json(&stage_result_manifest_path, &stage_result_manifest)?;
 
+    if published_output_root.exists() {
+        fs::remove_dir_all(&published_output_root)
+            .with_context(|| format!("remove {}", published_output_root.display()))?;
+    }
+    fs::rename(&output_root, &published_output_root).with_context(|| {
+        format!(
+            "publish {} to {}",
+            output_root.display(),
+            published_output_root.display()
+        )
+    })?;
+    let _ = staging_dir.keep();
+
     Ok(report)
 }
 
 fn resolve_governed_vcf_pca_smoke_contract(tool_id: &str) -> Result<GovernedVcfPcaSmokeContract> {
-    let matrix_row = build_vcf_stage_matrix_rows()?
+    let matrix_row = collect_vcf_benchmark_binding_rows()?
         .into_iter()
-        .find(|row| row.stage_id == GOVERNED_VCF_PCA_STAGE_ID)
-        .ok_or_else(|| anyhow!("VCF stage matrix is missing `{GOVERNED_VCF_PCA_STAGE_ID}`"))?;
-    if tool_id != matrix_row.tool_id {
-        bail!(
-            "VCF PCA smoke only retains tool `{}` for `{}`; requested `{tool_id}`",
-            matrix_row.tool_id,
-            matrix_row.stage_id
-        );
-    }
+        .find(|row| row.stage_id == GOVERNED_VCF_PCA_STAGE_ID && row.tool_id == tool_id)
+        .ok_or_else(|| {
+            anyhow!("VCF PCA smoke is missing a retained benchmark binding for `{tool_id}`")
+        })?;
     if matrix_row.corpus_id != GOVERNED_VCF_PCA_CORPUS_ID {
         bail!(
             "VCF PCA smoke requires corpus `{GOVERNED_VCF_PCA_CORPUS_ID}`, found `{}`",
@@ -705,6 +742,27 @@ mod tests {
         let report = run_local_vcf_pca_smoke(repo_root, "plink2").expect("run local pca smoke");
         assert_eq!(report.stage_id, "vcf.pca");
         assert_eq!(report.tool_id, "plink2");
+        assert_eq!(report.corpus_id, "vcf_production_regression");
+        assert_eq!(report.input_fixture_id, "vcf_mini_multisample_cohort");
+        assert_eq!(report.variant_count, 2);
+        assert_eq!(report.sample_count, 4);
+        assert!(report.excluded_samples.is_empty());
+        assert!(report.unexpected_samples.is_empty());
+        assert_eq!(
+            report.rows.iter().map(|row| row.sample_id.as_str()).collect::<Vec<_>>(),
+            vec!["sample_a", "sample_b", "sample_c", "sample_d"]
+        );
+        assert!(report.eigenvalues.len() >= 2, "expected at least two governed PCA eigenvalues");
+    }
+
+    #[test]
+    fn governed_vcf_pca_smoke_supports_retained_eigensoft_binding() {
+        let repo_root =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).ancestors().nth(2).expect("repo root");
+        let report =
+            run_local_vcf_pca_smoke(repo_root, "eigensoft").expect("run eigensoft pca smoke");
+        assert_eq!(report.stage_id, "vcf.pca");
+        assert_eq!(report.tool_id, "eigensoft");
         assert_eq!(report.corpus_id, "vcf_production_regression");
         assert_eq!(report.input_fixture_id, "vcf_mini_multisample_cohort");
         assert_eq!(report.variant_count, 2);
