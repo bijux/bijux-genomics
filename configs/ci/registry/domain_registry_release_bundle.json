@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "be6d94ad67ff37fdc5b8b5846464b201a05de675",
-  "bundle_checksum_sha256": "087fdd8054d4a1539144559eae3fa3a397794d2aa76fc6f9172b79fe27d09354",
+  "source_commit": "632f8166899a5a4750b7659f04351d0a37c9ee68",
+  "bundle_checksum_sha256": "2fa77de106477d9d71ca7357cad02e406acebe78e06d7d6666376bd1ff71467c",
   "domains": [
     {
       "domain_id": "bam",
@@ -3769,7 +3769,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "96b4d1bdb06fdb620af7b14331925f8e1662ad09367621bdb09c00dddaee5ae1"
+      "checksum_sha256": "78412d700192780662af2081055a06ef139334b77f039e5c06f4e551b8231939"
     },
     {
       "domain_id": "fastq",
@@ -10346,7 +10346,7 @@
           "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "planned",
+          "default_version": "2.4.0",
           "upstream": "https://github.com/telatin/seqfu2",
           "pin_strategy": "pinned",
           "license": "GPL-3.0",
@@ -10376,7 +10376,7 @@
           "metrics_schema_id": "bijux.fastq.stats.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
           "container": {
-            "image": "bijuxdna/seqfu:planned",
+            "image": "bijuxdna/seqfu:2.4.0",
             "digest": ""
           }
         },
@@ -12656,7 +12656,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "c7b60be3d77138af73690f7effa1b8fb4f6e4cb4d855a65ab0bcd3f5c0f23d16"
+      "checksum_sha256": "a90e30444382474981994c5d23e2fc0574f718f57c4d1c00cf73350a2f99af4c"
     },
     {
       "domain_id": "vcf",
@@ -12713,10 +12713,8 @@
         "vcf.call_gl",
         "vcf.call_pseudohaploid",
         "vcf.damage_filter",
-        "vcf.demography",
         "vcf.filter",
         "vcf.gl_propagation",
-        "vcf.ibd",
         "vcf.imputation_metrics",
         "vcf.impute",
         "vcf.pca",
@@ -12731,16 +12729,14 @@
       "governed_tool_ids": [
         "bcftools",
         "beagle",
-        "germline",
-        "ibdne",
         "plink2",
         "shapeit5"
       ],
       "stages": [
         {
           "stage_id": "vcf.admixture",
-          "status": "supported",
-          "evidence_status": "supported",
+          "status": "planned",
+          "evidence_status": "planned",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.admixture in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -14000,8 +13996,8 @@
         },
         {
           "stage_id": "vcf.roh",
-          "status": "supported",
-          "evidence_status": "supported",
+          "status": "planned",
+          "evidence_status": "planned",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.roh in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -15095,7 +15091,7 @@
           "tool_id": "plink2",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
           "rationale": "the governed admixture baseline keeps cohort preparation, K selection, and normalized cluster fractions anchored to the admitted PLINK-family execution surface.",
-          "governance_status": "enforced",
+          "governance_status": "advisory",
           "override_policy": "explicit profile override required"
         },
         {
@@ -15139,14 +15135,6 @@
           "override_policy": "explicit profile override required"
         },
         {
-          "stage_id": "vcf.demography",
-          "tool_id": "ibdne",
-          "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-          "rationale": "deterministic effective population size summary from normalized IBD-derived inputs with explicit insufficiency reporting.",
-          "governance_status": "advisory",
-          "override_policy": "explicit profile override required"
-        },
-        {
           "stage_id": "vcf.filter",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -15160,14 +15148,6 @@
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
           "rationale": "preserves GL fields across downstream handoffs in the current governed profile.",
           "governance_status": "enforced",
-          "override_policy": "explicit profile override required"
-        },
-        {
-          "stage_id": "vcf.ibd",
-          "tool_id": "germline",
-          "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-          "rationale": "the governed IBD baseline keeps normalized pairwise segment rows and insufficient-overlap reporting explicit while retained alternatives stay comparative.",
-          "governance_status": "advisory",
           "override_policy": "explicit profile override required"
         },
         {
@@ -15239,7 +15219,7 @@
           "tool_id": "plink2",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
           "rationale": "deterministic ROH interval extraction with normalized segment and per-sample summaries.",
-          "governance_status": "enforced",
+          "governance_status": "advisory",
           "override_policy": "explicit profile override required"
         },
         {
@@ -15252,16 +15232,6 @@
         }
       ],
       "fixtures": [
-        {
-          "stage_id": "vcf.admixture",
-          "tool_id": "plink",
-          "fixture_path": "domain/vcf/fixtures/vcf.admixture/plink.txt"
-        },
-        {
-          "stage_id": "vcf.admixture",
-          "tool_id": "plink2",
-          "fixture_path": "domain/vcf/fixtures/vcf.admixture/plink2.txt"
-        },
         {
           "stage_id": "vcf.call",
           "tool_id": "bcftools",
@@ -15418,18 +15388,13 @@
           "fixture_path": "domain/vcf/fixtures/vcf.qc/plink2.txt"
         },
         {
-          "stage_id": "vcf.roh",
-          "tool_id": "plink2",
-          "fixture_path": "domain/vcf/fixtures/vcf.roh/plink2.txt"
-        },
-        {
           "stage_id": "vcf.stats",
           "tool_id": "bcftools",
           "fixture_path": "domain/vcf/fixtures/vcf.stats/bcftools.txt"
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "33dd9cdedb2ed80927dc2db1647d1c7703f6f6d480636152bc38c9a7a91f467e"
+      "checksum_sha256": "3e63f9c01ca12edb8739c90da5b3183a5568e3ee8fe5dbada5249b6142c589f5"
     }
   ]
 }

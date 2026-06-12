@@ -928,7 +928,7 @@
     "evidence": [
       {
         "stage_id": "vcf.admixture",
-        "evidence_status": "supported",
+        "evidence_status": "planned",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "sample_population_labels_are_required",
@@ -1151,7 +1151,7 @@
       },
       {
         "stage_id": "vcf.roh",
-        "evidence_status": "supported",
+        "evidence_status": "planned",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "roh_min_kb_and_density_thresholds_are_fixed_per_run",

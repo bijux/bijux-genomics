@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: be6d94ad67ff37fdc5b8b5846464b201a05de675
+# source_commit: 632f8166899a5a4750b7659f04351d0a37c9ee68
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -672,7 +672,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["fastp", "prinseq", "seqkit_stats"]
+tools = ["fastp", "prinseq", "seqfu", "seqkit_stats"]
 
 [[stages]]
 id = "fastq.profile_reads"
@@ -691,7 +691,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["seqkit", "seqkit_stats"]
+tools = ["seqfu", "seqkit", "seqkit_stats"]
 
 [[stages]]
 id = "fastq.remove_chimeras"

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: be6d94ad67ff37fdc5b8b5846464b201a05de675
+# source_commit: 632f8166899a5a4750b7659f04351d0a37c9ee68
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -11,7 +11,7 @@
 
 [[stages]]
 id = "vcf.admixture"
-status = "supported"
+status = "planned"
 output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.admixture.v1"
@@ -173,7 +173,7 @@ tools = ["bcftools", "plink", "plink2"]
 
 [[stages]]
 id = "vcf.roh"
-status = "supported"
+status = "planned"
 output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.roh.v1"
