@@ -4,9 +4,9 @@
 
 - Tool count: 67
 - Stage-tool rows: 123
-- Benchmark-ready rows: 112
-- Blocked rows: 11
-- Tools with blockers: 11
+- Benchmark-ready rows: 115
+- Blocked rows: 8
+- Tools with blockers: 8
 
 | Tool | Domains | Stage rows | Ready | Blocked | Blocked stages |
 | --- | --- | ---: | ---: | ---: | --- |
@@ -34,8 +34,8 @@
 | damageprofiler | bam | 2 | 2 | 0 | none |
 | dustmasker | fastq | 1 | 0 | 1 | fastq.filter_low_complexity (support) |
 | fastp | fastq | 5 | 4 | 1 | fastq.filter_low_complexity (support) |
-| fastq_scan | fastq | 2 | 1 | 1 | fastq.profile_overrepresented_sequences (corpus) |
-| fastqc | fastq | 3 | 2 | 1 | fastq.profile_overrepresented_sequences (corpus) |
+| fastq_scan | fastq | 2 | 2 | 0 | none |
+| fastqc | fastq | 3 | 3 | 0 | none |
 | fastqvalidator | fastq | 1 | 1 | 0 | none |
 | fastuniq | fastq | 1 | 1 | 0 | none |
 | fastx_clipper | fastq | 1 | 1 | 0 | none |
@@ -64,7 +64,7 @@
 | samtools | bam | 10 | 10 | 0 | none |
 | schmutzi | bam | 1 | 1 | 0 | none |
 | seqfu | fastq | 3 | 2 | 1 | fastq.normalize_abundance (support) |
-| seqkit | fastq | 6 | 5 | 1 | fastq.profile_overrepresented_sequences (corpus) |
+| seqkit | fastq | 6 | 6 | 0 | none |
 | seqkit_stats | fastq | 2 | 2 | 0 | none |
 | seqpurge | fastq | 1 | 0 | 1 | fastq.trim_reads (support) |
 | seqtk | fastq | 1 | 1 | 0 | none |
@@ -391,27 +391,27 @@
 
 - Domains: fastq
 - Stage rows: 2
-- Benchmark-ready rows: 1
-- Blocked rows: 1
+- Benchmark-ready rows: 2
+- Blocked rows: 0
 - Report sections: input_readiness, quality_profiling
 
 | Domain | Stage | Report section | Summary table | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| fastq | fastq.profile_overrepresented_sequences | Quality Profiling | QC Signal Profiles | not_benchmark_ready | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |
+| fastq | fastq.profile_overrepresented_sequences | Quality Profiling | QC Signal Profiles | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |
 | fastq | fastq.validate_reads | Input Readiness | Validation and Intake | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |
 
 ## fastqc
 
 - Domains: fastq
 - Stage rows: 3
-- Benchmark-ready rows: 2
-- Blocked rows: 1
+- Benchmark-ready rows: 3
+- Blocked rows: 0
 - Report sections: input_readiness, quality_profiling
 
 | Domain | Stage | Report section | Summary table | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | fastq | fastq.detect_adapters | Quality Profiling | QC Signal Profiles | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |
-| fastq | fastq.profile_overrepresented_sequences | Quality Profiling | QC Signal Profiles | not_benchmark_ready | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |
+| fastq | fastq.profile_overrepresented_sequences | Quality Profiling | QC Signal Profiles | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |
 | fastq | fastq.validate_reads | Input Readiness | Validation and Intake | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |
 
 ## fastqvalidator
@@ -777,15 +777,15 @@
 
 - Domains: fastq
 - Stage rows: 6
-- Benchmark-ready rows: 5
-- Blocked rows: 1
+- Benchmark-ready rows: 6
+- Blocked rows: 0
 - Report sections: amplicon_interpretation, quality_profiling, read_cleanup
 
 | Domain | Stage | Report section | Summary table | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | fastq | fastq.filter_reads | Read Cleanup | Cleanup and Retention | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 | fastq | fastq.normalize_abundance | Amplicon Interpretation | Amplicon Feature Tables | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-03-amplicon-mini | not_required |
-| fastq | fastq.profile_overrepresented_sequences | Quality Profiling | QC Signal Profiles | not_benchmark_ready | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |
+| fastq | fastq.profile_overrepresented_sequences | Quality Profiling | QC Signal Profiles | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |
 | fastq | fastq.profile_reads | Quality Profiling | QC Signal Profiles | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 | fastq | fastq.trim_reads | Read Cleanup | Cleanup and Retention | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 | fastq | fastq.trim_terminal_damage | Read Cleanup | Cleanup and Retention | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |

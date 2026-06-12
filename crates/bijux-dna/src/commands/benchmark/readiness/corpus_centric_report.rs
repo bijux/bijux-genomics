@@ -279,16 +279,16 @@ fn ensure_corpus_centric_report_contract(corpora: &[CorpusCentricCorpusReport]) 
         ));
     }
     let stage_count = corpora.iter().map(|corpus| corpus.stage_count).sum::<usize>();
-    if stage_count != 48 {
+    if stage_count != 49 {
         return Err(anyhow!(
-            "corpus-centric report must retain exactly 48 assigned stages, found {}",
+            "corpus-centric report must retain exactly 49 assigned stages, found {}",
             stage_count
         ));
     }
     let tool_row_count = corpora.iter().map(|corpus| corpus.tool_row_count).sum::<usize>();
-    if tool_row_count != 117 {
+    if tool_row_count != 120 {
         return Err(anyhow!(
-            "corpus-centric report must retain exactly 117 assigned stage-tool rows, found {}",
+            "corpus-centric report must retain exactly 120 assigned stage-tool rows, found {}",
             tool_row_count
         ));
     }
@@ -304,8 +304,8 @@ fn ensure_corpus_centric_report_contract(corpora: &[CorpusCentricCorpusReport]) 
     ensure_corpus(
         corpora,
         "corpus-01",
-        19,
-        60,
+        20,
+        63,
         3,
         &["corpus-01-mini"],
         &[
@@ -525,9 +525,9 @@ mod tests {
         .expect("render corpus-centric report");
 
         assert_eq!(report.corpus_count, 7);
-        assert_eq!(report.stage_count, 48);
-        assert_eq!(report.tool_row_count, 117);
-        assert_eq!(report.benchmark_ready_tool_row_count, 112);
+        assert_eq!(report.stage_count, 49);
+        assert_eq!(report.tool_row_count, 120);
+        assert_eq!(report.benchmark_ready_tool_row_count, 115);
         assert_eq!(report.blocked_tool_row_count, 5);
         assert_eq!(report.blocked_corpus_count, 2);
     }

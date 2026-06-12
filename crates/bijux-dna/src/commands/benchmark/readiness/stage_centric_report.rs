@@ -326,17 +326,17 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         ));
     }
     let blocked_stage_count = stages.iter().filter(|stage| stage.blocked_tool_count > 0).count();
-    if blocked_stage_count != 7 {
+    if blocked_stage_count != 6 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 7 blocked stages, found {}",
+            "stage-centric report must retain exactly 6 blocked stages, found {}",
             blocked_stage_count
         ));
     }
     let declared_shared_metric_stage_count =
         stages.iter().filter(|stage| stage.comparison_contract_status == "declared").count();
-    if declared_shared_metric_stage_count != 19 {
+    if declared_shared_metric_stage_count != 18 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 19 stages with declared shared metrics, found {}",
+            "stage-centric report must retain exactly 18 stages with declared shared metrics, found {}",
             declared_shared_metric_stage_count
         ));
     }
@@ -364,7 +364,7 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         "fastq",
         "fastq.profile_overrepresented_sequences",
         3,
-        3,
+        0,
         "declared",
         &["sequence_count", "flagged_sequences", "top_fraction"],
     )?;
@@ -569,12 +569,12 @@ mod tests {
 
         assert_eq!(report.stage_count, 51);
         assert_eq!(report.multi_tool_stage_count, 30);
-        assert_eq!(report.blocked_stage_count, 7);
+        assert_eq!(report.blocked_stage_count, 6);
         assert_eq!(report.declared_shared_metric_stage_count, 18);
         assert_eq!(report.not_declared_shared_metric_stage_count, 12);
         assert_eq!(report.row_count, 123);
-        assert_eq!(report.benchmark_ready_row_count, 112);
-        assert_eq!(report.blocked_row_count, 11);
+        assert_eq!(report.benchmark_ready_row_count, 115);
+        assert_eq!(report.blocked_row_count, 8);
 
         let trim_reads = report
             .stages
@@ -590,6 +590,17 @@ mod tests {
             .iter()
             .find(|stage| stage.domain == "bam" && stage.stage_id == "bam.damage")
             .expect("bam damage stage");
+        let profile_overrepresented = report
+            .stages
+            .iter()
+            .find(|stage| {
+                stage.domain == "fastq"
+                    && stage.stage_id == "fastq.profile_overrepresented_sequences"
+            })
+            .expect("profile overrepresented stage");
+        assert_eq!(profile_overrepresented.tool_count, 3);
+        assert_eq!(profile_overrepresented.blocked_tool_count, 0);
+        assert_eq!(profile_overrepresented.shared_metric_field_count, 3);
         assert_eq!(damage.tool_count, 6);
         assert_eq!(damage.shared_metric_field_count, 5);
     }

@@ -4,14 +4,14 @@
   "executable_active_row_count": 138,
   "executable_active_stage_count": 67,
   "executable_active_tool_count": 71,
-  "active_row_count": 132,
-  "active_stage_count": 64,
+  "active_row_count": 135,
+  "active_stage_count": 65,
   "active_tool_count": 69,
-  "removed_row_count": 6,
-  "removed_stage_count": 3,
-  "removed_tool_count": 6,
+  "removed_row_count": 3,
+  "removed_stage_count": 2,
+  "removed_tool_count": 3,
   "removed_status_counts": {
-    "not_benchmark_ready": 6
+    "not_benchmark_ready": 3
   },
   "violation_count": 0,
   "ok": true,
@@ -36,39 +36,6 @@
       "adapter_id": "fastq.adapter.index_reference",
       "parser_id": "fastq.parser.index_reference",
       "schema_id": "fastq_index_reference_v1",
-      "status": "not_benchmark_ready"
-    },
-    {
-      "domain": "fastq",
-      "stage_id": "fastq.profile_overrepresented_sequences",
-      "tool_id": "fastq_scan",
-      "corpus_id": "not_assigned",
-      "asset_profile_id": "corpus_only",
-      "adapter_id": "fastq.adapter.profile_overrepresented_sequences",
-      "parser_id": "fastq.parser.profile_overrepresented_sequences",
-      "schema_id": "fastq_profile_overrepresented_sequences_v1",
-      "status": "not_benchmark_ready"
-    },
-    {
-      "domain": "fastq",
-      "stage_id": "fastq.profile_overrepresented_sequences",
-      "tool_id": "fastqc",
-      "corpus_id": "not_assigned",
-      "asset_profile_id": "corpus_only",
-      "adapter_id": "fastq.adapter.profile_overrepresented_sequences",
-      "parser_id": "fastq.parser.profile_overrepresented_sequences",
-      "schema_id": "fastq_profile_overrepresented_sequences_v1",
-      "status": "not_benchmark_ready"
-    },
-    {
-      "domain": "fastq",
-      "stage_id": "fastq.profile_overrepresented_sequences",
-      "tool_id": "seqkit",
-      "corpus_id": "not_assigned",
-      "asset_profile_id": "corpus_only",
-      "adapter_id": "fastq.adapter.profile_overrepresented_sequences",
-      "parser_id": "fastq.parser.profile_overrepresented_sequences",
-      "schema_id": "fastq_profile_overrepresented_sequences_v1",
       "status": "not_benchmark_ready"
     },
     {

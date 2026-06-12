@@ -24,8 +24,8 @@ dada2	fastq	1	1	1	1	benchmark_ready	fastq.infer_asvs	fastq.infer_asvs
 damageprofiler	bam	2	2	2	2	benchmark_ready	bam.authenticity,bam.damage	bam.authenticity,bam.damage
 eigensoft	vcf	1	1	1	1	benchmark_ready	vcf.pca	vcf.pca
 fastp	fastq	4	4	4	4	benchmark_ready	fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_polyg_tails,fastq.trim_reads	fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_polyg_tails,fastq.trim_reads
-fastq_scan	fastq	1	1	1	1	benchmark_ready	fastq.validate_reads	fastq.validate_reads
-fastqc	fastq	2	2	2	2	benchmark_ready	fastq.detect_adapters,fastq.validate_reads	fastq.detect_adapters,fastq.validate_reads
+fastq_scan	fastq	2	2	2	2	benchmark_ready	fastq.profile_overrepresented_sequences,fastq.validate_reads	fastq.profile_overrepresented_sequences,fastq.validate_reads
+fastqc	fastq	3	3	3	3	benchmark_ready	fastq.detect_adapters,fastq.profile_overrepresented_sequences,fastq.validate_reads	fastq.detect_adapters,fastq.profile_overrepresented_sequences,fastq.validate_reads
 fastqvalidator	fastq	1	1	1	1	benchmark_ready	fastq.validate_reads	fastq.validate_reads
 fastuniq	fastq	1	1	1	1	benchmark_ready	fastq.remove_duplicates	fastq.remove_duplicates
 fastx_clipper	fastq	1	1	1	1	benchmark_ready	fastq.trim_reads	fastq.trim_reads
@@ -56,7 +56,7 @@ rxy	bam	1	1	1	1	benchmark_ready	bam.sex	bam.sex
 samtools	bam	10	10	10	10	benchmark_ready	bam.coverage,bam.duplication_metrics,bam.endogenous_content,bam.filter,bam.length_filter,bam.mapping_summary,bam.mapq_filter,bam.markdup,bam.qc_pre,bam.validate	bam.coverage,bam.duplication_metrics,bam.endogenous_content,bam.filter,bam.length_filter,bam.mapping_summary,bam.mapq_filter,bam.markdup,bam.qc_pre,bam.validate
 schmutzi	bam	1	1	1	1	benchmark_ready	bam.contamination	bam.contamination
 seqfu	fastq	2	2	2	2	benchmark_ready	fastq.profile_read_lengths,fastq.profile_reads	fastq.profile_read_lengths,fastq.profile_reads
-seqkit	fastq	5	5	5	5	benchmark_ready	fastq.filter_reads,fastq.normalize_abundance,fastq.profile_reads,fastq.trim_reads,fastq.trim_terminal_damage	fastq.filter_reads,fastq.normalize_abundance,fastq.profile_reads,fastq.trim_reads,fastq.trim_terminal_damage
+seqkit	fastq	6	6	6	6	benchmark_ready	fastq.filter_reads,fastq.normalize_abundance,fastq.profile_overrepresented_sequences,fastq.profile_reads,fastq.trim_reads,fastq.trim_terminal_damage	fastq.filter_reads,fastq.normalize_abundance,fastq.profile_overrepresented_sequences,fastq.profile_reads,fastq.trim_reads,fastq.trim_terminal_damage
 seqkit_stats	fastq	2	2	2	2	benchmark_ready	fastq.profile_read_lengths,fastq.profile_reads	fastq.profile_read_lengths,fastq.profile_reads
 seqtk	fastq	1	1	1	1	benchmark_ready	fastq.validate_reads	fastq.validate_reads
 shapeit5	vcf	1	1	1	1	benchmark_ready	vcf.phasing	vcf.phasing

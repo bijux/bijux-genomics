@@ -258,7 +258,7 @@ pub(crate) fn render_all_domain_harness_ready(
                 || report.benchmark_status_counts.get("benchmark_ready").copied()
                     != Some(benchmark_ready_binding_count)
                 || report.command_source_counts.get("fastq_bam_command_adapter").copied()
-                    != Some(112)
+                    != Some(115)
                 || report.command_source_counts.get("vcf_bcftools_adapter").copied() != Some(11)
                 || report.command_source_counts.get("vcf_eigensoft_adapter").copied() != Some(1)
                 || report.command_source_counts.get("vcf_imputation_family_adapter").copied()

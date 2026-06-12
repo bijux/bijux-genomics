@@ -1,8 +1,8 @@
 {
   "schema_version": "bijux.bench.readiness.all_domain_no_planned_rows.v1",
   "output_path": "benchmarks/readiness/all-domains/no-planned-rows.json",
-  "active_row_count": 132,
-  "active_stage_count": 64,
+  "active_row_count": 135,
+  "active_stage_count": 65,
   "active_tool_count": 69,
   "removed_row_count": 8,
   "removed_stage_count": 7,

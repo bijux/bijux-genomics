@@ -355,21 +355,21 @@ fn collect_missing_result_report_rows(
 fn ensure_missing_result_report_contract(
     mut report: MissingResultReport,
 ) -> Result<MissingResultReport> {
-    if report.rows.len() != 112 {
+    if report.rows.len() != 115 {
         return Err(anyhow!(
-            "missing-result report must retain exactly 112 expected benchmark rows, found {}",
+            "missing-result report must retain exactly 115 expected benchmark rows, found {}",
             report.rows.len()
         ));
     }
-    if report.expected_row_count != 112 {
+    if report.expected_row_count != 115 {
         return Err(anyhow!(
-            "missing-result report must track exactly 112 expected rows, found {}",
+            "missing-result report must track exactly 115 expected rows, found {}",
             report.expected_row_count
         ));
     }
-    if report.present_result_row_count != 111 {
+    if report.present_result_row_count != 114 {
         return Err(anyhow!(
-            "missing-result report must retain exactly 111 present benchmark rows after removing one result, found {}",
+            "missing-result report must retain exactly 114 present benchmark rows after removing one result, found {}",
             report.present_result_row_count
         ));
     }
@@ -468,8 +468,8 @@ mod tests {
         assert_eq!(report.schema_version, MISSING_RESULT_REPORT_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_MISSING_RESULT_REPORT_TEST_PATH);
         assert_eq!(report.fake_result_root, "benchmarks/readiness/missing-result-report-fixture");
-        assert_eq!(report.expected_row_count, 112);
-        assert_eq!(report.present_result_row_count, 111);
+        assert_eq!(report.expected_row_count, 115);
+        assert_eq!(report.present_result_row_count, 114);
         assert_eq!(report.missing_result_row_count, 1);
         assert!(report.passes_behavior_test);
         assert_eq!(report.domain_counts.get("fastq").copied(), Some(63));

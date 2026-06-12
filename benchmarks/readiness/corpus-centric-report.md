@@ -3,15 +3,15 @@
 ## Summary
 
 - Corpus count: 7
-- Assigned stages: 48
-- Assigned stage-tool rows: 117
-- Benchmark-ready rows: 112
+- Assigned stages: 49
+- Assigned stage-tool rows: 120
+- Benchmark-ready rows: 115
 - Blocked rows: 5
 - Corpora with blocked stages: 2
 
 | Corpus | Domains | Fixtures | Stages | Tool rows | Ready | Blocked stages | Blocked stage ids |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
-| corpus-01 | bam, fastq | corpus-01-mini | 19 | 60 | 56 | 3 | fastq.estimate_library_complexity_prealign, fastq.trim_reads, fastq.filter_low_complexity |
+| corpus-01 | bam, fastq | corpus-01-mini | 20 | 63 | 59 | 3 | fastq.estimate_library_complexity_prealign, fastq.trim_reads, fastq.filter_low_complexity |
 | corpus-01-adna-bam | bam | corpus-01-adna-bam-mini, corpus-01-adna-damage-mini | 5 | 16 | 16 | 0 | none |
 | corpus-01-bam | bam | corpus-01-bam-mini | 16 | 28 | 28 | 0 | none |
 | corpus-01-genotyping | bam | corpus-01-genotyping-mini | 1 | 1 | 1 | 0 | none |
@@ -23,9 +23,9 @@
 
 - Domains: bam, fastq
 - Fixtures: corpus-01-mini
-- Stages: 19
-- Tool rows: 60
-- Benchmark-ready rows: 56
+- Stages: 20
+- Tool rows: 63
+- Benchmark-ready rows: 59
 - Blocked stages: 3
 
 | Domain | Stage | Fixtures | Report section | Tools | Ready | Blocked | Shared metrics | Blocked tools |
@@ -49,6 +49,7 @@
 | fastq | fastq.deplete_reference_contaminants | corpus-01-mini | Contamination Screening | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.correct_errors | corpus-01-mini | Read Cleanup | 4 | 4 | 0 | not_declared | none |
 | fastq | fastq.extract_umis | corpus-01-mini | Read Cleanup | 1 | 1 | 0 | not_applicable | none |
+| fastq | fastq.profile_overrepresented_sequences | corpus-01-mini | Quality Profiling | 3 | 3 | 0 | sequence_count, flagged_sequences, top_fraction | none |
 
 ## corpus-01-adna-bam
 

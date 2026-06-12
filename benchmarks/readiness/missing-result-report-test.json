@@ -2,15 +2,15 @@
   "schema_version": "bijux.bench.readiness.missing_result_report.v1",
   "output_path": "benchmarks/readiness/missing-result-report-test.json",
   "fake_result_root": "benchmarks/readiness/missing-result-report-fixture",
-  "expected_row_count": 112,
-  "present_result_row_count": 111,
+  "expected_row_count": 115,
+  "present_result_row_count": 114,
   "missing_result_row_count": 1,
   "passes_behavior_test": true,
   "removed_result_row_id": "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
   "removed_manifest_path": "benchmarks/readiness/missing-result-report-fixture/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json",
   "domain_counts": {
     "bam": 49,
-    "fastq": 63
+    "fastq": 66
   },
   "rows": [
     {
@@ -2687,6 +2687,101 @@
       ],
       "normalized_metrics_output_id": "report_json",
       "reason": "expected benchmark result row `fastq:corpus-03-amplicon-mini:fastq.normalize_primers:sample-set:cutadapt` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastq_scan",
+      "fixture_id": "corpus-01-mini",
+      "sample_scope": "sample-set",
+      "expected_manifest_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_overrepresented_sequences/sample-set/fastq_scan/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.profile_overrepresented_sequences/sample-set/fastq_scan/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "validation_report",
+        "validated_reads_manifest",
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "validation_report",
+        "validated_reads_manifest",
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "normalized_metrics_output_id": "report_json",
+      "reason": "expected benchmark result row `fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastqc",
+      "fixture_id": "corpus-01-mini",
+      "sample_scope": "sample-set",
+      "expected_manifest_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_overrepresented_sequences/sample-set/fastqc/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.profile_overrepresented_sequences/sample-set/fastqc/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "validation_report",
+        "validated_reads_manifest",
+        "adapter_report",
+        "adapter_evidence_dir",
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "validation_report",
+        "validated_reads_manifest",
+        "adapter_report",
+        "adapter_evidence_dir",
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "normalized_metrics_output_id": "report_json",
+      "reason": "expected benchmark result row `fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "seqkit",
+      "fixture_id": "corpus-01-mini",
+      "sample_scope": "sample-set",
+      "expected_manifest_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_overrepresented_sequences/sample-set/seqkit/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.profile_overrepresented_sequences/sample-set/seqkit/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "filtered_reads_r1",
+        "filtered_reads_r2",
+        "normalized_abundance_tsv",
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "qc_json",
+        "qc_tsv",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "filtered_reads_r1",
+        "filtered_reads_r2",
+        "normalized_abundance_tsv",
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "qc_json",
+        "qc_tsv",
+        "report_json"
+      ],
+      "normalized_metrics_output_id": "report_json",
+      "reason": "expected benchmark result row `fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit` remains present with a validated stage-result manifest"
     },
     {
       "result_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp",

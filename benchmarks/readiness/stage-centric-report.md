@@ -5,9 +5,9 @@
 - Stage count: 51
 - Multi-tool stages: 30
 - Stage-tool rows: 123
-- Benchmark-ready rows: 112
-- Blocked rows: 11
-- Stages with blockers: 7
+- Benchmark-ready rows: 115
+- Blocked rows: 8
+- Stages with blockers: 6
 
 | Domain | Stage | Report section | Tools | Ready | Blocked | Shared metrics | Blocked tools |
 | --- | --- | --- | ---: | ---: | ---: | --- | --- |
@@ -54,7 +54,7 @@
 | fastq | fastq.deplete_reference_contaminants | Contamination Screening | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.correct_errors | Read Cleanup | 4 | 4 | 0 | not_declared | none |
 | fastq | fastq.extract_umis | Read Cleanup | 1 | 1 | 0 | not_applicable | none |
-| fastq | fastq.profile_overrepresented_sequences | Quality Profiling | 3 | 0 | 3 | sequence_count, flagged_sequences, top_fraction | fastq_scan (corpus), fastqc (corpus), seqkit (corpus) |
+| fastq | fastq.profile_overrepresented_sequences | Quality Profiling | 3 | 3 | 0 | sequence_count, flagged_sequences, top_fraction | none |
 | fastq | fastq.remove_chimeras | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.infer_asvs | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.cluster_otus | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
@@ -103,7 +103,7 @@
 - Domain: bam
 - Report section: Alignment Intake
 - Summary table: Alignment Baseline
-- Anchor tool: multiqc (supported)
+- Anchor tool: samtools (supported)
 - Tools: 2
 - Ready tools: 2
 - Blocked tools: 0
@@ -189,7 +189,7 @@
 - Domain: bam
 - Report section: Library Complexity
 - Summary table: Duplicate and Complexity
-- Anchor tool: picard (supported)
+- Anchor tool: samtools (supported)
 - Tools: 2
 - Ready tools: 2
 - Blocked tools: 0
@@ -823,16 +823,16 @@
 - Summary table: QC Signal Profiles
 - Anchor tool: fastqc (supported)
 - Tools: 3
-- Ready tools: 0
-- Blocked tools: 3
+- Ready tools: 3
+- Blocked tools: 0
 - Shared metric contract: declared
 - Shared metrics: sequence_count, flagged_sequences, top_fraction
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| fastq_scan | not_benchmark_ready | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |
-| fastqc | not_benchmark_ready | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |
-| seqkit | not_benchmark_ready | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |
+| fastq_scan | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |
+| fastqc | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |
+| seqkit | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |
 
 ## fastq.remove_chimeras
 
