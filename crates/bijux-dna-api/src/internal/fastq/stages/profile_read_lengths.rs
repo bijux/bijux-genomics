@@ -652,6 +652,7 @@ fn build_read_lengths_report(inputs: ReadLengthsReportInputs<'_>) -> ProfileRead
     )
 }
 
+#[allow(clippy::too_many_arguments)]
 fn render_read_lengths_report(
     tool: &str,
     paired_mode: PairedMode,
@@ -956,13 +957,13 @@ fn median_read_length(lengths: &[usize]) -> f64 {
     if lengths.is_empty() {
         return 0.0;
     }
-    let mut ordered = lengths.iter().copied().collect::<Vec<_>>();
+    let mut ordered = lengths.to_vec();
     ordered.sort_unstable();
     let midpoint = ordered.len() / 2;
     if ordered.len() % 2 == 1 {
         return usize_to_f64(ordered[midpoint]);
     }
-    (usize_to_f64(ordered[midpoint - 1]) + usize_to_f64(ordered[midpoint])) / 2.0
+    f64::midpoint(usize_to_f64(ordered[midpoint - 1]), usize_to_f64(ordered[midpoint]))
 }
 
 fn u64_to_f64(value: u64) -> f64 {

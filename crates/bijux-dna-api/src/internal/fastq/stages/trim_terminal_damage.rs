@@ -368,6 +368,7 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
     Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
 }
 
+#[allow(clippy::too_many_lines)]
 fn materialize_local_trim_terminal_damage_smoke_case(
     repo_root: &Path,
     case: &bijux_dna_planner_fastq::LocalTrimTerminalDamageSmokeCasePlan,

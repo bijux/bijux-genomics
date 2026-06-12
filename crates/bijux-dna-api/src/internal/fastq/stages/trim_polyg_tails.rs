@@ -503,6 +503,7 @@ fn u64_to_f64(value: u64) -> f64 {
     value.to_string().parse::<f64>().unwrap_or(0.0)
 }
 
+#[allow(clippy::too_many_lines)]
 fn materialize_local_trim_polyg_tails_smoke_case(
     repo_root: &Path,
     case: &bijux_dna_planner_fastq::LocalTrimPolygTailsSmokeCasePlan,

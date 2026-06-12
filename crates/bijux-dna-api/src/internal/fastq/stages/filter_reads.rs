@@ -127,6 +127,7 @@ pub fn write_local_filter_reads_smoke_report() -> Result<PathBuf> {
     Ok(report_path)
 }
 
+#[allow(clippy::too_many_lines)]
 fn materialize_local_filter_reads_smoke_case(
     repo_root: &Path,
     case: &bijux_dna_planner_fastq::LocalFilterReadsSmokeCasePlan,
@@ -276,6 +277,7 @@ fn write_governed_filter_report(report_path: &Path, report: &FilterReadsReportV1
         .with_context(|| format!("write governed filter report {}", report_path.display()))
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn local_filter_drop_reason(
     record: &LocalFastqRecord,
     effective_params: &FilterEffectiveParams,
@@ -301,6 +303,7 @@ fn local_filter_drop_reason(
     None
 }
 
+#[allow(clippy::cast_precision_loss)]
 fn local_complexity_score(sequence: &str) -> f64 {
     let bytes = sequence.as_bytes();
     if bytes.len() <= 1 {
@@ -314,6 +317,7 @@ fn total_bases(records: &[LocalFastqRecord]) -> u64 {
     records.iter().map(|record| record.sequence.len() as u64).sum()
 }
 
+#[allow(clippy::cast_precision_loss)]
 fn mean_quality(records: &[LocalFastqRecord]) -> f64 {
     let total_bases = total_bases(records);
     if total_bases == 0 {

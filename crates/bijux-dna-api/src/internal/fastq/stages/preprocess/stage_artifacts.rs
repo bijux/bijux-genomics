@@ -6,6 +6,11 @@ mod standardized_metrics;
 
 use self::standardized_metrics::discover_screen_taxonomy_report_path;
 
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss
+)]
 fn derive_screen_taxonomy_read_counts(
     report: &bijux_dna_domain_fastq::ScreenTaxonomyReportV1,
 ) -> (Option<u64>, Option<u64>) {
@@ -34,6 +39,7 @@ fn insert_json_value<T: serde::Serialize>(
     key: &str,
     value: T,
 ) {
+    #[allow(clippy::expect_used)]
     object.insert(
         key.to_string(),
         serde_json::to_value(value).expect("depletion summary fields must serialize"),
@@ -526,7 +532,9 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
                 bijux_dna_domain_fastq::observer::parse_merge_pairs_report(&raw).ok()
             });
-            let pair_counts = governed.as_ref().map(|report| report.canonical_pair_counts());
+            let pair_counts = governed
+                .as_ref()
+                .map(bijux_dna_domain_fastq::MergePairsReportV1::canonical_pair_counts);
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.merge_pairs.extra_artifacts.v2",
                 "stage": stage_id,
@@ -559,7 +567,9 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
                 bijux_dna_domain_fastq::observer::parse_extract_umis_report(&raw).ok()
             });
-            let umi_summary = governed.as_ref().map(|report| report.canonical_umi_summary());
+            let umi_summary = governed
+                .as_ref()
+                .map(bijux_dna_domain_fastq::ExtractUmisReportV1::canonical_umi_summary);
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.extract_umis.extra_artifacts.v2",
                 "stage": stage_id,
@@ -1059,6 +1069,7 @@ pub(super) fn write_stage_standardized_metrics(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unreadable_literal)]
 mod stage_artifact_tests {
     use anyhow::Result;
     use bijux_dna_runner::step_runner::StageResultV1;
@@ -2342,10 +2353,10 @@ mod stage_artifact_tests {
             serde_json::json!("abundance_normalized.tsv")
         );
         assert_eq!(extra["compositional_rule"], serde_json::json!("per_sample_sum_to_one_million"));
-        assert_eq!(extra["scale_factor"], serde_json::json!(1000000.0));
+        assert_eq!(extra["scale_factor"], serde_json::json!(1_000_000.0));
         assert_eq!(
             extra["sample_totals"],
-            serde_json::json!([["sample_a", 1000000.0], ["sample_b", 1000000.0]])
+            serde_json::json!([["sample_a", 1_000_000.0], ["sample_b", 1_000_000.0]])
         );
         assert_eq!(extra["feature_count"], serde_json::json!(4));
         assert_eq!(extra["per_sample_sum_count"], serde_json::json!(2));
@@ -2414,7 +2425,7 @@ mod stage_artifact_tests {
         assert_eq!(extra["measurement_scope"], serde_json::json!("premerge_sequence_signature"));
         assert_eq!(extra["reads_in"], serde_json::json!(12));
         assert_eq!(extra["duplicate_count"], serde_json::json!(4));
-        assert_eq!(extra["duplicate_fraction"], serde_json::json!(0.3333333333333333));
+        assert_eq!(extra["duplicate_fraction"], serde_json::json!(0.333_333_333_333_333_3));
         assert_eq!(extra["inspected_pair_count"], serde_json::json!(6));
         assert_eq!(
             extra["report_json"],
@@ -2665,7 +2676,7 @@ mod stage_artifact_tests {
         assert_eq!(metrics["tool"], serde_json::json!("bijux"));
         assert_eq!(metrics["reads_in"], serde_json::json!(12));
         assert_eq!(metrics["duplicate_count"], serde_json::json!(4));
-        assert_eq!(metrics["duplicate_fraction"], serde_json::json!(0.3333333333333333));
+        assert_eq!(metrics["duplicate_fraction"], serde_json::json!(0.333_333_333_333_333_3));
         assert_eq!(metrics["inspected_pair_count"], serde_json::json!(6));
         Ok(())
     }

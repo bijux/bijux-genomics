@@ -565,14 +565,15 @@ fn materialize_local_infer_asvs_smoke_case(
     let case_asv_sequences = resolve_smoke_output_path(repo_root, &outputs.asv_sequences_fasta);
     let case_taxonomy_fasta =
         resolve_smoke_output_path(repo_root, &outputs.taxonomy_reference_fasta);
-    let case_taxonomy_fastq = resolve_smoke_output_path(repo_root, &outputs.taxonomy_reads_fastq);
+    let case_taxonomy_reads_fastq =
+        resolve_smoke_output_path(repo_root, &outputs.taxonomy_reads_fastq);
     let case_report_json = resolve_smoke_output_path(repo_root, &outputs.report_json);
 
     for path in [
         &case_asv_table,
         &case_asv_sequences,
         &case_taxonomy_fasta,
-        &case_taxonomy_fastq,
+        &case_taxonomy_reads_fastq,
         &case_report_json,
     ] {
         if let Some(parent) = path.parent() {
@@ -587,7 +588,7 @@ fn materialize_local_infer_asvs_smoke_case(
         &case_asv_table,
         &case_asv_sequences,
         &case_taxonomy_fasta,
-        &case_taxonomy_fastq,
+        &case_taxonomy_reads_fastq,
         &case_report_json,
     )?;
     let table_metrics = read_infer_asvs_table_metrics(&case_asv_table)?;
@@ -600,7 +601,7 @@ fn materialize_local_infer_asvs_smoke_case(
         asv_table_tsv: &case_asv_table,
         asv_sequences_fasta: &case_asv_sequences,
         taxonomy_reference_fasta: &case_taxonomy_fasta,
-        taxonomy_reads_fastq: &case_taxonomy_fastq,
+        taxonomy_reads_fastq: &case_taxonomy_reads_fastq,
         report_json: &case_report_json,
         effective_params: &effective_params,
         table_metrics,
@@ -615,7 +616,7 @@ fn materialize_local_infer_asvs_smoke_case(
     report.asv_table_tsv = path_relative_to_repo(repo_root, &case_asv_table);
     report.asv_sequences_fasta = path_relative_to_repo(repo_root, &case_asv_sequences);
     report.taxonomy_ready_fasta = path_relative_to_repo(repo_root, &case_taxonomy_fasta);
-    report.taxonomy_ready_fastq = path_relative_to_repo(repo_root, &case_taxonomy_fastq);
+    report.taxonomy_ready_fastq = path_relative_to_repo(repo_root, &case_taxonomy_reads_fastq);
     report.report_json = path_relative_to_repo(repo_root, &case_report_json);
     report.raw_backend_report = Some(path_relative_to_repo(repo_root, &case_report_json));
     bijux_dna_infra::atomic_write_json(&case_report_json, &report)?;
@@ -638,7 +639,7 @@ fn materialize_local_infer_asvs_smoke_case(
         representatives_fasta: path_relative_to_repo(repo_root, &top_level_representatives),
         case_report_json: path_relative_to_repo(repo_root, &case_report_json),
         taxonomy_ready_fasta: path_relative_to_repo(repo_root, &case_taxonomy_fasta),
-        taxonomy_ready_fastq: path_relative_to_repo(repo_root, &case_taxonomy_fastq),
+        taxonomy_ready_fastq: path_relative_to_repo(repo_root, &case_taxonomy_reads_fastq),
         raw_backend_report: path_relative_to_repo(repo_root, &case_report_json),
     })
 }

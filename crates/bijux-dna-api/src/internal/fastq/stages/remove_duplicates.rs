@@ -526,7 +526,7 @@ fn materialize_local_remove_duplicates_smoke_case(
         sample_id: case.sample_id.clone(),
         planned_tool_id: case.plan.tool_id.as_str().to_string(),
         report_tool_id: report.tool_id,
-        paired_mode: serde_json::to_value(&effective_params.paired_mode)?
+        paired_mode: serde_json::to_value(effective_params.paired_mode)?
             .as_str()
             .unwrap_or("single_end")
             .to_string(),

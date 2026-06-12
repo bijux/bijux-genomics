@@ -546,7 +546,8 @@ fn materialize_local_cluster_otus_smoke_case(
         resolve_smoke_output_path(repo_root, &outputs.otu_representatives);
     let case_taxonomy_fasta =
         resolve_smoke_output_path(repo_root, &outputs.taxonomy_reference_fasta);
-    let case_taxonomy_fastq = resolve_smoke_output_path(repo_root, &outputs.taxonomy_reads_fastq);
+    let case_taxonomy_reads_fastq =
+        resolve_smoke_output_path(repo_root, &outputs.taxonomy_reads_fastq);
     let case_report_json = resolve_smoke_output_path(repo_root, &outputs.report_json);
     let case_raw_backend_report =
         resolve_smoke_output_path(repo_root, &case.plan.out_dir.join("otu_clusters.uc"));
@@ -555,7 +556,7 @@ fn materialize_local_cluster_otus_smoke_case(
         &case_otu_table,
         &case_otu_representatives,
         &case_taxonomy_fasta,
-        &case_taxonomy_fastq,
+        &case_taxonomy_reads_fastq,
         &case_report_json,
         &case_raw_backend_report,
     ] {
@@ -570,7 +571,7 @@ fn materialize_local_cluster_otus_smoke_case(
         &case_otu_table,
         &case_otu_representatives,
         &case_taxonomy_fasta,
-        &case_taxonomy_fastq,
+        &case_taxonomy_reads_fastq,
         &case_report_json,
     )?;
     let table_metrics = read_cluster_otus_table_metrics(&case_otu_table)?;
@@ -584,7 +585,7 @@ fn materialize_local_cluster_otus_smoke_case(
         otu_table: &case_otu_table,
         otu_representatives: &case_otu_representatives,
         taxonomy_reference_fasta: &case_taxonomy_fasta,
-        taxonomy_reads_fastq: &case_taxonomy_fastq,
+        taxonomy_reads_fastq: &case_taxonomy_reads_fastq,
         report_json: &case_report_json,
         effective_params: &effective_params,
         table_metrics,
@@ -602,7 +603,7 @@ fn materialize_local_cluster_otus_smoke_case(
     report.otu_table = path_relative_to_repo(repo_root, &case_otu_table);
     report.otu_representatives = path_relative_to_repo(repo_root, &case_otu_representatives);
     report.taxonomy_ready_fasta = path_relative_to_repo(repo_root, &case_taxonomy_fasta);
-    report.taxonomy_ready_fastq = path_relative_to_repo(repo_root, &case_taxonomy_fastq);
+    report.taxonomy_ready_fastq = path_relative_to_repo(repo_root, &case_taxonomy_reads_fastq);
     report.report_json = path_relative_to_repo(repo_root, &case_report_json);
     report.raw_backend_report = Some(path_relative_to_repo(repo_root, &case_raw_backend_report));
     bijux_dna_infra::atomic_write_json(&case_report_json, &report)?;
@@ -635,7 +636,7 @@ fn materialize_local_cluster_otus_smoke_case(
         otu_representatives_fasta: path_relative_to_repo(repo_root, &top_level_representatives),
         case_report_json: path_relative_to_repo(repo_root, &case_report_json),
         taxonomy_ready_fasta: path_relative_to_repo(repo_root, &case_taxonomy_fasta),
-        taxonomy_ready_fastq: path_relative_to_repo(repo_root, &case_taxonomy_fastq),
+        taxonomy_ready_fastq: path_relative_to_repo(repo_root, &case_taxonomy_reads_fastq),
         raw_backend_report: path_relative_to_repo(repo_root, &case_raw_backend_report),
     })
 }
@@ -646,6 +647,8 @@ fn write_top_level_cluster_otus_table(
     top_level_otu_table: &std::path::Path,
     top_level_representatives: &std::path::Path,
 ) -> Result<()> {
+    use std::fmt::Write as _;
+
     let representative_path = path_relative_to_repo(repo_root, top_level_representatives);
     let raw = std::fs::read_to_string(case_otu_table)
         .with_context(|| format!("read {}", case_otu_table.display()))?;
@@ -658,10 +661,15 @@ fn write_top_level_cluster_otus_table(
                 "cluster_otus local-smoke case table row must contain sample_id, otu_id, and abundance"
             ));
         }
-        rendered.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\n",
-            fields[0], fields[1], fields[2], fields[1], representative_path
-        ));
+        let _ = writeln!(
+            rendered,
+            "{}\t{}\t{}\t{}\t{}",
+            fields[0],
+            fields[1],
+            fields[2],
+            fields[1],
+            representative_path
+        );
     }
     std::fs::write(top_level_otu_table, rendered)
         .with_context(|| format!("write {}", top_level_otu_table.display()))?;
@@ -672,6 +680,8 @@ fn write_smoke_cluster_otus_uc_report(
     representatives_fasta: &std::path::Path,
     raw_backend_report: &std::path::Path,
 ) -> Result<()> {
+    use std::fmt::Write as _;
+
     let raw = std::fs::read_to_string(representatives_fasta)
         .with_context(|| format!("read {}", representatives_fasta.display()))?;
     let mut report = String::new();
@@ -685,7 +695,7 @@ fn write_smoke_cluster_otus_uc_report(
             continue;
         }
         if let Some(id) = current_id.take() {
-            report.push_str(&format!("S\t0\t{}\t*\t*\t*\t*\t*\t{}\t*\n", line.len(), id));
+            let _ = writeln!(report, "S\t0\t{}\t*\t*\t*\t*\t*\t{}\t*", line.len(), id);
         }
     }
     std::fs::write(raw_backend_report, report)

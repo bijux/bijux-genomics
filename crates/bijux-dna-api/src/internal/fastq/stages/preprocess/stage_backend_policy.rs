@@ -1,4 +1,5 @@
 #![allow(clippy::items_after_test_module)]
+#![cfg_attr(test, allow(clippy::unreadable_literal))]
 
 use super::{anyhow, BufRead, Context, ExecutionStep, NetworkPolicy, Result, StageResultV1};
 

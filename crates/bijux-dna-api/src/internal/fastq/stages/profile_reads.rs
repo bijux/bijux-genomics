@@ -203,8 +203,11 @@ fn local_profile_reads_mate_summary(
     label: &str,
     records: &[LocalFastqRecord],
 ) -> ProfileReadsMateSummaryV1 {
-    let reads = records.len() as u64;
-    let bases = records.iter().map(|record| record.sequence.len() as u64).sum::<u64>();
+    let reads = u64::try_from(records.len()).unwrap_or(u64::MAX);
+    let bases = records
+        .iter()
+        .map(|record| u64::try_from(record.sequence.len()).unwrap_or(u64::MAX))
+        .sum::<u64>();
     ProfileReadsMateSummaryV1 {
         label: label.to_string(),
         reads,
@@ -231,13 +234,18 @@ fn local_profile_reads_length_histogram(
 fn local_length_histogram_bins(records: &[LocalFastqRecord]) -> Vec<LengthHistogramBin> {
     let mut bins = std::collections::BTreeMap::<u64, u64>::new();
     for record in records {
-        *bins.entry(record.sequence.len() as u64).or_insert(0) += 1;
+        *bins
+            .entry(u64::try_from(record.sequence.len()).unwrap_or(u64::MAX))
+            .or_insert(0) += 1;
     }
     bins.into_iter().map(|(length, count)| LengthHistogramBin { length, count }).collect()
 }
 
 fn local_mean_q(records: &[LocalFastqRecord]) -> f64 {
-    let total_bases = records.iter().map(|record| record.sequence.len() as u64).sum::<u64>();
+    let total_bases = records
+        .iter()
+        .map(|record| u64::try_from(record.sequence.len()).unwrap_or(u64::MAX))
+        .sum::<u64>();
     if total_bases == 0 {
         return 0.0;
     }
@@ -246,11 +254,14 @@ fn local_mean_q(records: &[LocalFastqRecord]) -> f64 {
         .flat_map(|record| record.quality.bytes())
         .map(|value| u64::from(value.saturating_sub(33)))
         .sum::<u64>();
-    total_quality as f64 / total_bases as f64
+    u64_to_f64(total_quality) / u64_to_f64(total_bases)
 }
 
 fn local_gc_percent(records: &[LocalFastqRecord]) -> f64 {
-    let total_bases = records.iter().map(|record| record.sequence.len() as u64).sum::<u64>();
+    let total_bases = records
+        .iter()
+        .map(|record| u64::try_from(record.sequence.len()).unwrap_or(u64::MAX))
+        .sum::<u64>();
     if total_bases == 0 {
         return 0.0;
     }
@@ -258,8 +269,10 @@ fn local_gc_percent(records: &[LocalFastqRecord]) -> f64 {
         .iter()
         .flat_map(|record| record.sequence.bytes())
         .filter(|base| matches!(*base, b'G' | b'g' | b'C' | b'c'))
-        .count() as u64;
-    (gc_bases as f64 / total_bases as f64) * 100.0
+        .count()
+        .try_into()
+        .unwrap_or(u64::MAX);
+    (u64_to_f64(gc_bases) / u64_to_f64(total_bases)) * 100.0
 }
 
 fn read_local_fastq_records(path: &Path) -> Result<Vec<LocalFastqRecord>> {

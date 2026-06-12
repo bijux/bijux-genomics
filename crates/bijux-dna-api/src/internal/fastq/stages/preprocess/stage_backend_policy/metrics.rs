@@ -30,6 +30,7 @@ fn insert_json_value<T: serde::Serialize>(
     key: &str,
     value: T,
 ) {
+    #[allow(clippy::expect_used)]
     object.insert(
         key.to_string(),
         serde_json::to_value(value).expect("stage metrics fields must serialize"),
@@ -106,7 +107,7 @@ fn host_depletion_summary(
 }
 
 fn rrna_metrics_value(
-    report: bijux_dna_domain_fastq::DepleteRrnaReportV1,
+    report: &bijux_dna_domain_fastq::DepleteRrnaReportV1,
     report_path: std::path::PathBuf,
 ) -> serde_json::Value {
     let mut object = serde_json::Map::new();
@@ -141,7 +142,7 @@ fn rrna_metrics_value(
     insert_json_value(&mut object, "pairs_out", report.pairs_out);
     insert_json_value(&mut object, "rrna_fraction_removed", report.rrna_fraction_removed);
     insert_json_value(&mut object, "depletion_rate", report.rrna_fraction_removed);
-    insert_json_value(&mut object, "depletion_summary", rrna_depletion_summary(&report));
+    insert_json_value(&mut object, "depletion_summary", rrna_depletion_summary(report));
     insert_json_value(&mut object, "raw_backend_report", report.raw_backend_report.clone());
     insert_json_value(
         &mut object,
@@ -153,7 +154,7 @@ fn rrna_metrics_value(
 }
 
 fn contaminant_metrics_value(
-    report: bijux_dna_domain_fastq::DepleteReferenceContaminantsReportV1,
+    report: &bijux_dna_domain_fastq::DepleteReferenceContaminantsReportV1,
     report_path: std::path::PathBuf,
 ) -> serde_json::Value {
     let mut object = serde_json::Map::new();
@@ -204,7 +205,11 @@ fn contaminant_metrics_value(
         report.contaminant_fraction_removed,
     );
     insert_json_value(&mut object, "contaminant_hit_rate", report.contaminant_fraction_removed);
-    insert_json_value(&mut object, "depletion_summary", contaminant_depletion_summary(&report));
+    insert_json_value(
+        &mut object,
+        "depletion_summary",
+        contaminant_depletion_summary(report),
+    );
     insert_json_value(&mut object, "raw_backend_report", report.raw_backend_report.clone());
     insert_json_value(
         &mut object,
@@ -216,7 +221,7 @@ fn contaminant_metrics_value(
 }
 
 fn host_metrics_value(
-    report: bijux_dna_domain_fastq::DepleteHostReportV1,
+    report: &bijux_dna_domain_fastq::DepleteHostReportV1,
     report_path: std::path::PathBuf,
 ) -> serde_json::Value {
     let mut object = serde_json::Map::new();
@@ -267,7 +272,7 @@ fn host_metrics_value(
     insert_json_value(&mut object, "pairs_out", report.pairs_out);
     insert_json_value(&mut object, "host_fraction_removed", report.host_fraction_removed);
     insert_json_value(&mut object, "host_hit_rate", report.host_fraction_removed);
-    insert_json_value(&mut object, "depletion_summary", host_depletion_summary(&report));
+    insert_json_value(&mut object, "depletion_summary", host_depletion_summary(report));
     insert_json_value(&mut object, "raw_backend_report", report.raw_backend_report.clone());
     insert_json_value(
         &mut object,
@@ -1290,6 +1295,11 @@ pub(crate) fn parse_screen_taxonomy_metrics(out_dir: &std::path::Path) -> serde_
     })
 }
 
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss
+)]
 fn derive_screen_taxonomy_read_counts(
     report: &bijux_dna_domain_fastq::ScreenTaxonomyReportV1,
 ) -> (Option<u64>, Option<u64>) {
@@ -1330,7 +1340,7 @@ pub(crate) fn parse_deplete_rrna_metrics(out_dir: &std::path::Path) -> serde_jso
     let report_path = out_dir.join("rrna_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_deplete_rrna_report(&raw) {
-            return rrna_metrics_value(report, report_path);
+            return rrna_metrics_value(&report, report_path);
         }
     }
     serde_json::json!({
@@ -1355,7 +1365,7 @@ pub(crate) fn parse_deplete_reference_contaminants_metrics(
         if let Ok(report) =
             bijux_dna_domain_fastq::observer::parse_deplete_reference_contaminants_report(&raw)
         {
-            return contaminant_metrics_value(report, report_path);
+            return contaminant_metrics_value(&report, report_path);
         }
     }
     serde_json::json!({
@@ -1377,7 +1387,7 @@ pub(crate) fn parse_deplete_host_metrics(out_dir: &std::path::Path) -> serde_jso
     let report_path = out_dir.join("host_depletion_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_deplete_host_report(&raw) {
-            return host_metrics_value(report, report_path);
+            return host_metrics_value(&report, report_path);
         }
     }
     serde_json::json!({
@@ -1560,6 +1570,7 @@ pub(crate) fn parse_index_reference_metrics(out_dir: &std::path::Path) -> serde_
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::parse_screen_taxonomy_metrics;
     use bijux_dna_domain_fastq::{
