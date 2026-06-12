@@ -309,6 +309,19 @@ fn multi_tool_comparable_stages_publish_shared_sanity_metrics() {
             "top_fraction".to_string(),
         ]
     );
+    assert_eq!(
+        bijux_dna_domain_fastq::stage_sanity_metrics_for_stage(&StageId::from_static(
+            "fastq.screen_taxonomy",
+        )),
+        vec![
+            "taxonomy_database_id".to_string(),
+            "classified_reads".to_string(),
+            "unclassified_reads".to_string(),
+            "classified_fraction".to_string(),
+            "unclassified_fraction".to_string(),
+            "top_taxa".to_string(),
+        ]
+    );
 }
 
 #[test]

@@ -83,6 +83,7 @@ metric_ids:
   - aggregation_scope
   - assigned_reads
   - bundle_file_count
+  - classified_reads
   - classified_fraction
   - classifier
   - contaminant_policy
@@ -141,10 +142,12 @@ metric_ids:
   - source_record_count
   - source_sequence_count
   - strict_pass
+  - taxonomy_database_id
   - threads
   - tool
   - top_taxa
   - trim_polyg
+  - unclassified_reads
   - unclassified_fraction
   - validated_inputs
   - validated_pairs

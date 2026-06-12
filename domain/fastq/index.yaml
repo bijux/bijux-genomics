@@ -895,8 +895,12 @@ stage_comparability_mapping:
   - qc_warn_count
   - qc_fail_count
   fastq.screen_taxonomy:
-  - taxonomy_abundance_fraction
-  - classified_read_fraction
+  - taxonomy_database_id
+  - classified_reads
+  - unclassified_reads
+  - classified_fraction
+  - unclassified_fraction
+  - top_taxa
   fastq.merge_pairs:
   - merge_rate
   - merged_read_length_mean
@@ -967,7 +971,10 @@ stage_min_quality_gates:
   fastq.report_qc:
   - qc_report_present=true
   fastq.screen_taxonomy:
-  - classified_read_fraction>=0.0
+  - classified_fraction>=0.0
+  - unclassified_fraction>=0.0
+  - classified_reads>=0
+  - unclassified_reads>=0
   fastq.merge_pairs:
   - merge_rate>=0.0
   fastq.remove_duplicates:
@@ -1473,7 +1480,12 @@ stage_sanity_metrics:
   - qc_warn_count
   - qc_fail_count
   fastq.screen_taxonomy:
-  - classified_read_fraction
+  - taxonomy_database_id
+  - classified_reads
+  - unclassified_reads
+  - classified_fraction
+  - unclassified_fraction
+  - top_taxa
   fastq.merge_pairs:
   - merge_rate
   fastq.remove_duplicates:
@@ -1558,7 +1570,7 @@ stage_qc_thresholds:
       warn: '>0'
       fail: '>5'
   fastq.screen_taxonomy:
-    classified_read_fraction:
+    classified_fraction:
       warn: <0.1
       fail: <0.01
   fastq.merge_pairs:
