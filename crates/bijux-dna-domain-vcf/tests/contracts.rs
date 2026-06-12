@@ -167,6 +167,7 @@ mod contracts {
         assert!(!metrics_raw.contains("- id: imputation_status"));
     }
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn authored_supported_report_and_segment_stage_catalogs_match_governed_contract_ids() {
         let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../");
@@ -475,7 +476,7 @@ mod contracts {
     fn vcf_comparable_metric_contracts_cover_retained_multi_tool_stage_slice() {
         let stage_ids = comparable_metric_stage_ids()
             .into_iter()
-            .map(|stage| stage.as_str())
+            .map(VcfDomainStage::as_str)
             .collect::<Vec<_>>();
         assert_eq!(
             stage_ids,

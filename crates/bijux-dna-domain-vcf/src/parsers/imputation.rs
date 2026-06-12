@@ -23,9 +23,9 @@ struct ParsedVcf {
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 struct TruthComparison {
-    masked_truth_site_count: u64,
-    imputed_match_count: u64,
-    unresolved_count: u64,
+    masked_truth_sites: u64,
+    imputed_matches: u64,
+    unresolved: u64,
 }
 
 /// Normalize the governed raw imputation artifact set for a retained VCF backend.
@@ -282,11 +282,7 @@ fn compare_truth_if_present(root: &Path, output: &ParsedVcf) -> Result<Option<Tr
         }
     }
 
-    Ok(Some(TruthComparison {
-        masked_truth_site_count: compared,
-        imputed_match_count: matches,
-        unresolved_count: unresolved,
-    }))
+    Ok(Some(TruthComparison { masked_truth_sites: compared, imputed_matches: matches, unresolved }))
 }
 
 fn validate_truth_concordance(
@@ -307,36 +303,36 @@ fn validate_truth_concordance(
                 "/concordance/masked_truth_site_count",
                 "masked_truth_site_count",
             )?;
-            if qc_truth_sites != truth.masked_truth_site_count {
+            if qc_truth_sites != truth.masked_truth_sites {
                 bail!(
                     "masked truth site count drifted: qc={qc_truth_sites}, parsed={}",
-                    truth.masked_truth_site_count
+                    truth.masked_truth_sites
                 );
             }
             let qc_matches =
                 json_u64(imputation_qc, "/concordance/imputed_match_count", "imputed_match_count")?;
-            if qc_matches != truth.imputed_match_count {
+            if qc_matches != truth.imputed_matches {
                 bail!(
                     "masked truth match count drifted: qc={qc_matches}, parsed={}",
-                    truth.imputed_match_count
+                    truth.imputed_matches
                 );
             }
             let qc_unresolved =
                 json_u64(imputation_qc, "/concordance/unresolved_count", "unresolved_count")?;
-            if qc_unresolved != truth.unresolved_count {
+            if qc_unresolved != truth.unresolved {
                 bail!(
                     "masked truth unresolved count drifted: qc={qc_unresolved}, parsed={}",
-                    truth.unresolved_count
+                    truth.unresolved
                 );
             }
             if let Some(qc_concordance) = imputation_qc
                 .pointer("/concordance/genotype_concordance")
                 .and_then(serde_json::Value::as_f64)
             {
-                let parsed_concordance = if truth.masked_truth_site_count == 0 {
+                let parsed_concordance = if truth.masked_truth_sites == 0 {
                     0.0
                 } else {
-                    truth.imputed_match_count as f64 / truth.masked_truth_site_count as f64
+                    u64_to_f64(truth.imputed_matches) / u64_to_f64(truth.masked_truth_sites)
                 };
                 if (qc_concordance - parsed_concordance).abs() > 1e-9 {
                     bail!(
@@ -458,4 +454,8 @@ fn json_f64(value: &serde_json::Value, pointer: &str, field: &str) -> Result<f64
         .pointer(pointer)
         .and_then(serde_json::Value::as_f64)
         .ok_or_else(|| anyhow!("missing number `{field}`"))
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }

@@ -307,6 +307,7 @@ fn parse_filter_metrics(root: &Path) -> Result<serde_json::Value> {
     }))
 }
 
+#[allow(clippy::too_many_lines)]
 fn parse_qc_metrics(root: &Path) -> Result<serde_json::Value> {
     let sample_missingness =
         parse_qc_sample_missingness_table(&root.join(RAW_QC_SAMPLE_MISSINGNESS_NAME))?;
@@ -366,18 +367,18 @@ fn parse_qc_metrics(root: &Path) -> Result<serde_json::Value> {
         0.0
     } else {
         heterozygosity.iter().map(|row| row.inbreeding_coefficient).sum::<f64>()
-            / heterozygosity.len() as f64
+            / usize_to_f64(heterozygosity.len())
     };
     let allele_frequency_mean = if allele_frequencies.is_empty() {
         0.0
     } else {
-        allele_frequencies.iter().sum::<f64>() / allele_frequencies.len() as f64
+        allele_frequencies.iter().sum::<f64>() / usize_to_f64(allele_frequencies.len())
     };
     let maf_bin_counts = maf_bin_counts(&allele_frequencies);
     let hwe_pvalue_mean = if hwe_pvalues.is_empty() {
         None
     } else {
-        Some(round_f64(hwe_pvalues.iter().sum::<f64>() / hwe_pvalues.len() as f64, 6))
+        Some(round_f64(hwe_pvalues.iter().sum::<f64>() / usize_to_f64(hwe_pvalues.len()), 6))
     };
 
     Ok(serde_json::json!({
@@ -428,7 +429,9 @@ fn parse_qc_metrics(root: &Path) -> Result<serde_json::Value> {
             "het_hom_ratio": if observed_homozygous_count == 0 {
                 serde_json::Value::Null
             } else {
-                serde_json::json!(heterozygous_call_count as f64 / observed_homozygous_count as f64)
+                serde_json::json!(
+                    u64_to_f64(heterozygous_call_count) / u64_to_f64(observed_homozygous_count)
+                )
             },
             "mean_inbreeding_coefficient": mean_inbreeding_coefficient,
         },
@@ -587,7 +590,7 @@ fn parse_stats_metrics(root: &Path) -> Result<serde_json::Value> {
             "indels" | "indel_count" => indel_count = value.parse::<u64>().ok(),
             "transitions" | "transition_count" => transition_count = value.parse::<u64>().ok(),
             "transversions" | "transversion_count" => {
-                transversion_count = value.parse::<u64>().ok()
+                transversion_count = value.parse::<u64>().ok();
             }
             "ti_tv" => ti_tv = value.parse::<f64>().ok(),
             "sample_count" => sample_count = value.parse::<u64>().ok(),
@@ -988,7 +991,7 @@ fn likelihood_value_is_missing(value: &str) -> bool {
 }
 
 fn format_damage_context_rule(summary: &serde_json::Value) -> Result<String> {
-    let mode = json_string(&summary, "/masking_strategy/mode", "masking_strategy.mode")?;
+    let mode = json_string(summary, "/masking_strategy/mode", "masking_strategy.mode")?;
     let max_damage_ratio =
         json_f64(summary, "/thresholds/max_damage_ratio", "thresholds.max_damage_ratio")?;
     let terminal_threshold = json_f64(
@@ -1069,4 +1072,12 @@ fn json_string_array(value: &serde_json::Value, pointer: &str, name: &str) -> Re
                 .ok_or_else(|| anyhow!("raw artifact `{name}` contains a non-string entry"))
         })
         .collect()
+}
+
+fn usize_to_f64(value: usize) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }

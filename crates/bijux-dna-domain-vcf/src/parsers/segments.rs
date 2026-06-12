@@ -57,9 +57,9 @@ pub fn parse_segment_stage_metrics(
 ) -> Result<serde_json::Value> {
     match (tool_id, stage) {
         ("plink2", VcfDomainStage::Roh) => parse_roh_metrics(artifact_root),
-        ("germline", VcfDomainStage::Ibd)
-        | ("ibdseq", VcfDomainStage::Ibd)
-        | ("ibdhap", VcfDomainStage::Ibd) => parse_ibd_metrics(tool_id, artifact_root),
+        ("germline" | "ibdseq" | "ibdhap", VcfDomainStage::Ibd) => {
+            parse_ibd_metrics(tool_id, artifact_root)
+        }
         ("ibdne", VcfDomainStage::Demography) => parse_demography_metrics(artifact_root),
         _ => bail!("unsupported VCF segment parser row `{tool_id}` / `{}`", stage.as_str()),
     }
@@ -94,7 +94,7 @@ fn parse_roh_metrics(root: &Path) -> Result<serde_json::Value> {
                 "mean_length": if *segment_count == 0 {
                     0.0
                 } else {
-                    sample_total as f64 / *segment_count as f64
+                    u64_to_f64(sample_total) / u64_to_f64(*segment_count)
                 },
             })
         })
@@ -125,6 +125,7 @@ fn parse_roh_metrics(root: &Path) -> Result<serde_json::Value> {
     }))
 }
 
+#[allow(clippy::too_many_lines)]
 fn parse_ibd_metrics(tool_id: &str, root: &Path) -> Result<serde_json::Value> {
     validate_command(tool_id, "vcf.ibd", &read_json(&root.join(RAW_COMMAND_NAME))?)?;
     validate_nonempty_text_file(&root.join(RAW_LOG_NAME), "IBD log")?;
@@ -164,9 +165,7 @@ fn parse_ibd_metrics(tool_id: &str, root: &Path) -> Result<serde_json::Value> {
         json_u64(&metrics, "/ibd_segment_count", "IBD metrics segment count")?;
     if metrics_segment_count != filtered_segment_count {
         bail!(
-            "IBD metrics segment count drifted from summary: {} vs {}",
-            metrics_segment_count,
-            filtered_segment_count
+            "IBD metrics segment count drifted from summary: {metrics_segment_count} vs {filtered_segment_count}"
         );
     }
 
@@ -174,18 +173,14 @@ fn parse_ibd_metrics(tool_id: &str, root: &Path) -> Result<serde_json::Value> {
     let summary_total_length = json_f64(&summary, "/total_length_cm", "IBD summary total length")?;
     if !approx_equal(total_length, summary_total_length) {
         bail!(
-            "IBD summary total length drifted from segment rows: {} vs {}",
-            summary_total_length,
-            total_length
+            "IBD summary total length drifted from segment rows: {summary_total_length} vs {total_length}"
         );
     }
     let metrics_total_length =
         json_f64(&metrics, "/ibd_total_length_cM", "IBD metrics total length")?;
     if !approx_equal(metrics_total_length, summary_total_length) {
         bail!(
-            "IBD metrics total length drifted from summary: {} vs {}",
-            metrics_total_length,
-            summary_total_length
+            "IBD metrics total length drifted from summary: {metrics_total_length} vs {summary_total_length}"
         );
     }
 
@@ -257,6 +252,7 @@ fn parse_ibd_metrics(tool_id: &str, root: &Path) -> Result<serde_json::Value> {
     }))
 }
 
+#[allow(clippy::too_many_lines)]
 fn parse_demography_metrics(root: &Path) -> Result<serde_json::Value> {
     validate_command("ibdne", "vcf.demography", &read_json(&root.join(RAW_COMMAND_NAME))?)?;
     validate_nonempty_text_file(&root.join(RAW_LOG_NAME), "demography log")?;
@@ -569,7 +565,7 @@ fn index_for(header: &[String], accepted: &[&str]) -> Result<usize> {
         .position(|column| {
             accepted.iter().any(|accepted_name| normalize_header(column) == *accepted_name)
         })
-        .ok_or_else(|| anyhow!("missing required header column from {:?}", accepted))
+        .ok_or_else(|| anyhow!("missing required header column from {accepted:?}"))
 }
 
 fn normalize_header(header: &str) -> String {
@@ -683,4 +679,8 @@ fn json_value_f64(value: &serde_json::Value, pointer: &str, label: &str) -> Resu
 
 fn approx_equal(left: f64, right: f64) -> bool {
     (left - right).abs() <= 0.000_001
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }

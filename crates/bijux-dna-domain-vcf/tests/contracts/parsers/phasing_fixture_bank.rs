@@ -94,8 +94,10 @@ fn vcf_phasing_fixture_bank_rejects_all_unphased_output() -> Result<()> {
         copy_fixture_dir(&fixture_dir(case), &dir)?;
         fs::copy(dir.join("raw.unphased.vcf"), dir.join("raw.phased.vcf"))
             .with_context(|| format!("install unphased probe for `{}`", case.tool_id))?;
-        let error = parse_phasing_stage_metrics(case.tool_id, &dir)
-            .expect_err("all-unphased phasing output must fail");
+        let error = match parse_phasing_stage_metrics(case.tool_id, &dir) {
+            Ok(_) => panic!("all-unphased phasing output must fail"),
+            Err(error) => error,
+        };
         let message = error.to_string();
         assert!(
             message.contains("contains no phased genotypes"),
@@ -134,7 +136,7 @@ fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .canonicalize()
-        .expect("canonicalize repo root")
+        .unwrap_or_else(|err| panic!("canonicalize repo root: {err}"))
 }
 
 fn unique_temp_dir(tool_id: &str) -> Result<PathBuf> {

@@ -74,11 +74,7 @@ fn parse_pca_metrics(root: &Path) -> Result<serde_json::Value> {
     let row_ids = pca_rows.iter().map(|row| row.sample_id.clone()).collect::<BTreeSet<_>>();
     let ind_ids = individual_rows.iter().map(|row| row.sample_id.clone()).collect::<BTreeSet<_>>();
     if row_ids != ind_ids {
-        bail!(
-            "eigensoft PCA sample drift between `.ind` and `.evec`: ind={:?}, evec={:?}",
-            ind_ids,
-            row_ids
-        );
+        bail!("eigensoft PCA sample drift between `.ind` and `.evec`: ind={ind_ids:?}, evec={row_ids:?}");
     }
     for individual in &individual_rows {
         let metadata_population = population_labels
@@ -152,9 +148,7 @@ fn parse_population_structure_metrics(root: &Path) -> Result<serde_json::Value> 
     let ind_ids = individual_rows.iter().map(|row| row.sample_id.clone()).collect::<BTreeSet<_>>();
     if row_ids != ind_ids {
         bail!(
-            "eigensoft population structure sample drift between `.ind` and `.evec`: ind={:?}, evec={:?}",
-            ind_ids,
-            row_ids
+            "eigensoft population structure sample drift between `.ind` and `.evec`: ind={ind_ids:?}, evec={row_ids:?}"
         );
     }
 
@@ -173,9 +167,7 @@ fn parse_population_structure_metrics(root: &Path) -> Result<serde_json::Value> 
         .collect::<Result<BTreeSet<_>>>()?;
     if group_ids != row_ids {
         bail!(
-            "eigensoft population structure sample drift between source and PCA rows: source={:?}, pca={:?}",
-            group_ids,
-            row_ids
+            "eigensoft population structure sample drift between source and PCA rows: source={group_ids:?}, pca={row_ids:?}"
         );
     }
 

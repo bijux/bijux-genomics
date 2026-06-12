@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::Path;
 
@@ -143,7 +143,7 @@ fn summarize_phased_vcf(path: &Path) -> Result<PhasingSummary> {
         bail!("phased VCF does not declare any samples");
     }
 
-    let mut phase_sets_by_sample = vec![BTreeMap::<String, ()>::new(); sample_ids.len()];
+    let mut phase_sets_by_sample = vec![BTreeSet::<String>::new(); sample_ids.len()];
     let mut input_genotypes = 0_u64;
     let mut phased_genotypes = 0_u64;
     let mut unphased_genotypes = 0_u64;
@@ -169,7 +169,7 @@ fn summarize_phased_vcf(path: &Path) -> Result<PhasingSummary> {
                 if let Some(ps_index) = ps_index {
                     if let Some(ps_value) = values.get(ps_index) {
                         if !ps_value.is_empty() && *ps_value != "." {
-                            phase_sets_by_sample[sample_index].insert((*ps_value).to_string(), ());
+                            phase_sets_by_sample[sample_index].insert((*ps_value).to_string());
                         }
                     }
                 }

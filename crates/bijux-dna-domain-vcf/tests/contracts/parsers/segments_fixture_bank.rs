@@ -139,7 +139,7 @@ fn vcf_segment_fixture_bank_matches_expected_normalized_json() -> Result<()> {
     for case in VCF_SEGMENT_FIXTURE_CASES {
         let expected = read_expected_json(case)?;
         let observed = render_case(case)?;
-        assert_json_matches(observed, expected, case);
+        assert_json_matches(&observed, &expected, case);
     }
     Ok(())
 }
@@ -172,7 +172,7 @@ fn vcf_roh_fixture_bank_keeps_normalized_segment_fields() -> Result<()> {
         .iter()
         .find(|case| case.tool_id == "plink2" && case.stage == VcfDomainStage::Roh)
         .copied()
-        .expect("plink2 roh fixture case");
+        .unwrap_or_else(|| panic!("plink2 roh fixture case"));
     let normalized = parse_segment_stage_metrics(case.tool_id, case.stage, &fixture_dir(&case))?;
 
     assert_eq!(normalized.get("segment_count").and_then(serde_json::Value::as_u64), Some(8));
@@ -204,7 +204,7 @@ fn vcf_ibd_fixture_bank_keeps_normalized_pair_fields() -> Result<()> {
                 && case.case_id == "complete"
         })
         .copied()
-        .expect("germline ibd fixture case");
+        .unwrap_or_else(|| panic!("germline ibd fixture case"));
     let normalized = parse_segment_stage_metrics(case.tool_id, case.stage, &fixture_dir(&case))?;
 
     assert_eq!(normalized.get("pair_count").and_then(serde_json::Value::as_u64), Some(1));
@@ -235,7 +235,7 @@ fn vcf_demography_fixture_bank_keeps_normalized_ne_fields() -> Result<()> {
                 && case.case_id == "complete"
         })
         .copied()
-        .expect("ibdne demography fixture case");
+        .unwrap_or_else(|| panic!("ibdne demography fixture case"));
     let normalized = parse_segment_stage_metrics(case.tool_id, case.stage, &fixture_dir(&case))?;
 
     assert_eq!(normalized.get("method").and_then(serde_json::Value::as_str), Some("ibdne"));
@@ -301,12 +301,12 @@ fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .canonicalize()
-        .expect("canonicalize repo root")
+        .unwrap_or_else(|err| panic!("canonicalize repo root: {err}"))
 }
 
 fn assert_json_matches(
-    observed: serde_json::Value,
-    expected: serde_json::Value,
+    observed: &serde_json::Value,
+    expected: &serde_json::Value,
     case: &VcfSegmentFixtureCase,
 ) {
     assert!(

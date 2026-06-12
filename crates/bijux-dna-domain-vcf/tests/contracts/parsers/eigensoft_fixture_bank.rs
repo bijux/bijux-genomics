@@ -106,7 +106,7 @@ fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .canonicalize()
-        .expect("canonicalize repo root")
+        .unwrap_or_else(|err| panic!("canonicalize repo root: {err}"))
 }
 
 fn assert_json_matches(observed: &serde_json::Value, expected: &serde_json::Value, stage_id: &str) {

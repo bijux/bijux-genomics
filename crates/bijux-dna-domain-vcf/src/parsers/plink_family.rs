@@ -105,12 +105,12 @@ fn parse_plink_qc_metrics(root: &Path) -> Result<serde_json::Value> {
 
     Ok(render_qc_payload(
         "plink",
-        sample_missingness,
-        variant_missingness,
-        maf_summary,
-        heterozygosity,
-        hwe_summary,
-        thresholds,
+        &sample_missingness,
+        &variant_missingness,
+        &maf_summary,
+        &heterozygosity,
+        &hwe_summary,
+        &thresholds,
     ))
 }
 
@@ -124,23 +124,23 @@ fn parse_plink2_qc_metrics(root: &Path) -> Result<serde_json::Value> {
 
     Ok(render_qc_payload(
         "plink2",
-        sample_missingness,
-        variant_missingness,
-        maf_summary,
-        heterozygosity,
-        hwe_summary,
-        thresholds,
+        &sample_missingness,
+        &variant_missingness,
+        &maf_summary,
+        &heterozygosity,
+        &hwe_summary,
+        &thresholds,
     ))
 }
 
 fn render_qc_payload(
     tool_id: &str,
-    sample_missingness: Vec<SampleMissingnessRow>,
-    variant_missingness: Vec<VariantMissingnessRow>,
-    maf_summary: FrequencySummary,
-    heterozygosity: Vec<HeterozygosityRow>,
-    hwe_summary: HweSummary,
-    thresholds: BTreeMap<String, String>,
+    sample_missingness: &[SampleMissingnessRow],
+    variant_missingness: &[VariantMissingnessRow],
+    maf_summary: &FrequencySummary,
+    heterozygosity: &[HeterozygosityRow],
+    hwe_summary: &HweSummary,
+    thresholds: &BTreeMap<String, String>,
 ) -> serde_json::Value {
     let sample_threshold = thresholds
         .get("sample_missingness_exclusion_threshold")
@@ -170,7 +170,7 @@ fn render_qc_payload(
         0.0
     } else {
         heterozygosity.iter().map(|row| row.inbreeding_coefficient).sum::<f64>()
-            / heterozygosity.len() as f64
+            / usize_to_f64(heterozygosity.len())
     };
 
     serde_json::json!({
@@ -209,7 +209,9 @@ fn render_qc_payload(
             "het_hom_ratio": if observed_homozygous_total == 0 {
                 serde_json::Value::Null
             } else {
-                serde_json::json!(heterozygous_total as f64 / observed_homozygous_total as f64)
+                serde_json::json!(
+                    u64_to_f64(heterozygous_total) / u64_to_f64(observed_homozygous_total)
+                )
             },
             "mean_inbreeding_coefficient": mean_inbreeding_coefficient,
         },
@@ -492,7 +494,7 @@ fn build_population_structure_row(
         let fraction = value
             .as_f64()
             .ok_or_else(|| anyhow!("cluster fraction for `{sample_id}` is not numeric"))?;
-        let replace = dominant_fraction.map_or(true, |current| fraction > current);
+        let replace = dominant_fraction.is_none_or(|current| fraction > current);
         if replace {
             dominant_cluster = Some(key.clone());
             dominant_fraction = Some(fraction);
@@ -552,7 +554,7 @@ fn build_distance_summary(sample_groups: &[serde_json::Value]) -> Result<serde_j
     let mean_pc_distance = if distances.is_empty() {
         0.0
     } else {
-        distances.iter().sum::<f64>() / distances.len() as f64
+        distances.iter().sum::<f64>() / usize_to_f64(distances.len())
     };
 
     Ok(serde_json::json!({
@@ -918,7 +920,7 @@ fn normalize_header(value: &str) -> String {
 
 fn index_for(header: &[String], aliases: &[&str]) -> Result<usize> {
     find_index(header, aliases)
-        .ok_or_else(|| anyhow!("table header {:?} is missing one of {:?}", header, aliases))
+        .ok_or_else(|| anyhow!("table header {header:?} is missing one of {aliases:?}"))
 }
 
 fn find_index(header: &[String], aliases: &[&str]) -> Option<usize> {
@@ -975,8 +977,16 @@ fn mean(values: &[f64]) -> f64 {
     if values.is_empty() {
         0.0
     } else {
-        values.iter().sum::<f64>() / values.len() as f64
+        values.iter().sum::<f64>() / usize_to_f64(values.len())
     }
+}
+
+fn usize_to_f64(value: usize) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }
 
 fn maf_bin_label(value: f64) -> Option<&'static str> {

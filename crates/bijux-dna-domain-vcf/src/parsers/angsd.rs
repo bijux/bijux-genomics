@@ -169,9 +169,7 @@ fn parse_gl_propagation_metrics(root: &Path) -> Result<serde_json::Value> {
         json_string_array(&report, "/lost_fields", "lost_fields").unwrap_or_default();
     if lost_fields != reported_lost_fields {
         bail!(
-            "angsd gl_propagation lost field drifted: parser saw {:?}, report declared {:?}",
-            lost_fields,
-            reported_lost_fields
+            "angsd gl_propagation lost field drifted: parser saw {lost_fields:?}, report declared {reported_lost_fields:?}"
         );
     }
     let sample_count =

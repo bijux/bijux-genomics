@@ -136,7 +136,7 @@ fn vcf_imputation_fixture_bank_rejects_truth_drift() -> Result<()> {
         .iter()
         .find(|case| case.tool_id == "beagle" && case.stage == VcfDomainStage::Impute)
         .copied()
-        .expect("governed beagle impute fixture");
+        .unwrap_or_else(|| panic!("governed beagle impute fixture"));
     let dir = unique_temp_dir(case.tool_id, case.stage.as_str())?;
     copy_fixture_dir(&fixture_dir(&case), &dir)?;
     fs::write(
@@ -144,8 +144,10 @@ fn vcf_imputation_fixture_bank_rejects_truth_drift() -> Result<()> {
         "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tmasked_sample\nchr1\t10\t.\tA\tG\t60\tPASS\t.\tGT\t1/1\n",
     )
     .with_context(|| format!("install truth drift probe under {}", dir.display()))?;
-    let error = parse_imputation_stage_metrics(case.tool_id, case.stage, &dir)
-        .expect_err("truth drift must fail");
+    let error = match parse_imputation_stage_metrics(case.tool_id, case.stage, &dir) {
+        Ok(_) => panic!("truth drift must fail"),
+        Err(error) => error,
+    };
     let message = error.to_string();
     assert!(
         message.contains("masked truth match count drifted"),
@@ -186,7 +188,7 @@ fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .canonicalize()
-        .expect("canonicalize repo root")
+        .unwrap_or_else(|err| panic!("canonicalize repo root: {err}"))
 }
 
 fn unique_temp_dir(tool_id: &str, stage_id: &str) -> Result<PathBuf> {
