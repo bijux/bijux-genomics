@@ -1,0 +1,193 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_all_retained_tools_complete.v1",
+  "output_path": "benchmarks/readiness/vcf/VCF_ALL_RETAINED_TOOLS_COMPLETE.json",
+  "checked_goal_count": 24,
+  "passed_goal_count": 24,
+  "failed_goal_count": 0,
+  "failing_goal_ids": [],
+  "retained_row_count": 44,
+  "retained_stage_count": 20,
+  "retained_tool_count": 17,
+  "active_row_count": 20,
+  "removed_row_count": 24,
+  "active_stage_count": 17,
+  "active_tool_count": 6,
+  "expected_result_row_count": 20,
+  "rendered_command_row_count": 20,
+  "parser_fixture_row_count": 20,
+  "local_smoke_row_count": 44,
+  "local_smoke_host_stage_row_count": 19,
+  "local_smoke_container_row_count": 25,
+  "report_map_row_count": 20,
+  "ok": true,
+  "checks": [
+    {
+      "goal_id": 336,
+      "surface": "vcf active stage tool matrix",
+      "output_path": "benchmarks/readiness/vcf/vcf-active-stage-tool-matrix.tsv",
+      "ok": true,
+      "detail": "validated the governed 44-row retained VCF matrix with 20 active bindings across 20 stages"
+    },
+    {
+      "goal_id": 337,
+      "surface": "vcf.call readiness",
+      "output_path": "benchmarks/readiness/vcf/call-ready.json",
+      "ok": true,
+      "detail": "validated the governed bcftools `vcf.call` row end-to-end"
+    },
+    {
+      "goal_id": 338,
+      "surface": "vcf.call_diploid readiness",
+      "output_path": "benchmarks/readiness/vcf/call-diploid-ready.json",
+      "ok": true,
+      "detail": "validated the governed bcftools `vcf.call_diploid` row end-to-end"
+    },
+    {
+      "goal_id": 339,
+      "surface": "vcf.call_pseudohaploid readiness",
+      "output_path": "benchmarks/readiness/vcf/call-pseudohaploid-ready.json",
+      "ok": true,
+      "detail": "validated the governed bcftools `vcf.call_pseudohaploid` row end-to-end"
+    },
+    {
+      "goal_id": 340,
+      "surface": "vcf.call_gl readiness",
+      "output_path": "benchmarks/readiness/vcf/call-gl-ready.json",
+      "ok": true,
+      "detail": "validated the governed bcftools `vcf.call_gl` row end-to-end"
+    },
+    {
+      "goal_id": 341,
+      "surface": "vcf.damage_filter readiness",
+      "output_path": "benchmarks/readiness/vcf/damage-filter-ready.json",
+      "ok": true,
+      "detail": "validated the governed bcftools `vcf.damage_filter` row end-to-end"
+    },
+    {
+      "goal_id": 342,
+      "surface": "vcf.gl_propagation readiness",
+      "output_path": "benchmarks/readiness/vcf/gl-propagation-ready.json",
+      "ok": true,
+      "detail": "validated the governed bcftools `vcf.gl_propagation` row end-to-end"
+    },
+    {
+      "goal_id": 343,
+      "surface": "vcf.filter readiness",
+      "output_path": "benchmarks/readiness/vcf/filter-ready.json",
+      "ok": true,
+      "detail": "validated the governed bcftools `vcf.filter` row end-to-end"
+    },
+    {
+      "goal_id": 344,
+      "surface": "vcf.stats readiness",
+      "output_path": "benchmarks/readiness/vcf/stats-ready.json",
+      "ok": true,
+      "detail": "validated the governed bcftools `vcf.stats` row end-to-end"
+    },
+    {
+      "goal_id": 345,
+      "surface": "vcf.qc readiness",
+      "output_path": "benchmarks/readiness/vcf/qc-ready.json",
+      "ok": true,
+      "detail": "validated the governed `vcf.qc` rows for bcftools, plink, and plink2"
+    },
+    {
+      "goal_id": 346,
+      "surface": "vcf.prepare_reference_panel readiness",
+      "output_path": "benchmarks/readiness/vcf/prepare-reference-panel-ready.json",
+      "ok": true,
+      "detail": "validated the governed bcftools `vcf.prepare_reference_panel` row end-to-end"
+    },
+    {
+      "goal_id": 347,
+      "surface": "vcf.phasing retained family coverage",
+      "output_path": "benchmarks/readiness/adapters/shapeit5.vcf.json",
+      "ok": true,
+      "detail": "validated the retained phasing family with shapeit5 active and beagle/eagle governed as non-benchmark-ready alternatives"
+    },
+    {
+      "goal_id": 348,
+      "surface": "vcf.impute retained family coverage",
+      "output_path": "benchmarks/readiness/adapters/imputation-family.vcf.json",
+      "ok": true,
+      "detail": "validated the retained imputation family with the governed beagle `vcf.impute` row and explicit non-benchmark-ready alternatives"
+    },
+    {
+      "goal_id": 349,
+      "surface": "vcf.imputation_metrics readiness",
+      "output_path": "benchmarks/readiness/vcf/imputation-metrics-ready.json",
+      "ok": true,
+      "detail": "validated the governed beagle `vcf.imputation_metrics` row end-to-end"
+    },
+    {
+      "goal_id": 350,
+      "surface": "vcf.pca readiness",
+      "output_path": "benchmarks/readiness/vcf/pca-ready.json",
+      "ok": true,
+      "detail": "validated the governed eigensoft and plink2 `vcf.pca` rows end-to-end"
+    },
+    {
+      "goal_id": 351,
+      "surface": "vcf.admixture readiness",
+      "output_path": "benchmarks/readiness/vcf/admixture-ready.json",
+      "ok": true,
+      "detail": "validated the governed plink2 `vcf.admixture` row end-to-end"
+    },
+    {
+      "goal_id": 352,
+      "surface": "vcf.population_structure readiness",
+      "output_path": "benchmarks/readiness/vcf/population-structure-ready.json",
+      "ok": true,
+      "detail": "validated the governed plink2 `vcf.population_structure` row end-to-end"
+    },
+    {
+      "goal_id": 353,
+      "surface": "vcf.roh retained family coverage",
+      "output_path": "benchmarks/readiness/adapters/descent-family.vcf.json",
+      "ok": true,
+      "detail": "validated the governed plink2 `vcf.roh` retained-family row with benchmark-ready command coverage"
+    },
+    {
+      "goal_id": 354,
+      "surface": "vcf.ibd retained family coverage",
+      "output_path": "benchmarks/readiness/adapters/descent-family.vcf.json",
+      "ok": true,
+      "detail": "validated the retained IBD family with germline benchmark-ready and ibdhap/ibdseq explicitly governed as non-benchmark-ready"
+    },
+    {
+      "goal_id": 355,
+      "surface": "vcf.demography retained family coverage",
+      "output_path": "benchmarks/readiness/adapters/descent-family.vcf.json",
+      "ok": true,
+      "detail": "validated the governed ibdne `vcf.demography` retained-family row with benchmark-ready command coverage"
+    },
+    {
+      "goal_id": 356,
+      "surface": "vcf local and container smoke coverage",
+      "output_path": "benchmarks/readiness/vcf/vcf-local-container-smoke.tsv",
+      "ok": true,
+      "detail": "validated governed host-vs-container smoke coverage for every retained VCF row"
+    },
+    {
+      "goal_id": 357,
+      "surface": "vcf parser fixture coverage",
+      "output_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
+      "ok": true,
+      "detail": "validated 100% parser fixture coverage for the active VCF binding slice"
+    },
+    {
+      "goal_id": 358,
+      "surface": "vcf rendered commands",
+      "output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.sh",
+      "ok": true,
+      "detail": "validated one rendered command bundle for every active VCF binding"
+    },
+    {
+      "goal_id": 359,
+      "surface": "vcf report map",
+      "output_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
+      "ok": true,
+      "detail": "validated report-map placement for every active VCF expected-result row"
+    }
+  ]
+}
