@@ -2,13 +2,13 @@
   "schema_version": "bijux.bench.readiness.all_domain_completion_check.v1",
   "output_path": "benchmarks/readiness/completion-check-all-domains.json",
   "fixture_root": "runs/bench/readiness-probes/all-domains/completion-check",
-  "row_count": 131,
-  "complete_row_count": 126,
+  "row_count": 132,
+  "complete_row_count": 127,
   "incomplete_row_count": 5,
   "domain_counts": {
     "bam": 49,
     "fastq": 63,
-    "vcf": 19
+    "vcf": 20
   },
   "failure_reason_counts": {
     "execution_not_successful": 1,
@@ -6931,6 +6931,61 @@
         {
           "file_id": "metrics",
           "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.phasing/vcf_cohort_with_panel/shapeit5/metrics.json",
+          "exists": true,
+          "non_empty": true
+        }
+      ],
+      "completion_status": "complete",
+      "failure_reasons": []
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.population_structure",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "command_script_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/command.sh",
+      "stdout_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stdout.txt",
+      "stderr_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stderr.txt",
+      "metrics_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/metrics.json",
+      "stage_result_path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stage-result.json",
+      "manifest_exists": true,
+      "manifest_valid": true,
+      "manifest_output_match": true,
+      "exit_code_zero": true,
+      "runtime_status": "succeeded",
+      "exit_code": 0,
+      "declared_output_count": 7,
+      "present_declared_output_count": 7,
+      "missing_declared_output_ids": [],
+      "normalized_metrics_count": 1,
+      "present_normalized_metrics_count": 1,
+      "missing_normalized_metric_ids": [],
+      "required_file_count": 4,
+      "ready_required_file_count": 4,
+      "required_files": [
+        {
+          "file_id": "command_script",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/command.sh",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stdout",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stdout.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stderr",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stderr.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "metrics",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/metrics.json",
           "exists": true,
           "non_empty": true
         }

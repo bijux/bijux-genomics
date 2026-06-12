@@ -1240,6 +1240,10 @@ plink2 --vcf benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multis
 sh -lc 'shapeit5 phase_common --input '"'"'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf'"'"' --reference '"'"'benchmarks/readiness/adapters/shapeit5/vcf.phasing/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz'"'"' --map '"'"'benchmarks/readiness/adapters/shapeit5/vcf.phasing/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz'"'"' --region 1:1-1000000 --thread 8 --seed 42 --output '"'"'benchmarks/readiness/adapters/shapeit5/vcf.phasing/phased.vcf.gz'"'"' > '"'"'benchmarks/readiness/adapters/shapeit5/vcf.phasing/logs.txt'"'"' 2>&1'
 bcftools index -t benchmarks/readiness/adapters/shapeit5/vcf.phasing/phased.vcf.gz
 
+# vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2 / vcf / vcf.population_structure / plink2
+plink2 --vcf benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf --double-id --allow-extra-chr --indep-pairwise 50 5 0.2 --out benchmarks/readiness/adapters/plink2/vcf.population_structure/population_structure.prune
+plink2 --vcf benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf --double-id --allow-extra-chr --pca 10 --out benchmarks/readiness/adapters/plink2/vcf.population_structure/population_structure.pca
+
 # vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools / vcf / vcf.postprocess / bcftools
 bcftools '+fill-tags' benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_filtered_single_sample.vcf -Oz -o benchmarks/readiness/adapters/bcftools/vcf.postprocess/postprocess_vcf.vcf.gz -- -t 'AC,AN,AF'
 bcftools index -t benchmarks/readiness/adapters/bcftools/vcf.postprocess/postprocess_vcf.vcf.gz

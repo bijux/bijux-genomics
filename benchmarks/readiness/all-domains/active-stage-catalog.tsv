@@ -58,6 +58,7 @@ vcf	vcf.imputation_metrics	smoke	1	1	1	1	true	1	benchmark_ready	beagle	beagle	im
 vcf	vcf.impute	smoke	1	1	1	1	true	1	benchmark_ready	beagle	beagle	imputation
 vcf	vcf.pca	smoke	2	2	2	2	true	2	benchmark_ready	eigensoft,plink2	eigensoft,plink2	population_structure
 vcf	vcf.phasing	smoke	1	1	1	1	true	1	benchmark_ready	shapeit5	shapeit5	phasing
+vcf	vcf.population_structure	smoke	1	1	1	1	true	1	benchmark_ready	plink2	plink2	population_structure
 vcf	vcf.postprocess	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	normalization
 vcf	vcf.prepare_reference_panel	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	reference_panel_preparation
 vcf	vcf.qc	smoke	3	3	3	3	true	3	benchmark_ready	bcftools,plink,plink2	bcftools,plink,plink2	quality_control

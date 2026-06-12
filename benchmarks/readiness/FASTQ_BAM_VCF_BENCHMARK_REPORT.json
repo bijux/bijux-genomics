@@ -2,30 +2,30 @@
   "schema_version": "bijux.bench.readiness.full_benchmark_report.v1",
   "markdown_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md",
   "json_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-  "row_count": 132,
-  "expected_result_row_count": 131,
+  "row_count": 133,
+  "expected_result_row_count": 132,
   "explicit_unsupported_row_count": 1,
-  "present_row_count": 128,
+  "present_row_count": 129,
   "missing_result_row_count": 3,
   "unsupported_pair_row_count": 1,
-  "stage_centric_row_count": 63,
+  "stage_centric_row_count": 64,
   "tool_centric_row_count": 69,
   "corpus_centric_row_count": 10,
   "pipeline_centric_row_count": 10,
-  "runtime_row_count": 132,
-  "memory_row_count": 132,
+  "runtime_row_count": 133,
+  "memory_row_count": 133,
   "comparable_metric_row_count": 105,
-  "failure_row_count": 131,
+  "failure_row_count": 132,
   "failure_class_row_count": 7,
   "passes_behavior_test": true,
   "domain_counts": {
     "bam": 49,
     "fastq": 63,
-    "vcf": 20
+    "vcf": 21
   },
   "row_status_counts": {
     "missing_result": 3,
-    "present": 128,
+    "present": 129,
     "unsupported_pair": 1
   },
   "rows": [
@@ -2955,7 +2955,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.166100375,
+      "real_smoke_elapsed_seconds": 0.164146833,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -3289,6 +3289,33 @@
       "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5` remains present with a validated fake-run manifest"
     },
     {
+      "report_row_id": "vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2",
+      "row_status": "present",
+      "result_id": "vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.population_structure",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "report_section": "population_structure",
+      "pipeline_ids": [
+        "popgen-structure-vcf"
+      ],
+      "expected_output_count": 1,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 2,
+      "simulated_elapsed_seconds": 1.5,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stage-result.json",
+      "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2` remains present with a validated fake-run manifest"
+    },
+    {
       "report_row_id": "vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools",
       "row_status": "present",
       "result_id": "vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools",
@@ -3444,7 +3471,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.0576215,
+      "real_smoke_elapsed_seconds": 0.044997791,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -4697,6 +4724,26 @@
     },
     {
       "domain": "vcf",
+      "stage_id": "vcf.population_structure",
+      "row_count": 1,
+      "present_row_count": 1,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "tool_ids": [
+        "plink2"
+      ],
+      "corpus_ids": [
+        "vcf_production_regression"
+      ],
+      "pipeline_ids": [
+        "popgen-structure-vcf"
+      ],
+      "report_sections": [
+        "population_structure"
+      ]
+    },
+    {
+      "domain": "vcf",
       "stage_id": "vcf.postprocess",
       "row_count": 1,
       "present_row_count": 1,
@@ -5679,8 +5726,8 @@
     },
     {
       "tool_id": "plink2",
-      "row_count": 3,
-      "present_row_count": 3,
+      "row_count": 4,
+      "present_row_count": 4,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -5689,6 +5736,7 @@
       "stage_ids": [
         "vcf.admixture",
         "vcf.pca",
+        "vcf.population_structure",
         "vcf.qc"
       ],
       "corpus_ids": [
@@ -6391,8 +6439,8 @@
     },
     {
       "corpus_id": "vcf_production_regression",
-      "row_count": 19,
-      "present_row_count": 18,
+      "row_count": 20,
+      "present_row_count": 19,
       "missing_result_row_count": 1,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -6411,6 +6459,7 @@
         "vcf.impute",
         "vcf.pca",
         "vcf.phasing",
+        "vcf.population_structure",
         "vcf.postprocess",
         "vcf.prepare_reference_panel",
         "vcf.qc",
@@ -6677,8 +6726,8 @@
       },
       {
         "pipeline_id": "popgen-structure-vcf",
-        "row_count": 3,
-        "present_row_count": 3,
+        "row_count": 4,
+        "present_row_count": 4,
         "missing_result_row_count": 0,
         "unsupported_pair_row_count": 0,
         "domains": [
@@ -6687,6 +6736,7 @@
         "stage_ids": [
           "vcf.admixture",
           "vcf.pca",
+          "vcf.population_structure",
           "vcf.qc"
         ],
         "tool_ids": [
@@ -7986,7 +8036,7 @@
       "row_status": "present",
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.166100375,
+      "real_smoke_elapsed_seconds": 0.164146833,
       "runtime_source": "fake_run_and_real_smoke"
     },
     {
@@ -8122,6 +8172,17 @@
       "runtime_source": "fake_run_simulated"
     },
     {
+      "report_row_id": "vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.population_structure",
+      "tool_id": "plink2",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.5,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
       "report_row_id": "vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools",
       "domain": "vcf",
       "stage_id": "vcf.postprocess",
@@ -8184,7 +8245,7 @@
       "row_status": "missing_result",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.0576215,
+      "real_smoke_elapsed_seconds": 0.044997791,
       "runtime_source": "fake_run_and_real_smoke"
     }
   ],
@@ -9702,6 +9763,18 @@
       "memory_source": "declared_stage_tool_resource"
     },
     {
+      "report_row_id": "vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.population_structure",
+      "tool_id": "plink2",
+      "row_status": "present",
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
       "report_row_id": "vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools",
       "domain": "vcf",
       "stage_id": "vcf.postprocess",
@@ -9775,12 +9848,12 @@
     }
   ],
   "failures": {
-    "simulated_failure_row_count": 131,
+    "simulated_failure_row_count": 132,
     "failure_class_row_count": 7,
     "simulated_failure_domain_counts": {
       "bam": 49,
       "fastq": 63,
-      "vcf": 19
+      "vcf": 20
     },
     "rows": [
       {
@@ -10906,6 +10979,15 @@
         "tool_id": "shapeit5",
         "result_id": "vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5",
         "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/vcf/vcf_production_regression/vcf.phasing/vcf_cohort_with_panel/shapeit5/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2",
+        "domain": "vcf",
+        "stage_id": "vcf.population_structure",
+        "tool_id": "plink2",
+        "result_id": "vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/failure.json",
         "detail": "fake failure recorded exit_code=7"
       },
       {
