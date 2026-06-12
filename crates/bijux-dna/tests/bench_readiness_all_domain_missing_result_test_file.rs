@@ -60,8 +60,10 @@ fn bench_readiness_all_domain_missing_result_test_writes_governed_report_and_fix
         persisted.get("missing_result_row_count").and_then(serde_json::Value::as_u64),
         Some(3)
     );
-    let expected_row_count =
-        persisted.get("expected_row_count").and_then(serde_json::Value::as_u64).expect("expected_row_count");
+    let expected_row_count = persisted
+        .get("expected_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("expected_row_count");
     let present_result_row_count = persisted
         .get("present_result_row_count")
         .and_then(serde_json::Value::as_u64)

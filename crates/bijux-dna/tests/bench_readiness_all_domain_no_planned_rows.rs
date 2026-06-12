@@ -46,9 +46,10 @@ fn bench_readiness_all_domain_no_planned_rows_reports_clean_active_scope() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/no-planned-rows.json")
     );
-    let active_row_count = support::json_u64(&payload, "active_row_count").expect("active_row_count");
-    assert_eq!(active_row_count, 131);
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(63));
+    let active_row_count =
+        support::json_u64(&payload, "active_row_count").expect("active_row_count");
+    assert_eq!(active_row_count, 132);
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(64));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(69));
     let removed_row_count =
         support::json_u64(&payload, "removed_row_count").expect("removed_row_count");
@@ -78,15 +79,15 @@ fn bench_readiness_all_domain_no_planned_rows_reports_clean_active_scope() {
     assert!(
         removed_rows.iter().all(|row| {
             !(row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("vcf.phasing")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.phasing")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("shapeit5"))
         }),
         "vcf.phasing/shapeit5 must remain active once phasing is benchmark ready"
     );
     assert!(
         removed_rows.iter().all(|row| {
-            !(row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation_metrics")
+            !(row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.imputation_metrics")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle"))
         }),
         "active imputation metrics rows must not be reported as planned removals"

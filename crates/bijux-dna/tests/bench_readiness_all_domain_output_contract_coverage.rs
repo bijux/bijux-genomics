@@ -65,7 +65,10 @@ fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_r
         payload.get("source_proof_binding_count").and_then(serde_json::Value::as_u64),
         Some(row_count)
     );
-    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(row_count));
+    assert_eq!(
+        payload.get("covered_row_count").and_then(serde_json::Value::as_u64),
+        Some(row_count)
+    );
     assert_eq!(payload.get("missing_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("coverage_percent").and_then(serde_json::Value::as_f64), Some(100.0));
     assert_eq!(
@@ -90,8 +93,9 @@ fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_r
     );
     let index_declared_row_count =
         support::json_u64(&payload, "index_declared_row_count").expect("index_declared_row_count");
-    let index_not_applicable_row_count = support::json_u64(&payload, "index_not_applicable_row_count")
-        .expect("index_not_applicable_row_count");
+    let index_not_applicable_row_count =
+        support::json_u64(&payload, "index_not_applicable_row_count")
+            .expect("index_not_applicable_row_count");
     assert!(index_declared_row_count > 0);
     assert!(index_declared_row_count + index_not_applicable_row_count <= row_count);
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
@@ -100,7 +104,7 @@ fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_r
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(support::object_u64(domain_counts, "fastq"), Some(63));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
-    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(19));
+    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(20));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let proof_source_counts = payload
@@ -114,6 +118,10 @@ fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_r
     assert_eq!(
         proof_source_counts.get("bam_output_contract").and_then(serde_json::Value::as_u64),
         Some(49)
+    );
+    assert_eq!(
+        proof_source_counts.get("vcf_output_contract").and_then(serde_json::Value::as_u64),
+        Some(20)
     );
     assert_eq!(
         proof_source_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),

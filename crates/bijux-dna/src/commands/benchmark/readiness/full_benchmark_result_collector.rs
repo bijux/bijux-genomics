@@ -580,8 +580,9 @@ fn ensure_full_benchmark_result_collector_contract(
             "full benchmark result collector benchmark, fake-run, fake-failure, and missing-audit surfaces must stay aligned on the governed expected-result count"
         ));
     }
-    let expected_succeeded_count =
-        report.pipeline_fake_run_row_count + report.fake_run_row_count + report.real_smoke_row_count;
+    let expected_succeeded_count = report.pipeline_fake_run_row_count
+        + report.fake_run_row_count
+        + report.real_smoke_row_count;
     let expected_present_count =
         report.benchmark_expected_row_count.saturating_sub(report.missing_result_status_count);
     if count_status(&report.result_status_counts, FullBenchmarkResultStatus::Expected)

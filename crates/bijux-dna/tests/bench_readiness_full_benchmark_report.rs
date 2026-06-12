@@ -51,27 +51,22 @@ fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() {
         Some("benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json")
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
-    let expected_result_row_count =
-        support::json_u64(&payload, "expected_result_row_count").expect("expected_result_row_count");
+    let expected_result_row_count = support::json_u64(&payload, "expected_result_row_count")
+        .expect("expected_result_row_count");
     assert_eq!(
         payload.get("explicit_unsupported_row_count").and_then(serde_json::Value::as_u64),
         Some(1)
     );
-    let present_row_count = support::json_u64(&payload, "present_row_count").expect("present_row_count");
+    let present_row_count =
+        support::json_u64(&payload, "present_row_count").expect("present_row_count");
     let missing_result_row_count =
         support::json_u64(&payload, "missing_result_row_count").expect("missing_result_row_count");
-    let unsupported_pair_row_count =
-        support::json_u64(&payload, "unsupported_pair_row_count").expect("unsupported_pair_row_count");
+    let unsupported_pair_row_count = support::json_u64(&payload, "unsupported_pair_row_count")
+        .expect("unsupported_pair_row_count");
     assert_eq!(missing_result_row_count, 3);
     assert_eq!(unsupported_pair_row_count, 1);
-    assert_eq!(
-        present_row_count + missing_result_row_count,
-        expected_result_row_count
-    );
-    assert_eq!(
-        row_count,
-        expected_result_row_count + unsupported_pair_row_count
-    );
+    assert_eq!(present_row_count + missing_result_row_count, expected_result_row_count);
+    assert_eq!(row_count, expected_result_row_count + unsupported_pair_row_count);
     assert_eq!(
         payload.get("failure_row_count").and_then(serde_json::Value::as_u64),
         Some(expected_result_row_count)
@@ -86,7 +81,10 @@ fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() {
         .get("row_status_counts")
         .and_then(serde_json::Value::as_object)
         .expect("row status counts");
-    assert_eq!(status_counts.get("present").and_then(serde_json::Value::as_u64), Some(present_row_count));
+    assert_eq!(
+        status_counts.get("present").and_then(serde_json::Value::as_u64),
+        Some(present_row_count)
+    );
     assert_eq!(
         status_counts.get("missing_result").and_then(serde_json::Value::as_u64),
         Some(missing_result_row_count)

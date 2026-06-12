@@ -41,7 +41,9 @@ fn bench_readiness_all_domain_rendered_commands_write_governed_argv_jsonl() {
     let result_ids = rows
         .iter()
         .filter_map(|line| serde_json::from_str::<serde_json::Value>(line).ok())
-        .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str).map(str::to_string))
+        .filter_map(|row| {
+            row.get("result_id").and_then(serde_json::Value::as_str).map(str::to_string)
+        })
         .collect::<BTreeSet<_>>();
     assert_eq!(rows.len(), result_ids.len());
     assert!(rows.iter().all(|line| {

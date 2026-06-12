@@ -234,7 +234,8 @@ fn collect_all_domain_missing_result_rows(
     let output_rows_by_id =
         output_rows.iter().map(|row| (row.result_id.as_str(), row)).collect::<BTreeMap<_, _>>();
 
-    if fake_runs_by_id.len() != expected_rows.len() || output_rows_by_id.len() != expected_rows.len()
+    if fake_runs_by_id.len() != expected_rows.len()
+        || output_rows_by_id.len() != expected_rows.len()
     {
         return Err(anyhow!(
             "all-domain missing-result test requires exact row-count alignment between expected results, output declarations, and fake runs"
@@ -492,7 +493,7 @@ mod tests {
         assert!(report.passes_behavior_test);
         assert_eq!(report.domain_counts.get("fastq").copied(), Some(63));
         assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
-        assert_eq!(report.domain_counts.get("vcf").copied(), Some(19));
+        assert_eq!(report.domain_counts.get("vcf").copied(), Some(20));
 
         let removed_ids =
             report.removed_result_ids.iter().map(String::as_str).collect::<BTreeSet<_>>();

@@ -545,7 +545,8 @@ fn ensure_all_domain_completion_check_contract(
         ));
     }
     let expected_incomplete_row_count = report.seeded_mutations.len();
-    let expected_complete_row_count = report.row_count.saturating_sub(expected_incomplete_row_count);
+    let expected_complete_row_count =
+        report.row_count.saturating_sub(expected_incomplete_row_count);
     if report.incomplete_row_count != expected_incomplete_row_count {
         return Err(anyhow!(
             "all-domain completion checker incomplete rows must equal the seeded mutation count (incomplete={}, seeded={})",

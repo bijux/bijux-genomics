@@ -46,10 +46,10 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/active-stage-catalog.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(63));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(64));
     assert_eq!(
         payload.get("stages_with_benchmark_ready_tools").and_then(serde_json::Value::as_u64),
-        Some(63)
+        Some(64)
     );
     assert_eq!(
         payload.get("not_benchmark_ready_only_stage_count").and_then(serde_json::Value::as_u64),
@@ -57,22 +57,22 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("stages_with_parser_rows").and_then(serde_json::Value::as_u64),
-        Some(63)
+        Some(64)
     );
-    assert_eq!(payload.get("stages_with_schema").and_then(serde_json::Value::as_u64), Some(63));
+    assert_eq!(payload.get("stages_with_schema").and_then(serde_json::Value::as_u64), Some(64));
     assert_eq!(
         payload.get("stages_with_report_rows").and_then(serde_json::Value::as_u64),
-        Some(63)
+        Some(64)
     );
 
     let domain_counts =
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(23));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(24));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(16));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(17));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 63);
+    assert_eq!(rows.len(), 64);
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -159,6 +159,22 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
                 == Some(&vec![serde_json::Value::String("bcftools".to_string())])
             && row.get("report_section_ids").and_then(serde_json::Value::as_array)
                 == Some(&vec![serde_json::Value::String("normalization".to_string())])
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
+            && row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.population_structure")
+            && row.get("readiness_kind").and_then(serde_json::Value::as_str) == Some("smoke")
+            && row.get("active_tool_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("parser_row_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("parser_covered_row_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("schema_present").and_then(serde_json::Value::as_bool) == Some(true)
+            && row.get("report_row_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("benchmark_ready_tool_ids").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("plink2".to_string())])
+            && row.get("report_section_ids").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("population_structure".to_string())])
     }));
     assert!(
         rows.iter().all(|row| {

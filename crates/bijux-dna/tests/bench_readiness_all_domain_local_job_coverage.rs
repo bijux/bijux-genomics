@@ -65,7 +65,10 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
         payload.get("local_job_binding_count").and_then(serde_json::Value::as_u64),
         Some(row_count)
     );
-    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(row_count));
+    assert_eq!(
+        payload.get("covered_row_count").and_then(serde_json::Value::as_u64),
+        Some(row_count)
+    );
     assert_eq!(payload.get("missing_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("coverage_percent").and_then(serde_json::Value::as_f64), Some(100.0));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
@@ -74,7 +77,7 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(support::object_u64(domain_counts, "fastq"), Some(63));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
-    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(19));
+    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(20));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let command_source_counts = payload
@@ -91,7 +94,7 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
     );
     assert_eq!(
         command_source_counts.get("vcf_plink_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(5)
     );
     assert_eq!(
         command_source_counts

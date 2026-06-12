@@ -52,15 +52,15 @@ fn bench_readiness_removed_from_scope_reports_only_non_active_bindings() {
     assert_eq!(payload.get("candidate_row_count").and_then(serde_json::Value::as_u64), Some(146));
     assert_eq!(payload.get("candidate_stage_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(payload.get("candidate_tool_count").and_then(serde_json::Value::as_u64), Some(75));
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(131));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(63));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(132));
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(64));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(16));
-    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(12));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(14));
+    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(14));
     assert_eq!(
         payload.get("fully_removed_stage_count").and_then(serde_json::Value::as_u64),
-        Some(9)
+        Some(7)
     );
     assert_eq!(
         payload.get("fully_removed_tool_count").and_then(serde_json::Value::as_u64),
@@ -79,7 +79,7 @@ fn bench_readiness_removed_from_scope_reports_only_non_active_bindings() {
     );
     assert_eq!(
         scope_exit_kind_counts.get("lifecycle_not_active").and_then(serde_json::Value::as_u64),
-        Some(10)
+        Some(8)
     );
     assert!(
         scope_exit_kind_counts.get("non_executable_adapter").is_none(),
@@ -87,7 +87,7 @@ fn bench_readiness_removed_from_scope_reports_only_non_active_bindings() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 16);
+    assert_eq!(rows.len(), 14);
     let violations =
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
     assert!(violations.is_empty(), "removed rows must stay outside governed active surfaces");
@@ -108,9 +108,8 @@ fn bench_readiness_removed_from_scope_reports_only_non_active_bindings() {
     }));
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
-            && row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("vcf.population_structure")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.admixture")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("admixture")
             && row.get("status").and_then(serde_json::Value::as_str) == Some("planned")
             && row.get("adapter_status").and_then(serde_json::Value::as_str)
                 == Some("declared_only")
@@ -123,7 +122,16 @@ fn bench_readiness_removed_from_scope_reports_only_non_active_bindings() {
     }));
     assert!(
         rows.iter().all(|row| {
-            !(row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation_metrics")
+            !(row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.population_structure")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2"))
+        }),
+        "vcf.population_structure/plink2 must stay out of removed-from-scope once it is benchmark ready"
+    );
+    assert!(
+        rows.iter().all(|row| {
+            !(row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.imputation_metrics")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle"))
         }),
         "active imputation metrics rows must stay out of removed-from-scope output"

@@ -56,7 +56,7 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(19));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let command_source_counts = support::json_object(&payload, "command_source_counts");
@@ -69,14 +69,12 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
         Some(11)
     );
     assert_eq!(
-        command_source_counts
-            .get("vcf_eigensoft_adapter")
-            .and_then(serde_json::Value::as_u64),
+        command_source_counts.get("vcf_eigensoft_adapter").and_then(serde_json::Value::as_u64),
         Some(1)
     );
     assert_eq!(
         command_source_counts.get("vcf_plink_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(5)
     );
     assert_eq!(
         command_source_counts
@@ -85,9 +83,7 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
         Some(2)
     );
     assert_eq!(
-        command_source_counts
-            .get("vcf_phasing_family_adapter")
-            .and_then(serde_json::Value::as_u64),
+        command_source_counts.get("vcf_phasing_family_adapter").and_then(serde_json::Value::as_u64),
         Some(1)
     );
 
@@ -208,4 +204,24 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
         imputation_metrics.get("command_source").and_then(serde_json::Value::as_str),
         Some("vcf_imputation_family_adapter")
     );
+    let population_structure = rows
+        .iter()
+        .find(|row| {
+            row.get("result_id").and_then(serde_json::Value::as_str)
+                == Some("vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2")
+        })
+        .expect("VCF population-structure row");
+    assert_eq!(
+        population_structure.get("command_source").and_then(serde_json::Value::as_str),
+        Some("vcf_plink_family_adapter")
+    );
+    assert!(population_structure
+        .get("command_steps")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|steps| {
+            steps.len() == 2
+                && steps[0].get("step_id").and_then(serde_json::Value::as_str) == Some("ld_prune")
+                && steps[1].get("step_id").and_then(serde_json::Value::as_str)
+                    == Some("population_pca")
+        }));
 }

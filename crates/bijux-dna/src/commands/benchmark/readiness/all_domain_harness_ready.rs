@@ -1,4 +1,5 @@
 use std::collections::BTreeSet;
+use std::env;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
@@ -118,6 +119,7 @@ pub(crate) fn render_all_domain_harness_ready(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<AllDomainHarnessReadyReport> {
+    let _cwd_guard = CurrentDirGuard::change_to(repo_root);
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
         std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -191,10 +193,8 @@ pub(crate) fn render_all_domain_harness_ready(
                 || report.domain_counts.get("vcf").copied() != Some(23)
                 || report.benchmark_ready_domain_counts.get("fastq").copied().unwrap_or_default()
                     == 0
-                || report.benchmark_ready_domain_counts.get("bam").copied().unwrap_or_default()
-                    == 0
-                || report.benchmark_ready_domain_counts.get("vcf").copied().unwrap_or_default()
-                    == 0
+                || report.benchmark_ready_domain_counts.get("bam").copied().unwrap_or_default() == 0
+                || report.benchmark_ready_domain_counts.get("vcf").copied().unwrap_or_default() == 0
             {
                 bail!("all-domain stage tool table drifted from the governed binding set");
             }
@@ -222,7 +222,7 @@ pub(crate) fn render_all_domain_harness_ready(
                 .context("goal 279 stage tool table report is required")?;
             if report.row_count != benchmark_ready_binding_count
                 || report.result_id_count != benchmark_ready_binding_count
-                || report.stage_count != 63
+                || report.stage_count != 64
                 || report.tool_count != 69
                 || report.corpus_count != 9
                 || report.asset_profile_count != 13
@@ -265,7 +265,7 @@ pub(crate) fn render_all_domain_harness_ready(
                     != Some(2)
                 || report.command_source_counts.get("vcf_phasing_family_adapter").copied()
                     != Some(1)
-                || report.command_source_counts.get("vcf_plink_family_adapter").copied() != Some(4)
+                || report.command_source_counts.get("vcf_plink_family_adapter").copied() != Some(5)
             {
                 bail!("all-domain rendered commands drifted from the governed binding slice");
             }
@@ -415,7 +415,7 @@ pub(crate) fn render_all_domain_harness_ready(
                 || report.real_smoke_row_count != 4
                 || report.domain_counts.get("fastq").copied() != Some(64)
                 || report.domain_counts.get("bam").copied() != Some(50)
-                || report.domain_counts.get("vcf").copied() != Some(20)
+                || report.domain_counts.get("vcf").copied() != Some(22)
             {
                 bail!(
                     "all-domain parser collector drifted from the governed fake-run and smoke set"
@@ -733,5 +733,23 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
         path.to_path_buf()
     } else {
         repo_root.join(path)
+    }
+}
+
+struct CurrentDirGuard {
+    previous: PathBuf,
+}
+
+impl CurrentDirGuard {
+    fn change_to(path: &Path) -> Self {
+        let previous = env::current_dir().expect("current dir");
+        env::set_current_dir(path).expect("set current dir");
+        Self { previous }
+    }
+}
+
+impl Drop for CurrentDirGuard {
+    fn drop(&mut self) {
+        env::set_current_dir(&self.previous).expect("restore current dir");
     }
 }

@@ -52,7 +52,8 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
         Some("runs/bench/readiness-probes/all-domains/completion-check")
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
-    let complete_row_count = support::json_u64(&payload, "complete_row_count").expect("complete_row_count");
+    let complete_row_count =
+        support::json_u64(&payload, "complete_row_count").expect("complete_row_count");
     let incomplete_row_count =
         support::json_u64(&payload, "incomplete_row_count").expect("incomplete_row_count");
     assert_eq!(complete_row_count + incomplete_row_count, row_count);
@@ -62,7 +63,7 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(19));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
 
     let failure_reason_counts = payload
         .get("failure_reason_counts")

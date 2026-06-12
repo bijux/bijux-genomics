@@ -48,8 +48,8 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
         Some("benchmarks/readiness/full-result-collector-test.json")
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
-    let benchmark_expected_row_count =
-        support::json_u64(&payload, "benchmark_expected_row_count").expect("benchmark_expected_row_count");
+    let benchmark_expected_row_count = support::json_u64(&payload, "benchmark_expected_row_count")
+        .expect("benchmark_expected_row_count");
     assert_eq!(
         payload.get("pipeline_fake_run_row_count").and_then(serde_json::Value::as_u64),
         Some(93)

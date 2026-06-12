@@ -44,7 +44,8 @@ fn bench_readiness_full_benchmark_report_writes_markdown_and_json_outputs() {
     let json_payload = std::fs::read_to_string(&json_path).expect("read report json");
     let json_value: serde_json::Value =
         serde_json::from_str(&json_payload).expect("parse report json");
-    let row_count = json_value.get("row_count").and_then(serde_json::Value::as_u64).expect("row_count");
+    let row_count =
+        json_value.get("row_count").and_then(serde_json::Value::as_u64).expect("row_count");
     let expected_result_row_count = json_value
         .get("expected_result_row_count")
         .and_then(serde_json::Value::as_u64)

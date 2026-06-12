@@ -55,7 +55,7 @@ fn bench_readiness_all_domain_output_declarations_tracks_governed_rows() {
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(19));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let status_counts = support::json_object(&payload, "status_counts");
@@ -162,5 +162,7 @@ fn bench_readiness_all_domain_output_declarations_tracks_governed_rows() {
     assert!(imputation_metrics
         .get("raw_outputs")
         .and_then(serde_json::Value::as_array)
-        .is_some_and(|outputs| outputs.iter().any(|value| value.as_str() == Some("imputation_metrics_json"))));
+        .is_some_and(|outputs| outputs
+            .iter()
+            .any(|value| value.as_str() == Some("imputation_metrics_json"))));
 }

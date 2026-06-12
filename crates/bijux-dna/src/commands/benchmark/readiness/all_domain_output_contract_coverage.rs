@@ -886,7 +886,7 @@ mod tests {
         assert_eq!(report.schema_version, ALL_DOMAIN_OUTPUT_CONTRACT_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_OUTPUT_CONTRACT_COVERAGE_PATH);
         assert_eq!(report.result_id_count, report.row_count);
-        assert_eq!(report.stage_count, 63);
+        assert_eq!(report.stage_count, 64);
         assert_eq!(report.tool_count, 69);
         assert_eq!(report.output_declaration_binding_count, report.row_count);
         assert_eq!(report.source_proof_binding_count, report.row_count);
@@ -899,13 +899,17 @@ mod tests {
         assert_eq!(report.manifest_declared_row_count, report.row_count);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&19));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&20));
         assert_eq!(report.proof_source_counts.get(PROOF_SOURCE_FASTQ), Some(&63));
         assert_eq!(report.proof_source_counts.get(PROOF_SOURCE_BAM), Some(&49));
+        assert_eq!(report.proof_source_counts.get(PROOF_SOURCE_VCF), Some(&20));
         assert_eq!(report.proof_source_counts.values().copied().sum::<usize>(), report.row_count);
         assert_eq!(report.index_required_row_count, report.index_declared_row_count);
         assert!(report.index_declared_row_count > 0);
-        assert!(report.index_declared_row_count + report.index_not_applicable_row_count <= report.row_count);
+        assert!(
+            report.index_declared_row_count + report.index_not_applicable_row_count
+                <= report.row_count
+        );
         assert_eq!(
             report.index_coverage_counts.get(INDEX_STATUS_COVERED),
             Some(&report.index_declared_row_count)
@@ -914,7 +918,10 @@ mod tests {
             report.index_coverage_counts.get(INDEX_STATUS_NOT_APPLICABLE),
             Some(&report.index_not_applicable_row_count)
         );
-        assert_eq!(report.coverage_status_counts.get(COVERAGE_STATUS_COVERED), Some(&report.row_count));
+        assert_eq!(
+            report.coverage_status_counts.get(COVERAGE_STATUS_COVERED),
+            Some(&report.row_count)
+        );
         assert_eq!(report.violation_count, 0);
         assert!(report.ok);
         assert!(report.violations.is_empty());

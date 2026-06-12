@@ -52,11 +52,13 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_s
     );
     let executable_active_row_count = support::json_u64(&payload, "executable_active_row_count")
         .expect("executable_active_row_count");
-    let active_row_count = support::json_u64(&payload, "active_row_count").expect("active_row_count");
-    let removed_row_count = support::json_u64(&payload, "removed_row_count").expect("removed_row_count");
+    let active_row_count =
+        support::json_u64(&payload, "active_row_count").expect("active_row_count");
+    let removed_row_count =
+        support::json_u64(&payload, "removed_row_count").expect("removed_row_count");
     assert_eq!(executable_active_row_count, active_row_count + removed_row_count);
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(131));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(63));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(132));
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(64));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(removed_row_count, 6);
     assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(3));

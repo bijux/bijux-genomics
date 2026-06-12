@@ -53,7 +53,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
     assert_eq!(support::json_u64(&payload, "result_id_count"), Some(row_count));
-    assert_eq!(support::json_u64(&payload, "stage_count"), Some(63));
+    assert_eq!(support::json_u64(&payload, "stage_count"), Some(64));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(13));
@@ -61,13 +61,17 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(19));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let section_counts = support::json_object(&payload, "report_section_counts");
     assert_eq!(section_counts.get("read_cleanup").and_then(serde_json::Value::as_u64), Some(37));
     assert_eq!(section_counts.get("variant_calling").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(section_counts.get("imputation").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        section_counts.get("population_structure").and_then(serde_json::Value::as_u64),
+        Some(4)
+    );
 
     let rows = support::json_array(&payload, "rows");
     assert_eq!(rows.len() as u64, row_count);
@@ -179,7 +183,9 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     assert!(imputation_metrics
         .get("expected_metrics")
         .and_then(serde_json::Value::as_array)
-        .is_some_and(|metrics| metrics.iter().any(|value| value.as_str() == Some("mean_info_score"))));
+        .is_some_and(|metrics| metrics
+            .iter()
+            .any(|value| value.as_str() == Some("mean_info_score"))));
 
     let vcf_pca = rows
         .iter()
@@ -192,4 +198,21 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
         vcf_pca.get("report_section").and_then(serde_json::Value::as_str),
         Some("population_structure")
     );
+    let population_structure = rows
+        .iter()
+        .find(|row| {
+            row.get("result_id").and_then(serde_json::Value::as_str)
+                == Some("vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2")
+        })
+        .expect("VCF population-structure row");
+    assert_eq!(
+        population_structure.get("report_section").and_then(serde_json::Value::as_str),
+        Some("population_structure")
+    );
+    assert!(population_structure
+        .get("expected_outputs")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|outputs| {
+            outputs.iter().any(|value| value.as_str() == Some("population_structure_report"))
+        }));
 }

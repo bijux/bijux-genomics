@@ -1237,7 +1237,7 @@ mod tests {
             report.output_path,
             "benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json"
         );
-        assert_eq!(report.benchmark_ready_row_count, 131);
+        assert_eq!(report.benchmark_ready_row_count, 132);
         assert_eq!(report.blocker_count, 0);
         assert_eq!(report.missing_result_row_count, 3);
         assert_eq!(report.insufficient_data_row_count, 1);

@@ -51,17 +51,20 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
         Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(63));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(64));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(69));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(19));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let status_counts = support::json_object(&payload, "status_counts");
-    assert_eq!(status_counts.get("benchmark_ready").and_then(serde_json::Value::as_u64), Some(row_count));
+    assert_eq!(
+        status_counts.get("benchmark_ready").and_then(serde_json::Value::as_u64),
+        Some(row_count)
+    );
     assert_eq!(status_counts.len(), 1);
 
     let rows = support::json_array(&payload, "rows");
@@ -138,6 +141,22 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
             && row.get("asset_profile_id").and_then(serde_json::Value::as_str)
                 == Some("vcf_cohort_with_panel")
+            && row.get("status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
+            && row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.population_structure")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
+            && row.get("corpus_id").and_then(serde_json::Value::as_str)
+                == Some("vcf_production_regression")
+            && row.get("asset_profile_id").and_then(serde_json::Value::as_str) == Some("vcf_cohort")
+            && row.get("adapter_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.adapter.population_structure")
+            && row.get("parser_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.parser.report_json")
+            && row.get("schema_id").and_then(serde_json::Value::as_str)
+                == Some("bijux.schemas.bench.vcf-normalized-metrics.population-structure.v1")
             && row.get("status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
     }));
 

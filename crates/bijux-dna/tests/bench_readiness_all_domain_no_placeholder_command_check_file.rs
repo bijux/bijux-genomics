@@ -45,15 +45,20 @@ fn bench_readiness_all_domain_no_placeholder_command_check_writes_governed_json_
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.all_domain_no_placeholder_command_check.v1")
     );
-    let row_count = payload.get("row_count").and_then(serde_json::Value::as_u64).expect("row_count");
-    let command_step_count =
-        payload.get("command_step_count").and_then(serde_json::Value::as_u64).expect("command_step_count");
+    let row_count =
+        payload.get("row_count").and_then(serde_json::Value::as_u64).expect("row_count");
+    let command_step_count = payload
+        .get("command_step_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("command_step_count");
     let shell_wrapped_step_count = payload
         .get("shell_wrapped_step_count")
         .and_then(serde_json::Value::as_u64)
         .expect("shell_wrapped_step_count");
-    let direct_step_count =
-        payload.get("direct_step_count").and_then(serde_json::Value::as_u64).expect("direct_step_count");
+    let direct_step_count = payload
+        .get("direct_step_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("direct_step_count");
     assert!(row_count >= 128);
     assert_eq!(command_step_count, shell_wrapped_step_count + direct_step_count);
     assert_eq!(payload.get("invalid_row_count").and_then(serde_json::Value::as_u64), Some(0));

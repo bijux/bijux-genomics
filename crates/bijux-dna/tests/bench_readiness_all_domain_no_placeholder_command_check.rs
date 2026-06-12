@@ -60,14 +60,14 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
     assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(row_count));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(63));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(64));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(payload.get("command_step_count").and_then(serde_json::Value::as_u64), Some(151));
+    assert_eq!(payload.get("command_step_count").and_then(serde_json::Value::as_u64), Some(154));
     assert_eq!(
         payload.get("shell_wrapped_step_count").and_then(serde_json::Value::as_u64),
         Some(89)
     );
-    assert_eq!(payload.get("direct_step_count").and_then(serde_json::Value::as_u64), Some(63));
+    assert_eq!(payload.get("direct_step_count").and_then(serde_json::Value::as_u64), Some(65));
     assert_eq!(payload.get("valid_row_count").and_then(serde_json::Value::as_u64), Some(row_count));
     assert_eq!(payload.get("invalid_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
@@ -76,7 +76,7 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(support::object_u64(domain_counts, "fastq"), Some(63));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
-    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(19));
+    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(20));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let command_source_counts = payload
@@ -92,9 +92,7 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
         Some(11)
     );
     assert_eq!(
-        command_source_counts
-            .get("vcf_eigensoft_adapter")
-            .and_then(serde_json::Value::as_u64),
+        command_source_counts.get("vcf_eigensoft_adapter").and_then(serde_json::Value::as_u64),
         Some(1)
     );
     assert_eq!(
@@ -104,14 +102,12 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
         Some(2)
     );
     assert_eq!(
-        command_source_counts
-            .get("vcf_phasing_family_adapter")
-            .and_then(serde_json::Value::as_u64),
+        command_source_counts.get("vcf_phasing_family_adapter").and_then(serde_json::Value::as_u64),
         Some(1)
     );
     assert_eq!(
         command_source_counts.get("vcf_plink_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(3)
+        Some(5)
     );
 
     let finding_type_counts = payload

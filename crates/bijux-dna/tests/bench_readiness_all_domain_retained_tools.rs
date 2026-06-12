@@ -108,8 +108,7 @@ fn bench_readiness_all_domain_retained_tools_reports_governed_rows() {
             && row.get("domains").and_then(serde_json::Value::as_array)
                 == Some(&vec![serde_json::Value::String("vcf".to_string())])
             && row.get("active_stage_count").and_then(serde_json::Value::as_u64) == Some(2)
-            && row.get("benchmark_ready_stage_count").and_then(serde_json::Value::as_u64)
-                == Some(2)
+            && row.get("benchmark_ready_stage_count").and_then(serde_json::Value::as_u64) == Some(2)
     }));
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("eigensoft")

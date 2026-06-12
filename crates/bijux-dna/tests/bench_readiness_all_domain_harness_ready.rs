@@ -54,7 +54,8 @@ fn bench_readiness_all_domain_harness_ready_reports_governed_pass_state() {
     );
     assert_eq!(payload.get("all_domain_stage_count").and_then(serde_json::Value::as_u64), Some(71));
     let benchmark_ready_binding_count =
-        support::json_u64(&payload, "benchmark_ready_binding_count").expect("benchmark_ready_binding_count");
+        support::json_u64(&payload, "benchmark_ready_binding_count")
+            .expect("benchmark_ready_binding_count");
     assert_eq!(
         payload.get("expected_result_row_count").and_then(serde_json::Value::as_u64),
         Some(benchmark_ready_binding_count)
