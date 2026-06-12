@@ -1,4 +1,5 @@
 use std::collections::BTreeSet;
+use std::sync::OnceLock;
 
 use bijux_dna_core::ids::{StageId, ToolId};
 use serde::Deserialize;
@@ -15,87 +16,98 @@ struct ToolPlannedStageRecord {
 
 #[must_use]
 pub fn stage_tool_bindings() -> Vec<StageToolBinding> {
-    let mut bindings = domain_index_contract()
-        .stage_tool_integration
-        .iter()
-        .flat_map(|(stage_id, bindings)| {
-            bindings.iter().map(move |(tool_id, integration_level)| StageToolBinding {
-                stage_id: StageId::new(stage_id.clone()),
-                tool_id: ToolId::new(tool_id.clone()),
-                integration_level: *integration_level,
-            })
-        })
-        .collect::<Vec<_>>();
+    static BINDINGS: OnceLock<Vec<StageToolBinding>> = OnceLock::new();
+    BINDINGS
+        .get_or_init(|| {
+            let mut bindings = domain_index_contract()
+                .stage_tool_integration
+                .iter()
+                .flat_map(|(stage_id, bindings)| {
+                    bindings.iter().map(move |(tool_id, integration_level)| StageToolBinding {
+                        stage_id: StageId::new(stage_id.clone()),
+                        tool_id: ToolId::new(tool_id.clone()),
+                        integration_level: *integration_level,
+                    })
+                })
+                .collect::<Vec<_>>();
 
-    let existing_keys = bindings
-        .iter()
-        .map(|binding| (binding.stage_id.to_string(), binding.tool_id.to_string()))
-        .collect::<BTreeSet<_>>();
-    bindings.extend(planned_stage_tool_bindings().into_iter().filter(|planned| {
-        !existing_keys.contains(&(planned.stage_id.to_string(), planned.tool_id.to_string()))
-    }));
-    bindings
+            let existing_keys = bindings
+                .iter()
+                .map(|binding| (binding.stage_id.to_string(), binding.tool_id.to_string()))
+                .collect::<BTreeSet<_>>();
+            bindings.extend(planned_stage_tool_bindings().into_iter().filter(|planned| {
+                !existing_keys
+                    .contains(&(planned.stage_id.to_string(), planned.tool_id.to_string()))
+            }));
+            bindings
+        })
+        .clone()
 }
 
 fn planned_stage_tool_bindings() -> Vec<StageToolBinding> {
-    [
-        include_str!("../../../../domain/fastq/tools/adapterremoval.yaml"),
-        include_str!("../../../../domain/fastq/tools/atropos.yaml"),
-        include_str!("../../../../domain/fastq/tools/bayeshammer.yaml"),
-        include_str!("../../../../domain/fastq/tools/bbduk.yaml"),
-        include_str!("../../../../domain/fastq/tools/bbmerge.yaml"),
-        include_str!("../../../../domain/fastq/tools/bijux_dna.yaml"),
-        include_str!("../../../../domain/fastq/tools/bowtie2.yaml"),
-        include_str!("../../../../domain/fastq/tools/bowtie2_build.yaml"),
-        include_str!("../../../../domain/fastq/tools/centrifuge.yaml"),
-        include_str!("../../../../domain/fastq/tools/clumpify.yaml"),
-        include_str!("../../../../domain/fastq/tools/cutadapt.yaml"),
-        include_str!("../../../../domain/fastq/tools/dada2.yaml"),
-        include_str!("../../../../domain/fastq/tools/diamond.yaml"),
-        include_str!("../../../../domain/fastq/tools/dustmasker.yaml"),
-        include_str!("../../../../domain/fastq/tools/fastp.yaml"),
-        include_str!("../../../../domain/fastq/tools/fastq_scan.yaml"),
-        include_str!("../../../../domain/fastq/tools/fastqc.yaml"),
-        include_str!("../../../../domain/fastq/tools/fastqvalidator.yaml"),
-        include_str!("../../../../domain/fastq/tools/fastuniq.yaml"),
-        include_str!("../../../../domain/fastq/tools/fastx_clipper.yaml"),
-        include_str!("../../../../domain/fastq/tools/flash2.yaml"),
-        include_str!("../../../../domain/fastq/tools/fqtools.yaml"),
-        include_str!("../../../../domain/fastq/tools/kaiju.yaml"),
-        include_str!("../../../../domain/fastq/tools/kraken2.yaml"),
-        include_str!("../../../../domain/fastq/tools/krakenuniq.yaml"),
-        include_str!("../../../../domain/fastq/tools/leehom.yaml"),
-        include_str!("../../../../domain/fastq/tools/lighter.yaml"),
-        include_str!("../../../../domain/fastq/tools/multiqc.yaml"),
-        include_str!("../../../../domain/fastq/tools/musket.yaml"),
-        include_str!("../../../../domain/fastq/tools/pear.yaml"),
-        include_str!("../../../../domain/fastq/tools/prinseq.yaml"),
-        include_str!("../../../../domain/fastq/tools/rcorrector.yaml"),
-        include_str!("../../../../domain/fastq/tools/seqfu.yaml"),
-        include_str!("../../../../domain/fastq/tools/seqkit.yaml"),
-        include_str!("../../../../domain/fastq/tools/seqkit_stats.yaml"),
-        include_str!("../../../../domain/fastq/tools/seqpurge.yaml"),
-        include_str!("../../../../domain/fastq/tools/seqtk.yaml"),
-        include_str!("../../../../domain/fastq/tools/skewer.yaml"),
-        include_str!("../../../../domain/fastq/tools/sortmerna.yaml"),
-        include_str!("../../../../domain/fastq/tools/star.yaml"),
-        include_str!("../../../../domain/fastq/tools/trim_galore.yaml"),
-        include_str!("../../../../domain/fastq/tools/trimmomatic.yaml"),
-        include_str!("../../../../domain/fastq/tools/umi_tools.yaml"),
-        include_str!("../../../../domain/fastq/tools/vsearch.yaml"),
-        include_str!("../../../../domain/fastq/tools/alientrimmer.yaml"),
-    ]
-    .into_iter()
-    .flat_map(|raw| {
-        let manifest: ToolPlannedStageRecord = bijux_dna_infra::formats::parse_yaml(raw)
-            .unwrap_or_else(|err| panic!("parse fastq planned tool manifest: {err}"));
-        manifest.planned_stage_ids.into_iter().map(move |stage_id| StageToolBinding {
-            stage_id: StageId::new(stage_id),
-            tool_id: ToolId::new(manifest.tool_id.clone()),
-            integration_level: ToolIntegrationLevel::PlannedContract,
+    static PLANNED_BINDINGS: OnceLock<Vec<StageToolBinding>> = OnceLock::new();
+    PLANNED_BINDINGS
+        .get_or_init(|| {
+            [
+                include_str!("../../../../domain/fastq/tools/adapterremoval.yaml"),
+                include_str!("../../../../domain/fastq/tools/atropos.yaml"),
+                include_str!("../../../../domain/fastq/tools/bayeshammer.yaml"),
+                include_str!("../../../../domain/fastq/tools/bbduk.yaml"),
+                include_str!("../../../../domain/fastq/tools/bbmerge.yaml"),
+                include_str!("../../../../domain/fastq/tools/bijux_dna.yaml"),
+                include_str!("../../../../domain/fastq/tools/bowtie2.yaml"),
+                include_str!("../../../../domain/fastq/tools/bowtie2_build.yaml"),
+                include_str!("../../../../domain/fastq/tools/centrifuge.yaml"),
+                include_str!("../../../../domain/fastq/tools/clumpify.yaml"),
+                include_str!("../../../../domain/fastq/tools/cutadapt.yaml"),
+                include_str!("../../../../domain/fastq/tools/dada2.yaml"),
+                include_str!("../../../../domain/fastq/tools/diamond.yaml"),
+                include_str!("../../../../domain/fastq/tools/dustmasker.yaml"),
+                include_str!("../../../../domain/fastq/tools/fastp.yaml"),
+                include_str!("../../../../domain/fastq/tools/fastq_scan.yaml"),
+                include_str!("../../../../domain/fastq/tools/fastqc.yaml"),
+                include_str!("../../../../domain/fastq/tools/fastqvalidator.yaml"),
+                include_str!("../../../../domain/fastq/tools/fastuniq.yaml"),
+                include_str!("../../../../domain/fastq/tools/fastx_clipper.yaml"),
+                include_str!("../../../../domain/fastq/tools/flash2.yaml"),
+                include_str!("../../../../domain/fastq/tools/fqtools.yaml"),
+                include_str!("../../../../domain/fastq/tools/kaiju.yaml"),
+                include_str!("../../../../domain/fastq/tools/kraken2.yaml"),
+                include_str!("../../../../domain/fastq/tools/krakenuniq.yaml"),
+                include_str!("../../../../domain/fastq/tools/leehom.yaml"),
+                include_str!("../../../../domain/fastq/tools/lighter.yaml"),
+                include_str!("../../../../domain/fastq/tools/multiqc.yaml"),
+                include_str!("../../../../domain/fastq/tools/musket.yaml"),
+                include_str!("../../../../domain/fastq/tools/pear.yaml"),
+                include_str!("../../../../domain/fastq/tools/prinseq.yaml"),
+                include_str!("../../../../domain/fastq/tools/rcorrector.yaml"),
+                include_str!("../../../../domain/fastq/tools/seqfu.yaml"),
+                include_str!("../../../../domain/fastq/tools/seqkit.yaml"),
+                include_str!("../../../../domain/fastq/tools/seqkit_stats.yaml"),
+                include_str!("../../../../domain/fastq/tools/seqpurge.yaml"),
+                include_str!("../../../../domain/fastq/tools/seqtk.yaml"),
+                include_str!("../../../../domain/fastq/tools/skewer.yaml"),
+                include_str!("../../../../domain/fastq/tools/sortmerna.yaml"),
+                include_str!("../../../../domain/fastq/tools/star.yaml"),
+                include_str!("../../../../domain/fastq/tools/trim_galore.yaml"),
+                include_str!("../../../../domain/fastq/tools/trimmomatic.yaml"),
+                include_str!("../../../../domain/fastq/tools/umi_tools.yaml"),
+                include_str!("../../../../domain/fastq/tools/vsearch.yaml"),
+                include_str!("../../../../domain/fastq/tools/alientrimmer.yaml"),
+            ]
+            .into_iter()
+            .flat_map(|raw| {
+                let manifest: ToolPlannedStageRecord = bijux_dna_infra::formats::parse_yaml(raw)
+                    .unwrap_or_else(|err| panic!("parse fastq planned tool manifest: {err}"));
+                manifest.planned_stage_ids.into_iter().map(move |stage_id| StageToolBinding {
+                    stage_id: StageId::new(stage_id),
+                    tool_id: ToolId::new(manifest.tool_id.clone()),
+                    integration_level: ToolIntegrationLevel::PlannedContract,
+                })
+            })
+            .collect()
         })
-    })
-    .collect()
+        .clone()
 }
 
 #[must_use]
