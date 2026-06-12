@@ -18,6 +18,7 @@ use crate::params::{
 use crate::stage_io::{stage_command, stage_inputs_for, stage_outputs_for};
 use crate::tool_catalog::image_for_tool;
 
+#[must_use]
 pub fn stage_resources_for_stage(stage: VcfDomainStage) -> ToolConstraints {
     ToolConstraints {
         runtime: "docker".to_string(),

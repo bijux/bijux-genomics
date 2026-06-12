@@ -490,7 +490,7 @@ fn vcf_planner_renders_executable_descent_stage_templates_for_retained_backends(
                 assert!(joined.contains("ibd_segments.tsv"));
                 assert!(joined.contains("--out"));
             }
-            other => panic!("unexpected descent backend {:?}", other),
+            other => panic!("unexpected descent backend {other:?}"),
         }
     }
 }
