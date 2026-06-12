@@ -338,6 +338,7 @@ fn umi_metrics(
         .ok()
         .and_then(|raw| crate::observer::parse_extract_umis_report(&raw).ok());
     if let Some(report) = parsed_report {
+        let umi_summary = report.canonical_umi_summary();
         let read_retention = if report.reads_in > 0 {
             f64_from_u64(report.reads_out) / f64_from_u64(report.reads_in)
         } else {
@@ -375,6 +376,11 @@ fn umi_metrics(
             bases_out: report.bases_out,
             pairs_in: report.pairs_in,
             pairs_out: report.pairs_out,
+            umi_pattern: report.umi_pattern,
+            tag_header_format: umi_summary.tag_header_format,
+            reads_with_umi: report.reads_with_umi,
+            extracted_umi_count: umi_summary.extracted_umi_count,
+            invalid_umi_count: umi_summary.invalid_umi_count,
             mean_q_before: report.mean_q_before,
             mean_q_after: report.mean_q_after,
             delta_metrics: delta,
@@ -427,11 +433,134 @@ fn umi_metrics(
             bases_out: output.bases,
             pairs_in,
             pairs_out,
+            umi_pattern: plan
+                .effective_params
+                .get("umi_pattern")
+                .and_then(serde_json::Value::as_str)
+                .map_or_else(String::new, ToString::to_string),
+            tag_header_format: plan
+                .effective_params
+                .get("read_name_transform")
+                .and_then(serde_json::Value::as_str)
+                .map_or_else(String::new, ToString::to_string),
+            reads_with_umi: output.reads,
+            extracted_umi_count: output.reads,
+            invalid_umi_count: input.reads.saturating_sub(output.reads),
             mean_q_before: input.mean_q,
             mean_q_after: output.mean_q,
             delta_metrics: delta,
             retention,
         })?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
+    use std::path::PathBuf;
+
+    use bijux_dna_core::contract::{ArtifactRole, StageIO, StageOperatingMode, ToolConstraints};
+    use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
+    use bijux_dna_domain_fastq::metrics::FastqUmiMetricsV1;
+    use bijux_dna_stage_contract::{ArtifactRef, PlanDecisionReason, StagePlanV1};
+
+    use super::umi_metrics;
+
+    fn write_fastq(path: &std::path::Path, read_id: &str, sequence: &str) {
+        let quality = "#".repeat(sequence.len());
+        bijux_dna_infra::write_bytes(path, format!("@{read_id}\n{sequence}\n+\n{quality}\n"))
+            .expect("write fastq");
+    }
+
+    fn umi_plan(out_dir: &std::path::Path) -> StagePlanV1 {
+        StagePlanV1 {
+            stage_id: StageId::from_static("fastq.extract_umis"),
+            stage_instance_id: None,
+            stage_version: StageVersion(1),
+            tool_id: ToolId::from_static("umi_tools"),
+            tool_version: "test".to_string(),
+            image: serde_json::from_value(serde_json::json!({
+                "image": "bijuxdna/test",
+                "digest": null
+            }))
+            .expect("image"),
+            command: serde_json::from_value(serde_json::json!({
+                "template": ["echo", "ok"]
+            }))
+            .expect("command"),
+            resources: ToolConstraints::default(),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    PathBuf::from("reads_R1.fastq"),
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![],
+            },
+            out_dir: out_dir.to_path_buf(),
+            params: serde_json::json!({}),
+            effective_params: serde_json::json!({}),
+            operating_mode: StageOperatingMode::Enforced,
+            aux_images: BTreeMap::new(),
+            canonical_contract: None,
+            provenance: None,
+            reason: PlanDecisionReason::default(),
+        }
+    }
+
+    #[test]
+    fn umi_metrics_emit_canonical_umi_fields() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let reads_r1 = temp.path().join("reads_R1.fastq");
+        let umi_reads_r1 = temp.path().join("umi_reads_R1.fastq");
+        write_fastq(&reads_r1, "r1", "ACGT");
+        write_fastq(&umi_reads_r1, "r1 umi:AAAA", "ACGT");
+        bijux_dna_infra::write_bytes(
+            temp.path().join("umi_report.json"),
+            serde_json::json!({
+                "schema_version": "bijux.fastq.extract_umis.report.v2",
+                "stage": "fastq.extract_umis",
+                "stage_id": "fastq.extract_umis",
+                "tool_id": "umi_tools",
+                "paired_mode": "single_end",
+                "threads": 2,
+                "umi_pattern": "NNNNNNNN",
+                "extraction_location": "read1_prefix",
+                "read_name_transform": "append_to_header",
+                "failed_extraction_policy": "retain_unmodified",
+                "grouping_policy": "pair_aware",
+                "downstream_dedup_policy": "sequence_identity_recommended",
+                "downstream_propagation": "header_and_report",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": null,
+                "output_r1": "umi_reads_R1.fastq.gz",
+                "output_r2": null,
+                "report_json": "umi_report.json",
+                "reads_in": 100,
+                "reads_out": 98,
+                "bases_in": 1000,
+                "bases_out": 980,
+                "pairs_in": null,
+                "pairs_out": null,
+                "reads_with_umi": 98,
+                "failed_extractions": 2,
+                "mean_q_before": 30.0,
+                "mean_q_after": 30.0
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics: FastqUmiMetricsV1 = serde_json::from_value(
+            umi_metrics(&umi_plan(temp.path()), &[reads_r1], &[umi_reads_r1]).expect("umi metrics"),
+        )
+        .expect("decode metrics");
+
+        assert_eq!(metrics.umi_pattern, "NNNNNNNN");
+        assert_eq!(metrics.tag_header_format, "append_to_header");
+        assert_eq!(metrics.reads_with_umi, 98);
+        assert_eq!(metrics.extracted_umi_count, 98);
+        assert_eq!(metrics.invalid_umi_count, 2);
     }
 }
 

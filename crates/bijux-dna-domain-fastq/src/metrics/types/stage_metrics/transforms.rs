@@ -22,6 +22,14 @@ pub struct FastqMergeMetricsV1 {
     pub pairs_in: Option<u64>,
     #[serde(default)]
     pub pairs_out: Option<u64>,
+    #[serde(default)]
+    pub input_pair_count: u64,
+    #[serde(default)]
+    pub merged_pair_count: u64,
+    #[serde(default)]
+    pub unmerged_pair_count: u64,
+    #[serde(default)]
+    pub discarded_pair_count: u64,
     pub merge_rate: f64,
     pub merge_q_delta: f64,
 }
@@ -54,6 +62,16 @@ pub struct FastqUmiMetricsV1 {
     pub pairs_in: Option<u64>,
     #[serde(default)]
     pub pairs_out: Option<u64>,
+    #[serde(default)]
+    pub umi_pattern: String,
+    #[serde(default)]
+    pub tag_header_format: String,
+    #[serde(default)]
+    pub reads_with_umi: u64,
+    #[serde(default)]
+    pub extracted_umi_count: u64,
+    #[serde(default)]
+    pub invalid_umi_count: u64,
     pub mean_q_before: f64,
     pub mean_q_after: f64,
     pub delta_metrics: FastqDeltaMetricsV1,

@@ -105,6 +105,10 @@ fn merge_metrics(merge_rate: f64) -> FastqMergeMetricsV1 {
         reads_merged: 60,
         reads_unmerged: 40,
         reads_discarded: 0,
+        input_pair_count: 50,
+        merged_pair_count: 50,
+        unmerged_pair_count: 0,
+        discarded_pair_count: 0,
         merge_rate,
         merge_q_delta: 0.0,
     }

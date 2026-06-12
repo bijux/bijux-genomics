@@ -123,7 +123,33 @@ pub(super) fn merge_metrics(
     let reads_unmerged = parsed_report
         .as_ref()
         .map_or_else(|| unmerged_r1.reads.min(unmerged_r2.reads), |report| report.reads_unmerged);
-    let min_reads = reads_r1.min(reads_r2);
+    let (input_pair_count, merged_pair_count, unmerged_pair_count, discarded_pair_count) =
+        parsed_report.as_ref().map_or_else(
+            || {
+                let input_pair_count = reads_r1.min(reads_r2);
+                let merged_pair_count = reads_merged.min(input_pair_count);
+                let unmerged_pair_count =
+                    reads_unmerged.min(input_pair_count.saturating_sub(merged_pair_count));
+                let discarded_pair_count =
+                    input_pair_count.saturating_sub(merged_pair_count + unmerged_pair_count);
+                (
+                    input_pair_count,
+                    merged_pair_count,
+                    unmerged_pair_count,
+                    discarded_pair_count,
+                )
+            },
+            |report| {
+                let pair_counts = report.canonical_pair_counts();
+                (
+                    pair_counts.input_pair_count,
+                    pair_counts.merged_pair_count,
+                    pair_counts.unmerged_pair_count,
+                    pair_counts.discarded_pair_count,
+                )
+            },
+        );
+    let min_reads = input_pair_count;
     let merge_rate = parsed_report.as_ref().map_or_else(
         || {
             if min_reads > 0 {
@@ -142,16 +168,142 @@ pub(super) fn merge_metrics(
         reads_out: reads_merged,
         bases_in,
         bases_out: merged.bases,
-        pairs_in: Some(min_reads),
-        pairs_out: Some(reads_merged),
+        pairs_in: Some(input_pair_count),
+        pairs_out: Some(merged_pair_count),
         reads_r1,
         reads_r2,
         reads_merged,
         reads_unmerged,
-        reads_discarded: 0,
+        reads_discarded: discarded_pair_count,
+        input_pair_count,
+        merged_pair_count,
+        unmerged_pair_count,
+        discarded_pair_count,
         merge_rate,
         merge_q_delta,
     })?)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
+    use std::path::PathBuf;
+
+    use bijux_dna_core::contract::{ArtifactRole, StageIO, StageOperatingMode, ToolConstraints};
+    use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
+    use bijux_dna_domain_fastq::metrics::FastqMergeMetricsV1;
+    use bijux_dna_stage_contract::{ArtifactRef, PlanDecisionReason, StagePlanV1};
+
+    use super::merge_metrics;
+
+    fn write_fastq(path: &std::path::Path, read_id: &str, sequence: &str) {
+        let quality = "#".repeat(sequence.len());
+        bijux_dna_infra::write_bytes(path, format!("@{read_id}\n{sequence}\n+\n{quality}\n"))
+            .expect("write fastq");
+    }
+
+    fn merge_plan(out_dir: &std::path::Path) -> StagePlanV1 {
+        StagePlanV1 {
+            stage_id: StageId::from_static("fastq.merge_pairs"),
+            stage_instance_id: None,
+            stage_version: StageVersion(1),
+            tool_id: ToolId::from_static("pear"),
+            tool_version: "test".to_string(),
+            image: serde_json::from_value(serde_json::json!({
+                "image": "bijuxdna/test",
+                "digest": null
+            }))
+            .expect("image"),
+            command: serde_json::from_value(serde_json::json!({
+                "template": ["echo", "ok"]
+            }))
+            .expect("command"),
+            resources: ToolConstraints::default(),
+            io: StageIO {
+                inputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("reads_r1"),
+                        PathBuf::from("reads_R1.fastq"),
+                        ArtifactRole::Reads,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("reads_r2"),
+                        PathBuf::from("reads_R2.fastq"),
+                        ArtifactRole::Reads,
+                    ),
+                ],
+                outputs: vec![],
+            },
+            out_dir: out_dir.to_path_buf(),
+            params: serde_json::json!({}),
+            effective_params: serde_json::json!({}),
+            operating_mode: StageOperatingMode::Enforced,
+            aux_images: BTreeMap::new(),
+            canonical_contract: None,
+            provenance: None,
+            reason: PlanDecisionReason::default(),
+        }
+    }
+
+    #[test]
+    fn merge_metrics_emit_canonical_pair_counts() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let reads_r1 = temp.path().join("reads_R1.fastq");
+        let reads_r2 = temp.path().join("reads_R2.fastq");
+        let merged_reads = temp.path().join("merged.fastq");
+        let unmerged_r1 = temp.path().join("unmerged_R1.fastq");
+        let unmerged_r2 = temp.path().join("unmerged_R2.fastq");
+        write_fastq(&reads_r1, "r1", "ACGT");
+        write_fastq(&reads_r2, "r1", "TGCA");
+        write_fastq(&merged_reads, "merged", "ACGTTGCA");
+        write_fastq(&unmerged_r1, "left", "AAAA");
+        write_fastq(&unmerged_r2, "right", "TTTT");
+        bijux_dna_infra::write_bytes(
+            temp.path().join("merge_report.json"),
+            serde_json::json!({
+                "schema_version": "bijux.fastq.merge_pairs.report.v2",
+                "stage": "fastq.merge_pairs",
+                "stage_id": "fastq.merge_pairs",
+                "tool_id": "pear",
+                "paired_mode": "paired_end",
+                "merge_engine": "pear",
+                "threads": 2,
+                "merge_overlap": 12,
+                "min_len": 30,
+                "unmerged_read_policy": "emit_unmerged_pairs",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "merged_reads": "merged.fastq.gz",
+                "unmerged_reads_r1": "unmerged_R1.fastq.gz",
+                "unmerged_reads_r2": "unmerged_R2.fastq.gz",
+                "reads_r1": 100,
+                "reads_r2": 96,
+                "reads_merged": 88,
+                "reads_unmerged": 6,
+                "merge_rate": 0.9166666667
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics: FastqMergeMetricsV1 = serde_json::from_value(
+            merge_metrics(
+                &merge_plan(temp.path()),
+                &[reads_r1, reads_r2],
+                &[merged_reads, unmerged_r1, unmerged_r2],
+            )
+            .expect("merge metrics"),
+        )
+        .expect("decode metrics");
+
+        assert_eq!(metrics.input_pair_count, 96);
+        assert_eq!(metrics.merged_pair_count, 88);
+        assert_eq!(metrics.unmerged_pair_count, 6);
+        assert_eq!(metrics.discarded_pair_count, 2);
+        assert_eq!(metrics.reads_discarded, 2);
+        assert_eq!(metrics.pairs_in, Some(96));
+        assert_eq!(metrics.pairs_out, Some(88));
+    }
 }
 
 pub(super) fn validate_metrics(
