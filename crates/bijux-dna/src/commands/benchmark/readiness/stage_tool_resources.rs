@@ -365,7 +365,7 @@ mod tests {
         assert_eq!(report.classification_scope, "benchmark_ready_command_resources");
         assert_eq!(report.benchmark_ready_row_count, report.row_count);
         assert_eq!(report.nonzero_resource_row_count, report.row_count);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&63));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&66));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
         assert_eq!(report.domain_counts.get("vcf"), Some(&20));
         assert!(report.rows.iter().all(|row| {

@@ -326,7 +326,7 @@ mod tests {
         assert_eq!(report.external_row_count, 114);
         assert_eq!(report.container_declared_row_count, 114);
         assert_eq!(report.command_entrypoint_row_count, 115);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&63));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&66));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
         assert!(report.rows.iter().all(|row| {
             row.container_id.is_some()

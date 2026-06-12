@@ -326,10 +326,10 @@ mod tests {
         assert_eq!(report.stage_count, 27);
         assert_eq!(report.tool_count, 44);
         assert_eq!(report.row_count, 74);
-        assert_eq!(report.benchmark_ready_row_count, 63);
-        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 63);
+        assert_eq!(report.benchmark_ready_row_count, 66);
+        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 66);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
-        assert_eq!(report.readiness_gap_counts.get("corpus"), Some(&6));
+        assert_eq!(report.readiness_gap_counts.get("corpus"), Some(&3));
         assert_eq!(report.readiness_gap_counts.get("support"), Some(&5));
         assert!(
             report.readiness_gap_counts.get("adapter").is_none(),
@@ -385,6 +385,16 @@ mod tests {
                 && super::readiness_gap_label(row.readiness_gap) == "none"
                 && row.corpus_status == "fixture:corpus-01-mini"
         }));
+        for tool_id in ["fastq_scan", "fastqc", "seqkit"] {
+            assert!(report.rows.iter().any(|row| {
+                row.tool_id == tool_id
+                    && row.stage_id == "fastq.profile_overrepresented_sequences"
+                    && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
+                    && super::adapter_coverage_label(row.adapter_coverage) == "covered"
+                    && super::readiness_gap_label(row.readiness_gap) == "none"
+                    && row.corpus_status == "fixture:corpus-01-mini"
+            }));
+        }
         for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
             assert!(report.rows.iter().any(|row| {
                 row.tool_id == tool_id
@@ -437,6 +447,16 @@ mod tests {
             }),
             "the governed trim-terminal-damage row must remain benchmark-ready and adapter-covered"
         );
+        for tool_id in ["fastq_scan", "fastqc", "seqkit"] {
+            assert!(
+                rows.iter().any(|row| {
+                    row.starts_with(&format!(
+                        "{tool_id}\tfastq.profile_overrepresented_sequences\tbenchmark_ready\tcovered\tnone\tobserver_specialized_benchmark\trunnable\tcomparable\tfixture:corpus-01-mini\t"
+                    ))
+                }),
+                "the governed overrepresented-sequence row must remain benchmark-ready and adapter-covered for {tool_id}"
+            );
+        }
         for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
             assert!(
                 rows.iter().any(|row| {

@@ -484,7 +484,7 @@ mod tests {
         assert_eq!(report.tool_count, 69);
         assert_eq!(report.corpus_count, 9);
         assert_eq!(report.asset_profile_count, 13);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&63));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&66));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
         assert_eq!(report.domain_counts.get("vcf"), Some(&20));
 

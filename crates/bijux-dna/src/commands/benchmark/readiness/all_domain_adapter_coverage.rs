@@ -472,7 +472,7 @@ mod tests {
         assert_eq!(report.covered_row_count, report.row_count);
         assert_eq!(report.missing_row_count, 0);
         assert_eq!(report.coverage_percent, 100.0);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&63));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&66));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
         assert_eq!(report.domain_counts.get("vcf"), Some(&20));
         assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&115));

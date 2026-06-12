@@ -578,7 +578,7 @@ mod tests {
             "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl"
         );
         assert_eq!(report.result_id_count, report.row_count);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&63));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&66));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
         assert_eq!(report.domain_counts.get("vcf"), Some(&20));
         assert_eq!(report.benchmark_status_counts.get("benchmark_ready"), Some(&report.row_count));

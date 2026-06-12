@@ -472,7 +472,7 @@ mod tests {
         assert_eq!(report.present_result_row_count, 114);
         assert_eq!(report.missing_result_row_count, 1);
         assert!(report.passes_behavior_test);
-        assert_eq!(report.domain_counts.get("fastq").copied(), Some(63));
+        assert_eq!(report.domain_counts.get("fastq").copied(), Some(66));
         assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
 
         let removed_row = report

@@ -44,7 +44,7 @@ fn bench_readiness_fastq_parser_coverage_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 63);
+    assert_eq!(rows.len(), 66);
     assert!(
         rows.iter().any(|row| {
             row == &"fastqc\tfastq.validate_reads\tcovered\tcomparable\tobserver_specialized_benchmark\trunnable\tfixture:corpus-01-mini\trow `fastq.validate_reads` / `fastqc` has governed support, adapter-backed command rendering, fixture-backed corpus coverage, and normalized parser output"

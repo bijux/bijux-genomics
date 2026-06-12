@@ -78,7 +78,7 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
             .get("gate_domain_row_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(63)
+        Some(66)
     );
     assert_eq!(
         payload
@@ -92,7 +92,7 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
             .get("excluded_readiness_gap_counts")
             .and_then(|value| value.get("corpus"))
             .and_then(serde_json::Value::as_u64),
-        Some(6)
+        Some(3)
     );
     assert_eq!(
         payload

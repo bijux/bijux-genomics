@@ -583,10 +583,10 @@ mod tests {
         assert_eq!(report.covered_row_count, report.row_count);
         assert_eq!(report.missing_row_count, 0);
         assert_eq!(report.coverage_percent, 100.0);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&63));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&66));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
         assert_eq!(report.domain_counts.get("vcf"), Some(&20));
-        assert_eq!(report.proof_source_counts.get("fastq_parser_coverage"), Some(&63));
+        assert_eq!(report.proof_source_counts.get("fastq_parser_coverage"), Some(&66));
         assert_eq!(report.proof_source_counts.get("bam_parser_coverage"), Some(&49));
         assert_eq!(report.proof_source_counts.get("vcf_parser_fixture_coverage"), Some(&20));
         assert_eq!(report.proof_source_counts.values().copied().sum::<usize>(), report.row_count);

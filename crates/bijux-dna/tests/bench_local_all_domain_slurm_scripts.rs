@@ -65,7 +65,7 @@ fn bench_local_render_all_domain_slurm_scripts_reports_governed_job_counts() {
         .get("benchmark_domain_counts")
         .and_then(serde_json::Value::as_object)
         .expect("benchmark domain counts");
-    assert_eq!(benchmark_domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(63));
+    assert_eq!(benchmark_domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(66));
     assert_eq!(benchmark_domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
     assert_eq!(benchmark_domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(9));
 
