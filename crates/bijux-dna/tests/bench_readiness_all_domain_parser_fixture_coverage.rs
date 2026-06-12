@@ -55,7 +55,7 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
         .get("stage_count")
         .and_then(serde_json::Value::as_u64)
         .is_some_and(|count| count >= 62));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(
         payload.get("parser_proof_binding_count").and_then(serde_json::Value::as_u64),
         Some(row_count)
@@ -70,7 +70,7 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(67));
+    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(69));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
     assert_eq!(support::object_u64(domain_counts, "vcf"), Some(20));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
@@ -81,7 +81,7 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
         .expect("proof source counts");
     assert_eq!(
         proof_source_counts.get("fastq_parser_coverage").and_then(serde_json::Value::as_u64),
-        Some(67)
+        Some(69)
     );
     assert_eq!(
         proof_source_counts.get("bam_parser_coverage").and_then(serde_json::Value::as_u64),
@@ -150,6 +150,21 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
             )
             && row.get("proof_source").and_then(serde_json::Value::as_str)
                 == Some("vcf_parser_fixture_coverage")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+            && row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.index_reference")
+            && row.get("tool_id").and_then(serde_json::Value::as_str)
+                == Some("bowtie2_build")
+            && row
+                .get("parser_fixture_reference_kind")
+                .and_then(serde_json::Value::as_str)
+                == Some("asset_scope")
+            && row.get("parser_fixture_reference").and_then(serde_json::Value::as_str)
+                == Some("asset:reference-index-assets")
+            && row.get("proof_source").and_then(serde_json::Value::as_str)
+                == Some("fastq_parser_coverage")
     }));
 
     let violations =

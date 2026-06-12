@@ -56,7 +56,7 @@ fn bench_readiness_full_benchmark_dashboard_writes_markdown_and_json_outputs() {
     assert!(markdown.contains("# Full Benchmark Dashboard"));
     assert!(markdown.contains("| metric | count | source path | source field | detail |"));
     assert!(markdown.contains("| total_stages | 71 |"));
-    assert!(markdown.contains("| total_tools | 69 |"));
+    assert!(markdown.contains("| total_tools | 71 |"));
     assert!(markdown.contains(&format!("| total_expected_jobs | {total_expected_jobs} |")));
     assert!(markdown.contains(&format!("| ready_jobs | {ready_jobs} |")));
     assert!(markdown.contains(&format!("| blocked_jobs | {blocked_jobs} |")));

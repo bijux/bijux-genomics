@@ -43,10 +43,10 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_writes_governed_json_f
 
     assert_eq!(
         payload.get("executable_active_row_count").and_then(serde_json::Value::as_u64),
-        Some(138)
+        Some(139)
     );
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(135));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(138));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
@@ -55,8 +55,8 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_writes_governed_json_f
     assert!(removed_rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
             && row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("fastq.index_reference")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("star")
+                == Some("fastq.report_qc")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("multiqc")
             && row.get("status").and_then(serde_json::Value::as_str) == Some("not_benchmark_ready")
     }));
 }

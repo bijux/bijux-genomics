@@ -50,7 +50,10 @@ fn bench_readiness_all_domain_parser_fixture_coverage_writes_governed_tsv_file()
     let rows = lines.collect::<Vec<_>>();
     assert!(rows.len() >= 128);
     assert!(rows.iter().any(|row| {
-        row == &"fastq\tfastq.trim_reads\ttrimmomatic\tcorpus-01-mini\tcorpus_only\tfastq.adapter.trim_reads\tfastq.parser.trim_reads\tfastq_trim_reads_v2\tnone\tnone\tfixture_corpus\tfixture:corpus-01-mini\tfastq_parser_coverage\tcovered\trow `fastq.trim_reads` / `trimmomatic` has governed support, adapter-backed command rendering, fixture-backed corpus coverage, and normalized parser output"
+        row == &"fastq\tfastq.trim_reads\ttrimmomatic\tcorpus-01-mini\tcorpus_only\tfastq.adapter.trim_reads\tfastq.parser.trim_reads\tfastq_trim_reads_v2\tnone\tnone\tfixture_corpus\tfixture:corpus-01-mini\tfastq_parser_coverage\tcovered\trow `fastq.trim_reads` / `trimmomatic` has governed support, adapter-backed command rendering, fixture-backed benchmark coverage, and normalized parser output"
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"fastq\tfastq.index_reference\tbowtie2_build\treference-index-assets\treference_fasta+reference_index_output\tfastq.adapter.index_reference\tfastq.parser.index_reference\tfastq_index_reference_v1\tnone\tnone\tasset_scope\tasset:reference-index-assets\tfastq_parser_coverage\tcovered\trow `fastq.index_reference` / `bowtie2_build` has governed support, adapter-backed command rendering, asset-backed benchmark coverage, and normalized parser output"
     }));
     assert!(rows.iter().any(|row| {
         row == &"bam\tbam.contamination\tschmutzi\tcorpus-01-adna-bam-mini\treference_fasta+reference_panel\tbam.adapter.contamination\tbam.parser.contamination\tbam_contamination_normalized_v1\tnone\tnone\tfixture_corpus\tfixture:corpus-01-adna-bam-mini\tbam_parser_coverage\tcovered\trow `bam.contamination` / `schmutzi` is benchmark_ready with governed support, adapter-backed command rendering, fixture-backed corpus coverage, and parser-fixture-validated output"

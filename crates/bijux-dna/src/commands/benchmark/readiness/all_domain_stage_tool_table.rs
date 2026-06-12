@@ -163,7 +163,11 @@ pub(crate) fn collect_all_domain_stage_tool_table_rows(
             domain: "fastq".to_string(),
             stage_id: row.stage_id.clone(),
             tool_id: row.tool_id.clone(),
-            corpus_id: corpus_row.fixture_id.clone().unwrap_or_else(|| NOT_ASSIGNED.to_string()),
+            corpus_id: corpus_row
+                .fixture_id
+                .clone()
+                .or(corpus_row.benchmark_scope_id.clone())
+                .unwrap_or_else(|| NOT_ASSIGNED.to_string()),
             asset_profile_id: fastq_bam_asset_profile_id(&key, &asset_roles_by_binding),
             adapter_id: normalized_adapter_surface_id("fastq", &row.stage_id),
             parser_id: normalized_parser_surface_id("fastq", &row.stage_id),

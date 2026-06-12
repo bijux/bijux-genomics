@@ -51,11 +51,11 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
         Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(66));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(67));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(71));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(67));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
     assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
@@ -166,12 +166,27 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
         }),
         "active scope must keep only benchmark-ready rows"
     );
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+            && row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.index_reference")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2_build")
+            && row.get("corpus_id").and_then(serde_json::Value::as_str)
+                == Some("reference-index-assets")
+            && row.get("asset_profile_id").and_then(serde_json::Value::as_str)
+                == Some("reference_fasta+reference_index_output")
+            && row.get("adapter_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.adapter.index_reference")
+            && row.get("parser_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.parser.index_reference")
+            && row.get("schema_id").and_then(serde_json::Value::as_str)
+                == Some("fastq_index_reference_v1")
+            && row.get("status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
+    }));
     assert!(
         rows.iter().all(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) != Some("fastq.index_reference")
-                && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    != Some("fastq.report_qc")
+            row.get("stage_id").and_then(serde_json::Value::as_str) != Some("fastq.report_qc")
         }),
-        "active scope must exclude not-benchmark-ready-only stages"
+        "active scope must exclude rows that are still not benchmark ready"
     );
 }

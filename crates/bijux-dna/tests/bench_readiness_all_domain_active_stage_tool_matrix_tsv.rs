@@ -56,6 +56,9 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_writes_governed_tsv_file(
         row == &"fastq\tfastq.trim_reads\ttrimmomatic\tcorpus-01-mini\tcorpus_only\tfastq.adapter.trim_reads\tfastq.parser.trim_reads\tfastq_trim_reads_v2\tbenchmark_ready"
     }));
     assert!(rows.iter().any(|row| {
+        row == &"fastq\tfastq.index_reference\tbowtie2_build\treference-index-assets\treference_fasta+reference_index_output\tfastq.adapter.index_reference\tfastq.parser.index_reference\tfastq_index_reference_v1\tbenchmark_ready"
+    }));
+    assert!(rows.iter().any(|row| {
         row == &"vcf\tvcf.stats\tbcftools\tvcf_production_regression\tvcf_cohort\tvcf.adapter.quality_control\tvcf.parser.stats_report\tbijux.schemas.bench.vcf-normalized-metrics.stats.v1\tbenchmark_ready"
     }));
     assert!(rows.iter().any(|row| {
@@ -69,9 +72,7 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_writes_governed_tsv_file(
         "active scope TSV must keep only benchmark-ready rows"
     );
     assert!(
-        rows.iter().all(|row| {
-            !row.contains("\tfastq.index_reference\t") && !row.contains("\tfastq.report_qc\t")
-        }),
-        "active scope TSV must exclude not-benchmark-ready-only stages"
+        rows.iter().all(|row| !row.contains("\tfastq.report_qc\t")),
+        "active scope TSV must exclude rows that are still not benchmark ready"
     );
 }

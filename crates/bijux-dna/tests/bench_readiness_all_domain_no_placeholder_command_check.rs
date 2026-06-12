@@ -60,12 +60,12 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
     assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(row_count));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(66));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(payload.get("command_step_count").and_then(serde_json::Value::as_u64), Some(157));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(67));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(payload.get("command_step_count").and_then(serde_json::Value::as_u64), Some(160));
     assert_eq!(
         payload.get("shell_wrapped_step_count").and_then(serde_json::Value::as_u64),
-        Some(91)
+        Some(93)
     );
     assert_eq!(payload.get("direct_step_count").and_then(serde_json::Value::as_u64), Some(67));
     assert_eq!(payload.get("valid_row_count").and_then(serde_json::Value::as_u64), Some(row_count));
@@ -74,7 +74,7 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(67));
+    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(69));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
     assert_eq!(support::object_u64(domain_counts, "vcf"), Some(20));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
@@ -85,7 +85,7 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
         .expect("command source counts");
     assert_eq!(
         command_source_counts.get("fastq_bam_command_adapter").and_then(serde_json::Value::as_u64),
-        Some(116)
+        Some(118)
     );
     assert_eq!(
         command_source_counts.get("vcf_bcftools_adapter").and_then(serde_json::Value::as_u64),

@@ -57,12 +57,16 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_s
     let removed_row_count =
         support::json_u64(&payload, "removed_row_count").expect("removed_row_count");
     assert_eq!(executable_active_row_count, active_row_count + removed_row_count);
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(136));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(66));
-    assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(removed_row_count, 3);
-    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(2));
-    assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(
+        payload.get("executable_active_row_count").and_then(serde_json::Value::as_u64),
+        Some(139)
+    );
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(138));
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(67));
+    assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(removed_row_count, 1);
+    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
@@ -72,7 +76,7 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_s
         .expect("removed status counts");
     assert_eq!(
         removed_status_counts.get("not_benchmark_ready").and_then(serde_json::Value::as_u64),
-        Some(3)
+        Some(1)
     );
 
     let removed_rows = support::json_array(&payload, "removed_rows");
@@ -83,15 +87,14 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_s
 
     assert!(removed_rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
-            && row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("fastq.index_reference")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2_build")
-            && row.get("status").and_then(serde_json::Value::as_str) == Some("not_benchmark_ready")
-    }));
-    assert!(removed_rows.iter().any(|row| {
-        row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
             && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.report_qc")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("multiqc")
             && row.get("status").and_then(serde_json::Value::as_str) == Some("not_benchmark_ready")
     }));
+    assert!(
+        removed_rows.iter().all(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) != Some("fastq.index_reference")
+        }),
+        "asset-backed index-reference rows must stay in active scope once benchmark ready"
+    );
 }
