@@ -564,6 +564,14 @@ Visible aliases are part of the operator surface:
   through retained-vs-removed counts, while the TSV fail-closes unless every retained active row
   stays `benchmark_ready` and none leak `planned_contract`, `declared_only`, or `planner_only`
   readiness states back into FASTQ job scope.
+- `bijux-dna bench readiness render-fastq-duplicate-stages-ready`
+  `render-fastq-duplicate-stages-ready` writes
+  `benchmarks/readiness/fastq/duplicate-stages-ready.json` with one governed row per admitted
+  FASTQ duplicate binding across `fastq.detect_duplicates_premerge` and
+  `fastq.remove_duplicates`. Each row ties active-scope coverage, command-adapter coverage,
+  output declarations, parser coverage, expected benchmark results, report-map placement, and
+  normalized metric requirements together so duplicate count, duplicate fraction, inspected pairs,
+  unique reads, and normalized output reads stay explicit in the governed benchmark surface.
 - `bijux-dna bench readiness render-fastq-filter-stages-ready`
   `render-fastq-filter-stages-ready` writes
   `benchmarks/readiness/fastq/filter-stages-ready.json` with one governed row per admitted FASTQ
