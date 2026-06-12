@@ -222,7 +222,7 @@ pub(crate) fn render_all_domain_harness_ready(
                 .context("goal 279 stage tool table report is required")?;
             if report.row_count != benchmark_ready_binding_count
                 || report.result_id_count != benchmark_ready_binding_count
-                || report.stage_count != 62
+                || report.stage_count != 63
                 || report.tool_count != 69
                 || report.corpus_count != 9
                 || report.asset_profile_count != 13
@@ -265,7 +265,7 @@ pub(crate) fn render_all_domain_harness_ready(
                     != Some(2)
                 || report.command_source_counts.get("vcf_phasing_family_adapter").copied()
                     != Some(1)
-                || report.command_source_counts.get("vcf_plink_family_adapter").copied() != Some(3)
+                || report.command_source_counts.get("vcf_plink_family_adapter").copied() != Some(4)
             {
                 bail!("all-domain rendered commands drifted from the governed binding slice");
             }

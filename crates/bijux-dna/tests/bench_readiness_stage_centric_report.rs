@@ -53,7 +53,7 @@ fn bench_readiness_stage_centric_report_tracks_multi_tool_stage_coverage() {
     assert_eq!(payload.get("blocked_stage_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(
         payload.get("declared_shared_metric_stage_count").and_then(serde_json::Value::as_u64),
-        Some(18)
+        Some(19)
     );
     assert_eq!(
         payload.get("not_declared_shared_metric_stage_count").and_then(serde_json::Value::as_u64),

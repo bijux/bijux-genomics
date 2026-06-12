@@ -52,19 +52,19 @@ fn bench_readiness_all_domain_no_declared_only_rows_reports_clean_active_scope()
     );
     assert_eq!(
         payload.get("lifecycle_active_row_count").and_then(serde_json::Value::as_u64),
-        Some(132)
+        Some(137)
     );
     assert_eq!(
         payload.get("lifecycle_active_stage_count").and_then(serde_json::Value::as_u64),
-        Some(62)
+        Some(66)
     );
     assert_eq!(
         payload.get("lifecycle_active_tool_count").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(71)
     );
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(132));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(62));
-    assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(137));
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(66));
+    assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(0));

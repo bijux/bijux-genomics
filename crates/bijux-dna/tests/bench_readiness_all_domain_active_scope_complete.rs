@@ -46,8 +46,8 @@ fn bench_readiness_all_domain_active_scope_complete_reports_unambiguous_active_s
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json")
     );
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(130));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(62));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(131));
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(16));
     assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(19));

@@ -48,7 +48,7 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows()
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
     assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(row_count));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(62));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(
         payload.get("report_map_binding_count").and_then(serde_json::Value::as_u64),
@@ -63,7 +63,7 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows()
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(support::object_u64(domain_counts, "fastq"), Some(63));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
-    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(18));
+    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(19));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let proof_source_counts = payload
@@ -80,7 +80,7 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows()
     );
     assert_eq!(
         proof_source_counts.get("vcf_report_map").and_then(serde_json::Value::as_u64),
-        Some(18)
+        Some(19)
     );
     assert_eq!(
         proof_source_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),

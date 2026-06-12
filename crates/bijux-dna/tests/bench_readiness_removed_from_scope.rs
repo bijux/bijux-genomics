@@ -52,8 +52,8 @@ fn bench_readiness_removed_from_scope_reports_only_non_active_bindings() {
     assert_eq!(payload.get("candidate_row_count").and_then(serde_json::Value::as_u64), Some(146));
     assert_eq!(payload.get("candidate_stage_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(payload.get("candidate_tool_count").and_then(serde_json::Value::as_u64), Some(75));
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(130));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(62));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(131));
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(63));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(16));
     assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(12));

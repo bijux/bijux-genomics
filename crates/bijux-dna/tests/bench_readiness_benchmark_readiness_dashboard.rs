@@ -130,9 +130,9 @@ fn bench_readiness_benchmark_readiness_dashboard_tracks_governed_summary_counts(
     let assets = payload.get("assets").expect("asset summary");
     assert_eq!(
         assets.get("asset_required_pair_count").and_then(serde_json::Value::as_u64),
-        Some(18)
+        Some(19)
     );
-    assert_eq!(assets.get("ready_pair_count").and_then(serde_json::Value::as_u64), Some(18));
+    assert_eq!(assets.get("ready_pair_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(assets.get("blocked_pair_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let reports = payload.get("reports").expect("report summary");

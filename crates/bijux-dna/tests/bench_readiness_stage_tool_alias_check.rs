@@ -55,7 +55,7 @@ fn bench_readiness_stage_tool_alias_check_reports_migration_only_aliases() {
     );
     assert_eq!(payload.get("candidate_row_count").and_then(serde_json::Value::as_u64), Some(146));
     let active_row_count = support::json_u64(&payload, "active_row_count").expect("active_row_count");
-    assert_eq!(active_row_count, 130);
+    assert_eq!(active_row_count, 131);
     assert_eq!(
         payload.get("expected_result_row_count").and_then(serde_json::Value::as_u64),
         Some(active_row_count)

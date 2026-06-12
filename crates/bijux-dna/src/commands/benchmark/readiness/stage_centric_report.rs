@@ -334,9 +334,9 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
     }
     let declared_shared_metric_stage_count =
         stages.iter().filter(|stage| stage.comparison_contract_status == "declared").count();
-    if declared_shared_metric_stage_count != 18 {
+    if declared_shared_metric_stage_count != 19 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 18 stages with declared shared metrics, found {}",
+            "stage-centric report must retain exactly 19 stages with declared shared metrics, found {}",
             declared_shared_metric_stage_count
         ));
     }

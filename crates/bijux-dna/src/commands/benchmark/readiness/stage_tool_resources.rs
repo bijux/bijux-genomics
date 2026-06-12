@@ -367,7 +367,7 @@ mod tests {
         assert_eq!(report.nonzero_resource_row_count, report.row_count);
         assert_eq!(report.domain_counts.get("fastq"), Some(&63));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&18));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&19));
         assert!(report.rows.iter().all(|row| {
             row.threads > 0 && row.memory_gb > 0 && row.walltime_minutes > 0 && row.scratch_gb > 0
         }));
