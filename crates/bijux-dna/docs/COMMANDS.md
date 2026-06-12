@@ -672,6 +672,14 @@ Visible aliases are part of the operator surface:
   called sites, missing sites, deterministic sampling policy, replay seed handling, and sample
   count. The command fails closed unless every active retained `vcf.call_pseudohaploid` caller is
   complete across those surfaces.
+- `bijux-dna bench readiness render-vcf-pca-ready`
+  `render-vcf-pca-ready` writes `benchmarks/readiness/vcf/pca-ready.json` with one governed row
+  per active retained `vcf.pca` caller. Each row keeps the retained-scope proof, final
+  active-row presence, rendered-command identity, tool-specific output-contract paths, parser
+  fixture proof, expected metrics, report-table placement, and real local smoke evidence that
+  every governed cohort sample appears exactly once with PC1/PC2 coordinates, eigenvalues,
+  variant count, and population metadata joins. The command fails closed unless every active
+  retained `vcf.pca` caller is complete across those surfaces.
 - `bijux-dna bench readiness render-vcf-stats-ready`
   `render-vcf-stats-ready` writes `benchmarks/readiness/vcf/stats-ready.json` with one governed
   row per active retained `vcf.stats` caller. Each row keeps the retained-scope proof, final
