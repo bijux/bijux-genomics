@@ -122,13 +122,13 @@ pub(crate) fn render_vcf_matrix_registry_consistency(
                 .tool_ids
                 .iter()
                 .filter(|tool_id| {
-                    stage_support_by_id.get(stage_id.as_str()).is_some_and(|status| status == "supported")
-                        && registry_by_tool
-                            .get(tool_id.as_str())
-                            .is_some_and(|record| {
-                                record.statuses.contains("production")
-                                    && record.production_stage_ids.contains(stage_id.as_str())
-                            })
+                    stage_support_by_id
+                        .get(stage_id.as_str())
+                        .is_some_and(|status| status == "supported")
+                        && registry_by_tool.get(tool_id.as_str()).is_some_and(|record| {
+                            record.statuses.contains("production")
+                                && record.production_stage_ids.contains(stage_id.as_str())
+                        })
                 })
                 .cloned()
                 .map(|tool_id| (stage_id.clone(), tool_id))
@@ -283,18 +283,20 @@ fn load_vcf_registry_snapshot(repo_root: &Path) -> Result<VcfRegistrySnapshot> {
                 .and_then(toml::Value::as_str)
                 .ok_or_else(|| anyhow!("stage entry in {relative_path} is missing id"))?
                 .to_string();
-            let tool_ids = ["primary_tools", "optional_alternatives", "validation_tools", "reporting_tools"]
-                .into_iter()
-                .flat_map(|field| {
-                    entry.get(field)
-                        .and_then(toml::Value::as_array)
-                        .into_iter()
-                        .flatten()
-                        .filter_map(toml::Value::as_str)
-                        .map(str::to_string)
-                        .collect::<Vec<_>>()
-                })
-                .collect::<BTreeSet<_>>();
+            let tool_ids =
+                ["primary_tools", "optional_alternatives", "validation_tools", "reporting_tools"]
+                    .into_iter()
+                    .flat_map(|field| {
+                        entry
+                            .get(field)
+                            .and_then(toml::Value::as_array)
+                            .into_iter()
+                            .flatten()
+                            .filter_map(toml::Value::as_str)
+                            .map(str::to_string)
+                            .collect::<Vec<_>>()
+                    })
+                    .collect::<BTreeSet<_>>();
             stage_policies.insert(stage_id, VcfRegistryStagePolicy { tool_ids });
         }
     }
@@ -354,7 +356,7 @@ mod tests {
         assert_eq!(report.stage_count, 20);
         assert_eq!(report.matrix_row_count, 23);
         assert_eq!(report.registry_pair_count, 44);
-        assert_eq!(report.benchmark_ready_registry_pair_count, 15);
+        assert_eq!(report.benchmark_ready_registry_pair_count, 17);
         assert_eq!(report.unregistered_matrix_pair_count, 0);
         assert_eq!(report.missing_benchmark_ready_registry_pair_count, 0);
         assert!(report.rows.is_empty());

@@ -5,6 +5,7 @@ use std::process::Command;
 use anyhow::{anyhow, bail, Context, Result};
 use serde::Serialize;
 
+use super::vcf_active_stage_tool_matrix::collect_vcf_active_stage_tool_matrix_rows;
 use super::vcf_adapter_missing_input_tests::{
     render_vcf_adapter_missing_input_tests, DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH,
 };
@@ -219,15 +220,12 @@ pub(crate) fn render_vcf_adapters_ready(
             if report.get("passes_gate").and_then(serde_json::Value::as_bool) != Some(true)
                 || report.get("stage_count").and_then(serde_json::Value::as_u64) != Some(20)
                 || report.get("matrix_row_count").and_then(serde_json::Value::as_u64) != Some(23)
-                || report.get("registry_pair_count").and_then(serde_json::Value::as_u64)
-                    != Some(44)
+                || report.get("registry_pair_count").and_then(serde_json::Value::as_u64) != Some(44)
                 || report
                     .get("benchmark_ready_registry_pair_count")
                     .and_then(serde_json::Value::as_u64)
-                    != Some(15)
-                || report
-                    .get("unregistered_matrix_pair_count")
-                    .and_then(serde_json::Value::as_u64)
+                    != Some(17)
+                || report.get("unregistered_matrix_pair_count").and_then(serde_json::Value::as_u64)
                     != Some(0)
                 || report
                     .get("missing_benchmark_ready_registry_pair_count")
@@ -542,10 +540,12 @@ pub(crate) fn render_vcf_adapters_ready(
         || {
             let report =
                 render_vcf_commands(repo_root, PathBuf::from(DEFAULT_VCF_RENDERED_COMMANDS_PATH))?;
-            if report.row_count != 18 {
-                bail!(
-                    "VCF rendered commands drifted from the governed benchmark-ready command slice"
-                );
+            let active_pair_count = collect_vcf_active_stage_tool_matrix_rows(repo_root)?
+                .into_iter()
+                .filter(|row| row.scope_state == "active")
+                .count();
+            if report.row_count != active_pair_count {
+                bail!("VCF rendered commands drifted from the governed active VCF command slice");
             }
             let script_path = repo_root.join(&report.output_path);
             let argv_path = repo_root.join(&report.argv_output_path);
@@ -574,7 +574,8 @@ pub(crate) fn render_vcf_adapters_ready(
             }
             rendered_command_pair_count = report.row_count;
             rendered_commands_report = Some(report);
-            Ok("validated benchmark-ready VCF shell and argv command rendering with bash syntax coverage".to_string())
+            Ok("validated active VCF shell and argv command rendering with bash syntax coverage"
+                .to_string())
         },
     );
 
@@ -607,9 +608,10 @@ pub(crate) fn render_vcf_adapters_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_EIGENSOFT_ADAPTER_PATH),
             )?;
-            let imputation_family_adapter_report = imputation_family_adapter_report.as_ref().ok_or_else(|| {
-                anyhow!("VCF imputation-family adapter check did not produce a report")
-            })?;
+            let imputation_family_adapter_report =
+                imputation_family_adapter_report.as_ref().ok_or_else(|| {
+                    anyhow!("VCF imputation-family adapter check did not produce a report")
+                })?;
             let rendered_commands_report = rendered_commands_report
                 .as_ref()
                 .ok_or_else(|| anyhow!("VCF rendered commands check did not produce a report"))?;
