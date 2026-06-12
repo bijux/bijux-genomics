@@ -20,6 +20,8 @@ artifact_ids:
   - contaminant_depletion_tool_benchmark_cohort_json
   - contaminant_depletion_tool_comparison_json
   - contaminant_depletion_tool_normalization_json
+  - removed_contaminant_reads_r1
+  - removed_contaminant_reads_r2
   - contaminant_screened_reads_r1
   - contaminant_screened_reads_r2
   - correction_tool_benchmark_cohort_json

@@ -50,6 +50,8 @@ fn parse_legacy_deplete_reference_contaminants_report(
         input_r2: None,
         output_r1: String::new(),
         output_r2: None,
+        removed_reads_r1: String::new(),
+        removed_reads_r2: None,
         report_json: "contaminant_screen_report.json".to_string(),
         reads_in: legacy.reads_in,
         reads_out: legacy.reads_out,

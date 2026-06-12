@@ -24,6 +24,8 @@ fn parse_deplete_rrna_report_round_trips_governed_payload() -> Result<()> {
             "input_r2": "reads_R2.fastq.gz",
             "output_r1": "rrna_filtered_R1.fastq.gz",
             "output_r2": "rrna_filtered_R2.fastq.gz",
+            "removed_reads_r1": "removed_rrna_R1.fastq.gz",
+            "removed_reads_r2": "removed_rrna_R2.fastq.gz",
             "rrna_report_tsv": "rrna_report.tsv",
             "rrna_report_json": "rrna_report.json",
             "reads_in": 200,
@@ -50,6 +52,7 @@ fn parse_deplete_rrna_report_round_trips_governed_payload() -> Result<()> {
     assert_eq!(parsed.database_artifact_id, "silva_nr99");
     assert_eq!(parsed.database_digest.as_deref(), Some("sha256:silva"));
     assert_eq!(parsed.retained_read_role, "rrna_filtered_reads");
+    assert_eq!(parsed.removed_reads_r1, "removed_rrna_R1.fastq.gz");
     assert_eq!(parsed.reads_removed, 50);
     Ok(())
 }
@@ -103,6 +106,8 @@ fn parse_deplete_reference_contaminants_report_round_trips_governed_payload() ->
             "input_r2": "reads_R2.fastq.gz",
             "output_r1": "contaminant_screened_R1.fastq.gz",
             "output_r2": "contaminant_screened_R2.fastq.gz",
+            "removed_reads_r1": "removed_contaminant_R1.fastq.gz",
+            "removed_reads_r2": "removed_contaminant_R2.fastq.gz",
             "report_json": "contaminant_screen_report.json",
             "reads_in": 200,
             "reads_out": 160,
@@ -129,6 +134,7 @@ fn parse_deplete_reference_contaminants_report_round_trips_governed_payload() ->
     assert_eq!(parsed.reference_index_artifact_id, "reference_index");
     assert_eq!(parsed.match_threshold, Some(0.95));
     assert_eq!(parsed.retained_read_role, "contaminant_screened_reads");
+    assert_eq!(parsed.removed_reads_r1, "removed_contaminant_R1.fastq.gz");
     assert_eq!(parsed.raw_backend_report_format.as_deref(), Some("bowtie2_met_file"));
     Ok(())
 }
