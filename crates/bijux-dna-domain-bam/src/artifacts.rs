@@ -1,4 +1,5 @@
 use std::collections::{BTreeSet, HashMap};
+use std::fmt::Write as _;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
@@ -1102,6 +1103,10 @@ fn parse_tiny_alignment(path: &Path) -> Result<TinySamDocument> {
     }
 }
 
+/// Inspect a tiny BAM/SAM fixture and expose the normalized alignment header footprint.
+///
+/// # Errors
+/// Returns an error when the alignment fixture cannot be parsed.
 pub fn inspect_tiny_alignment(path: &Path) -> Result<BamTinyAlignmentInspectionV1> {
     let document = parse_tiny_alignment(path)?;
     let mut header_contigs = document.references.clone();
@@ -1315,13 +1320,13 @@ fn parse_tiny_bam(path: &Path) -> Result<TinySamDocument> {
                 .map(|position| position.get() as u64)
                 .unwrap_or(0),
             mapq: record.mapping_quality().map(u8::from).unwrap_or(0),
-            cigar: record
-                .cigar()
-                .iter()
-                .collect::<std::io::Result<Vec<_>>>()?
-                .into_iter()
-                .map(|op| format!("{}{}", op.len(), render_cigar_kind(op.kind())))
-                .collect::<String>(),
+            cigar: record.cigar().iter().collect::<std::io::Result<Vec<_>>>()?.into_iter().fold(
+                String::new(),
+                |mut cigar, op| {
+                    let _ = write!(cigar, "{}{}", op.len(), render_cigar_kind(op.kind()));
+                    cigar
+                },
+            ),
             template_length: i64::from(record.template_length()),
             seq: record.sequence().iter().map(char::from).collect::<String>(),
             read_group_id,
@@ -2678,14 +2683,14 @@ pub fn summarize_tiny_bam_complexity(
         Some("insufficient_observed_unique_reads_for_complexity_extrapolation")
     } else {
         let unique_fraction = if observed_total_reads > 0 {
-            observed_unique_reads as f64 / observed_total_reads as f64
+            u64_to_f64(observed_unique_reads) / u64_to_f64(observed_total_reads)
         } else {
             0.0
         };
         for point in projection_points.iter().copied().filter(|point| *point > observed_total_reads)
         {
             let projected_increment =
-                ((point - observed_total_reads) as f64 * unique_fraction).round() as u64;
+                nonnegative_f64_to_u64(u64_to_f64(point - observed_total_reads) * unique_fraction);
             projected_unique_reads.push((point, observed_unique_reads + projected_increment));
         }
         None
@@ -2792,7 +2797,7 @@ pub fn filter_tiny_bam_by_mapq(
 pub fn summarize_tiny_bam_insert_size(input_bam: &Path) -> Result<BamInsertSizeSummaryV1> {
     let document = parse_tiny_sam(input_bam)?;
     let metrics = tiny_insert_size_metrics(&document.records);
-    Ok(build_insert_size_summary("bam.insert_size", input_bam, true, true, metrics.as_ref()))
+    Ok(build_insert_size_summary("bam.insert_size", input_bam, true, true, Some(&metrics)))
 }
 
 /// Summarize GC-bias observations for a tiny BAM/SAM fixture and reference FASTA.
@@ -3433,16 +3438,19 @@ fn tiny_gc_bias_rows(
 fn gc_bin_for_sequence(sequence: &str) -> u8 {
     let gc_bases =
         sequence.bytes().filter(|base| matches!(base.to_ascii_uppercase(), b'G' | b'C')).count();
-    let gc_fraction =
-        if sequence.is_empty() { 0.0 } else { gc_bases as f64 / sequence.len() as f64 };
-    (gc_fraction * 100.0).round() as u8
+    let gc_fraction = if sequence.is_empty() {
+        0.0
+    } else {
+        usize_to_f64(gc_bases) / usize_to_f64(sequence.len())
+    };
+    percent_to_u8(gc_fraction)
 }
 
 fn average_normalized_coverage(rows: &[&BamGcBiasBinSummaryV1]) -> Option<f64> {
     if rows.is_empty() {
         None
     } else {
-        Some(rows.iter().map(|row| row.normalized_coverage).sum::<f64>() / rows.len() as f64)
+        Some(rows.iter().map(|row| row.normalized_coverage).sum::<f64>() / usize_to_f64(rows.len()))
     }
 }
 
@@ -3461,9 +3469,7 @@ fn normalize_dropout_pct(value: f64) -> f64 {
     }
 }
 
-fn tiny_insert_size_metrics(
-    records: &[TinySamRecord],
-) -> Option<crate::metrics::InsertSizeMetricsV1> {
+fn tiny_insert_size_metrics(records: &[TinySamRecord]) -> crate::metrics::InsertSizeMetricsV1 {
     let insert_sizes = records
         .iter()
         .filter(|record| {
@@ -3478,7 +3484,7 @@ fn tiny_insert_size_metrics(
         .filter(|insert_size| *insert_size > 0)
         .collect::<Vec<_>>();
     if insert_sizes.is_empty() {
-        return Some(crate::metrics::InsertSizeMetricsV1::empty());
+        return crate::metrics::InsertSizeMetricsV1::empty();
     }
 
     let mut sorted_insert_sizes = insert_sizes.clone();
@@ -3515,7 +3521,7 @@ fn tiny_insert_size_metrics(
         })
         .count() as u64;
 
-    Some(crate::metrics::InsertSizeMetricsV1 {
+    crate::metrics::InsertSizeMetricsV1 {
         median_insert_size,
         mean_insert_size,
         standard_deviation,
@@ -3523,8 +3529,8 @@ fn tiny_insert_size_metrics(
         min_insert_size: *sorted_insert_sizes.first().unwrap_or(&0),
         max_insert_size: *sorted_insert_sizes.last().unwrap_or(&0),
         read_pairs,
-        pair_orientation_fr_fraction: fr_pairs as f64 / read_pairs as f64,
-    })
+        pair_orientation_fr_fraction: u64_to_f64(fr_pairs) / u64_to_f64(read_pairs),
+    }
 }
 
 fn median_f64(values: &[f64]) -> f64 {
@@ -3536,9 +3542,35 @@ fn median_f64(values: &[f64]) -> f64 {
     sorted.sort_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal));
     let middle = sorted.len() / 2;
     if sorted.len() % 2 == 0 {
-        (sorted[middle - 1] + sorted[middle]) / 2.0
+        f64::midpoint(sorted[middle - 1], sorted[middle])
     } else {
         sorted[middle]
+    }
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+fn usize_to_f64(value: usize) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+fn nonnegative_f64_to_u64(value: f64) -> u64 {
+    if !value.is_finite() || value <= 0.0 {
+        0
+    } else {
+        value.round().to_string().parse::<u64>().unwrap_or(u64::MAX)
+    }
+}
+
+fn percent_to_u8(fraction: f64) -> u8 {
+    if !fraction.is_finite() || fraction <= 0.0 {
+        0
+    } else if fraction >= 1.0 {
+        100
+    } else {
+        (fraction * 100.0).round().to_string().parse::<u8>().unwrap_or(100)
     }
 }
 
@@ -5423,8 +5455,8 @@ mod tests {
             report_present: true,
             histogram_present: true,
             median_insert_size: Some(20.0),
-            mean_insert_size: Some(21.666666666666668),
-            standard_deviation: Some(6.236095644623236),
+            mean_insert_size: Some(21.666_666_666_666_668),
+            standard_deviation: Some(6.236_095_644_623_236),
             median_absolute_deviation: Some(5.0),
             min_insert_size: Some(15),
             max_insert_size: Some(30),
@@ -6337,7 +6369,7 @@ r06\t0\tchr1\t48\t60\t8M\t*\t0\t0\tCCGTAAGT\tFFFFFFFF\tRG:Z:rg1\n",
         assert_eq!(summary.projected_unique_reads, vec![(6, 4), (12, 8), (18, 12)]);
         assert_eq!(summary.estimated_unique_reads, Some(12));
         assert_eq!(summary.estimated_library_size, Some(12));
-        assert_eq!(summary.saturation_estimate, Some(0.33333333333333337));
+        assert_eq!(summary.saturation_estimate, Some(0.333_333_333_333_333_37));
         assert_eq!(summary.min_reads, 3);
         assert_eq!(summary.insufficient_data_reason, None);
     }
@@ -6366,7 +6398,7 @@ pair003\t147\tchr1\t94\t60\t6M\t=\t70\t-30\tCCGGGG\tFFFFFF\tRG:Z:rg1\n",
         assert!(summary.histogram_present);
         assert_eq!(summary.read_pairs, 3);
         assert_eq!(summary.median_insert_size, Some(20.0));
-        assert_eq!(summary.mean_insert_size, Some(21.666666666666668));
+        assert_eq!(summary.mean_insert_size, Some(21.666_666_666_666_668));
         assert_eq!(summary.min_insert_size, Some(15));
         assert_eq!(summary.max_insert_size, Some(30));
         assert_eq!(summary.pair_orientation_fr_fraction, Some(1.0));
@@ -6400,9 +6432,9 @@ gc100_001\t0\tchrgc\t21\t60\t10M\t*\t0\t0\tCCCCCGGGGG\tFFFFFFFFFF\tRG:Z:rg1\n",
         assert_eq!(summary.aligned_reads, 4);
         assert_eq!(summary.windows, 3);
         assert_eq!(summary.read_starts, 4);
-        assert_eq!(summary.at_dropout, 25.0);
-        assert_eq!(summary.gc_dropout, 25.0);
-        assert_eq!(summary.gc_bias_score, 0.25);
+        assert!((summary.at_dropout - 25.0).abs() <= f64::EPSILON);
+        assert!((summary.gc_dropout - 25.0).abs() <= f64::EPSILON);
+        assert!((summary.gc_bias_score - 0.25).abs() <= f64::EPSILON);
         assert_eq!(summary.insufficient_reference_reason, None);
         assert_eq!(
             rows,
@@ -6552,8 +6584,8 @@ skip2\t0\tchr1\t50\t60\t12M\t*\t0\t0\tTGCATGCATGCA\tFFFFFFFFFFFF\n",
         assert_eq!(summary.reason, "coverage_below_gate");
         assert!((summary.observed_mean_coverage - 0.024).abs() <= 1e-9);
         assert!((summary.observed_breadth_1x - 0.024).abs() <= 1e-9);
-        assert_eq!(summary.coverage_gate.min_mean_coverage, 0.1);
-        assert_eq!(summary.coverage_gate.min_breadth_1x, 0.05);
+        assert!((summary.coverage_gate.min_mean_coverage - 0.1).abs() <= f64::EPSILON);
+        assert!((summary.coverage_gate.min_breadth_1x - 0.05).abs() <= f64::EPSILON);
         assert_eq!(summary.known_sites, vec![PathBuf::from("known_sites.vcf")]);
         assert!(summary.output_bam_present);
         assert!(summary.recalibration_report_present);
@@ -6726,7 +6758,7 @@ r03\t0\tchr2\t10\t10\t8M\t*\t0\t0\tCCGGAATT\tFFFFFFFF\tRG:Z:rg1\n",
         assert_eq!(summary.contig_summary[1].contig, "chr2");
         assert_eq!(summary.contig_summary[1].mapped, 1);
         assert!(!summary.reference_mismatch);
-        assert_eq!(summary.fragment_length.mean, 8.0);
+        assert!((summary.fragment_length.mean - 8.0).abs() <= f64::EPSILON);
         assert_eq!(summary.mapq.histogram, vec![(10, 1), (25, 1), (60, 1)]);
     }
 
@@ -6826,8 +6858,8 @@ y1\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n",
                 overlap_snps: 6,
                 matching_sites: 5,
                 mismatch_sites: 1,
-                concordance: 0.833333,
-                kinship_coefficient: 0.416667,
+                concordance: 0.833_333,
+                kinship_coefficient: 0.416_667,
                 relationship_label: "first_degree".to_string(),
             }],
         };
@@ -6906,8 +6938,8 @@ pair_b\t0\tchr1\t1\t60\t6M\t*\t0\t0\tACGTTC\tFFFFFF\tRG:Z:rg_b\n",
         assert_eq!(pair.overlap_snps, 6);
         assert_eq!(pair.matching_sites, 5);
         assert_eq!(pair.mismatch_sites, 1);
-        assert!((pair.concordance - 0.833333).abs() <= 1e-9);
-        assert!((pair.kinship_coefficient - 0.416667).abs() <= 1e-9);
+        assert!((pair.concordance - 0.833_333).abs() <= 1e-9);
+        assert!((pair.kinship_coefficient - 0.416_667).abs() <= 1e-9);
         assert_eq!(pair.relationship_label, "first_degree");
     }
 
@@ -6997,8 +7029,8 @@ r04\t0\tchranc\t89\t25\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFF
         .expect("summarize authenticity advisory");
         assert_eq!(advisory.schema_version, BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION);
         assert_eq!(advisory.stage_id, "bam.authenticity");
-        assert!((advisory.score - 0.8666666666666667).abs() <= 1e-12);
-        assert!((advisory.confidence - 0.9466666666666668).abs() <= 1e-12);
+        assert!((advisory.score - 0.866_666_666_666_666_7).abs() <= 1e-12);
+        assert!((advisory.confidence - 0.946_666_666_666_666_8).abs() <= 1e-12);
         assert!(advisory.pmd_like_signal_present);
         assert!(advisory.advisory_boundary.advisory_only);
         assert_eq!(advisory.advisory_boundary.stage_id, "bam.authenticity");

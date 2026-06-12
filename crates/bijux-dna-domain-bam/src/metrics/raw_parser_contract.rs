@@ -146,6 +146,11 @@ const BAM_RAW_PARSER_FIXTURE_CASES: &[BamRawParserFixtureCase] = &[
     },
 ];
 
+/// Evaluate governed BAM parser fixtures against the expected failure-contract classes.
+///
+/// # Errors
+/// Returns an error when failure probes cannot be materialized or parser evaluation cannot be
+/// completed for a governed fixture case.
 pub fn evaluate_bam_raw_parser_failure_contracts(
     repo_root: &Path,
     scratch_root: &Path,
@@ -214,7 +219,7 @@ fn materialize_failure_probe(
 
 fn malformed_payload(repo_root: &Path, case: &BamRawParserFixtureCase) -> Result<String> {
     let fixture_path = fixture_dir(repo_root, case).join(case.raw_file);
-    let payload = if case.raw_file.ends_with(".json") {
+    let payload = if has_extension(case.raw_file, "json") {
         "{ malformed json".to_string()
     } else {
         "not a valid parser fixture".to_string()
@@ -314,6 +319,10 @@ fn fixture_dir(repo_root: &Path, case: &BamRawParserFixtureCase) -> PathBuf {
         .join("benchmarks/tests/fixtures/bench/parsers/bam")
         .join(case.stage_id)
         .join(case.tool_id)
+}
+
+fn has_extension(file_name: &str, extension: &str) -> bool {
+    Path::new(file_name).extension().is_some_and(|ext| ext.eq_ignore_ascii_case(extension))
 }
 
 #[cfg(test)]

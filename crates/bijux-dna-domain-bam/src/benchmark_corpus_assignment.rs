@@ -153,18 +153,19 @@ fn is_bam_mini_stage_tool(stage_id: &str, tool_id: &str) -> bool {
         ("bam.bias_mitigation", "mapdamage2")
             | ("bam.complexity", "preseq")
             | ("bam.coverage", "bedtools" | "mosdepth" | "samtools")
-            | ("bam.duplication_metrics", "picard" | "samtools")
+            | (
+                "bam.duplication_metrics"
+                    | "bam.length_filter"
+                    | "bam.mapping_summary"
+                    | "bam.markdup",
+                "picard" | "samtools",
+            )
             | ("bam.endogenous_content", "samtools")
-            | ("bam.filter", "bamtools" | "bedtools" | "samtools")
-            | ("bam.gc_bias", "picard")
-            | ("bam.insert_size", "picard")
-            | ("bam.length_filter", "picard" | "samtools")
-            | ("bam.mapping_summary", "picard" | "samtools")
+            | ("bam.filter" | "bam.validate", "bamtools" | "bedtools" | "samtools")
+            | ("bam.gc_bias" | "bam.insert_size", "picard")
             | ("bam.mapq_filter", "bamtools" | "samtools")
-            | ("bam.markdup", "picard" | "samtools")
             | ("bam.overlap_correction", "bamutil")
             | ("bam.qc_pre", "multiqc" | "samtools")
             | ("bam.recalibration", "gatk")
-            | ("bam.validate", "bamtools" | "bedtools" | "samtools")
     )
 }
