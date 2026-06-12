@@ -54,8 +54,8 @@
         "sh",
         "python3"
       ],
-      "command_output_path": "benchmarks/readiness/vcf-rendered-commands.sh",
-      "command_argv_output_path": "benchmarks/readiness/vcf-rendered-commands.argv.jsonl",
+      "command_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.sh",
+      "command_argv_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl",
       "output_ready": true,
       "output_proof_path": "benchmarks/readiness/vcf-adapter-output-coverage.tsv",
       "raw_outputs": [
@@ -263,8 +263,8 @@
       "primary_executables": [
         "plink"
       ],
-      "command_output_path": "benchmarks/readiness/vcf-rendered-commands.sh",
-      "command_argv_output_path": "benchmarks/readiness/vcf-rendered-commands.argv.jsonl",
+      "command_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.sh",
+      "command_argv_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl",
       "output_ready": true,
       "output_proof_path": "benchmarks/readiness/vcf-adapter-output-coverage.tsv",
       "raw_outputs": [
@@ -472,8 +472,8 @@
       "primary_executables": [
         "plink2"
       ],
-      "command_output_path": "benchmarks/readiness/vcf-rendered-commands.sh",
-      "command_argv_output_path": "benchmarks/readiness/vcf-rendered-commands.argv.jsonl",
+      "command_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.sh",
+      "command_argv_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl",
       "output_ready": true,
       "output_proof_path": "benchmarks/readiness/vcf-adapter-output-coverage.tsv",
       "raw_outputs": [

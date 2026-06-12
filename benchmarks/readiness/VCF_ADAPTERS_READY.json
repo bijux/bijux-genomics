@@ -105,9 +105,9 @@
     {
       "goal_id": 244,
       "surface": "vcf rendered commands",
-      "output_path": "benchmarks/readiness/vcf-rendered-commands.sh",
+      "output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.sh",
       "ok": true,
-      "detail": "validated benchmark-ready VCF shell and argv command rendering with bash syntax coverage"
+      "detail": "validated active VCF shell and argv command rendering with bash syntax coverage"
     },
     {
       "goal_id": 245,
