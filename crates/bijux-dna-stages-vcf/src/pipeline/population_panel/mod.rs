@@ -96,6 +96,32 @@ fn parse_plink2_eigenval(path: &Path) -> Option<String> {
     Some(out)
 }
 
+fn parse_smartpca_eigenvec(path: &Path, components: usize) -> Option<String> {
+    let raw = std::fs::read_to_string(path).ok()?;
+    let mut out = String::from("sample");
+    for i in 1..=components {
+        out.push_str(&format!("\tPC{i}"));
+    }
+    out.push('\n');
+    for line in raw.lines() {
+        let cols = line.split_whitespace().collect::<Vec<_>>();
+        if cols.len() < components + 1 {
+            continue;
+        }
+        out.push_str(cols[0]);
+        for idx in 0..components {
+            out.push('\t');
+            out.push_str(cols.get(1 + idx).copied().unwrap_or("0.0"));
+        }
+        out.push('\n');
+    }
+    Some(out)
+}
+
+fn parse_smartpca_eigenval(path: &Path) -> Option<String> {
+    parse_plink2_eigenval(path)
+}
+
 fn parse_eigenvalues_tsv(raw: &str) -> Vec<f64> {
     raw.lines()
         .skip(1)
@@ -200,13 +226,29 @@ pub fn run_pca_stage(
     };
     let plink_eigenvec = out_dir.join("plink_pca.eigenvec");
     let plink_eigenval = out_dir.join("plink_pca.eigenval");
+    let smartpca_eigenvec = out_dir.join("pca.smartpca.evec");
+    let smartpca_eigenval = out_dir.join("pca.smartpca.eval");
     let mut execution_mode = "fallback_proxy";
-    let vec_rows = if tool_ok && plink_eigenvec.exists() {
-        if let Some(parsed) = parse_plink2_eigenvec(&plink_eigenvec, params.components) {
-            execution_mode = "real_tool";
-            parsed
-        } else {
-            String::new()
+    let vec_rows = if tool_ok {
+        match toolchain.as_str() {
+            "eigensoft" | "smartpca" if smartpca_eigenvec.exists() => {
+                if let Some(parsed) = parse_smartpca_eigenvec(&smartpca_eigenvec, params.components)
+                {
+                    execution_mode = "real_tool";
+                    parsed
+                } else {
+                    String::new()
+                }
+            }
+            _ if plink_eigenvec.exists() => {
+                if let Some(parsed) = parse_plink2_eigenvec(&plink_eigenvec, params.components) {
+                    execution_mode = "real_tool";
+                    parsed
+                } else {
+                    String::new()
+                }
+            }
+            _ => String::new(),
         }
     } else {
         String::new()
@@ -229,8 +271,16 @@ pub fn run_pca_stage(
         vec_rows
     };
     atomic_write_bytes(&eigenvec_tsv, vec_rows.as_bytes())?;
-    let mut val_rows = if tool_ok && plink_eigenval.exists() {
-        parse_plink2_eigenval(&plink_eigenval).unwrap_or_default()
+    let mut val_rows = if tool_ok {
+        match toolchain.as_str() {
+            "eigensoft" | "smartpca" if smartpca_eigenval.exists() => {
+                parse_smartpca_eigenval(&smartpca_eigenval).unwrap_or_default()
+            }
+            _ if plink_eigenval.exists() => {
+                parse_plink2_eigenval(&plink_eigenval).unwrap_or_default()
+            }
+            _ => String::new(),
+        }
     } else {
         String::new()
     };
