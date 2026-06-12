@@ -3,7 +3,7 @@
   "output_path": "benchmarks/readiness/gate-parser-complete.json",
   "passes_gate": true,
   "row_count": 123,
-  "benchmark_ready_row_count": 116,
+  "benchmark_ready_row_count": 118,
   "gate_row_count": 116,
   "gate_passed_row_count": 116,
   "gate_failed_row_count": 0,
@@ -25,7 +25,7 @@
     "fastq": 67
   },
   "excluded_readiness_gap_counts": {
-    "corpus": 3,
+    "corpus": 1,
     "support": 4
   },
   "rows": [
@@ -1001,13 +1001,13 @@
       "tool_id": "bowtie2_build",
       "gate_scope": "excluded",
       "gate_status": "excluded",
-      "benchmark_status": "not_benchmark_ready",
-      "readiness_gap": "corpus",
+      "benchmark_status": "benchmark_ready",
+      "readiness_gap": "none",
       "support_status": "observer_specialized_benchmark",
       "adapter_status": "runnable",
       "parser_status": "comparable",
-      "corpus_status": "planner_only",
-      "reason": "row `fastq.index_reference` / `bowtie2_build` has governed support, adapter-backed command rendering, and normalized parser output but still resolves only `planner_only` corpus coverage"
+      "corpus_status": "asset:reference-index-assets",
+      "reason": "row `fastq.index_reference` / `bowtie2_build` is benchmark_ready with governed support, adapter-backed command rendering, normalized parser output, and governed benchmark-scope coverage"
     },
     {
       "domain": "fastq",
@@ -1015,13 +1015,13 @@
       "tool_id": "star",
       "gate_scope": "excluded",
       "gate_status": "excluded",
-      "benchmark_status": "not_benchmark_ready",
-      "readiness_gap": "corpus",
+      "benchmark_status": "benchmark_ready",
+      "readiness_gap": "none",
       "support_status": "observer_specialized_benchmark",
       "adapter_status": "runnable",
       "parser_status": "comparable",
-      "corpus_status": "planner_only",
-      "reason": "row `fastq.index_reference` / `star` has governed support, adapter-backed command rendering, and normalized parser output but still resolves only `planner_only` corpus coverage"
+      "corpus_status": "asset:reference-index-assets",
+      "reason": "row `fastq.index_reference` / `star` is benchmark_ready with governed support, adapter-backed command rendering, normalized parser output, and governed benchmark-scope coverage"
     },
     {
       "domain": "fastq",
@@ -1357,7 +1357,7 @@
       "adapter_status": "runnable",
       "parser_status": "comparable",
       "corpus_status": "planner_only",
-      "reason": "row `fastq.report_qc` / `multiqc` has governed support, adapter-backed command rendering, and normalized parser output but still resolves only `planner_only` corpus coverage"
+      "reason": "row `fastq.report_qc` / `multiqc` has governed support, adapter-backed command rendering, and normalized parser output but still resolves only `planner_only` benchmark-scope coverage"
     },
     {
       "domain": "fastq",

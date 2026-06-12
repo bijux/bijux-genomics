@@ -5,9 +5,9 @@
 - Stage count: 51
 - Multi-tool stages: 30
 - Stage-tool rows: 123
-- Benchmark-ready rows: 116
-- Blocked rows: 7
-- Stages with blockers: 5
+- Benchmark-ready rows: 118
+- Blocked rows: 5
+- Stages with blockers: 4
 
 | Domain | Stage | Report section | Tools | Ready | Blocked | Shared metrics | Blocked tools |
 | --- | --- | --- | ---: | ---: | ---: | --- | --- |
@@ -61,7 +61,7 @@
 | fastq | fastq.normalize_abundance | Amplicon Interpretation | 2 | 1 | 1 | not_declared | seqfu (support) |
 | fastq | fastq.screen_taxonomy | Contamination Screening | 4 | 4 | 0 | not_declared | none |
 | fastq | fastq.report_qc | Quality Profiling | 1 | 0 | 1 | not_applicable | multiqc (corpus) |
-| fastq | fastq.index_reference | Reference Preparation | 2 | 0 | 2 | index_build_exit_code | bowtie2_build (corpus), star (corpus) |
+| fastq | fastq.index_reference | Reference Preparation | 2 | 2 | 0 | index_build_exit_code | none |
 
 ## bam.align
 
@@ -941,12 +941,12 @@
 - Summary table: Reference Index Assets
 - Anchor tool: bowtie2_build (supported)
 - Tools: 2
-- Ready tools: 0
-- Blocked tools: 2
+- Ready tools: 2
+- Blocked tools: 0
 - Shared metric contract: declared
 - Shared metrics: index_build_exit_code
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| bowtie2_build | not_benchmark_ready | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | assigned |
-| star | not_benchmark_ready | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |
+| bowtie2_build | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | asset:reference-index-assets | assigned |
+| star | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | asset:reference-index-assets | assigned |

@@ -3,21 +3,21 @@
   "output_path": "benchmarks/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json",
   "passes_gate": true,
   "expected_pair_count": 123,
-  "benchmark_ready_pair_count": 116,
-  "excluded_pair_count": 7,
+  "benchmark_ready_pair_count": 118,
+  "excluded_pair_count": 5,
   "failing_pair_count": 0,
-  "generated_job_pair_count": 116,
-  "expected_result_pair_count": 116,
-  "benchmark_ready_stage_count": 49,
+  "generated_job_pair_count": 118,
+  "expected_result_pair_count": 118,
+  "benchmark_ready_stage_count": 50,
   "excluded_registry_gap_count": 4,
   "surface_summaries": [
     {
       "surface_id": "stage_tool_matrix",
       "surface_status": "ready_slice_complete",
       "measured_scope": "admitted_pairs_and_multi_tool_stages",
-      "expected_count": 116,
-      "covered_count": 116,
-      "excluded_count": 7,
+      "expected_count": 118,
+      "covered_count": 118,
+      "excluded_count": 5,
       "failing_count": 0,
       "evidence_paths": [
         "benchmarks/readiness/missing-benchmark-pairs.tsv",
@@ -29,8 +29,8 @@
       "surface_id": "tool_registry",
       "surface_status": "ready_slice_complete",
       "measured_scope": "benchmark_ready_pairs",
-      "expected_count": 116,
-      "covered_count": 116,
+      "expected_count": 118,
+      "covered_count": 118,
       "excluded_count": 4,
       "failing_count": 0,
       "evidence_paths": [
@@ -43,14 +43,14 @@
       "surface_id": "command_adapters",
       "surface_status": "ready_slice_complete",
       "measured_scope": "benchmark_ready_pairs",
-      "expected_count": 116,
-      "covered_count": 116,
-      "excluded_count": 7,
+      "expected_count": 118,
+      "covered_count": 118,
+      "excluded_count": 5,
       "failing_count": 0,
       "evidence_paths": [
         "benchmarks/readiness/pair-readiness.tsv"
       ],
-      "detail": "generated benchmark command rows: 116; excluded pairs kept out of generated jobs: 7"
+      "detail": "generated benchmark command rows: 118; excluded pairs kept out of generated jobs: 5"
     },
     {
       "surface_id": "parsers",
@@ -69,48 +69,48 @@
       "surface_id": "corpus_assignments",
       "surface_status": "ready_slice_complete",
       "measured_scope": "benchmark_ready_pairs",
-      "expected_count": 116,
-      "covered_count": 116,
-      "excluded_count": 7,
+      "expected_count": 118,
+      "covered_count": 118,
+      "excluded_count": 5,
       "failing_count": 0,
       "evidence_paths": [
         "benchmarks/readiness/fastq-corpus-assignment.tsv",
         "benchmarks/readiness/bam-corpus-assignment.tsv"
       ],
-      "detail": "benchmark-ready corpus assignment rows: 116; excluded pairs remain outside the generated job slice"
+      "detail": "benchmark-ready corpus assignment rows: 118; excluded pairs remain outside the generated job slice"
     },
     {
       "surface_id": "asset_assignments",
       "surface_status": "ready_slice_complete",
       "measured_scope": "benchmark_ready_pairs",
-      "expected_count": 116,
-      "covered_count": 18,
-      "excluded_count": 7,
+      "expected_count": 118,
+      "covered_count": 20,
+      "excluded_count": 5,
       "failing_count": 0,
       "evidence_paths": [
         "benchmarks/readiness/gate-corpus-assets-complete.json"
       ],
-      "detail": "asset-required benchmark-ready pairs: 18; assigned: 18"
+      "detail": "asset-required benchmark-ready pairs: 20; assigned: 20"
     },
     {
       "surface_id": "expected_results",
       "surface_status": "ready_slice_complete",
       "measured_scope": "benchmark_ready_pairs",
-      "expected_count": 116,
-      "covered_count": 116,
-      "excluded_count": 7,
+      "expected_count": 118,
+      "covered_count": 118,
+      "excluded_count": 5,
       "failing_count": 0,
       "evidence_paths": [
         "benchmarks/readiness/expected-benchmark-results.tsv"
       ],
-      "detail": "expected benchmark result rows: 116; excluded pairs kept out of expected results: 7"
+      "detail": "expected benchmark result rows: 118; excluded pairs kept out of expected results: 5"
     },
     {
       "surface_id": "report_maps",
       "surface_status": "ready_slice_complete",
       "measured_scope": "benchmark_ready_stages",
-      "expected_count": 49,
-      "covered_count": 49,
+      "expected_count": 50,
+      "covered_count": 50,
       "excluded_count": 0,
       "failing_count": 0,
       "evidence_paths": [
@@ -153,38 +153,6 @@
       "excluded_from_generated_jobs": true,
       "excluded_from_expected_results": true,
       "reason": "row `fastq` / `fastq.filter_low_complexity` / `fastp` is blocked by benchmark support status `planned_contract`"
-    },
-    {
-      "row_id": "fastq:fastq.index_reference:bowtie2_build",
-      "domain": "fastq",
-      "stage_id": "fastq.index_reference",
-      "tool_id": "bowtie2_build",
-      "readiness_gap": "corpus",
-      "support_status": "observer_specialized_benchmark",
-      "adapter_status": "runnable",
-      "parser_status": "comparable",
-      "corpus_status": "planner_only",
-      "asset_status": "assigned",
-      "registry_status": "registered",
-      "excluded_from_generated_jobs": true,
-      "excluded_from_expected_results": true,
-      "reason": "row `fastq` / `fastq.index_reference` / `bowtie2_build` is blocked by corpus status `planner_only`"
-    },
-    {
-      "row_id": "fastq:fastq.index_reference:star",
-      "domain": "fastq",
-      "stage_id": "fastq.index_reference",
-      "tool_id": "star",
-      "readiness_gap": "corpus",
-      "support_status": "observer_specialized_benchmark",
-      "adapter_status": "runnable",
-      "parser_status": "comparable",
-      "corpus_status": "planner_only",
-      "asset_status": "not_required",
-      "registry_status": "registered",
-      "excluded_from_generated_jobs": true,
-      "excluded_from_expected_results": true,
-      "reason": "row `fastq` / `fastq.index_reference` / `star` is blocked by corpus status `planner_only`"
     },
     {
       "row_id": "fastq:fastq.normalize_abundance:seqfu",

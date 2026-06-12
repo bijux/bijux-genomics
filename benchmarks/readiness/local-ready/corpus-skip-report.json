@@ -5,7 +5,8 @@
   "fixture_count": 8,
   "stage_count": 51,
   "skip_count": 343,
-  "planner_only_stage_count": 2,
+  "asset_backed_stage_count": 1,
+  "planner_only_stage_count": 1,
   "fixtures": [
     {
       "corpus_id": "corpus-01-mini",
@@ -3129,12 +3130,15 @@
       "replacement_corpus_family_id": "corpus-01-bam"
     }
   ],
-  "planner_only_stages": [
+  "asset_backed_stages": [
     {
       "stage_id": "fastq.index_reference",
       "readiness_kind": "dry_run",
-      "reason": "This stage indexes governed references and does not consume corpus reads."
-    },
+      "benchmark_scope_id": "reference-index-assets",
+      "reason": "This stage benchmarks governed reference-index preparation against owned reference assets rather than a read corpus."
+    }
+  ],
+  "planner_only_stages": [
     {
       "stage_id": "fastq.report_qc",
       "readiness_kind": "smoke",

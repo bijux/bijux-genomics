@@ -3,9 +3,9 @@
   "markdown_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md",
   "json_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json",
   "total_stages": 71,
-  "total_tools": 69,
-  "total_expected_jobs": 132,
-  "ready_jobs": 129,
+  "total_tools": 71,
+  "total_expected_jobs": 138,
+  "ready_jobs": 135,
   "blocked_jobs": 3,
   "missing_parsers": 0,
   "missing_adapters": 0,
@@ -23,21 +23,21 @@
     },
     {
       "metric_id": "total_tools",
-      "count": 69,
+      "count": 71,
       "source_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "source_field": "tool_count",
       "detail": "unique tools across canonical all-domain expected benchmark jobs"
     },
     {
       "metric_id": "total_expected_jobs",
-      "count": 132,
+      "count": 138,
       "source_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "source_field": "row_count",
       "detail": "canonical FASTQ, BAM, and VCF expected benchmark bindings"
     },
     {
       "metric_id": "ready_jobs",
-      "count": 129,
+      "count": 135,
       "source_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
       "source_field": "present_row_count",
       "detail": "expected benchmark jobs with present governed result rows"

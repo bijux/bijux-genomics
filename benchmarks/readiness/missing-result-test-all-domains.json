@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.all_domain_missing_result_test.v1",
   "output_path": "benchmarks/readiness/missing-result-test-all-domains.json",
   "fake_result_root": "runs/bench/readiness-probes/all-domains/missing-result-test",
-  "expected_row_count": 136,
-  "present_result_row_count": 133,
+  "expected_row_count": 138,
+  "present_result_row_count": 135,
   "missing_result_row_count": 3,
   "passes_behavior_test": true,
   "removed_result_ids": [
@@ -18,7 +18,7 @@
   ],
   "domain_counts": {
     "bam": 49,
-    "fastq": 67,
+    "fastq": 69,
     "vcf": 20
   },
   "rows": [
@@ -2177,6 +2177,56 @@
       ],
       "report_section": "read_cleanup",
       "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.filter_reads:sample-set:seqkit` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "bowtie2_build",
+      "corpus_id": "reference-index-assets",
+      "asset_profile_id": "reference_fasta+reference_index_output",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "reference_index",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "reference_index",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "index_build_exit_code",
+        "report_json"
+      ],
+      "report_section": "reference_preparation",
+      "reason": "expected all-domain benchmark result `fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:star",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "star",
+      "corpus_id": "reference-index-assets",
+      "asset_profile_id": "reference_fasta+reference_index_output",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "reference_index",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "reference_index",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "index_build_exit_code",
+        "report_json"
+      ],
+      "report_section": "reference_preparation",
+      "reason": "expected all-domain benchmark result `fastq:reference-index-assets:fastq.index_reference:asset-set:star` remains present with a validated fake-run manifest"
     },
     {
       "result_id": "fastq:corpus-03-amplicon-mini:fastq.infer_asvs:sample-set:dada2",

@@ -3,22 +3,22 @@
   "output_path": "benchmarks/readiness/all-domains/no-placeholder-command-check.json",
   "script_output_path": "benchmarks/readiness/rendered-commands-all-domains.sh",
   "argv_output_path": "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl",
-  "row_count": 136,
-  "result_id_count": 136,
-  "stage_count": 66,
-  "tool_count": 69,
-  "command_step_count": 158,
-  "shell_wrapped_step_count": 91,
+  "row_count": 138,
+  "result_id_count": 138,
+  "stage_count": 67,
+  "tool_count": 71,
+  "command_step_count": 160,
+  "shell_wrapped_step_count": 93,
   "direct_step_count": 67,
-  "valid_row_count": 136,
+  "valid_row_count": 138,
   "invalid_row_count": 0,
   "domain_counts": {
     "bam": 49,
-    "fastq": 67,
+    "fastq": 69,
     "vcf": 20
   },
   "command_source_counts": {
-    "fastq_bam_command_adapter": 116,
+    "fastq_bam_command_adapter": 118,
     "vcf_bcftools_adapter": 11,
     "vcf_eigensoft_adapter": 1,
     "vcf_imputation_family_adapter": 2,
@@ -2409,6 +2409,68 @@
           "executable": "seqkit",
           "is_shell_wrapper": false,
           "command_heads": [],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        }
+      ]
+    },
+    {
+      "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "bowtie2_build",
+      "corpus_id": "reference-index-assets",
+      "asset_profile_id": "reference_fasta+reference_index_output",
+      "command_source": "fastq_bam_command_adapter",
+      "command_step_count": 1,
+      "script_command_count": 1,
+      "has_real_invocation": true,
+      "finding_count": 0,
+      "finding_types": [],
+      "ok": true,
+      "step_audits": [
+        {
+          "step_id": "invoke",
+          "step_kind": "exec",
+          "executable": "sh",
+          "is_shell_wrapper": true,
+          "command_heads": [
+            "set",
+            "mkdir",
+            "bowtie2-build"
+          ],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        }
+      ]
+    },
+    {
+      "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:star",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "star",
+      "corpus_id": "reference-index-assets",
+      "asset_profile_id": "reference_fasta+reference_index_output",
+      "command_source": "fastq_bam_command_adapter",
+      "command_step_count": 1,
+      "script_command_count": 1,
+      "has_real_invocation": true,
+      "finding_count": 0,
+      "finding_types": [],
+      "ok": true,
+      "step_audits": [
+        {
+          "step_id": "invoke",
+          "step_kind": "exec",
+          "executable": "sh",
+          "is_shell_wrapper": true,
+          "command_heads": [
+            "set",
+            "mkdir",
+            "star"
+          ],
           "has_real_invocation": true,
           "finding_types": [],
           "ok": true

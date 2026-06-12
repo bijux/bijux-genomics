@@ -2,30 +2,30 @@
   "schema_version": "bijux.bench.readiness.full_benchmark_report.v1",
   "markdown_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md",
   "json_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-  "row_count": 133,
-  "expected_result_row_count": 132,
+  "row_count": 139,
+  "expected_result_row_count": 138,
   "explicit_unsupported_row_count": 1,
-  "present_row_count": 129,
+  "present_row_count": 135,
   "missing_result_row_count": 3,
   "unsupported_pair_row_count": 1,
-  "stage_centric_row_count": 64,
-  "tool_centric_row_count": 69,
-  "corpus_centric_row_count": 10,
+  "stage_centric_row_count": 67,
+  "tool_centric_row_count": 71,
+  "corpus_centric_row_count": 11,
   "pipeline_centric_row_count": 10,
-  "runtime_row_count": 133,
-  "memory_row_count": 133,
+  "runtime_row_count": 139,
+  "memory_row_count": 139,
   "comparable_metric_row_count": 105,
-  "failure_row_count": 132,
+  "failure_row_count": 138,
   "failure_class_row_count": 7,
   "passes_behavior_test": true,
   "domain_counts": {
     "bam": 49,
-    "fastq": 63,
+    "fastq": 69,
     "vcf": 21
   },
   "row_status_counts": {
     "missing_result": 3,
-    "present": 129,
+    "present": 135,
     "unsupported_pair": 1
   },
   "rows": [
@@ -715,7 +715,9 @@
       "corpus_id": "corpus-01-genotyping-mini",
       "asset_profile_id": "reference_fasta+regions+sites_vcf",
       "report_section": "downstream_readiness",
-      "pipeline_ids": [],
+      "pipeline_ids": [
+        "bam-genotyping-to-vcf-downstream"
+      ],
       "expected_output_count": 6,
       "expected_metric_count": 1,
       "comparable_metric_count": 0,
@@ -1550,6 +1552,31 @@
       "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna` remains present with a validated fake-run manifest"
     },
     {
+      "report_row_id": "fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna",
+      "row_status": "present",
+      "result_id": "fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna",
+      "domain": "fastq",
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "tool_id": "bijux_dna",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "report_section": "quality_profiling",
+      "pipeline_ids": [],
+      "expected_output_count": 1,
+      "expected_metric_count": 3,
+      "comparable_metric_count": 0,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 1024.0,
+      "declared_cpu_threads": 1,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/stage-result.json",
+      "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna` remains present with a validated fake-run manifest"
+    },
+    {
       "report_row_id": "fastq:corpus-01-mini:fastq.extract_umis:sample-set:umi_tools",
       "row_status": "present",
       "result_id": "fastq:corpus-01-mini:fastq.extract_umis:sample-set:umi_tools",
@@ -1729,6 +1756,56 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_reads/corpus_only/seqkit/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_reads/corpus_only/seqkit/stage-result.json",
       "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.filter_reads:sample-set:seqkit` remains present with a validated fake-run manifest"
+    },
+    {
+      "report_row_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",
+      "row_status": "present",
+      "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "bowtie2_build",
+      "corpus_id": "reference-index-assets",
+      "asset_profile_id": "reference_fasta+reference_index_output",
+      "report_section": "reference_preparation",
+      "pipeline_ids": [],
+      "expected_output_count": 2,
+      "expected_metric_count": 2,
+      "comparable_metric_count": 1,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 1024.0,
+      "declared_cpu_threads": 1,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/stage-result.json",
+      "detail": "expected all-domain benchmark result `fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build` remains present with a validated fake-run manifest"
+    },
+    {
+      "report_row_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:star",
+      "row_status": "present",
+      "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:star",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "star",
+      "corpus_id": "reference-index-assets",
+      "asset_profile_id": "reference_fasta+reference_index_output",
+      "report_section": "reference_preparation",
+      "pipeline_ids": [],
+      "expected_output_count": 2,
+      "expected_metric_count": 2,
+      "comparable_metric_count": 1,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 1024.0,
+      "declared_cpu_threads": 1,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/stage-result.json",
+      "detail": "expected all-domain benchmark result `fastq:reference-index-assets:fastq.index_reference:asset-set:star` remains present with a validated fake-run manifest"
     },
     {
       "report_row_id": "fastq:corpus-03-amplicon-mini:fastq.infer_asvs:sample-set:dada2",
@@ -1960,6 +2037,81 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-03-amplicon-mini/fastq.normalize_primers/corpus_only/cutadapt/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-03-amplicon-mini/fastq.normalize_primers/corpus_only/cutadapt/stage-result.json",
       "detail": "expected all-domain benchmark result `fastq:corpus-03-amplicon-mini:fastq.normalize_primers:sample-set:cutadapt` remains present with a validated fake-run manifest"
+    },
+    {
+      "report_row_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan",
+      "row_status": "present",
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastq_scan",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "report_section": "quality_profiling",
+      "pipeline_ids": [],
+      "expected_output_count": 5,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 8192.0,
+      "declared_cpu_threads": 4,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/stage-result.json",
+      "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan` remains present with a validated fake-run manifest"
+    },
+    {
+      "report_row_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc",
+      "row_status": "present",
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastqc",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "report_section": "quality_profiling",
+      "pipeline_ids": [],
+      "expected_output_count": 7,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 8192.0,
+      "declared_cpu_threads": 4,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/stage-result.json",
+      "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc` remains present with a validated fake-run manifest"
+    },
+    {
+      "report_row_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit",
+      "row_status": "present",
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "seqkit",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "report_section": "quality_profiling",
+      "pipeline_ids": [],
+      "expected_output_count": 10,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/stage-result.json",
+      "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit` remains present with a validated fake-run manifest"
     },
     {
       "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp",
@@ -2955,7 +3107,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.164146833,
+      "real_smoke_elapsed_seconds": 0.167285,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -3471,7 +3623,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.044997791,
+      "real_smoke_elapsed_seconds": 0.061633667,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -3734,7 +3886,9 @@
       "corpus_ids": [
         "corpus-01-genotyping-mini"
       ],
-      "pipeline_ids": [],
+      "pipeline_ids": [
+        "bam-genotyping-to-vcf-downstream"
+      ],
       "report_sections": [
         "downstream_readiness"
       ]
@@ -4115,6 +4269,24 @@
     },
     {
       "domain": "fastq",
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "row_count": 1,
+      "present_row_count": 1,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "tool_ids": [
+        "bijux_dna"
+      ],
+      "corpus_ids": [
+        "corpus-01-mini"
+      ],
+      "pipeline_ids": [],
+      "report_sections": [
+        "quality_profiling"
+      ]
+    },
+    {
+      "domain": "fastq",
       "stage_id": "fastq.extract_umis",
       "row_count": 1,
       "present_row_count": 1,
@@ -4175,6 +4347,25 @@
       ],
       "report_sections": [
         "read_cleanup"
+      ]
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "row_count": 2,
+      "present_row_count": 2,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "tool_ids": [
+        "bowtie2_build",
+        "star"
+      ],
+      "corpus_ids": [
+        "reference-index-assets"
+      ],
+      "pipeline_ids": [],
+      "report_sections": [
+        "reference_preparation"
       ]
     },
     {
@@ -4258,6 +4449,26 @@
       ],
       "report_sections": [
         "amplicon_interpretation"
+      ]
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "row_count": 3,
+      "present_row_count": 3,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "tool_ids": [
+        "fastq_scan",
+        "fastqc",
+        "seqkit"
+      ],
+      "corpus_ids": [
+        "corpus-01-mini"
+      ],
+      "pipeline_ids": [],
+      "report_sections": [
+        "quality_profiling"
       ]
     },
     {
@@ -4905,7 +5116,9 @@
         "corpus-01-genotyping-mini",
         "corpus-01-kinship-mini"
       ],
-      "pipeline_ids": []
+      "pipeline_ids": [
+        "bam-genotyping-to-vcf-downstream"
+      ]
     },
     {
       "tool_id": "atropos",
@@ -5109,15 +5322,16 @@
     },
     {
       "tool_id": "bijux_dna",
-      "row_count": 1,
-      "present_row_count": 1,
+      "row_count": 2,
+      "present_row_count": 2,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
         "fastq"
       ],
       "stage_ids": [
-        "fastq.detect_duplicates_premerge"
+        "fastq.detect_duplicates_premerge",
+        "fastq.estimate_library_complexity_prealign"
       ],
       "corpus_ids": [
         "corpus-01-mini"
@@ -5148,6 +5362,23 @@
         "core-germline-fastq-bam-vcf",
         "diploid-small-fastq-bam-vcf"
       ]
+    },
+    {
+      "tool_id": "bowtie2_build",
+      "row_count": 1,
+      "present_row_count": 1,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "domains": [
+        "fastq"
+      ],
+      "stage_ids": [
+        "fastq.index_reference"
+      ],
+      "corpus_ids": [
+        "reference-index-assets"
+      ],
+      "pipeline_ids": []
     },
     {
       "tool_id": "bwa",
@@ -5326,14 +5557,15 @@
     },
     {
       "tool_id": "fastq_scan",
-      "row_count": 1,
-      "present_row_count": 1,
+      "row_count": 2,
+      "present_row_count": 2,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
         "fastq"
       ],
       "stage_ids": [
+        "fastq.profile_overrepresented_sequences",
         "fastq.validate_reads"
       ],
       "corpus_ids": [
@@ -5343,8 +5575,8 @@
     },
     {
       "tool_id": "fastqc",
-      "row_count": 2,
-      "present_row_count": 2,
+      "row_count": 3,
+      "present_row_count": 3,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -5352,6 +5584,7 @@
       ],
       "stage_ids": [
         "fastq.detect_adapters",
+        "fastq.profile_overrepresented_sequences",
         "fastq.validate_reads"
       ],
       "corpus_ids": [
@@ -5933,8 +6166,8 @@
     },
     {
       "tool_id": "seqkit",
-      "row_count": 5,
-      "present_row_count": 5,
+      "row_count": 6,
+      "present_row_count": 6,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -5943,6 +6176,7 @@
       "stage_ids": [
         "fastq.filter_reads",
         "fastq.normalize_abundance",
+        "fastq.profile_overrepresented_sequences",
         "fastq.profile_reads",
         "fastq.trim_reads",
         "fastq.trim_terminal_damage"
@@ -6044,6 +6278,23 @@
       ],
       "corpus_ids": [
         "corpus-01-mini"
+      ],
+      "pipeline_ids": []
+    },
+    {
+      "tool_id": "star",
+      "row_count": 1,
+      "present_row_count": 1,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "domains": [
+        "fastq"
+      ],
+      "stage_ids": [
+        "fastq.index_reference"
+      ],
+      "corpus_ids": [
+        "reference-index-assets"
       ],
       "pipeline_ids": []
     },
@@ -6276,7 +6527,9 @@
       "tool_ids": [
         "angsd"
       ],
-      "pipeline_ids": []
+      "pipeline_ids": [
+        "bam-genotyping-to-vcf-downstream"
+      ]
     },
     {
       "corpus_id": "corpus-01-kinship-mini",
@@ -6298,8 +6551,8 @@
     },
     {
       "corpus_id": "corpus-01-mini",
-      "row_count": 56,
-      "present_row_count": 56,
+      "row_count": 60,
+      "present_row_count": 60,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -6314,10 +6567,12 @@
         "fastq.deplete_rrna",
         "fastq.detect_adapters",
         "fastq.detect_duplicates_premerge",
+        "fastq.estimate_library_complexity_prealign",
         "fastq.extract_umis",
         "fastq.filter_low_complexity",
         "fastq.filter_reads",
         "fastq.merge_pairs",
+        "fastq.profile_overrepresented_sequences",
         "fastq.profile_read_lengths",
         "fastq.profile_reads",
         "fastq.remove_duplicates",
@@ -6438,6 +6693,24 @@
       "pipeline_ids": []
     },
     {
+      "corpus_id": "reference-index-assets",
+      "row_count": 2,
+      "present_row_count": 2,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "domains": [
+        "fastq"
+      ],
+      "stage_ids": [
+        "fastq.index_reference"
+      ],
+      "tool_ids": [
+        "bowtie2_build",
+        "star"
+      ],
+      "pipeline_ids": []
+    },
+    {
       "corpus_id": "vcf_production_regression",
       "row_count": 20,
       "present_row_count": 19,
@@ -6487,7 +6760,7 @@
   ],
   "pipeline_centric": {
     "row_count": 10,
-    "unmapped_row_count": 93,
+    "unmapped_row_count": 98,
     "rows": [
       {
         "pipeline_id": "adna-gl-fastq-bam-vcf",
@@ -6601,8 +6874,8 @@
       },
       {
         "pipeline_id": "bam-genotyping-to-vcf-downstream",
-        "row_count": 7,
-        "present_row_count": 5,
+        "row_count": 8,
+        "present_row_count": 6,
         "missing_result_row_count": 2,
         "unsupported_pair_row_count": 0,
         "domains": [
@@ -6612,6 +6885,7 @@
         "stage_ids": [
           "bam.coverage",
           "bam.filter",
+          "bam.genotyping",
           "bam.recalibration",
           "vcf.filter",
           "vcf.pca",
@@ -6619,6 +6893,7 @@
           "vcf.stats"
         ],
         "tool_ids": [
+          "angsd",
           "bcftools",
           "gatk",
           "plink2",
@@ -7435,6 +7710,17 @@
       "runtime_source": "fake_run_simulated"
     },
     {
+      "report_row_id": "fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna",
+      "domain": "fastq",
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "tool_id": "bijux_dna",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
       "report_row_id": "fastq:corpus-01-mini:fastq.extract_umis:sample-set:umi_tools",
       "domain": "fastq",
       "stage_id": "fastq.extract_umis",
@@ -7505,6 +7791,28 @@
       "domain": "fastq",
       "stage_id": "fastq.filter_reads",
       "tool_id": "seqkit",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
+      "report_row_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "bowtie2_build",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
+      "report_row_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:star",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "star",
       "row_status": "present",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
@@ -7604,6 +7912,39 @@
       "domain": "fastq",
       "stage_id": "fastq.normalize_primers",
       "tool_id": "cutadapt",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
+      "report_row_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastq_scan",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
+      "report_row_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastqc",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
+      "report_row_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "seqkit",
       "row_status": "present",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
@@ -8036,7 +8377,7 @@
       "row_status": "present",
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.164146833,
+      "real_smoke_elapsed_seconds": 0.167285,
       "runtime_source": "fake_run_and_real_smoke"
     },
     {
@@ -8245,7 +8586,7 @@
       "row_status": "missing_result",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.044997791,
+      "real_smoke_elapsed_seconds": 0.061633667,
       "runtime_source": "fake_run_and_real_smoke"
     }
   ],
@@ -8959,6 +9300,18 @@
       "memory_source": "declared_stage_tool_resource"
     },
     {
+      "report_row_id": "fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna",
+      "domain": "fastq",
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "tool_id": "bijux_dna",
+      "row_status": "present",
+      "declared_memory_mb": 1024.0,
+      "declared_cpu_threads": 1,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
       "report_row_id": "fastq:corpus-01-mini:fastq.extract_umis:sample-set:umi_tools",
       "domain": "fastq",
       "stage_id": "fastq.extract_umis",
@@ -9038,6 +9391,30 @@
       "row_status": "present",
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
+      "report_row_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "bowtie2_build",
+      "row_status": "present",
+      "declared_memory_mb": 1024.0,
+      "declared_cpu_threads": 1,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
+      "report_row_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:star",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "star",
+      "row_status": "present",
+      "declared_memory_mb": 1024.0,
+      "declared_cpu_threads": 1,
       "real_smoke_memory_mb": null,
       "real_smoke_cpu_threads": null,
       "memory_source": "declared_stage_tool_resource"
@@ -9146,6 +9523,42 @@
       "row_status": "present",
       "declared_memory_mb": 8192.0,
       "declared_cpu_threads": 4,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
+      "report_row_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastq_scan",
+      "row_status": "present",
+      "declared_memory_mb": 8192.0,
+      "declared_cpu_threads": 4,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
+      "report_row_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastqc",
+      "row_status": "present",
+      "declared_memory_mb": 8192.0,
+      "declared_cpu_threads": 4,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
+      "report_row_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "seqkit",
+      "row_status": "present",
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
       "real_smoke_cpu_threads": null,
       "memory_source": "declared_stage_tool_resource"
@@ -9848,11 +10261,11 @@
     }
   ],
   "failures": {
-    "simulated_failure_row_count": 132,
+    "simulated_failure_row_count": 138,
     "failure_class_row_count": 7,
     "simulated_failure_domain_counts": {
       "bam": 49,
-      "fastq": 63,
+      "fastq": 69,
       "vcf": 20
     },
     "rows": [
@@ -10388,6 +10801,15 @@
         "detail": "fake failure recorded exit_code=7"
       },
       {
+        "record_id": "fake-failure:fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna",
+        "domain": "fastq",
+        "stage_id": "fastq.estimate_library_complexity_prealign",
+        "tool_id": "bijux_dna",
+        "result_id": "fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
         "record_id": "fake-failure:fastq:corpus-01-mini:fastq.extract_umis:sample-set:umi_tools",
         "domain": "fastq",
         "stage_id": "fastq.extract_umis",
@@ -10448,6 +10870,24 @@
         "tool_id": "seqkit",
         "result_id": "fastq:corpus-01-mini:fastq.filter_reads:sample-set:seqkit",
         "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.filter_reads/corpus_only/seqkit/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",
+        "domain": "fastq",
+        "stage_id": "fastq.index_reference",
+        "tool_id": "bowtie2_build",
+        "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:fastq:reference-index-assets:fastq.index_reference:asset-set:star",
+        "domain": "fastq",
+        "stage_id": "fastq.index_reference",
+        "tool_id": "star",
+        "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:star",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/failure.json",
         "detail": "fake failure recorded exit_code=7"
       },
       {
@@ -10529,6 +10969,33 @@
         "tool_id": "cutadapt",
         "result_id": "fastq:corpus-03-amplicon-mini:fastq.normalize_primers:sample-set:cutadapt",
         "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-03-amplicon-mini/fastq.normalize_primers/corpus_only/cutadapt/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan",
+        "domain": "fastq",
+        "stage_id": "fastq.profile_overrepresented_sequences",
+        "tool_id": "fastq_scan",
+        "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc",
+        "domain": "fastq",
+        "stage_id": "fastq.profile_overrepresented_sequences",
+        "tool_id": "fastqc",
+        "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit",
+        "domain": "fastq",
+        "stage_id": "fastq.profile_overrepresented_sequences",
+        "tool_id": "seqkit",
+        "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/failure.json",
         "detail": "fake failure recorded exit_code=7"
       },
       {
@@ -12215,7 +12682,7 @@
         "star"
       ],
       "contract_status": "declared",
-      "reason": "stage `fastq.index_reference` publishes governed shared comparable metrics `index_build_exit_code` for same-stage tool comparison while corpus routing remains `planner_only`"
+      "reason": "stage `fastq.index_reference` publishes governed shared comparable metrics `index_build_exit_code` for same-stage tool comparison while corpus routing remains `asset:reference-index-assets`"
     },
     {
       "domain": "fastq",
@@ -12231,7 +12698,7 @@
         "seqkit"
       ],
       "contract_status": "declared",
-      "reason": "stage `fastq.profile_overrepresented_sequences` publishes governed shared comparable metrics `sequence_count, flagged_sequences, top_fraction` for same-stage tool comparison while corpus routing remains `planner_only`"
+      "reason": "stage `fastq.profile_overrepresented_sequences` publishes governed shared comparable metrics `sequence_count, flagged_sequences, top_fraction` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-mini`"
     },
     {
       "domain": "fastq",
@@ -12247,7 +12714,7 @@
         "seqkit"
       ],
       "contract_status": "declared",
-      "reason": "stage `fastq.profile_overrepresented_sequences` publishes governed shared comparable metrics `sequence_count, flagged_sequences, top_fraction` for same-stage tool comparison while corpus routing remains `planner_only`"
+      "reason": "stage `fastq.profile_overrepresented_sequences` publishes governed shared comparable metrics `sequence_count, flagged_sequences, top_fraction` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-mini`"
     },
     {
       "domain": "fastq",
@@ -12263,7 +12730,7 @@
         "seqkit"
       ],
       "contract_status": "declared",
-      "reason": "stage `fastq.profile_overrepresented_sequences` publishes governed shared comparable metrics `sequence_count, flagged_sequences, top_fraction` for same-stage tool comparison while corpus routing remains `planner_only`"
+      "reason": "stage `fastq.profile_overrepresented_sequences` publishes governed shared comparable metrics `sequence_count, flagged_sequences, top_fraction` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-mini`"
     },
     {
       "domain": "fastq",

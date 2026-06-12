@@ -4,9 +4,9 @@
 
 - Tool count: 67
 - Stage-tool rows: 123
-- Benchmark-ready rows: 116
-- Blocked rows: 7
-- Tools with blockers: 7
+- Benchmark-ready rows: 118
+- Blocked rows: 5
+- Tools with blockers: 5
 
 | Tool | Domains | Stage rows | Ready | Blocked | Blocked stages |
 | --- | --- | ---: | ---: | ---: | --- |
@@ -24,7 +24,7 @@
 | bedtools | bam | 3 | 3 | 0 | none |
 | bijux_dna | fastq | 2 | 2 | 0 | none |
 | bowtie2 | bam, fastq | 3 | 3 | 0 | none |
-| bowtie2_build | fastq | 1 | 0 | 1 | fastq.index_reference (corpus) |
+| bowtie2_build | fastq | 1 | 1 | 0 | none |
 | bwa | bam | 1 | 1 | 0 | none |
 | centrifuge | fastq | 1 | 1 | 0 | none |
 | clumpify | fastq | 1 | 1 | 0 | none |
@@ -70,7 +70,7 @@
 | seqtk | fastq | 1 | 1 | 0 | none |
 | skewer | fastq | 1 | 1 | 0 | none |
 | sortmerna | fastq | 1 | 1 | 0 | none |
-| star | fastq | 1 | 0 | 1 | fastq.index_reference (corpus) |
+| star | fastq | 1 | 1 | 0 | none |
 | trim_galore | fastq | 1 | 1 | 0 | none |
 | trimmomatic | fastq | 1 | 1 | 0 | none |
 | umi_tools | fastq | 1 | 1 | 0 | none |
@@ -264,13 +264,13 @@
 
 - Domains: fastq
 - Stage rows: 1
-- Benchmark-ready rows: 0
-- Blocked rows: 1
+- Benchmark-ready rows: 1
+- Blocked rows: 0
 - Report sections: reference_preparation
 
 | Domain | Stage | Report section | Summary table | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| fastq | fastq.index_reference | Reference Preparation | Reference Index Assets | not_benchmark_ready | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | assigned |
+| fastq | fastq.index_reference | Reference Preparation | Reference Index Assets | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | asset:reference-index-assets | assigned |
 
 ## bwa
 
@@ -855,13 +855,13 @@
 
 - Domains: fastq
 - Stage rows: 1
-- Benchmark-ready rows: 0
-- Blocked rows: 1
+- Benchmark-ready rows: 1
+- Blocked rows: 0
 - Report sections: reference_preparation
 
 | Domain | Stage | Report section | Summary table | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| fastq | fastq.index_reference | Reference Preparation | Reference Index Assets | not_benchmark_ready | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |
+| fastq | fastq.index_reference | Reference Preparation | Reference Index Assets | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | asset:reference-index-assets | assigned |
 
 ## trim_galore
 

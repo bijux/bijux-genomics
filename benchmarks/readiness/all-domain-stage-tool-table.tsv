@@ -68,8 +68,8 @@ fastq	fastq.filter_reads	bbduk	corpus-01-mini	corpus_only	fastq.adapter.filter_r
 fastq	fastq.filter_reads	fastp	corpus-01-mini	corpus_only	fastq.adapter.filter_reads	fastq.parser.filter_reads	benchmark_ready
 fastq	fastq.filter_reads	prinseq	corpus-01-mini	corpus_only	fastq.adapter.filter_reads	fastq.parser.filter_reads	benchmark_ready
 fastq	fastq.filter_reads	seqkit	corpus-01-mini	corpus_only	fastq.adapter.filter_reads	fastq.parser.filter_reads	benchmark_ready
-fastq	fastq.index_reference	bowtie2_build	not_assigned	reference_fasta+reference_index_output	fastq.adapter.index_reference	fastq.parser.index_reference	not_benchmark_ready
-fastq	fastq.index_reference	star	not_assigned	corpus_only	fastq.adapter.index_reference	fastq.parser.index_reference	not_benchmark_ready
+fastq	fastq.index_reference	bowtie2_build	reference-index-assets	reference_fasta+reference_index_output	fastq.adapter.index_reference	fastq.parser.index_reference	benchmark_ready
+fastq	fastq.index_reference	star	reference-index-assets	reference_fasta+reference_index_output	fastq.adapter.index_reference	fastq.parser.index_reference	benchmark_ready
 fastq	fastq.infer_asvs	dada2	corpus-03-amplicon-mini	corpus_only	fastq.adapter.infer_asvs	fastq.parser.infer_asvs	benchmark_ready
 fastq	fastq.merge_pairs	adapterremoval	corpus-01-mini	corpus_only	fastq.adapter.merge_pairs	fastq.parser.merge_pairs	benchmark_ready
 fastq	fastq.merge_pairs	bbmerge	corpus-01-mini	corpus_only	fastq.adapter.merge_pairs	fastq.parser.merge_pairs	benchmark_ready

@@ -3,10 +3,10 @@
   "markdown_output_path": "benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.md",
   "json_output_path": "benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.json",
   "expected_pair_count": 123,
-  "ready_pair_count": 116,
-  "blocked_pair_count": 7,
+  "ready_pair_count": 118,
+  "blocked_pair_count": 5,
   "blocker_counts": {
-    "corpus": 3,
+    "corpus": 1,
     "support": 4
   },
   "matrix": {
@@ -14,8 +14,8 @@
     "scope": "all governed fastq and bam stage-tool pairs",
     "output_path": "benchmarks/readiness/pair-readiness.tsv",
     "expected_pair_count": 123,
-    "ready_pair_count": 116,
-    "blocked_pair_count": 7,
+    "ready_pair_count": 118,
+    "blocked_pair_count": 5,
     "stage_count": 51,
     "tool_count": 67,
     "domain_counts": {
@@ -23,8 +23,8 @@
       "fastq": 74
     },
     "readiness_gap_counts": {
-      "corpus": 3,
-      "none": 116,
+      "corpus": 1,
+      "none": 118,
       "support": 4
     }
   },
@@ -63,9 +63,9 @@
     "surface_status": "attention_required",
     "scope": "all governed fastq and bam stage-tool pairs",
     "total_pair_count": 123,
-    "ready_pair_count": 120,
-    "blocked_pair_count": 3,
-    "corpus_family_count": 7,
+    "ready_pair_count": 122,
+    "blocked_pair_count": 1,
+    "corpus_family_count": 8,
     "corpus_family_ids": [
       "corpus-01",
       "corpus-01-adna-bam",
@@ -73,10 +73,12 @@
       "corpus-01-genotyping",
       "corpus-01-kinship",
       "corpus-02",
-      "corpus-03"
+      "corpus-03",
+      "reference-index-assets"
     ],
-    "assigned_stage_count": 49,
+    "assigned_stage_count": 50,
     "status_counts": {
+      "asset:reference-index-assets": 2,
       "fixture:corpus-01-adna-bam-mini": 7,
       "fixture:corpus-01-adna-damage-mini": 9,
       "fixture:corpus-01-bam-mini": 28,
@@ -85,7 +87,7 @@
       "fixture:corpus-01-mini": 63,
       "fixture:corpus-02-edna-mini": 4,
       "fixture:corpus-03-amplicon-mini": 6,
-      "planner_only": 3
+      "planner_only": 1
     },
     "output_paths": [
       "benchmarks/readiness/fastq-corpus-assignment.tsv",
@@ -97,12 +99,12 @@
     "surface_status": "complete",
     "scope": "asset-required benchmark-submission pairs",
     "output_path": "benchmarks/readiness/gate-corpus-assets-complete.json",
-    "asset_required_pair_count": 18,
-    "ready_pair_count": 18,
+    "asset_required_pair_count": 20,
+    "ready_pair_count": 20,
     "blocked_pair_count": 0,
     "overall_status_counts": {
-      "assigned": 19,
-      "not_required": 104
+      "assigned": 20,
+      "not_required": 103
     }
   },
   "reports": {
@@ -111,10 +113,10 @@
     "output_count": 5,
     "ready_output_count": 5,
     "blocked_output_count": 0,
-    "expected_result_row_count": 116,
+    "expected_result_row_count": 118,
     "stage_section_count": 51,
     "tool_section_count": 67,
-    "corpus_section_count": 7
+    "corpus_section_count": 8
   },
   "report_outputs": [
     {
@@ -127,7 +129,7 @@
       "report_id": "expected_benchmark_results",
       "output_path": "benchmarks/readiness/expected-benchmark-results.tsv",
       "item_kind": "expected_results",
-      "item_count": 116
+      "item_count": 118
     },
     {
       "report_id": "stage_centric_report",
@@ -145,7 +147,7 @@
       "report_id": "corpus_centric_report",
       "output_path": "benchmarks/readiness/corpus-centric-report.md",
       "item_kind": "corpus_sections",
-      "item_count": 7
+      "item_count": 8
     }
   ],
   "blocked_pairs": [
@@ -174,32 +176,6 @@
       "corpus_status": "fixture:corpus-01-mini",
       "asset_status": "not_required",
       "reason": "row `fastq` / `fastq.filter_low_complexity` / `fastp` is blocked by benchmark support status `planned_contract`"
-    },
-    {
-      "row_id": "fastq:fastq.index_reference:bowtie2_build",
-      "domain": "fastq",
-      "stage_id": "fastq.index_reference",
-      "tool_id": "bowtie2_build",
-      "readiness_gap": "corpus",
-      "support_status": "observer_specialized_benchmark",
-      "adapter_status": "runnable",
-      "parser_status": "comparable",
-      "corpus_status": "planner_only",
-      "asset_status": "assigned",
-      "reason": "row `fastq` / `fastq.index_reference` / `bowtie2_build` is blocked by corpus status `planner_only`"
-    },
-    {
-      "row_id": "fastq:fastq.index_reference:star",
-      "domain": "fastq",
-      "stage_id": "fastq.index_reference",
-      "tool_id": "star",
-      "readiness_gap": "corpus",
-      "support_status": "observer_specialized_benchmark",
-      "adapter_status": "runnable",
-      "parser_status": "comparable",
-      "corpus_status": "planner_only",
-      "asset_status": "not_required",
-      "reason": "row `fastq` / `fastq.index_reference` / `star` is blocked by corpus status `planner_only`"
     },
     {
       "row_id": "fastq:fastq.normalize_abundance:seqfu",

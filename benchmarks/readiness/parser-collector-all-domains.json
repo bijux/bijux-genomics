@@ -3,20 +3,20 @@
   "output_path": "benchmarks/readiness/parser-collector-all-domains.json",
   "fixture_root": "runs/bench/readiness-probes/all-domains/parser-collector",
   "fake_run_root": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs",
-  "row_count": 140,
-  "fake_run_row_count": 136,
+  "row_count": 142,
+  "fake_run_row_count": 138,
   "real_smoke_row_count": 4,
   "source_kind_counts": {
-    "fake_run": 136,
+    "fake_run": 138,
     "real_smoke": 4
   },
   "domain_counts": {
     "bam": 50,
-    "fastq": 68,
+    "fastq": 70,
     "vcf": 22
   },
   "document_kind_counts": {
-    "all_domain_fake_run_metrics": 136,
+    "all_domain_fake_run_metrics": 138,
     "bam_local_smoke_report": 1,
     "fastq_local_smoke_report": 1,
     "vcf_local_prepare_reference_panel_metrics": 1,
@@ -2632,6 +2632,84 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 3,
+        "expected_metric_count": 2,
+        "simulated_elapsed_seconds": 1.25
+      }
+    },
+    {
+      "record_id": "fake-run:fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",
+      "source_kind": "fake_run",
+      "document_kind": "all_domain_fake_run_metrics",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "bowtie2_build",
+      "corpus_id": "reference-index-assets",
+      "asset_profile_id": "reference_fasta+reference_index_output",
+      "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",
+      "parsed_path": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/metrics.json",
+      "parsed_schema_version": "bijux.bench.local_all_domain_fake_run_metrics.v1",
+      "parsed_top_level_key_count": 13,
+      "parsed_top_level_keys": [
+        "asset_profile_id",
+        "command_step_count",
+        "corpus_id",
+        "declared_output_count",
+        "domain",
+        "expected_metric_count",
+        "expected_metrics",
+        "materialized_byte_count",
+        "result_id",
+        "schema_version",
+        "simulated_elapsed_seconds",
+        "stage_id",
+        "tool_id"
+      ],
+      "manifest_path": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/stage-result.json",
+      "manifest_status": "succeeded",
+      "manifest_exit_code": 0,
+      "declared_output_count": 2,
+      "normalized_snapshot": {
+        "command_step_count": 1,
+        "declared_output_count": 2,
+        "expected_metric_count": 2,
+        "simulated_elapsed_seconds": 1.25
+      }
+    },
+    {
+      "record_id": "fake-run:fastq:reference-index-assets:fastq.index_reference:asset-set:star",
+      "source_kind": "fake_run",
+      "document_kind": "all_domain_fake_run_metrics",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "star",
+      "corpus_id": "reference-index-assets",
+      "asset_profile_id": "reference_fasta+reference_index_output",
+      "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:star",
+      "parsed_path": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/metrics.json",
+      "parsed_schema_version": "bijux.bench.local_all_domain_fake_run_metrics.v1",
+      "parsed_top_level_key_count": 13,
+      "parsed_top_level_keys": [
+        "asset_profile_id",
+        "command_step_count",
+        "corpus_id",
+        "declared_output_count",
+        "domain",
+        "expected_metric_count",
+        "expected_metrics",
+        "materialized_byte_count",
+        "result_id",
+        "schema_version",
+        "simulated_elapsed_seconds",
+        "stage_id",
+        "tool_id"
+      ],
+      "manifest_path": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/stage-result.json",
+      "manifest_status": "succeeded",
+      "manifest_exit_code": 0,
+      "declared_output_count": 2,
+      "normalized_snapshot": {
+        "command_step_count": 1,
+        "declared_output_count": 2,
         "expected_metric_count": 2,
         "simulated_elapsed_seconds": 1.25
       }

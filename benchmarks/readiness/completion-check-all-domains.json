@@ -2,12 +2,12 @@
   "schema_version": "bijux.bench.readiness.all_domain_completion_check.v1",
   "output_path": "benchmarks/readiness/completion-check-all-domains.json",
   "fixture_root": "runs/bench/readiness-probes/all-domains/completion-check",
-  "row_count": 136,
-  "complete_row_count": 131,
+  "row_count": 138,
+  "complete_row_count": 133,
   "incomplete_row_count": 5,
   "domain_counts": {
     "bam": 49,
-    "fastq": 67,
+    "fastq": 69,
     "vcf": 20
   },
   "failure_reason_counts": {
@@ -3728,6 +3728,116 @@
         {
           "file_id": "metrics",
           "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.filter_reads/corpus_only/seqkit/metrics.json",
+          "exists": true,
+          "non_empty": true
+        }
+      ],
+      "completion_status": "complete",
+      "failure_reasons": []
+    },
+    {
+      "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "bowtie2_build",
+      "corpus_id": "reference-index-assets",
+      "asset_profile_id": "reference_fasta+reference_index_output",
+      "command_script_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/command.sh",
+      "stdout_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/stdout.txt",
+      "stderr_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/stderr.txt",
+      "metrics_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/metrics.json",
+      "stage_result_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/stage-result.json",
+      "manifest_exists": true,
+      "manifest_valid": true,
+      "manifest_output_match": true,
+      "exit_code_zero": true,
+      "runtime_status": "succeeded",
+      "exit_code": 0,
+      "declared_output_count": 2,
+      "present_declared_output_count": 2,
+      "missing_declared_output_ids": [],
+      "normalized_metrics_count": 1,
+      "present_normalized_metrics_count": 1,
+      "missing_normalized_metric_ids": [],
+      "required_file_count": 4,
+      "ready_required_file_count": 4,
+      "required_files": [
+        {
+          "file_id": "command_script",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/command.sh",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stdout",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/stdout.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stderr",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/stderr.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "metrics",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/metrics.json",
+          "exists": true,
+          "non_empty": true
+        }
+      ],
+      "completion_status": "complete",
+      "failure_reasons": []
+    },
+    {
+      "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:star",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "star",
+      "corpus_id": "reference-index-assets",
+      "asset_profile_id": "reference_fasta+reference_index_output",
+      "command_script_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/command.sh",
+      "stdout_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/stdout.txt",
+      "stderr_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/stderr.txt",
+      "metrics_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/metrics.json",
+      "stage_result_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/stage-result.json",
+      "manifest_exists": true,
+      "manifest_valid": true,
+      "manifest_output_match": true,
+      "exit_code_zero": true,
+      "runtime_status": "succeeded",
+      "exit_code": 0,
+      "declared_output_count": 2,
+      "present_declared_output_count": 2,
+      "missing_declared_output_ids": [],
+      "normalized_metrics_count": 1,
+      "present_normalized_metrics_count": 1,
+      "missing_normalized_metric_ids": [],
+      "required_file_count": 4,
+      "ready_required_file_count": 4,
+      "required_files": [
+        {
+          "file_id": "command_script",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/command.sh",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stdout",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/stdout.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stderr",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/stderr.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "metrics",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/metrics.json",
           "exists": true,
           "non_empty": true
         }
