@@ -101,7 +101,7 @@ fn benchmark_corpus_assignment_preserves_precise_exclusion_reasons() {
         &StageId::new("fastq.index_reference".to_string()),
         &ToolId::new("bowtie2_build".to_string()),
     )
-    .expect("index-reference assignment");
+    .unwrap_or_else(|| panic!("index-reference assignment"));
     assert_eq!(
         index_reference.exclusion_reason_code(),
         Some("reference_index_stage_has_no_read_corpus")
@@ -111,13 +111,13 @@ fn benchmark_corpus_assignment_preserves_precise_exclusion_reasons() {
         &StageId::new("fastq.profile_overrepresented_sequences".to_string()),
         &ToolId::new("fastqc".to_string()),
     )
-    .expect("overrepresented assignment");
+    .unwrap_or_else(|| panic!("overrepresented assignment"));
     assert_eq!(overrepresented.assigned_family(), Some(BenchmarkCorpusFamily::Corpus01));
 
     let report_qc = benchmark_corpus_assignment_for_stage_tool(
         &StageId::new("fastq.report_qc".to_string()),
         &ToolId::new("multiqc".to_string()),
     )
-    .expect("report-qc assignment");
+    .unwrap_or_else(|| panic!("report-qc assignment"));
     assert_eq!(report_qc.exclusion_reason_code(), Some("governed_multiqc_bundle_fixture_missing"));
 }

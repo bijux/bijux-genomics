@@ -30,7 +30,7 @@ pub fn remove_duplicates(
     report_json: &Path,
     raw_backend_report: Option<&Path>,
 ) -> Result<RemoveDuplicatesReportV1> {
-    if params.keep_order != true {
+    if !params.keep_order {
         return Err(anyhow!(
             "fastq.remove_duplicates local smoke currently requires keep_order=true"
         ));

@@ -111,7 +111,8 @@ pub fn filter_low_complexity(
     let reads_in = if paired { (left.len() + right.len()) as u64 } else { left.len() as u64 };
     let bases_in = left.iter().map(|record| record.sequence.len() as u64).sum::<u64>()
         + right.iter().map(|record| record.sequence.len() as u64).sum::<u64>();
-    let mean_q_before = if paired { (mean_q(&left) + mean_q(&right)) / 2.0 } else { mean_q(&left) };
+    let mean_q_before =
+        if paired { f64::midpoint(mean_q(&left), mean_q(&right)) } else { mean_q(&left) };
 
     let mut output_left = Vec::<FastqRecord>::new();
     let mut output_right = Vec::<FastqRecord>::new();
@@ -158,7 +159,7 @@ pub fn filter_low_complexity(
     let bases_out = output_left.iter().map(|record| record.sequence.len() as u64).sum::<u64>()
         + output_right.iter().map(|record| record.sequence.len() as u64).sum::<u64>();
     let mean_q_after = if paired {
-        (mean_q(&output_left) + mean_q(&output_right)) / 2.0
+        f64::midpoint(mean_q(&output_left), mean_q(&output_right))
     } else {
         mean_q(&output_left)
     };

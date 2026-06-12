@@ -24,7 +24,7 @@ fn parse_merge_pairs_report_parses_canonical_pair_counts() -> Result<()> {
             "reads_r2": 96,
             "reads_merged": 88,
             "reads_unmerged": 6,
-            "merge_rate": 0.9166666667
+            "merge_rate": 0.916_666_666_7
         })
         .to_string(),
     )?;
@@ -52,7 +52,7 @@ fn parse_detect_duplicates_premerge_report_parses_governed_json() -> Result<()> 
             "advisory_only": true,
             "reads_in": 12,
             "duplicate_signal_reads": 4,
-            "duplicate_signal_fraction": 0.3333333333333333,
+            "duplicate_signal_fraction": 0.333_333_333_333_333_3,
             "compared_read_pairs": 6
         })
         .to_string(),
@@ -61,7 +61,7 @@ fn parse_detect_duplicates_premerge_report_parses_governed_json() -> Result<()> 
     assert_eq!(parsed.reads_in, 12);
     assert_eq!(parsed.duplicate_signal_reads, 4);
     assert_eq!(parsed.compared_read_pairs, Some(6));
-    assert_f64_eq(parsed.duplicate_signal_fraction, 0.3333333333333333);
+    assert_f64_eq(parsed.duplicate_signal_fraction, 0.333_333_333_333_333_3);
     Ok(())
 }
 

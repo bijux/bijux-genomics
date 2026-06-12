@@ -5,6 +5,7 @@ use crate::params::{merge::MergeEngine, merge::UnmergedReadPolicy, PairedMode};
 
 pub const MERGE_PAIRS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.merge_pairs.report.v2";
 
+#[allow(clippy::struct_field_names)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MergePairCountsV1 {
     pub input_pair_count: u64,

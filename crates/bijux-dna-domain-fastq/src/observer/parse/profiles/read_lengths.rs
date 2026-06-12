@@ -101,7 +101,7 @@ fn histogram_median_read_length(histogram: &[ProfileReadLengthBinV1]) -> f64 {
     }
 
     match (low_value, high_value) {
-        (Some(low), Some(high)) => (u64_to_f64(low) + u64_to_f64(high)) / 2.0,
+        (Some(low), Some(high)) => f64::midpoint(u64_to_f64(low), u64_to_f64(high)),
         (Some(low), None) => u64_to_f64(low),
         _ => 0.0,
     }

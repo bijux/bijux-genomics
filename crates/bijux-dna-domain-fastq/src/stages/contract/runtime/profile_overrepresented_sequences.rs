@@ -45,8 +45,8 @@ pub fn profile_overrepresented_sequences(
     if params.paired_mode != observed_paired_mode {
         return Err(anyhow!(
             "fastq.profile_overrepresented_sequences paired_mode mismatch: params={}, inputs={}",
-            paired_mode_literal(&params.paired_mode),
-            paired_mode_literal(&observed_paired_mode)
+            paired_mode_literal(params.paired_mode),
+            paired_mode_literal(observed_paired_mode)
         ));
     }
 
@@ -103,7 +103,7 @@ pub fn profile_overrepresented_sequences(
             path,
             format!(
                 "paired_mode\t{}\nthreads\t{}\ntop_k\t{}\ninput_sequences\t{}\nunique_sequences\t{}\nflagged_sequences\t{}\ntop_fraction\t{:.6}\n",
-                paired_mode_literal(&params.paired_mode),
+                paired_mode_literal(params.paired_mode),
                 params.threads,
                 params.top_k,
                 total_sequences,
@@ -119,7 +119,7 @@ pub fn profile_overrepresented_sequences(
         stage: "fastq.profile_overrepresented_sequences".to_string(),
         stage_id: "fastq.profile_overrepresented_sequences".to_string(),
         tool_id: "bijux".to_string(),
-        paired_mode: params.paired_mode.clone(),
+        paired_mode: params.paired_mode,
         threads: params.threads,
         top_k: params.top_k,
         input_r1: r1.display().to_string(),
@@ -192,7 +192,7 @@ fn ensure_parent_dir(path: &Path) -> Result<()> {
     Ok(())
 }
 
-fn paired_mode_literal(paired_mode: &PairedMode) -> &'static str {
+fn paired_mode_literal(paired_mode: PairedMode) -> &'static str {
     match paired_mode {
         PairedMode::SingleEnd => "single_end",
         PairedMode::PairedEnd => "paired_end",
