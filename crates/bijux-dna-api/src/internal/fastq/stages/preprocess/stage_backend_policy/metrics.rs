@@ -472,6 +472,7 @@ pub(crate) fn parse_extract_umis_metrics(out_dir: &std::path::Path) -> serde_jso
     let report_path = out_dir.join("umi_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_extract_umis_report(&raw) {
+            let umi_summary = report.canonical_umi_summary();
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.extract_umis",
@@ -481,7 +482,7 @@ pub(crate) fn parse_extract_umis_metrics(out_dir: &std::path::Path) -> serde_jso
                 "umi_pattern": report.umi_pattern,
                 "extraction_location": report.extraction_location,
                 "read_name_transform": report.read_name_transform,
-                "tag_header_format": report.read_name_transform,
+                "tag_header_format": umi_summary.tag_header_format,
                 "failed_extraction_policy": report.failed_extraction_policy,
                 "downstream_propagation": report.downstream_propagation,
                 "reads_in": report.reads_in,
@@ -492,8 +493,8 @@ pub(crate) fn parse_extract_umis_metrics(out_dir: &std::path::Path) -> serde_jso
                 "pairs_out": report.pairs_out,
                 "reads_with_umi": report.reads_with_umi,
                 "failed_extractions": report.failed_extractions,
-                "extracted_umi_count": report.reads_with_umi,
-                "invalid_umi_count": report.failed_extractions,
+                "extracted_umi_count": umi_summary.extracted_umi_count,
+                "invalid_umi_count": umi_summary.invalid_umi_count,
                 "mean_q_before": report.mean_q_before,
                 "mean_q_after": report.mean_q_after,
                 "raw_backend_report": report.raw_backend_report,
@@ -638,12 +639,7 @@ pub(crate) fn parse_merge_pairs_metrics(out_dir: &std::path::Path) -> serde_json
     let report_path = out_dir.join("merge_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_merge_pairs_report(&raw) {
-            let input_pair_count = report.reads_r1.min(report.reads_r2);
-            let merged_pair_count = report.reads_merged.min(input_pair_count);
-            let unmerged_pair_count =
-                report.reads_unmerged.min(input_pair_count.saturating_sub(merged_pair_count));
-            let discarded_pair_count =
-                input_pair_count.saturating_sub(merged_pair_count + unmerged_pair_count);
+            let pair_counts = report.canonical_pair_counts();
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.merge_pairs",
@@ -656,12 +652,12 @@ pub(crate) fn parse_merge_pairs_metrics(out_dir: &std::path::Path) -> serde_json
                 "unmerged_read_policy": report.unmerged_read_policy,
                 "reads_r1": report.reads_r1,
                 "reads_r2": report.reads_r2,
-                "input_pair_count": input_pair_count,
+                "input_pair_count": pair_counts.input_pair_count,
                 "reads_merged": report.reads_merged,
                 "reads_unmerged": report.reads_unmerged,
-                "merged_pair_count": merged_pair_count,
-                "unmerged_pair_count": unmerged_pair_count,
-                "discarded_pair_count": discarded_pair_count,
+                "merged_pair_count": pair_counts.merged_pair_count,
+                "unmerged_pair_count": pair_counts.unmerged_pair_count,
+                "discarded_pair_count": pair_counts.discarded_pair_count,
                 "merge_rate": report.merge_rate,
                 "runtime_s": report.runtime_s,
                 "memory_mb": report.memory_mb,

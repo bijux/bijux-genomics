@@ -446,6 +446,7 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
                 bijux_dna_domain_fastq::observer::parse_merge_pairs_report(&raw).ok()
             });
+            let pair_counts = governed.as_ref().map(|report| report.canonical_pair_counts());
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.merge_pairs.extra_artifacts.v2",
                 "stage": stage_id,
@@ -458,22 +459,12 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "unmerged_read_policy": governed.as_ref().map(|report| report.unmerged_read_policy.clone()),
                 "reads_r1": governed.as_ref().map(|report| report.reads_r1),
                 "reads_r2": governed.as_ref().map(|report| report.reads_r2),
-                "input_pair_count": governed.as_ref().map(|report| report.reads_r1.min(report.reads_r2)),
+                "input_pair_count": pair_counts.as_ref().map(|counts| counts.input_pair_count),
                 "reads_merged": governed.as_ref().map(|report| report.reads_merged),
                 "reads_unmerged": governed.as_ref().map(|report| report.reads_unmerged),
-                "merged_pair_count": governed.as_ref().map(|report| report.reads_merged.min(report.reads_r1.min(report.reads_r2))),
-                "unmerged_pair_count": governed.as_ref().map(|report| {
-                    let input_pair_count = report.reads_r1.min(report.reads_r2);
-                    let merged_pair_count = report.reads_merged.min(input_pair_count);
-                    report.reads_unmerged.min(input_pair_count.saturating_sub(merged_pair_count))
-                }),
-                "discarded_pair_count": governed.as_ref().map(|report| {
-                    let input_pair_count = report.reads_r1.min(report.reads_r2);
-                    let merged_pair_count = report.reads_merged.min(input_pair_count);
-                    let unmerged_pair_count =
-                        report.reads_unmerged.min(input_pair_count.saturating_sub(merged_pair_count));
-                    input_pair_count.saturating_sub(merged_pair_count + unmerged_pair_count)
-                }),
+                "merged_pair_count": pair_counts.as_ref().map(|counts| counts.merged_pair_count),
+                "unmerged_pair_count": pair_counts.as_ref().map(|counts| counts.unmerged_pair_count),
+                "discarded_pair_count": pair_counts.as_ref().map(|counts| counts.discarded_pair_count),
                 "merge_rate": governed.as_ref().map(|report| report.merge_rate),
                 "merged_reads": governed.as_ref().map(|report| report.merged_reads.clone()),
                 "unmerged_reads_r1": governed.as_ref().and_then(|report| report.unmerged_reads_r1.clone()),
@@ -488,6 +479,7 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
                 bijux_dna_domain_fastq::observer::parse_extract_umis_report(&raw).ok()
             });
+            let umi_summary = governed.as_ref().map(|report| report.canonical_umi_summary());
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.extract_umis.extra_artifacts.v2",
                 "stage": stage_id,
@@ -497,7 +489,7 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "umi_pattern": governed.as_ref().map(|report| report.umi_pattern.clone()),
                 "extraction_location": governed.as_ref().map(|report| report.extraction_location.clone()),
                 "read_name_transform": governed.as_ref().map(|report| report.read_name_transform.clone()),
-                "tag_header_format": governed.as_ref().map(|report| report.read_name_transform.clone()),
+                "tag_header_format": umi_summary.as_ref().map(|summary| summary.tag_header_format.clone()),
                 "failed_extraction_policy": governed.as_ref().map(|report| report.failed_extraction_policy.clone()),
                 "downstream_propagation": governed.as_ref().map(|report| report.downstream_propagation.clone()),
                 "grouping_policy": governed.as_ref().map(|report| report.grouping_policy.clone()),
@@ -510,8 +502,8 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "pairs_out": governed.as_ref().and_then(|report| report.pairs_out),
                 "reads_with_umi": governed.as_ref().map(|report| report.reads_with_umi),
                 "failed_extractions": governed.as_ref().and_then(|report| report.failed_extractions),
-                "extracted_umi_count": governed.as_ref().map(|report| report.reads_with_umi),
-                "invalid_umi_count": governed.as_ref().and_then(|report| report.failed_extractions),
+                "extracted_umi_count": umi_summary.as_ref().map(|summary| summary.extracted_umi_count),
+                "invalid_umi_count": umi_summary.as_ref().map(|summary| summary.invalid_umi_count),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
                 "report_json": report_path,

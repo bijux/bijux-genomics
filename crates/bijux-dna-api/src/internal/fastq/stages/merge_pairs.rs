@@ -207,10 +207,7 @@ fn materialize_local_merge_pairs_smoke_case(
         copy_fastq_artifact(source, destination)?;
     }
 
-    let input_pair_count = report.reads_r1.min(report.reads_r2);
-    let merged_count = report.reads_merged.min(input_pair_count);
-    let unmerged_count = report.reads_unmerged.min(input_pair_count.saturating_sub(merged_count));
-    let discarded_count = input_pair_count.saturating_sub(merged_count + unmerged_count);
+    let pair_counts = report.canonical_pair_counts();
 
     Ok(LocalMergePairsSmokeReport {
         schema_version: LOCAL_MERGE_PAIRS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
@@ -220,11 +217,11 @@ fn materialize_local_merge_pairs_smoke_case(
         report_tool_id: report.tool_id,
         merge_overlap: effective_params.merge_overlap.unwrap_or(case.merge_overlap),
         min_length: effective_params.min_len.unwrap_or(case.min_length),
-        input_pair_count,
-        merged_count,
-        unmerged_r1_count: unmerged_count,
-        unmerged_r2_count: unmerged_count,
-        discarded_count,
+        input_pair_count: pair_counts.input_pair_count,
+        merged_count: pair_counts.merged_pair_count,
+        unmerged_r1_count: pair_counts.unmerged_pair_count,
+        unmerged_r2_count: pair_counts.unmerged_pair_count,
+        discarded_count: pair_counts.discarded_pair_count,
         merged_fastq_gz: path_relative_to_repo(repo_root, &top_level_merged),
         unmerged_r1_fastq_gz: top_level_unmerged_r1
             .as_ref()

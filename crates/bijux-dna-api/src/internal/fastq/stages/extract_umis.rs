@@ -1030,6 +1030,8 @@ fn materialize_local_extract_umis_smoke_case(
     copy_smoke_artifact(&case_output_r1, &top_level_r1)?;
     copy_smoke_artifact(&case_output_r2, &top_level_r2)?;
 
+    let umi_summary = report.canonical_umi_summary();
+
     Ok(LocalExtractUmisSmokeReport {
         schema_version: LOCAL_EXTRACT_UMIS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
         stage_id: "fastq.extract_umis".to_string(),
@@ -1037,9 +1039,9 @@ fn materialize_local_extract_umis_smoke_case(
         planned_tool_id: case.plan.tool_id.as_str().to_string(),
         report_tool_id: report.tool_id,
         umi_pattern: case.umi_pattern.clone(),
-        extracted_umi_count: report.reads_with_umi,
-        invalid_umi_count: report.failed_extractions.unwrap_or(0),
-        tag_header_format: read_name_transform_literal(&case.read_name_transform).to_string(),
+        extracted_umi_count: umi_summary.extracted_umi_count,
+        invalid_umi_count: umi_summary.invalid_umi_count,
+        tag_header_format: umi_summary.tag_header_format,
         umi_extracted_fastq_gz: path_relative_to_repo(repo_root, &top_level_r1),
         umi_extracted_r2_fastq_gz: path_relative_to_repo(repo_root, &top_level_r2),
         case_report_json: path_relative_to_repo(repo_root, &case_report_json),
