@@ -1,3 +1,6 @@
+#![allow(clippy::items_after_test_module)]
+#![cfg_attr(test, allow(clippy::expect_used))]
+
 use std::path::PathBuf;
 
 use anyhow::Result;

@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use std::path::PathBuf;
 
 use bijux_dna_runtime::run_layout::{

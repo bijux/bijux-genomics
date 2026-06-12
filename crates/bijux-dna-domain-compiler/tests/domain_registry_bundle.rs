@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use bijux_dna_domain_compiler::{
     build_domain_registry_bundle, domain_artifact_contract_snapshots, domain_defaults_snapshot,
     domain_metric_catalogs, query_domain_registry_bundle, DomainRegistryQuery,

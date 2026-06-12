@@ -2,6 +2,7 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn crate_tree_matches_domain_compiler_boundary() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
 

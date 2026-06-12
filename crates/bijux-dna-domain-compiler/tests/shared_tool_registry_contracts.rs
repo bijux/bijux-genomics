@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 #[path = "support/mod.rs"]
 mod support;
 

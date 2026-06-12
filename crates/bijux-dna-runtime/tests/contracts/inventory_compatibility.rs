@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used)]
+
 use std::path::Path;
 
 use bijux_dna_core::contract::ManifestMigrationStatusV1;

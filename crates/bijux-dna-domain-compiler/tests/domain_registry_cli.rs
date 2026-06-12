@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use std::process::Command;
 
 #[path = "support/mod.rs"]

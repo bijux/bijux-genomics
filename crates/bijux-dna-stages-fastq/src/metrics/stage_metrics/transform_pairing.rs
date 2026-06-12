@@ -1,3 +1,6 @@
+#![allow(clippy::items_after_test_module)]
+#![cfg_attr(test, allow(clippy::expect_used))]
+
 use std::path::PathBuf;
 
 use anyhow::Result;
@@ -275,7 +278,7 @@ mod tests {
                 "reads_r2": 96,
                 "reads_merged": 88,
                 "reads_unmerged": 6,
-                "merge_rate": 0.9166666667
+                "merge_rate": 0.916_666_666_7
             })
             .to_string(),
         )
