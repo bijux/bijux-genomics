@@ -205,6 +205,7 @@ fn normalize_effective_params(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::plan_with_effective_params;
     use bijux_dna_core::prelude::{

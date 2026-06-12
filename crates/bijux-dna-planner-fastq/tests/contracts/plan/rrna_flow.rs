@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use anyhow::Result;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};

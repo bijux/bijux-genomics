@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use anyhow::Result;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -73,6 +75,7 @@ fn assert_command_is_concrete(plan: &StagePlanV1) {
     );
 }
 
+#[allow(clippy::too_many_lines)]
 #[test]
 fn stage_plan_snapshots_are_stable() -> Result<()> {
     let r1 = Path::new("reads_R1.fastq.gz");

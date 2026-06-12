@@ -1715,6 +1715,7 @@ fn shell_quote_str(value: &str) -> String {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{
         adapterremoval_command_template, alientrimmer_command_template, atropos_command_template,

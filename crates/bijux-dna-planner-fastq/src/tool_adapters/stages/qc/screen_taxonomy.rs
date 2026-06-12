@@ -752,6 +752,7 @@ fn is_gzip_input(path: &Path) -> bool {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{
         plan_screen_with_effective_params, plan_screen_with_options, ScreenPlanOptions, STAGE_ID,

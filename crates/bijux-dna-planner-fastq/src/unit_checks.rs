@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use super::graph_policy::stage_status;
 use super::selection_planning::{
     bench_query_context_for_preprocess_stage, bench_query_context_for_stage,
@@ -238,6 +240,7 @@ fn validate_manifest_lineage_becomes_artifact_bound_execution_edge() {
     }));
 }
 
+#[allow(clippy::too_many_lines)]
 #[test]
 fn report_qc_preserves_multiple_explicit_qc_artifact_bindings() {
     let bindings = vec![

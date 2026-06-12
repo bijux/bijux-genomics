@@ -96,6 +96,7 @@ fn prepared_adapter_bank_report(
     }))
 }
 
+#[allow(clippy::too_many_lines)]
 fn governed_trim_report_payload(
     tool_id: &str,
     r1: &Path,

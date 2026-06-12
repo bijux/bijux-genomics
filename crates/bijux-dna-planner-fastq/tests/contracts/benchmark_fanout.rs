@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use std::collections::BTreeMap;
 
 use bijux_dna_core::contract::PlanPolicy;

@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::contract::PlanPolicy;
@@ -233,6 +233,7 @@ pub fn plan_fastq_stage_plans(config: &FastqPlanConfig) -> Result<Vec<StagePlanV
 /// # Errors
 /// Returns an error if the explicit-input stage binding cannot be composed into a single stage
 /// plan.
+#[allow(clippy::too_many_arguments)]
 pub fn plan_fastq_stage_binding_with_explicit_inputs(
     binding: FastqStageBinding,
     aux_images: &BTreeMap<String, ContainerImageRefV1>,
@@ -244,7 +245,7 @@ pub fn plan_fastq_stage_binding_with_explicit_inputs(
     r2: Option<&std::path::Path>,
     reference_fasta: Option<&std::path::Path>,
     explicit_inputs: &[FastqStageExplicitInput],
-    out_dir: PathBuf,
+    out_dir: &Path,
 ) -> Result<StagePlanV1> {
     let synthetic_node_id = format!("{}.explicit_inputs", binding.stage_id);
     let mut explicit_stage_inputs = crate::compose::StageArtifactInputPolicy::new();
@@ -288,14 +289,10 @@ pub fn plan_fastq_stage_binding_with_explicit_inputs(
         Some(&explicit_stage_inputs),
         Some(&synthetic_stage_artifacts),
         None,
-        |_, _, _| Ok(out_dir.clone()),
+        |_, _, _| Ok(out_dir.to_path_buf()),
     )?;
     plans.into_iter().next().ok_or_else(|| {
-        anyhow!(
-            "explicit-input fastq planner produced no stage plan for {} / {}",
-            stage_id,
-            tool_id
-        )
+        anyhow!("explicit-input fastq planner produced no stage plan for {stage_id} / {tool_id}")
     })
 }
 
@@ -876,7 +873,7 @@ mod tests {
             Vec::new(),
         );
 
-        let error = stage_toolsets_for_pipeline_nodes(
+        let result = stage_toolsets_for_pipeline_nodes(
             &pipeline,
             &[FastqStageToolsetBinding {
                 stage_id: "fastq.validate_reads".to_string(),
@@ -885,8 +882,11 @@ mod tests {
                 reason: None,
                 params: None,
             }],
-        )
-        .expect_err("node/tool mismatch must fail");
+        );
+        let error = match result {
+            Ok(_) => panic!("node/tool mismatch must fail"),
+            Err(error) => error,
+        };
 
         assert!(error.to_string().contains("pipeline nodes/toolset length mismatch"));
     }
@@ -944,7 +944,7 @@ mod tests {
 
     #[test]
     fn implicit_pipeline_spec_from_toolsets_rejects_repeated_stage_ids() {
-        let error = implicit_pipeline_spec_from_toolsets(&[
+        let result = implicit_pipeline_spec_from_toolsets(&[
             FastqStageToolsetBinding {
                 stage_id: "fastq.trim_reads".to_string(),
                 stage_instance_id: Some("fastq.trim_reads.fastp_branch".to_string()),
@@ -959,8 +959,11 @@ mod tests {
                 reason: None,
                 params: None,
             },
-        ])
-        .expect_err("repeated stage ids must require an explicit graph");
+        ]);
+        let error = match result {
+            Ok(_) => panic!("repeated stage ids must require an explicit graph"),
+            Err(error) => error,
+        };
 
         assert!(error.to_string().contains("requires an explicit pipeline_spec"));
     }

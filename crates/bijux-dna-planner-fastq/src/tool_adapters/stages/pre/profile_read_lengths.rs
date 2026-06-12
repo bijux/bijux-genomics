@@ -229,6 +229,7 @@ fn prinseq_profile_lengths_command(r1: &Path, r2: Option<&Path>, threads: u32) -
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::plan_with_options;
     use bijux_dna_core::prelude::{

@@ -173,8 +173,7 @@ fn local_smoke_case_output_dir(
     let readiness_root = repo_root.join(BENCHMARK_READINESS_ROOT_RELATIVE);
     if resolved_root == readiness_root || resolved_root.starts_with(&readiness_root) {
         return Err(anyhow!(
-            "local-smoke output_dir must remain disposable under `runs/bench/local-smoke` and must not resolve inside `{}`",
-            BENCHMARK_READINESS_ROOT_RELATIVE
+            "local-smoke output_dir must remain disposable under `runs/bench/local-smoke` and must not resolve inside `{BENCHMARK_READINESS_ROOT_RELATIVE}`"
         ));
     }
     Ok(output_root.join(sample_id).join(tool_id))
@@ -886,8 +885,7 @@ pub fn local_detect_adapters_smoke_plans(
     let normalized_tools = select_detect_adapters_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.detect_adapters tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.detect_adapters tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -921,8 +919,7 @@ pub fn local_correct_errors_smoke_plans(
     let normalized_tools = select_correct_tools(std::slice::from_ref(&config.tool_id), false)?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.correct_errors tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.correct_errors tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -967,8 +964,7 @@ pub fn local_extract_umis_smoke_plans(
     let normalized_tools = select_umi_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.extract_umis tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.extract_umis tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
     if !crate::stage_api::tool_supports_input_layout(&stage_id, &tool_id, true) {
@@ -1103,8 +1099,7 @@ pub fn local_filter_reads_smoke_plans(
     let normalized_tools = select_filter_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.filter_reads tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.filter_reads tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -1155,8 +1150,7 @@ pub fn local_filter_low_complexity_smoke_plans(
         select_filter_low_complexity_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.filter_low_complexity tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.filter_low_complexity tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -1198,8 +1192,7 @@ pub fn local_infer_asvs_smoke_plans(repo_root: &Path) -> Result<Vec<LocalInferAs
     let normalized_tools = select_infer_asvs_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.infer_asvs tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.infer_asvs tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
     if !crate::stage_api::tool_supports_input_layout(&stage_id, &tool_id, false) {
@@ -1255,8 +1248,7 @@ pub fn local_cluster_otus_smoke_plans(
     let normalized_tools = select_cluster_otus_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.cluster_otus tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.cluster_otus tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
@@ -1299,8 +1291,7 @@ pub fn local_normalize_abundance_smoke_plans(
     let normalized_tools = select_normalize_abundance_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.normalize_abundance tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.normalize_abundance tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -1343,8 +1334,7 @@ pub fn local_merge_pairs_smoke_plans(
     let normalized_tools = select_merge_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.merge_pairs tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.merge_pairs tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -1393,8 +1383,7 @@ pub fn local_remove_duplicates_smoke_plans(
     let normalized_tools = select_remove_duplicates_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.remove_duplicates tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.remove_duplicates tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
@@ -1440,8 +1429,7 @@ pub fn local_remove_chimeras_smoke_plans(
     let normalized_tools = select_remove_chimeras_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.remove_chimeras tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.remove_chimeras tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -1475,8 +1463,7 @@ pub fn local_normalize_primers_smoke_plans(
     let normalized_tools = select_normalize_primers_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.normalize_primers tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.normalize_primers tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -1646,8 +1633,7 @@ pub fn local_trim_reads_smoke_plans(repo_root: &Path) -> Result<Vec<LocalTrimRea
     let normalized_tools = select_trim_tools(std::slice::from_ref(&config.tool_id), false)?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.trim_reads tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.trim_reads tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -1720,8 +1706,8 @@ fn build_local_detect_adapters_smoke_case(
         &case.sample_id,
         tool_spec.tool_id.as_str(),
     )?;
-    let mut options = crate::DetectAdaptersStageParams::default();
-    options.threads = Some(tool_spec.resources.threads.max(1));
+    let options =
+        crate::DetectAdaptersStageParams { threads: Some(tool_spec.resources.threads.max(1)) };
     let plan = plan_detect_adapters(tool_spec, &case.r1, case.r2.as_deref(), &out_dir, &options)?;
 
     Ok(LocalDetectAdaptersSmokeCasePlan {
@@ -2412,8 +2398,7 @@ pub fn local_validate_reads_smoke_plans(
     let normalized_tools = select_validate_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.validate_reads tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.validate_reads tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -2454,8 +2439,7 @@ pub fn local_profile_reads_smoke_plans(
     let normalized_tools = select_stats_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.profile_reads tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.profile_reads tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -2486,8 +2470,7 @@ pub fn local_report_qc_smoke_plan(
     )?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.report_qc tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.report_qc tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -2553,8 +2536,7 @@ pub fn local_profile_overrepresented_sequences_smoke_plans(
         select_profile_overrepresented_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.profile_overrepresented_sequences tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.profile_overrepresented_sequences tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -2905,8 +2887,7 @@ pub fn local_profile_read_lengths_smoke_plans(
         select_profile_read_lengths_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-smoke fastq.profile_read_lengths tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-smoke fastq.profile_read_lengths tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -3711,13 +3692,16 @@ mod tests {
 
     #[test]
     fn local_smoke_case_output_dir_rejects_readiness_root() {
-        let error = local_smoke_case_output_dir(
+        let result = local_smoke_case_output_dir(
             Path::new("/workspace/repo"),
             Path::new("benchmarks/readiness/local-ready/fastq.validate_reads"),
             "toy-se",
             "fastqvalidator",
-        )
-        .expect_err("readiness-root smoke outputs must be refused");
+        );
+        let error = match result {
+            Ok(path) => panic!("readiness-root smoke outputs must be refused, got {path:?}"),
+            Err(error) => error,
+        };
 
         assert!(
             error.to_string().contains("local-smoke output_dir must remain disposable"),

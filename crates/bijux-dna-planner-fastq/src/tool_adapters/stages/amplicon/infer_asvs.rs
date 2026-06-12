@@ -242,6 +242,7 @@ fn infer_asvs_command(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{infer_asvs_output_refs, plan_with_options, InferAsvsPlanOptions};
     use bijux_dna_core::prelude::{

@@ -252,6 +252,7 @@ fn ensure_low_complexity_option_support(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{low_complexity_output_name, plan_low_complexity, LowComplexityPlanOptions};
     use bijux_dna_core::prelude::{

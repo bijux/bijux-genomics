@@ -82,6 +82,7 @@ pub fn plan_contaminant_screen_with_options(
 ///
 /// # Errors
 /// Returns an error if the tool is unsupported.
+#[allow(clippy::too_many_lines)]
 pub fn plan_contaminant_screen_with_index_backend(
     tool: &ToolExecutionSpecV1,
     r1: &Path,

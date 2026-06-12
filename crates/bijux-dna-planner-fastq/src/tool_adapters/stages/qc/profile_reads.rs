@@ -171,6 +171,7 @@ fn profile_reads_command(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::plan_stats_with_threads;
     use bijux_dna_core::prelude::{

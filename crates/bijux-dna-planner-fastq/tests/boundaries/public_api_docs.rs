@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used, clippy::too_many_lines)]
+
 use std::collections::BTreeSet;
 use std::path::Path;
 

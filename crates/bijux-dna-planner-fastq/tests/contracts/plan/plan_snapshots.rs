@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 /// Snapshot intent: verifies stable, reviewed output for this contract.
 use std::collections::BTreeMap;
 use std::path::PathBuf;

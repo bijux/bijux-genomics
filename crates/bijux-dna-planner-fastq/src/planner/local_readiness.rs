@@ -118,8 +118,7 @@ pub fn local_index_reference_plan(
     let normalized_tools = select_index_reference_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-ready fastq.index_reference tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-ready fastq.index_reference tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -159,8 +158,7 @@ pub fn local_deplete_host_plan(repo_root: &Path) -> Result<bijux_dna_stage_contr
     let normalized_tools = select_deplete_host_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-ready fastq.deplete_host tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-ready fastq.deplete_host tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -215,8 +213,7 @@ pub fn local_deplete_reference_contaminants_plan(
         select_deplete_reference_contaminants_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-ready fastq.deplete_reference_contaminants tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-ready fastq.deplete_reference_contaminants tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -266,8 +263,7 @@ pub fn local_deplete_rrna_plan(repo_root: &Path) -> Result<bijux_dna_stage_contr
     let normalized_tools = select_deplete_rrna_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-ready fastq.deplete_rrna tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-ready fastq.deplete_rrna tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 
@@ -321,8 +317,7 @@ pub fn local_screen_taxonomy_plan(
     let normalized_tools = select_screen_tools(std::slice::from_ref(&config.tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
-            "local-ready fastq.screen_taxonomy tool selection normalized unexpectedly: {:?}",
-            normalized_tools
+            "local-ready fastq.screen_taxonomy tool selection normalized unexpectedly: {normalized_tools:?}"
         ));
     }
 

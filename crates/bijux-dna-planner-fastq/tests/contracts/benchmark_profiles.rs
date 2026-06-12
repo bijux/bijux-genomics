@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use bijux_dna_core::ids::{StageId, ToolId};
 
 #[test]
@@ -133,6 +135,7 @@ fn stage_tool_capabilities_distinguish_declared_runnable_and_comparable_bindings
     assert!(detect_capability.normalization.comparable);
 }
 
+#[allow(clippy::too_many_lines)]
 #[test]
 fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     let trim_stage = StageId::from_static("fastq.trim_reads");
