@@ -664,11 +664,7 @@ fn write_top_level_cluster_otus_table(
         let _ = writeln!(
             rendered,
             "{}\t{}\t{}\t{}\t{}",
-            fields[0],
-            fields[1],
-            fields[2],
-            fields[1],
-            representative_path
+            fields[0], fields[1], fields[2], fields[1], representative_path
         );
     }
     std::fs::write(top_level_otu_table, rendered)

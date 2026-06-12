@@ -94,10 +94,7 @@ fn write_local_infer_asvs_smoke_report_materializes_governed_outputs() -> Result
         "summary must point at the copied top-level representative FASTA"
     );
     assert!(taxonomy_ready_fasta.is_file(), "summary must point at the taxonomy-ready FASTA");
-    assert!(
-        taxonomy_ready_reads_fastq.is_file(),
-        "summary must point at the taxonomy-ready FASTQ"
-    );
+    assert!(taxonomy_ready_reads_fastq.is_file(), "summary must point at the taxonomy-ready FASTQ");
     assert!(raw_backend_report.is_file(), "summary must point at the governed backend report");
 
     let case_report_path = repo_root.join(

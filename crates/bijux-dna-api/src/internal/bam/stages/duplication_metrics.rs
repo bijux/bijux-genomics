@@ -286,11 +286,7 @@ fn observed_duplication_metrics(report: &Value) -> Result<ObservedDuplicationMet
     })
 }
 
-#[allow(
-    clippy::cast_possible_truncation,
-    clippy::cast_precision_loss,
-    clippy::cast_sign_loss
-)]
+#[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss, clippy::cast_sign_loss)]
 fn infer_examined_reads(duplicate_reads: u64, duplicate_fraction: Option<f64>) -> Result<u64> {
     match duplicate_fraction {
         Some(fraction) if fraction > 0.0 => {

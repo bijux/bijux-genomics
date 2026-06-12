@@ -205,11 +205,7 @@ fn contaminant_metrics_value(
         report.contaminant_fraction_removed,
     );
     insert_json_value(&mut object, "contaminant_hit_rate", report.contaminant_fraction_removed);
-    insert_json_value(
-        &mut object,
-        "depletion_summary",
-        contaminant_depletion_summary(report),
-    );
+    insert_json_value(&mut object, "depletion_summary", contaminant_depletion_summary(report));
     insert_json_value(&mut object, "raw_backend_report", report.raw_backend_report.clone());
     insert_json_value(
         &mut object,
@@ -1295,11 +1291,7 @@ pub(crate) fn parse_screen_taxonomy_metrics(out_dir: &std::path::Path) -> serde_
     })
 }
 
-#[allow(
-    clippy::cast_possible_truncation,
-    clippy::cast_precision_loss,
-    clippy::cast_sign_loss
-)]
+#[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss, clippy::cast_sign_loss)]
 fn derive_screen_taxonomy_read_counts(
     report: &bijux_dna_domain_fastq::ScreenTaxonomyReportV1,
 ) -> (Option<u64>, Option<u64>) {

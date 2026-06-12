@@ -90,14 +90,8 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
         .collect::<Vec<_>>();
     assert_eq!(taxonomy_rows.len(), 4);
     for (tool_id, expected_outputs) in [
-        (
-            "centrifuge",
-            vec!["classification_report_json", "screen_report_tsv"],
-        ),
-        (
-            "kaiju",
-            vec!["classification_report_json", "screen_report_tsv"],
-        ),
+        ("centrifuge", vec!["classification_report_json", "screen_report_tsv"]),
+        ("kaiju", vec!["classification_report_json", "screen_report_tsv"]),
         (
             "kraken2",
             vec![
@@ -107,10 +101,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
                 "unclassified_reads_r2",
             ],
         ),
-        (
-            "krakenuniq",
-            vec!["classification_report_json", "screen_report_tsv"],
-        ),
+        ("krakenuniq", vec!["classification_report_json", "screen_report_tsv"]),
     ] {
         let taxonomy = taxonomy_rows
             .iter()

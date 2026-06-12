@@ -6,11 +6,7 @@ mod standardized_metrics;
 
 use self::standardized_metrics::discover_screen_taxonomy_report_path;
 
-#[allow(
-    clippy::cast_possible_truncation,
-    clippy::cast_precision_loss,
-    clippy::cast_sign_loss
-)]
+#[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss, clippy::cast_sign_loss)]
 fn derive_screen_taxonomy_read_counts(
     report: &bijux_dna_domain_fastq::ScreenTaxonomyReportV1,
 ) -> (Option<u64>, Option<u64>) {

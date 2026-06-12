@@ -183,10 +183,7 @@ fn render_idxstats(summary: &bijux_dna_domain_bam::BamQcPreSummaryV1) -> String 
         let _ = writeln!(
             rendered,
             "{}\t{}\t{}\t{}",
-            contig.contig,
-            contig.length,
-            contig.mapped,
-            contig.unmapped
+            contig.contig, contig.length, contig.mapped, contig.unmapped
         );
         rendered
     })

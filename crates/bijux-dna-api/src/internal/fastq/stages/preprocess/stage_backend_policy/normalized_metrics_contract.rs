@@ -378,9 +378,7 @@ pub(crate) fn fastq_normalized_metrics_contract_for_stage(
 #[cfg(test)]
 pub(crate) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
     fastq_normalized_metrics_contract_for_stage(stage_id)
-        .map_or(&["schema_version", "stage", "report_json"], |contract| {
-            contract.required_keys
-        })
+        .map_or(&["schema_version", "stage", "report_json"], |contract| contract.required_keys)
 }
 
 pub(crate) fn validate_fastq_normalized_metrics(

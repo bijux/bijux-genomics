@@ -234,9 +234,7 @@ fn local_profile_reads_length_histogram(
 fn local_length_histogram_bins(records: &[LocalFastqRecord]) -> Vec<LengthHistogramBin> {
     let mut bins = std::collections::BTreeMap::<u64, u64>::new();
     for record in records {
-        *bins
-            .entry(u64::try_from(record.sequence.len()).unwrap_or(u64::MAX))
-            .or_insert(0) += 1;
+        *bins.entry(u64::try_from(record.sequence.len()).unwrap_or(u64::MAX)).or_insert(0) += 1;
     }
     bins.into_iter().map(|(length, count)| LengthHistogramBin { length, count }).collect()
 }
