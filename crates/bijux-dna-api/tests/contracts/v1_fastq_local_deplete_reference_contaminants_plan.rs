@@ -63,6 +63,12 @@ fn write_local_deplete_reference_contaminants_plan_materializes_governed_target_
     );
     assert_eq!(payload["params"]["decoy_mode"], serde_json::json!("phix_and_spikeins"));
     assert_eq!(
+        payload["params"]["removed_reads_r1"],
+        serde_json::json!(
+            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant.fastq.gz"
+        )
+    );
+    assert_eq!(
         payload["effective_params"]["reference_catalog_id"],
         serde_json::json!("contaminant_reference")
     );
@@ -74,6 +80,9 @@ fn write_local_deplete_reference_contaminants_plan_materializes_governed_target_
             }) && command.iter().any(|part| {
                 part
                     == "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/bowtie2.contaminant.metrics.txt"
+            }) && command.iter().any(|part| {
+                part
+                    == "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant.fastq.gz"
             })),
         "local-ready plan command must carry the governed Bowtie2 contaminant-depletion command"
     );

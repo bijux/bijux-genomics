@@ -21,6 +21,8 @@
       "assets/toy/core-v1/fastq/reads_1.fastq",
       "--un-gz",
       "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened.fastq.gz",
+      "--al-gz",
+      "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant.fastq.gz",
       "--met-file",
       "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/bowtie2.contaminant.metrics.txt"
     ]
@@ -54,6 +56,12 @@
         "optional": false
       },
       {
+        "name": "removed_contaminant_reads_r1",
+        "path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
         "name": "contaminant_screen_report_json",
         "path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screen_report.json",
         "role": "report_json",
@@ -72,6 +80,8 @@
     "raw_backend_report_format": "bowtie2_met_file",
     "reference_index": "assets/reference/contaminants/references/toy_contaminant_reference",
     "reference_index_backend": "bowtie2_build",
+    "removed_reads_r1": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant.fastq.gz",
+    "removed_reads_r2": null,
     "report_json": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screen_report.json",
     "threads": 4,
     "tool": "bowtie2"
