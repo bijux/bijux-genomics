@@ -690,6 +690,14 @@ Visible aliases are part of the operator surface:
   published population-structure summary consumed governed PCA/admixture evidence and emitted
   complete sample-group and pair-distance metrics. The command fails closed unless every active
   retained `vcf.population_structure` caller is complete across those surfaces.
+- `bijux-dna bench readiness render-vcf-all-retained-tools-complete`
+  `render-vcf-all-retained-tools-complete` writes
+  `benchmarks/readiness/vcf/VCF_ALL_RETAINED_TOOLS_COMPLETE.json` with the governed final local
+  VCF completion gate for Goals 336 through 359. The gate validates the 44-row retained VCF
+  matrix, every active stage-specific readiness surface, the retained phasing/imputation/descent
+  family adapter reports, the full retained host-vs-container smoke surface, parser fixture
+  coverage, rendered commands, and report-map alignment. The command fails closed unless the
+  entire retained VCF local surface remains in the governed complete pass state.
 - `bijux-dna bench readiness render-vcf-pca-ready`
   `render-vcf-pca-ready` writes `benchmarks/readiness/vcf/pca-ready.json` with one governed row
   per active retained `vcf.pca` caller. Each row keeps the retained-scope proof, final

@@ -183,6 +183,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-vcf-call-pseudohaploid-ready",
     "bijux-dna bench readiness render-vcf-admixture-ready",
     "bijux-dna bench readiness render-vcf-population-structure-ready",
+    "bijux-dna bench readiness render-vcf-all-retained-tools-complete",
     "bijux-dna bench readiness render-vcf-pca-ready",
     "bijux-dna bench readiness render-vcf-stats-ready",
     "bijux-dna bench readiness render-vcf-qc-ready",
