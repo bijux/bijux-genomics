@@ -863,7 +863,7 @@ Visible aliases are part of the operator surface:
   closed unless exactly one row is visible as `missing_result` instead of disappearing from the
   table.
 - `bijux-dna bench readiness render-vcf-report-map`
-  `render-vcf-report-map` writes `benchmarks/readiness/vcf-report-map.tsv` with one row per
+  `render-vcf-report-map` writes `benchmarks/readiness/vcf/vcf-report-map.tsv` with one row per
   expected benchmark-ready VCF result. Each row keeps `stage_id`, `tool_id`, `section_id`,
   `summary_table`, `metric_columns`, and `failure_columns`, and the command fails closed unless
   every expected VCF result row maps to one governed report section and summary table.
