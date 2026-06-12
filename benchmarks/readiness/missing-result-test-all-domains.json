@@ -2893,7 +2893,12 @@
       ],
       "expected_metrics": [
         "classification_report_json",
-        "classified_read_fraction"
+        "classified_fraction",
+        "classified_reads",
+        "taxonomy_database_id",
+        "top_taxa",
+        "unclassified_fraction",
+        "unclassified_reads"
       ],
       "report_section": "contamination_screening",
       "reason": "expected all-domain benchmark result `fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:centrifuge` remains present with a validated fake-run manifest"
@@ -2918,7 +2923,12 @@
       ],
       "expected_metrics": [
         "classification_report_json",
-        "classified_read_fraction"
+        "classified_fraction",
+        "classified_reads",
+        "taxonomy_database_id",
+        "top_taxa",
+        "unclassified_fraction",
+        "unclassified_reads"
       ],
       "report_section": "contamination_screening",
       "reason": "expected all-domain benchmark result `fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kaiju` remains present with a validated fake-run manifest"
@@ -2942,7 +2952,12 @@
       "observed_output_artifact_ids": [],
       "expected_metrics": [
         "classification_report_json",
-        "classified_read_fraction"
+        "classified_fraction",
+        "classified_reads",
+        "taxonomy_database_id",
+        "top_taxa",
+        "unclassified_fraction",
+        "unclassified_reads"
       ],
       "report_section": "contamination_screening",
       "reason": "expected all-domain benchmark result `fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2` remains visible even though its fake-run manifest is missing"
@@ -2967,7 +2982,12 @@
       ],
       "expected_metrics": [
         "classification_report_json",
-        "classified_read_fraction"
+        "classified_fraction",
+        "classified_reads",
+        "taxonomy_database_id",
+        "top_taxa",
+        "unclassified_fraction",
+        "unclassified_reads"
       ],
       "report_section": "contamination_screening",
       "reason": "expected all-domain benchmark result `fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:krakenuniq` remains present with a validated fake-run manifest"
