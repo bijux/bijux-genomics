@@ -10,6 +10,7 @@ fn layout_is_excluded(path: &std::path::Path) -> bool {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn slow__policy__boundaries__workspace__workspace_no_macos_dotfiles() {
     let root = workspace_root();
     let mut offenders = Vec::new();
@@ -37,6 +38,7 @@ fn slow__policy__boundaries__workspace__workspace_no_macos_dotfiles() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__engine_has_no_domain_terms() {
     let root = workspace_root();
     let engine = root.join("crates").join("bijux-dna-engine");
@@ -54,6 +56,7 @@ fn policy__boundaries__workspace__engine_has_no_domain_terms() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__runner_has_no_domain_terms() {
     let root = workspace_root();
     let runner = root.join("crates").join("bijux-dna-runner");
@@ -71,6 +74,7 @@ fn policy__boundaries__workspace__runner_has_no_domain_terms() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__engine_and_runner_have_no_domain_deps() {
     let crates = collect_workspace_crates();
     let known: BTreeSet<String> = crates.keys().cloned().collect();
@@ -97,6 +101,7 @@ fn policy__boundaries__workspace__engine_and_runner_have_no_domain_deps() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__workspace_has_guardrails_tests() {
     for path in crate_dirs() {
         let guardrails = path.join("tests").join("guardrails.rs");
@@ -115,6 +120,7 @@ fn policy__boundaries__workspace__workspace_has_guardrails_tests() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__workspace_members_are_deterministic() {
     let root = workspace_root();
     let members = parse_workspace_members(&root);
@@ -136,6 +142,7 @@ fn policy__boundaries__workspace__workspace_members_are_deterministic() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__workspace_constitution_contract() {
     let crates = collect_workspace_crates();
     let mut counts: BTreeMap<&str, usize> = BTreeMap::new();
@@ -197,6 +204,7 @@ fn policy__boundaries__workspace__workspace_constitution_contract() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__workspace_bans_pipelines_bam_crate_name() {
     let crates = collect_workspace_crates();
     for name in crates.keys() {
@@ -208,6 +216,7 @@ fn policy__boundaries__workspace__workspace_bans_pipelines_bam_crate_name() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__workspace_crate_layout_contract() {
     for crate_dir in crate_dirs() {
         let manifest = crate_dir.join("Cargo.toml");
@@ -235,6 +244,7 @@ fn policy__boundaries__workspace__workspace_crate_layout_contract() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__engine_src_layout_contract() {
     let crates = collect_workspace_crates();
     let Some(engine) = crates.get("bijux-dna-engine") else {
@@ -275,6 +285,7 @@ fn policy__boundaries__workspace__engine_src_layout_contract() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__workspace_domain_layout_contract() {
     let crates = collect_workspace_crates();
     let Some(fastq) = crates.get("bijux-dna-domain-fastq") else {
@@ -317,6 +328,7 @@ fn policy__boundaries__workspace__workspace_domain_layout_contract() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__workspace_stages_layout_contract() {
     let crates = collect_workspace_crates();
     for name in ["bijux-dna-stages-fastq", "bijux-dna-stages-bam"] {
@@ -342,6 +354,7 @@ fn policy__boundaries__workspace__workspace_stages_layout_contract() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__workspace_no_orphan_crates() {
     let crates = collect_workspace_crates();
     let known: BTreeSet<String> = crates.keys().cloned().collect();

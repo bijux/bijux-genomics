@@ -1,4 +1,6 @@
 #![allow(non_snake_case)]
+#![allow(clippy::expect_used, clippy::unwrap_used)]
+
 use std::fs;
 use std::path::{Path, PathBuf};
 
