@@ -43,7 +43,7 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf-report-map.tsv")
+        Some("benchmarks/readiness/vcf/vcf-report-map.tsv")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(18));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(15));
