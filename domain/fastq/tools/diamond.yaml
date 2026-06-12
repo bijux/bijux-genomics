@@ -9,6 +9,8 @@ license: GPL-3.0
 citation: paper:https://www.nature.com/articles/nmeth.3176
 planned_stage_ids:
   - fastq.screen_taxonomy
+stage_ids:
+  - fastq.screen_taxonomy
 status: planned
 scope: pre_hpc_pre_vcf
 expected_artifacts:

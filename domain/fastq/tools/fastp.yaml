@@ -30,19 +30,10 @@ outputs:
   - name: "filtered_reads_r2"
     data_type: "fastq"
     cardinality: "One"
-  - name: "filtered_fastq_r1"
-    data_type: "fastq"
-    cardinality: "One"
-  - name: "filtered_fastq_r2"
-    data_type: "fastq"
-    cardinality: "One"
   - name: "report_json"
     data_type: "json"
     cardinality: "One"
   - name: "raw_backend_report_json"
-    data_type: "json"
-    cardinality: "One"
-  - name: "filter_report_json"
     data_type: "json"
     cardinality: "One"
   - name: "length_distribution_tsv"
@@ -82,8 +73,6 @@ stage_ids:
   - "fastq.trim_reads"
   - "fastq.filter_reads"
   - "fastq.trim_polyg_tails"
-planned_stage_ids:
-  - "fastq.filter_low_complexity"
 stage_contracts:
   fastq.trim_reads:
     required_inputs:
@@ -145,20 +134,6 @@ stage_contracts:
       - "report_json"
       - "raw_backend_report_json"
     notes: "fastp polyG trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, emits a governed trim report, and preserves the native fastp JSON report."
-  fastq.filter_low_complexity:
-    required_inputs:
-      - "reads_r1"
-    execution_contract:
-      expected_outputs:
-        - "filtered_fastq_r1"
-        - "filter_report_json"
-      optional_outputs:
-        - "filtered_fastq_r2"
-    expected_artifacts:
-      - "filtered_fastq_r1"
-      - "filtered_fastq_r2"
-      - "filter_report_json"
-    notes: "planned fastp low-complexity filtering emits paired filtered reads plus the canonical governed low-complexity report."
 expected_artifacts:
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"
@@ -168,9 +143,6 @@ expected_artifacts:
   - "filtered_reads_r2"
   - "length_distribution_tsv"
   - "length_distribution_json"
-  - "filtered_fastq_r1"
-  - "filtered_fastq_r2"
-  - "filter_report_json"
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "fastp --version"
