@@ -45,17 +45,19 @@ fn bench_readiness_all_domain_retained_tools_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 66);
+    assert_eq!(rows.len(), 69);
     assert!(rows.iter().any(|row| {
         row == &"kraken2\tfastq\t1\t1\t1\t1\tbenchmark_ready\tfastq.screen_taxonomy\tfastq.screen_taxonomy"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"bcftools\tvcf\t10\t10\t10\t10\tbenchmark_ready\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.qc,vcf.stats\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.qc,vcf.stats"
+        row == &"bcftools\tvcf\t11\t11\t11\t11\tbenchmark_ready\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.prepare_reference_panel,vcf.qc,vcf.stats\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.prepare_reference_panel,vcf.qc,vcf.stats"
     }));
-    assert!(
-        rows.iter().all(|row| !row.starts_with("beagle\t")),
-        "planned-only tools must be outside retained active scope"
-    );
+    assert!(rows.iter().any(|row| {
+        row == &"beagle\tvcf\t2\t2\t2\t2\tbenchmark_ready\tvcf.imputation_metrics,vcf.impute\tvcf.imputation_metrics,vcf.impute"
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"shapeit5\tvcf\t1\t1\t1\t1\tbenchmark_ready\tvcf.phasing\tvcf.phasing"
+    }));
     assert!(
         rows.iter().all(|row| !row.starts_with("star\t") && !row.starts_with("bowtie2_build\t")),
         "retained tools TSV must exclude not-benchmark-ready-only tools"

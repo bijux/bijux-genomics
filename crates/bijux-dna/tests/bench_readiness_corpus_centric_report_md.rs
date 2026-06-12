@@ -46,8 +46,8 @@ fn bench_readiness_corpus_centric_report_writes_named_corpus_sections() {
     assert!(markdown.contains("- Corpus count: 7"));
     assert!(markdown.contains("- Assigned stages: 49"));
     assert!(markdown.contains("- Assigned stage-tool rows: 120"));
-    assert!(markdown.contains("- Benchmark-ready rows: 115"));
-    assert!(markdown.contains("- Blocked rows: 5"));
+    assert!(markdown.contains("- Benchmark-ready rows: 116"));
+    assert!(markdown.contains("- Blocked rows: 4"));
     assert!(markdown.contains("- Corpora with blocked stages: 2"));
 
     assert!(markdown.contains("## corpus-02"));

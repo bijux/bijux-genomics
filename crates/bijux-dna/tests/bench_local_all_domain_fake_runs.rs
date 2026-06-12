@@ -53,7 +53,7 @@ fn bench_local_fake_run_all_domains_json_reports_governed_result_slice() {
         .is_some_and(|count| count >= 120));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(66));
+    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(67));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
     assert_eq!(support::object_u64_sum(domain_counts), result_count);
 

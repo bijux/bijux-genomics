@@ -53,12 +53,12 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(115)
+        Some(116)
     );
-    assert_eq!(payload.get("gate_row_count").and_then(serde_json::Value::as_u64), Some(115));
-    assert_eq!(payload.get("gate_passed_row_count").and_then(serde_json::Value::as_u64), Some(115));
+    assert_eq!(payload.get("gate_row_count").and_then(serde_json::Value::as_u64), Some(116));
+    assert_eq!(payload.get("gate_passed_row_count").and_then(serde_json::Value::as_u64), Some(116));
     assert_eq!(payload.get("gate_failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("excluded_row_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("excluded_row_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(
         payload
             .get("domain_row_counts")
@@ -78,7 +78,7 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
             .get("gate_domain_row_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(66)
+        Some(67)
     );
     assert_eq!(
         payload
@@ -99,7 +99,7 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
             .get("excluded_readiness_gap_counts")
             .and_then(|value| value.get("support"))
             .and_then(serde_json::Value::as_u64),
-        Some(5)
+        Some(4)
     );
     assert!(
         payload

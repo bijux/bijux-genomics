@@ -48,10 +48,10 @@ fn bench_readiness_fastq_parser_coverage_reports_governed_rows() {
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(44));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(66));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(67));
     assert_eq!(
         payload.get("parser_covered_row_count").and_then(serde_json::Value::as_u64),
-        Some(66)
+        Some(67)
     );
     assert_eq!(
         payload.get("parser_missing_row_count").and_then(serde_json::Value::as_u64),
@@ -63,7 +63,7 @@ fn bench_readiness_fastq_parser_coverage_reports_governed_rows() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 66);
+    assert_eq!(rows.len(), 67);
     assert!(rows.iter().all(|row| {
         row.get("parser_coverage").and_then(serde_json::Value::as_str) == Some("covered")
             && row
@@ -81,6 +81,13 @@ fn bench_readiness_fastq_parser_coverage_reports_governed_rows() {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")
             && row.get("stage_id").and_then(serde_json::Value::as_str)
                 == Some("fastq.detect_duplicates_premerge")
+            && row.get("parser_status").and_then(serde_json::Value::as_str)
+                == Some("parse_normalized")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")
+            && row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.estimate_library_complexity_prealign")
             && row.get("parser_status").and_then(serde_json::Value::as_str)
                 == Some("parse_normalized")
     }));

@@ -53,10 +53,10 @@ fn bench_readiness_tool_centric_report_tracks_named_tool_stage_lists() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(115)
+        Some(116)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(8));
-    assert_eq!(payload.get("blocked_tool_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(payload.get("blocked_tool_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(
         payload
             .get("domain_counts")

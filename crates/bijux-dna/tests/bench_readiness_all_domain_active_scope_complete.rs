@@ -46,10 +46,10 @@ fn bench_readiness_all_domain_active_scope_complete_reports_unambiguous_active_s
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json")
     );
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(135));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(65));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(136));
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(66));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(11));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(payload.get("passed_surface_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(payload.get("failed_surface_count").and_then(serde_json::Value::as_u64), Some(0));

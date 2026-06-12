@@ -61,7 +61,7 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         Some(row_count)
     );
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(66));
+    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(67));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
     assert_eq!(support::object_u64(domain_counts, "vcf"), Some(20));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);

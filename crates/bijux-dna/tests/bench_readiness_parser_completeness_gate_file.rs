@@ -49,7 +49,7 @@ fn bench_readiness_parser_completeness_gate_file_writes_self_describing_report()
     );
     assert_eq!(report.get("passes_gate"), Some(&serde_json::Value::Bool(true)));
     assert_eq!(report.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
-    assert_eq!(report.get("gate_passed_row_count").and_then(serde_json::Value::as_u64), Some(115));
+    assert_eq!(report.get("gate_passed_row_count").and_then(serde_json::Value::as_u64), Some(116));
     assert_eq!(report.get("gate_failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(report.get("rows").and_then(serde_json::Value::as_array).map(Vec::len), Some(123));
 }

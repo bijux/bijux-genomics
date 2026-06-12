@@ -50,14 +50,14 @@ fn bench_readiness_expected_benchmark_results_report_tracks_governed_result_rows
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/expected-benchmark-results.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(115));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(48));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(116));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(49));
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(66)
+        Some(67)
     );
     assert_eq!(
         payload
@@ -68,7 +68,7 @@ fn bench_readiness_expected_benchmark_results_report_tracks_governed_result_rows
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 115);
+    assert_eq!(rows.len(), 116);
 
     let result_row_ids = rows
         .iter()
@@ -76,7 +76,7 @@ fn bench_readiness_expected_benchmark_results_report_tracks_governed_result_rows
         .collect::<BTreeSet<_>>();
     assert_eq!(
         result_row_ids.len(),
-        115,
+        116,
         "every expected benchmark result row must keep a unique governed id"
     );
     assert!(rows.iter().all(|row| {

@@ -51,10 +51,10 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(115));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(116));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(115)
+        Some(116)
     );
     assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(114));
     assert_eq!(
@@ -63,7 +63,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     );
     assert_eq!(
         payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
-        Some(115)
+        Some(116)
     );
     assert_eq!(payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
@@ -71,7 +71,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(66)
+        Some(67)
     );
     assert_eq!(
         payload

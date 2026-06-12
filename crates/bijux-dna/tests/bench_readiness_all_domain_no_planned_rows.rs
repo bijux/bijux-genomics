@@ -48,8 +48,8 @@ fn bench_readiness_all_domain_no_planned_rows_reports_clean_active_scope() {
     );
     let active_row_count =
         support::json_u64(&payload, "active_row_count").expect("active_row_count");
-    assert_eq!(active_row_count, 135);
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(65));
+    assert_eq!(active_row_count, 136);
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(66));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(69));
     let removed_row_count =
         support::json_u64(&payload, "removed_row_count").expect("removed_row_count");
@@ -68,13 +68,15 @@ fn bench_readiness_all_domain_no_planned_rows_reports_clean_active_scope() {
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
     assert!(violations.is_empty(), "active scope must not retain planned rows");
 
-    assert!(removed_rows.iter().any(|row| {
-        row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
-            && row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("fastq.estimate_library_complexity_prealign")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")
-            && row.get("status").and_then(serde_json::Value::as_str) == Some("planned")
-    }));
+    assert!(
+        removed_rows.iter().all(|row| {
+            !(row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.estimate_library_complexity_prealign")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna"))
+        }),
+        "supported complexity rows must remain in active scope"
+    );
 
     assert!(
         removed_rows.iter().all(|row| {

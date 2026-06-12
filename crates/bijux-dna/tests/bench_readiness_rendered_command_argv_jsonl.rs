@@ -36,7 +36,7 @@ fn bench_readiness_render_command_argv_writes_governed_jsonl() {
 
     let jsonl = std::fs::read_to_string(&jsonl_path).expect("read rendered command argv JSONL");
     let rows = jsonl.lines().collect::<Vec<_>>();
-    assert_eq!(rows.len(), 115);
+    assert_eq!(rows.len(), 116);
     assert!(rows.iter().all(|line| {
         serde_json::from_str::<serde_json::Value>(line).ok().is_some_and(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str).is_some()

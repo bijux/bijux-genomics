@@ -45,7 +45,7 @@ fn bench_readiness_expected_benchmark_results_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 115, "TSV must retain every benchmark-ready expected result row");
+    assert_eq!(rows.len(), 116, "TSV must retain every benchmark-ready expected result row");
     assert!(
         rows.iter().any(|row| {
             row.contains(

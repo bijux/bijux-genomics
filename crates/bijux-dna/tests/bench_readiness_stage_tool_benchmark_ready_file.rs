@@ -54,9 +54,9 @@ fn bench_readiness_stage_tool_benchmark_ready_writes_json_output() {
     assert_eq!(json_value.get("passes_gate").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(
         json_value.get("benchmark_ready_pair_count").and_then(serde_json::Value::as_u64),
-        Some(115)
+        Some(116)
     );
-    assert_eq!(json_value.get("excluded_pair_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(json_value.get("excluded_pair_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(json_value.get("failing_pair_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let excluded_pairs = json_value
@@ -78,7 +78,7 @@ fn bench_readiness_stage_tool_benchmark_ready_writes_json_output() {
         .expect("surface summaries");
     assert!(surfaces.iter().any(|surface| {
         surface.get("surface_id").and_then(serde_json::Value::as_str) == Some("expected_results")
-            && surface.get("covered_count").and_then(serde_json::Value::as_u64) == Some(115)
-            && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(8)
+            && surface.get("covered_count").and_then(serde_json::Value::as_u64) == Some(116)
+            && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(7)
     }));
 }

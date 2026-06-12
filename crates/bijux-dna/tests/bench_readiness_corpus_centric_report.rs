@@ -53,9 +53,9 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
     assert_eq!(payload.get("tool_row_count").and_then(serde_json::Value::as_u64), Some(120));
     assert_eq!(
         payload.get("benchmark_ready_tool_row_count").and_then(serde_json::Value::as_u64),
-        Some(115)
+        Some(116)
     );
-    assert_eq!(payload.get("blocked_tool_row_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(payload.get("blocked_tool_row_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(payload.get("blocked_corpus_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
         payload

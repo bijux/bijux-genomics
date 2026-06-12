@@ -51,11 +51,11 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
         Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(65));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(66));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(69));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(66));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(67));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
     assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);

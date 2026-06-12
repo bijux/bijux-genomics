@@ -48,10 +48,10 @@ fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_output
 
     assert!(markdown.contains("# FASTQ + BAM Benchmark Readiness Dashboard"));
     assert!(markdown.contains("- Expected pairs: 123"));
-    assert!(markdown.contains("- Ready pairs: 115"));
-    assert!(markdown.contains("- Blocked pairs: 8"));
-    assert!(markdown.contains("| Matrix | attention_required | all governed fastq and bam stage-tool pairs | 123 | 115 | 8 |"));
-    assert!(markdown.contains("| Reports | complete | governed local report surfaces | 5 | 5 | 0 | expected_results=115, stage_sections=51, tool_sections=67, corpus_sections=7 |"));
+    assert!(markdown.contains("- Ready pairs: 116"));
+    assert!(markdown.contains("- Blocked pairs: 7"));
+    assert!(markdown.contains("| Matrix | attention_required | all governed fastq and bam stage-tool pairs | 123 | 116 | 7 |"));
+    assert!(markdown.contains("| Reports | complete | governed local report surfaces | 5 | 5 | 0 | expected_results=116, stage_sections=51, tool_sections=67, corpus_sections=7 |"));
     assert!(markdown.contains(
         "| pair_readiness | benchmarks/readiness/pair-readiness.tsv | 123 stage_tool_pairs |"
     ));
