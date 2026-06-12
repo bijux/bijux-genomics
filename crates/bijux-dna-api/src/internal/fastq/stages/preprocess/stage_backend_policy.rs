@@ -589,6 +589,23 @@ mod tests {
     }
 
     #[test]
+    fn filter_low_complexity_uses_governed_report_metrics_policy() {
+        assert_eq!(
+            required_metrics_keys("fastq.filter_low_complexity"),
+            &[
+                "tool",
+                "filtered_fastq_r1",
+                "reads_in",
+                "reads_out",
+                "reads_dropped",
+                "reads_retained",
+                "reads_removed",
+                "reads_removed_low_complexity",
+            ]
+        );
+    }
+
+    #[test]
     fn profile_read_lengths_uses_governed_report_metrics_policy() {
         assert_eq!(
             required_metrics_keys("fastq.profile_read_lengths"),
@@ -869,6 +886,9 @@ mod tests {
         assert_eq!(metrics["tool"], serde_json::json!("bbduk"));
         assert_eq!(metrics["filtered_fastq_r1"], serde_json::json!("filtered.fastq.gz"));
         assert_eq!(metrics["filtered_fastq_r2"], serde_json::Value::Null);
+        assert_eq!(metrics["reads_dropped"], serde_json::json!(8));
+        assert_eq!(metrics["reads_retained"], serde_json::json!(92));
+        assert_eq!(metrics["reads_removed"], serde_json::json!(8));
         assert_eq!(metrics["reads_removed_low_complexity"], serde_json::json!(8));
         assert_eq!(metrics["polyx_threshold"], serde_json::json!(20));
         assert_eq!(metrics["raw_backend_report_format"], serde_json::json!("bbduk_stats"));
