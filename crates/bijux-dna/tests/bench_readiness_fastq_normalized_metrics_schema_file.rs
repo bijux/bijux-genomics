@@ -75,4 +75,61 @@ fn bench_readiness_fastq_normalized_metrics_schema_writes_governed_schema_file()
     assert!(required_keys.contains(&serde_json::json!("duplicate_count")));
     assert!(required_keys.contains(&serde_json::json!("duplicate_fraction")));
     assert!(required_keys.contains(&serde_json::json!("inspected_pair_count")));
+
+    let trim_reads = stage_defs
+        .get("fastq.trim_reads")
+        .and_then(|value| value.get("allOf"))
+        .and_then(serde_json::Value::as_array)
+        .and_then(|items| items.get(1))
+        .expect("trim-reads extension");
+    let trim_reads_required = trim_reads
+        .get("required")
+        .and_then(serde_json::Value::as_array)
+        .expect("trim-reads required keys");
+    for key in ["reads_retained", "reads_dropped", "bases_removed"] {
+        assert!(
+            trim_reads_required.contains(&serde_json::json!(key)),
+            "trim_reads normalized schema must require `{key}`"
+        );
+    }
+
+    let trim_polyg = stage_defs
+        .get("fastq.trim_polyg_tails")
+        .and_then(|value| value.get("allOf"))
+        .and_then(serde_json::Value::as_array)
+        .and_then(|items| items.get(1))
+        .expect("trim-polyg extension");
+    let trim_polyg_required = trim_polyg
+        .get("required")
+        .and_then(serde_json::Value::as_array)
+        .expect("trim-polyg required keys");
+    for key in [
+        "reads_retained",
+        "reads_dropped",
+        "bases_removed",
+        "trimmed_tail_count",
+        "bases_trimmed_polyg",
+    ] {
+        assert!(
+            trim_polyg_required.contains(&serde_json::json!(key)),
+            "trim_polyg_tails normalized schema must require `{key}`"
+        );
+    }
+
+    let trim_terminal_damage = stage_defs
+        .get("fastq.trim_terminal_damage")
+        .and_then(|value| value.get("allOf"))
+        .and_then(serde_json::Value::as_array)
+        .and_then(|items| items.get(1))
+        .expect("trim-terminal-damage extension");
+    let trim_terminal_damage_required = trim_terminal_damage
+        .get("required")
+        .and_then(serde_json::Value::as_array)
+        .expect("trim-terminal-damage required keys");
+    for key in ["reads_retained", "bases_removed", "trim_5p_bases", "trim_3p_bases"] {
+        assert!(
+            trim_terminal_damage_required.contains(&serde_json::json!(key)),
+            "trim_terminal_damage normalized schema must require `{key}`"
+        );
+    }
 }

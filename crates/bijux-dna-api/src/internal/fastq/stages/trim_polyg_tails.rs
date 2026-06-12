@@ -48,8 +48,11 @@ struct LocalTrimPolygTailsSmokeMetrics {
     min_polyg_run: u32,
     input_reads: u64,
     output_reads: u64,
+    reads_retained: u64,
+    reads_dropped: u64,
     input_bases: u64,
     output_bases: u64,
+    bases_removed: u64,
     trimmed_tail_count: u64,
     bases_trimmed_polyg: u64,
     trimmed_fastq_gz: String,
@@ -555,8 +558,11 @@ fn materialize_local_trim_polyg_tails_smoke_case(
 
     let input_reads = input_records.len() as u64;
     let output_reads = trimmed_records.len() as u64;
+    let reads_retained = output_reads;
+    let reads_dropped = input_reads.saturating_sub(output_reads);
     let input_bases = total_bases(&input_records);
     let output_bases = total_bases(&trimmed_records);
+    let bases_removed = input_bases.saturating_sub(output_bases);
     let raw_backend_report_format =
         if case.plan.tool_id.as_str() == "fastp" { "fastp_json" } else { "bbduk_stats" };
 
@@ -616,8 +622,11 @@ fn materialize_local_trim_polyg_tails_smoke_case(
         min_polyg_run: effective_params.min_polyg_run,
         input_reads,
         output_reads,
+        reads_retained,
+        reads_dropped,
         input_bases,
         output_bases,
+        bases_removed,
         trimmed_tail_count,
         bases_trimmed_polyg,
         trimmed_fastq_gz: path_relative_to_repo(repo_root, &top_level_trimmed),

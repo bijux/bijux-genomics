@@ -781,6 +781,15 @@ pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json:
     let report_path = out_dir.join("trim_polyg_tails_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_trim_polyg_report(&raw) {
+            let reads_retained = report.reads_out;
+            let reads_dropped = report
+                .reads_in
+                .zip(report.reads_out)
+                .map(|(reads_in, reads_out)| reads_in.saturating_sub(reads_out));
+            let bases_removed = report
+                .bases_in
+                .zip(report.bases_out)
+                .map(|(bases_in, bases_out)| bases_in.saturating_sub(bases_out));
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.trim_polyg_tails",
@@ -791,8 +800,11 @@ pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json:
                 "min_polyg_run": report.min_polyg_run,
                 "reads_in": report.reads_in,
                 "reads_out": report.reads_out,
+                "reads_retained": reads_retained,
+                "reads_dropped": reads_dropped,
                 "bases_in": report.bases_in,
                 "bases_out": report.bases_out,
+                "bases_removed": bases_removed,
                 "pairs_in": report.pairs_in,
                 "pairs_out": report.pairs_out,
                 "mean_q_before": report.mean_q_before,
@@ -816,6 +828,9 @@ pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json:
         "trim_polyg": serde_json::Value::Null,
         "reads_in": serde_json::Value::Null,
         "reads_out": serde_json::Value::Null,
+        "reads_retained": serde_json::Value::Null,
+        "reads_dropped": serde_json::Value::Null,
+        "bases_removed": serde_json::Value::Null,
         "report_json": report_path,
     })
 }

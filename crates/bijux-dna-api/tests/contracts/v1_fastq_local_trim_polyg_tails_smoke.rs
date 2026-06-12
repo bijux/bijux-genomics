@@ -71,14 +71,17 @@ fn write_local_trim_polyg_tails_smoke_report_materializes_governed_outputs() -> 
     let payload: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&metrics_path)?)?;
     assert_eq!(payload["stage_id"], serde_json::json!("fastq.trim_polyg_tails"));
-    assert_eq!(payload["sample_id"], serde_json::json!("novaseq-se"));
+    assert_eq!(payload["sample_id"], serde_json::json!("polyg-hit-se"));
     assert_eq!(payload["tool_id"], serde_json::json!("fastp"));
     assert_eq!(payload["trim_polyg"], serde_json::json!(true));
     assert_eq!(payload["min_polyg_run"], serde_json::json!(6));
     assert_eq!(payload["input_reads"], serde_json::json!(3));
     assert_eq!(payload["output_reads"], serde_json::json!(3));
+    assert_eq!(payload["reads_retained"], serde_json::json!(3));
+    assert_eq!(payload["reads_dropped"], serde_json::json!(0));
     assert_eq!(payload["input_bases"], serde_json::json!(38));
     assert_eq!(payload["output_bases"], serde_json::json!(24));
+    assert_eq!(payload["bases_removed"], serde_json::json!(14));
     assert_eq!(payload["trimmed_tail_count"], serde_json::json!(2));
     assert_eq!(payload["bases_trimmed_polyg"], serde_json::json!(14));
     assert_eq!(payload["used_fallback"], serde_json::json!(true));
