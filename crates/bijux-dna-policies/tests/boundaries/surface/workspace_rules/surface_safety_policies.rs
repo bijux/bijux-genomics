@@ -1,4 +1,5 @@
 #[test]
+#[allow(clippy::too_many_lines)]
 fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
     let root = workspace_root();
     let mut offenders = Vec::new();
