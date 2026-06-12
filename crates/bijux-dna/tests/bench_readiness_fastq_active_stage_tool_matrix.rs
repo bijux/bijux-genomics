@@ -171,6 +171,29 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
             && row.get("support_status").and_then(serde_json::Value::as_str)
                 == Some("governed_benchmark_cohort")
     }));
+    let taxonomy_rows = rows
+        .iter()
+        .filter(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.screen_taxonomy")
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(taxonomy_rows.len(), 4);
+    for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+        assert!(taxonomy_rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("corpus_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-02-edna-mini")
+                && row.get("asset_profile_id").and_then(serde_json::Value::as_str)
+                    == Some("database_artifact_id+taxonomy_database_root")
+                && row.get("support_status").and_then(serde_json::Value::as_str)
+                    == Some("governed_benchmark_cohort")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str)
+                    == Some("runnable")
+                && row.get("parser_status").and_then(serde_json::Value::as_str)
+                    == Some("benchmark_normalized")
+        }));
+    }
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.infer_asvs")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("dada2")

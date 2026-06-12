@@ -114,6 +114,26 @@ fn bench_readiness_expected_benchmark_results_report_tracks_governed_result_rows
             "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json"
         )
     );
+    let taxonomy_rows = rows
+        .iter()
+        .filter(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.screen_taxonomy")
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(taxonomy_rows.len(), 4);
+    for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+        assert!(taxonomy_rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("fixture_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-02-edna-mini")
+                && row.get("sample_scope").and_then(serde_json::Value::as_str)
+                    == Some("sample-set")
+                && row.get("normalized_metrics_output_id").and_then(serde_json::Value::as_str)
+                    == Some("classification_report_json")
+        }));
+    }
 
     let kinship = rows
         .iter()

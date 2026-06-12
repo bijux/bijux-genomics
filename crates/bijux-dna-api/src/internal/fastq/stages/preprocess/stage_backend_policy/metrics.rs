@@ -1558,3 +1558,85 @@ pub(crate) fn parse_index_reference_metrics(out_dir: &std::path::Path) -> serde_
         "report_json": report_path,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::parse_screen_taxonomy_metrics;
+    use bijux_dna_domain_fastq::{
+        params::{
+            screen::{
+                TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
+                TaxonomyInterpretationBoundary, TaxonomyReportFormat, TaxonomyTruthCondition,
+            },
+            PairedMode,
+        },
+        ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
+    };
+
+    #[test]
+    fn parse_screen_taxonomy_metrics_keeps_database_counts_and_top_taxa() {
+        let out_dir = tempfile::tempdir().expect("tempdir");
+        let report_path = out_dir.path().join("kraken2.classifications.json");
+        let report = ScreenTaxonomyReportV1 {
+            schema_version: SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION.to_string(),
+            stage: "fastq.screen_taxonomy".to_string(),
+            stage_id: "fastq.screen_taxonomy".to_string(),
+            tool_id: "kraken2".to_string(),
+            paired_mode: PairedMode::SingleEnd,
+            threads: 12,
+            classifier: TaxonomyClassifier::Kraken2,
+            report_format: TaxonomyReportFormat::KrakenReport,
+            assignment_format: TaxonomyAssignmentFormat::KrakenAssignments,
+            database_catalog_id: "taxonomy_reference".to_string(),
+            database_artifact_id: "taxonomy_db".to_string(),
+            database_build_id: Some("2026.06".to_string()),
+            database_digest: Some("sha256:taxonomy-db".to_string()),
+            database_namespace: Some("read_screening".to_string()),
+            database_scope: TaxonomyDatabaseScope::ReadScreening,
+            minimum_confidence: Some(0.1),
+            emit_unclassified: true,
+            interpretation_boundary: TaxonomyInterpretationBoundary::ScreeningOnly,
+            truth_conditions: vec![TaxonomyTruthCondition::LockedReferenceDatabase],
+            input_r1: "sample.fastq.gz".to_string(),
+            input_r2: None,
+            screen_report_tsv: "kraken2.report.tsv".to_string(),
+            classification_report_json: "kraken2.classifications.json".to_string(),
+            unclassified_reads_r1: Some("kraken2.unclassified_reads.fastq".to_string()),
+            unclassified_reads_r2: None,
+            reads_in: Some(200),
+            reads_out: Some(200),
+            bases_in: Some(20_000),
+            bases_out: Some(20_000),
+            pairs_in: None,
+            pairs_out: None,
+            contamination_rate: Some(0.18),
+            classified_fraction: Some(0.18),
+            unclassified_fraction: Some(0.82),
+            summary_entries: vec![
+                TaxonomyScreenSummaryEntryV1 { label: "unclassified".to_string(), percent: 82.0 },
+                TaxonomyScreenSummaryEntryV1 { label: "Homo sapiens".to_string(), percent: 12.5 },
+            ],
+            top_taxa: vec![
+                TaxonomyScreenSummaryEntryV1 { label: "Homo sapiens".to_string(), percent: 12.5 },
+                TaxonomyScreenSummaryEntryV1 { label: "Escherichia coli".to_string(), percent: 3.2 },
+            ],
+            runtime_s: Some(15.2),
+            memory_mb: Some(512.0),
+        };
+        std::fs::write(
+            &report_path,
+            serde_json::to_vec(&report).expect("serialize taxonomy report"),
+        )
+        .expect("write taxonomy report");
+
+        let metrics = parse_screen_taxonomy_metrics(out_dir.path());
+        assert_eq!(metrics["tool"], serde_json::json!("kraken2"));
+        assert_eq!(metrics["taxonomy_database_id"], serde_json::json!("taxonomy_db"));
+        assert_eq!(metrics["database_catalog_id"], serde_json::json!("taxonomy_reference"));
+        assert_eq!(metrics["classified_reads"], serde_json::json!(36));
+        assert_eq!(metrics["unclassified_reads"], serde_json::json!(164));
+        assert_eq!(metrics["report_json"], serde_json::json!(report_path));
+        assert_eq!(metrics["top_taxa"][0]["label"], serde_json::json!("Homo sapiens"));
+        assert_eq!(metrics["top_taxa"][1]["label"], serde_json::json!("Escherichia coli"));
+    }
+}
