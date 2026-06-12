@@ -15,7 +15,7 @@
       "tool_id": "plink",
       "tool_status": "experimental",
       "stage_id": "vcf.admixture",
-      "stage_status": "planned",
+      "stage_status": "supported",
       "benchmark_status": "not_benchmark_ready",
       "adapter_id": "vcf.adapter.population_structure",
       "parser_id": "vcf.parser.report_json",

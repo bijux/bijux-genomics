@@ -3,6 +3,9 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 cd "$repo_root"
 
+# vcf.admixture / plink2
+plink2 --vcf benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf --double-id --allow-extra-chr --pca 2 --out benchmarks/readiness/adapters/plink2/vcf.admixture/admixture
+
 # vcf.call / bcftools
 bcftools mpileup -Ou -f benchmarks/readiness/adapters/bcftools/vcf.call/artifacts/reference/corpus_01_bam_reference.fasta benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam | bcftools call -c -Oz -o benchmarks/readiness/adapters/bcftools/vcf.call/called_vcf.vcf.gz
 bcftools index -t benchmarks/readiness/adapters/bcftools/vcf.call/called_vcf.vcf.gz
