@@ -97,7 +97,7 @@ mod tests {
         )?;
         bijux_dna_infra::atomic_write_bytes(
             &mapping_dir.join("samtools_stats.txt"),
-            b"SN\traw total sequences:\t20\n",
+            b"SN\traw total sequences:\t20\nRL\t35\t20\nMQ\t0\t5\nMQ\t60\t15\n",
         )?;
         let mut mapping_plan =
             mock_plan(bijux_dna_planner_bam::stage_api::BamStage::MappingSummary);

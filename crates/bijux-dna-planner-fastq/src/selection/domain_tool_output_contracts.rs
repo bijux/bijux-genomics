@@ -72,16 +72,13 @@ pub fn load_fastq_domain_tool_stage_output_contract(
         ));
     }
 
-    let stage_contract = parsed
-        .stage_contracts
-        .get(stage_id.as_str())
-        .ok_or_else(|| {
-            anyhow!(
-                "governed tool yaml {} is missing a stage_contract for {}",
-                yaml_path.display(),
-                stage_id.as_str()
-            )
-        })?;
+    let stage_contract = parsed.stage_contracts.get(stage_id.as_str()).ok_or_else(|| {
+        anyhow!(
+            "governed tool yaml {} is missing a stage_contract for {}",
+            yaml_path.display(),
+            stage_id.as_str()
+        )
+    })?;
     let stage_expected_artifact_ids = stage_contract.expected_artifacts.clone();
     let execution_expected_output_ids = execution_expected_output_ids(&parsed, stage_contract);
 
@@ -98,10 +95,12 @@ fn execution_expected_output_ids(
     parsed: &DomainToolYaml,
     stage_contract: &DomainToolStageContract,
 ) -> Vec<String> {
-    let contract = stage_contract.execution_contract.as_ref().or(parsed.execution_contract.as_ref());
+    let contract =
+        stage_contract.execution_contract.as_ref().or(parsed.execution_contract.as_ref());
     let mut expected_output_ids = Vec::<String>::new();
     if let Some(contract) = contract {
-        for artifact_id in contract.expected_outputs.iter().chain(contract.optional_outputs.iter()) {
+        for artifact_id in contract.expected_outputs.iter().chain(contract.optional_outputs.iter())
+        {
             if !expected_output_ids.iter().any(|existing| existing == artifact_id) {
                 expected_output_ids.push(artifact_id.clone());
             }
@@ -212,7 +211,10 @@ mod tests {
 
         assert_eq!(contract.tool_id.as_str(), "bijux_dna");
         assert_eq!(contract.stage_id.as_str(), "fastq.detect_duplicates_premerge");
-        assert_eq!(contract.declared_output_ids, vec!["duplicate_signal_report".to_string()]);
+        assert_eq!(
+            contract.declared_output_ids,
+            vec!["duplicate_signal_report".to_string(), "library_complexity_report".to_string(),]
+        );
         assert_eq!(
             contract.execution_expected_output_ids,
             vec!["duplicate_signal_report".to_string()]

@@ -367,7 +367,7 @@ mod tests {
 
         assert_eq!(spec.tool_id.as_str(), "seqfu");
         assert_eq!(spec.command.template, vec!["seqfu".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/seqfu:planned");
+        assert_eq!(spec.image.image, "bijuxdna/seqfu:2.4.0");
         assert!(spec.image.digest.is_none());
         Ok(())
     }
