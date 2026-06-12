@@ -51,11 +51,11 @@ fn bench_readiness_vcf_tool_serving_map_reports_owned_matrix_rows() {
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(18)
+        Some(19)
     );
     assert_eq!(
         payload.get("not_benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(5)
+        Some(4)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -86,6 +86,19 @@ fn bench_readiness_vcf_tool_serving_map_reports_owned_matrix_rows() {
         })
     };
 
+    assert!(
+        has_row(
+            "plink2",
+            "vcf.admixture",
+            "supported",
+            "runnable",
+            "parse_normalized",
+            "fixture:vcf_production_regression",
+            "assigned",
+            "benchmark_ready",
+        ),
+        "VCF tool-serving map must retain the governed plink2 admixture row"
+    );
     assert!(
         has_row(
             "plink2",

@@ -219,9 +219,9 @@ fn ensure_vcf_report_map_contract(rows: &[VcfReportMapRow]) -> Result<()> {
             "VCF report map must keep one row per expected VCF stage-tool result binding"
         ));
     }
-    if rows.len() != 18 {
+    if rows.len() != 19 {
         return Err(anyhow!(
-            "VCF report map must retain exactly 18 benchmark-ready rows, found {}",
+            "VCF report map must retain exactly 19 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -294,6 +294,13 @@ fn ensure_vcf_report_map_contract(rows: &[VcfReportMapRow]) -> Result<()> {
         "reference_panel_readiness",
     )?;
     require_row_mapping(rows, "vcf.impute", "beagle", "imputation", "imputation_metrics")?;
+    require_row_mapping(
+        rows,
+        "vcf.admixture",
+        "plink2",
+        "population_structure",
+        "population_structure_metrics",
+    )?;
     require_row_mapping(
         rows,
         "vcf.pca",
@@ -388,15 +395,15 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_REPORT_MAP_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_REPORT_MAP_PATH);
-        assert_eq!(report.row_count, 18);
-        assert_eq!(report.stage_count, 15);
+        assert_eq!(report.row_count, 19);
+        assert_eq!(report.stage_count, 16);
         assert_eq!(report.tool_count, 6);
         assert_eq!(report.section_count, 9);
         assert_eq!(report.summary_table_count, 9);
         assert_eq!(report.section_counts.get("variant_calling"), Some(&4));
         assert_eq!(report.section_counts.get("quality_control"), Some(&5));
         assert_eq!(report.section_counts.get("imputation"), Some(&2));
-        assert_eq!(report.section_counts.get("population_structure"), Some(&2));
+        assert_eq!(report.section_counts.get("population_structure"), Some(&3));
         assert_eq!(report.section_counts.get("normalization"), Some(&1));
         assert_eq!(report.section_counts.get("reference_panel_preparation"), Some(&1));
 
@@ -413,6 +420,12 @@ mod tests {
                 && row.section_id == "likelihood_postprocess"
                 && row.summary_table == "likelihood_postprocess_metrics"
                 && row.failure_columns.iter().any(|value| value == "observed_error")
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.admixture"
+                && row.tool_id == "plink2"
+                && row.section_id == "population_structure"
+                && row.summary_table == "population_structure_metrics"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.pca"

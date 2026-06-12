@@ -126,8 +126,8 @@ pub(crate) fn render_vcf_adapters_ready(
             if report.row_count != 23
                 || report.stage_count != 20
                 || report.tool_count != 8
-                || report.benchmark_ready_row_count != 18
-                || report.not_benchmark_ready_row_count != 5
+                || report.benchmark_ready_row_count != 19
+                || report.not_benchmark_ready_row_count != 4
             {
                 bail!(
                     "VCF tool-serving map drifted: rows={}, stages={}, tools={}, benchmark_ready={}, not_benchmark_ready={}",
@@ -140,7 +140,7 @@ pub(crate) fn render_vcf_adapters_ready(
             }
             benchmark_ready_pair_count = report.benchmark_ready_row_count;
             tool_serving_map_report = Some(report);
-            Ok("validated 23 governed VCF stage-tool rows with 18 canonical benchmark-ready pairs"
+            Ok("validated 23 governed VCF stage-tool rows with 19 canonical benchmark-ready pairs"
                 .to_string())
         },
     );
@@ -224,7 +224,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 || report
                     .get("benchmark_ready_registry_pair_count")
                     .and_then(serde_json::Value::as_u64)
-                    != Some(17)
+                    != Some(18)
                 || report.get("unregistered_matrix_pair_count").and_then(serde_json::Value::as_u64)
                     != Some(0)
                 || report
@@ -488,8 +488,8 @@ pub(crate) fn render_vcf_adapters_ready(
                 PathBuf::from(DEFAULT_VCF_ADAPTER_OUTPUT_COVERAGE_PATH),
             )?;
             if report.row_count != 39
-                || report.benchmark_ready_row_count != 18
-                || report.benchmark_ready_complete_row_count != 18
+                || report.benchmark_ready_row_count != 19
+                || report.benchmark_ready_complete_row_count != 19
                 || report.benchmark_ready_incomplete_row_count != 0
                 || report.complete_row_count != 36
                 || report.incomplete_row_count != 3

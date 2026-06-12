@@ -44,7 +44,13 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 18);
+    assert_eq!(rows.len(), 19);
+    assert!(
+        rows.iter().any(|row| {
+            row == &"vcf\tvcf.admixture\tplink2\tvcf_production_regression\tvcf_cohort\tadmixture_report\tselected_k,sample_count,population_count,status\tpopulation_structure"
+        }),
+        "TSV must retain the governed VCF admixture expected-result row"
+    );
     assert!(
         rows.iter().any(|row| {
             row == &"vcf\tvcf.call\tbcftools\tvcf_production_regression\tbam_bundle\tcalled_vcf\tvariant_count,snp_count,indel_count,sample_count\tvariant_calling"
@@ -59,7 +65,7 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"vcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\timputation_metrics_json\tstatus,mean_info_score,r2_available,low_confidence_sites,masked_truth_sites,missing_quality_fields\timputation"
+            row == &"vcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\timputation_metrics_json\tstatus,concordance,mean_info_score,r2_available,dosage_r2,low_confidence_sites,masked_truth_sites,missing_quality_fields\timputation"
         }),
         "TSV must retain the governed VCF imputation-metrics expected-result row"
     );

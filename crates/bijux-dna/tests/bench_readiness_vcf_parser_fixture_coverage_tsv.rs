@@ -42,7 +42,15 @@ fn bench_readiness_vcf_parser_fixture_coverage_writes_governed_tsv_columns() {
         Some("stage_id\ttool_id\tcorpus_id\tasset_profile_id\tadapter_id\tparser_id\tschema_id\tparser_fixture_parser_id\tparser_fixture_schema_id\tparser_fixture_root_path\texpected_normalized_path\traw_fixture_count\traw_fixture_paths\tcoverage_status\treason")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 18);
+    assert_eq!(rows.len(), 19);
+    assert!(
+        rows.iter().any(|row| {
+            row.starts_with(
+                "vcf.admixture\tplink2\tvcf_production_regression\tvcf_cohort\tvcf.adapter.population_structure\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.admixture.v1\tparse_plink2_admixture_metrics\tbijux.vcf.admixture.v1\tbenchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.admixture\tbenchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.admixture/expected.normalized.json\t3\t"
+            )
+        }),
+        "TSV must retain the governed admixture parser fixture coverage row"
+    );
     assert!(
         rows.iter().any(|row| {
             row.starts_with(

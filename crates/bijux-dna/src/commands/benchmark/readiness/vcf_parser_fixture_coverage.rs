@@ -431,13 +431,13 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH);
-        assert_eq!(report.stage_count, 15);
+        assert_eq!(report.stage_count, 16);
         assert_eq!(report.tool_count, 6);
-        assert_eq!(report.row_count, 18);
-        assert_eq!(report.covered_row_count, 18);
+        assert_eq!(report.row_count, 19);
+        assert_eq!(report.covered_row_count, 19);
         assert_eq!(report.missing_row_count, 0);
         assert_eq!(report.parser_fixture_coverage_percent, 100.0);
-        assert_eq!(report.coverage_status_counts.get("covered"), Some(&18));
+        assert_eq!(report.coverage_status_counts.get("covered"), Some(&19));
         assert!(report.rows.iter().all(|row| {
             row.schema_id.starts_with("bijux.schemas.bench.vcf-normalized-metrics.")
                 && row.parser_fixture_schema_id.starts_with("bijux.vcf.")
@@ -445,6 +445,12 @@ mod tests {
                 && row.raw_fixture_count > 0
                 && !row.raw_fixture_paths.is_empty()
                 && coverage_status_label(row.coverage_status) == "covered"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.admixture"
+                && row.tool_id == "plink2"
+                && row.parser_fixture_parser_id == "parse_plink2_admixture_report"
+                && row.parser_fixture_schema_id == "bijux.vcf.admixture.v1"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.call"

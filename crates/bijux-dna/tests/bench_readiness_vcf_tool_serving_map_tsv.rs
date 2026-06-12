@@ -48,6 +48,7 @@ fn bench_readiness_vcf_tool_serving_map_writes_governed_tsv_columns() {
         "bcftools\tvcf.qc\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "bcftools\tvcf.call\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "bcftools\tvcf.call_gl\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
+        "plink2\tvcf.admixture\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "plink2\tvcf.pca\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "eigensoft\tvcf.pca\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "plink\tvcf.qc\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
