@@ -135,6 +135,7 @@ pub use self::readiness::{
     BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
     BenchReadinessRenderVcfActiveStageToolMatrixArgs,
     BenchReadinessRenderVcfAdapterMissingInputTestsArgs,
+    BenchReadinessRenderVcfAdmixtureReadyArgs,
     BenchReadinessRenderVcfAdapterOutputCoverageArgs, BenchReadinessRenderVcfAdaptersReadyArgs,
     BenchReadinessRenderVcfAngsdAdapterArgs, BenchReadinessRenderVcfBcftoolsAdapterArgs,
     BenchReadinessRenderVcfBeagleAdapterArgs, BenchReadinessRenderVcfCallDiploidReadyArgs,
