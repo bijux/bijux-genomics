@@ -81,7 +81,7 @@
       ],
       "report_section_id": "quality_control",
       "report_ready": true,
-      "report_map_proof_path": "benchmarks/readiness/vcf-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
       "summary_table_id": "quality_control_metrics",
       "report_metric_columns": [
         "variant_count",

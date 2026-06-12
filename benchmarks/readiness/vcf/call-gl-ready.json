@@ -83,7 +83,7 @@
       ],
       "report_section_id": "variant_calling",
       "report_ready": true,
-      "report_map_proof_path": "benchmarks/readiness/vcf-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
       "summary_table_id": "variant_calling_metrics",
       "report_metric_columns": [
         "likelihood_field",

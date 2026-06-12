@@ -85,7 +85,7 @@
       ],
       "report_section_id": "reference_panel_preparation",
       "report_ready": true,
-      "report_map_proof_path": "benchmarks/readiness/vcf-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
       "summary_table_id": "reference_panel_readiness",
       "report_metric_columns": [
         "input_variants",

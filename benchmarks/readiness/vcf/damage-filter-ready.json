@@ -89,7 +89,7 @@
       ],
       "report_section_id": "damage_aware_filtering",
       "report_ready": true,
-      "report_map_proof_path": "benchmarks/readiness/vcf-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
       "summary_table_id": "damage_filtering_metrics",
       "report_metric_columns": [
         "input_variants",

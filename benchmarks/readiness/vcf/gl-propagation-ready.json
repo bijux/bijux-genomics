@@ -83,7 +83,7 @@
       ],
       "report_section_id": "likelihood_postprocess",
       "report_ready": true,
-      "report_map_proof_path": "benchmarks/readiness/vcf-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
       "summary_table_id": "likelihood_postprocess_metrics",
       "report_metric_columns": [
         "input_likelihood_fields",

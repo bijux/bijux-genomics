@@ -106,7 +106,7 @@
     {
       "goal_id": 259,
       "surface": "vcf report map",
-      "output_path": "benchmarks/readiness/vcf-report-map.tsv",
+      "output_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
       "ok": true,
       "detail": "validated governed report-map coverage across the expected benchmark-ready VCF rows"
     },

@@ -1260,7 +1260,6 @@
     "benchmarks/readiness/vcf-missing-result-report-test.json",
     "benchmarks/readiness/vcf-orphan-tools.tsv",
     "benchmarks/readiness/vcf-parser-failure-tests.json",
-    "benchmarks/readiness/vcf-report-map.tsv",
     "benchmarks/readiness/vcf-schema-validation.json",
     "benchmarks/readiness/vcf-tool-serving-map.tsv",
     "benchmarks/readiness/vcf-undercovered-stages.tsv",
@@ -1276,7 +1275,8 @@
     "benchmarks/readiness/vcf/stats-ready.json",
     "benchmarks/readiness/vcf/vcf-active-stage-tool-matrix.tsv",
     "benchmarks/readiness/vcf/vcf-local-container-smoke.tsv",
-    "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv"
+    "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
+    "benchmarks/readiness/vcf/vcf-report-map.tsv"
   ],
   "roots": [
     {
