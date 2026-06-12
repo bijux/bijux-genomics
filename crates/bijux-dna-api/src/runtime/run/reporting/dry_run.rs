@@ -16,6 +16,7 @@ use bijux_dna_runtime::run_layout::{
 
 /// # Errors
 /// Returns an error if dry-run output cannot be written.
+#[allow(clippy::too_many_lines)]
 pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
     bijux_dna_infra::ensure_dir(&request.run_dir)?;
     let layout = bijux_dna_runtime::run_layout::RunLayout::from_run_dir(request.run_dir.clone());

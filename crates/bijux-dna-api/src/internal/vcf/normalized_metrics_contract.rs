@@ -471,6 +471,7 @@ fn stage_suffix(stage_id: &str) -> Result<String> {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
 

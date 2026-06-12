@@ -304,6 +304,7 @@ fn validate_normalized_keys(stage_id: &str, value: Option<&serde_json::Value>) -
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 pub(crate) fn render_bam_normalized_metrics_schema() -> serde_json::Value {
     let stage_ids = BAM_NORMALIZED_METRICS_STAGE_CONTRACTS
         .iter()

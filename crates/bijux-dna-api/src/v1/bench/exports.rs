@@ -33,6 +33,9 @@ pub fn render_fastq_normalized_metrics_schema() -> serde_json::Value {
 }
 
 /// Write the governed FASTQ normalized metrics schema to disk.
+///
+/// # Errors
+/// Returns an error if the schema cannot be written to `path`.
 pub fn write_fastq_normalized_metrics_schema(path: &Path) -> Result<()> {
     let schema = render_fastq_normalized_metrics_schema();
     bijux_dna_infra::atomic_write_json(path, &schema)
@@ -46,6 +49,9 @@ pub fn render_bam_normalized_metrics_schema() -> serde_json::Value {
 }
 
 /// Write the governed BAM normalized metrics schema to disk.
+///
+/// # Errors
+/// Returns an error if the schema cannot be written to `path`.
 pub fn write_bam_normalized_metrics_schema(path: &Path) -> Result<()> {
     let schema = render_bam_normalized_metrics_schema();
     bijux_dna_infra::atomic_write_json(path, &schema)
@@ -63,11 +69,17 @@ pub struct VcfNormalizedMetricsStageSchemaDescriptor {
 }
 
 /// Render the governed VCF normalized metrics schema.
+///
+/// # Errors
+/// Returns an error if the governed schema cannot be rendered.
 pub fn render_vcf_normalized_metrics_schema() -> Result<serde_json::Value> {
     crate::internal::vcf::normalized_metrics_contract::render_vcf_normalized_metrics_schema()
 }
 
 /// Render the governed stage-specific VCF normalized metrics schema.
+///
+/// # Errors
+/// Returns an error if the stage-specific schema cannot be rendered.
 pub fn render_vcf_normalized_metrics_stage_schema(stage_id: &str) -> Result<serde_json::Value> {
     crate::internal::vcf::normalized_metrics_contract::render_vcf_normalized_metrics_stage_schema(
         stage_id,
@@ -75,6 +87,9 @@ pub fn render_vcf_normalized_metrics_stage_schema(stage_id: &str) -> Result<serd
 }
 
 /// Validate a normalized VCF metrics payload against the governed stage schema contract.
+///
+/// # Errors
+/// Returns an error if the payload does not satisfy the governed schema contract.
 pub fn validate_vcf_normalized_metrics(
     metrics: &serde_json::Value,
 ) -> Result<VcfNormalizedMetricsStageSchemaDescriptor> {
@@ -91,6 +106,9 @@ pub fn validate_vcf_normalized_metrics(
 }
 
 /// Describe the governed stage-specific VCF normalized metrics schema set.
+///
+/// # Errors
+/// Returns an error if the governed stage schema descriptors cannot be enumerated.
 pub fn vcf_normalized_metrics_stage_schema_descriptors(
 ) -> Result<Vec<VcfNormalizedMetricsStageSchemaDescriptor>> {
     crate::internal::vcf::normalized_metrics_contract::vcf_normalized_metrics_stage_descriptors()
@@ -110,6 +128,9 @@ pub fn vcf_normalized_metrics_stage_schema_descriptors(
 }
 
 /// Write the governed VCF normalized metrics schema to disk.
+///
+/// # Errors
+/// Returns an error if the schema cannot be written to `path`.
 pub fn write_vcf_normalized_metrics_schema(path: &Path) -> Result<()> {
     let schema = render_vcf_normalized_metrics_schema()?;
     bijux_dna_infra::atomic_write_json(path, &schema)
@@ -117,6 +138,9 @@ pub fn write_vcf_normalized_metrics_schema(path: &Path) -> Result<()> {
 }
 
 /// Write the governed stage-specific VCF normalized metrics schema set to disk.
+///
+/// # Errors
+/// Returns an error if the directory cannot be prepared or any schema cannot be written.
 pub fn write_vcf_normalized_metrics_stage_schemas(
     stage_dir: &Path,
 ) -> Result<Vec<VcfNormalizedMetricsStageSchemaDescriptor>> {

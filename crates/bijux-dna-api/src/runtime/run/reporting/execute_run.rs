@@ -23,6 +23,7 @@ use std::sync::{Arc, Mutex};
 
 /// # Errors
 /// Returns an error if execution fails.
+#[allow(clippy::too_many_lines)]
 pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
     let runner_contract = runner_contract(request.runner);
     for step in request.graph.steps() {
@@ -703,6 +704,7 @@ fn write_run_state(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_lines)]
 fn write_manifest(
     layout: &bijux_dna_runtime::run_layout::RunLayout,
     graph: &bijux_dna_core::contract::ExecutionGraph,

@@ -161,6 +161,7 @@ pub fn write_plan_support_artifacts(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::write_plan_support_artifacts;
     use bijux_dna_stage_contract::RunExecutionPlan;

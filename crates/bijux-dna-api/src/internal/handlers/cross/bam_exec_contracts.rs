@@ -1,4 +1,5 @@
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::too_many_lines, clippy::unreadable_literal)]
 mod tests {
     use super::*;
     use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
