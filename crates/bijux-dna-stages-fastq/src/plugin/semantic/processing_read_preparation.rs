@@ -46,10 +46,15 @@ pub(super) fn observed_read_preparation_metrics(
         {
             if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_extract_umis_report(&raw_report) {
+                    let umi_summary = report.canonical_umi_summary();
                     let mut semantics = serde_json::Map::from_iter([
                         ("paired_mode".to_string(), serde_json::json!(report.paired_mode)),
                         ("threads".to_string(), serde_json::json!(report.threads)),
                         ("umi_pattern".to_string(), serde_json::json!(report.umi_pattern)),
+                        (
+                            "tag_header_format".to_string(),
+                            serde_json::json!(umi_summary.tag_header_format),
+                        ),
                         ("reads_in".to_string(), serde_json::json!(report.reads_in)),
                         ("reads_out".to_string(), serde_json::json!(report.reads_out)),
                         ("bases_in".to_string(), serde_json::json!(report.bases_in)),
@@ -57,6 +62,14 @@ pub(super) fn observed_read_preparation_metrics(
                         ("pairs_in".to_string(), serde_json::json!(report.pairs_in)),
                         ("pairs_out".to_string(), serde_json::json!(report.pairs_out)),
                         ("reads_with_umi".to_string(), serde_json::json!(report.reads_with_umi)),
+                        (
+                            "extracted_umi_count".to_string(),
+                            serde_json::json!(umi_summary.extracted_umi_count),
+                        ),
+                        (
+                            "invalid_umi_count".to_string(),
+                            serde_json::json!(umi_summary.invalid_umi_count),
+                        ),
                         ("mean_q_before".to_string(), serde_json::json!(report.mean_q_before)),
                         ("mean_q_after".to_string(), serde_json::json!(report.mean_q_after)),
                         (

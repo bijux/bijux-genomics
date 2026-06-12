@@ -500,6 +500,18 @@ fn parse_outputs_surfaces_observed_merge_semantics() {
         serde_json::json!(87)
     );
     assert_eq!(
+        output.report_parts[0].payload["semantic_metrics"]["merged_pair_count"],
+        serde_json::json!(87)
+    );
+    assert_eq!(
+        output.report_parts[0].payload["semantic_metrics"]["unmerged_pair_count"],
+        serde_json::json!(13)
+    );
+    assert_eq!(
+        output.report_parts[0].payload["semantic_metrics"]["discarded_pair_count"],
+        serde_json::json!(0)
+    );
+    assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["merge_rate"],
         serde_json::json!(0.87)
     );
@@ -1214,8 +1226,23 @@ fn parse_outputs_surfaces_extract_umis_semantics() {
         serde_json::json!("NNNNNNNN")
     );
     assert_eq!(
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+            ["tag_header_format"],
+        serde_json::json!("append_to_header")
+    );
+    assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["reads_with_umi"],
         serde_json::json!(2_u64)
+    );
+    assert_eq!(
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+            ["extracted_umi_count"],
+        serde_json::json!(2_u64)
+    );
+    assert_eq!(
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+            ["invalid_umi_count"],
+        serde_json::json!(0_u64)
     );
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]

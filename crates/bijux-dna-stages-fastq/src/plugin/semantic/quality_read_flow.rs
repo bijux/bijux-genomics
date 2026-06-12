@@ -16,6 +16,7 @@ pub(super) fn observed_quality_read_flow_metrics(
         {
             if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_merge_pairs_report(&raw_report) {
+                    let pair_counts = report.canonical_pair_counts();
                     return Some(serde_json::json!({
                         "paired_mode": report.paired_mode,
                         "merge_engine": report.merge_engine,
@@ -25,8 +26,12 @@ pub(super) fn observed_quality_read_flow_metrics(
                         "unmerged_read_policy": report.unmerged_read_policy,
                         "reads_r1": report.reads_r1,
                         "reads_r2": report.reads_r2,
+                        "input_pair_count": pair_counts.input_pair_count,
                         "reads_merged": report.reads_merged,
                         "reads_unmerged": report.reads_unmerged,
+                        "merged_pair_count": pair_counts.merged_pair_count,
+                        "unmerged_pair_count": pair_counts.unmerged_pair_count,
+                        "discarded_pair_count": pair_counts.discarded_pair_count,
                         "merge_rate": report.merge_rate,
                         "merged_reads": report.merged_reads,
                         "unmerged_reads_r1": report.unmerged_reads_r1,
