@@ -51,7 +51,7 @@ struct VcfRegistryToolRecord {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct VcfRegistryStagePolicy {
-    tool_ids: BTreeSet<String>,
+    benchmark_required_tool_ids: BTreeSet<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -119,7 +119,7 @@ pub(crate) fn render_vcf_matrix_registry_consistency(
         .iter()
         .flat_map(|(stage_id, policy)| {
             policy
-                .tool_ids
+                .benchmark_required_tool_ids
                 .iter()
                 .filter(|tool_id| {
                     stage_support_by_id
@@ -283,21 +283,15 @@ fn load_vcf_registry_snapshot(repo_root: &Path) -> Result<VcfRegistrySnapshot> {
                 .and_then(toml::Value::as_str)
                 .ok_or_else(|| anyhow!("stage entry in {relative_path} is missing id"))?
                 .to_string();
-            let tool_ids =
-                ["primary_tools", "optional_alternatives", "validation_tools", "reporting_tools"]
-                    .into_iter()
-                    .flat_map(|field| {
-                        entry
-                            .get(field)
-                            .and_then(toml::Value::as_array)
-                            .into_iter()
-                            .flatten()
-                            .filter_map(toml::Value::as_str)
-                            .map(str::to_string)
-                            .collect::<Vec<_>>()
-                    })
-                    .collect::<BTreeSet<_>>();
-            stage_policies.insert(stage_id, VcfRegistryStagePolicy { tool_ids });
+            let benchmark_required_tool_ids = entry
+                .get("primary_tools")
+                .and_then(toml::Value::as_array)
+                .into_iter()
+                .flatten()
+                .filter_map(toml::Value::as_str)
+                .map(str::to_string)
+                .collect::<BTreeSet<_>>();
+            stage_policies.insert(stage_id, VcfRegistryStagePolicy { benchmark_required_tool_ids });
         }
     }
     Ok(VcfRegistrySnapshot { tool_records: records.into_values().collect(), stage_policies })

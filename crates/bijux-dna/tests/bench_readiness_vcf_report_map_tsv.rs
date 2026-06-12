@@ -48,6 +48,10 @@ fn bench_readiness_vcf_report_map_writes_governed_tsv_file() {
     }));
     assert!(payload.lines().any(|line| {
         line
+            == "vcf.population_structure\tplink2\tpopulation_structure\tpopulation_structure_metrics\tsample_count,pair_count,within_population_pair_count,cross_population_pair_count\tresult_status,reason,parser_id,failure_reason,observed_error"
+    }));
+    assert!(payload.lines().any(|line| {
+        line
             == "vcf.prepare_reference_panel\tbcftools\treference_panel_preparation\treference_panel_readiness\tinput_variants,output_variants,sample_count,sample_ids,sample_consistent,duplicate_sites_removed,normalization_status,parseable\tresult_status,reason,parser_id,failure_reason,observed_error,audit_manifest_path"
     }));
 }

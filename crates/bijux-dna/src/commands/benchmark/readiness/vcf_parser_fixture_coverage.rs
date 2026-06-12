@@ -97,11 +97,8 @@ pub(crate) fn render_vcf_parser_fixture_coverage(
         .filter(|row| row.coverage_status == VcfParserFixtureCoverageStatus::Covered)
         .count();
     let missing_row_count = rows.len().saturating_sub(covered_row_count);
-    let parser_fixture_coverage_percent = if rows.is_empty() {
-        0.0
-    } else {
-        covered_row_count as f64 * 100.0 / rows.len() as f64
-    };
+    let parser_fixture_coverage_percent =
+        if rows.is_empty() { 0.0 } else { covered_row_count as f64 * 100.0 / rows.len() as f64 };
     let mut coverage_status_counts = BTreeMap::<String, usize>::new();
     for row in &rows {
         *coverage_status_counts
@@ -150,16 +147,10 @@ pub(crate) fn collect_vcf_parser_fixture_coverage_rows(
         .filter(|row| row.scope_state == "active")
         .collect::<Vec<_>>();
 
-    let stage_count = active_rows
-        .iter()
-        .map(|row| row.stage_id.as_str())
-        .collect::<BTreeSet<_>>()
-        .len();
-    let tool_count = active_rows
-        .iter()
-        .map(|row| row.tool_id.as_str())
-        .collect::<BTreeSet<_>>()
-        .len();
+    let stage_count =
+        active_rows.iter().map(|row| row.stage_id.as_str()).collect::<BTreeSet<_>>().len();
+    let tool_count =
+        active_rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>().len();
 
     let mut rows = Vec::with_capacity(active_rows.len());
     for active_row in active_rows {
@@ -272,9 +263,7 @@ pub(crate) fn collect_vcf_parser_fixture_coverage_rows(
     }
 
     rows.sort_by(|left, right| {
-        left.stage_id
-            .cmp(&right.stage_id)
-            .then_with(|| left.tool_id.cmp(&right.tool_id))
+        left.stage_id.cmp(&right.stage_id).then_with(|| left.tool_id.cmp(&right.tool_id))
     });
     Ok((stage_count, tool_count, rows))
 }
@@ -355,8 +344,8 @@ fn validate_expected_normalized_fixture(
     tool_id: &str,
     parser_id: &str,
 ) -> Result<()> {
-    let raw =
-        fs::read_to_string(expected_path).with_context(|| format!("read {}", expected_path.display()))?;
+    let raw = fs::read_to_string(expected_path)
+        .with_context(|| format!("read {}", expected_path.display()))?;
     let parsed: serde_json::Value =
         serde_json::from_str(&raw).with_context(|| format!("parse {}", expected_path.display()))?;
     let Some(object) = parsed.as_object() else {
@@ -365,9 +354,7 @@ fn validate_expected_normalized_fixture(
     if object.get("schema_version").and_then(serde_json::Value::as_str)
         != Some(VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION)
     {
-        return Err(anyhow!(
-            "schema_version must be `{VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION}`"
-        ));
+        return Err(anyhow!("schema_version must be `{VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION}`"));
     }
     if object.get("stage_id").and_then(serde_json::Value::as_str) != Some(stage_id) {
         return Err(anyhow!("stage_id must be `{stage_id}`"));
@@ -393,10 +380,7 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
 
 fn sanitize_tsv(value: &str) -> String {
@@ -408,9 +392,8 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        coverage_status_label, render_vcf_parser_fixture_coverage,
-        VcfParserFixtureCoverageStatus, DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH,
-        VCF_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION,
+        coverage_status_label, render_vcf_parser_fixture_coverage, VcfParserFixtureCoverageStatus,
+        DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH, VCF_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION,
     };
 
     fn repo_root() -> PathBuf {
@@ -431,13 +414,13 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH);
-        assert_eq!(report.stage_count, 16);
+        assert_eq!(report.stage_count, 17);
         assert_eq!(report.tool_count, 6);
-        assert_eq!(report.row_count, 19);
-        assert_eq!(report.covered_row_count, 19);
+        assert_eq!(report.row_count, 20);
+        assert_eq!(report.covered_row_count, 20);
         assert_eq!(report.missing_row_count, 0);
         assert_eq!(report.parser_fixture_coverage_percent, 100.0);
-        assert_eq!(report.coverage_status_counts.get("covered"), Some(&19));
+        assert_eq!(report.coverage_status_counts.get("covered"), Some(&20));
         assert!(report.rows.iter().all(|row| {
             row.schema_id.starts_with("bijux.schemas.bench.vcf-normalized-metrics.")
                 && row.parser_fixture_schema_id.starts_with("bijux.vcf.")
@@ -491,10 +474,7 @@ mod tests {
 
     #[test]
     fn coverage_status_labels_are_stable() {
-        assert_eq!(
-            coverage_status_label(VcfParserFixtureCoverageStatus::Covered),
-            "covered"
-        );
+        assert_eq!(coverage_status_label(VcfParserFixtureCoverageStatus::Covered), "covered");
         assert_eq!(
             coverage_status_label(VcfParserFixtureCoverageStatus::MissingFixtureInventory),
             "missing_fixture_inventory"

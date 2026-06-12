@@ -46,27 +46,24 @@ fn bench_readiness_vcf_parser_fixture_coverage_reports_active_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv")
     );
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(16));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(17));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(6));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(19));
-    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(19));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(payload.get("missing_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
-        payload
-            .get("parser_fixture_coverage_percent")
-            .and_then(serde_json::Value::as_f64),
+        payload.get("parser_fixture_coverage_percent").and_then(serde_json::Value::as_f64),
         Some(100.0)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 19);
+    assert_eq!(rows.len(), 20);
 
     assert!(rows.iter().all(|row| {
         row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
-            && row
-                .get("parser_fixture_root_path")
-                .and_then(serde_json::Value::as_str)
-                .is_some_and(|path| path.starts_with("benchmarks/tests/fixtures/bench/parsers/vcf/"))
+            && row.get("parser_fixture_root_path").and_then(serde_json::Value::as_str).is_some_and(
+                |path| path.starts_with("benchmarks/tests/fixtures/bench/parsers/vcf/"),
+            )
             && row
                 .get("expected_normalized_path")
                 .and_then(serde_json::Value::as_str)
@@ -79,10 +76,9 @@ fn bench_readiness_vcf_parser_fixture_coverage_reports_active_rows() {
                 .get("raw_fixture_paths")
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|paths| !paths.is_empty())
-            && row
-                .get("schema_id")
-                .and_then(serde_json::Value::as_str)
-                .is_some_and(|schema| schema.starts_with("bijux.schemas.bench.vcf-normalized-metrics."))
+            && row.get("schema_id").and_then(serde_json::Value::as_str).is_some_and(|schema| {
+                schema.starts_with("bijux.schemas.bench.vcf-normalized-metrics.")
+            })
     }));
 
     assert!(rows.iter().any(|row| {
@@ -131,6 +127,15 @@ fn bench_readiness_vcf_parser_fixture_coverage_reports_active_rows() {
             && row.get("raw_fixture_count").and_then(serde_json::Value::as_u64) == Some(4)
     }));
     assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.population_structure")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
+            && row.get("parser_fixture_parser_id").and_then(serde_json::Value::as_str)
+                == Some("parse_plink2_population_structure_metrics")
+            && row.get("parser_fixture_schema_id").and_then(serde_json::Value::as_str)
+                == Some("bijux.vcf.population_structure.v1")
+            && row.get("raw_fixture_count").and_then(serde_json::Value::as_u64) == Some(9)
+    }));
+    assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.pca")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("eigensoft")
             && row.get("parser_fixture_parser_id").and_then(serde_json::Value::as_str)
@@ -140,8 +145,7 @@ fn bench_readiness_vcf_parser_fixture_coverage_reports_active_rows() {
             && row.get("raw_fixture_count").and_then(serde_json::Value::as_u64) == Some(8)
     }));
     assert!(rows.iter().any(|row| {
-        row.get("stage_id").and_then(serde_json::Value::as_str)
-            == Some("vcf.imputation_metrics")
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation_metrics")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
             && row.get("parser_fixture_parser_id").and_then(serde_json::Value::as_str)
                 == Some("parse_beagle_imputation_metrics")

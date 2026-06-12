@@ -45,8 +45,8 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf/vcf-report-map.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(19));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(16));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(17));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(9));
@@ -83,11 +83,11 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
             .get("section_counts")
             .and_then(|value| value.get("population_structure"))
             .and_then(serde_json::Value::as_u64),
-        Some(3)
+        Some(4)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 19);
+    assert_eq!(rows.len(), 20);
 
     let call = rows
         .iter()
@@ -250,6 +250,22 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
     );
     assert_eq!(
         admixture.get("summary_table").and_then(serde_json::Value::as_str),
+        Some("population_structure_metrics")
+    );
+    let population_structure = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.population_structure")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
+        })
+        .expect("vcf.population_structure row");
+    assert_eq!(
+        population_structure.get("section_id").and_then(serde_json::Value::as_str),
+        Some("population_structure")
+    );
+    assert_eq!(
+        population_structure.get("summary_table").and_then(serde_json::Value::as_str),
         Some("population_structure_metrics")
     );
 }

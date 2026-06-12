@@ -211,7 +211,7 @@ mod tests {
             report.argv_output_path,
             "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl"
         );
-        assert_eq!(report.row_count, 19);
+        assert_eq!(report.row_count, 20);
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.prepare_reference_panel" && row.tool_id == "bcftools"
         }));
@@ -223,6 +223,11 @@ mod tests {
             row.stage_id == "vcf.admixture"
                 && row.tool_id == "plink2"
                 && row.command_steps.len() == 1
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.population_structure"
+                && row.tool_id == "plink2"
+                && !row.command_steps.is_empty()
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.pca" && row.tool_id == "plink2" && row.command_steps.len() == 1

@@ -321,9 +321,9 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "VCF expected-result table must keep one row per benchmark-ready stage-tool-corpus-asset binding"
         ));
     }
-    if rows.len() != 19 {
+    if rows.len() != 20 {
         return Err(anyhow!(
-            "VCF expected-result table must retain exactly 19 benchmark-ready rows, found {}",
+            "VCF expected-result table must retain exactly 20 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -384,6 +384,15 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "vcf_cohort",
             "admixture_report",
             "selected_k",
+            "population_structure",
+        ),
+        (
+            "vcf.population_structure",
+            "plink2",
+            "vcf_production_regression",
+            "vcf_cohort",
+            "population_structure_report",
+            "pair_count",
             "population_structure",
         ),
         (
@@ -511,15 +520,15 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH);
-        assert_eq!(report.row_count, 19);
-        assert_eq!(report.stage_count, 16);
+        assert_eq!(report.row_count, 20);
+        assert_eq!(report.stage_count, 17);
         assert_eq!(report.tool_count, 6);
         assert_eq!(report.corpus_count, 1);
         assert_eq!(report.asset_profile_count, 5);
         assert_eq!(report.report_section_counts.get("damage_aware_filtering"), Some(&1));
         assert_eq!(report.report_section_counts.get("imputation"), Some(&2));
         assert_eq!(report.report_section_counts.get("likelihood_postprocess"), Some(&1));
-        assert_eq!(report.report_section_counts.get("population_structure"), Some(&3));
+        assert_eq!(report.report_section_counts.get("population_structure"), Some(&4));
         assert_eq!(report.report_section_counts.get("phasing"), Some(&1));
         assert_eq!(report.report_section_counts.get("variant_calling"), Some(&4));
         assert_eq!(report.report_section_counts.get("quality_control"), Some(&5));
@@ -553,10 +562,7 @@ mod tests {
                 && row.tool_id == "beagle"
                 && row.asset_profile_id == "vcf_cohort_with_panel"
                 && row.expected_outputs == vec!["imputed_vcf".to_string()]
-                && row
-                    .expected_metrics
-                    .iter()
-                    .any(|metric| metric == "masked_truth_match_count")
+                && row.expected_metrics.iter().any(|metric| metric == "masked_truth_match_count")
                 && row.report_section == "imputation"
         }));
         assert!(report.rows.iter().any(|row| {
@@ -572,6 +578,14 @@ mod tests {
                 && row.asset_profile_id == "vcf_cohort"
                 && row.expected_outputs == vec!["admixture_report".to_string()]
                 && row.expected_metrics.iter().any(|metric| metric == "selected_k")
+                && row.report_section == "population_structure"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.population_structure"
+                && row.tool_id == "plink2"
+                && row.asset_profile_id == "vcf_cohort"
+                && row.expected_outputs == vec!["population_structure_report".to_string()]
+                && row.expected_metrics.iter().any(|metric| metric == "pair_count")
                 && row.report_section == "population_structure"
         }));
         assert!(report.rows.iter().any(|row| {

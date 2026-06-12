@@ -57,7 +57,7 @@ fn bench_readiness_vcf_tool_serving_map_writes_governed_tsv_columns() {
         "shapeit5\tvcf.phasing\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "beagle\tvcf.imputation_metrics\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "beagle\tvcf.impute\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
-        "plink2\tvcf.population_structure\tplanned\tdeclared_only\tparse_normalized\tfixture:vcf_production_regression\tassigned\tnot_benchmark_ready",
+        "plink2\tvcf.population_structure\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "ibdne\tvcf.demography\tplanned\tdeclared_only\tparse_normalized\tfixture:vcf_production_regression\tnot_required\tnot_benchmark_ready",
     ] {
         assert!(

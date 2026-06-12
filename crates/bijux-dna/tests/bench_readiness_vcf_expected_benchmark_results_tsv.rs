@@ -44,12 +44,18 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 19);
+    assert_eq!(rows.len(), 20);
     assert!(
         rows.iter().any(|row| {
             row == &"vcf\tvcf.admixture\tplink2\tvcf_production_regression\tvcf_cohort\tadmixture_report\tselected_k,sample_count,population_count,status\tpopulation_structure"
         }),
         "TSV must retain the governed VCF admixture expected-result row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"vcf\tvcf.population_structure\tplink2\tvcf_production_regression\tvcf_cohort\tpopulation_structure_report\tsample_count,pair_count,within_population_pair_count,cross_population_pair_count\tpopulation_structure"
+        }),
+        "TSV must retain the governed VCF population-structure expected-result row"
     );
     assert!(
         rows.iter().any(|row| {

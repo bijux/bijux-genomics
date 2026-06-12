@@ -252,6 +252,16 @@ fn ensure_vcf_tool_serving_map_contract(rows: &[VcfToolServingMapRow]) -> Result
         ),
         (
             "plink2",
+            "vcf.population_structure",
+            "supported",
+            "runnable",
+            "parse_normalized",
+            "fixture:vcf_production_regression",
+            "assigned",
+            "benchmark_ready",
+        ),
+        (
+            "plink2",
             "vcf.pca",
             "supported",
             "runnable",
@@ -399,11 +409,21 @@ mod tests {
         assert_eq!(report.row_count, 23);
         assert_eq!(report.stage_count, 20);
         assert_eq!(report.tool_count, 8);
-        assert_eq!(report.benchmark_ready_row_count, 19);
-        assert_eq!(report.not_benchmark_ready_row_count, 4);
+        assert_eq!(report.benchmark_ready_row_count, 20);
+        assert_eq!(report.not_benchmark_ready_row_count, 3);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "plink2"
                 && row.stage_id == "vcf.admixture"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "parse_normalized"
+                && row.corpus_status == "fixture:vcf_production_regression"
+                && row.asset_status == "assigned"
+                && row.benchmark_status == "benchmark_ready"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "plink2"
+                && row.stage_id == "vcf.population_structure"
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parse_normalized"

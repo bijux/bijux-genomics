@@ -346,21 +346,21 @@ fn collect_vcf_missing_result_report_rows(
 fn ensure_vcf_missing_result_report_contract(
     mut report: VcfMissingResultReport,
 ) -> Result<VcfMissingResultReport> {
-    if report.rows.len() != 19 {
+    if report.rows.len() != 20 {
         return Err(anyhow!(
-            "VCF missing-result report must retain exactly 19 expected benchmark rows, found {}",
+            "VCF missing-result report must retain exactly 20 expected benchmark rows, found {}",
             report.rows.len()
         ));
     }
-    if report.expected_row_count != 19 {
+    if report.expected_row_count != 20 {
         return Err(anyhow!(
-            "VCF missing-result report must track exactly 19 expected rows, found {}",
+            "VCF missing-result report must track exactly 20 expected rows, found {}",
             report.expected_row_count
         ));
     }
-    if report.present_result_row_count != 18 {
+    if report.present_result_row_count != 19 {
         return Err(anyhow!(
-            "VCF missing-result report must retain exactly 18 present benchmark rows after removing one result, found {}",
+            "VCF missing-result report must retain exactly 19 present benchmark rows after removing one result, found {}",
             report.present_result_row_count
         ));
     }
@@ -463,13 +463,13 @@ mod tests {
             report.fake_result_root,
             "benchmarks/readiness/vcf-missing-result-report-fixture"
         );
-        assert_eq!(report.expected_row_count, 19);
-        assert_eq!(report.present_result_row_count, 18);
+        assert_eq!(report.expected_row_count, 20);
+        assert_eq!(report.present_result_row_count, 19);
         assert_eq!(report.missing_result_row_count, 1);
         assert!(report.passes_behavior_test);
         assert_eq!(report.report_section_counts.get("variant_calling").copied(), Some(4));
         assert_eq!(report.report_section_counts.get("quality_control").copied(), Some(5));
-        assert_eq!(report.report_section_counts.get("population_structure").copied(), Some(3));
+        assert_eq!(report.report_section_counts.get("population_structure").copied(), Some(4));
 
         let removed_row = report
             .rows
