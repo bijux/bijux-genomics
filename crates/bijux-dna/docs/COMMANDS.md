@@ -564,6 +564,14 @@ Visible aliases are part of the operator surface:
   through retained-vs-removed counts, while the TSV fail-closes unless every retained active row
   stays `benchmark_ready` and none leak `planned_contract`, `declared_only`, or `planner_only`
   readiness states back into FASTQ job scope.
+- `bijux-dna bench readiness render-fastq-validate-reads-ready`
+  `render-fastq-validate-reads-ready` writes
+  `benchmarks/readiness/fastq/validate-reads-ready.json` with one governed row per active
+  `fastq.validate_reads` validator. Each row ties active-scope coverage, rendered command
+  coverage, adapter output declarations, parser coverage, expected benchmark results, report-map
+  placement, and local smoke normalization proof together so sample IDs, layout, read counts,
+  validation status, and failure reason remain explicit for `fastq_scan`, `fastqc`,
+  `fastqvalidator`, `fqtools`, and `seqtk`.
 - `bijux-dna bench readiness render-fastq-adapter-output-contract`
   `render-fastq-adapter-output-contract` writes
   `benchmarks/readiness/fastq-adapter-output-contract.tsv` with one governed row per FASTQ
