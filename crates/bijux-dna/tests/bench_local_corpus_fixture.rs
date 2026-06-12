@@ -54,12 +54,12 @@ fn bench_local_validate_corpus_fixture_json_reports_governed_corpus_01_mini_cont
         Some("corpus-01-mini")
     );
     assert_eq!(payload.get("compression").and_then(serde_json::Value::as_str), Some("gzip"));
-    assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(10));
-    assert_eq!(payload.get("single_end_sample_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(11));
+    assert_eq!(payload.get("single_end_sample_count").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(payload.get("paired_end_sample_count").and_then(serde_json::Value::as_u64), Some(5));
     assert!(payload.get("valid").and_then(serde_json::Value::as_bool) == Some(true));
     assert!(payload.get("samples").and_then(serde_json::Value::as_array).is_some_and(|samples| {
-        samples.len() == 10
+        samples.len() == 11
             && samples.iter().any(|sample| {
                 sample.get("sample_id").and_then(serde_json::Value::as_str)
                     == Some("human_like_pe_merge_overlap")
@@ -164,6 +164,27 @@ fn bench_local_validate_corpus_fixture_json_reports_governed_corpus_01_mini_cont
                     && sample.get("layout").and_then(serde_json::Value::as_str) == Some("se")
                     && sample.get("observed_read_count_total").and_then(serde_json::Value::as_u64)
                         == Some(3)
+            })
+            && samples.iter().any(|sample| {
+                sample.get("sample_id").and_then(serde_json::Value::as_str)
+                    == Some("human_like_se_overrepresented_signals")
+                    && sample.get("layout").and_then(serde_json::Value::as_str) == Some("se")
+                    && sample.get("r1_path").and_then(serde_json::Value::as_str)
+                        == Some(
+                            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_overrepresented_signals_R1.fastq.gz"
+                        )
+                    && sample
+                        .get("source_paths")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|source_paths| {
+                            source_paths
+                                == &vec![serde_json::Value::String(
+                                    "assets/toy/core-v1/fastq/reads_with_overrepresented_sequences.fastq"
+                                        .to_string(),
+                                )]
+                        })
+                    && sample.get("observed_read_count_total").and_then(serde_json::Value::as_u64)
+                        == Some(5)
             })
     }));
 }

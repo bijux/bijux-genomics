@@ -416,9 +416,9 @@ mod tests {
         assert_eq!(report.schema_version, FASTQ_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.corpus_id, "corpus-01-mini");
         assert_eq!(report.compression, "gzip");
-        assert_eq!(report.sample_count, 7);
-        assert_eq!(report.single_end_sample_count, 5);
-        assert_eq!(report.paired_end_sample_count, 2);
+        assert_eq!(report.sample_count, 11);
+        assert_eq!(report.single_end_sample_count, 6);
+        assert_eq!(report.paired_end_sample_count, 5);
         assert!(report.valid);
         assert!(report.samples.iter().any(|sample| {
             sample.sample_id == "adna_like_pe_trim_signals"
@@ -439,6 +439,11 @@ mod tests {
             sample.sample_id == "human_like_se_polyg_trim_signals"
                 && sample.layout == "se"
                 && sample.observed_read_count_total == 3
+        }));
+        assert!(report.samples.iter().any(|sample| {
+            sample.sample_id == "human_like_se_overrepresented_signals"
+                && sample.layout == "se"
+                && sample.observed_read_count_total == 5
         }));
     }
 
