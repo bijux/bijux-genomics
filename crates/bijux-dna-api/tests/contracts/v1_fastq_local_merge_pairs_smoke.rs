@@ -97,6 +97,12 @@ fn write_local_merge_pairs_smoke_report_materializes_governed_outputs() -> Resul
     assert_eq!(payload["unmerged_r1_count"], serde_json::json!(unmerged_pair_count));
     assert_eq!(payload["unmerged_r2_count"], serde_json::json!(unmerged_pair_count));
     assert_eq!(payload["discarded_count"], serde_json::json!(discarded_pair_count));
+    assert_eq!(
+        payload["merged_count"].as_u64().unwrap_or_default()
+            + payload["unmerged_r1_count"].as_u64().unwrap_or_default()
+            + payload["discarded_count"].as_u64().unwrap_or_default(),
+        payload["input_pair_count"].as_u64().unwrap_or_default()
+    );
 
     Ok(())
 }

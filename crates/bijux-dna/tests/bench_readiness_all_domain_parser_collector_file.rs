@@ -64,11 +64,49 @@ fn bench_readiness_all_domain_parser_collector_writes_governed_report_and_fixtur
         "collector fake-run manifest must exist"
     );
 
+    let rows = payload
+        .get("rows")
+        .and_then(serde_json::Value::as_array)
+        .expect("rows array");
+
+    let merge_tools = ["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "vsearch"];
+    for tool_id in merge_tools {
+        let row = rows
+            .iter()
+            .find(|row| {
+                row.get("source_kind").and_then(serde_json::Value::as_str) == Some("fake_run")
+                    && row.get("stage_id").and_then(serde_json::Value::as_str)
+                        == Some("fastq.merge_pairs")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("missing fake-run parser collector row for merge tool {tool_id}"));
+        let parsed_path = repo_root.join(
+            row.get("parsed_path")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_else(|| panic!("parsed path missing for merge tool {tool_id}")),
+        );
+        assert!(parsed_path.is_file(), "merge parsed path must exist for {tool_id}");
+    }
+
+    let umi_row = rows
+        .iter()
+        .find(|row| {
+            row.get("source_kind").and_then(serde_json::Value::as_str) == Some("fake_run")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.extract_umis")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("umi_tools")
+        })
+        .expect("missing fake-run parser collector row for umi_tools");
+    let umi_metrics_path = repo_root.join(
+        umi_row
+            .get("parsed_path")
+            .and_then(serde_json::Value::as_str)
+            .expect("UMI parsed path"),
+    );
+    assert!(umi_metrics_path.is_file(), "UMI parsed path must exist");
+
     let fake_metrics = repo_root.join(
-        payload
-            .get("rows")
-            .and_then(serde_json::Value::as_array)
-            .expect("rows array")
+        rows
             .iter()
             .find(|row| {
                 row.get("result_id").and_then(serde_json::Value::as_str)
@@ -81,10 +119,7 @@ fn bench_readiness_all_domain_parser_collector_writes_governed_report_and_fixtur
     assert!(fake_metrics.is_file(), "fake-run metrics path must exist");
 
     let fastq_smoke_path = repo_root.join(
-        payload
-            .get("rows")
-            .and_then(serde_json::Value::as_array)
-            .expect("rows array")
+        rows
             .iter()
             .find(|row| {
                 row.get("record_id").and_then(serde_json::Value::as_str)
@@ -97,10 +132,7 @@ fn bench_readiness_all_domain_parser_collector_writes_governed_report_and_fixtur
     assert!(fastq_smoke_path.is_file(), "FASTQ smoke report path must exist");
 
     let vcf_manifest_path = repo_root.join(
-        payload
-            .get("rows")
-            .and_then(serde_json::Value::as_array)
-            .expect("rows array")
+        rows
             .iter()
             .find(|row| {
                 row.get("record_id").and_then(serde_json::Value::as_str)
