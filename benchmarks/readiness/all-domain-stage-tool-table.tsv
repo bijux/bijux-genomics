@@ -122,7 +122,7 @@ fastq	fastq.validate_reads	fastqc	corpus-01-mini	corpus_only	fastq.adapter.valid
 fastq	fastq.validate_reads	fastqvalidator	corpus-01-mini	corpus_only	fastq.adapter.validate_reads	fastq.parser.validate_reads	benchmark_ready
 fastq	fastq.validate_reads	fqtools	corpus-01-mini	corpus_only	fastq.adapter.validate_reads	fastq.parser.validate_reads	benchmark_ready
 fastq	fastq.validate_reads	seqtk	corpus-01-mini	corpus_only	fastq.adapter.validate_reads	fastq.parser.validate_reads	benchmark_ready
-vcf	vcf.admixture	plink2	vcf_production_regression	vcf_cohort	vcf.adapter.population_structure	vcf.parser.report_json	not_benchmark_ready
+vcf	vcf.admixture	plink2	vcf_production_regression	vcf_cohort	vcf.adapter.population_structure	vcf.parser.report_json	benchmark_ready
 vcf	vcf.call	bcftools	vcf_production_regression	bam_bundle	vcf.adapter.calling	vcf.parser.call_summary	benchmark_ready
 vcf	vcf.call_diploid	bcftools	vcf_production_regression	bam_bundle	vcf.adapter.calling	vcf.parser.call_summary	benchmark_ready
 vcf	vcf.call_gl	bcftools	vcf_production_regression	bam_bundle	vcf.adapter.calling	vcf.parser.call_summary	benchmark_ready

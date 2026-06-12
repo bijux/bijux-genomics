@@ -1,14 +1,14 @@
 {
   "schema_version": "bijux.bench.readiness.all_domain_no_planned_rows.v1",
   "output_path": "benchmarks/readiness/all-domains/no-planned-rows.json",
-  "active_row_count": 130,
-  "active_stage_count": 62,
+  "active_row_count": 131,
+  "active_stage_count": 63,
   "active_tool_count": 69,
-  "removed_row_count": 10,
-  "removed_stage_count": 9,
+  "removed_row_count": 9,
+  "removed_stage_count": 8,
   "removed_tool_count": 8,
   "removed_status_counts": {
-    "planned": 10
+    "planned": 9
   },
   "violation_count": 0,
   "ok": true,
@@ -66,17 +66,6 @@
       "adapter_id": "fastq.adapter.trim_reads",
       "parser_id": "fastq.parser.trim_reads",
       "schema_id": "fastq_trim_reads_v2",
-      "status": "planned"
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.admixture",
-      "tool_id": "plink2",
-      "corpus_id": "vcf_production_regression",
-      "asset_profile_id": "vcf_cohort",
-      "adapter_id": "vcf.adapter.population_structure",
-      "parser_id": "vcf.parser.report_json",
-      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.admixture.v1",
       "status": "planned"
     },
     {

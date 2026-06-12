@@ -30,18 +30,18 @@
       "exists": true
     },
     {
-      "artifact_id": "corrected_reads_r2",
-      "declared_path": "outputs/corrected_reads_r2.json",
-      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.correct_errors/sample-set/rcorrector/outputs/corrected_reads_r2.json",
-      "role": "benchmark_output",
-      "optional": false,
-      "exists": true
-    },
-    {
       "artifact_id": "report_json",
       "declared_path": "outputs/report_json.json",
       "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.correct_errors/sample-set/rcorrector/outputs/report_json.json",
       "role": "normalized_metrics",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "corrected_reads_r2",
+      "declared_path": "outputs/corrected_reads_r2.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.correct_errors/sample-set/rcorrector/outputs/corrected_reads_r2.json",
+      "role": "benchmark_output",
       "optional": false,
       "exists": true
     }

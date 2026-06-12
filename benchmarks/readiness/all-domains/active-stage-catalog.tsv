@@ -46,6 +46,7 @@ fastq	fastq.trim_polyg_tails	smoke	2	2	2	2	true	1	benchmark_ready	bbduk,fastp	bb
 fastq	fastq.trim_reads	smoke	13	13	13	13	true	1	benchmark_ready	adapterremoval,alientrimmer,atropos,bbduk,cutadapt,fastp,fastx_clipper,leehom,prinseq,seqkit,skewer,trim_galore,trimmomatic	adapterremoval,alientrimmer,atropos,bbduk,cutadapt,fastp,fastx_clipper,leehom,prinseq,seqkit,skewer,trim_galore,trimmomatic	read_cleanup
 fastq	fastq.trim_terminal_damage	smoke	3	3	3	3	true	1	benchmark_ready	adapterremoval,cutadapt,seqkit	adapterremoval,cutadapt,seqkit	read_cleanup
 fastq	fastq.validate_reads	smoke	5	5	5	5	true	1	benchmark_ready	fastq_scan,fastqc,fastqvalidator,fqtools,seqtk	fastq_scan,fastqc,fastqvalidator,fqtools,seqtk	input_readiness
+vcf	vcf.admixture	smoke	1	1	1	1	true	1	benchmark_ready	plink2	plink2	population_structure
 vcf	vcf.call	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	variant_calling
 vcf	vcf.call_diploid	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	variant_calling
 vcf	vcf.call_gl	smoke	1	1	1	1	true	1	benchmark_ready	bcftools	bcftools	variant_calling

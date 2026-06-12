@@ -1951,13 +1951,13 @@
       "result_status": "present",
       "expected_output_artifact_ids": [
         "corrected_reads_r1",
-        "corrected_reads_r2",
-        "report_json"
+        "report_json",
+        "corrected_reads_r2"
       ],
       "observed_output_artifact_ids": [
         "corrected_reads_r1",
-        "corrected_reads_r2",
-        "report_json"
+        "report_json",
+        "corrected_reads_r2"
       ],
       "normalized_metrics_output_id": "report_json",
       "reason": "expected benchmark result row `fastq:corpus-01-mini:fastq.correct_errors:sample-set:bayeshammer` remains present with a validated stage-result manifest"
@@ -1974,13 +1974,13 @@
       "result_status": "present",
       "expected_output_artifact_ids": [
         "corrected_reads_r1",
-        "corrected_reads_r2",
-        "report_json"
+        "report_json",
+        "corrected_reads_r2"
       ],
       "observed_output_artifact_ids": [
         "corrected_reads_r1",
-        "corrected_reads_r2",
-        "report_json"
+        "report_json",
+        "corrected_reads_r2"
       ],
       "normalized_metrics_output_id": "report_json",
       "reason": "expected benchmark result row `fastq:corpus-01-mini:fastq.correct_errors:sample-set:lighter` remains present with a validated stage-result manifest"
@@ -1997,13 +1997,13 @@
       "result_status": "present",
       "expected_output_artifact_ids": [
         "corrected_reads_r1",
-        "corrected_reads_r2",
-        "report_json"
+        "report_json",
+        "corrected_reads_r2"
       ],
       "observed_output_artifact_ids": [
         "corrected_reads_r1",
-        "corrected_reads_r2",
-        "report_json"
+        "report_json",
+        "corrected_reads_r2"
       ],
       "normalized_metrics_output_id": "report_json",
       "reason": "expected benchmark result row `fastq:corpus-01-mini:fastq.correct_errors:sample-set:musket` remains present with a validated stage-result manifest"
@@ -2020,13 +2020,13 @@
       "result_status": "present",
       "expected_output_artifact_ids": [
         "corrected_reads_r1",
-        "corrected_reads_r2",
-        "report_json"
+        "report_json",
+        "corrected_reads_r2"
       ],
       "observed_output_artifact_ids": [
         "corrected_reads_r1",
-        "corrected_reads_r2",
-        "report_json"
+        "report_json",
+        "corrected_reads_r2"
       ],
       "normalized_metrics_output_id": "report_json",
       "reason": "expected benchmark result row `fastq:corpus-01-mini:fastq.correct_errors:sample-set:rcorrector` remains present with a validated stage-result manifest"
@@ -2317,30 +2317,14 @@
       "audit_manifest_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.filter_reads/sample-set/fastp/stage-result.json",
       "result_status": "present",
       "expected_output_artifact_ids": [
-        "trimmed_reads_r1",
-        "trimmed_reads_r2",
         "filtered_reads_r1",
-        "filtered_reads_r2",
-        "filtered_fastq_r1",
-        "filtered_fastq_r2",
         "report_json",
-        "raw_backend_report_json",
-        "filter_report_json",
-        "length_distribution_tsv",
-        "length_distribution_json"
+        "filtered_reads_r2"
       ],
       "observed_output_artifact_ids": [
-        "trimmed_reads_r1",
-        "trimmed_reads_r2",
         "filtered_reads_r1",
-        "filtered_reads_r2",
-        "filtered_fastq_r1",
-        "filtered_fastq_r2",
         "report_json",
-        "raw_backend_report_json",
-        "filter_report_json",
-        "length_distribution_tsv",
-        "length_distribution_json"
+        "filtered_reads_r2"
       ],
       "normalized_metrics_output_id": "report_json",
       "reason": "expected benchmark result row `fastq:corpus-01-mini:fastq.filter_reads:sample-set:fastp` remains present with a validated stage-result manifest"
@@ -2715,28 +2699,12 @@
       "audit_manifest_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.profile_read_lengths/sample-set/fastp/stage-result.json",
       "result_status": "present",
       "expected_output_artifact_ids": [
-        "trimmed_reads_r1",
-        "trimmed_reads_r2",
-        "filtered_reads_r1",
-        "filtered_reads_r2",
-        "filtered_fastq_r1",
-        "filtered_fastq_r2",
         "report_json",
-        "raw_backend_report_json",
-        "filter_report_json",
         "length_distribution_tsv",
         "length_distribution_json"
       ],
       "observed_output_artifact_ids": [
-        "trimmed_reads_r1",
-        "trimmed_reads_r2",
-        "filtered_reads_r1",
-        "filtered_reads_r2",
-        "filtered_fastq_r1",
-        "filtered_fastq_r2",
         "report_json",
-        "raw_backend_report_json",
-        "filter_report_json",
         "length_distribution_tsv",
         "length_distribution_json"
       ],
@@ -2988,17 +2956,17 @@
       "result_status": "present",
       "expected_output_artifact_ids": [
         "dedup_reads_r1",
-        "dedup_reads_r2",
         "duplicate_classes_tsv",
         "duplicate_provenance_json",
-        "report_json"
+        "report_json",
+        "dedup_reads_r2"
       ],
       "observed_output_artifact_ids": [
         "dedup_reads_r1",
-        "dedup_reads_r2",
         "duplicate_classes_tsv",
         "duplicate_provenance_json",
-        "report_json"
+        "report_json",
+        "dedup_reads_r2"
       ],
       "normalized_metrics_output_id": "report_json",
       "reason": "expected benchmark result row `fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:clumpify` remains present with a validated stage-result manifest"
@@ -3160,29 +3128,15 @@
       "result_status": "present",
       "expected_output_artifact_ids": [
         "trimmed_reads_r1",
-        "trimmed_reads_r2",
-        "filtered_reads_r1",
-        "filtered_reads_r2",
-        "filtered_fastq_r1",
-        "filtered_fastq_r2",
         "report_json",
         "raw_backend_report_json",
-        "filter_report_json",
-        "length_distribution_tsv",
-        "length_distribution_json"
+        "trimmed_reads_r2"
       ],
       "observed_output_artifact_ids": [
         "trimmed_reads_r1",
-        "trimmed_reads_r2",
-        "filtered_reads_r1",
-        "filtered_reads_r2",
-        "filtered_fastq_r1",
-        "filtered_fastq_r2",
         "report_json",
         "raw_backend_report_json",
-        "filter_report_json",
-        "length_distribution_tsv",
-        "length_distribution_json"
+        "trimmed_reads_r2"
       ],
       "normalized_metrics_output_id": "report_json",
       "reason": "expected benchmark result row `fastq:corpus-01-mini:fastq.trim_polyg_tails:sample-set:fastp` remains present with a validated stage-result manifest"
@@ -3346,29 +3300,15 @@
       "result_status": "present",
       "expected_output_artifact_ids": [
         "trimmed_reads_r1",
-        "trimmed_reads_r2",
-        "filtered_reads_r1",
-        "filtered_reads_r2",
-        "filtered_fastq_r1",
-        "filtered_fastq_r2",
         "report_json",
         "raw_backend_report_json",
-        "filter_report_json",
-        "length_distribution_tsv",
-        "length_distribution_json"
+        "trimmed_reads_r2"
       ],
       "observed_output_artifact_ids": [
         "trimmed_reads_r1",
-        "trimmed_reads_r2",
-        "filtered_reads_r1",
-        "filtered_reads_r2",
-        "filtered_fastq_r1",
-        "filtered_fastq_r2",
         "report_json",
         "raw_backend_report_json",
-        "filter_report_json",
-        "length_distribution_tsv",
-        "length_distribution_json"
+        "trimmed_reads_r2"
       ],
       "normalized_metrics_output_id": "report_json",
       "reason": "expected benchmark result row `fastq:corpus-01-mini:fastq.trim_reads:sample-set:fastp` remains present with a validated stage-result manifest"
@@ -3536,13 +3476,13 @@
       "result_status": "present",
       "expected_output_artifact_ids": [
         "trimmed_reads_r1",
-        "trimmed_reads_r2",
-        "report_json"
+        "report_json",
+        "trimmed_reads_r2"
       ],
       "observed_output_artifact_ids": [
         "trimmed_reads_r1",
-        "trimmed_reads_r2",
-        "report_json"
+        "report_json",
+        "trimmed_reads_r2"
       ],
       "normalized_metrics_output_id": "report_json",
       "reason": "expected benchmark result row `fastq:corpus-01-mini:fastq.trim_reads:sample-set:trim_galore` remains present with a validated stage-result manifest"

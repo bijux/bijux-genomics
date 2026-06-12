@@ -61,14 +61,14 @@
     {
       "class_id": "missing_output",
       "domain": "vcf",
-      "stage_id": "vcf.call",
-      "tool_id": "bcftools",
-      "result_id": "vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
+      "stage_id": "vcf.admixture",
+      "tool_id": "plink2",
+      "result_id": "vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2",
       "source_surface": "governed_missing_output_probe",
-      "evidence_path": "runs/bench/readiness-probes/all-domains/failure-classification/missing-output/vcf/vcf.call/bcftools/called_vcf.missing",
+      "evidence_path": "runs/bench/readiness-probes/all-domains/failure-classification/missing-output/vcf/vcf.admixture/plink2/admixture_report.missing",
       "observed_status": "missing_output",
-      "observed_error": "declared output `called_vcf` is absent from the governed missing-output probe",
-      "detail": "runs/bench/readiness-probes/all-domains/failure-classification/missing-output/vcf/vcf.call/bcftools/expected-output.json",
+      "observed_error": "declared output `admixture_report` is absent from the governed missing-output probe",
+      "detail": "runs/bench/readiness-probes/all-domains/failure-classification/missing-output/vcf/vcf.admixture/plink2/expected-output.json",
       "triggered": true
     },
     {

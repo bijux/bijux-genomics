@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.all_domain_missing_result_test.v1",
   "output_path": "benchmarks/readiness/missing-result-test-all-domains.json",
   "fake_result_root": "runs/bench/readiness-probes/all-domains/missing-result-test",
-  "expected_row_count": 130,
-  "present_result_row_count": 127,
+  "expected_row_count": 131,
+  "present_result_row_count": 128,
   "missing_result_row_count": 3,
   "passes_behavior_test": true,
   "removed_result_ids": [
@@ -19,7 +19,7 @@
   "domain_counts": {
     "bam": 49,
     "fastq": 63,
-    "vcf": 18
+    "vcf": 19
   },
   "rows": [
     {
@@ -3453,6 +3453,37 @@
       "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.validate_reads:sample-set:seqtk` remains present with a validated fake-run manifest"
     },
     {
+      "result_id": "vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.admixture",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.admixture/vcf_cohort/plink2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.admixture/vcf_cohort/plink2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "admixture_proxy_eigenvec",
+        "admixture_proxy_eigenval",
+        "plink2_log",
+        "admixture_report"
+      ],
+      "observed_output_artifact_ids": [
+        "admixture_proxy_eigenvec",
+        "admixture_proxy_eigenval",
+        "plink2_log",
+        "admixture_report"
+      ],
+      "expected_metrics": [
+        "selected_k",
+        "sample_count",
+        "population_count",
+        "status"
+      ],
+      "report_section": "population_structure",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2` remains present with a validated fake-run manifest"
+    },
+    {
       "result_id": "vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
       "domain": "vcf",
       "stage_id": "vcf.call",
@@ -3691,8 +3722,10 @@
       ],
       "expected_metrics": [
         "status",
+        "concordance",
         "mean_info_score",
         "r2_available",
+        "dosage_r2",
         "low_confidence_sites",
         "masked_truth_sites",
         "missing_quality_fields"

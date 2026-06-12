@@ -3,20 +3,20 @@
   "output_path": "benchmarks/readiness/parser-collector-all-domains.json",
   "fixture_root": "runs/bench/readiness-probes/all-domains/parser-collector",
   "fake_run_root": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs",
-  "row_count": 134,
-  "fake_run_row_count": 130,
+  "row_count": 135,
+  "fake_run_row_count": 131,
   "real_smoke_row_count": 4,
   "source_kind_counts": {
-    "fake_run": 130,
+    "fake_run": 131,
     "real_smoke": 4
   },
   "domain_counts": {
     "bam": 50,
     "fastq": 64,
-    "vcf": 20
+    "vcf": 21
   },
   "document_kind_counts": {
-    "all_domain_fake_run_metrics": 130,
+    "all_domain_fake_run_metrics": 131,
     "bam_local_smoke_report": 1,
     "fastq_local_smoke_report": 1,
     "vcf_local_prepare_reference_panel_metrics": 1,
@@ -4392,6 +4392,45 @@
       }
     },
     {
+      "record_id": "fake-run:vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2",
+      "source_kind": "fake_run",
+      "document_kind": "all_domain_fake_run_metrics",
+      "domain": "vcf",
+      "stage_id": "vcf.admixture",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "result_id": "vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2",
+      "parsed_path": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs/vcf/vcf_production_regression/vcf.admixture/vcf_cohort/plink2/metrics.json",
+      "parsed_schema_version": "bijux.bench.local_all_domain_fake_run_metrics.v1",
+      "parsed_top_level_key_count": 13,
+      "parsed_top_level_keys": [
+        "asset_profile_id",
+        "command_step_count",
+        "corpus_id",
+        "declared_output_count",
+        "domain",
+        "expected_metric_count",
+        "expected_metrics",
+        "materialized_byte_count",
+        "result_id",
+        "schema_version",
+        "simulated_elapsed_seconds",
+        "stage_id",
+        "tool_id"
+      ],
+      "manifest_path": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs/vcf/vcf_production_regression/vcf.admixture/vcf_cohort/plink2/stage-result.json",
+      "manifest_status": "succeeded",
+      "manifest_exit_code": 0,
+      "declared_output_count": 4,
+      "normalized_snapshot": {
+        "command_step_count": 1,
+        "declared_output_count": 4,
+        "expected_metric_count": 4,
+        "simulated_elapsed_seconds": 1.25
+      }
+    },
+    {
       "record_id": "fake-run:vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
       "source_kind": "fake_run",
       "document_kind": "all_domain_fake_run_metrics",
@@ -4699,7 +4738,7 @@
       "normalized_snapshot": {
         "command_step_count": 3,
         "declared_output_count": 8,
-        "expected_metric_count": 6,
+        "expected_metric_count": 8,
         "simulated_elapsed_seconds": 1.75
       }
     },

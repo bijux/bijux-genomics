@@ -30,18 +30,18 @@
       "exists": true
     },
     {
-      "artifact_id": "trimmed_reads_r2",
-      "declared_path": "outputs/trimmed_reads_r2.json",
-      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.trim_reads/sample-set/trim_galore/outputs/trimmed_reads_r2.json",
-      "role": "benchmark_output",
-      "optional": false,
-      "exists": true
-    },
-    {
       "artifact_id": "report_json",
       "declared_path": "outputs/report_json.json",
       "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.trim_reads/sample-set/trim_galore/outputs/report_json.json",
       "role": "normalized_metrics",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "trimmed_reads_r2",
+      "declared_path": "outputs/trimmed_reads_r2.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.trim_reads/sample-set/trim_galore/outputs/trimmed_reads_r2.json",
+      "role": "benchmark_output",
       "optional": false,
       "exists": true
     }

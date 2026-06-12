@@ -46,7 +46,7 @@ ngsbriggs	bam	1	1	1	1	benchmark_ready	bam.damage	bam.damage
 pear	fastq	1	1	1	1	benchmark_ready	fastq.merge_pairs	fastq.merge_pairs
 picard	bam	6	6	6	6	benchmark_ready	bam.duplication_metrics,bam.gc_bias,bam.insert_size,bam.length_filter,bam.mapping_summary,bam.markdup	bam.duplication_metrics,bam.gc_bias,bam.insert_size,bam.length_filter,bam.mapping_summary,bam.markdup
 plink	vcf	1	1	1	1	benchmark_ready	vcf.qc	vcf.qc
-plink2	vcf	2	2	2	2	benchmark_ready	vcf.pca,vcf.qc	vcf.pca,vcf.qc
+plink2	vcf	3	3	3	3	benchmark_ready	vcf.admixture,vcf.pca,vcf.qc	vcf.admixture,vcf.pca,vcf.qc
 pmdtools	bam	2	2	2	2	benchmark_ready	bam.authenticity,bam.damage	bam.authenticity,bam.damage
 preseq	bam	1	1	1	1	benchmark_ready	bam.complexity	bam.complexity
 prinseq	fastq	4	4	4	4	benchmark_ready	fastq.filter_low_complexity,fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_reads	fastq.filter_low_complexity,fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_reads

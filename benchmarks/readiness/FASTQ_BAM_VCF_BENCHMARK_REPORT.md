@@ -1,13 +1,13 @@
 # FASTQ + BAM + VCF Benchmark Report
 
-- Report rows: 131
-- Expected-result rows: 130
+- Report rows: 132
+- Expected-result rows: 131
 - Explicit unsupported rows: 1
-- Present rows: 127
+- Present rows: 128
 - Missing-result rows: 3
 - Unsupported-pair rows: 1
-- Failure rows: 130
-- Comparable metric rows: 103
+- Failure rows: 131
+- Comparable metric rows: 105
 
 ## Stage-Centric
 
@@ -60,6 +60,7 @@
 | fastq | fastq.trim_reads | 13 | 13 | 0 | 0 | adapterremoval, alientrimmer, atropos, bbduk, cutadapt, fastp, fastx_clipper, leehom, prinseq, seqkit, skewer, trim_galore, trimmomatic | core-germline-fastq-bam-vcf, diploid-small-fastq-bam-vcf, edna-taxonomy-no-vcf |
 | fastq | fastq.trim_terminal_damage | 3 | 3 | 0 | 0 | adapterremoval, cutadapt, seqkit | adna-gl-fastq-bam-vcf, adna-pseudohaploid-fastq-bam-vcf |
 | fastq | fastq.validate_reads | 5 | 5 | 0 | 0 | fastq_scan, fastqc, fastqvalidator, fqtools, seqtk | adna-gl-fastq-bam-vcf, adna-pseudohaploid-fastq-bam-vcf, amplicon-asv-otu-no-vcf, core-germline-fastq-bam-vcf, diploid-small-fastq-bam-vcf, edna-taxonomy-no-vcf |
+| vcf | vcf.admixture | 1 | 1 | 0 | 0 | plink2 | popgen-structure-vcf |
 | vcf | vcf.call | 1 | 1 | 0 | 0 | bcftools | core-germline-fastq-bam-vcf |
 | vcf | vcf.call_diploid | 1 | 1 | 0 | 0 | bcftools | diploid-small-fastq-bam-vcf |
 | vcf | vcf.call_gl | 1 | 1 | 0 | 0 | bcftools | adna-gl-fastq-bam-vcf |
@@ -127,7 +128,7 @@
 | pear | 1 | 1 | 0 | 0 | fastq | fastq.merge_pairs |
 | picard | 6 | 6 | 0 | 0 | bam | bam.duplication_metrics, bam.gc_bias, bam.insert_size, bam.length_filter, bam.mapping_summary, bam.markdup |
 | plink | 1 | 1 | 0 | 0 | vcf | vcf.qc |
-| plink2 | 2 | 2 | 0 | 0 | vcf | vcf.pca, vcf.qc |
+| plink2 | 3 | 3 | 0 | 0 | vcf | vcf.admixture, vcf.pca, vcf.qc |
 | pmdtools | 2 | 2 | 0 | 0 | bam | bam.authenticity, bam.damage |
 | preseq | 1 | 1 | 0 | 0 | bam | bam.complexity |
 | prinseq | 4 | 4 | 0 | 0 | fastq | fastq.filter_low_complexity, fastq.filter_reads, fastq.profile_read_lengths, fastq.trim_reads |
@@ -163,7 +164,7 @@
 | corpus-02-edna-mini | 4 | 3 | 1 | 0 | fastq | fastq.screen_taxonomy |
 | corpus-03-amplicon-mini | 5 | 5 | 0 | 0 | fastq | fastq.cluster_otus, fastq.infer_asvs, fastq.normalize_abundance, fastq.normalize_primers, fastq.remove_chimeras |
 | not_applicable | 1 | 0 | 0 | 1 | vcf | vcf.filter |
-| vcf_production_regression | 18 | 17 | 1 | 0 | vcf | vcf.call, vcf.call_diploid, vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.filter, vcf.gl_propagation, vcf.imputation_metrics, vcf.impute, vcf.pca, vcf.phasing, vcf.postprocess, vcf.prepare_reference_panel, vcf.qc, vcf.stats |
+| vcf_production_regression | 19 | 18 | 1 | 0 | vcf | vcf.admixture, vcf.call, vcf.call_diploid, vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.filter, vcf.gl_propagation, vcf.imputation_metrics, vcf.impute, vcf.pca, vcf.phasing, vcf.postprocess, vcf.prepare_reference_panel, vcf.qc, vcf.stats |
 
 ## Pipeline-Centric
 
@@ -179,7 +180,7 @@
 | core-germline-fastq-bam-vcf | 12 | 10 | 2 | 0 | bam, fastq, vcf | bam.align, bam.coverage, bam.qc_pre, bam.validate, fastq.filter_reads, fastq.profile_reads, fastq.trim_reads, fastq.validate_reads, vcf.call, vcf.filter, vcf.qc, vcf.stats |
 | diploid-small-fastq-bam-vcf | 16 | 14 | 2 | 0 | bam, fastq, vcf | bam.align, bam.coverage, bam.filter, bam.mapping_summary, bam.qc_pre, bam.recalibration, bam.validate, fastq.filter_reads, fastq.profile_reads, fastq.trim_reads, fastq.validate_reads, vcf.call_diploid, vcf.filter, vcf.phasing, vcf.qc, vcf.stats |
 | edna-taxonomy-no-vcf | 5 | 4 | 1 | 0 | fastq | fastq.detect_adapters, fastq.filter_reads, fastq.screen_taxonomy, fastq.trim_reads, fastq.validate_reads |
-| popgen-structure-vcf | 2 | 2 | 0 | 0 | vcf | vcf.pca, vcf.qc |
+| popgen-structure-vcf | 3 | 3 | 0 | 0 | vcf | vcf.admixture, vcf.pca, vcf.qc |
 | reference-panel-imputation | 5 | 5 | 0 | 0 | vcf | vcf.imputation_metrics, vcf.impute, vcf.phasing, vcf.prepare_reference_panel, vcf.qc |
 | relatedness-segments-vcf | 1 | 1 | 0 | 0 | vcf | vcf.qc |
 
@@ -299,7 +300,8 @@
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqvalidator | fastq | fastq.validate_reads | fastqvalidator | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:fqtools | fastq | fastq.validate_reads | fqtools | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:seqtk | fastq | fastq.validate_reads | seqtk | present | 1.250 |  | fake_run_simulated |
-| vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools | vcf | vcf.call | bcftools | present | 1.750 | 0.164 | fake_run_and_real_smoke |
+| vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2 | vcf | vcf.admixture | plink2 | present | 1.250 |  | fake_run_simulated |
+| vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools | vcf | vcf.call | bcftools | present | 1.750 | 0.166 | fake_run_and_real_smoke |
 | vcf:vcf_production_regression:vcf.call_diploid:bam_bundle:bcftools | vcf | vcf.call_diploid | bcftools | present | 1.750 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.call_gl:bam_bundle:bcftools | vcf | vcf.call_gl | bcftools | present | 1.750 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.call_pseudohaploid:bam_bundle:bcftools | vcf | vcf.call_pseudohaploid | bcftools | present | 1.750 |  | fake_run_simulated |
@@ -317,7 +319,7 @@
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools | vcf | vcf.qc | bcftools | present | 1.500 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink | vcf | vcf.qc | plink | present | 1.250 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2 | vcf | vcf.qc | plink2 | present | 1.250 |  | fake_run_simulated |
-| vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools | vcf | vcf.stats | bcftools | missing_result | 1.250 | 0.061 | fake_run_and_real_smoke |
+| vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools | vcf | vcf.stats | bcftools | missing_result | 1.250 | 0.058 | fake_run_and_real_smoke |
 
 ## Memory
 
@@ -435,6 +437,7 @@
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqvalidator | fastq | fastq.validate_reads | fastqvalidator | present | 8192.000 | 4 |  |  | declared_stage_tool_resource |
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:fqtools | fastq | fastq.validate_reads | fqtools | present | 8192.000 | 4 |  |  | declared_stage_tool_resource |
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:seqtk | fastq | fastq.validate_reads | seqtk | present | 8192.000 | 4 |  |  | declared_stage_tool_resource |
+| vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2 | vcf | vcf.admixture | plink2 | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools | vcf | vcf.call | bcftools | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | vcf:vcf_production_regression:vcf.call_diploid:bam_bundle:bcftools | vcf | vcf.call_diploid | bcftools | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | vcf:vcf_production_regression:vcf.call_gl:bam_bundle:bcftools | vcf | vcf.call_gl | bcftools | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
@@ -457,7 +460,7 @@
 
 ## Failures
 
-- Simulated failure rows: 130
+- Simulated failure rows: 131
 - Failure classification rows: 7
 
 | Failure Class | Domain | Stage | Tool | Source Surface | Status | Detail |
@@ -465,7 +468,7 @@
 | command_failed | fastq | fastq.cluster_otus | vsearch | governed_command_failed_probe | command_failed | governed shell probe exits with code 23 after writing stderr |
 | insufficient_data | vcf | vcf.demography | ibdne | vcf_segment_fixture_bank | insufficient_data | ibdne |
 | missing_input | vcf | vcf.call | bcftools | vcf_adapter_missing_input_tests | missing_input | governed VCF missing-input probe removed `bam` and expected `required input `input_bam`` |
-| missing_output | vcf | vcf.call | bcftools | governed_missing_output_probe | missing_output | runs/bench/readiness-probes/all-domains/failure-classification/missing-output/vcf/vcf.call/bcftools/expected-output.json |
+| missing_output | vcf | vcf.admixture | plink2 | governed_missing_output_probe | missing_output | runs/bench/readiness-probes/all-domains/failure-classification/missing-output/vcf/vcf.admixture/plink2/expected-output.json |
 | parser_failed | vcf | vcf.call | bcftools | vcf_parser_failure_tests | parser_failed | parse_bcftools_call_metrics expected `raw VCF is missing #CHROM header` |
 | tool_not_found | bam | bam.align | bowtie2 | governed_tool_not_found_probe | tool_not_found | governed probe derived from a benchmark-ready binding uses an absent executable path |
 | unsupported_pair | vcf | vcf.filter | samtools | all_domain_stage_tool_table | unsupported_pair | unsupported-pair classification must remain explicit instead of collapsing into a generic failed status |
@@ -566,6 +569,8 @@
 | vcf | vcf.gl_propagation | site_count_after | site count after propagation | sites | exact_match_preferred | true | angsd, bcftools | declared |
 | vcf | vcf.gl_propagation | site_count_before | site count before propagation | sites | exact_match_preferred | true | angsd, bcftools | declared |
 | vcf | vcf.ibd | pair_count | pair count | pairs | exact_match_preferred | true | germline, ibdhap, ibdseq | declared |
+| vcf | vcf.imputation_metrics | concordance | concordance | fraction | higher_is_better | true | beagle, glimpse, impute5, minimac4 | declared |
+| vcf | vcf.imputation_metrics | dosage_r2 | dosage r-squared | score | higher_is_better | false | beagle, glimpse, impute5, minimac4 | declared |
 | vcf | vcf.imputation_metrics | low_confidence_sites | low-confidence sites | sites | lower_is_better | true | beagle, glimpse, impute5, minimac4 | declared |
 | vcf | vcf.imputation_metrics | masked_truth_sites | masked-truth sites | sites | exact_match_preferred | true | beagle, glimpse, impute5, minimac4 | declared |
 | vcf | vcf.imputation_metrics | mean_info_score | mean info score | score | higher_is_better | true | beagle, glimpse, impute5, minimac4 | declared |

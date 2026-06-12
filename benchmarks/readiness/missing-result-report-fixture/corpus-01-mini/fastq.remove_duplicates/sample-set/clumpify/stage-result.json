@@ -30,14 +30,6 @@
       "exists": true
     },
     {
-      "artifact_id": "dedup_reads_r2",
-      "declared_path": "outputs/dedup_reads_r2.json",
-      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.remove_duplicates/sample-set/clumpify/outputs/dedup_reads_r2.json",
-      "role": "benchmark_output",
-      "optional": false,
-      "exists": true
-    },
-    {
       "artifact_id": "duplicate_classes_tsv",
       "declared_path": "outputs/duplicate_classes_tsv.json",
       "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.remove_duplicates/sample-set/clumpify/outputs/duplicate_classes_tsv.json",
@@ -58,6 +50,14 @@
       "declared_path": "outputs/report_json.json",
       "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.remove_duplicates/sample-set/clumpify/outputs/report_json.json",
       "role": "normalized_metrics",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "dedup_reads_r2",
+      "declared_path": "outputs/dedup_reads_r2.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.remove_duplicates/sample-set/clumpify/outputs/dedup_reads_r2.json",
+      "role": "benchmark_output",
       "optional": false,
       "exists": true
     }
