@@ -599,6 +599,16 @@ resource_origin = "tool_constraints_with_stage_walltime_profile"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.estimate_library_complexity_prealign"
+tool_id = "bijux_dna"
+threads = 1
+memory_gb = 1
+walltime_minutes = 15
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.extract_umis"
 tool_id = "umi_tools"
 threads = 2
@@ -755,6 +765,36 @@ threads = 4
 memory_gb = 8
 walltime_minutes = 15
 scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_overrepresented_sequences"
+tool_id = "fastq_scan"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_overrepresented_sequences"
+tool_id = "fastqc"
+threads = 4
+memory_gb = 8
+walltime_minutes = 15
+scratch_gb = 4
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_overrepresented_sequences"
+tool_id = "seqkit"
+threads = 2
+memory_gb = 4
+walltime_minutes = 15
+scratch_gb = 2
 resource_origin = "tool_constraints_with_stage_walltime_profile"
 
 [[rows]]

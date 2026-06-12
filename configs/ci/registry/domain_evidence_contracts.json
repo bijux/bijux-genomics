@@ -522,7 +522,7 @@
       },
       {
         "stage_id": "fastq.estimate_library_complexity_prealign",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "prealignment complexity estimates are exploratory unless benchmarked against aligned duplicate metrics."

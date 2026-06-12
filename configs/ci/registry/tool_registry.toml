@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 632f8166899a5a4750b7659f04351d0a37c9ee68
+# source_commit: 1ff67989de425f6c6415b66282b126da3bbc2ea0
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -423,8 +423,8 @@ tool_id = "bijux_dna"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.detect_duplicates_premerge"]
-bindings = ["fastq.detect_duplicates_premerge"]
+stage_ids = ["fastq.detect_duplicates_premerge", "fastq.estimate_library_complexity_prealign"]
+bindings = ["fastq.detect_duplicates_premerge", "fastq.estimate_library_complexity_prealign"]
 tool_role = "merger"
 version = "workspace"
 default_version = "workspace"
@@ -2588,6 +2588,18 @@ validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = "Governed internal contract harness records report-only duplicate-signal expectations from the owned paired-end corpus without treating the result as scientific duplicate removal."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.estimate_library_complexity_prealign"
+required_tool_roles = ["transform"]
+primary_tools = ["bijux_dna"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Governed internal contract harness records prealignment library-complexity report expectations without substituting for alignment-derived metrics."
 requires_validation = false
 requires_reporting = false
 

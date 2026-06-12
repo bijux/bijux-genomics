@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "632f8166899a5a4750b7659f04351d0a37c9ee68",
-  "bundle_checksum_sha256": "2fa77de106477d9d71ca7357cad02e406acebe78e06d7d6666376bd1ff71467c",
+  "source_commit": "1ff67989de425f6c6415b66282b126da3bbc2ea0",
+  "bundle_checksum_sha256": "817fd51ad71546bd42eb528ede3dc93d2c7dca11888605244fdb77055e1390fa",
   "domains": [
     {
       "domain_id": "bam",
@@ -3769,7 +3769,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "78412d700192780662af2081055a06ef139334b77f039e5c06f4e551b8231939"
+      "checksum_sha256": "eead7ffb7b1298d513c51dc84423ea3105cbb0eb9adabbf643dc43a46b58f15e"
     },
     {
       "domain_id": "fastq",
@@ -3882,6 +3882,7 @@
         "fastq.deplete_rrna",
         "fastq.detect_adapters",
         "fastq.detect_duplicates_premerge",
+        "fastq.estimate_library_complexity_prealign",
         "fastq.extract_umis",
         "fastq.filter_low_complexity",
         "fastq.filter_reads",
@@ -5528,8 +5529,8 @@
         },
         {
           "stage_id": "fastq.estimate_library_complexity_prealign",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "description": "Estimate FASTQ library complexity before alignment-dependent duplicate marking is available.",
           "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
@@ -5586,7 +5587,9 @@
           "tool_capability_requirements": [
             "prealign_complexity_estimation"
           ],
-          "compatible_tools": [],
+          "compatible_tools": [
+            "bijux_dna"
+          ],
           "assumptions": [
             "prealignment complexity estimates are exploratory unless benchmarked against aligned duplicate metrics."
           ],
@@ -5600,9 +5603,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "bijux_dna"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "fastq.extract_umis",
@@ -9386,7 +9387,8 @@
           "version_cmd": "bijux-dna --version",
           "help_cmd": "bijux-dna --help",
           "stage_ids": [
-            "fastq.detect_duplicates_premerge"
+            "fastq.detect_duplicates_premerge",
+            "fastq.estimate_library_complexity_prealign"
           ],
           "planned_stage_ids": [
             "fastq.build_contaminant_db",
@@ -9398,7 +9400,6 @@
             "fastq.deinterleave_reads",
             "fastq.demultiplex_reads",
             "fastq.detect_instrument_artifacts",
-            "fastq.estimate_library_complexity_prealign",
             "fastq.interleave_reads",
             "fastq.materialize_qc_manifest",
             "fastq.normalize_read_names",
@@ -12156,6 +12157,14 @@
           "override_policy": "explicit profile override required"
         },
         {
+          "stage_id": "fastq.estimate_library_complexity_prealign",
+          "tool_id": "bijux_dna",
+          "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+          "rationale": "Governed internal contract harness records prealignment library-complexity report expectations without substituting for alignment-derived metrics.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
           "stage_id": "fastq.extract_umis",
           "tool_id": "umi_tools",
           "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
@@ -12358,6 +12367,11 @@
           "stage_id": "fastq.detect_duplicates_premerge",
           "tool_id": "bijux_dna",
           "fixture_path": "domain/fastq/fixtures/fastq.detect_duplicates_premerge/bijux_dna.txt"
+        },
+        {
+          "stage_id": "fastq.estimate_library_complexity_prealign",
+          "tool_id": "bijux_dna",
+          "fixture_path": "domain/fastq/fixtures/fastq.estimate_library_complexity_prealign/bijux_dna.txt"
         },
         {
           "stage_id": "fastq.extract_umis",
@@ -12656,7 +12670,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "a90e30444382474981994c5d23e2fc0574f718f57c4d1c00cf73350a2f99af4c"
+      "checksum_sha256": "f37f60f684e536f3efe42eaf18dcf9580cc35d719c4eda249b33e1b53e0d77ee"
     },
     {
       "domain_id": "vcf",
@@ -15394,7 +15408,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "3e63f9c01ca12edb8739c90da5b3183a5568e3ee8fe5dbada5249b6142c589f5"
+      "checksum_sha256": "42c3394ff534b2a4163eecfc39e7514de1657284c3942d51faf9f6a0633c91b3"
     }
   ]
 }

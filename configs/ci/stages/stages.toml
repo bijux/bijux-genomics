@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 632f8166899a5a4750b7659f04351d0a37c9ee68
+# source_commit: 1ff67989de425f6c6415b66282b126da3bbc2ea0
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -480,6 +480,25 @@ qc_thresholds = ["duplicate_fraction|warn=>=0.5|fail=>=0.8"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplicate_fraction|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["bijux_dna"]
+
+[[stages]]
+id = "fastq.estimate_library_complexity_prealign"
+status = "supported"
+output_kinds = ["json"]
+ordering_after = ["fastq.filter_reads"]
+prerequisites = ["fastq.filter_reads"]
+resource_memory_gb = 2
+resource_time_minutes = 10
+resource_threads = 2
+sanity_metrics = ["estimated_complexity", "estimated_duplicate_fraction"]
+output_size_estimates_mb = ["library_complexity_report:1"]
+qc_thresholds = ["estimated_duplicate_fraction|warn=>=0.5|fail=>=0.8"]
+contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["estimated_duplicate_fraction|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bijux_dna"]

@@ -256,6 +256,14 @@
         "override_policy": "explicit profile override required"
       },
       {
+        "stage_id": "fastq.estimate_library_complexity_prealign",
+        "tool_id": "bijux_dna",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Governed internal contract harness records prealignment library-complexity report expectations without substituting for alignment-derived metrics.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
         "stage_id": "fastq.extract_umis",
         "tool_id": "umi_tools",
         "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
