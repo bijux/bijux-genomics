@@ -1,6 +1,6 @@
+pub(crate) mod active_scope;
 #[cfg(test)]
 mod adapter_missing_input_contracts;
-pub(crate) mod active_scope;
 pub(crate) mod adapter_missing_input_tests;
 pub(crate) mod all_domain_active_scope_blockers;
 pub(crate) mod all_domain_active_scope_complete;
@@ -98,16 +98,17 @@ pub(crate) mod vcf_eigensoft_adapter;
 pub(crate) mod vcf_expected_benchmark_results;
 pub(crate) mod vcf_filter_ready;
 pub(crate) mod vcf_gl_propagation_ready;
-pub(crate) mod vcf_imputation_metrics_ready;
 pub(crate) mod vcf_imputation_family_adapter;
+pub(crate) mod vcf_imputation_metrics_ready;
 pub(crate) mod vcf_local_container_smoke;
 pub(crate) mod vcf_matrix_registry_consistency;
 pub(crate) mod vcf_missing_result_report;
 pub(crate) mod vcf_normalized_metrics_schema;
 pub(crate) mod vcf_orphan_tools;
-pub(crate) mod vcf_parser_fixture_coverage;
 pub(crate) mod vcf_parser_failure_tests;
+pub(crate) mod vcf_parser_fixture_coverage;
 pub(crate) mod vcf_parsers_report_ready;
+pub(crate) mod vcf_pca_ready;
 pub(crate) mod vcf_phasing_family_adapter;
 pub(crate) mod vcf_plink_family_adapter;
 pub(crate) mod vcf_prepare_reference_panel_ready;

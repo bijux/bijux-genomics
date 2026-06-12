@@ -153,12 +153,13 @@ pub use self::readiness::{
     BenchReadinessRenderVcfNormalizedMetricsSchemaArgs, BenchReadinessRenderVcfOrphanToolsArgs,
     BenchReadinessRenderVcfParserFailureTestsArgs,
     BenchReadinessRenderVcfParserFixtureCoverageArgs,
-    BenchReadinessRenderVcfParsersReportReadyArgs, BenchReadinessRenderVcfPlink2AdapterArgs,
-    BenchReadinessRenderVcfPlinkAdapterArgs, BenchReadinessRenderVcfPrepareReferencePanelReadyArgs,
-    BenchReadinessRenderVcfQcReadyArgs, BenchReadinessRenderVcfReportMapArgs,
-    BenchReadinessRenderVcfShapeit5AdapterArgs, BenchReadinessRenderVcfStatsReadyArgs,
-    BenchReadinessRenderVcfToolServingMapArgs, BenchReadinessRenderVcfUndercoveredStagesArgs,
-    BenchReadinessValidateToolExecutionModesArgs, BenchReadinessValidateToolFamiliesArgs,
+    BenchReadinessRenderVcfParsersReportReadyArgs, BenchReadinessRenderVcfPcaReadyArgs,
+    BenchReadinessRenderVcfPlink2AdapterArgs, BenchReadinessRenderVcfPlinkAdapterArgs,
+    BenchReadinessRenderVcfPrepareReferencePanelReadyArgs, BenchReadinessRenderVcfQcReadyArgs,
+    BenchReadinessRenderVcfReportMapArgs, BenchReadinessRenderVcfShapeit5AdapterArgs,
+    BenchReadinessRenderVcfStatsReadyArgs, BenchReadinessRenderVcfToolServingMapArgs,
+    BenchReadinessRenderVcfUndercoveredStagesArgs, BenchReadinessValidateToolExecutionModesArgs,
+    BenchReadinessValidateToolFamiliesArgs,
 };
 pub use self::schema_validation::{BenchSchemaDomainArg, BenchValidateSchemasArgs};
 pub use self::suite::BenchRunArgs;
