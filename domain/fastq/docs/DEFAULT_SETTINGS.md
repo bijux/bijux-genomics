@@ -33,7 +33,7 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - `fastq.demultiplex_reads`: default `bijux_dna`. rationale: planned internal contract harness records barcode-manifest inputs and per-sample output/report expectations.
 - `fastq.detect_duplicates_premerge`: default `bijux_dna`. rationale: governed internal contract harness records report-only duplicate-signal expectations from the owned paired-end corpus without treating the result as scientific duplicate removal.
 - `fastq.detect_instrument_artifacts`: default `bijux_dna`. rationale: planned internal contract harness records report-only instrument-artifact expectations before backend-specific detector admission.
-- `fastq.estimate_library_complexity_prealign`: default `bijux_dna`. rationale: planned internal contract harness records prealignment library-complexity report expectations without substituting for alignment-derived metrics.
+- `fastq.estimate_library_complexity_prealign`: default `bijux_dna`. rationale: governed internal contract harness records prealignment library-complexity report expectations without substituting for alignment-derived metrics.
 - `fastq.index_reference`: default `bowtie2_build`. rationale: default FASTQ reference preparation must emit the mapper index consumed by governed host and reference-contaminant depletion.
 - `fastq.interleave_reads`: default `bijux_dna`. rationale: planned internal contract harness records mate synchronization inputs and interleaved-output expectations.
 - `fastq.materialize_qc_manifest`: default `bijux_dna`. rationale: planned internal contract harness records QC report aggregation manifest expectations before production manifest materialization is admitted.
@@ -112,7 +112,7 @@ detect_adapters_benchmark_policy: fastq.detect_adapters
 - `fastq.report_qc` may reuse the governed adapter report and evidence directory, but it must not invent new adapter identities beyond the canonical detect-adapters report
 
 detect_duplicates_premerge_benchmark_policy: fastq.detect_duplicates_premerge
-- default benchmark backend is the planned internal `bijux_dna` contract harness
+- default benchmark backend is the governed internal `bijux_dna` contract harness
 - the current governed benchmark surface is assigned to `fixture:corpus-01-mini`
 - every governed `fastq.detect_duplicates_premerge` row must emit `duplicate_count`, `duplicate_fraction`, and `inspected_pair_count`
 - benchmark rows must preserve the report-only `duplicate_detection_policy` and `measurement_scope` so premerge duplicate signaling is not misrepresented as scientific duplicate removal
@@ -124,7 +124,7 @@ estimate_library_complexity_prealign_benchmark_policy: fastq.estimate_library_co
 - every governed `fastq.estimate_library_complexity_prealign` row must emit `estimated_complexity` or a deterministic `insufficient_data_reason`
 - benchmark rows must preserve the governed `complexity_policy` and `estimate_method` so prealignment k-mer heuristics are not confused with alignment-derived library-complexity surfaces
 - `estimated_complexity` must stay aligned with `estimated_unique_fraction` when the estimator has enough reads, while insufficient rows must leave `estimated_complexity` empty instead of overloading zero as a successful estimate
-- the stage remains advisory-only and declared-only until a normalized runtime benchmark cohort is admitted; completing the row contract or fixture ownership must not be misrepresented as broader execution maturity
+- the stage remains advisory-only and governed-execution-only until a normalized runtime benchmark cohort is admitted; completing the row contract or fixture ownership must not be misrepresented as broader benchmark maturity
 
 trim_polyg_tails_benchmark_policy: fastq.trim_polyg_tails
 - default benchmark backend is `fastp`

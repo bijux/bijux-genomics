@@ -341,12 +341,14 @@ stages:
     benchmark_support: "none"
     admitted_tools: []
   - stage_id: "fastq.estimate_library_complexity_prealign"
-    execution_status: "declared_only"
-    planning_support: "declared_only"
-    runtime_support: "declared_only"
-    normalization_support: "none"
+    execution_status: "closed"
+    planning_support: "stage_family"
+    runtime_support: "runnable"
+    normalization_support: "generic_envelope"
     benchmark_support: "none"
-    admitted_tools: []
+    default_tool: "bijux_dna"
+    admitted_tools:
+      - "bijux_dna"
   - stage_id: "fastq.interleave_reads"
     execution_status: "declared_only"
     planning_support: "declared_only"
