@@ -375,6 +375,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderFastqTrimStagesReady(args) => {
+                        crate::commands::benchmark::readiness::fastq_trim_stages_ready::run_render_fastq_trim_stages_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderFastqValidateReadsReady(args) => {
                         crate::commands::benchmark::readiness::fastq_validate_reads_ready::run_render_fastq_validate_reads_ready(
                             args,
