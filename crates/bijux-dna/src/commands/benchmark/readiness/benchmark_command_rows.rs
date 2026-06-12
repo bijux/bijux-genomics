@@ -297,7 +297,7 @@ fn render_fastq_stage_tool_argv(
         fallback_r2.as_deref(),
         reference_fasta.as_deref(),
         &explicit_inputs,
-        out_dir,
+        &out_dir,
     )
     .with_context(|| format!("plan FASTQ benchmark command row `{stage_id}` / `{tool_id}`"))?;
     Ok(plan.command.template)
