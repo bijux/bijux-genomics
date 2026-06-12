@@ -84,6 +84,8 @@ pub enum BenchReadinessCommand {
     RenderFastqReportMap(BenchReadinessRenderFastqReportMapArgs),
     #[command(name = "render-fastq-active-stage-tool-matrix")]
     RenderFastqActiveStageToolMatrix(BenchReadinessRenderFastqActiveStageToolMatrixArgs),
+    #[command(name = "render-fastq-filter-stages-ready")]
+    RenderFastqFilterStagesReady(BenchReadinessRenderFastqFilterStagesReadyArgs),
     #[command(name = "render-fastq-trim-stages-ready")]
     RenderFastqTrimStagesReady(BenchReadinessRenderFastqTrimStagesReadyArgs),
     #[command(name = "render-fastq-validate-reads-ready")]
@@ -882,6 +884,14 @@ pub struct BenchReadinessRenderFastqReportMapArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderFastqActiveStageToolMatrixArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderFastqFilterStagesReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
