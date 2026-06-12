@@ -306,13 +306,9 @@ fn ensure_corpus_centric_report_contract(corpora: &[CorpusCentricCorpusReport]) 
         "corpus-01",
         20,
         63,
-        3,
+        2,
         &["corpus-01-mini"],
-        &[
-            "fastq.estimate_library_complexity_prealign",
-            "fastq.trim_reads",
-            "fastq.filter_low_complexity",
-        ],
+        &["fastq.trim_reads", "fastq.filter_low_complexity"],
     )?;
     ensure_corpus(corpora, "corpus-02", 1, 4, 0, &["corpus-02-edna-mini"], &[])?;
     ensure_corpus(
@@ -370,8 +366,13 @@ fn ensure_corpus(
             != expected_blocked_stage_ids.iter().map(|id| (*id).to_string()).collect::<Vec<_>>()
     {
         return Err(anyhow!(
-            "corpus-centric report corpus `{}` drifted from its governed contract",
-            corpus_family_id
+            "corpus-centric report corpus `{}` drifted from its governed contract: stage_count={} tool_row_count={} blocked_stage_count={} fixture_ids={:?} blocked_stage_ids={:?}",
+            corpus_family_id,
+            corpus.stage_count,
+            corpus.tool_row_count,
+            corpus.blocked_stage_count,
+            corpus.fixture_ids,
+            corpus.blocked_stage_ids
         ));
     }
     Ok(())
@@ -527,8 +528,8 @@ mod tests {
         assert_eq!(report.corpus_count, 7);
         assert_eq!(report.stage_count, 49);
         assert_eq!(report.tool_row_count, 120);
-        assert_eq!(report.benchmark_ready_tool_row_count, 115);
-        assert_eq!(report.blocked_tool_row_count, 5);
+        assert_eq!(report.benchmark_ready_tool_row_count, 116);
+        assert_eq!(report.blocked_tool_row_count, 4);
         assert_eq!(report.blocked_corpus_count, 2);
     }
 

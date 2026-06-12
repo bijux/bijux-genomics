@@ -139,8 +139,8 @@ mod tests {
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.rendered_command_argv.v1");
         assert_eq!(report.output_path, "benchmarks/readiness/rendered-commands.argv.jsonl");
-        assert_eq!(report.row_count, 115);
-        assert_eq!(report.rows.len(), 115);
+        assert_eq!(report.row_count, 116);
+        assert_eq!(report.rows.len(), 116);
         assert!(report.rows.iter().all(|row| !row.argv.is_empty()));
     }
 }

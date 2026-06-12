@@ -445,7 +445,7 @@ fn fastq_stage_params_from_plan(
                 },
             ))
         }
-        "fastq.detect_duplicates_premerge" => None,
+        "fastq.detect_duplicates_premerge" | "fastq.estimate_library_complexity_prealign" => None,
         "fastq.extract_umis" => Some(bijux_dna_planner_fastq::FastqStageParameters::ExtractUmis(
             bijux_dna_planner_fastq::ExtractUmisStageParams {
                 threads: json_u32(params, "threads"),

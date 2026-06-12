@@ -326,9 +326,9 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         ));
     }
     let blocked_stage_count = stages.iter().filter(|stage| stage.blocked_tool_count > 0).count();
-    if blocked_stage_count != 6 {
+    if blocked_stage_count != 5 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 6 blocked stages, found {}",
+            "stage-centric report must retain exactly 5 blocked stages, found {}",
             blocked_stage_count
         ));
     }
@@ -569,12 +569,12 @@ mod tests {
 
         assert_eq!(report.stage_count, 51);
         assert_eq!(report.multi_tool_stage_count, 30);
-        assert_eq!(report.blocked_stage_count, 6);
+        assert_eq!(report.blocked_stage_count, 5);
         assert_eq!(report.declared_shared_metric_stage_count, 18);
         assert_eq!(report.not_declared_shared_metric_stage_count, 12);
         assert_eq!(report.row_count, 123);
-        assert_eq!(report.benchmark_ready_row_count, 115);
-        assert_eq!(report.blocked_row_count, 8);
+        assert_eq!(report.benchmark_ready_row_count, 116);
+        assert_eq!(report.blocked_row_count, 7);
 
         let trim_reads = report
             .stages

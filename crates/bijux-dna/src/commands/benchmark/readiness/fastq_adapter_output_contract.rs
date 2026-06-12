@@ -272,6 +272,7 @@ fn normalized_metrics_output_id(
 
     for preferred in [
         "duplicate_signal_report",
+        "library_complexity_report",
         "validation_report",
         "classification_report_json",
         "host_depletion_report_json",
@@ -428,9 +429,9 @@ mod tests {
 
         assert_eq!(report.schema_version, FASTQ_ADAPTER_OUTPUT_CONTRACT_SCHEMA_VERSION);
         assert_eq!(report.row_count, 74);
-        assert_eq!(report.missing_adapter_row_count, 5);
-        assert_eq!(report.adapter_row_count, 69);
-        assert_eq!(report.complete_adapter_row_count, 69);
+        assert_eq!(report.missing_adapter_row_count, 4);
+        assert_eq!(report.adapter_row_count, 70);
+        assert_eq!(report.complete_adapter_row_count, 70);
         assert_eq!(report.incomplete_adapter_row_count, 0);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "seqkit_stats"
@@ -458,10 +459,18 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bijux_dna"
                 && row.stage_id == "fastq.estimate_library_complexity_prealign"
-                && super::output_contract_status_label(row.output_contract_status)
-                    == "missing_adapter"
+                && super::output_contract_status_label(row.output_contract_status) == "complete"
                 && row.stage_output_ids == vec!["library_complexity_report".to_string()]
-                && row.missing_declarations == vec!["adapter".to_string()]
+                && row.stage_expected_artifact_ids == vec!["library_complexity_report".to_string()]
+                && row.declared_output_ids
+                    == vec![
+                        "duplicate_signal_report".to_string(),
+                        "library_complexity_report".to_string(),
+                    ]
+                && row.execution_expected_output_ids
+                    == vec!["library_complexity_report".to_string()]
+                && row.raw_output_artifact_ids == vec!["library_complexity_report".to_string()]
+                && row.normalized_metrics_output_id.as_deref() == Some("library_complexity_report")
         }));
         for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
             assert!(report.rows.iter().any(|row| {

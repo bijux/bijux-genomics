@@ -897,10 +897,10 @@ mod tests {
         assert_eq!(report.normalized_metrics_declared_row_count, report.row_count);
         assert_eq!(report.logs_declared_row_count, report.row_count);
         assert_eq!(report.manifest_declared_row_count, report.row_count);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&66));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&67));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
         assert_eq!(report.domain_counts.get("vcf"), Some(&20));
-        assert_eq!(report.proof_source_counts.get(PROOF_SOURCE_FASTQ), Some(&66));
+        assert_eq!(report.proof_source_counts.get(PROOF_SOURCE_FASTQ), Some(&67));
         assert_eq!(report.proof_source_counts.get(PROOF_SOURCE_BAM), Some(&49));
         assert_eq!(report.proof_source_counts.get(PROOF_SOURCE_VCF), Some(&20));
         assert_eq!(report.proof_source_counts.values().copied().sum::<usize>(), report.row_count);

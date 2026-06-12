@@ -489,9 +489,9 @@ mod tests {
         assert_eq!(report.tool_count, 67);
         assert_eq!(report.unique_stage_count, 51);
         assert_eq!(report.row_count, 123);
-        assert_eq!(report.benchmark_ready_row_count, 115);
-        assert_eq!(report.blocked_row_count, 8);
-        assert_eq!(report.blocked_tool_count, 8);
+        assert_eq!(report.benchmark_ready_row_count, 116);
+        assert_eq!(report.blocked_row_count, 7);
+        assert_eq!(report.blocked_tool_count, 7);
 
         let samtools = report
             .tools

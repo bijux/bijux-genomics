@@ -328,9 +328,9 @@ fn build_bam_expected_result_row(
 }
 
 fn ensure_expected_result_contract(rows: &[ExpectedBenchmarkResultRow]) -> Result<()> {
-    if rows.len() != 115 {
+    if rows.len() != 116 {
         return Err(anyhow!(
-            "expected benchmark result table must retain exactly 115 benchmark-ready rows, found {}",
+            "expected benchmark result table must retain exactly 116 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -499,10 +499,10 @@ mod tests {
 
         assert_eq!(report.schema_version, EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_EXPECTED_BENCHMARK_RESULTS_PATH);
-        assert_eq!(report.row_count, 115);
-        assert_eq!(report.stage_count, 48);
-        assert_eq!(report.rows.len(), 115);
-        assert_eq!(report.domain_counts.get("fastq").copied(), Some(66));
+        assert_eq!(report.row_count, 116);
+        assert_eq!(report.stage_count, 49);
+        assert_eq!(report.rows.len(), 116);
+        assert_eq!(report.domain_counts.get("fastq").copied(), Some(67));
         assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
         assert!(report.rows.iter().any(|row| {
             row.domain == "fastq"

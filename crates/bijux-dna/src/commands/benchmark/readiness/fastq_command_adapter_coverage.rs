@@ -326,8 +326,8 @@ mod tests {
         assert_eq!(report.stage_count, 27);
         assert_eq!(report.tool_count, 44);
         assert_eq!(report.row_count, 74);
-        assert_eq!(report.benchmark_ready_row_count, 66);
-        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 66);
+        assert_eq!(report.benchmark_ready_row_count, 67);
+        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 67);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
         assert_eq!(report.readiness_gap_counts.get("corpus"), Some(&3));
         assert_eq!(report.readiness_gap_counts.get("support"), Some(&5));

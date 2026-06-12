@@ -309,7 +309,7 @@ fn ensure_fastq_report_map_contract(rows: &[FastqReportMapRow]) -> Result<()> {
             "optional",
             "optional",
             "bijux_dna",
-            "planned",
+            "supported",
         ),
         (
             "fastq.trim_reads",

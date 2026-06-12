@@ -222,7 +222,7 @@ pub(crate) fn render_all_domain_harness_ready(
                 .context("goal 279 stage tool table report is required")?;
             if report.row_count != benchmark_ready_binding_count
                 || report.result_id_count != benchmark_ready_binding_count
-                || report.stage_count != 64
+                || report.stage_count != 66
                 || report.tool_count != 69
                 || report.corpus_count != 9
                 || report.asset_profile_count != 13
@@ -258,7 +258,7 @@ pub(crate) fn render_all_domain_harness_ready(
                 || report.benchmark_status_counts.get("benchmark_ready").copied()
                     != Some(benchmark_ready_binding_count)
                 || report.command_source_counts.get("fastq_bam_command_adapter").copied()
-                    != Some(115)
+                    != Some(116)
                 || report.command_source_counts.get("vcf_bcftools_adapter").copied() != Some(11)
                 || report.command_source_counts.get("vcf_eigensoft_adapter").copied() != Some(1)
                 || report.command_source_counts.get("vcf_imputation_family_adapter").copied()
@@ -413,7 +413,7 @@ pub(crate) fn render_all_domain_harness_ready(
             if report.row_count != report.fake_run_row_count + report.real_smoke_row_count
                 || report.fake_run_row_count != benchmark_ready_binding_count
                 || report.real_smoke_row_count != 4
-                || report.domain_counts.get("fastq").copied() != Some(64)
+                || report.domain_counts.get("fastq").copied() != Some(68)
                 || report.domain_counts.get("bam").copied() != Some(50)
                 || report.domain_counts.get("vcf").copied() != Some(22)
             {
