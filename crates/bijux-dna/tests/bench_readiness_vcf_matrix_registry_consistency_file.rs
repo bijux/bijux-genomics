@@ -52,7 +52,7 @@ fn bench_readiness_vcf_matrix_registry_consistency_file_writes_self_describing_r
     assert_eq!(report.get("registry_pair_count").and_then(serde_json::Value::as_u64), Some(44));
     assert_eq!(
         report.get("benchmark_ready_registry_pair_count").and_then(serde_json::Value::as_u64),
-        Some(15)
+        Some(17)
     );
     assert_eq!(
         report.get("unregistered_matrix_pair_count").and_then(serde_json::Value::as_u64),

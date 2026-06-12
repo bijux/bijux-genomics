@@ -100,11 +100,11 @@ fn bench_readiness_vcf_call_ready_reports_complete_retained_callers() {
     assert_eq!(row.get("command_step_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(
         row.get("command_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf-rendered-commands.sh")
+        Some("benchmarks/readiness/vcf/vcf-rendered-commands.sh")
     );
     assert_eq!(
         row.get("command_argv_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf-rendered-commands.argv.jsonl")
+        Some("benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl")
     );
 
     assert_eq!(row.get("output_ready").and_then(serde_json::Value::as_bool), Some(true));

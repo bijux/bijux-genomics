@@ -31,13 +31,13 @@ fn bench_readiness_vcf_rendered_commands_write_bash_parseable_script() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let script_path = repo_root.join("benchmarks/readiness/vcf-rendered-commands.sh");
+    let script_path = repo_root.join("benchmarks/readiness/vcf/vcf-rendered-commands.sh");
     assert!(script_path.is_file(), "VCF rendered command script must exist");
 
     let script = std::fs::read_to_string(&script_path).expect("read VCF rendered command script");
     assert!(script.starts_with("#!/usr/bin/env bash\nset -euo pipefail\n"));
     assert!(
-        script.contains("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../..\" && pwd)\"")
+        script.contains("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../../..\" && pwd)\"")
     );
     assert!(script.contains("# vcf.call / bcftools"));
     assert!(script.contains("# vcf.qc / bcftools"));
