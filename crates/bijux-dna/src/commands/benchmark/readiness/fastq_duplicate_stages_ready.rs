@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
 use super::expected_benchmark_results::{
@@ -30,6 +30,8 @@ use super::fastq_report_map::{
     render_fastq_report_map, FastqReportMapRow, DEFAULT_FASTQ_REPORT_MAP_PATH,
 };
 use crate::commands::benchmark::schema_paths::DEFAULT_FASTQ_NORMALIZED_METRICS_SCHEMA_PATH;
+use crate::commands::cli::parse;
+use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_DUPLICATE_STAGES_READY_PATH: &str =
     "benchmarks/readiness/fastq/duplicate-stages-ready.json";
@@ -154,6 +156,24 @@ struct BindingKey {
 struct DuplicateStageSchemaContract {
     extension_id: String,
     required_fields: Vec<String>,
+}
+
+pub(crate) fn run_render_fastq_duplicate_stages_ready(
+    args: &parse::BenchReadinessRenderFastqDuplicateStagesReadyArgs,
+) -> Result<()> {
+    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let report = render_fastq_duplicate_stages_ready(
+        &repo_root,
+        args.output
+            .clone()
+            .unwrap_or_else(|| PathBuf::from(DEFAULT_FASTQ_DUPLICATE_STAGES_READY_PATH)),
+    )?;
+    if args.json {
+        render::json::print_pretty(&report)?;
+    } else {
+        println!("{}", report.output_path);
+    }
+    Ok(())
 }
 
 pub(crate) fn render_fastq_duplicate_stages_ready(
