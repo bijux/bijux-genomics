@@ -136,11 +136,20 @@ pub(crate) fn run_local_vcf_admixture_smoke(
     let metadata_by_sample = build_metadata_by_sample(&sample_metadata, &expected_samples)?;
     let population_labels = load_population_labels(&population_metadata_source)?;
 
-    let output_root = repo_root.join(DEFAULT_VCF_ADMIXTURE_SMOKE_ROOT).join(&contract.tool_id);
-    if output_root.exists() {
-        fs::remove_dir_all(&output_root)
-            .with_context(|| format!("remove {}", output_root.display()))?;
-    }
+    let published_output_root =
+        repo_root.join(DEFAULT_VCF_ADMIXTURE_SMOKE_ROOT).join(&contract.tool_id);
+    let staging_parent = published_output_root.parent().ok_or_else(|| {
+        anyhow!(
+            "VCF admixture smoke root has no parent: {}",
+            published_output_root.display()
+        )
+    })?;
+    let staging_dir = bijux_dna_infra::temp_dir_in(
+        staging_parent,
+        &format!("{}-staging-", contract.tool_id),
+    )
+    .with_context(|| format!("create staging directory in {}", staging_parent.display()))?;
+    let output_root = staging_dir.path().to_path_buf();
     let artifacts_root = output_root.join("artifacts");
     let input_root = artifacts_root.join("input");
     let stage_root = artifacts_root.join("stage");
@@ -271,6 +280,24 @@ pub(crate) fn run_local_vcf_admixture_smoke(
     )?;
     let admixture_json_path = output_root.join(DEFAULT_OUTPUT_JSON_NAME);
     let stage_result_manifest_path = output_root.join(DEFAULT_STAGE_RESULT_NAME);
+    let published_artifacts_root = published_output_root.join("artifacts");
+    let published_input_root = published_artifacts_root.join("input");
+    let published_admixture_tsv_path = published_output_root.join(DEFAULT_OUTPUT_TSV_NAME);
+    let published_admixture_json_path = published_output_root.join(DEFAULT_OUTPUT_JSON_NAME);
+    let published_input_vcf_path = published_input_root.join(DEFAULT_INPUT_VCF_NAME);
+    let published_sample_metadata_path =
+        published_input_root.join(DEFAULT_INPUT_SAMPLE_METADATA_NAME);
+    let published_population_metadata_path =
+        published_input_root.join(DEFAULT_INPUT_POPULATION_METADATA_NAME);
+    let published_population_labels_manifest_path =
+        published_input_root.join(DEFAULT_INPUT_POPULATION_LABELS_NAME);
+    let published_source_q_matrix_path =
+        published_output_root.join(DEFAULT_OUTPUT_SOURCE_Q_MATRIX_NAME);
+    let published_source_k_selection_path =
+        published_output_root.join(DEFAULT_OUTPUT_SOURCE_K_SELECTION_NAME);
+    let published_source_logs_path = published_output_root.join(DEFAULT_OUTPUT_SOURCE_LOGS_NAME);
+    let published_stage_result_manifest_path =
+        published_output_root.join(DEFAULT_STAGE_RESULT_NAME);
     let elapsed_seconds = started.elapsed().as_secs_f64();
     let finished_at = timestamp_marker();
     let report = LocalVcfAdmixtureSmokeReport {
@@ -281,20 +308,29 @@ pub(crate) fn run_local_vcf_admixture_smoke(
         corpus_id: contract.corpus_id.clone(),
         input_fixture_id: contract.input_fixture_id.clone(),
         fixture_manifest_path: path_relative_to_repo(repo_root, &fixture_manifest_path),
-        input_vcf_path: path_relative_to_repo(repo_root, &input_vcf_path),
-        sample_metadata_path: path_relative_to_repo(repo_root, &sample_metadata_path),
-        population_metadata_path: path_relative_to_repo(repo_root, &population_metadata_path),
+        input_vcf_path: path_relative_to_repo(repo_root, &published_input_vcf_path),
+        sample_metadata_path: path_relative_to_repo(repo_root, &published_sample_metadata_path),
+        population_metadata_path: path_relative_to_repo(
+            repo_root,
+            &published_population_metadata_path,
+        ),
         population_labels_manifest_path: path_relative_to_repo(
             repo_root,
-            &population_labels_manifest_path,
+            &published_population_labels_manifest_path,
         ),
-        output_root: path_relative_to_repo(repo_root, &output_root),
-        admixture_tsv_path: path_relative_to_repo(repo_root, &admixture_tsv_path),
-        admixture_json_path: path_relative_to_repo(repo_root, &admixture_json_path),
-        source_q_matrix_path: path_relative_to_repo(repo_root, &source_q_matrix_path),
-        source_k_selection_path: path_relative_to_repo(repo_root, &source_k_selection_path),
-        source_logs_path: path_relative_to_repo(repo_root, &source_logs_path),
-        stage_result_manifest_path: path_relative_to_repo(repo_root, &stage_result_manifest_path),
+        output_root: path_relative_to_repo(repo_root, &published_output_root),
+        admixture_tsv_path: path_relative_to_repo(repo_root, &published_admixture_tsv_path),
+        admixture_json_path: path_relative_to_repo(repo_root, &published_admixture_json_path),
+        source_q_matrix_path: path_relative_to_repo(repo_root, &published_source_q_matrix_path),
+        source_k_selection_path: path_relative_to_repo(
+            repo_root,
+            &published_source_k_selection_path,
+        ),
+        source_logs_path: path_relative_to_repo(repo_root, &published_source_logs_path),
+        stage_result_manifest_path: path_relative_to_repo(
+            repo_root,
+            &published_stage_result_manifest_path,
+        ),
         started_at: started_at.clone(),
         finished_at: finished_at.clone(),
         elapsed_seconds,
@@ -309,7 +345,6 @@ pub(crate) fn run_local_vcf_admixture_smoke(
         cluster_headers: cluster_headers.clone(),
         rows,
     };
-    bijux_dna_infra::atomic_write_json(&admixture_json_path, &report)?;
 
     let stage_result_manifest = BenchStageResultManifestV1 {
         schema_version: BENCH_STAGE_RESULT_SCHEMA_VERSION.to_string(),
@@ -333,7 +368,7 @@ pub(crate) fn run_local_vcf_admixture_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "admixture_tsv".to_string(),
                 declared_path: DEFAULT_OUTPUT_TSV_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &admixture_tsv_path),
+                realized_path: path_relative_to_repo(repo_root, &published_admixture_tsv_path),
                 role: "table_output".to_string(),
                 optional: false,
                 exists: true,
@@ -341,7 +376,7 @@ pub(crate) fn run_local_vcf_admixture_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "admixture_json".to_string(),
                 declared_path: DEFAULT_OUTPUT_JSON_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &admixture_json_path),
+                realized_path: path_relative_to_repo(repo_root, &published_admixture_json_path),
                 role: "report_output".to_string(),
                 optional: false,
                 exists: true,
@@ -349,7 +384,7 @@ pub(crate) fn run_local_vcf_admixture_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "source_q_matrix_tsv".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_Q_MATRIX_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &source_q_matrix_path),
+                realized_path: path_relative_to_repo(repo_root, &published_source_q_matrix_path),
                 role: "table_output".to_string(),
                 optional: false,
                 exists: true,
@@ -357,7 +392,10 @@ pub(crate) fn run_local_vcf_admixture_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "source_k_selection_json".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_K_SELECTION_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &source_k_selection_path),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_source_k_selection_path,
+                ),
                 role: "report_output".to_string(),
                 optional: false,
                 exists: true,
@@ -365,7 +403,7 @@ pub(crate) fn run_local_vcf_admixture_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "source_logs_txt".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &source_logs_path),
+                realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
                 role: "log_output".to_string(),
                 optional: false,
                 exists: true,
@@ -374,6 +412,20 @@ pub(crate) fn run_local_vcf_admixture_smoke(
     };
     validate_stage_result_manifest(&stage_result_manifest)?;
     bijux_dna_infra::atomic_write_json(&stage_result_manifest_path, &stage_result_manifest)?;
+    bijux_dna_infra::atomic_write_json(&admixture_json_path, &report)?;
+
+    if published_output_root.exists() {
+        fs::remove_dir_all(&published_output_root)
+            .with_context(|| format!("remove {}", published_output_root.display()))?;
+    }
+    fs::rename(&output_root, &published_output_root).with_context(|| {
+        format!(
+            "publish {} to {}",
+            output_root.display(),
+            published_output_root.display()
+        )
+    })?;
+    let _ = staging_dir.keep();
 
     Ok(report)
 }
