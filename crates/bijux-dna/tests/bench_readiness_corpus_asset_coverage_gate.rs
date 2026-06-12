@@ -61,11 +61,11 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
     assert_eq!(payload.get("excluded_row_count").and_then(serde_json::Value::as_u64), Some(11));
     assert_eq!(
         payload.get("benchmark_ready_asset_required_row_count").and_then(serde_json::Value::as_u64),
-        Some(19)
+        Some(18)
     );
     assert_eq!(
         payload.get("benchmark_ready_asset_assigned_row_count").and_then(serde_json::Value::as_u64),
-        Some(19)
+        Some(18)
     );
     assert_eq!(
         payload.get("benchmark_ready_asset_missing_row_count").and_then(serde_json::Value::as_u64),

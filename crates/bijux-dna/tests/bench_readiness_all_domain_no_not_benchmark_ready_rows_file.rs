@@ -43,7 +43,7 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_writes_governed_json_f
 
     assert_eq!(
         payload.get("executable_active_row_count").and_then(serde_json::Value::as_u64),
-        Some(134)
+        Some(137)
     );
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(131));
     assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(6));

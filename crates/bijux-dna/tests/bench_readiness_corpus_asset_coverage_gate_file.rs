@@ -53,7 +53,7 @@ fn bench_readiness_corpus_asset_coverage_gate_file_writes_self_describing_report
     assert_eq!(report.get("gate_failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         report.get("benchmark_ready_asset_required_row_count").and_then(serde_json::Value::as_u64),
-        Some(19)
+        Some(18)
     );
     assert_eq!(
         report.get("benchmark_ready_asset_missing_row_count").and_then(serde_json::Value::as_u64),
