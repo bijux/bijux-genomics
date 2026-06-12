@@ -5,6 +5,7 @@ use std::path::Path;
 use anyhow::{anyhow, Context, Result};
 
 use super::benchmark_command_rows::render_shell_command;
+use super::vcf_active_stage_tool_matrix::collect_vcf_active_stage_tool_matrix_rows;
 use super::vcf_angsd_adapter::render_vcf_angsd_adapter;
 use super::vcf_bcftools_adapter::render_vcf_bcftools_adapter;
 use super::vcf_descent_family_adapter::render_vcf_descent_family_adapter;
@@ -12,7 +13,6 @@ use super::vcf_eigensoft_adapter::render_vcf_eigensoft_adapter;
 use super::vcf_imputation_family_adapter::render_vcf_imputation_family_adapter;
 use super::vcf_phasing_family_adapter::render_vcf_phasing_family_adapter;
 use super::vcf_plink_family_adapter::render_vcf_plink_family_adapter;
-use super::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub(crate) struct VcfRenderedCommandStep {
@@ -38,9 +38,9 @@ pub(crate) struct VcfRenderedCommandRow {
 pub(crate) fn collect_vcf_rendered_command_rows(
     repo_root: &Path,
 ) -> Result<Vec<VcfRenderedCommandRow>> {
-    let canonical_pairs = collect_vcf_tool_serving_map_rows()?
+    let canonical_pairs = collect_vcf_active_stage_tool_matrix_rows(repo_root)?
         .into_iter()
-        .filter(|row| row.benchmark_status == "benchmark_ready")
+        .filter(|row| row.scope_state == "active")
         .map(|row| ((row.stage_id, row.tool_id), "benchmark_ready".to_string()))
         .collect::<Vec<_>>();
     let adapter_rows = collect_vcf_adapter_command_row_map(repo_root)?;
