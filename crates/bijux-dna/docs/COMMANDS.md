@@ -564,6 +564,14 @@ Visible aliases are part of the operator surface:
   through retained-vs-removed counts, while the TSV fail-closes unless every retained active row
   stays `benchmark_ready` and none leak `planned_contract`, `declared_only`, or `planner_only`
   readiness states back into FASTQ job scope.
+- `bijux-dna bench readiness render-fastq-trim-stages-ready`
+  `render-fastq-trim-stages-ready` writes `benchmarks/readiness/fastq/trim-stages-ready.json`
+  with one governed row per admitted FASTQ trimming binding across `fastq.trim_reads`,
+  `fastq.trim_terminal_damage`, and `fastq.trim_polyg_tails`. Each row ties active-scope
+  coverage, command-adapter coverage, output declarations, parser coverage, expected benchmark
+  results, report-map placement, and normalized metric requirements together so trimming
+  retention, terminal-damage removal, and polyG-tail metrics stay explicit in the governed
+  benchmark surface.
 - `bijux-dna bench readiness render-fastq-validate-reads-ready`
   `render-fastq-validate-reads-ready` writes
   `benchmarks/readiness/fastq/validate-reads-ready.json` with one governed row per active
