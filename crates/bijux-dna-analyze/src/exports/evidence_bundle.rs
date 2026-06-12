@@ -367,6 +367,7 @@ struct EvidenceInputs {
 ///
 /// # Errors
 /// Returns an error if required evidence inputs cannot be parsed.
+#[allow(clippy::too_many_lines)]
 pub fn build_evidence_bundle(
     base_dir: &Path,
     facts_path: Option<&Path>,
@@ -588,6 +589,7 @@ pub fn verify_profile_bundle(
 ///
 /// # Errors
 /// Returns an error if required evidence files are missing or challenge references are invalid.
+#[allow(clippy::too_many_lines)]
 pub fn submit_reviewer_challenge(
     base_dir: &Path,
     request: &ReviewerChallengeRequestV1,
@@ -731,6 +733,7 @@ pub fn list_reviewer_challenges(base_dir: &Path) -> Result<Vec<ReviewerChallenge
 ///
 /// # Errors
 /// Returns an error if the bundle cannot be read or parsed.
+#[allow(clippy::too_many_lines)]
 pub fn verify_evidence_bundle(bundle_path: &Path) -> Result<EvidenceVerificationV1> {
     let bundle_raw = std::fs::read_to_string(bundle_path)
         .with_context(|| format!("read evidence bundle {}", bundle_path.display()))?;
@@ -986,6 +989,7 @@ fn discover_inputs(base_dir: &Path, facts_path: Option<&Path>) -> EvidenceInputs
     }
 }
 
+#[allow(clippy::too_many_lines)]
 fn build_timeline(
     correlation_id: &str,
     manifest: Option<&serde_json::Value>,
@@ -1150,6 +1154,7 @@ fn build_timeline(
     timeline
 }
 
+#[allow(clippy::too_many_lines)]
 fn build_health(
     base_dir: &Path,
     inputs: &EvidenceInputs,
@@ -2080,6 +2085,7 @@ fn verify_artifact_inventory_contract(path: &Path) -> (bool, String) {
     )
 }
 
+#[allow(clippy::too_many_lines)]
 fn profile_requirements(
     bundle: &EvidenceBundleV1,
     profile: EvidenceBundleProfileV1,

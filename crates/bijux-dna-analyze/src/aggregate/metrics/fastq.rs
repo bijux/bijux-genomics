@@ -7,6 +7,11 @@ use tracing::warn;
 use crate::aggregate::{BenchError, Result, StageMetricSchema};
 use crate::model::JsonBlob;
 
+#[allow(clippy::cast_precision_loss)]
+fn read_length_bound_as_f64(value: u64) -> f64 {
+    value as f64
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FastqDeltaMetrics {
@@ -904,12 +909,16 @@ impl StageMetricSchema for FastqReadLengthMetrics {
                 "max_read_length must be > 0 when reads are present".to_string(),
             ));
         }
-        if self.read_count > 0 && self.median_read_length < self.min_read_length as f64 {
+        if self.read_count > 0
+            && self.median_read_length < read_length_bound_as_f64(self.min_read_length)
+        {
             return Err(BenchError::Validation(
                 "median_read_length must be >= min_read_length when reads are present".to_string(),
             ));
         }
-        if self.read_count > 0 && self.median_read_length > self.max_read_length as f64 {
+        if self.read_count > 0
+            && self.median_read_length > read_length_bound_as_f64(self.max_read_length)
+        {
             return Err(BenchError::Validation(
                 "median_read_length must be <= max_read_length when reads are present".to_string(),
             ));
