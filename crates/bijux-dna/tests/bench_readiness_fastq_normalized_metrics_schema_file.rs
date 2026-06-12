@@ -132,4 +132,27 @@ fn bench_readiness_fastq_normalized_metrics_schema_writes_governed_schema_file()
             "trim_terminal_damage normalized schema must require `{key}`"
         );
     }
+
+    let filter_low_complexity = stage_defs
+        .get("fastq.filter_low_complexity")
+        .and_then(|value| value.get("allOf"))
+        .and_then(serde_json::Value::as_array)
+        .and_then(|items| items.get(1))
+        .expect("filter-low-complexity extension");
+    let filter_low_complexity_required = filter_low_complexity
+        .get("required")
+        .and_then(serde_json::Value::as_array)
+        .expect("filter-low-complexity required keys");
+    for key in [
+        "filtered_fastq_r1",
+        "reads_dropped",
+        "reads_retained",
+        "reads_removed",
+        "reads_removed_low_complexity",
+    ] {
+        assert!(
+            filter_low_complexity_required.contains(&serde_json::json!(key)),
+            "filter_low_complexity normalized schema must require `{key}`"
+        );
+    }
 }
