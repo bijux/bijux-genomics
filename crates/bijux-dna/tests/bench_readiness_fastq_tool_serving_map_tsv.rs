@@ -96,6 +96,16 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain the governed profile-read-lengths row for {tool_id}"
         );
     }
+    for tool_id in ["fastq_scan", "fastqc", "seqkit"] {
+        assert!(
+            rows.iter().any(|row| {
+                row == &format!(
+                    "{tool_id}\tfastq.profile_overrepresented_sequences\tobserver_specialized_benchmark\trunnable\tcomparable\tfixture:corpus-01-mini"
+                )
+            }),
+            "TSV must retain the governed overrepresented-profiling row for {tool_id}"
+        );
+    }
     for tool_id in [
         "adapterremoval",
         "alientrimmer",

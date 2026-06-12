@@ -48,10 +48,10 @@ fn bench_readiness_fastq_parser_coverage_reports_governed_rows() {
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(44));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(63));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(66));
     assert_eq!(
         payload.get("parser_covered_row_count").and_then(serde_json::Value::as_u64),
-        Some(63)
+        Some(66)
     );
     assert_eq!(
         payload.get("parser_missing_row_count").and_then(serde_json::Value::as_u64),
@@ -63,7 +63,7 @@ fn bench_readiness_fastq_parser_coverage_reports_governed_rows() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 63);
+    assert_eq!(rows.len(), 66);
     assert!(rows.iter().all(|row| {
         row.get("parser_coverage").and_then(serde_json::Value::as_str) == Some("covered")
             && row

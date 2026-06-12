@@ -408,9 +408,9 @@ fn ensure_pair_readiness_contract(rows: &[PairReadinessRow]) -> Result<()> {
     }
     let benchmark_ready_row_count =
         rows.iter().filter(|row| row.benchmark_status == "benchmark_ready").count();
-    if benchmark_ready_row_count != 112 {
+    if benchmark_ready_row_count != 115 {
         return Err(anyhow!(
-            "pair readiness report must retain exactly 112 benchmark_ready rows, found {}",
+            "pair readiness report must retain exactly 115 benchmark_ready rows, found {}",
             benchmark_ready_row_count
         ));
     }
@@ -567,8 +567,8 @@ mod tests {
         assert_eq!(report.schema_version, PAIR_READINESS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_PAIR_READINESS_PATH);
         assert_eq!(report.row_count, 123);
-        assert_eq!(report.benchmark_ready_row_count, 112);
-        assert_eq!(report.not_benchmark_ready_row_count, 11);
+        assert_eq!(report.benchmark_ready_row_count, 115);
+        assert_eq!(report.not_benchmark_ready_row_count, 8);
         assert_eq!(report.domain_counts.get("fastq").copied(), Some(74));
         assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
         assert_eq!(report.asset_status_counts.get("assigned").copied(), Some(19));

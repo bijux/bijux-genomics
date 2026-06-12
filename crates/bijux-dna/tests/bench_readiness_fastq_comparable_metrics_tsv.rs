@@ -59,7 +59,7 @@ fn bench_readiness_fastq_comparable_metrics_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"fastq.profile_overrepresented_sequences\tdeclared\t3\tfastq_scan,fastqc,seqkit\tfastqc\tplanner_only\t3\tsequence_count,flagged_sequences,top_fraction\tstage `fastq.profile_overrepresented_sequences` publishes governed shared comparable metrics `sequence_count, flagged_sequences, top_fraction` for same-stage tool comparison while corpus routing remains `planner_only`"
+            row == &"fastq.profile_overrepresented_sequences\tdeclared\t3\tfastq_scan,fastqc,seqkit\tfastqc\tfixture:corpus-01-mini\t3\tsequence_count,flagged_sequences,top_fraction\tstage `fastq.profile_overrepresented_sequences` publishes governed shared comparable metrics `sequence_count, flagged_sequences, top_fraction` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-mini`"
         }),
         "TSV must retain the governed FASTQ overrepresented comparable row"
     );

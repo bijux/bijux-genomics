@@ -113,8 +113,8 @@ fn benchmark_corpus_assignment_preserves_precise_exclusion_reasons() {
     )
     .expect("overrepresented assignment");
     assert_eq!(
-        overrepresented.exclusion_reason_code(),
-        Some("governed_overrepresented_sequence_fixture_missing")
+        overrepresented.assigned_family(),
+        Some(BenchmarkCorpusFamily::Corpus01)
     );
 
     let report_qc = benchmark_corpus_assignment_for_stage_tool(

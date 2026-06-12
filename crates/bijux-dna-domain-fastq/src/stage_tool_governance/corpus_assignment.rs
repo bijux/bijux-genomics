@@ -77,10 +77,10 @@ pub fn benchmark_corpus_assignment_for_stage_tool(
             rationale:
                 "Amplicon-oriented stages must run on the governed amplicon corpus to preserve primer and ASV or OTU semantics.",
         },
-        "fastq.profile_overrepresented_sequences" => BenchmarkCorpusAssignment::Excluded {
-            reason_code: "governed_overrepresented_sequence_fixture_missing",
+        "fastq.profile_overrepresented_sequences" => BenchmarkCorpusAssignment::Assigned {
+            family: BenchmarkCorpusFamily::Corpus01,
             rationale:
-                "No governed corpus fixture currently owns an overrepresented-sequence expectation table for benchmark comparison.",
+                "General FASTQ preprocessing and screening stages stay on the governed corpus-01 slice for local benchmark comparability.",
         },
         "fastq.report_qc" => BenchmarkCorpusAssignment::Excluded {
             reason_code: "governed_multiqc_bundle_fixture_missing",

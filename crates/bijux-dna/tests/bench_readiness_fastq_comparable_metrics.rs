@@ -101,7 +101,8 @@ fn bench_readiness_fastq_comparable_metrics_reports_governed_stage_rows() {
             == Some("fastq.profile_overrepresented_sequences")
             && row.get("tool_count").and_then(serde_json::Value::as_u64) == Some(3)
             && row.get("default_tool_id").and_then(serde_json::Value::as_str) == Some("fastqc")
-            && row.get("corpus_status").and_then(serde_json::Value::as_str) == Some("planner_only")
+            && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                == Some("fixture:corpus-01-mini")
             && row.get("shared_metric_fields").and_then(serde_json::Value::as_array).is_some_and(
                 |fields| {
                     fields

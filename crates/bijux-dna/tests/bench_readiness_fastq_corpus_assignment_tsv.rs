@@ -125,9 +125,9 @@ fn bench_readiness_fastq_corpus_assignment_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"fastqc\tfastq.profile_overrepresented_sequences\tnot_benchmark_ready\tobserver_specialized_benchmark\trunnable\tcomparable\texcluded\t\t\tgoverned_overrepresented_sequence_fixture_missing\trow `fastq.profile_overrepresented_sequences` / `fastqc` is not_benchmark_ready and remains excluded from governed corpus assignment: No governed corpus fixture currently owns an overrepresented-sequence expectation table for benchmark comparison."
+            row == &"fastqc\tfastq.profile_overrepresented_sequences\tbenchmark_ready\tobserver_specialized_benchmark\trunnable\tcomparable\tassigned\tcorpus-01\tcorpus-01-mini\t\trow `fastq.profile_overrepresented_sequences` / `fastqc` is benchmark_ready and maps to `corpus-01` via fixture `corpus-01-mini`: General FASTQ preprocessing and screening stages stay on the governed corpus-01 slice for local benchmark comparability."
         }),
-        "TSV must retain the explicit overrepresented-sequence exclusion"
+        "TSV must retain the governed overrepresented-sequence corpus assignment"
     );
     assert!(
         rows.iter().any(|row| {

@@ -345,7 +345,7 @@ mod tests {
             row.stage_id == "fastq.profile_overrepresented_sequences"
                 && row.tool_count == 3
                 && row.default_tool_id == "fastqc"
-                && row.corpus_status == "planner_only"
+                && row.corpus_status == "fixture:corpus-01-mini"
                 && row.shared_metric_fields
                     == [
                         "sequence_count".to_string(),

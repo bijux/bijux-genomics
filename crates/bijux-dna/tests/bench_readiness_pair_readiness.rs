@@ -51,11 +51,11 @@ fn bench_readiness_pair_readiness_reports_governed_gap_columns() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(112)
+        Some(115)
     );
     assert_eq!(
         payload.get("not_benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(11)
+        Some(8)
     );
     assert_eq!(
         payload

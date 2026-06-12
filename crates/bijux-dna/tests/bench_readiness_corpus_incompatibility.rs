@@ -50,11 +50,11 @@ fn bench_readiness_corpus_incompatibility_reports_governed_blockers() {
     assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(
         payload.get("benchmark_ready_binding_count").and_then(serde_json::Value::as_u64),
-        Some(112)
+        Some(115)
     );
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(47));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(48));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(63));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(324));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(330));
     assert_eq!(
         payload
             .get("domain_counts")
@@ -67,7 +67,7 @@ fn bench_readiness_corpus_incompatibility_reports_governed_blockers() {
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(126)
+        Some(132)
     );
     assert_eq!(
         payload
@@ -95,7 +95,7 @@ fn bench_readiness_corpus_incompatibility_reports_governed_blockers() {
             .get("incompatibility_kind_counts")
             .and_then(|value| value.get("wrong_corpus_family"))
             .and_then(serde_json::Value::as_u64),
-        Some(306)
+        Some(312)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");

@@ -47,10 +47,10 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
     );
     assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
-    assert_eq!(payload.get("skip_count").and_then(serde_json::Value::as_u64), Some(336));
+    assert_eq!(payload.get("skip_count").and_then(serde_json::Value::as_u64), Some(343));
     assert_eq!(
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
-        Some(3)
+        Some(2)
     );
 
     let skips = payload.get("skips").and_then(serde_json::Value::as_array).expect("skips array");

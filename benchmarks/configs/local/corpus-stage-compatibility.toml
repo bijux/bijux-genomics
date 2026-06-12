@@ -195,8 +195,10 @@ compatibility_note = "The general FASTQ corpus owns paired reads with known UMI-
 
 [[mappings]]
 stage_id = "fastq.profile_overrepresented_sequences"
-compatibility_kind = "planner_only"
-compatibility_note = "No governed corpus fixture yet owns an overrepresented-sequence contract for local overrepresentation profiling smoke checks."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus owns a governed repeated-sequence sample for local overrepresentation profiling checks."
 
 [[mappings]]
 stage_id = "fastq.report_qc"

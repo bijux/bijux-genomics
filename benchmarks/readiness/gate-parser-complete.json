@@ -3,11 +3,11 @@
   "output_path": "benchmarks/readiness/gate-parser-complete.json",
   "passes_gate": true,
   "row_count": 123,
-  "benchmark_ready_row_count": 112,
-  "gate_row_count": 112,
-  "gate_passed_row_count": 112,
+  "benchmark_ready_row_count": 115,
+  "gate_row_count": 115,
+  "gate_passed_row_count": 115,
   "gate_failed_row_count": 0,
-  "excluded_row_count": 11,
+  "excluded_row_count": 8,
   "domain_stage_counts": {
     "bam": 24,
     "fastq": 27
@@ -22,10 +22,10 @@
   },
   "gate_domain_row_counts": {
     "bam": 49,
-    "fastq": 63
+    "fastq": 66
   },
   "excluded_readiness_gap_counts": {
-    "corpus": 6,
+    "corpus": 3,
     "support": 5
   },
   "rows": [
@@ -1167,43 +1167,43 @@
       "domain": "fastq",
       "stage_id": "fastq.profile_overrepresented_sequences",
       "tool_id": "fastq_scan",
-      "gate_scope": "excluded",
-      "gate_status": "excluded",
-      "benchmark_status": "not_benchmark_ready",
-      "readiness_gap": "corpus",
+      "gate_scope": "benchmark_reporting",
+      "gate_status": "pass",
+      "benchmark_status": "benchmark_ready",
+      "readiness_gap": "none",
       "support_status": "observer_specialized_benchmark",
       "adapter_status": "runnable",
       "parser_status": "comparable",
-      "corpus_status": "planner_only",
-      "reason": "row `fastq.profile_overrepresented_sequences` / `fastq_scan` has governed support, adapter-backed command rendering, and normalized parser output but still resolves only `planner_only` corpus coverage"
+      "corpus_status": "fixture:corpus-01-mini",
+      "reason": "row `fastq.profile_overrepresented_sequences` / `fastq_scan` requires parser completeness for benchmark reporting and satisfies it with `comparable`"
     },
     {
       "domain": "fastq",
       "stage_id": "fastq.profile_overrepresented_sequences",
       "tool_id": "fastqc",
-      "gate_scope": "excluded",
-      "gate_status": "excluded",
-      "benchmark_status": "not_benchmark_ready",
-      "readiness_gap": "corpus",
+      "gate_scope": "benchmark_reporting",
+      "gate_status": "pass",
+      "benchmark_status": "benchmark_ready",
+      "readiness_gap": "none",
       "support_status": "observer_specialized_benchmark",
       "adapter_status": "runnable",
       "parser_status": "comparable",
-      "corpus_status": "planner_only",
-      "reason": "row `fastq.profile_overrepresented_sequences` / `fastqc` has governed support, adapter-backed command rendering, and normalized parser output but still resolves only `planner_only` corpus coverage"
+      "corpus_status": "fixture:corpus-01-mini",
+      "reason": "row `fastq.profile_overrepresented_sequences` / `fastqc` requires parser completeness for benchmark reporting and satisfies it with `comparable`"
     },
     {
       "domain": "fastq",
       "stage_id": "fastq.profile_overrepresented_sequences",
       "tool_id": "seqkit",
-      "gate_scope": "excluded",
-      "gate_status": "excluded",
-      "benchmark_status": "not_benchmark_ready",
-      "readiness_gap": "corpus",
+      "gate_scope": "benchmark_reporting",
+      "gate_status": "pass",
+      "benchmark_status": "benchmark_ready",
+      "readiness_gap": "none",
       "support_status": "observer_specialized_benchmark",
       "adapter_status": "runnable",
       "parser_status": "comparable",
-      "corpus_status": "planner_only",
-      "reason": "row `fastq.profile_overrepresented_sequences` / `seqkit` has governed support, adapter-backed command rendering, and normalized parser output but still resolves only `planner_only` corpus coverage"
+      "corpus_status": "fixture:corpus-01-mini",
+      "reason": "row `fastq.profile_overrepresented_sequences` / `seqkit` requires parser completeness for benchmark reporting and satisfies it with `comparable`"
     },
     {
       "domain": "fastq",

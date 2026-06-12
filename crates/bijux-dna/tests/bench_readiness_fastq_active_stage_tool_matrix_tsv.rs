@@ -48,7 +48,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 63);
+    assert_eq!(rows.len(), 66);
     assert!(rows.iter().any(|row| {
         row.starts_with(
             "fastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq.parser.screen_taxonomy\tfastq_screen_taxonomy_v1\tbenchmark_ready\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-02-edna-mini\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.screen_taxonomy` / `kraken2` remains in governed FASTQ active scope because it is benchmark_ready"
@@ -59,12 +59,16 @@ fn bench_readiness_fastq_active_stage_tool_matrix_writes_governed_tsv_file() {
             "fastq.trim_reads\ttrimmomatic\tcorpus-01-mini\tcorpus_only\tfastq.adapter.trim_reads\tfastq.parser.trim_reads\tfastq_trim_reads_v2\tbenchmark_ready\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-01-mini\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.trim_reads` / `trimmomatic` remains in governed FASTQ active scope because it is benchmark_ready"
         )
     }));
+    assert!(rows.iter().any(|row| {
+        row.starts_with(
+            "fastq.profile_overrepresented_sequences\tfastqc\tcorpus-01-mini\tcorpus_only\tfastq.adapter.profile_overrepresented_sequences\tfastq.parser.profile_overrepresented_sequences\tfastq_profile_overrepresented_sequences_v1\tbenchmark_ready\tobserver_specialized_benchmark\trunnable\tcomparable\tfixture:corpus-01-mini\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.profile_overrepresented_sequences` / `fastqc` remains in governed FASTQ active scope because it is benchmark_ready"
+        )
+    }));
     assert!(rows.iter().all(|row| {
         !row.contains("\tplanned_contract\t")
             && !row.contains("\tdeclared_only\t")
             && !row.contains("\tplanner_only\t")
             && !row.contains("\tfastq.index_reference\t")
-            && !row.contains("\tfastq.profile_overrepresented_sequences\t")
             && !row.contains("\tfastq.report_qc\t")
     }));
 }

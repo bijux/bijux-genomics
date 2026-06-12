@@ -569,6 +569,16 @@ mod tests {
                 && row.stage_id == "fastq.report_qc"
                 && row.corpus_status == "planner_only"
         }));
+        for tool_id in ["fastq_scan", "fastqc", "seqkit"] {
+            assert!(report.rows.iter().any(|row| {
+                row.tool_id == tool_id
+                    && row.stage_id == "fastq.profile_overrepresented_sequences"
+                    && row.support_status == "observer_specialized_benchmark"
+                    && row.adapter_status == "runnable"
+                    && row.parser_status == "comparable"
+                    && row.corpus_status == "fixture:corpus-01-mini"
+            }));
+        }
     }
 
     #[test]

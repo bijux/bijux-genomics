@@ -53,12 +53,12 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(112)
+        Some(115)
     );
-    assert_eq!(payload.get("gate_row_count").and_then(serde_json::Value::as_u64), Some(112));
-    assert_eq!(payload.get("gate_passed_row_count").and_then(serde_json::Value::as_u64), Some(112));
+    assert_eq!(payload.get("gate_row_count").and_then(serde_json::Value::as_u64), Some(115));
+    assert_eq!(payload.get("gate_passed_row_count").and_then(serde_json::Value::as_u64), Some(115));
     assert_eq!(payload.get("gate_failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("excluded_row_count").and_then(serde_json::Value::as_u64), Some(11));
+    assert_eq!(payload.get("excluded_row_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(
         payload
             .get("domain_row_counts")

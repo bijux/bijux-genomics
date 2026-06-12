@@ -50,17 +50,17 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(
         payload.get("fixture_backed_stage_count").and_then(serde_json::Value::as_u64),
-        Some(48)
+        Some(49)
     );
     assert_eq!(
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
-        Some(3)
+        Some(2)
     );
     let corpus_family_counts = payload
         .get("corpus_family_counts")
         .and_then(serde_json::Value::as_object)
         .expect("family counts");
-    assert_eq!(corpus_family_counts.get("corpus-01"), Some(&serde_json::json!(19)));
+    assert_eq!(corpus_family_counts.get("corpus-01"), Some(&serde_json::json!(20)));
     assert_eq!(corpus_family_counts.get("corpus-01-bam"), Some(&serde_json::json!(16)));
     assert_eq!(corpus_family_counts.get("corpus-01-adna-bam"), Some(&serde_json::json!(5)));
     assert_eq!(corpus_family_counts.get("corpus-01-genotyping"), Some(&serde_json::json!(1)));
