@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use anyhow::Result;
 use flate2::read::MultiGzDecoder;
 use std::io::{BufRead, BufReader};

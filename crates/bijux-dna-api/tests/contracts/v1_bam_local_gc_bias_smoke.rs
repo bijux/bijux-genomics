@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use anyhow::{anyhow, Result};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};

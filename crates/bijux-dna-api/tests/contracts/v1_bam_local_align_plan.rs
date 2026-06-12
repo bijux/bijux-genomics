@@ -91,12 +91,12 @@ fn write_local_align_plan_materializes_governed_target_output() -> Result<()> {
         align_bam["path"],
         serde_json::json!("benchmarks/readiness/local-ready/bam.align/align.bam")
     );
-    let align_bai = outputs
+    let align_index = outputs
         .iter()
         .find(|artifact| artifact["name"] == serde_json::json!("align_bai"))
         .unwrap_or_else(|| panic!("align_bai output missing from local-ready plan payload"));
     assert_eq!(
-        align_bai["path"],
+        align_index["path"],
         serde_json::json!("benchmarks/readiness/local-ready/bam.align/align.bam.bai")
     );
     assert!(

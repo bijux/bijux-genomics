@@ -1,3 +1,5 @@
+#![allow(clippy::unreadable_literal)]
+
 use anyhow::Result;
 use std::path::{Path, PathBuf};
 

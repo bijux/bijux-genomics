@@ -1,4 +1,5 @@
 #![cfg(feature = "bam_downstream")]
+#![allow(clippy::too_many_lines)]
 
 use anyhow::Result;
 use std::path::{Path, PathBuf};
@@ -95,12 +96,12 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
             "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
         )
     );
-    let bai = inputs
+    let input_index = inputs
         .iter()
         .find(|artifact| artifact["name"] == serde_json::json!("bam_bai"))
         .unwrap_or_else(|| panic!("bam_bai input missing from local-ready genotyping payload"));
     assert_eq!(
-        bai["path"],
+        input_index["path"],
         serde_json::json!(
             "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
         )

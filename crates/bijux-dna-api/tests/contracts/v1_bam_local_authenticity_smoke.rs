@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines, clippy::unreadable_literal)]
+
 use anyhow::Result;
 use std::path::{Path, PathBuf};
 

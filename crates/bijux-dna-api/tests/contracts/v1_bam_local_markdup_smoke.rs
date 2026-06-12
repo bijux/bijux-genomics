@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use anyhow::Result;
 use std::path::{Path, PathBuf};
 
@@ -60,7 +62,7 @@ fn write_local_markdup_smoke_report_materializes_governed_outputs() -> Result<()
 
     let marked_bam = repo_root
         .join(payload["marked_bam"].as_str().unwrap_or_else(|| panic!("marked_bam path missing")));
-    let marked_bai = repo_root
+    let marked_index = repo_root
         .join(payload["marked_bai"].as_str().unwrap_or_else(|| panic!("marked_bai path missing")));
     let markdup_summary = repo_root.join(
         payload["markdup_summary"]
@@ -101,7 +103,7 @@ fn write_local_markdup_smoke_report_materializes_governed_outputs() -> Result<()
     );
     for path in [
         &marked_bam,
-        &marked_bai,
+        &marked_index,
         &markdup_summary,
         &duplicate_metrics,
         &markdup_policy,

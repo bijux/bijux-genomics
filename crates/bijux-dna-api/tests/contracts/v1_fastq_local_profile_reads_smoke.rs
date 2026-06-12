@@ -90,8 +90,7 @@ fn case_map(value: &serde_json::Value) -> Result<BTreeMap<String, String>> {
     Ok(object
         .iter()
         .map(|(key, value)| {
-            let mapped =
-                value.as_str().map(ToString::to_string).unwrap_or_else(|| value.to_string());
+            let mapped = value.as_str().map_or_else(|| value.to_string(), ToString::to_string);
             (key.clone(), mapped)
         })
         .collect())

@@ -1,4 +1,5 @@
 #![cfg(feature = "bam_downstream")]
+#![allow(clippy::too_many_lines)]
 
 use anyhow::Result;
 use std::path::{Path, PathBuf};

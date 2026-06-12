@@ -62,7 +62,7 @@ fn write_local_filter_smoke_report_materializes_governed_outputs() -> Result<()>
     let filtered_bam = repo_root.join(
         payload["filtered_bam"].as_str().unwrap_or_else(|| panic!("filtered_bam path missing")),
     );
-    let filtered_bai = repo_root.join(
+    let filtered_index = repo_root.join(
         payload["filtered_bai"].as_str().unwrap_or_else(|| panic!("filtered_bai path missing")),
     );
     let filter_summary = repo_root.join(
@@ -89,7 +89,7 @@ fn write_local_filter_smoke_report_materializes_governed_outputs() -> Result<()>
     );
     for path in [
         &filtered_bam,
-        &filtered_bai,
+        &filtered_index,
         &filter_summary,
         &flagstat_before,
         &flagstat_after,

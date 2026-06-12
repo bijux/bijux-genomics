@@ -1,3 +1,5 @@
+#![allow(clippy::unreadable_literal)]
+
 use anyhow::Result;
 use std::path::{Path, PathBuf};
 
@@ -61,7 +63,7 @@ fn write_local_mapq_filter_smoke_report_materializes_governed_outputs() -> Resul
     let filtered_bam = repo_root.join(
         payload["filtered_bam"].as_str().unwrap_or_else(|| panic!("filtered_bam path missing")),
     );
-    let filtered_bai = repo_root.join(
+    let filtered_index = repo_root.join(
         payload["filtered_bai"].as_str().unwrap_or_else(|| panic!("filtered_bai path missing")),
     );
     let mapq_filter_summary = repo_root.join(
@@ -90,7 +92,7 @@ fn write_local_mapq_filter_smoke_report_materializes_governed_outputs() -> Resul
     );
     for path in [
         &filtered_bam,
-        &filtered_bai,
+        &filtered_index,
         &mapq_filter_summary,
         &flagstat_before,
         &flagstat_after,
