@@ -75,7 +75,8 @@ fn bench_readiness_fastq_comparable_metrics_reports_governed_stage_rows() {
             && row.get("tool_count").and_then(serde_json::Value::as_u64) == Some(2)
             && row.get("default_tool_id").and_then(serde_json::Value::as_str)
                 == Some("bowtie2_build")
-            && row.get("corpus_status").and_then(serde_json::Value::as_str) == Some("planner_only")
+            && row.get("corpus_status").and_then(serde_json::Value::as_str)
+                == Some("asset:reference-index-assets")
             && row.get("shared_metric_fields").and_then(serde_json::Value::as_array).is_some_and(
                 |fields| {
                     fields == &[serde_json::Value::String("index_build_exit_code".to_string())]

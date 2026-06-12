@@ -22,8 +22,6 @@ const REMOVED_FROM_SCOPE_PROOF_PATH: &str = "benchmarks/readiness/removed-from-s
 const BENCHMARK_READY_STATUS: &str = "benchmark_ready";
 const PLANNED_SUPPORT_STATUS: &str = "planned_contract";
 const DECLARED_ONLY_ADAPTER_STATUS: &str = "declared_only";
-const EXCLUDED_CORPUS_STATUS: &str = "planner_only";
-
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct BindingKey {
     stage_id: String,
@@ -237,7 +235,7 @@ fn build_fastq_active_stage_tool_matrix_row(
             active_row.tool_id
         ));
     }
-    if coverage_row.corpus_status == EXCLUDED_CORPUS_STATUS {
+    if coverage_row.corpus_status == "planner_only" {
         return Err(anyhow!(
             "FASTQ active-stage-tool matrix cannot retain excluded corpus row `{}` / `{}`",
             active_row.stage_id,
@@ -260,7 +258,7 @@ fn build_fastq_active_stage_tool_matrix_row(
         corpus_status: coverage_row.corpus_status.clone(),
         scope_proof_path: ACTIVE_SCOPE_PROOF_PATH.to_string(),
         reason: format!(
-            "binding `{}` / `{}` remains in governed FASTQ active scope because it is benchmark_ready with executable adapter coverage, normalized parser coverage, and fixture-backed corpus coverage",
+            "binding `{}` / `{}` remains in governed FASTQ active scope because it is benchmark_ready with executable adapter coverage, normalized parser coverage, and governed benchmark-scope coverage",
             active_row.stage_id, active_row.tool_id
         ),
     })
@@ -288,7 +286,7 @@ fn ensure_fastq_active_stage_tool_matrix_contract(
         }
         if row.support_status == PLANNED_SUPPORT_STATUS
             || row.adapter_status == DECLARED_ONLY_ADAPTER_STATUS
-            || row.corpus_status == EXCLUDED_CORPUS_STATUS
+            || row.corpus_status == "planner_only"
         {
             return Err(anyhow!(
                 "FASTQ active-stage-tool matrix row `{}` / `{}` leaked a non-active readiness status",

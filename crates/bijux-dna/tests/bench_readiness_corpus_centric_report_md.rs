@@ -43,10 +43,10 @@ fn bench_readiness_corpus_centric_report_writes_named_corpus_sections() {
         .expect("read corpus-centric markdown");
 
     assert!(markdown.contains("# Corpus-Centric Benchmark Report"));
-    assert!(markdown.contains("- Corpus count: 7"));
-    assert!(markdown.contains("- Assigned stages: 49"));
-    assert!(markdown.contains("- Assigned stage-tool rows: 120"));
-    assert!(markdown.contains("- Benchmark-ready rows: 116"));
+    assert!(markdown.contains("- Corpus count: 8"));
+    assert!(markdown.contains("- Assigned stages: 50"));
+    assert!(markdown.contains("- Assigned stage-tool rows: 122"));
+    assert!(markdown.contains("- Benchmark-ready rows: 118"));
     assert!(markdown.contains("- Blocked rows: 4"));
     assert!(markdown.contains("- Corpora with blocked stages: 2"));
 
@@ -64,6 +64,9 @@ fn bench_readiness_corpus_centric_report_writes_named_corpus_sections() {
 
     assert!(markdown.contains("## corpus-01-genotyping"));
     assert!(markdown.contains("| bam | bam.genotyping | corpus-01-genotyping-mini | Downstream Readiness | 1 | 1 | 0 | not_applicable | none |"));
+
+    assert!(markdown.contains("## reference-index-assets"));
+    assert!(markdown.contains("| fastq | fastq.index_reference | reference-index-assets | Reference Preparation | 2 | 2 | 0 | index_build_exit_code | none |"));
 
     assert!(markdown.contains("## corpus-01-kinship"));
     assert!(markdown.contains("| bam | bam.kinship | corpus-01-kinship-mini | Sample Identity | 2 | 2 | 0 | observed_max_overlap_snps, pair_count, status, pairwise_results | none |"));

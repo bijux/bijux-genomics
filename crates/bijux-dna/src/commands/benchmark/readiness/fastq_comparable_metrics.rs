@@ -331,7 +331,7 @@ mod tests {
                 && row.tool_count == 2
                 && row.tool_ids == ["bowtie2_build".to_string(), "star".to_string()]
                 && row.default_tool_id == "bowtie2_build"
-                && row.corpus_status == "planner_only"
+                && row.corpus_status == "asset:reference-index-assets"
                 && row.shared_metric_fields == ["index_build_exit_code".to_string()]
         }));
         assert!(report.rows.iter().any(|row| {

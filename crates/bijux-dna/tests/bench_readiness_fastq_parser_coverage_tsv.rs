@@ -44,23 +44,29 @@ fn bench_readiness_fastq_parser_coverage_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 67);
+    assert_eq!(rows.len(), 69);
     assert!(
         rows.iter().any(|row| {
-            row == &"fastqc\tfastq.validate_reads\tcovered\tcomparable\tobserver_specialized_benchmark\trunnable\tfixture:corpus-01-mini\trow `fastq.validate_reads` / `fastqc` has governed support, adapter-backed command rendering, fixture-backed corpus coverage, and normalized parser output"
+            row == &"fastqc\tfastq.validate_reads\tcovered\tcomparable\tobserver_specialized_benchmark\trunnable\tfixture:corpus-01-mini\trow `fastq.validate_reads` / `fastqc` has governed support, adapter-backed command rendering, fixture-backed benchmark coverage, and normalized parser output"
         }),
         "TSV must retain the governed FASTQ validation parser row"
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bijux_dna\tfastq.detect_duplicates_premerge\tcovered\tparse_normalized\tgoverned_execution\trunnable\tfixture:corpus-01-mini\trow `fastq.detect_duplicates_premerge` / `bijux_dna` has governed support, adapter-backed command rendering, fixture-backed corpus coverage, and normalized parser output"
+            row == &"bijux_dna\tfastq.detect_duplicates_premerge\tcovered\tparse_normalized\tgoverned_execution\trunnable\tfixture:corpus-01-mini\trow `fastq.detect_duplicates_premerge` / `bijux_dna` has governed support, adapter-backed command rendering, fixture-backed benchmark coverage, and normalized parser output"
         }),
         "TSV must retain the governed duplicate-signal parser row"
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"kraken2\tfastq.screen_taxonomy\tcovered\tbenchmark_normalized\tgoverned_benchmark_cohort\trunnable\tfixture:corpus-02-edna-mini\trow `fastq.screen_taxonomy` / `kraken2` has governed support, adapter-backed command rendering, fixture-backed corpus coverage, and normalized parser output"
+            row == &"kraken2\tfastq.screen_taxonomy\tcovered\tbenchmark_normalized\tgoverned_benchmark_cohort\trunnable\tfixture:corpus-02-edna-mini\trow `fastq.screen_taxonomy` / `kraken2` has governed support, adapter-backed command rendering, fixture-backed benchmark coverage, and normalized parser output"
         }),
         "TSV must retain the governed taxonomy parser row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"bowtie2_build\tfastq.index_reference\tcovered\tcomparable\tobserver_specialized_benchmark\trunnable\tasset:reference-index-assets\trow `fastq.index_reference` / `bowtie2_build` has governed support, adapter-backed command rendering, asset-backed benchmark coverage, and normalized parser output"
+        }),
+        "TSV must retain the governed reference-index parser row"
     );
 }

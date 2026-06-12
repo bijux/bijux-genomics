@@ -171,7 +171,8 @@ fn render_fastq_pair_readiness_row(
     );
     let adapter_ready = matches!(row.adapter_status.as_str(), "runnable" | "plannable");
     let parser_ready = row.parser_status != "not_normalized";
-    let corpus_ready = row.corpus_status.starts_with("fixture:");
+    let corpus_ready =
+        row.corpus_status.starts_with("fixture:") || row.corpus_status.starts_with("asset:");
     let asset_status = resolve_asset_status(&required_asset_roles, &assigned_asset_roles);
     let readiness_gap = resolve_pair_readiness_gap(
         support_ready,
@@ -336,7 +337,8 @@ fn required_asset_roles(domain: &str, stage_id: &str, tool_id: &str) -> Vec<Stri
             &["reference_catalog_id", "reference_index_artifact_id"]
         }
         ("fastq", "fastq.deplete_rrna", "sortmerna") => &["rrna_reference", "database_artifact_id"],
-        ("fastq", "fastq.index_reference", "bowtie2_build") => {
+        ("fastq", "fastq.index_reference", "bowtie2_build")
+        | ("fastq", "fastq.index_reference", "star") => {
             &["reference_fasta", "reference_index_output"]
         }
         ("bam", "bam.contamination", "contammix")
@@ -408,9 +410,9 @@ fn ensure_pair_readiness_contract(rows: &[PairReadinessRow]) -> Result<()> {
     }
     let benchmark_ready_row_count =
         rows.iter().filter(|row| row.benchmark_status == "benchmark_ready").count();
-    if benchmark_ready_row_count != 116 {
+    if benchmark_ready_row_count != 118 {
         return Err(anyhow!(
-            "pair readiness report must retain exactly 116 benchmark_ready rows, found {}",
+            "pair readiness report must retain exactly 118 benchmark_ready rows, found {}",
             benchmark_ready_row_count
         ));
     }
@@ -446,9 +448,18 @@ fn ensure_pair_readiness_contract(rows: &[PairReadinessRow]) -> Result<()> {
         "fastq",
         "fastq.index_reference",
         "bowtie2_build",
-        PairReadinessGap::Corpus,
+        PairReadinessGap::None,
         PairAssetStatus::Assigned,
-        "planner_only",
+        "asset:reference-index-assets",
+    )?;
+    ensure_row(
+        rows,
+        "fastq",
+        "fastq.index_reference",
+        "star",
+        PairReadinessGap::None,
+        PairAssetStatus::Assigned,
+        "asset:reference-index-assets",
     )?;
     Ok(())
 }
@@ -567,11 +578,11 @@ mod tests {
         assert_eq!(report.schema_version, PAIR_READINESS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_PAIR_READINESS_PATH);
         assert_eq!(report.row_count, 123);
-        assert_eq!(report.benchmark_ready_row_count, 116);
-        assert_eq!(report.not_benchmark_ready_row_count, 7);
+        assert_eq!(report.benchmark_ready_row_count, 118);
+        assert_eq!(report.not_benchmark_ready_row_count, 5);
         assert_eq!(report.domain_counts.get("fastq").copied(), Some(74));
         assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
-        assert_eq!(report.asset_status_counts.get("assigned").copied(), Some(19));
+        assert_eq!(report.asset_status_counts.get("assigned").copied(), Some(20));
         assert!(report.rows.iter().any(|row| {
             row.domain == "fastq"
                 && row.stage_id == "fastq.screen_taxonomy"
@@ -593,9 +604,17 @@ mod tests {
             row.domain == "fastq"
                 && row.stage_id == "fastq.index_reference"
                 && row.tool_id == "bowtie2_build"
-                && row.corpus_status == "planner_only"
+                && row.corpus_status == "asset:reference-index-assets"
                 && row.asset_status == PairAssetStatus::Assigned
-                && row.readiness_gap == PairReadinessGap::Corpus
+                && row.readiness_gap == PairReadinessGap::None
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.domain == "fastq"
+                && row.stage_id == "fastq.index_reference"
+                && row.tool_id == "star"
+                && row.corpus_status == "asset:reference-index-assets"
+                && row.asset_status == PairAssetStatus::Assigned
+                && row.readiness_gap == PairReadinessGap::None
         }));
     }
 

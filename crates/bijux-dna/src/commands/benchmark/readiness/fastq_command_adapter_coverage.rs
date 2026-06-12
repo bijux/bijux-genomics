@@ -156,9 +156,9 @@ fn render_coverage_row(row: &ToolServingMapRow) -> FastqCommandAdapterCoverageRo
     let support_eligible = row_has_governed_support(row);
     let adapter_covered = row_has_adapter(row);
     let parser_eligible = row_has_normalized_parser(row);
-    let fixture_backed = row_has_fixture_corpus(row);
-    let readiness_gap = if support_eligible && adapter_covered && parser_eligible && fixture_backed
-    {
+    let benchmark_scope_ready = row_has_benchmark_scope(row);
+    let readiness_gap =
+        if support_eligible && adapter_covered && parser_eligible && benchmark_scope_ready {
         FastqReadinessGapKind::None
     } else if support_eligible && adapter_covered && parser_eligible {
         FastqReadinessGapKind::Corpus
@@ -181,11 +181,11 @@ fn render_coverage_row(row: &ToolServingMapRow) -> FastqCommandAdapterCoverageRo
     };
     let reason = match readiness_gap {
         FastqReadinessGapKind::None => format!(
-            "row `{}` / `{}` is benchmark_ready with governed support, adapter-backed command rendering, normalized parser output, and fixture-backed corpus coverage",
+            "row `{}` / `{}` is benchmark_ready with governed support, adapter-backed command rendering, normalized parser output, and governed benchmark-scope coverage",
             row.stage_id, row.tool_id
         ),
         FastqReadinessGapKind::Corpus => format!(
-            "row `{}` / `{}` has governed support, adapter-backed command rendering, and normalized parser output but still resolves only `{}` corpus coverage",
+            "row `{}` / `{}` has governed support, adapter-backed command rendering, and normalized parser output but still resolves only `{}` benchmark-scope coverage",
             row.stage_id, row.tool_id, row.corpus_status
         ),
         FastqReadinessGapKind::Parser => format!(
@@ -231,8 +231,8 @@ fn row_has_normalized_parser(row: &ToolServingMapRow) -> bool {
     row.parser_status != "not_normalized"
 }
 
-fn row_has_fixture_corpus(row: &ToolServingMapRow) -> bool {
-    row.corpus_status.starts_with("fixture:")
+fn row_has_benchmark_scope(row: &ToolServingMapRow) -> bool {
+    row.corpus_status.starts_with("fixture:") || row.corpus_status.starts_with("asset:")
 }
 
 fn render_fastq_command_adapter_coverage_tsv(rows: &[FastqCommandAdapterCoverageRow]) -> String {
@@ -326,11 +326,11 @@ mod tests {
         assert_eq!(report.stage_count, 27);
         assert_eq!(report.tool_count, 44);
         assert_eq!(report.row_count, 74);
-        assert_eq!(report.benchmark_ready_row_count, 67);
-        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 67);
+        assert_eq!(report.benchmark_ready_row_count, 69);
+        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 69);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
-        assert_eq!(report.readiness_gap_counts.get("corpus"), Some(&3));
-        assert_eq!(report.readiness_gap_counts.get("support"), Some(&5));
+        assert_eq!(report.readiness_gap_counts.get("corpus"), Some(&1));
+        assert_eq!(report.readiness_gap_counts.get("support"), Some(&4));
         assert!(
             report.readiness_gap_counts.get("adapter").is_none(),
             "the governed FASTQ readiness slice currently carries no adapter gap rows"
@@ -352,6 +352,22 @@ mod tests {
                 && row.stage_id == "fastq.screen_taxonomy"
                 && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
                 && row.corpus_status == "fixture:corpus-02-edna-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "bowtie2_build"
+                && row.stage_id == "fastq.index_reference"
+                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
+                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
+                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.corpus_status == "asset:reference-index-assets"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "star"
+                && row.stage_id == "fastq.index_reference"
+                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
+                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
+                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.corpus_status == "asset:reference-index-assets"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "fastqc"
@@ -438,6 +454,22 @@ mod tests {
                 )
             }),
             "the governed trim-polyg row must remain benchmark-ready and adapter-covered"
+        );
+        assert!(
+            rows.iter().any(|row| {
+                row.starts_with(
+                    "bowtie2_build\tfastq.index_reference\tbenchmark_ready\tcovered\tnone\tobserver_specialized_benchmark\trunnable\tcomparable\tasset:reference-index-assets\t"
+                )
+            }),
+            "the governed bowtie2 reference-index row must remain benchmark-ready and asset-backed"
+        );
+        assert!(
+            rows.iter().any(|row| {
+                row.starts_with(
+                    "star\tfastq.index_reference\tbenchmark_ready\tcovered\tnone\tobserver_specialized_benchmark\trunnable\tcomparable\tasset:reference-index-assets\t"
+                )
+            }),
+            "the governed star reference-index row must remain benchmark-ready and asset-backed"
         );
         assert!(
             rows.iter().any(|row| {

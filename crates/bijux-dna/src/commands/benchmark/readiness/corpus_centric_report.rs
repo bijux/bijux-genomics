@@ -199,29 +199,51 @@ fn load_stage_assignments(repo_root: &Path) -> Result<BTreeMap<(String, String),
     let mut assignments = BTreeMap::<(String, String), StageAssignment>::new();
     let (_, _, fastq_rows) = collect_fastq_corpus_assignment_rows(repo_root)?;
     for row in fastq_rows {
-        if row.assignment_status != FastqCorpusAssignmentStatus::Assigned {
-            continue;
-        }
-        let stage_id = row.stage_id.clone();
-        let corpus_family_id = row
-            .corpus_family_id
-            .clone()
-            .ok_or_else(|| anyhow!("assigned FASTQ corpus row is missing corpus family"))?;
-        let fixture_id = row
-            .fixture_id
-            .clone()
-            .ok_or_else(|| anyhow!("assigned FASTQ corpus row is missing fixture id"))?;
-        let entry =
-            assignments.entry(("fastq".to_string(), stage_id.clone())).or_insert_with(|| {
-                StageAssignment {
-                    corpus_family_id: corpus_family_id.clone(),
-                    fixture_ids: Vec::new(),
+        match row.assignment_status {
+            FastqCorpusAssignmentStatus::Assigned => {
+                let stage_id = row.stage_id.clone();
+                let corpus_family_id = row
+                    .corpus_family_id
+                    .clone()
+                    .ok_or_else(|| anyhow!("assigned FASTQ corpus row is missing corpus family"))?;
+                let fixture_id = row
+                    .fixture_id
+                    .clone()
+                    .ok_or_else(|| anyhow!("assigned FASTQ corpus row is missing fixture id"))?;
+                let entry =
+                    assignments.entry(("fastq".to_string(), stage_id.clone())).or_insert_with(|| {
+                        StageAssignment {
+                            corpus_family_id: corpus_family_id.clone(),
+                            fixture_ids: Vec::new(),
+                        }
+                    });
+                if entry.corpus_family_id != corpus_family_id {
+                    return Err(anyhow!("FASTQ stage `{}` drifted across corpus families", stage_id));
                 }
-            });
-        if entry.corpus_family_id != corpus_family_id {
-            return Err(anyhow!("FASTQ stage `{}` drifted across corpus families", stage_id));
+                entry.fixture_ids.push(fixture_id);
+            }
+            FastqCorpusAssignmentStatus::AssetBacked => {
+                let stage_id = row.stage_id.clone();
+                let benchmark_scope_id = row.benchmark_scope_id.clone().ok_or_else(|| {
+                    anyhow!("asset-backed FASTQ corpus row is missing benchmark scope id")
+                })?;
+                let entry =
+                    assignments.entry(("fastq".to_string(), stage_id.clone())).or_insert_with(|| {
+                        StageAssignment {
+                            corpus_family_id: benchmark_scope_id.clone(),
+                            fixture_ids: Vec::new(),
+                        }
+                    });
+                if entry.corpus_family_id != benchmark_scope_id {
+                    return Err(anyhow!(
+                        "FASTQ stage `{}` drifted across asset-backed benchmark scopes",
+                        stage_id
+                    ));
+                }
+                entry.fixture_ids.push(benchmark_scope_id);
+            }
+            FastqCorpusAssignmentStatus::Excluded => continue,
         }
-        entry.fixture_ids.push(fixture_id);
     }
 
     let (_, _, bam_rows) = collect_bam_corpus_assignment_rows(repo_root)?;
@@ -272,23 +294,23 @@ fn render_corpus_stage_row(
 }
 
 fn ensure_corpus_centric_report_contract(corpora: &[CorpusCentricCorpusReport]) -> Result<()> {
-    if corpora.len() != 7 {
+    if corpora.len() != 8 {
         return Err(anyhow!(
-            "corpus-centric report must retain exactly 7 corpora, found {}",
+            "corpus-centric report must retain exactly 8 corpora, found {}",
             corpora.len()
         ));
     }
     let stage_count = corpora.iter().map(|corpus| corpus.stage_count).sum::<usize>();
-    if stage_count != 49 {
+    if stage_count != 50 {
         return Err(anyhow!(
-            "corpus-centric report must retain exactly 49 assigned stages, found {}",
+            "corpus-centric report must retain exactly 50 assigned stages, found {}",
             stage_count
         ));
     }
     let tool_row_count = corpora.iter().map(|corpus| corpus.tool_row_count).sum::<usize>();
-    if tool_row_count != 120 {
+    if tool_row_count != 122 {
         return Err(anyhow!(
-            "corpus-centric report must retain exactly 120 assigned stage-tool rows, found {}",
+            "corpus-centric report must retain exactly 122 assigned stage-tool rows, found {}",
             tool_row_count
         ));
     }
@@ -301,6 +323,15 @@ fn ensure_corpus_centric_report_contract(corpora: &[CorpusCentricCorpusReport]) 
         ));
     }
 
+    ensure_corpus(
+        corpora,
+        "reference-index-assets",
+        1,
+        2,
+        0,
+        &["reference-index-assets"],
+        &[],
+    )?;
     ensure_corpus(
         corpora,
         "corpus-01",
@@ -525,10 +556,10 @@ mod tests {
         )
         .expect("render corpus-centric report");
 
-        assert_eq!(report.corpus_count, 7);
-        assert_eq!(report.stage_count, 49);
-        assert_eq!(report.tool_row_count, 120);
-        assert_eq!(report.benchmark_ready_tool_row_count, 116);
+        assert_eq!(report.corpus_count, 8);
+        assert_eq!(report.stage_count, 50);
+        assert_eq!(report.tool_row_count, 122);
+        assert_eq!(report.benchmark_ready_tool_row_count, 118);
         assert_eq!(report.blocked_tool_row_count, 4);
         assert_eq!(report.blocked_corpus_count, 2);
     }
@@ -548,6 +579,8 @@ mod tests {
         assert!(markdown.contains("| fastq | fastq.screen_taxonomy | corpus-02-edna-mini | Contamination Screening | 4 | 4 | 0 | not_declared | none |"));
         assert!(markdown.contains("## corpus-03"));
         assert!(markdown.contains("| fastq | fastq.normalize_abundance | corpus-03-amplicon-mini | Amplicon Interpretation | 2 | 1 | 1 | not_declared | seqfu (support) |"));
+        assert!(markdown.contains("## reference-index-assets"));
+        assert!(markdown.contains("| fastq | fastq.index_reference | reference-index-assets | Reference Preparation | 2 | 2 | 0 | index_build_exit_code | none |"));
         assert!(markdown.contains("## corpus-01-adna-bam"));
         assert!(markdown.contains("| bam | bam.damage | corpus-01-adna-damage-mini | Ancient Signal | 6 | 6 | 0 | terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb | none |"));
     }

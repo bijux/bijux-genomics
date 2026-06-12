@@ -48,12 +48,12 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/corpus-centric-report.md")
     );
-    assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(7));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(payload.get("tool_row_count").and_then(serde_json::Value::as_u64), Some(120));
+    assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(50));
+    assert_eq!(payload.get("tool_row_count").and_then(serde_json::Value::as_u64), Some(122));
     assert_eq!(
         payload.get("benchmark_ready_tool_row_count").and_then(serde_json::Value::as_u64),
-        Some(116)
+        Some(118)
     );
     assert_eq!(payload.get("blocked_tool_row_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(payload.get("blocked_corpus_count").and_then(serde_json::Value::as_u64), Some(2));
@@ -69,7 +69,14 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(25)
+        Some(26)
+    );
+    assert_eq!(
+        payload
+            .get("corpus_stage_counts")
+            .and_then(|value| value.get("reference-index-assets"))
+            .and_then(serde_json::Value::as_u64),
+        Some(1)
     );
     assert_eq!(
         payload
@@ -109,7 +116,7 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
 
     let corpora =
         payload.get("corpora").and_then(serde_json::Value::as_array).expect("corpora array");
-    assert_eq!(corpora.len(), 7);
+    assert_eq!(corpora.len(), 8);
 
     let corpus_02 = corpora
         .iter()
@@ -134,6 +141,24 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
         })
         .expect("taxonomy stage");
     assert_eq!(taxonomy.get("tool_count").and_then(serde_json::Value::as_u64), Some(4));
+
+    let reference_index = corpora
+        .iter()
+        .find(|corpus| {
+            corpus.get("corpus_family_id").and_then(serde_json::Value::as_str)
+                == Some("reference-index-assets")
+        })
+        .expect("reference index corpus");
+    assert_eq!(
+        reference_index.get("fixture_ids").and_then(serde_json::Value::as_array).map(|values| {
+            values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()
+        }),
+        Some(vec!["reference-index-assets"])
+    );
+    assert_eq!(
+        reference_index.get("stage_count").and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
 
     let corpus_03 = corpora
         .iter()

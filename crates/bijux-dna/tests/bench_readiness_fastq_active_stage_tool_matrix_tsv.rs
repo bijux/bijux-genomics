@@ -48,7 +48,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 67);
+    assert_eq!(rows.len(), 69);
     assert!(rows.iter().any(|row| {
         row.starts_with(
             "fastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq.parser.screen_taxonomy\tfastq_screen_taxonomy_v1\tbenchmark_ready\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-02-edna-mini\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.screen_taxonomy` / `kraken2` remains in governed FASTQ active scope because it is benchmark_ready"
@@ -61,6 +61,11 @@ fn bench_readiness_fastq_active_stage_tool_matrix_writes_governed_tsv_file() {
     }));
     assert!(rows.iter().any(|row| {
         row.starts_with(
+            "fastq.index_reference\tbowtie2_build\treference-index-assets\treference_fasta+reference_index_output\tfastq.adapter.index_reference\tfastq.parser.index_reference\tfastq_index_reference_v1\tbenchmark_ready\tobserver_specialized_benchmark\trunnable\tcomparable\tasset:reference-index-assets\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.index_reference` / `bowtie2_build` remains in governed FASTQ active scope because it is benchmark_ready"
+        )
+    }));
+    assert!(rows.iter().any(|row| {
+        row.starts_with(
             "fastq.profile_overrepresented_sequences\tfastqc\tcorpus-01-mini\tcorpus_only\tfastq.adapter.profile_overrepresented_sequences\tfastq.parser.profile_overrepresented_sequences\tfastq_profile_overrepresented_sequences_v1\tbenchmark_ready\tobserver_specialized_benchmark\trunnable\tcomparable\tfixture:corpus-01-mini\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.profile_overrepresented_sequences` / `fastqc` remains in governed FASTQ active scope because it is benchmark_ready"
         )
     }));
@@ -68,7 +73,6 @@ fn bench_readiness_fastq_active_stage_tool_matrix_writes_governed_tsv_file() {
         !row.contains("\tplanned_contract\t")
             && !row.contains("\tdeclared_only\t")
             && !row.contains("\tplanner_only\t")
-            && !row.contains("\tfastq.index_reference\t")
             && !row.contains("\tfastq.report_qc\t")
     }));
 }

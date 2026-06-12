@@ -53,19 +53,19 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(116)
+        Some(118)
     );
-    assert_eq!(payload.get("gate_row_count").and_then(serde_json::Value::as_u64), Some(116));
-    assert_eq!(payload.get("gate_passed_row_count").and_then(serde_json::Value::as_u64), Some(116));
+    assert_eq!(payload.get("gate_row_count").and_then(serde_json::Value::as_u64), Some(118));
+    assert_eq!(payload.get("gate_passed_row_count").and_then(serde_json::Value::as_u64), Some(118));
     assert_eq!(payload.get("gate_failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("excluded_row_count").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(payload.get("excluded_row_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(
         payload.get("benchmark_ready_asset_required_row_count").and_then(serde_json::Value::as_u64),
-        Some(18)
+        Some(20)
     );
     assert_eq!(
         payload.get("benchmark_ready_asset_assigned_row_count").and_then(serde_json::Value::as_u64),
-        Some(18)
+        Some(20)
     );
     assert_eq!(
         payload.get("benchmark_ready_asset_missing_row_count").and_then(serde_json::Value::as_u64),
@@ -155,7 +155,7 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
         Some("not_required")
     );
 
-    let excluded_index = rows
+    let index_reference = rows
         .iter()
         .find(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
@@ -163,13 +163,17 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
                     == Some("fastq.index_reference")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2_build")
         })
-        .expect("excluded index-reference row");
+        .expect("index-reference row");
     assert_eq!(
-        excluded_index.get("gate_scope").and_then(serde_json::Value::as_str),
-        Some("excluded")
+        index_reference.get("gate_scope").and_then(serde_json::Value::as_str),
+        Some("benchmark_submission")
     );
     assert_eq!(
-        excluded_index.get("asset_assignment_status").and_then(serde_json::Value::as_str),
+        index_reference.get("corpus_assignment_status").and_then(serde_json::Value::as_str),
+        Some("asset_backed")
+    );
+    assert_eq!(
+        index_reference.get("asset_assignment_status").and_then(serde_json::Value::as_str),
         Some("assigned")
     );
 }

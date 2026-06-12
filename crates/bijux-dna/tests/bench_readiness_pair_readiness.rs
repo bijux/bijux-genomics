@@ -51,11 +51,11 @@ fn bench_readiness_pair_readiness_reports_governed_gap_columns() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(116)
+        Some(118)
     );
     assert_eq!(
         payload.get("not_benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(7)
+        Some(5)
     );
     assert_eq!(
         payload
@@ -76,7 +76,7 @@ fn bench_readiness_pair_readiness_reports_governed_gap_columns() {
             .get("asset_status_counts")
             .and_then(|value| value.get("assigned"))
             .and_then(serde_json::Value::as_u64),
-        Some(19)
+        Some(20)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -120,15 +120,15 @@ fn bench_readiness_pair_readiness_reports_governed_gap_columns() {
         .expect("index-reference readiness row");
     assert_eq!(
         index_reference.get("benchmark_status").and_then(serde_json::Value::as_str),
-        Some("not_benchmark_ready")
+        Some("benchmark_ready")
     );
     assert_eq!(
         index_reference.get("readiness_gap").and_then(serde_json::Value::as_str),
-        Some("corpus")
+        Some("none")
     );
     assert_eq!(
         index_reference.get("corpus_status").and_then(serde_json::Value::as_str),
-        Some("planner_only")
+        Some("asset:reference-index-assets")
     );
     assert_eq!(
         index_reference.get("asset_status").and_then(serde_json::Value::as_str),

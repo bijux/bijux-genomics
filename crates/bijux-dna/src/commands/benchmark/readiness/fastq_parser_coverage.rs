@@ -113,7 +113,7 @@ fn row_requires_parser(
 ) -> bool {
     row_has_governed_support(&row.support_status)
         && row_has_adapter(&row.adapter_status)
-        && row_has_fixture_corpus(&row.corpus_status)
+        && row_has_benchmark_scope(&row.corpus_status)
 }
 
 fn render_parser_coverage_row(
@@ -126,12 +126,17 @@ fn render_parser_coverage_row(
     };
     let reason = match parser_coverage {
         FastqParserCoverageKind::Covered => format!(
-            "row `{}` / `{}` has governed support, adapter-backed command rendering, fixture-backed corpus coverage, and normalized parser output",
-            row.stage_id, row.tool_id
+            "row `{}` / `{}` has governed support, adapter-backed command rendering, {} benchmark coverage, and normalized parser output",
+            row.stage_id,
+            row.tool_id,
+            benchmark_scope_label(&row.corpus_status)
         ),
         FastqParserCoverageKind::Missing => format!(
-            "row `{}` / `{}` has governed support, adapter-backed command rendering, and fixture-backed corpus coverage but no normalized parser contract (`{}`)",
-            row.stage_id, row.tool_id, row.parser_status
+            "row `{}` / `{}` has governed support, adapter-backed command rendering, and {} benchmark coverage but no normalized parser contract (`{}`)",
+            row.stage_id,
+            row.tool_id,
+            benchmark_scope_label(&row.corpus_status),
+            row.parser_status
         ),
     };
 
@@ -162,8 +167,18 @@ fn row_has_normalized_parser(value: &str) -> bool {
     value != "not_normalized"
 }
 
-fn row_has_fixture_corpus(value: &str) -> bool {
-    value.starts_with("fixture:")
+fn row_has_benchmark_scope(value: &str) -> bool {
+    value.starts_with("fixture:") || value.starts_with("asset:")
+}
+
+fn benchmark_scope_label(value: &str) -> &'static str {
+    if value.starts_with("fixture:") {
+        "fixture-backed"
+    } else if value.starts_with("asset:") {
+        "asset-backed"
+    } else {
+        "ungoverned"
+    }
 }
 
 fn render_fastq_parser_coverage_tsv(rows: &[FastqParserCoverageRow]) -> String {
@@ -235,13 +250,14 @@ mod tests {
         assert_eq!(report.schema_version, FASTQ_PARSER_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.stage_count, 27);
         assert_eq!(report.tool_count, 44);
-        assert_eq!(report.row_count, 67);
-        assert_eq!(report.parser_covered_row_count, 67);
+        assert_eq!(report.row_count, 69);
+        assert_eq!(report.parser_covered_row_count, 69);
         assert_eq!(report.parser_missing_row_count, 0);
         assert_eq!(report.parser_coverage_percent, 100.0);
         assert!(report.rows.iter().all(|row| {
             super::parser_coverage_label(row.parser_coverage) == "covered"
-                && row.corpus_status.starts_with("fixture:")
+                && (row.corpus_status.starts_with("fixture:")
+                    || row.corpus_status.starts_with("asset:"))
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "fastqc"
@@ -263,6 +279,13 @@ mod tests {
                 && super::parser_coverage_label(row.parser_coverage) == "covered"
                 && row.parser_status == "benchmark_normalized"
                 && row.corpus_status == "fixture:corpus-02-edna-mini"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "bowtie2_build"
+                && row.stage_id == "fastq.index_reference"
+                && super::parser_coverage_label(row.parser_coverage) == "covered"
+                && row.parser_status == "comparable"
+                && row.corpus_status == "asset:reference-index-assets"
         }));
     }
 
@@ -305,6 +328,14 @@ mod tests {
                 )
             }),
             "the governed taxonomy row must retain parser coverage"
+        );
+        assert!(
+            rows.iter().any(|row| {
+                row.starts_with(
+                    "bowtie2_build\tfastq.index_reference\tcovered\tcomparable\tobserver_specialized_benchmark\trunnable\tasset:reference-index-assets\trow `fastq.index_reference` / `bowtie2_build` has governed support, adapter-backed command rendering, asset-backed benchmark coverage, and normalized parser output"
+                )
+            }),
+            "the governed reference-index row must retain asset-backed parser coverage"
         );
     }
 }

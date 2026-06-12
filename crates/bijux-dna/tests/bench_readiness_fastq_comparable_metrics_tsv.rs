@@ -47,7 +47,7 @@ fn bench_readiness_fastq_comparable_metrics_writes_governed_tsv_columns() {
     assert_eq!(rows.len(), 3);
     assert!(
         rows.iter().any(|row| {
-            row == &"fastq.index_reference\tdeclared\t2\tbowtie2_build,star\tbowtie2_build\tplanner_only\t1\tindex_build_exit_code\tstage `fastq.index_reference` publishes governed shared comparable metrics `index_build_exit_code` for same-stage tool comparison while corpus routing remains `planner_only`"
+            row == &"fastq.index_reference\tdeclared\t2\tbowtie2_build,star\tbowtie2_build\tasset:reference-index-assets\t1\tindex_build_exit_code\tstage `fastq.index_reference` publishes governed shared comparable metrics `index_build_exit_code` for same-stage tool comparison while corpus routing remains `asset:reference-index-assets`"
         }),
         "TSV must retain the governed FASTQ index-reference comparable row"
     );

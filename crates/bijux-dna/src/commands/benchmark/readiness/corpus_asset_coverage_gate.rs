@@ -45,6 +45,7 @@ pub(crate) enum CorpusAssetCoverageGateStatus {
 #[serde(rename_all = "snake_case")]
 pub(crate) enum CorpusAssignmentStatus {
     Assigned,
+    AssetBacked,
     Excluded,
 }
 
@@ -296,6 +297,7 @@ fn render_fastq_row(
     };
     let corpus_assignment_status = match corpus_row.assignment_status {
         FastqCorpusAssignmentStatus::Assigned => CorpusAssignmentStatus::Assigned,
+        FastqCorpusAssignmentStatus::AssetBacked => CorpusAssignmentStatus::AssetBacked,
         FastqCorpusAssignmentStatus::Excluded => CorpusAssignmentStatus::Excluded,
     };
     let required_asset_roles =
@@ -308,7 +310,7 @@ fn render_fastq_row(
         resolve_asset_assignment_status(&required_asset_roles, assigned_assets.as_slice());
     let gate_status = match gate_scope {
         CorpusAssetCoverageGateScope::BenchmarkSubmission => {
-            if corpus_assignment_status == CorpusAssignmentStatus::Assigned
+            if is_submission_ready_corpus_assignment(corpus_assignment_status)
                 && asset_assignment_status != AssetAssignmentStatus::Missing
             {
                 CorpusAssetCoverageGateStatus::Pass
@@ -430,21 +432,22 @@ fn render_reason(
 ) -> String {
     match gate_status {
         CorpusAssetCoverageGateStatus::Pass => {
+            let assignment_label = corpus_assignment_status_label(corpus_assignment_status);
             if required_asset_roles.is_empty() {
                 format!(
-                    "row `{stage_id}` / `{tool_id}` stays inside the {domain} benchmark submission gate with governed corpus assignment and no required asset bindings"
+                    "row `{stage_id}` / `{tool_id}` stays inside the {domain} benchmark submission gate with governed {assignment_label} coverage and no required asset bindings"
                 )
             } else {
                 format!(
-                    "row `{stage_id}` / `{tool_id}` stays inside the {domain} benchmark submission gate with governed corpus assignment and asset bindings `{}`",
+                    "row `{stage_id}` / `{tool_id}` stays inside the {domain} benchmark submission gate with governed {assignment_label} coverage and asset bindings `{}`",
                     assigned_assets.join(", ")
                 )
             }
         }
         CorpusAssetCoverageGateStatus::Fail => {
             let mut blockers = Vec::new();
-            if corpus_assignment_status != CorpusAssignmentStatus::Assigned {
-                blockers.push("corpus assignment is not governed-assigned".to_string());
+            if !is_submission_ready_corpus_assignment(corpus_assignment_status) {
+                blockers.push("benchmark scope is not governed-ready".to_string());
             }
             if asset_assignment_status == AssetAssignmentStatus::Missing {
                 blockers.push(format!(
@@ -463,6 +466,18 @@ fn render_reason(
             )
         }
         CorpusAssetCoverageGateStatus::Excluded => excluded_reason.to_string(),
+    }
+}
+
+fn is_submission_ready_corpus_assignment(status: CorpusAssignmentStatus) -> bool {
+    matches!(status, CorpusAssignmentStatus::Assigned | CorpusAssignmentStatus::AssetBacked)
+}
+
+fn corpus_assignment_status_label(status: CorpusAssignmentStatus) -> &'static str {
+    match status {
+        CorpusAssignmentStatus::Assigned => "fixture-backed corpus assignment",
+        CorpusAssignmentStatus::AssetBacked => "asset-backed benchmark scope",
+        CorpusAssignmentStatus::Excluded => "excluded benchmark scope",
     }
 }
 
@@ -497,7 +512,8 @@ fn required_asset_roles(domain: &str, stage_id: &str, tool_id: &str) -> Vec<Stri
             &["reference_catalog_id", "reference_index_artifact_id"]
         }
         ("fastq", "fastq.deplete_rrna", "sortmerna") => &["rrna_reference", "database_artifact_id"],
-        ("fastq", "fastq.index_reference", "bowtie2_build") => {
+        ("fastq", "fastq.index_reference", "bowtie2_build")
+        | ("fastq", "fastq.index_reference", "star") => {
             &["reference_fasta", "reference_index_output"]
         }
         ("bam", "bam.contamination", "contammix")
@@ -546,7 +562,14 @@ fn ensure_gate_contract(rows: &[CorpusAssetCoverageGateRow]) -> Result<()> {
         AssetAssignmentStatus::Assigned,
         &["reference_fasta", "reference_panel"],
     )?;
-    ensure_excluded_row(rows, "fastq", "fastq.index_reference", "bowtie2_build")?;
+    ensure_asset_backed_row(
+        rows,
+        "fastq",
+        "fastq.index_reference",
+        "bowtie2_build",
+        AssetAssignmentStatus::Assigned,
+        &["reference_fasta", "reference_index_output"],
+    )?;
     Ok(())
 }
 
@@ -583,21 +606,32 @@ fn ensure_row(
     Ok(())
 }
 
-fn ensure_excluded_row(
+fn ensure_asset_backed_row(
     rows: &[CorpusAssetCoverageGateRow],
     domain: &str,
     stage_id: &str,
     tool_id: &str,
+    expected_asset_status: AssetAssignmentStatus,
+    expected_roles: &[&str],
 ) -> Result<()> {
     let row = rows
         .iter()
         .find(|row| row.domain == domain && row.stage_id == stage_id && row.tool_id == tool_id)
-        .ok_or_else(|| anyhow!("missing excluded corpus asset coverage row for `{domain}` / `{stage_id}` / `{tool_id}`"))?;
-    if row.gate_scope != CorpusAssetCoverageGateScope::Excluded
-        || row.gate_status != CorpusAssetCoverageGateStatus::Excluded
+        .ok_or_else(|| anyhow!("missing asset-backed corpus asset coverage row for `{domain}` / `{stage_id}` / `{tool_id}`"))?;
+    if row.gate_scope != CorpusAssetCoverageGateScope::BenchmarkSubmission
+        || row.gate_status != CorpusAssetCoverageGateStatus::Pass
+        || row.corpus_assignment_status != CorpusAssignmentStatus::AssetBacked
+        || row.asset_assignment_status != expected_asset_status
     {
         return Err(anyhow!(
-            "corpus asset coverage row `{domain}` / `{stage_id}` / `{tool_id}` must stay excluded from the benchmark submission gate"
+            "corpus asset coverage row `{domain}` / `{stage_id}` / `{tool_id}` drifted from its governed asset-backed gate contract"
+        ));
+    }
+    let actual_roles = row.required_asset_roles.iter().map(String::as_str).collect::<BTreeSet<_>>();
+    let expected_roles = expected_roles.iter().copied().collect::<BTreeSet<_>>();
+    if actual_roles != expected_roles {
+        return Err(anyhow!(
+            "corpus asset coverage row `{domain}` / `{stage_id}` / `{tool_id}` drifted its required asset roles"
         ));
     }
     Ok(())

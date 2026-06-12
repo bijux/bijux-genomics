@@ -29,6 +29,7 @@ const FASTQ_CORPUS_ASSIGNMENT_SCHEMA_VERSION: &str =
 #[serde(rename_all = "snake_case")]
 pub(crate) enum FastqCorpusAssignmentStatus {
     Assigned,
+    AssetBacked,
     Excluded,
 }
 
@@ -43,6 +44,7 @@ pub(crate) struct FastqCorpusAssignmentRow {
     pub(crate) assignment_status: FastqCorpusAssignmentStatus,
     pub(crate) corpus_family_id: Option<String>,
     pub(crate) fixture_id: Option<String>,
+    pub(crate) benchmark_scope_id: Option<String>,
     pub(crate) excluded_reason: Option<String>,
     pub(crate) reason: String,
 }
@@ -56,8 +58,10 @@ pub(crate) struct FastqCorpusAssignmentReport {
     pub(crate) row_count: usize,
     pub(crate) benchmark_ready_row_count: usize,
     pub(crate) benchmark_ready_assigned_row_count: usize,
+    pub(crate) benchmark_ready_asset_backed_row_count: usize,
     pub(crate) benchmark_ready_excluded_row_count: usize,
     pub(crate) corpus_family_counts: BTreeMap<String, usize>,
+    pub(crate) benchmark_scope_counts: BTreeMap<String, usize>,
     pub(crate) excluded_reason_counts: BTreeMap<String, usize>,
     pub(crate) rows: Vec<FastqCorpusAssignmentRow>,
 }
@@ -101,14 +105,27 @@ pub(crate) fn render_fastq_corpus_assignment(
                 && row.assignment_status == FastqCorpusAssignmentStatus::Assigned
         })
         .count();
+    let benchmark_ready_asset_backed_row_count = rows
+        .iter()
+        .filter(|row| {
+            row.benchmark_status == "benchmark_ready"
+                && row.assignment_status == FastqCorpusAssignmentStatus::AssetBacked
+        })
+        .count();
     let benchmark_ready_excluded_row_count =
-        benchmark_ready_row_count - benchmark_ready_assigned_row_count;
+        benchmark_ready_row_count
+            - benchmark_ready_assigned_row_count
+            - benchmark_ready_asset_backed_row_count;
 
     let mut corpus_family_counts = BTreeMap::<String, usize>::new();
+    let mut benchmark_scope_counts = BTreeMap::<String, usize>::new();
     let mut excluded_reason_counts = BTreeMap::<String, usize>::new();
     for row in &rows {
         if let Some(corpus_family_id) = &row.corpus_family_id {
             *corpus_family_counts.entry(corpus_family_id.clone()).or_default() += 1;
+        }
+        if let Some(benchmark_scope_id) = &row.benchmark_scope_id {
+            *benchmark_scope_counts.entry(benchmark_scope_id.clone()).or_default() += 1;
         }
         if let Some(excluded_reason) = &row.excluded_reason {
             *excluded_reason_counts.entry(excluded_reason.clone()).or_default() += 1;
@@ -123,8 +140,10 @@ pub(crate) fn render_fastq_corpus_assignment(
         row_count: rows.len(),
         benchmark_ready_row_count,
         benchmark_ready_assigned_row_count,
+        benchmark_ready_asset_backed_row_count,
         benchmark_ready_excluded_row_count,
         corpus_family_counts,
+        benchmark_scope_counts,
         excluded_reason_counts,
         rows,
     })
@@ -153,7 +172,14 @@ pub(crate) fn collect_fastq_corpus_assignment_rows(
             anyhow!("missing FASTQ corpus compatibility for stage `{}`", row.stage_id)
         })?;
 
-        let (assignment_status, corpus_family_id, fixture_id, excluded_reason, reason) =
+        let (
+            assignment_status,
+            corpus_family_id,
+            fixture_id,
+            benchmark_scope_id,
+            excluded_reason,
+            reason,
+        ) =
             match domain_assignment {
                 bijux_dna_domain_fastq::BenchmarkCorpusAssignment::Assigned {
                     family,
@@ -189,6 +215,7 @@ pub(crate) fn collect_fastq_corpus_assignment_rows(
                         Some(family.as_str().to_string()),
                         Some(compatibility_fixture.to_string()),
                         None,
+                        None,
                         format!(
                             "row `{}` / `{}` is {} and maps to `{}` via fixture `{}`: {}",
                             row.stage_id,
@@ -196,6 +223,51 @@ pub(crate) fn collect_fastq_corpus_assignment_rows(
                             benchmark_status_label(row.benchmark_status),
                             family.as_str(),
                             compatibility_fixture,
+                            rationale
+                        ),
+                    )
+                }
+                bijux_dna_domain_fastq::BenchmarkCorpusAssignment::AssetBacked {
+                    scope_id,
+                    rationale,
+                } => {
+                    let compatibility_scope_id = stage_compatibility
+                        .benchmark_scope_id
+                        .as_deref()
+                        .ok_or_else(|| {
+                            anyhow!(
+                                "FASTQ stage `{}` is asset-backed in the domain contract but missing benchmark_scope_id in local compatibility",
+                                row.stage_id
+                            )
+                        })?;
+                    if stage_compatibility.corpus_family_id.is_some()
+                        || stage_compatibility.fixture_id.is_some()
+                    {
+                        return Err(anyhow!(
+                            "FASTQ stage `{}` is asset-backed in the domain contract but still declares fixture-backed local compatibility",
+                            row.stage_id
+                        ));
+                    }
+                    if compatibility_scope_id != scope_id {
+                        return Err(anyhow!(
+                            "FASTQ stage `{}` assigns asset-backed scope `{}` in the domain contract but `{}` in local compatibility",
+                            row.stage_id,
+                            scope_id,
+                            compatibility_scope_id
+                        ));
+                    }
+                    (
+                        FastqCorpusAssignmentStatus::AssetBacked,
+                        None,
+                        None,
+                        Some(scope_id.to_string()),
+                        None,
+                        format!(
+                            "row `{}` / `{}` is {} and maps to asset-backed benchmark scope `{}`: {}",
+                            row.stage_id,
+                            row.tool_id,
+                            benchmark_status_label(row.benchmark_status),
+                            scope_id,
                             rationale
                         ),
                     )
@@ -214,6 +286,7 @@ pub(crate) fn collect_fastq_corpus_assignment_rows(
                     }
                     (
                         FastqCorpusAssignmentStatus::Excluded,
+                        None,
                         None,
                         None,
                         Some(reason_code.to_string()),
@@ -238,6 +311,7 @@ pub(crate) fn collect_fastq_corpus_assignment_rows(
             assignment_status,
             corpus_family_id,
             fixture_id,
+            benchmark_scope_id,
             excluded_reason,
             reason,
         });
@@ -279,6 +353,7 @@ fn ensure_row_completeness(rows: &[FastqCorpusAssignmentRow]) -> Result<()> {
             FastqCorpusAssignmentStatus::Assigned => {
                 if row.corpus_family_id.is_none()
                     || row.fixture_id.is_none()
+                    || row.benchmark_scope_id.is_some()
                     || row.excluded_reason.is_some()
                 {
                     return Err(anyhow!(
@@ -288,9 +363,23 @@ fn ensure_row_completeness(rows: &[FastqCorpusAssignmentRow]) -> Result<()> {
                     ));
                 }
             }
+            FastqCorpusAssignmentStatus::AssetBacked => {
+                if row.corpus_family_id.is_some()
+                    || row.fixture_id.is_some()
+                    || row.benchmark_scope_id.is_none()
+                    || row.excluded_reason.is_some()
+                {
+                    return Err(anyhow!(
+                        "FASTQ corpus assignment row `{}` / `{}` is asset-backed but incomplete",
+                        row.stage_id,
+                        row.tool_id
+                    ));
+                }
+            }
             FastqCorpusAssignmentStatus::Excluded => {
                 if row.corpus_family_id.is_some()
                     || row.fixture_id.is_some()
+                    || row.benchmark_scope_id.is_some()
                     || row.excluded_reason.is_none()
                 {
                     return Err(anyhow!(
@@ -378,11 +467,11 @@ fn benchmark_status_label(status: FastqBenchmarkStatus) -> &'static str {
 
 fn render_fastq_corpus_assignment_tsv(rows: &[FastqCorpusAssignmentRow]) -> String {
     let mut rendered = String::from(
-        "tool_id\tstage_id\tbenchmark_status\tsupport_status\tadapter_status\tparser_status\tassignment_status\tcorpus_family_id\tfixture_id\texcluded_reason\treason\n",
+        "tool_id\tstage_id\tbenchmark_status\tsupport_status\tadapter_status\tparser_status\tassignment_status\tcorpus_family_id\tfixture_id\tbenchmark_scope_id\texcluded_reason\treason\n",
     );
     for row in rows {
         rendered.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
             sanitize_tsv(&row.tool_id),
             sanitize_tsv(&row.stage_id),
             sanitize_tsv(&row.benchmark_status),
@@ -392,6 +481,7 @@ fn render_fastq_corpus_assignment_tsv(rows: &[FastqCorpusAssignmentRow]) -> Stri
             sanitize_tsv(assignment_status_label(row.assignment_status)),
             sanitize_tsv(row.corpus_family_id.as_deref().unwrap_or("")),
             sanitize_tsv(row.fixture_id.as_deref().unwrap_or("")),
+            sanitize_tsv(row.benchmark_scope_id.as_deref().unwrap_or("")),
             sanitize_tsv(row.excluded_reason.as_deref().unwrap_or("")),
             sanitize_tsv(&row.reason),
         ));
@@ -402,6 +492,7 @@ fn render_fastq_corpus_assignment_tsv(rows: &[FastqCorpusAssignmentRow]) -> Stri
 fn assignment_status_label(status: FastqCorpusAssignmentStatus) -> &'static str {
     match status {
         FastqCorpusAssignmentStatus::Assigned => "assigned",
+        FastqCorpusAssignmentStatus::AssetBacked => "asset_backed",
         FastqCorpusAssignmentStatus::Excluded => "excluded",
     }
 }
@@ -447,10 +538,15 @@ mod tests {
         assert_eq!(report.stage_count, 27);
         assert!(report.benchmark_ready_row_count > 0);
         assert_eq!(report.benchmark_ready_excluded_row_count, 0);
+        assert_eq!(report.benchmark_ready_asset_backed_row_count, 2);
         assert!(report
             .rows
             .iter()
-            .all(|row| { row.corpus_family_id.is_some() || row.excluded_reason.is_some() }));
+            .all(|row| {
+                row.corpus_family_id.is_some()
+                    || row.benchmark_scope_id.is_some()
+                    || row.excluded_reason.is_some()
+            }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "fastq.validate_reads"
                 && row.tool_id == "fastqc"
@@ -497,14 +593,21 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "fastq.index_reference"
                 && row.tool_id == "bowtie2_build"
-                && row.excluded_reason.as_deref()
-                    == Some("reference_index_stage_has_no_read_corpus")
+                && row.benchmark_scope_id.as_deref() == Some("reference-index-assets")
+                && row.excluded_reason.is_none()
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "fastq.index_reference"
+                && row.tool_id == "star"
+                && row.benchmark_scope_id.as_deref() == Some("reference-index-assets")
+                && row.excluded_reason.is_none()
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "fastq.profile_overrepresented_sequences"
                 && row.tool_id == "fastqc"
-                && row.excluded_reason.as_deref()
-                    == Some("governed_overrepresented_sequence_fixture_missing")
+                && row.corpus_family_id.as_deref() == Some("corpus-01")
+                && row.fixture_id.as_deref() == Some("corpus-01-mini")
+                && row.excluded_reason.is_none()
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "fastq.report_qc"

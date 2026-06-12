@@ -346,8 +346,11 @@ fn summarize_corpora(
         super::bam_corpus_assignment::collect_bam_corpus_assignment_rows(repo_root)?;
     let mut corpus_family_ids = fastq_rows
         .into_iter()
-        .filter(|row| row.assignment_status == FastqCorpusAssignmentStatus::Assigned)
-        .filter_map(|row| row.corpus_family_id)
+        .filter_map(|row| match row.assignment_status {
+            FastqCorpusAssignmentStatus::Assigned => row.corpus_family_id,
+            FastqCorpusAssignmentStatus::AssetBacked => row.benchmark_scope_id,
+            FastqCorpusAssignmentStatus::Excluded => None,
+        })
         .chain(bam_rows.into_iter().map(|row| row.corpus_family_id))
         .collect::<BTreeSet<_>>()
         .into_iter()
@@ -355,7 +358,9 @@ fn summarize_corpora(
     corpus_family_ids.sort();
     let assigned_stage_count = pair_rows
         .iter()
-        .filter(|row| row.corpus_status.starts_with("fixture:"))
+        .filter(|row| {
+            row.corpus_status.starts_with("fixture:") || row.corpus_status.starts_with("asset:")
+        })
         .map(|row| (row.domain.clone(), row.stage_id.clone()))
         .collect::<BTreeSet<_>>()
         .len();
@@ -363,8 +368,12 @@ fn summarize_corpora(
     for row in pair_rows {
         *status_counts.entry(row.corpus_status.clone()).or_default() += 1;
     }
-    let ready_pair_count =
-        pair_rows.iter().filter(|row| row.corpus_status.starts_with("fixture:")).count();
+    let ready_pair_count = pair_rows
+        .iter()
+        .filter(|row| {
+            row.corpus_status.starts_with("fixture:") || row.corpus_status.starts_with("asset:")
+        })
+        .count();
     let blocked_pair_count = pair_rows.len().saturating_sub(ready_pair_count);
 
     Ok(BenchmarkReadinessCorpusSummary {
@@ -513,8 +522,8 @@ fn ensure_benchmark_readiness_dashboard_contract(
     report: &BenchmarkReadinessDashboardReport,
 ) -> Result<()> {
     if report.expected_pair_count != 123
-        || report.ready_pair_count != 116
-        || report.blocked_pair_count != 7
+        || report.ready_pair_count != 118
+        || report.blocked_pair_count != 5
     {
         return Err(anyhow!(
             "benchmark readiness dashboard pair summary drifted from the governed contract"
@@ -525,7 +534,7 @@ fn ensure_benchmark_readiness_dashboard_contract(
             "benchmark readiness dashboard matrix inventory drifted from the governed contract"
         ));
     }
-    if report.blocker_counts.get("corpus").copied().unwrap_or_default() != 3
+    if report.blocker_counts.get("corpus").copied().unwrap_or_default() != 1
         || report.blocker_counts.get("support").copied().unwrap_or_default() != 4
     {
         return Err(anyhow!(
@@ -535,21 +544,20 @@ fn ensure_benchmark_readiness_dashboard_contract(
     if report.adapters.attention_required_pair_count != 4
         || report.parsers.benchmark_reporting_pair_count != 116
         || report.parsers.blocked_pair_count != 0
-        || report.corpora.corpus_family_count != 7
-        || report.corpora.assigned_stage_count != 49
-        || report.corpora.blocked_pair_count != 3
-        || report.assets.asset_required_pair_count != 18
+        || report.corpora.corpus_family_count != 8
+        || report.corpora.assigned_stage_count != 50
+        || report.corpora.blocked_pair_count != 1
+        || report.assets.asset_required_pair_count != 20
         || report.assets.blocked_pair_count != 0
-        || report.reports.expected_result_row_count != 116
+        || report.reports.expected_result_row_count != 118
         || report.reports.stage_section_count != 51
         || report.reports.tool_section_count != 67
-        || report.reports.corpus_section_count != 7
+        || report.reports.corpus_section_count != 8
     {
         return Err(anyhow!(
             "benchmark readiness dashboard surface summary drifted from the governed contract"
         ));
     }
-    ensure_blocked_pair(report, "fastq:fastq.index_reference:bowtie2_build", "corpus")?;
     ensure_blocked_pair(report, "fastq:fastq.trim_reads:seqpurge", "support")?;
     ensure_blocked_pair(report, "fastq:fastq.report_qc:multiqc", "corpus")?;
     Ok(())
@@ -787,20 +795,20 @@ mod tests {
         .expect("render benchmark readiness dashboard");
 
         assert_eq!(report.expected_pair_count, 123);
-        assert_eq!(report.ready_pair_count, 116);
-        assert_eq!(report.blocked_pair_count, 7);
+        assert_eq!(report.ready_pair_count, 118);
+        assert_eq!(report.blocked_pair_count, 5);
         assert_eq!(report.matrix.stage_count, 51);
         assert_eq!(report.matrix.tool_count, 67);
         assert_eq!(report.adapters.attention_required_pair_count, 4);
         assert_eq!(report.parsers.benchmark_reporting_pair_count, 116);
-        assert_eq!(report.corpora.corpus_family_count, 7);
-        assert_eq!(report.corpora.assigned_stage_count, 49);
-        assert_eq!(report.assets.asset_required_pair_count, 18);
-        assert_eq!(report.reports.expected_result_row_count, 116);
+        assert_eq!(report.corpora.corpus_family_count, 8);
+        assert_eq!(report.corpora.assigned_stage_count, 50);
+        assert_eq!(report.assets.asset_required_pair_count, 20);
+        assert_eq!(report.reports.expected_result_row_count, 118);
         assert_eq!(report.reports.stage_section_count, 51);
         assert_eq!(report.reports.tool_section_count, 67);
-        assert_eq!(report.reports.corpus_section_count, 7);
-        assert_eq!(report.blocked_pairs.len(), 7);
+        assert_eq!(report.reports.corpus_section_count, 8);
+        assert_eq!(report.blocked_pairs.len(), 5);
     }
 
     #[test]
@@ -817,15 +825,14 @@ mod tests {
         let markdown = std::fs::read_to_string(output_path).expect("read markdown");
         assert!(markdown.contains("# FASTQ + BAM Benchmark Readiness Dashboard"));
         assert!(markdown.contains("- Expected pairs: 123"));
-        assert!(markdown.contains("- Ready pairs: 116"));
-        assert!(markdown.contains("- Blocked pairs: 7"));
-        assert!(markdown.contains("| Matrix | attention_required | all governed fastq and bam stage-tool pairs | 123 | 116 | 7 | stages=51, tools=67, gaps=corpus=3, none=116, support=4 |"));
-        assert!(markdown.contains("| Corpora | attention_required | all governed fastq and bam stage-tool pairs | 123 | 120 | 3 | corpora=7, assigned stages=49, statuses=fixture:corpus-01-adna-bam-mini=7, fixture:corpus-01-adna-damage-mini=9, fixture:corpus-01-bam-mini=28, fixture:corpus-01-genotyping-mini=1, fixture:corpus-01-kinship-mini=2, fixture:corpus-01-mini=63, fixture:corpus-02-edna-mini=4, fixture:corpus-03-amplicon-mini=6, planner_only=3 |"));
+        assert!(markdown.contains("- Ready pairs: 118"));
+        assert!(markdown.contains("- Blocked pairs: 5"));
+        assert!(markdown.contains("| Matrix | attention_required | all governed fastq and bam stage-tool pairs | 123 | 118 | 5 | stages=51, tools=67, gaps=corpus=1, none=118, support=4 |"));
+        assert!(markdown.contains("| Corpora | attention_required | all governed fastq and bam stage-tool pairs | 123 | 122 | 1 | corpora=8, assigned stages=50, statuses=asset:reference-index-assets=2, fixture:corpus-01-adna-bam-mini=7, fixture:corpus-01-adna-damage-mini=9, fixture:corpus-01-bam-mini=28, fixture:corpus-01-genotyping-mini=1, fixture:corpus-01-kinship-mini=2, fixture:corpus-01-mini=63, fixture:corpus-02-edna-mini=4, fixture:corpus-03-amplicon-mini=6, planner_only=1 |"));
         assert!(markdown.contains(
             "| pair_readiness | benchmarks/readiness/pair-readiness.tsv | 123 stage_tool_pairs |"
         ));
-        assert!(markdown.contains("| corpus_centric_report | benchmarks/readiness/corpus-centric-report.md | 7 corpus_sections |"));
-        assert!(markdown.contains("| fastq | fastq.index_reference | bowtie2_build | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | assigned |"));
+        assert!(markdown.contains("| corpus_centric_report | benchmarks/readiness/corpus-centric-report.md | 8 corpus_sections |"));
         assert!(markdown.contains("| fastq | fastq.trim_reads | seqpurge | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |"));
         assert!(markdown.contains("| fastq | fastq.report_qc | multiqc | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |"));
     }

@@ -94,8 +94,8 @@ fn bench_readiness_pair_readiness_writes_gap_status_columns() {
                 && row.get("tool_id") == Some(&"bowtie2_build")
         })
         .expect("index-reference readiness TSV row");
-    assert_eq!(index_reference.get("benchmark_status"), Some(&"not_benchmark_ready"));
-    assert_eq!(index_reference.get("readiness_gap"), Some(&"corpus"));
-    assert_eq!(index_reference.get("corpus_status"), Some(&"planner_only"));
+    assert_eq!(index_reference.get("benchmark_status"), Some(&"benchmark_ready"));
+    assert_eq!(index_reference.get("readiness_gap"), Some(&"none"));
+    assert_eq!(index_reference.get("corpus_status"), Some(&"asset:reference-index-assets"));
     assert_eq!(index_reference.get("asset_status"), Some(&"assigned"));
 }

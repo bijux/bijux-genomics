@@ -142,22 +142,11 @@ pub(crate) fn collect_expected_benchmark_result_rows(
 
     for row in fastq_corpus_rows.into_iter().filter(|row| {
         row.benchmark_status == "benchmark_ready"
-            && row.assignment_status == FastqCorpusAssignmentStatus::Assigned
+            && matches!(
+                row.assignment_status,
+                FastqCorpusAssignmentStatus::Assigned | FastqCorpusAssignmentStatus::AssetBacked
+            )
     }) {
-        let fixture_id = row.fixture_id.clone().ok_or_else(|| {
-            anyhow!(
-                "FASTQ benchmark-ready row `{}` / `{}` is missing fixture_id",
-                row.stage_id,
-                row.tool_id
-            )
-        })?;
-        let corpus_family_id = row.corpus_family_id.clone().ok_or_else(|| {
-            anyhow!(
-                "FASTQ benchmark-ready row `{}` / `{}` is missing corpus_family_id",
-                row.stage_id,
-                row.tool_id
-            )
-        })?;
         let readiness_kind = fastq_readiness_kinds
             .get(&row.stage_id)
             .cloned()
@@ -171,15 +160,52 @@ pub(crate) fn collect_expected_benchmark_result_rows(
                     row.tool_id
                 )
             })?;
-        rows.push(build_fastq_expected_result_row(
-            &row.stage_id,
-            &row.tool_id,
-            &readiness_kind,
-            &corpus_family_id,
-            &fixture_id,
-            &fixture_sample_scopes,
-            contract_row,
-        )?);
+        match row.assignment_status {
+            FastqCorpusAssignmentStatus::Assigned => {
+                let fixture_id = row.fixture_id.clone().ok_or_else(|| {
+                    anyhow!(
+                        "FASTQ benchmark-ready row `{}` / `{}` is missing fixture_id",
+                        row.stage_id,
+                        row.tool_id
+                    )
+                })?;
+                let corpus_family_id = row.corpus_family_id.clone().ok_or_else(|| {
+                    anyhow!(
+                        "FASTQ benchmark-ready row `{}` / `{}` is missing corpus_family_id",
+                        row.stage_id,
+                        row.tool_id
+                    )
+                })?;
+                rows.push(build_fastq_expected_result_row(
+                    &row.stage_id,
+                    &row.tool_id,
+                    &readiness_kind,
+                    &corpus_family_id,
+                    &fixture_id,
+                    &fixture_sample_scopes,
+                    contract_row,
+                )?);
+            }
+            FastqCorpusAssignmentStatus::AssetBacked => {
+                let benchmark_scope_id = row.benchmark_scope_id.clone().ok_or_else(|| {
+                    anyhow!(
+                        "FASTQ asset-backed row `{}` / `{}` is missing benchmark_scope_id",
+                        row.stage_id,
+                        row.tool_id
+                    )
+                })?;
+                rows.push(build_fastq_asset_backed_expected_result_row(
+                    &row.stage_id,
+                    &row.tool_id,
+                    &readiness_kind,
+                    &benchmark_scope_id,
+                    contract_row,
+                )?);
+            }
+            FastqCorpusAssignmentStatus::Excluded => unreachable!(
+                "excluded FASTQ corpus assignment rows are filtered from benchmark-ready expected results"
+            ),
+        }
     }
 
     for row in bam_corpus_rows.into_iter().filter(|row| row.benchmark_status == "benchmark_ready") {
@@ -327,10 +353,54 @@ fn build_bam_expected_result_row(
     })
 }
 
-fn ensure_expected_result_contract(rows: &[ExpectedBenchmarkResultRow]) -> Result<()> {
-    if rows.len() != 116 {
+fn build_fastq_asset_backed_expected_result_row(
+    stage_id: &str,
+    tool_id: &str,
+    readiness_kind: &str,
+    benchmark_scope_id: &str,
+    contract_row: &FastqAdapterOutputContractRow,
+) -> Result<ExpectedBenchmarkResultRow> {
+    if contract_row.output_contract_status != FastqAdapterOutputContractStatus::Complete {
         return Err(anyhow!(
-            "expected benchmark result table must retain exactly 116 benchmark-ready rows, found {}",
+            "FASTQ asset-backed row `{stage_id}` / `{tool_id}` is missing a complete adapter output contract"
+        ));
+    }
+    let sample_scope = "asset-set".to_string();
+    let result_root = result_root_path(benchmark_scope_id, stage_id, &sample_scope, tool_id);
+    let stage_result_manifest_path = format!("{result_root}/stage-result.json");
+    let stdout_path = format!("{result_root}/stdout.log");
+    let stderr_path = format!("{result_root}/stderr.log");
+    let normalized_metrics_output_id = contract_row.normalized_metrics_output_id.clone();
+    let expected_output_artifact_ids = contract_row.execution_expected_output_ids.clone();
+    let raw_output_artifact_ids = contract_row.raw_output_artifact_ids.clone();
+
+    Ok(ExpectedBenchmarkResultRow {
+        result_row_id: result_row_id("fastq", benchmark_scope_id, stage_id, &sample_scope, tool_id),
+        domain: "fastq".to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        readiness_kind: readiness_kind.to_string(),
+        corpus_family_id: "asset_backed".to_string(),
+        fixture_id: benchmark_scope_id.to_string(),
+        sample_scope,
+        expected_output_artifact_ids,
+        raw_output_artifact_ids,
+        normalized_metrics_output_id: normalized_metrics_output_id.clone(),
+        result_root: result_root.clone(),
+        stage_result_manifest_path: stage_result_manifest_path.clone(),
+        stdout_path,
+        stderr_path,
+        reason: format!(
+            "asset-backed benchmark row `{stage_id}` / `{tool_id}` in scope `{benchmark_scope_id}` expects `{stage_result_manifest_path}` with normalized metrics artifact `{}`",
+            normalized_metrics_output_id.unwrap_or_else(|| "not_declared".to_string())
+        ),
+    })
+}
+
+fn ensure_expected_result_contract(rows: &[ExpectedBenchmarkResultRow]) -> Result<()> {
+    if rows.len() != 118 {
+        return Err(anyhow!(
+            "expected benchmark result table must retain exactly 118 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -349,6 +419,15 @@ fn ensure_expected_result_contract(rows: &[ExpectedBenchmarkResultRow]) -> Resul
         "corpus-02-edna-mini",
         "sample-set",
         Some("classification_report_json"),
+    )?;
+    ensure_row(
+        rows,
+        "fastq",
+        "fastq.index_reference",
+        "bowtie2_build",
+        "reference-index-assets",
+        "asset-set",
+        Some("report_json"),
     )?;
     ensure_row(
         rows,
@@ -499,11 +578,21 @@ mod tests {
 
         assert_eq!(report.schema_version, EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_EXPECTED_BENCHMARK_RESULTS_PATH);
-        assert_eq!(report.row_count, 116);
-        assert_eq!(report.stage_count, 49);
-        assert_eq!(report.rows.len(), 116);
-        assert_eq!(report.domain_counts.get("fastq").copied(), Some(67));
+        assert_eq!(report.row_count, 118);
+        assert_eq!(report.stage_count, 50);
+        assert_eq!(report.rows.len(), 118);
+        assert_eq!(report.domain_counts.get("fastq").copied(), Some(69));
         assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
+        assert!(report.rows.iter().any(|row| {
+            row.domain == "fastq"
+                && row.stage_id == "fastq.index_reference"
+                && row.tool_id == "bowtie2_build"
+                && row.fixture_id == "reference-index-assets"
+                && row.sample_scope == "asset-set"
+                && row.normalized_metrics_output_id.as_deref() == Some("report_json")
+                && row.stage_result_manifest_path
+                    == "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/bowtie2_build/stage-result.json"
+        }));
         assert!(report.rows.iter().any(|row| {
             row.domain == "fastq"
                 && row.stage_id == "fastq.screen_taxonomy"

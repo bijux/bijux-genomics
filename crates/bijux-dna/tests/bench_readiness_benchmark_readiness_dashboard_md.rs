@@ -48,15 +48,14 @@ fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_output
 
     assert!(markdown.contains("# FASTQ + BAM Benchmark Readiness Dashboard"));
     assert!(markdown.contains("- Expected pairs: 123"));
-    assert!(markdown.contains("- Ready pairs: 116"));
-    assert!(markdown.contains("- Blocked pairs: 7"));
-    assert!(markdown.contains("| Matrix | attention_required | all governed fastq and bam stage-tool pairs | 123 | 116 | 7 |"));
-    assert!(markdown.contains("| Reports | complete | governed local report surfaces | 5 | 5 | 0 | expected_results=116, stage_sections=51, tool_sections=67, corpus_sections=7 |"));
+    assert!(markdown.contains("- Ready pairs: 118"));
+    assert!(markdown.contains("- Blocked pairs: 5"));
+    assert!(markdown.contains("| Matrix | attention_required | all governed fastq and bam stage-tool pairs | 123 | 118 | 5 |"));
+    assert!(markdown.contains("| Reports | complete | governed local report surfaces | 5 | 5 | 0 | expected_results=118, stage_sections=51, tool_sections=67, corpus_sections=8 |"));
     assert!(markdown.contains(
         "| pair_readiness | benchmarks/readiness/pair-readiness.tsv | 123 stage_tool_pairs |"
     ));
     assert!(markdown.contains("| stage_centric_report | benchmarks/readiness/stage-centric-report.md | 51 stage_sections |"));
-    assert!(markdown.contains("| fastq | fastq.index_reference | bowtie2_build | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | assigned |"));
     assert!(markdown.contains("| fastq | fastq.report_qc | multiqc | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |"));
     assert!(markdown.contains("| fastq | fastq.trim_reads | seqpurge | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |"));
 

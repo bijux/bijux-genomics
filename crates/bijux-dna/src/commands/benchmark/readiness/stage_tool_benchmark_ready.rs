@@ -205,7 +205,11 @@ pub(crate) fn render_stage_tool_benchmark_ready(
         .into_iter()
         .filter(|row| {
             row.benchmark_status == "benchmark_ready"
-                && row.assignment_status == FastqCorpusAssignmentStatus::Assigned
+                && matches!(
+                    row.assignment_status,
+                    FastqCorpusAssignmentStatus::Assigned
+                        | FastqCorpusAssignmentStatus::AssetBacked
+                )
         })
         .map(|row| binding_key("fastq", &row.stage_id, &row.tool_id))
         .chain(
@@ -828,18 +832,18 @@ mod tests {
         assert_eq!(report.schema_version, STAGE_TOOL_BENCHMARK_READY_SCHEMA_VERSION);
         assert!(report.passes_gate);
         assert_eq!(report.expected_pair_count, 123);
-        assert_eq!(report.benchmark_ready_pair_count, 116);
-        assert_eq!(report.excluded_pair_count, 7);
+        assert_eq!(report.benchmark_ready_pair_count, 118);
+        assert_eq!(report.excluded_pair_count, 5);
         assert_eq!(report.failing_pair_count, 0);
-        assert_eq!(report.generated_job_pair_count, 116);
-        assert_eq!(report.expected_result_pair_count, 116);
-        assert_eq!(report.benchmark_ready_stage_count, 49);
+        assert_eq!(report.generated_job_pair_count, 118);
+        assert_eq!(report.expected_result_pair_count, 118);
+        assert_eq!(report.benchmark_ready_stage_count, 50);
         assert_eq!(report.excluded_registry_gap_count, 4);
         assert!(
             report.surface_summaries.iter().any(|surface| {
                 surface.surface_id == "tool_registry"
                     && surface.failing_count == 0
-                    && surface.excluded_count == 5
+                    && surface.excluded_count == 4
             }),
             "tool registry surface must keep excluded registry drift visible without failing the ready slice"
         );
@@ -849,10 +853,9 @@ mod tests {
                 && row.excluded_from_generated_jobs
                 && row.excluded_from_expected_results
         }));
-        assert!(report.excluded_pairs.iter().any(|row| {
-            row.row_id == "fastq:fastq.index_reference:bowtie2_build"
-                && row.readiness_gap == "corpus"
-                && row.registry_status == "registered"
-        }));
+        assert!(
+            report.excluded_pairs.iter().all(|row| !row.row_id.starts_with("fastq:fastq.index_reference:")),
+            "asset-backed index-reference pairs must stay out of the excluded slice once corpus assignments are governed"
+        );
     }
 }

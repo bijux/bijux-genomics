@@ -23,6 +23,7 @@ impl BenchmarkCorpusFamily {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BenchmarkCorpusAssignment {
     Assigned { family: BenchmarkCorpusFamily, rationale: &'static str },
+    AssetBacked { scope_id: &'static str, rationale: &'static str },
     Excluded { reason_code: &'static str, rationale: &'static str },
 }
 
@@ -31,22 +32,32 @@ impl BenchmarkCorpusAssignment {
     pub const fn assigned_family(&self) -> Option<BenchmarkCorpusFamily> {
         match self {
             Self::Assigned { family, .. } => Some(*family),
-            Self::Excluded { .. } => None,
+            Self::AssetBacked { .. } | Self::Excluded { .. } => None,
         }
     }
 
     #[must_use]
     pub const fn exclusion_reason_code(&self) -> Option<&'static str> {
         match self {
-            Self::Assigned { .. } => None,
+            Self::Assigned { .. } | Self::AssetBacked { .. } => None,
             Self::Excluded { reason_code, .. } => Some(reason_code),
+        }
+    }
+
+    #[must_use]
+    pub const fn benchmark_scope_id(&self) -> Option<&'static str> {
+        match self {
+            Self::AssetBacked { scope_id, .. } => Some(scope_id),
+            Self::Assigned { .. } | Self::Excluded { .. } => None,
         }
     }
 
     #[must_use]
     pub const fn rationale(&self) -> &'static str {
         match self {
-            Self::Assigned { rationale, .. } | Self::Excluded { rationale, .. } => rationale,
+            Self::Assigned { rationale, .. }
+            | Self::AssetBacked { rationale, .. }
+            | Self::Excluded { rationale, .. } => rationale,
         }
     }
 }
@@ -58,10 +69,10 @@ pub fn benchmark_corpus_assignment_for_stage_tool(
 ) -> Option<BenchmarkCorpusAssignment> {
     stage_tool_governance_profile(stage_id, tool_id)?;
     Some(match stage_id.as_str() {
-        "fastq.index_reference" => BenchmarkCorpusAssignment::Excluded {
-            reason_code: "reference_index_stage_has_no_read_corpus",
+        "fastq.index_reference" => BenchmarkCorpusAssignment::AssetBacked {
+            scope_id: "reference-index-assets",
             rationale:
-                "Reference indexing prepares a governed reference asset and does not consume corpus reads.",
+                "Reference indexing is benchmarked against a governed reference-asset scope rather than a read corpus because it prepares reusable index artifacts.",
         },
         "fastq.screen_taxonomy" => BenchmarkCorpusAssignment::Assigned {
             family: BenchmarkCorpusFamily::Corpus02,
