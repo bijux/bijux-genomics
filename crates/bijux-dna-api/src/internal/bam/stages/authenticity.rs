@@ -70,6 +70,7 @@ pub fn write_local_authenticity_smoke_report() -> Result<PathBuf> {
 /// # Errors
 /// Returns an error if required damage artifacts are missing or the composed authenticity outputs
 /// cannot be written.
+#[allow(clippy::too_many_lines)]
 pub(crate) fn write_stage_authenticity_artifacts(
     stage_dir: &Path,
     plan: &bijux_dna_stage_contract::StagePlanV1,
@@ -221,6 +222,7 @@ pub(crate) fn write_stage_authenticity_artifacts(
     Ok(summary_path)
 }
 
+#[allow(clippy::too_many_lines)]
 fn materialize_local_authenticity_smoke_case(
     repo_root: &Path,
     case: &bijux_dna_planner_bam::stage_api::LocalAuthenticitySmokeCasePlan,

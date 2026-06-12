@@ -189,8 +189,7 @@ fn summarize_stage_complexity_outputs(
 ) -> Result<bijux_dna_domain_bam::BamComplexitySummaryV1> {
     let complexity_curve_path = stage_dir.join("complexity_curve.tsv");
     let complexity = bijux_dna_domain_bam::metrics::parse_preseq_estimates(&complexity_curve_path)?;
-    let observed_total_reads =
-        complexity.projected_reads.first().map(|(reads, _)| *reads).unwrap_or(0);
+    let observed_total_reads = complexity.projected_reads.first().map_or(0, |(reads, _)| *reads);
     let min_reads = plan.params.get("min_reads").and_then(serde_json::Value::as_u64).unwrap_or(0);
     let insufficient_data_reason = if complexity.projected_reads.is_empty() {
         Some(MISSING_PRESEQ_POINTS_REASON)

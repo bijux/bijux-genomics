@@ -73,7 +73,7 @@ pub fn write_local_qc_pre_smoke_report() -> Result<PathBuf> {
     Ok(report_path)
 }
 
-/// Write a durable `qc_pre.summary.json` artifact beside BAM qc_pre stage outputs.
+/// Write a durable `qc_pre.summary.json` artifact beside BAM `qc_pre` stage outputs.
 ///
 /// # Errors
 /// Returns an error if the stage artifacts cannot be parsed or the summary cannot be written.
@@ -191,6 +191,7 @@ fn summarize_qc_pre_outputs(
     })
 }
 
+#[allow(clippy::cast_precision_loss)]
 fn render_flagstat(summary: &bijux_dna_domain_bam::BamQcPreSummaryV1) -> String {
     let mapped_fraction = if summary.total_reads > 0 {
         format!("{:.2}%", (summary.mapped_reads as f64 / summary.total_reads as f64) * 100.0)
@@ -208,21 +209,22 @@ fn render_flagstat(summary: &bijux_dna_domain_bam::BamQcPreSummaryV1) -> String 
 }
 
 fn render_idxstats(summary: &bijux_dna_domain_bam::BamQcPreSummaryV1) -> String {
-    summary
-        .contig_summary
-        .iter()
-        .map(|contig| {
-            format!(
-                "{contig}\t{length}\t{mapped}\t{unmapped}\n",
-                contig = contig.contig,
-                length = contig.length,
-                mapped = contig.mapped,
-                unmapped = contig.unmapped
-            )
-        })
-        .collect()
+    use std::fmt::Write as _;
+
+    summary.contig_summary.iter().fold(String::new(), |mut rendered, contig| {
+        let _ = writeln!(
+            rendered,
+            "{}\t{}\t{}\t{}",
+            contig.contig,
+            contig.length,
+            contig.mapped,
+            contig.unmapped
+        );
+        rendered
+    })
 }
 
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn render_stats(summary: &bijux_dna_domain_bam::BamQcPreSummaryV1) -> String {
     let mut payload = String::new();
     if summary.mapped_reads > 0 {

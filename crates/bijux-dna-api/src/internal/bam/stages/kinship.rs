@@ -89,7 +89,7 @@ pub(crate) fn write_stage_kinship_artifacts(
     stage_dir: &Path,
     plan: &bijux_dna_stage_contract::StagePlanV1,
 ) -> Result<bijux_dna_domain_bam::BamKinshipSummaryV1> {
-    let input_bam = resolve_bam_input_path(stage_dir, plan)?;
+    let input_bam = resolve_bam_input_path(stage_dir, plan);
     let reference_panel = required_string_param(plan, "reference_panel")?;
     let reference_build = required_string_param(plan, "reference_build")?;
     let population_scope = required_string_param(plan, "population_scope")?;
@@ -258,12 +258,15 @@ fn kinship_tool_report(summary: &bijux_dna_domain_bam::BamKinshipSummaryV1) -> s
 fn render_kinship_segments(
     pairwise_results: &[bijux_dna_domain_bam::BamKinshipPairResultV1],
 ) -> String {
+    use std::fmt::Write as _;
+
     let mut rendered = String::from(
         "sample_a\tsample_b\toverlap_snps\tmatching_sites\tmismatch_sites\tconcordance\tkinship_coefficient\trelationship_label\n",
     );
     for pair in pairwise_results {
-        rendered.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{:.6}\t{:.6}\t{}\n",
+        let _ = writeln!(
+            rendered,
+            "{}\t{}\t{}\t{}\t{}\t{:.6}\t{:.6}\t{}",
             pair.sample_a,
             pair.sample_b,
             pair.overlap_snps,
@@ -272,7 +275,7 @@ fn render_kinship_segments(
             pair.concordance,
             pair.kinship_coefficient,
             pair.relationship_label
-        ));
+        );
     }
     rendered
 }
@@ -281,7 +284,7 @@ fn render_kinship_segments(
 fn resolve_bam_input_path(
     stage_dir: &Path,
     plan: &bijux_dna_stage_contract::StagePlanV1,
-) -> Result<PathBuf> {
+) -> PathBuf {
     let input_bam = plan
         .io
         .inputs
@@ -290,7 +293,7 @@ fn resolve_bam_input_path(
         .map(|artifact| artifact.path.clone())
         .or_else(|| plan.params.get("bam").and_then(serde_json::Value::as_str).map(PathBuf::from))
         .unwrap_or_else(|| stage_dir.join("in.bam"));
-    Ok(resolve_stage_input_path(&input_bam))
+    resolve_stage_input_path(&input_bam)
 }
 
 #[cfg(feature = "bam_downstream")]
@@ -343,8 +346,7 @@ fn resolve_stage_input_path(path: &Path) -> PathBuf {
         path.to_path_buf()
     } else {
         crate::support::workspace::resolve_repo_root()
-            .map(|repo_root| repo_root.join(path))
-            .unwrap_or_else(|_| path.to_path_buf())
+            .map_or_else(|_| path.to_path_buf(), |repo_root| repo_root.join(path))
     }
 }
 

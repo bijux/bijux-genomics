@@ -290,7 +290,9 @@ fn render_depth_lines(input_bam: &Path, regions_bed: &Path) -> Result<String> {
                 region.contig
             ));
         };
-        if region.end as usize > depths.len() {
+        let region_end = usize::try_from(region.end)
+            .map_err(|_| anyhow!("bam.coverage local-smoke region end exceeds platform limits"))?;
+        if region_end > depths.len() {
             return Err(anyhow!(
                 "bam.coverage local-smoke region extends beyond contig `{}` length {}",
                 region.contig,
@@ -298,7 +300,9 @@ fn render_depth_lines(input_bam: &Path, regions_bed: &Path) -> Result<String> {
             ));
         }
         for pos in region.start..=region.end {
-            let depth = depths[pos.saturating_sub(1) as usize];
+            let depth_index = usize::try_from(pos.saturating_sub(1))
+                .map_err(|_| anyhow!("bam.coverage local-smoke position exceeds platform limits"))?;
+            let depth = depths[depth_index];
             let _ = writeln!(body, "{}\t{}\t{}", region.contig, pos, depth);
         }
     }
@@ -380,6 +384,7 @@ fn parse_tiny_depth_regions(path: &Path) -> Result<Vec<TinyDepthRegion>> {
     Ok(regions)
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn build_coverage_vectors(
     reference_lengths: &HashMap<String, u64>,
     records: &[TinySamDepthRecord],

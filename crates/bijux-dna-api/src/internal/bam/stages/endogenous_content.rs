@@ -216,6 +216,7 @@ fn parse_flagstat_counts(path: &Path) -> Result<(u64, u64)> {
     Ok((total_reads, mapped_reads))
 }
 
+#[allow(clippy::cast_precision_loss)]
 fn render_flagstat(total_reads: u64, mapped_reads: u64) -> String {
     format!(
         "{total_reads} + 0 in total (QC-passed reads + QC-failed reads)\n{mapped_reads} + 0 mapped ({fraction:.2}% : N/A)\n",

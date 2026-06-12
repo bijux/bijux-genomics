@@ -62,6 +62,7 @@ pub fn write_local_markdup_smoke_report() -> Result<PathBuf> {
     Ok(report_path)
 }
 
+#[allow(clippy::too_many_lines)]
 fn materialize_local_markdup_smoke_case(
     repo_root: &Path,
     case: &bijux_dna_planner_bam::stage_api::LocalMarkdupSmokeCasePlan,
@@ -112,8 +113,8 @@ fn materialize_local_markdup_smoke_case(
     summary.output_bam = relative_path(repo_root, &summary.output_bam);
 
     let mut policy = policy;
-    policy.optical_duplicates = optical_duplicates.clone();
-    policy.umi_policy = umi_policy.clone();
+    policy.optical_duplicates.clone_from(&optical_duplicates);
+    policy.umi_policy.clone_from(&umi_policy);
 
     let comparison_path = case_out_dir.join("markdup.comparison.json");
     let policy_path = case_out_dir.join("markdup.policy.json");
@@ -173,9 +174,12 @@ fn materialize_local_markdup_smoke_case(
     bijux_dna_infra::atomic_write_bytes(&marked_bai_path, b"tiny-index\n")?;
 
     let top_level_marked_bam = output_root.join("marked.bam");
-    let top_level_marked_bai = output_root.join("marked.bam.bai");
+    let top_level_marked_index = output_root.join("marked.bam.bai");
     bijux_dna_infra::atomic_write_bytes(&top_level_marked_bam, &std::fs::read(&marked_bam_path)?)?;
-    bijux_dna_infra::atomic_write_bytes(&top_level_marked_bai, &std::fs::read(&marked_bai_path)?)?;
+    bijux_dna_infra::atomic_write_bytes(
+        &top_level_marked_index,
+        &std::fs::read(&marked_bai_path)?,
+    )?;
 
     Ok(LocalMarkdupSmokeReport {
         schema_version: LOCAL_MARKDUP_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
@@ -184,7 +188,7 @@ fn materialize_local_markdup_smoke_case(
         expectation_matched,
         input_bam: path_relative_to_repo(repo_root, &input_bam),
         marked_bam: path_relative_to_repo(repo_root, &top_level_marked_bam),
-        marked_bai: path_relative_to_repo(repo_root, &top_level_marked_bai),
+        marked_bai: path_relative_to_repo(repo_root, &top_level_marked_index),
         duplicate_metrics: path_relative_to_repo(repo_root, &summary_path),
         duplicate_action,
         input_reads: summary.input_reads,
@@ -206,6 +210,7 @@ fn materialize_local_markdup_smoke_case(
     })
 }
 
+#[allow(clippy::cast_precision_loss)]
 fn flagstat_from_qc_pre(
     summary: &bijux_dna_domain_bam::BamQcPreSummaryV1,
 ) -> bijux_dna_domain_bam::BamFlagstatCountsV1 {
@@ -226,10 +231,10 @@ fn render_flagstat(flagstat: &bijux_dna_domain_bam::BamFlagstatCountsV1) -> Stri
     let total_reads = flagstat.total_reads.unwrap_or(0);
     let mapped_reads = flagstat.mapped_reads.unwrap_or(0);
     let duplicate_reads = flagstat.duplicate_reads.unwrap_or(0);
-    let mapped_fraction = flagstat
-        .mapped_fraction
-        .map(|fraction| format!("{:.2}%", fraction * 100.0))
-        .unwrap_or_else(|| "N/A".to_string());
+    let mapped_fraction = flagstat.mapped_fraction.map_or_else(
+        || "N/A".to_string(),
+        |fraction| format!("{fraction:.2}%", fraction = fraction * 100.0),
+    );
     format!(
         "{total_reads} + 0 in total (QC-passed reads + QC-failed reads)\n\
 {mapped_reads} + 0 mapped ({mapped_fraction} : N/A)\n\
@@ -238,19 +243,19 @@ fn render_flagstat(flagstat: &bijux_dna_domain_bam::BamFlagstatCountsV1) -> Stri
 }
 
 fn render_idxstats(summary: &bijux_dna_domain_bam::BamQcPreSummaryV1) -> String {
-    summary
-        .contig_summary
-        .iter()
-        .map(|contig| {
-            format!(
-                "{contig}\t{length}\t{mapped}\t{unmapped}\n",
-                contig = contig.contig,
-                length = contig.length,
-                mapped = contig.mapped,
-                unmapped = contig.unmapped
-            )
-        })
-        .collect()
+    use std::fmt::Write as _;
+
+    summary.contig_summary.iter().fold(String::new(), |mut rendered, contig| {
+        let _ = writeln!(
+            rendered,
+            "{}\t{}\t{}\t{}",
+            contig.contig,
+            contig.length,
+            contig.mapped,
+            contig.unmapped
+        );
+        rendered
+    })
 }
 
 fn resolve_output_path(

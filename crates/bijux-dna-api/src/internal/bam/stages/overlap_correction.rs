@@ -95,6 +95,7 @@ pub(crate) fn write_stage_overlap_correction_summary(
     Ok(path)
 }
 
+#[allow(clippy::too_many_lines)]
 fn materialize_local_overlap_correction_smoke_case(
     repo_root: &Path,
     case: &bijux_dna_planner_bam::stage_api::LocalOverlapCorrectionSmokeCasePlan,
@@ -187,13 +188,13 @@ fn materialize_local_overlap_correction_smoke_case(
     )?;
 
     let top_level_corrected_bam = output_root.join("overlap_corrected.bam");
-    let top_level_corrected_bai = output_root.join("overlap_corrected.bam.bai");
+    let top_level_corrected_index = output_root.join("overlap_corrected.bam.bai");
     bijux_dna_infra::atomic_write_bytes(
         &top_level_corrected_bam,
         &std::fs::read(&corrected_bam_path)?,
     )?;
     bijux_dna_infra::atomic_write_bytes(
-        &top_level_corrected_bai,
+        &top_level_corrected_index,
         &std::fs::read(&corrected_bai_path)?,
     )?;
 
@@ -233,8 +234,8 @@ fn summarize_stage_overlap_correction_outputs(
         return Ok(summary);
     }
 
-    let flagstat_before = parse_flagstat(stage_dir.join("flagstat.before.txt"))?;
-    let flagstat_after = parse_flagstat(stage_dir.join("flagstat.after.txt"))?;
+    let flagstat_before = parse_flagstat(&stage_dir.join("flagstat.before.txt"))?;
+    let flagstat_after = parse_flagstat(&stage_dir.join("flagstat.after.txt"))?;
     Ok(bijux_dna_domain_bam::summarize_bam_overlap_correction(
         OVERLAP_CORRECTION_STAGE_ID,
         method,
@@ -249,8 +250,9 @@ fn summarize_stage_overlap_correction_outputs(
     ))
 }
 
-fn parse_flagstat(path: PathBuf) -> Result<bijux_dna_domain_bam::BamFlagstatCountsV1> {
-    let parsed = bijux_dna_domain_bam::metrics::parse_samtools_flagstat(&path)
+#[allow(clippy::cast_precision_loss)]
+fn parse_flagstat(path: &Path) -> Result<bijux_dna_domain_bam::BamFlagstatCountsV1> {
+    let parsed = bijux_dna_domain_bam::metrics::parse_samtools_flagstat(path)
         .with_context(|| format!("parse {}", path.display()))?;
     let mapped_fraction =
         if parsed.total > 0 { Some(parsed.mapped as f64 / parsed.total as f64) } else { None };
@@ -266,10 +268,10 @@ fn render_flagstat(flagstat: &bijux_dna_domain_bam::BamFlagstatCountsV1) -> Stri
     let total_reads = flagstat.total_reads.unwrap_or(0);
     let mapped_reads = flagstat.mapped_reads.unwrap_or(0);
     let duplicate_reads = flagstat.duplicate_reads.unwrap_or(0);
-    let mapped_fraction = flagstat
-        .mapped_fraction
-        .map(|fraction| format!("{:.2}%", fraction * 100.0))
-        .unwrap_or_else(|| "N/A".to_string());
+    let mapped_fraction = flagstat.mapped_fraction.map_or_else(
+        || "N/A".to_string(),
+        |fraction| format!("{fraction:.2}%", fraction = fraction * 100.0),
+    );
     format!(
         "{total_reads} + 0 in total (QC-passed reads + QC-failed reads)\n\
 {mapped_reads} + 0 mapped ({mapped_fraction} : N/A)\n\
@@ -278,19 +280,19 @@ fn render_flagstat(flagstat: &bijux_dna_domain_bam::BamFlagstatCountsV1) -> Stri
 }
 
 fn render_idxstats(summary: &bijux_dna_domain_bam::BamQcPreSummaryV1) -> String {
-    summary
-        .contig_summary
-        .iter()
-        .map(|contig| {
-            format!(
-                "{contig}\t{length}\t{mapped}\t{unmapped}\n",
-                contig = contig.contig,
-                length = contig.length,
-                mapped = contig.mapped,
-                unmapped = contig.unmapped
-            )
-        })
-        .collect()
+    use std::fmt::Write as _;
+
+    summary.contig_summary.iter().fold(String::new(), |mut rendered, contig| {
+        let _ = writeln!(
+            rendered,
+            "{}\t{}\t{}\t{}",
+            contig.contig,
+            contig.length,
+            contig.mapped,
+            contig.unmapped
+        );
+        rendered
+    })
 }
 
 fn resolve_output_path(

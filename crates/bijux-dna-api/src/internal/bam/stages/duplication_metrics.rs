@@ -286,6 +286,11 @@ fn observed_duplication_metrics(report: &Value) -> Result<ObservedDuplicationMet
     })
 }
 
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss
+)]
 fn infer_examined_reads(duplicate_reads: u64, duplicate_fraction: Option<f64>) -> Result<u64> {
     match duplicate_fraction {
         Some(fraction) if fraction > 0.0 => {
@@ -310,6 +315,7 @@ fn infer_examined_reads(duplicate_reads: u64, duplicate_fraction: Option<f64>) -
     }
 }
 
+#[allow(clippy::cast_precision_loss)]
 fn fraction_from_counts(examined_reads: u64, duplicate_reads: u64) -> f64 {
     if examined_reads == 0 {
         0.0
@@ -322,6 +328,7 @@ fn json_string(value: Option<&Value>) -> Option<String> {
     value.and_then(Value::as_str).map(ToOwned::to_owned)
 }
 
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn json_u64(value: Option<&Value>) -> Option<u64> {
     match value {
         Some(Value::Number(number)) => number.as_u64(),

@@ -192,7 +192,7 @@ MEDIAN_INSERT_SIZE\tMODE_INSERT_SIZE\tMEDIAN_ABSOLUTE_DEVIATION\tMIN_INSERT_SIZE
 insert_size\tAll_Reads.fr_count\n\
 {histogram_insert_size}\t{pairs}\n",
         median = summary.median_insert_size.unwrap_or(0.0),
-        mode = summary.median_insert_size.unwrap_or(0.0).round() as u64,
+        mode = summary.median_insert_size.map_or(0, rounded_insert_size),
         mad = summary.median_absolute_deviation.unwrap_or(0.0),
         min = summary.min_insert_size.unwrap_or(0),
         max = summary.max_insert_size.unwrap_or(0),
@@ -200,11 +200,13 @@ insert_size\tAll_Reads.fr_count\n\
         stddev = summary.standard_deviation.unwrap_or(0.0),
         pairs = summary.read_pairs,
         orientation = orientation,
-        histogram_insert_size = summary
-            .median_insert_size
-            .map(|value| value.round() as u64)
-            .unwrap_or(0),
+        histogram_insert_size = summary.median_insert_size.map_or(0, rounded_insert_size),
     )
+}
+
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+fn rounded_insert_size(value: f64) -> u64 {
+    value.round().max(0.0) as u64
 }
 
 fn float_matches(left: Option<f64>, right: Option<f64>) -> bool {

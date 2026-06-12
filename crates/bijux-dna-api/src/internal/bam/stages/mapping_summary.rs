@@ -162,6 +162,7 @@ fn materialize_local_mapping_summary_smoke_case(
     })
 }
 
+#[allow(clippy::cast_precision_loss)]
 fn derived_mapping_fraction(total_reads: u64, mapped_reads: u64) -> f64 {
     if total_reads == 0 {
         0.0
@@ -183,19 +184,19 @@ fn render_flagstat(total_reads: u64, mapped_reads: u64) -> String {
 }
 
 fn render_idxstats(summary: &bijux_dna_domain_bam::BamQcPreSummaryV1) -> String {
-    summary
-        .contig_summary
-        .iter()
-        .map(|contig| {
-            format!(
-                "{contig}\t{length}\t{mapped}\t{unmapped}\n",
-                contig = contig.contig,
-                length = contig.length,
-                mapped = contig.mapped,
-                unmapped = contig.unmapped
-            )
-        })
-        .collect()
+    use std::fmt::Write as _;
+
+    summary.contig_summary.iter().fold(String::new(), |mut rendered, contig| {
+        let _ = writeln!(
+            rendered,
+            "{}\t{}\t{}\t{}",
+            contig.contig,
+            contig.length,
+            contig.mapped,
+            contig.unmapped
+        );
+        rendered
+    })
 }
 
 fn render_stats(

@@ -118,6 +118,7 @@ struct LocalGcBiasSmokeRow {
     stage_metrics: String,
 }
 
+#[allow(clippy::too_many_lines)]
 fn materialize_local_gc_bias_smoke_case(
     repo_root: &Path,
     case: &bijux_dna_planner_bam::stage_api::LocalGcBiasSmokeCasePlan,

@@ -126,13 +126,13 @@ fn materialize_local_length_filter_smoke_case(
     bijux_dna_infra::atomic_write_bytes(&filtered_bai_path, b"tiny-index\n")?;
 
     let top_level_filtered_bam = output_root.join("length_filtered.bam");
-    let top_level_filtered_bai = output_root.join("length_filtered.bam.bai");
+    let top_level_filtered_index = output_root.join("length_filtered.bam.bai");
     bijux_dna_infra::atomic_write_bytes(
         &top_level_filtered_bam,
         &std::fs::read(&filtered_bam_path)?,
     )?;
     bijux_dna_infra::atomic_write_bytes(
-        &top_level_filtered_bai,
+        &top_level_filtered_index,
         &std::fs::read(&filtered_bai_path)?,
     )?;
 
@@ -143,7 +143,7 @@ fn materialize_local_length_filter_smoke_case(
         expectation_matched,
         input_bam: path_relative_to_repo(repo_root, &input_bam),
         filtered_bam: path_relative_to_repo(repo_root, &top_level_filtered_bam),
-        filtered_bai: path_relative_to_repo(repo_root, &top_level_filtered_bai),
+        filtered_bai: path_relative_to_repo(repo_root, &top_level_filtered_index),
         min_length_threshold: summary.min_length_threshold,
         input_reads: summary.input_reads,
         kept_reads: summary.kept_reads,
@@ -163,10 +163,10 @@ fn render_flagstat(flagstat: &bijux_dna_domain_bam::BamFlagstatCountsV1) -> Stri
     let total_reads = flagstat.total_reads.unwrap_or(0);
     let mapped_reads = flagstat.mapped_reads.unwrap_or(0);
     let duplicate_reads = flagstat.duplicate_reads.unwrap_or(0);
-    let mapped_fraction = flagstat
-        .mapped_fraction
-        .map(|fraction| format!("{:.2}%", fraction * 100.0))
-        .unwrap_or_else(|| "N/A".to_string());
+    let mapped_fraction = flagstat.mapped_fraction.map_or_else(
+        || "N/A".to_string(),
+        |fraction| format!("{fraction:.2}%", fraction = fraction * 100.0),
+    );
     format!(
         "{total_reads} + 0 in total (QC-passed reads + QC-failed reads)\n\
 {mapped_reads} + 0 mapped ({mapped_fraction} : N/A)\n\
@@ -175,19 +175,19 @@ fn render_flagstat(flagstat: &bijux_dna_domain_bam::BamFlagstatCountsV1) -> Stri
 }
 
 fn render_idxstats(summary: &bijux_dna_domain_bam::BamQcPreSummaryV1) -> String {
-    summary
-        .contig_summary
-        .iter()
-        .map(|contig| {
-            format!(
-                "{contig}\t{length}\t{mapped}\t{unmapped}\n",
-                contig = contig.contig,
-                length = contig.length,
-                mapped = contig.mapped,
-                unmapped = contig.unmapped
-            )
-        })
-        .collect()
+    use std::fmt::Write as _;
+
+    summary.contig_summary.iter().fold(String::new(), |mut rendered, contig| {
+        let _ = writeln!(
+            rendered,
+            "{}\t{}\t{}\t{}",
+            contig.contig,
+            contig.length,
+            contig.mapped,
+            contig.unmapped
+        );
+        rendered
+    })
 }
 
 fn resolve_output_path(

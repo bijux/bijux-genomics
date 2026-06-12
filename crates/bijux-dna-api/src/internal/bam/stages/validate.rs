@@ -218,10 +218,10 @@ fn render_flagstat(flagstat: &bijux_dna_domain_bam::BamFlagstatCountsV1) -> Stri
     let total_reads = flagstat.total_reads.unwrap_or(0);
     let mapped_reads = flagstat.mapped_reads.unwrap_or(0);
     let duplicate_reads = flagstat.duplicate_reads.unwrap_or(0);
-    let mapped_fraction = flagstat
-        .mapped_fraction
-        .map(|value| format!("{:.2}%", value * 100.0))
-        .unwrap_or_else(|| "N/A".to_string());
+    let mapped_fraction = flagstat.mapped_fraction.map_or_else(
+        || "N/A".to_string(),
+        |value| format!("{value:.2}%", value = value * 100.0),
+    );
     format!(
         "{total_reads} + 0 in total (QC-passed reads + QC-failed reads)\n\
 {mapped_reads} + 0 mapped ({mapped_fraction} : N/A)\n\
