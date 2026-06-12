@@ -167,12 +167,33 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
         "population-structure upstream metadata manifest",
     )?;
 
-    let output_root =
+    let published_output_root =
         repo_root.join(DEFAULT_VCF_POPULATION_STRUCTURE_SMOKE_ROOT).join(&contract.tool_id);
-    if output_root.exists() {
-        fs::remove_dir_all(&output_root)
-            .with_context(|| format!("remove {}", output_root.display()))?;
-    }
+    let staging_parent = published_output_root.parent().ok_or_else(|| {
+        anyhow!(
+            "VCF population-structure smoke root has no parent: {}",
+            published_output_root.display()
+        )
+    })?;
+    let staging_dir = bijux_dna_infra::temp_dir_in(
+        staging_parent,
+        &format!("{}-staging-", contract.tool_id),
+    )
+    .with_context(|| format!("create staging directory in {}", staging_parent.display()))?;
+    let output_root = staging_dir.path().to_path_buf();
+    let published_population_structure_json_path =
+        published_output_root.join(DEFAULT_OUTPUT_REPORT_NAME);
+    let published_source_population_structure_path =
+        published_output_root.join(DEFAULT_OUTPUT_SOURCE_STAGE_REPORT_NAME);
+    let published_source_pruned_variants_path =
+        published_output_root.join(DEFAULT_OUTPUT_SOURCE_PRUNED_VARIANTS_NAME);
+    let published_source_logs_path = published_output_root.join(DEFAULT_OUTPUT_SOURCE_LOGS_NAME);
+    let published_source_pca_report_path =
+        published_output_root.join(DEFAULT_OUTPUT_SOURCE_PCA_REPORT_NAME);
+    let published_source_admixture_report_path =
+        published_output_root.join(DEFAULT_OUTPUT_SOURCE_ADMIXTURE_REPORT_NAME);
+    let published_stage_result_manifest_path =
+        published_output_root.join(DEFAULT_STAGE_RESULT_NAME);
     let artifacts_root = output_root.join("artifacts");
     let stage_root = artifacts_root.join("stage");
     fs::create_dir_all(&stage_root).with_context(|| format!("create {}", stage_root.display()))?;
@@ -253,11 +274,14 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
     let consumed_admixture_json = read_json(&source_admixture_report_path)?;
     let source_population_structure_json = read_json(&source_population_structure_path)?;
 
-    let consumed_pca =
-        summarize_consumed_pca(repo_root, &source_pca_report_path, &consumed_pca_json)?;
+    let consumed_pca = summarize_consumed_pca(
+        repo_root,
+        &published_source_pca_report_path,
+        &consumed_pca_json,
+    )?;
     let consumed_admixture = summarize_consumed_admixture(
         repo_root,
-        &source_admixture_report_path,
+        &published_source_admixture_report_path,
         &consumed_admixture_json,
     )?;
     let pca_rows = parse_pca_rows(&consumed_pca_json)?;
@@ -285,23 +309,29 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
         tool_id: contract.tool_id.clone(),
         corpus_id: contract.corpus_id.clone(),
         input_fixture_id: contract.input_fixture_id.clone(),
-        output_root: path_relative_to_repo(repo_root, &output_root),
+        output_root: path_relative_to_repo(repo_root, &published_output_root),
         population_structure_json_path: path_relative_to_repo(
             repo_root,
-            &population_structure_json_path,
+            &published_population_structure_json_path,
         ),
         source_population_structure_path: path_relative_to_repo(
             repo_root,
-            &source_population_structure_path,
+            &published_source_population_structure_path,
         ),
-        source_pruned_variants_path: path_relative_to_repo(repo_root, &source_pruned_variants_path),
-        source_logs_path: path_relative_to_repo(repo_root, &source_logs_path),
-        source_pca_report_path: path_relative_to_repo(repo_root, &source_pca_report_path),
+        source_pruned_variants_path: path_relative_to_repo(
+            repo_root,
+            &published_source_pruned_variants_path,
+        ),
+        source_logs_path: path_relative_to_repo(repo_root, &published_source_logs_path),
+        source_pca_report_path: path_relative_to_repo(repo_root, &published_source_pca_report_path),
         source_admixture_report_path: path_relative_to_repo(
             repo_root,
-            &source_admixture_report_path,
+            &published_source_admixture_report_path,
         ),
-        stage_result_manifest_path: path_relative_to_repo(repo_root, &stage_result_manifest_path),
+        stage_result_manifest_path: path_relative_to_repo(
+            repo_root,
+            &published_stage_result_manifest_path,
+        ),
         started_at: started_at.clone(),
         finished_at: finished_at.clone(),
         elapsed_seconds,
@@ -312,8 +342,6 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
         distance_summary,
         status,
     };
-    bijux_dna_infra::atomic_write_json(&population_structure_json_path, &report)?;
-
     let stage_result_manifest = BenchStageResultManifestV1 {
         schema_version: BENCH_STAGE_RESULT_SCHEMA_VERSION.to_string(),
         stage_id: contract.stage_id.clone(),
@@ -336,7 +364,10 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "population_structure_json".to_string(),
                 declared_path: DEFAULT_OUTPUT_REPORT_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &population_structure_json_path),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_population_structure_json_path,
+                ),
                 role: "report_output".to_string(),
                 optional: false,
                 exists: true,
@@ -344,7 +375,10 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "source_population_structure_json".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_STAGE_REPORT_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &source_population_structure_path),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_source_population_structure_path,
+                ),
                 role: "report_output".to_string(),
                 optional: false,
                 exists: true,
@@ -352,7 +386,10 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "source_pruned_variants_tsv".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_PRUNED_VARIANTS_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &source_pruned_variants_path),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_source_pruned_variants_path,
+                ),
                 role: "table_output".to_string(),
                 optional: false,
                 exists: true,
@@ -360,7 +397,7 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "source_logs_txt".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &source_logs_path),
+                realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
                 role: "log_output".to_string(),
                 optional: false,
                 exists: true,
@@ -368,7 +405,10 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "source_pca_report_json".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_PCA_REPORT_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &source_pca_report_path),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_source_pca_report_path,
+                ),
                 role: "report_output".to_string(),
                 optional: false,
                 exists: true,
@@ -376,7 +416,10 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "source_admixture_report_json".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_ADMIXTURE_REPORT_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &source_admixture_report_path),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_source_admixture_report_path,
+                ),
                 role: "report_output".to_string(),
                 optional: false,
                 exists: true,
@@ -385,6 +428,20 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
     };
     validate_stage_result_manifest(&stage_result_manifest)?;
     bijux_dna_infra::atomic_write_json(&stage_result_manifest_path, &stage_result_manifest)?;
+    bijux_dna_infra::atomic_write_json(&population_structure_json_path, &report)?;
+
+    if published_output_root.exists() {
+        fs::remove_dir_all(&published_output_root)
+            .with_context(|| format!("remove {}", published_output_root.display()))?;
+    }
+    fs::rename(&output_root, &published_output_root).with_context(|| {
+        format!(
+            "publish {} to {}",
+            output_root.display(),
+            published_output_root.display()
+        )
+    })?;
+    let _ = staging_dir.keep();
 
     Ok(report)
 }
