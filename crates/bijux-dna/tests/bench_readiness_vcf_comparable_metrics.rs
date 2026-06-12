@@ -51,10 +51,10 @@ fn bench_readiness_vcf_comparable_metrics_reports_governed_metric_rows() {
         payload.get("retained_tool_row_count").and_then(serde_json::Value::as_u64),
         Some(31)
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(33));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(35));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 33);
+    assert_eq!(rows.len(), 35);
 
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.call_gl")
@@ -118,5 +118,25 @@ fn bench_readiness_vcf_comparable_metrics_reports_governed_metric_rows() {
                         serde_json::Value::String("minimac4".to_string()),
                     ]
             })
+    }));
+
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str)
+            == Some("vcf.imputation_metrics")
+            && row.get("metric_id").and_then(serde_json::Value::as_str) == Some("concordance")
+            && row.get("unit").and_then(serde_json::Value::as_str) == Some("fraction")
+            && row.get("direction").and_then(serde_json::Value::as_str)
+                == Some("higher_is_better")
+            && row.get("required").and_then(serde_json::Value::as_bool) == Some(true)
+    }));
+
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str)
+            == Some("vcf.imputation_metrics")
+            && row.get("metric_id").and_then(serde_json::Value::as_str) == Some("dosage_r2")
+            && row.get("unit").and_then(serde_json::Value::as_str) == Some("score")
+            && row.get("direction").and_then(serde_json::Value::as_str)
+                == Some("higher_is_better")
+            && row.get("required").and_then(serde_json::Value::as_bool) == Some(false)
     }));
 }

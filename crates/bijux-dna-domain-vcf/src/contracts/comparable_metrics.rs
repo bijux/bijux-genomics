@@ -285,6 +285,14 @@ const IMPUTE_COMPARABLE_METRICS: &[VcfComparableMetricSpec] = &[
 const IMPUTATION_COMPARABLE_METRICS: &[VcfComparableMetricSpec] = &[
     VcfComparableMetricSpec {
         stage: VcfDomainStage::ImputationMetrics,
+        metric_id: "concordance",
+        metric_name: "concordance",
+        unit: "fraction",
+        direction: VcfComparableMetricDirection::HigherIsBetter,
+        required: true,
+    },
+    VcfComparableMetricSpec {
+        stage: VcfDomainStage::ImputationMetrics,
         metric_id: "mean_info_score",
         metric_name: "mean info score",
         unit: "score",
@@ -306,6 +314,14 @@ const IMPUTATION_COMPARABLE_METRICS: &[VcfComparableMetricSpec] = &[
         unit: "sites",
         direction: VcfComparableMetricDirection::ExactMatchPreferred,
         required: true,
+    },
+    VcfComparableMetricSpec {
+        stage: VcfDomainStage::ImputationMetrics,
+        metric_id: "dosage_r2",
+        metric_name: "dosage r-squared",
+        unit: "score",
+        direction: VcfComparableMetricDirection::HigherIsBetter,
+        required: false,
     },
 ];
 

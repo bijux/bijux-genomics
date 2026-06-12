@@ -13,6 +13,8 @@ vcf.gl_propagation	sample_count	sample count	samples	exact_match_preferred	true	
 vcf.gl_propagation	site_count_after	site count after propagation	sites	exact_match_preferred	true	angsd,bcftools
 vcf.gl_propagation	site_count_before	site count before propagation	sites	exact_match_preferred	true	angsd,bcftools
 vcf.ibd	pair_count	pair count	pairs	exact_match_preferred	true	germline,ibdhap,ibdseq
+vcf.imputation_metrics	concordance	concordance	fraction	higher_is_better	true	beagle,glimpse,impute5,minimac4
+vcf.imputation_metrics	dosage_r2	dosage r-squared	score	higher_is_better	false	beagle,glimpse,impute5,minimac4
 vcf.imputation_metrics	low_confidence_sites	low-confidence sites	sites	lower_is_better	true	beagle,glimpse,impute5,minimac4
 vcf.imputation_metrics	masked_truth_sites	masked-truth sites	sites	exact_match_preferred	true	beagle,glimpse,impute5,minimac4
 vcf.imputation_metrics	mean_info_score	mean info score	score	higher_is_better	true	beagle,glimpse,impute5,minimac4
