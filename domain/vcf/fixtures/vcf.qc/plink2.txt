@@ -2,7 +2,6 @@ tool=plink2
 tool_version=pinned
 stage=vcf.qc
 domain=vcf
-shipping=external
 fixture_kind=truth
 command=plink2
 args=--vcf cohort.vcf.gz --double-id --allow-extra-chr --missing --freq --het --hardy --out qc

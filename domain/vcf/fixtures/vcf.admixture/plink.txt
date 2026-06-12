@@ -2,7 +2,6 @@ tool=plink
 tool_version=pinned
 stage=vcf.admixture
 domain=vcf
-shipping=external
 fixture_kind=truth
 command=plink
 args=--vcf cohort.vcf.gz --double-id --allow-extra-chr --missing --freq --make-bed --out admixture
