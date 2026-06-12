@@ -45,6 +45,10 @@ fn parse_extract_umis_report_round_trips_governed_payload() -> Result<()> {
     assert_eq!(parsed.tool_id, "umi_tools");
     assert_eq!(parsed.umi_pattern, "NNNNNNNN");
     assert_eq!(parsed.reads_with_umi, 200);
+    let umi_summary = parsed.canonical_umi_summary();
+    assert_eq!(umi_summary.tag_header_format, "append_to_header");
+    assert_eq!(umi_summary.extracted_umi_count, 200);
+    assert_eq!(umi_summary.invalid_umi_count, 0);
     Ok(())
 }
 

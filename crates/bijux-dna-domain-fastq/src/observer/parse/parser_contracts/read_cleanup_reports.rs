@@ -1,4 +1,41 @@
 use super::*;
+use crate::observer::parse_merge_pairs_report;
+
+#[test]
+fn parse_merge_pairs_report_parses_canonical_pair_counts() -> Result<()> {
+    let parsed = parse_merge_pairs_report(
+        &serde_json::json!({
+            "schema_version": "bijux.fastq.merge_pairs.report.v2",
+            "stage": "fastq.merge_pairs",
+            "stage_id": "fastq.merge_pairs",
+            "tool_id": "pear",
+            "paired_mode": "paired_end",
+            "merge_engine": "pear",
+            "threads": 4,
+            "merge_overlap": 20,
+            "min_len": 80,
+            "unmerged_read_policy": "emit_unmerged_pairs",
+            "input_r1": "reads_R1.fastq.gz",
+            "input_r2": "reads_R2.fastq.gz",
+            "merged_reads": "merged.fastq.gz",
+            "unmerged_reads_r1": "unmerged_R1.fastq.gz",
+            "unmerged_reads_r2": "unmerged_R2.fastq.gz",
+            "reads_r1": 100,
+            "reads_r2": 96,
+            "reads_merged": 88,
+            "reads_unmerged": 6,
+            "merge_rate": 0.9166666667
+        })
+        .to_string(),
+    )?;
+    let pair_counts = parsed.canonical_pair_counts();
+    assert_eq!(parsed.tool_id, "pear");
+    assert_eq!(pair_counts.input_pair_count, 96);
+    assert_eq!(pair_counts.merged_pair_count, 88);
+    assert_eq!(pair_counts.unmerged_pair_count, 6);
+    assert_eq!(pair_counts.discarded_pair_count, 2);
+    Ok(())
+}
 
 #[test]
 fn parse_detect_duplicates_premerge_report_parses_governed_json() -> Result<()> {
