@@ -260,10 +260,8 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     let index_reference = rows
         .iter()
         .find(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("fastq.index_reference")
-                && row.get("tool_id").and_then(serde_json::Value::as_str)
-                    == Some("bowtie2_build")
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.index_reference")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2_build")
         })
         .expect("fastq index_reference bowtie2_build row");
     assert_eq!(

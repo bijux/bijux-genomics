@@ -13,8 +13,8 @@ use crate::commands::benchmark::local_vcf_stage_catalog::{
     build_vcf_stage_catalog_rows, VcfStageCatalogRow,
 };
 use crate::commands::benchmark::local_vcf_stage_matrix::VcfStageMatrixRow;
-use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::benchmark::readiness::vcf_readiness_inputs::load_governed_vcf_fixture_inputs;
+use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 

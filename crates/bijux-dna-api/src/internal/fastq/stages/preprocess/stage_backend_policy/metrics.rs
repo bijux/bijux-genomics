@@ -1570,7 +1570,8 @@ mod tests {
             },
             PairedMode,
         },
-        ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
+        ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1,
+        SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
     };
 
     #[test]
@@ -1618,7 +1619,10 @@ mod tests {
             ],
             top_taxa: vec![
                 TaxonomyScreenSummaryEntryV1 { label: "Homo sapiens".to_string(), percent: 12.5 },
-                TaxonomyScreenSummaryEntryV1 { label: "Escherichia coli".to_string(), percent: 3.2 },
+                TaxonomyScreenSummaryEntryV1 {
+                    label: "Escherichia coli".to_string(),
+                    percent: 3.2,
+                },
             ],
             runtime_s: Some(15.2),
             memory_mb: Some(512.0),

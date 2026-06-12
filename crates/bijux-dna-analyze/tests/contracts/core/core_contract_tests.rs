@@ -40,7 +40,8 @@ fn tool_contracts_match_stage_inputs_outputs() -> Result<(), Box<dyn std::error:
                     normalized_data_type(&stage_output.data_type),
                     normalized_data_type(&output.data_type),
                     "tool {} output {} data_type mismatch",
-                    tool.tool_id, output.name
+                    tool.tool_id,
+                    output.name
                 );
                 assert!(
                     cardinality_eq(stage_output.cardinality, output.cardinality),

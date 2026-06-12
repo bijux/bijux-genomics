@@ -128,8 +128,7 @@ fn bench_readiness_expected_benchmark_results_report_tracks_governed_result_rows
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
                 && row.get("fixture_id").and_then(serde_json::Value::as_str)
                     == Some("corpus-02-edna-mini")
-                && row.get("sample_scope").and_then(serde_json::Value::as_str)
-                    == Some("sample-set")
+                && row.get("sample_scope").and_then(serde_json::Value::as_str) == Some("sample-set")
                 && row.get("normalized_metrics_output_id").and_then(serde_json::Value::as_str)
                     == Some("classification_report_json")
         }));

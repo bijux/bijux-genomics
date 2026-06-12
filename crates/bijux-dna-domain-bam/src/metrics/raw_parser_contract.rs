@@ -310,7 +310,10 @@ fn parse_case(case: &BamRawParserFixtureCase, raw_path: &Path) -> Result<()> {
 }
 
 fn fixture_dir(repo_root: &Path, case: &BamRawParserFixtureCase) -> PathBuf {
-    repo_root.join("benchmarks/tests/fixtures/bench/parsers/bam").join(case.stage_id).join(case.tool_id)
+    repo_root
+        .join("benchmarks/tests/fixtures/bench/parsers/bam")
+        .join(case.stage_id)
+        .join(case.tool_id)
 }
 
 #[cfg(test)]

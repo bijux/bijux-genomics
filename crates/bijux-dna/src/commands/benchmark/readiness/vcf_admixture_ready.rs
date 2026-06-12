@@ -136,9 +136,7 @@ pub(crate) fn run_render_vcf_admixture_ready(
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let report = render_vcf_admixture_ready(
         &repo_root,
-        args.output
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_ADMIXTURE_READY_PATH)),
+        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_ADMIXTURE_READY_PATH)),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -186,12 +184,9 @@ fn build_vcf_admixture_ready_report(
 
     let mut rows = Vec::with_capacity(active_bindings.len());
     for binding in active_bindings {
-        let smoke_report = run_local_vcf_admixture_smoke(repo_root, &binding.retained_row.tool_id).ok();
-        rows.push(build_vcf_admixture_ready_row(
-            &command_report,
-            binding,
-            smoke_report.as_ref(),
-        ));
+        let smoke_report =
+            run_local_vcf_admixture_smoke(repo_root, &binding.retained_row.tool_id).ok();
+        rows.push(build_vcf_admixture_ready_row(&command_report, binding, smoke_report.as_ref()));
     }
     rows.sort_by(|left, right| {
         left.stage_id.cmp(&right.stage_id).then_with(|| left.tool_id.cmp(&right.tool_id))
@@ -333,7 +328,10 @@ fn build_vcf_admixture_ready_row(
             && report.sample_count == REQUIRED_SAMPLE_COUNT
             && report.population_count == REQUIRED_POPULATION_COUNT
             && report.cluster_headers
-                == REQUIRED_CLUSTER_HEADERS.iter().map(|value| (*value).to_string()).collect::<Vec<_>>()
+                == REQUIRED_CLUSTER_HEADERS
+                    .iter()
+                    .map(|value| (*value).to_string())
+                    .collect::<Vec<_>>()
             && report.rows.len() == REQUIRED_SAMPLE_IDS.len()
             && report.rows.iter().all(|row| {
                 row.k == REQUIRED_SELECTED_K
@@ -344,11 +342,7 @@ fn build_vcf_admixture_ready_row(
                     && row.clusters.len() == REQUIRED_SELECTED_K
                     && (row.clusters.values().sum::<f64>() - 1.0).abs() <= ANCESTRY_SUM_TOLERANCE
             })
-            && report
-                .rows
-                .iter()
-                .map(|row| row.sample_id.as_str())
-                .collect::<BTreeSet<_>>()
+            && report.rows.iter().map(|row| row.sample_id.as_str()).collect::<BTreeSet<_>>()
                 == REQUIRED_SAMPLE_IDS.into_iter().collect::<BTreeSet<_>>()
     });
     if !smoke_ready {
@@ -404,9 +398,7 @@ fn build_vcf_admixture_ready_row(
         all_domain_active_row_proof_path: binding
             .active_row
             .as_ref()
-            .map(|_| {
-                "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv".to_string()
-            })
+            .map(|_| "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv".to_string())
             .unwrap_or_else(|| NO_VALUE.to_string()),
         command_ready,
         command_source: binding
@@ -604,7 +596,9 @@ fn contains_artifact_id(values: &[String], artifact_id: &str) -> bool {
     })
 }
 
-fn expected_result_id(binding: &super::vcf_expected_benchmark_results::VcfExpectedBenchmarkResultRow) -> String {
+fn expected_result_id(
+    binding: &super::vcf_expected_benchmark_results::VcfExpectedBenchmarkResultRow,
+) -> String {
     format!(
         "vcf:{}:{}:{}:{}",
         binding.corpus_id, binding.stage_id, binding.asset_profile_id, binding.tool_id

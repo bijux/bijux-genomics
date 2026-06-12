@@ -108,13 +108,15 @@ fn bench_readiness_all_domain_no_placeholder_command_check_writes_governed_json_
                         .iter()
                         .map(|step| step.get("step_id").and_then(serde_json::Value::as_str))
                         .collect::<Vec<_>>()
-                        == vec![Some("impute"), Some("index_imputed_vcf"), Some("derive_imputation_metrics")]
-                    && steps[0].get("executable").and_then(serde_json::Value::as_str)
-                        == Some("sh")
+                        == vec![
+                            Some("impute"),
+                            Some("index_imputed_vcf"),
+                            Some("derive_imputation_metrics"),
+                        ]
+                    && steps[0].get("executable").and_then(serde_json::Value::as_str) == Some("sh")
                     && steps[1].get("executable").and_then(serde_json::Value::as_str)
                         == Some("bcftools")
-                    && steps[2].get("executable").and_then(serde_json::Value::as_str)
-                        == Some("sh")
+                    && steps[2].get("executable").and_then(serde_json::Value::as_str) == Some("sh")
             })
     }));
 

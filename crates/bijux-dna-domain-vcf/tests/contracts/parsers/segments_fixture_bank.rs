@@ -198,7 +198,11 @@ fn vcf_roh_fixture_bank_keeps_normalized_segment_fields() -> Result<()> {
 fn vcf_ibd_fixture_bank_keeps_normalized_pair_fields() -> Result<()> {
     let case = VCF_SEGMENT_FIXTURE_CASES
         .iter()
-        .find(|case| case.tool_id == "germline" && case.stage == VcfDomainStage::Ibd && case.case_id == "complete")
+        .find(|case| {
+            case.tool_id == "germline"
+                && case.stage == VcfDomainStage::Ibd
+                && case.case_id == "complete"
+        })
         .copied()
         .expect("germline ibd fixture case");
     let normalized = parse_segment_stage_metrics(case.tool_id, case.stage, &fixture_dir(&case))?;
@@ -215,10 +219,7 @@ fn vcf_ibd_fixture_bank_keeps_normalized_pair_fields() -> Result<()> {
     assert_eq!(first.get("sample_b").and_then(serde_json::Value::as_str), Some("sample_b"));
     assert_eq!(first.get("segment_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(first.get("total_length").and_then(serde_json::Value::as_f64), Some(9.5));
-    assert_eq!(
-        first.get("overlap_marker_count").and_then(serde_json::Value::as_u64),
-        Some(41)
-    );
+    assert_eq!(first.get("overlap_marker_count").and_then(serde_json::Value::as_u64), Some(41));
     assert_eq!(first.get("status").and_then(serde_json::Value::as_str), Some("complete"));
 
     Ok(())

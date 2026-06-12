@@ -159,16 +159,16 @@ fn render_coverage_row(row: &ToolServingMapRow) -> FastqCommandAdapterCoverageRo
     let benchmark_scope_ready = row_has_benchmark_scope(row);
     let readiness_gap =
         if support_eligible && adapter_covered && parser_eligible && benchmark_scope_ready {
-        FastqReadinessGapKind::None
-    } else if support_eligible && adapter_covered && parser_eligible {
-        FastqReadinessGapKind::Corpus
-    } else if support_eligible && adapter_covered {
-        FastqReadinessGapKind::Parser
-    } else if support_eligible {
-        FastqReadinessGapKind::Adapter
-    } else {
-        FastqReadinessGapKind::Support
-    };
+            FastqReadinessGapKind::None
+        } else if support_eligible && adapter_covered && parser_eligible {
+            FastqReadinessGapKind::Corpus
+        } else if support_eligible && adapter_covered {
+            FastqReadinessGapKind::Parser
+        } else if support_eligible {
+            FastqReadinessGapKind::Adapter
+        } else {
+            FastqReadinessGapKind::Support
+        };
     let benchmark_status = if readiness_gap == FastqReadinessGapKind::None {
         FastqBenchmarkStatus::BenchmarkReady
     } else {

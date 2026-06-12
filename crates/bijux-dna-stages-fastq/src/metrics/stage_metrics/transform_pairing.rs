@@ -132,12 +132,7 @@ pub(super) fn merge_metrics(
                     reads_unmerged.min(input_pair_count.saturating_sub(merged_pair_count));
                 let discarded_pair_count =
                     input_pair_count.saturating_sub(merged_pair_count + unmerged_pair_count);
-                (
-                    input_pair_count,
-                    merged_pair_count,
-                    unmerged_pair_count,
-                    discarded_pair_count,
-                )
+                (input_pair_count, merged_pair_count, unmerged_pair_count, discarded_pair_count)
             },
             |report| {
                 let pair_counts = report.canonical_pair_counts();

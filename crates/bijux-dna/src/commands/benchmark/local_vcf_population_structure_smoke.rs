@@ -175,11 +175,9 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
             published_output_root.display()
         )
     })?;
-    let staging_dir = bijux_dna_infra::temp_dir_in(
-        staging_parent,
-        &format!("{}-staging-", contract.tool_id),
-    )
-    .with_context(|| format!("create staging directory in {}", staging_parent.display()))?;
+    let staging_dir =
+        bijux_dna_infra::temp_dir_in(staging_parent, &format!("{}-staging-", contract.tool_id))
+            .with_context(|| format!("create staging directory in {}", staging_parent.display()))?;
     let output_root = staging_dir.path().to_path_buf();
     let published_population_structure_json_path =
         published_output_root.join(DEFAULT_OUTPUT_REPORT_NAME);
@@ -274,11 +272,8 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
     let consumed_admixture_json = read_json(&source_admixture_report_path)?;
     let source_population_structure_json = read_json(&source_population_structure_path)?;
 
-    let consumed_pca = summarize_consumed_pca(
-        repo_root,
-        &published_source_pca_report_path,
-        &consumed_pca_json,
-    )?;
+    let consumed_pca =
+        summarize_consumed_pca(repo_root, &published_source_pca_report_path, &consumed_pca_json)?;
     let consumed_admixture = summarize_consumed_admixture(
         repo_root,
         &published_source_admixture_report_path,
@@ -405,10 +400,7 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "source_pca_report_json".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_PCA_REPORT_NAME.to_string(),
-                realized_path: path_relative_to_repo(
-                    repo_root,
-                    &published_source_pca_report_path,
-                ),
+                realized_path: path_relative_to_repo(repo_root, &published_source_pca_report_path),
                 role: "report_output".to_string(),
                 optional: false,
                 exists: true,
@@ -435,11 +427,7 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
             .with_context(|| format!("remove {}", published_output_root.display()))?;
     }
     fs::rename(&output_root, &published_output_root).with_context(|| {
-        format!(
-            "publish {} to {}",
-            output_root.display(),
-            published_output_root.display()
-        )
+        format!("publish {} to {}", output_root.display(), published_output_root.display())
     })?;
     let _ = staging_dir.keep();
 

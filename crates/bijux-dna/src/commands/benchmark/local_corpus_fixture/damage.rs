@@ -392,9 +392,9 @@ mod tests {
         );
         fs::write(&manifest_path, manifest).expect("write manifest");
 
-        let broken = fs::read_to_string(
-            root.join("benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/expected_damage.json"),
-        )
+        let broken = fs::read_to_string(root.join(
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/expected_damage.json",
+        ))
         .expect("read governed expected damage")
         .replacen(
             "\"sample_id\": \"adna_damage_non_udg\"",

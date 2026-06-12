@@ -21,12 +21,8 @@ fn copy_file(source: &Path, destination: &Path) {
 }
 
 fn init_repo(root: &Path) {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(root)
-        .args(["init", "-q"])
-        .output()
-        .expect("git init");
+    let output =
+        Command::new("git").arg("-C").arg(root).args(["init", "-q"]).output().expect("git init");
     assert!(
         output.status.success(),
         "git init failed: {}",
@@ -55,11 +51,7 @@ fn stage_all(root: &Path) {
         .args(["add", "benchmarks", "tests"])
         .output()
         .expect("git add");
-    assert!(
-        output.status.success(),
-        "git add failed: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
+    assert!(output.status.success(), "git add failed: {}", String::from_utf8_lossy(&output.stderr));
 }
 
 fn write_benchmark_root(root: &Path) {
@@ -68,10 +60,7 @@ fn write_benchmark_root(root: &Path) {
     write_text(&root.join("benchmarks/schemas/README.md"), "# Benchmark Schemas\n");
     write_text(&root.join("benchmarks/tests/README.md"), "# Benchmark Tests\n");
     write_text(&root.join("benchmarks/readiness/README.md"), "# Benchmark Readiness\n");
-    write_text(
-        &root.join("benchmarks/readiness/local-ready/README.md"),
-        "# Local-Ready Proof\n",
-    );
+    write_text(&root.join("benchmarks/readiness/local-ready/README.md"), "# Local-Ready Proof\n");
     write_text(
         &root.join("benchmarks/readiness/all-domain-schema-validation.json"),
         "{\n  \"ok\": true\n}\n",
@@ -114,9 +103,7 @@ fn bench_paths_cleanup_proof_reports_disposable_root_deletion() {
     );
     stage_all(repo_root.path());
     write_text(
-        &repo_root
-            .path()
-            .join("benchmarks/readiness/untracked-snapshot.json"),
+        &repo_root.path().join("benchmarks/readiness/untracked-snapshot.json"),
         "{\n  \"ok\": false\n}\n",
     );
     seed_disposable_root(&repo_root.path().join("target/goal-315-json/sentinel.txt"));
@@ -129,12 +116,7 @@ fn bench_paths_cleanup_proof_reports_disposable_root_deletion() {
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args([
-            "bench",
-            "paths",
-            "prove-disposable-root-cleanup",
-            "--json",
-        ])
+        .args(["bench", "paths", "prove-disposable-root-cleanup", "--json"])
         .output()
         .expect("run cli");
 
@@ -157,41 +139,25 @@ fn bench_paths_cleanup_proof_reports_disposable_root_deletion() {
         Some("benchmarks/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json")
     );
     assert_eq!(
-        payload
-            .get("validator_output_path")
-            .and_then(serde_json::Value::as_str),
+        payload.get("validator_output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/benchmark-paths-validation.json")
     );
+    assert_eq!(payload.get("validator_ok").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(
-        payload.get("validator_ok").and_then(serde_json::Value::as_bool),
-        Some(true)
-    );
-    assert_eq!(
-        payload
-            .get("validator_violation_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("validator_violation_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
     assert_eq!(
-        payload
-            .get("validator_readiness_json_snapshot_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("validator_readiness_json_snapshot_count").and_then(serde_json::Value::as_u64),
         Some(1)
     );
     assert_eq!(
-        payload
-            .get("validator_readiness_tsv_snapshot_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("validator_readiness_tsv_snapshot_count").and_then(serde_json::Value::as_u64),
         Some(1)
     );
+    assert_eq!(payload.get("deleted_root_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(
-        payload.get("deleted_root_count").and_then(serde_json::Value::as_u64),
-        Some(3)
-    );
-    assert_eq!(
-        payload
-            .get("already_absent_root_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("already_absent_root_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
@@ -201,9 +167,6 @@ fn bench_paths_cleanup_proof_reports_disposable_root_deletion() {
         .expect("deleted roots array");
     assert_eq!(deleted_roots.len(), 3);
     assert!(deleted_roots.iter().all(|value| {
-        value
-            .get("exists_after")
-            .and_then(serde_json::Value::as_bool)
-            == Some(false)
+        value.get("exists_after").and_then(serde_json::Value::as_bool) == Some(false)
     }));
 }

@@ -40,10 +40,7 @@ pub(super) fn to_effective_defaults(defaults: &[BamStageDefault]) -> EffectiveDe
             panic!("missing governed BAM default tool for stage {stage_id} in tool_registry.toml")
         });
         tools.insert(StageId::from_static(stage_id), ToolId::new(default_tool.clone()));
-        params.insert(
-            StageId::from_static(stage_id),
-            DefaultParams::Bam(entry.params.clone()),
-        );
+        params.insert(StageId::from_static(stage_id), DefaultParams::Bam(entry.params.clone()));
         rationales.insert(StageId::from_static(stage_id), "pipeline default".to_string());
     }
     EffectiveDefaults { tools, params, rationales }

@@ -155,10 +155,7 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
         }),
         Some(vec!["reference-index-assets"])
     );
-    assert_eq!(
-        reference_index.get("stage_count").and_then(serde_json::Value::as_u64),
-        Some(1)
-    );
+    assert_eq!(reference_index.get("stage_count").and_then(serde_json::Value::as_u64), Some(1));
 
     let corpus_03 = corpora
         .iter()

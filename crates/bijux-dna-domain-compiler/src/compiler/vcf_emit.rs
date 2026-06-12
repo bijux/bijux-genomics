@@ -239,7 +239,10 @@ mod tests {
         let tool = DomainToolLoose {
             tool_id: "beagle".to_string(),
             stage_ids: vec!["vcf.imputation_metrics".to_string(), "vcf.impute".to_string()],
-            planned_stage_ids: vec!["vcf.phasing".to_string(), "vcf.prepare_reference_panel".to_string()],
+            planned_stage_ids: vec![
+                "vcf.phasing".to_string(),
+                "vcf.prepare_reference_panel".to_string(),
+            ],
             ..DomainToolLoose::default()
         };
 

@@ -102,8 +102,7 @@ fn bench_readiness_fastq_parser_coverage_reports_governed_rows() {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2_build")
             && row.get("stage_id").and_then(serde_json::Value::as_str)
                 == Some("fastq.index_reference")
-            && row.get("parser_status").and_then(serde_json::Value::as_str)
-                == Some("comparable")
+            && row.get("parser_status").and_then(serde_json::Value::as_str) == Some("comparable")
             && row.get("corpus_status").and_then(serde_json::Value::as_str)
                 == Some("asset:reference-index-assets")
     }));

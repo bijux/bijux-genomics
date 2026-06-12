@@ -141,7 +141,8 @@ fn collect_vcf_undercovered_stage_rows(repo_root: &Path) -> Result<Vec<VcfUnderc
             .into_iter()
             .map(str::to_string)
             .collect::<Vec<_>>();
-        let decision = classify_undercoverage_decision(&stage_id, &missing_tools, &registry_by_tool)?;
+        let decision =
+            classify_undercoverage_decision(&stage_id, &missing_tools, &registry_by_tool)?;
 
         rows.push(VcfUndercoveredStageRow {
             stage_id,
@@ -475,8 +476,7 @@ mod tests {
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.imputation_metrics"
-                && row.valid_tool_classes
-                    == vec!["imputation".to_string(), "phasing".to_string()]
+                && row.valid_tool_classes == vec!["imputation".to_string(), "phasing".to_string()]
                 && row.registered_tools == vec!["beagle".to_string()]
                 && row.missing_tools
                     == vec![

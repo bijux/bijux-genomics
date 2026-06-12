@@ -260,8 +260,7 @@ pub(crate) fn prove_disposable_root_cleanup(
         validator_violation_count: validator_report.violation_count,
         validator_ok: validator_report.ok,
         validator_readiness_snapshot_count: validator_report.readiness_snapshot_count,
-        validator_readiness_json_snapshot_count: validator_report
-            .readiness_json_snapshot_count,
+        validator_readiness_json_snapshot_count: validator_report.readiness_json_snapshot_count,
         validator_readiness_tsv_snapshot_count: validator_report.readiness_tsv_snapshot_count,
         ok,
         deleted_roots,
@@ -354,7 +353,8 @@ fn remove_directory_tree(path: &Path) -> Result<()> {
     }
     #[cfg(not(unix))]
     {
-        std::fs::remove_dir_all(path).with_context(|| format!("remove directory {}", path.display()))
+        std::fs::remove_dir_all(path)
+            .with_context(|| format!("remove directory {}", path.display()))
     }
 }
 

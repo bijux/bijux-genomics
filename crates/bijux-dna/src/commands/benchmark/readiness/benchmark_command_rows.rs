@@ -378,7 +378,11 @@ fn benchmark_command_out_dir(domain: &str, stage_id: &str, tool_id: &str) -> Res
 }
 
 fn resolve_repo_input_path(repo_root: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() { path.to_path_buf() } else { repo_root.join(path) }
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
 }
 
 fn domain_label(domain: BenchLocalDomain) -> &'static str {

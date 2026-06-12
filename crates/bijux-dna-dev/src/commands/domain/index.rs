@@ -283,12 +283,7 @@ fn render_vcf_active_default_rationale_block(
 ) -> Result<Vec<String>> {
     Ok(parse_vcf_default_settings_entries(dom_dir, governed_stage_ids)?
         .into_iter()
-        .map(|(stage_id, entry)| {
-            format!(
-                "  {stage_id}: \"{}\"",
-                entry.rationale.replace('"', "'")
-            )
-        })
+        .map(|(stage_id, entry)| format!("  {stage_id}: \"{}\"", entry.rationale.replace('"', "'")))
         .collect())
 }
 
@@ -307,21 +302,22 @@ fn parse_vcf_default_settings_entries(
         let Some(captures) = line_re.captures(line.trim()) else {
             continue;
         };
-        let Some(stage_id) = captures.name("stage_id").map(|value| value.as_str().trim().to_string())
+        let Some(stage_id) =
+            captures.name("stage_id").map(|value| value.as_str().trim().to_string())
         else {
             continue;
         };
         if !governed_stage_ids.contains(&stage_id) {
             continue;
         }
-        let tool_id = captures
-            .name("tool_id")
-            .map(|value| value.as_str().trim().to_string())
-            .ok_or_else(|| anyhow!("{}: missing tool id for {}", settings_path.display(), stage_id))?;
-        let rationale = captures
-            .name("rationale")
-            .map(|value| value.as_str().trim().to_string())
-            .ok_or_else(|| anyhow!("{}: missing rationale for {}", settings_path.display(), stage_id))?;
+        let tool_id =
+            captures.name("tool_id").map(|value| value.as_str().trim().to_string()).ok_or_else(
+                || anyhow!("{}: missing tool id for {}", settings_path.display(), stage_id),
+            )?;
+        let rationale =
+            captures.name("rationale").map(|value| value.as_str().trim().to_string()).ok_or_else(
+                || anyhow!("{}: missing rationale for {}", settings_path.display(), stage_id),
+            )?;
         entries.insert(stage_id, VcfDefaultEntry { default_tool: tool_id, rationale });
     }
 

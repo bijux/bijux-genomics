@@ -34,11 +34,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 fn legacy_fixture_wrapper_path(relative_path: &str) -> String {
-    PathBuf::from("tests")
-        .join("fixtures")
-        .join(relative_path)
-        .to_string_lossy()
-        .into_owned()
+    PathBuf::from("tests").join("fixtures").join(relative_path).to_string_lossy().into_owned()
 }
 
 #[test]

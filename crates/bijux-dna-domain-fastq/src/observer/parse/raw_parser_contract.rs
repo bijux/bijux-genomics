@@ -292,7 +292,10 @@ fn parse_case(case: &FastqRawParserFixtureCase, raw: &str) -> Result<()> {
 }
 
 fn fixture_dir(repo_root: &Path, case: &FastqRawParserFixtureCase) -> PathBuf {
-    repo_root.join("benchmarks/tests/fixtures/bench/parsers/fastq").join(case.stage_id).join(case.tool_id)
+    repo_root
+        .join("benchmarks/tests/fixtures/bench/parsers/fastq")
+        .join(case.stage_id)
+        .join(case.tool_id)
 }
 
 #[cfg(test)]

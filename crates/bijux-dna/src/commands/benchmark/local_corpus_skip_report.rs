@@ -126,12 +126,7 @@ fn build_skip_report(
             stage.benchmark_scope_id.as_deref(),
             stage.compatibility_kind.as_str(),
         ) {
-            (
-                Some(replacement_corpus_id),
-                Some(replacement_corpus_family_id),
-                None,
-                "fixture",
-            ) => {
+            (Some(replacement_corpus_id), Some(replacement_corpus_family_id), None, "fixture") => {
                 for fixture in &fixtures {
                     if fixture.corpus_id == replacement_corpus_id {
                         continue;

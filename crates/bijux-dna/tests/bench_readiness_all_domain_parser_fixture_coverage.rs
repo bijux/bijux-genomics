@@ -155,11 +155,8 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
         row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
             && row.get("stage_id").and_then(serde_json::Value::as_str)
                 == Some("fastq.index_reference")
-            && row.get("tool_id").and_then(serde_json::Value::as_str)
-                == Some("bowtie2_build")
-            && row
-                .get("parser_fixture_reference_kind")
-                .and_then(serde_json::Value::as_str)
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2_build")
+            && row.get("parser_fixture_reference_kind").and_then(serde_json::Value::as_str)
                 == Some("asset_scope")
             && row.get("parser_fixture_reference").and_then(serde_json::Value::as_str)
                 == Some("asset:reference-index-assets")

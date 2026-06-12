@@ -121,10 +121,8 @@ fn build_run_paths(
     } else {
         sample_scope_from_sample_ids(&sample_ids)
     };
-    let corpus_scope = job
-        .fixture_id
-        .or(job.benchmark_scope_id)
-        .unwrap_or_else(|| "planner-only".to_string());
+    let corpus_scope =
+        job.fixture_id.or(job.benchmark_scope_id).unwrap_or_else(|| "planner-only".to_string());
 
     let result_root = root_path
         .join("runs")

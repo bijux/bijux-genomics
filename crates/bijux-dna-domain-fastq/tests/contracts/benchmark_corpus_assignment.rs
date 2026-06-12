@@ -112,10 +112,7 @@ fn benchmark_corpus_assignment_preserves_precise_exclusion_reasons() {
         &ToolId::new("fastqc".to_string()),
     )
     .expect("overrepresented assignment");
-    assert_eq!(
-        overrepresented.assigned_family(),
-        Some(BenchmarkCorpusFamily::Corpus01)
-    );
+    assert_eq!(overrepresented.assigned_family(), Some(BenchmarkCorpusFamily::Corpus01));
 
     let report_qc = benchmark_corpus_assignment_for_stage_tool(
         &StageId::new("fastq.report_qc".to_string()),

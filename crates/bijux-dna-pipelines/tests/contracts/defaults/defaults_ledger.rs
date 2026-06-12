@@ -9,12 +9,7 @@ use bijux_dna_pipelines::{
 use bijux_dna_testkit::snapshot_name;
 
 fn prune_bam_downstream(value: &mut serde_json::Value) {
-    let banned = [
-        "bam.bias_mitigation",
-        "bam.genotyping",
-        "bam.haplogroups",
-        "bam.kinship",
-    ];
+    let banned = ["bam.bias_mitigation", "bam.genotyping", "bam.haplogroups", "bam.kinship"];
     match value {
         serde_json::Value::Array(items) => {
             items.retain(|item| !item.as_str().is_some_and(|entry| banned.contains(&entry)));

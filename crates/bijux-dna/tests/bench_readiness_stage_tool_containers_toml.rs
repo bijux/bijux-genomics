@@ -125,8 +125,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.index_reference")
             && row.get("tool_id").and_then(toml::Value::as_str) == Some("bowtie2_build")
             && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
-            && row.get("command_entrypoint").and_then(toml::Value::as_str)
-                == Some("bowtie2-build")
+            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("bowtie2-build")
             && row.get("container_id").and_then(toml::Value::as_str)
                 == Some("bijuxdna/bowtie2_build")
     }));

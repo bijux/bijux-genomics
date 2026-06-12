@@ -60,9 +60,7 @@ fn bench_readiness_vcf_call_gl_ready_writes_governed_json_file() {
     assert!(row.get("report_metric_columns").and_then(serde_json::Value::as_array).is_some_and(
         |columns| {
             columns.iter().any(|value| value.as_str() == Some("likelihood_field"))
-                && columns
-                    .iter()
-                    .any(|value| value.as_str() == Some("sites_with_likelihoods"))
+                && columns.iter().any(|value| value.as_str() == Some("sites_with_likelihoods"))
                 && columns.iter().any(|value| value.as_str() == Some("sample_count"))
         }
     ));

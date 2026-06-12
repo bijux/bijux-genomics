@@ -138,14 +138,12 @@ pub(crate) fn run_local_vcf_pca_smoke(
     let population_labels = load_population_labels(&population_metadata_source)?;
 
     let published_output_root = repo_root.join(DEFAULT_VCF_PCA_SMOKE_ROOT).join(&contract.tool_id);
-    let staging_parent = published_output_root
-        .parent()
-        .ok_or_else(|| anyhow!("VCF PCA smoke root has no parent: {}", published_output_root.display()))?;
-    let staging_dir = bijux_dna_infra::temp_dir_in(
-        staging_parent,
-        &format!("{}-staging-", contract.tool_id),
-    )
-    .with_context(|| format!("create staging directory in {}", staging_parent.display()))?;
+    let staging_parent = published_output_root.parent().ok_or_else(|| {
+        anyhow!("VCF PCA smoke root has no parent: {}", published_output_root.display())
+    })?;
+    let staging_dir =
+        bijux_dna_infra::temp_dir_in(staging_parent, &format!("{}-staging-", contract.tool_id))
+            .with_context(|| format!("create staging directory in {}", staging_parent.display()))?;
     let output_root = staging_dir.path().to_path_buf();
     let artifacts_root = output_root.join("artifacts");
     let input_root = artifacts_root.join("input");
@@ -278,7 +276,8 @@ pub(crate) fn run_local_vcf_pca_smoke(
     let published_pca_tsv_path = published_output_root.join(DEFAULT_OUTPUT_TSV_NAME);
     let published_pca_json_path = published_output_root.join(DEFAULT_OUTPUT_JSON_NAME);
     let published_input_vcf_path = published_input_root.join(DEFAULT_INPUT_VCF_NAME);
-    let published_sample_metadata_path = published_input_root.join(DEFAULT_INPUT_SAMPLE_METADATA_NAME);
+    let published_sample_metadata_path =
+        published_input_root.join(DEFAULT_INPUT_SAMPLE_METADATA_NAME);
     let published_population_metadata_path =
         published_input_root.join(DEFAULT_INPUT_POPULATION_METADATA_NAME);
     let published_population_labels_manifest_path =
@@ -290,7 +289,8 @@ pub(crate) fn run_local_vcf_pca_smoke(
     let published_source_pca_manifest_path =
         published_output_root.join(DEFAULT_OUTPUT_SOURCE_MANIFEST_NAME);
     let published_source_logs_path = published_output_root.join(DEFAULT_OUTPUT_SOURCE_LOGS_NAME);
-    let published_stage_result_manifest_path = published_output_root.join(DEFAULT_STAGE_RESULT_NAME);
+    let published_stage_result_manifest_path =
+        published_output_root.join(DEFAULT_STAGE_RESULT_NAME);
     let elapsed_seconds = started.elapsed().as_secs_f64();
     let finished_at = timestamp_marker();
     let sample_count = u64::try_from(rows.len()).map_err(|_| anyhow!("sample count overflow"))?;
@@ -304,7 +304,10 @@ pub(crate) fn run_local_vcf_pca_smoke(
         fixture_manifest_path: path_relative_to_repo(repo_root, &fixture_manifest_path),
         input_vcf_path: path_relative_to_repo(repo_root, &published_input_vcf_path),
         sample_metadata_path: path_relative_to_repo(repo_root, &published_sample_metadata_path),
-        population_metadata_path: path_relative_to_repo(repo_root, &published_population_metadata_path),
+        population_metadata_path: path_relative_to_repo(
+            repo_root,
+            &published_population_metadata_path,
+        ),
         population_labels_manifest_path: path_relative_to_repo(
             repo_root,
             &published_population_labels_manifest_path,
@@ -314,7 +317,10 @@ pub(crate) fn run_local_vcf_pca_smoke(
         pca_json_path: path_relative_to_repo(repo_root, &published_pca_json_path),
         source_eigenvec_path: path_relative_to_repo(repo_root, &published_source_eigenvec_path),
         source_eigenval_path: path_relative_to_repo(repo_root, &published_source_eigenval_path),
-        source_pca_manifest_path: path_relative_to_repo(repo_root, &published_source_pca_manifest_path),
+        source_pca_manifest_path: path_relative_to_repo(
+            repo_root,
+            &published_source_pca_manifest_path,
+        ),
         source_logs_path: path_relative_to_repo(repo_root, &published_source_logs_path),
         stage_result_manifest_path: path_relative_to_repo(
             repo_root,
@@ -415,11 +421,7 @@ pub(crate) fn run_local_vcf_pca_smoke(
             .with_context(|| format!("remove {}", published_output_root.display()))?;
     }
     fs::rename(&output_root, &published_output_root).with_context(|| {
-        format!(
-            "publish {} to {}",
-            output_root.display(),
-            published_output_root.display()
-        )
+        format!("publish {} to {}", output_root.display(), published_output_root.display())
     })?;
     let _ = staging_dir.keep();
 

@@ -174,8 +174,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
     let taxonomy_rows = rows
         .iter()
         .filter(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("fastq.screen_taxonomy")
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.screen_taxonomy")
         })
         .collect::<Vec<_>>();
     assert_eq!(taxonomy_rows.len(), 4);
@@ -188,8 +187,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
                     == Some("database_artifact_id+taxonomy_database_root")
                 && row.get("support_status").and_then(serde_json::Value::as_str)
                     == Some("governed_benchmark_cohort")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("runnable")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
                 && row.get("parser_status").and_then(serde_json::Value::as_str)
                     == Some("benchmark_normalized")
         }));
@@ -238,8 +236,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
     }));
     assert!(
         rows.iter().all(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str)
-                != Some("fastq.report_qc")
+            row.get("stage_id").and_then(serde_json::Value::as_str) != Some("fastq.report_qc")
                 && !(row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.trim_reads")
                     && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqpurge"))

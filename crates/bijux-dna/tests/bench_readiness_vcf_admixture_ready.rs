@@ -77,10 +77,7 @@ fn bench_readiness_vcf_admixture_ready_reports_complete_active_retained_caller()
     assert_eq!(row.get("command_ready").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(row.get("output_ready").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(row.get("parser_ready").and_then(serde_json::Value::as_bool), Some(true));
-    assert_eq!(
-        row.get("expected_result_ready").and_then(serde_json::Value::as_bool),
-        Some(true)
-    );
+    assert_eq!(row.get("expected_result_ready").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(row.get("report_ready").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(row.get("smoke_ready").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(
@@ -108,8 +105,7 @@ fn bench_readiness_vcf_admixture_ready_reports_complete_active_retained_caller()
         Some("runs/bench/local-smoke/vcf.admixture/plink2/artifacts/input/admixture_input.vcf")
     );
     assert_eq!(
-        row.get("smoke_population_labels_manifest_path")
-            .and_then(serde_json::Value::as_str),
+        row.get("smoke_population_labels_manifest_path").and_then(serde_json::Value::as_str),
         Some("runs/bench/local-smoke/vcf.admixture/plink2/artifacts/input/population_labels.json")
     );
     assert_eq!(row.get("smoke_selected_k").and_then(serde_json::Value::as_u64), Some(2));

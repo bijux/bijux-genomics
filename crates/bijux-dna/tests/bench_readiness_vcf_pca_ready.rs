@@ -111,9 +111,7 @@ fn bench_readiness_vcf_pca_ready_reports_complete_active_retained_callers() {
         Some("runs/bench/local-smoke/vcf.pca/plink2/artifacts/input/pca_input.vcf")
     );
     assert_eq!(
-        plink2
-            .get("smoke_population_labels_manifest_path")
-            .and_then(serde_json::Value::as_str),
+        plink2.get("smoke_population_labels_manifest_path").and_then(serde_json::Value::as_str),
         Some("runs/bench/local-smoke/vcf.pca/plink2/artifacts/input/population_labels.json")
     );
     assert_eq!(plink2.get("smoke_variant_count").and_then(serde_json::Value::as_u64), Some(2));
@@ -166,9 +164,7 @@ fn bench_readiness_vcf_pca_ready_reports_complete_active_retained_callers() {
         Some("runs/bench/local-smoke/vcf.pca/eigensoft/artifacts/input/pca_input.vcf")
     );
     assert_eq!(
-        eigensoft
-            .get("smoke_population_labels_manifest_path")
-            .and_then(serde_json::Value::as_str),
+        eigensoft.get("smoke_population_labels_manifest_path").and_then(serde_json::Value::as_str),
         Some("runs/bench/local-smoke/vcf.pca/eigensoft/artifacts/input/population_labels.json")
     );
     assert_eq!(eigensoft.get("smoke_variant_count").and_then(serde_json::Value::as_u64), Some(2));

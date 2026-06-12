@@ -112,10 +112,9 @@ pub(crate) fn render_fastq_corpus_assignment(
                 && row.assignment_status == FastqCorpusAssignmentStatus::AssetBacked
         })
         .count();
-    let benchmark_ready_excluded_row_count =
-        benchmark_ready_row_count
-            - benchmark_ready_assigned_row_count
-            - benchmark_ready_asset_backed_row_count;
+    let benchmark_ready_excluded_row_count = benchmark_ready_row_count
+        - benchmark_ready_assigned_row_count
+        - benchmark_ready_asset_backed_row_count;
 
     let mut corpus_family_counts = BTreeMap::<String, usize>::new();
     let mut benchmark_scope_counts = BTreeMap::<String, usize>::new();
@@ -179,13 +178,9 @@ pub(crate) fn collect_fastq_corpus_assignment_rows(
             benchmark_scope_id,
             excluded_reason,
             reason,
-        ) =
-            match domain_assignment {
-                bijux_dna_domain_fastq::BenchmarkCorpusAssignment::Assigned {
-                    family,
-                    rationale,
-                } => {
-                    let compatibility_family = stage_compatibility
+        ) = match domain_assignment {
+            bijux_dna_domain_fastq::BenchmarkCorpusAssignment::Assigned { family, rationale } => {
+                let compatibility_family = stage_compatibility
                         .corpus_family_id
                         .as_deref()
                         .ok_or_else(|| {
@@ -195,43 +190,43 @@ pub(crate) fn collect_fastq_corpus_assignment_rows(
                                 family.as_str()
                             )
                         })?;
-                    let compatibility_fixture = stage_compatibility.fixture_id.as_deref().ok_or_else(|| {
+                let compatibility_fixture = stage_compatibility.fixture_id.as_deref().ok_or_else(|| {
                         anyhow!(
                             "FASTQ stage `{}` is assigned to `{}` in the domain contract but missing fixture_id in local compatibility",
                             row.stage_id,
                             family.as_str()
                         )
                     })?;
-                    if compatibility_family != family.as_str() {
-                        return Err(anyhow!(
+                if compatibility_family != family.as_str() {
+                    return Err(anyhow!(
                             "FASTQ stage `{}` assigns `{}` in the domain contract but `{}` in local compatibility",
                             row.stage_id,
                             family.as_str(),
                             compatibility_family
                         ));
-                    }
-                    (
-                        FastqCorpusAssignmentStatus::Assigned,
-                        Some(family.as_str().to_string()),
-                        Some(compatibility_fixture.to_string()),
-                        None,
-                        None,
-                        format!(
-                            "row `{}` / `{}` is {} and maps to `{}` via fixture `{}`: {}",
-                            row.stage_id,
-                            row.tool_id,
-                            benchmark_status_label(row.benchmark_status),
-                            family.as_str(),
-                            compatibility_fixture,
-                            rationale
-                        ),
-                    )
                 }
-                bijux_dna_domain_fastq::BenchmarkCorpusAssignment::AssetBacked {
-                    scope_id,
-                    rationale,
-                } => {
-                    let compatibility_scope_id = stage_compatibility
+                (
+                    FastqCorpusAssignmentStatus::Assigned,
+                    Some(family.as_str().to_string()),
+                    Some(compatibility_fixture.to_string()),
+                    None,
+                    None,
+                    format!(
+                        "row `{}` / `{}` is {} and maps to `{}` via fixture `{}`: {}",
+                        row.stage_id,
+                        row.tool_id,
+                        benchmark_status_label(row.benchmark_status),
+                        family.as_str(),
+                        compatibility_fixture,
+                        rationale
+                    ),
+                )
+            }
+            bijux_dna_domain_fastq::BenchmarkCorpusAssignment::AssetBacked {
+                scope_id,
+                rationale,
+            } => {
+                let compatibility_scope_id = stage_compatibility
                         .benchmark_scope_id
                         .as_deref()
                         .ok_or_else(|| {
@@ -240,51 +235,51 @@ pub(crate) fn collect_fastq_corpus_assignment_rows(
                                 row.stage_id
                             )
                         })?;
-                    if stage_compatibility.corpus_family_id.is_some()
-                        || stage_compatibility.fixture_id.is_some()
-                    {
-                        return Err(anyhow!(
+                if stage_compatibility.corpus_family_id.is_some()
+                    || stage_compatibility.fixture_id.is_some()
+                {
+                    return Err(anyhow!(
                             "FASTQ stage `{}` is asset-backed in the domain contract but still declares fixture-backed local compatibility",
                             row.stage_id
                         ));
-                    }
-                    if compatibility_scope_id != scope_id {
-                        return Err(anyhow!(
+                }
+                if compatibility_scope_id != scope_id {
+                    return Err(anyhow!(
                             "FASTQ stage `{}` assigns asset-backed scope `{}` in the domain contract but `{}` in local compatibility",
                             row.stage_id,
                             scope_id,
                             compatibility_scope_id
                         ));
-                    }
-                    (
-                        FastqCorpusAssignmentStatus::AssetBacked,
-                        None,
-                        None,
-                        Some(scope_id.to_string()),
-                        None,
-                        format!(
-                            "row `{}` / `{}` is {} and maps to asset-backed benchmark scope `{}`: {}",
-                            row.stage_id,
-                            row.tool_id,
-                            benchmark_status_label(row.benchmark_status),
-                            scope_id,
-                            rationale
-                        ),
-                    )
                 }
-                bijux_dna_domain_fastq::BenchmarkCorpusAssignment::Excluded {
-                    reason_code,
-                    rationale,
-                } => {
-                    if stage_compatibility.corpus_family_id.is_some()
-                        || stage_compatibility.fixture_id.is_some()
-                    {
-                        return Err(anyhow!(
+                (
+                    FastqCorpusAssignmentStatus::AssetBacked,
+                    None,
+                    None,
+                    Some(scope_id.to_string()),
+                    None,
+                    format!(
+                        "row `{}` / `{}` is {} and maps to asset-backed benchmark scope `{}`: {}",
+                        row.stage_id,
+                        row.tool_id,
+                        benchmark_status_label(row.benchmark_status),
+                        scope_id,
+                        rationale
+                    ),
+                )
+            }
+            bijux_dna_domain_fastq::BenchmarkCorpusAssignment::Excluded {
+                reason_code,
+                rationale,
+            } => {
+                if stage_compatibility.corpus_family_id.is_some()
+                    || stage_compatibility.fixture_id.is_some()
+                {
+                    return Err(anyhow!(
                             "FASTQ stage `{}` is excluded in the domain contract but still fixture-backed in local compatibility",
                             row.stage_id
                         ));
-                    }
-                    (
+                }
+                (
                         FastqCorpusAssignmentStatus::Excluded,
                         None,
                         None,
@@ -298,8 +293,8 @@ pub(crate) fn collect_fastq_corpus_assignment_rows(
                             rationale
                         ),
                     )
-                }
-            };
+            }
+        };
 
         rows.push(FastqCorpusAssignmentRow {
             tool_id: row.tool_id,
@@ -539,14 +534,11 @@ mod tests {
         assert!(report.benchmark_ready_row_count > 0);
         assert_eq!(report.benchmark_ready_excluded_row_count, 0);
         assert_eq!(report.benchmark_ready_asset_backed_row_count, 2);
-        assert!(report
-            .rows
-            .iter()
-            .all(|row| {
-                row.corpus_family_id.is_some()
-                    || row.benchmark_scope_id.is_some()
-                    || row.excluded_reason.is_some()
-            }));
+        assert!(report.rows.iter().all(|row| {
+            row.corpus_family_id.is_some()
+                || row.benchmark_scope_id.is_some()
+                || row.excluded_reason.is_some()
+        }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "fastq.validate_reads"
                 && row.tool_id == "fastqc"

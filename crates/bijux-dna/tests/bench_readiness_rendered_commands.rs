@@ -70,8 +70,9 @@ fn bench_readiness_render_commands_reports_governed_benchmark_ready_row_slice() 
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.index_reference")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("star")
-            && row.get("command").and_then(serde_json::Value::as_str).is_some_and(|command| {
-                command.contains("STAR --runMode genomeGenerate")
-            })
+            && row
+                .get("command")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|command| command.contains("STAR --runMode genomeGenerate"))
     }));
 }

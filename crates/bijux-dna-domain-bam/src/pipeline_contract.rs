@@ -17,11 +17,7 @@ pub fn canonical_stage_order() -> Vec<&'static str> {
 #[must_use]
 pub fn stage_criticality(stage_id: &str) -> Option<StageCriticality> {
     let stage = BamStage::try_from(stage_id).ok()?;
-    if matches!(
-        stage,
-        BamStage::BiasMitigation
-            | BamStage::Genotyping
-    ) {
+    if matches!(stage, BamStage::BiasMitigation | BamStage::Genotyping) {
         Some(StageCriticality::Experimental)
     } else if bam_stage_is_stable(stage) {
         Some(StageCriticality::Essential)

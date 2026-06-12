@@ -32,10 +32,7 @@ fn bench_readiness_vcf_damage_filter_ready_writes_governed_json_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(
-        rendered_path.trim(),
-        "benchmarks/readiness/vcf/damage-filter-ready.json"
-    );
+    assert_eq!(rendered_path.trim(), "benchmarks/readiness/vcf/damage-filter-ready.json");
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read VCF damage_filter readiness report");
@@ -54,26 +51,17 @@ fn bench_readiness_vcf_damage_filter_ready_writes_governed_json_file() {
         .and_then(serde_json::Value::as_array)
         .and_then(|rows| rows.first())
         .expect("first row");
-    assert_eq!(
-        row.get("stage_id").and_then(serde_json::Value::as_str),
-        Some("vcf.damage_filter")
-    );
+    assert_eq!(row.get("stage_id").and_then(serde_json::Value::as_str), Some("vcf.damage_filter"));
     assert_eq!(row.get("tool_id").and_then(serde_json::Value::as_str), Some("bcftools"));
     assert_eq!(
         row.get("expected_outputs").and_then(serde_json::Value::as_array),
-        Some(&vec![serde_json::Value::String(
-            "damage_filtered_vcf".to_string(),
-        )])
+        Some(&vec![serde_json::Value::String("damage_filtered_vcf".to_string(),)])
     );
     assert!(row.get("report_metric_columns").and_then(serde_json::Value::as_array).is_some_and(
         |columns| {
             columns.iter().any(|value| value.as_str() == Some("removed_variants"))
-                && columns
-                    .iter()
-                    .any(|value| value.as_str() == Some("damage_context_rule"))
-                && columns
-                    .iter()
-                    .any(|value| value.as_str() == Some("terminal_context_count"))
+                && columns.iter().any(|value| value.as_str() == Some("damage_context_rule"))
+                && columns.iter().any(|value| value.as_str() == Some("terminal_context_count"))
         }
     ));
     assert!(

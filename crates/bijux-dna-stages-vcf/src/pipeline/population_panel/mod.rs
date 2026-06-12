@@ -428,9 +428,7 @@ pub fn run_population_structure_stage(
             ..AdmixtureStageParams::default()
         }),
     )?;
-    let admixture_manifest = admixture
-        .k_selection_json
-        .as_path();
+    let admixture_manifest = admixture.k_selection_json.as_path();
     let admixture_manifest_raw = std::fs::read_to_string(admixture_manifest)?;
     let admixture_manifest: serde_json::Value = serde_json::from_str(&admixture_manifest_raw)?;
     for required in [&pca.eigenvec_tsv, &pca.eigenval_tsv, &pca.pca_manifest_json] {

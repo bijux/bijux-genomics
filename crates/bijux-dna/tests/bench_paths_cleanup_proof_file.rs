@@ -21,12 +21,8 @@ fn copy_file(source: &Path, destination: &Path) {
 }
 
 fn init_repo(root: &Path) {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(root)
-        .args(["init", "-q"])
-        .output()
-        .expect("git init");
+    let output =
+        Command::new("git").arg("-C").arg(root).args(["init", "-q"]).output().expect("git init");
     assert!(
         output.status.success(),
         "git init failed: {}",
@@ -55,11 +51,7 @@ fn stage_all(root: &Path) {
         .args(["add", "benchmarks", "tests"])
         .output()
         .expect("git add");
-    assert!(
-        output.status.success(),
-        "git add failed: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
+    assert!(output.status.success(), "git add failed: {}", String::from_utf8_lossy(&output.stderr));
 }
 
 fn write_benchmark_root(root: &Path) {
@@ -68,10 +60,7 @@ fn write_benchmark_root(root: &Path) {
     write_text(&root.join("benchmarks/schemas/README.md"), "# Benchmark Schemas\n");
     write_text(&root.join("benchmarks/tests/README.md"), "# Benchmark Tests\n");
     write_text(&root.join("benchmarks/readiness/README.md"), "# Benchmark Readiness\n");
-    write_text(
-        &root.join("benchmarks/readiness/local-ready/README.md"),
-        "# Local-Ready Proof\n",
-    );
+    write_text(&root.join("benchmarks/readiness/local-ready/README.md"), "# Local-Ready Proof\n");
     write_text(
         &root.join("benchmarks/readiness/all-domain-schema-validation.json"),
         "{\n  \"ok\": true\n}\n",
@@ -166,21 +155,15 @@ fn bench_paths_cleanup_proof_writes_tracked_report_after_deleting_disposable_roo
     );
     assert_eq!(payload.get("deleted_root_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(
-        payload
-            .get("validator_violation_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("validator_violation_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
     assert_eq!(
-        payload
-            .get("validator_readiness_json_snapshot_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("validator_readiness_json_snapshot_count").and_then(serde_json::Value::as_u64),
         Some(1)
     );
     assert_eq!(
-        payload
-            .get("validator_readiness_tsv_snapshot_count")
-            .and_then(serde_json::Value::as_u64),
+        payload.get("validator_readiness_tsv_snapshot_count").and_then(serde_json::Value::as_u64),
         Some(1)
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));

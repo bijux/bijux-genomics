@@ -244,7 +244,10 @@ fn read_expected_json(case: &BamRawParserFixtureCase) -> Result<serde_json::Valu
 }
 
 fn fixture_dir(case: &BamRawParserFixtureCase) -> PathBuf {
-    repo_root().join("benchmarks/tests/fixtures/bench/parsers/bam").join(case.stage_id).join(case.tool_id)
+    repo_root()
+        .join("benchmarks/tests/fixtures/bench/parsers/bam")
+        .join(case.stage_id)
+        .join(case.tool_id)
 }
 
 fn repo_root() -> PathBuf {

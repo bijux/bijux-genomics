@@ -62,7 +62,7 @@ impl MergePairsReportV1 {
 
 #[cfg(test)]
 mod tests {
-    use super::{MergePairsReportV1, MergePairCountsV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
+    use super::{MergePairCountsV1, MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
     use crate::params::merge::{MergeEngine, UnmergedReadPolicy};
     use crate::params::PairedMode;
 

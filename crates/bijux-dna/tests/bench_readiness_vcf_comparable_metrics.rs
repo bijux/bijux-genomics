@@ -121,22 +121,18 @@ fn bench_readiness_vcf_comparable_metrics_reports_governed_metric_rows() {
     }));
 
     assert!(rows.iter().any(|row| {
-        row.get("stage_id").and_then(serde_json::Value::as_str)
-            == Some("vcf.imputation_metrics")
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation_metrics")
             && row.get("metric_id").and_then(serde_json::Value::as_str) == Some("concordance")
             && row.get("unit").and_then(serde_json::Value::as_str) == Some("fraction")
-            && row.get("direction").and_then(serde_json::Value::as_str)
-                == Some("higher_is_better")
+            && row.get("direction").and_then(serde_json::Value::as_str) == Some("higher_is_better")
             && row.get("required").and_then(serde_json::Value::as_bool) == Some(true)
     }));
 
     assert!(rows.iter().any(|row| {
-        row.get("stage_id").and_then(serde_json::Value::as_str)
-            == Some("vcf.imputation_metrics")
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation_metrics")
             && row.get("metric_id").and_then(serde_json::Value::as_str) == Some("dosage_r2")
             && row.get("unit").and_then(serde_json::Value::as_str) == Some("score")
-            && row.get("direction").and_then(serde_json::Value::as_str)
-                == Some("higher_is_better")
+            && row.get("direction").and_then(serde_json::Value::as_str) == Some("higher_is_better")
             && row.get("required").and_then(serde_json::Value::as_bool) == Some(false)
     }));
 }

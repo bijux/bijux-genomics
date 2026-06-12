@@ -210,15 +210,17 @@ fn load_stage_assignments(repo_root: &Path) -> Result<BTreeMap<(String, String),
                     .fixture_id
                     .clone()
                     .ok_or_else(|| anyhow!("assigned FASTQ corpus row is missing fixture id"))?;
-                let entry =
-                    assignments.entry(("fastq".to_string(), stage_id.clone())).or_insert_with(|| {
-                        StageAssignment {
-                            corpus_family_id: corpus_family_id.clone(),
-                            fixture_ids: Vec::new(),
-                        }
+                let entry = assignments
+                    .entry(("fastq".to_string(), stage_id.clone()))
+                    .or_insert_with(|| StageAssignment {
+                        corpus_family_id: corpus_family_id.clone(),
+                        fixture_ids: Vec::new(),
                     });
                 if entry.corpus_family_id != corpus_family_id {
-                    return Err(anyhow!("FASTQ stage `{}` drifted across corpus families", stage_id));
+                    return Err(anyhow!(
+                        "FASTQ stage `{}` drifted across corpus families",
+                        stage_id
+                    ));
                 }
                 entry.fixture_ids.push(fixture_id);
             }
@@ -227,12 +229,11 @@ fn load_stage_assignments(repo_root: &Path) -> Result<BTreeMap<(String, String),
                 let benchmark_scope_id = row.benchmark_scope_id.clone().ok_or_else(|| {
                     anyhow!("asset-backed FASTQ corpus row is missing benchmark scope id")
                 })?;
-                let entry =
-                    assignments.entry(("fastq".to_string(), stage_id.clone())).or_insert_with(|| {
-                        StageAssignment {
-                            corpus_family_id: benchmark_scope_id.clone(),
-                            fixture_ids: Vec::new(),
-                        }
+                let entry = assignments
+                    .entry(("fastq".to_string(), stage_id.clone()))
+                    .or_insert_with(|| StageAssignment {
+                        corpus_family_id: benchmark_scope_id.clone(),
+                        fixture_ids: Vec::new(),
                     });
                 if entry.corpus_family_id != benchmark_scope_id {
                     return Err(anyhow!(
@@ -323,15 +324,7 @@ fn ensure_corpus_centric_report_contract(corpora: &[CorpusCentricCorpusReport]) 
         ));
     }
 
-    ensure_corpus(
-        corpora,
-        "reference-index-assets",
-        1,
-        2,
-        0,
-        &["reference-index-assets"],
-        &[],
-    )?;
+    ensure_corpus(corpora, "reference-index-assets", 1, 2, 0, &["reference-index-assets"], &[])?;
     ensure_corpus(
         corpora,
         "corpus-01",

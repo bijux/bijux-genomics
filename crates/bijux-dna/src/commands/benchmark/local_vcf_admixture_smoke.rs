@@ -139,16 +139,11 @@ pub(crate) fn run_local_vcf_admixture_smoke(
     let published_output_root =
         repo_root.join(DEFAULT_VCF_ADMIXTURE_SMOKE_ROOT).join(&contract.tool_id);
     let staging_parent = published_output_root.parent().ok_or_else(|| {
-        anyhow!(
-            "VCF admixture smoke root has no parent: {}",
-            published_output_root.display()
-        )
+        anyhow!("VCF admixture smoke root has no parent: {}", published_output_root.display())
     })?;
-    let staging_dir = bijux_dna_infra::temp_dir_in(
-        staging_parent,
-        &format!("{}-staging-", contract.tool_id),
-    )
-    .with_context(|| format!("create staging directory in {}", staging_parent.display()))?;
+    let staging_dir =
+        bijux_dna_infra::temp_dir_in(staging_parent, &format!("{}-staging-", contract.tool_id))
+            .with_context(|| format!("create staging directory in {}", staging_parent.display()))?;
     let output_root = staging_dir.path().to_path_buf();
     let artifacts_root = output_root.join("artifacts");
     let input_root = artifacts_root.join("input");
@@ -392,10 +387,7 @@ pub(crate) fn run_local_vcf_admixture_smoke(
             BenchStageResultOutputV1 {
                 artifact_id: "source_k_selection_json".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_K_SELECTION_NAME.to_string(),
-                realized_path: path_relative_to_repo(
-                    repo_root,
-                    &published_source_k_selection_path,
-                ),
+                realized_path: path_relative_to_repo(repo_root, &published_source_k_selection_path),
                 role: "report_output".to_string(),
                 optional: false,
                 exists: true,
@@ -419,11 +411,7 @@ pub(crate) fn run_local_vcf_admixture_smoke(
             .with_context(|| format!("remove {}", published_output_root.display()))?;
     }
     fs::rename(&output_root, &published_output_root).with_context(|| {
-        format!(
-            "publish {} to {}",
-            output_root.display(),
-            published_output_root.display()
-        )
+        format!("publish {} to {}", output_root.display(), published_output_root.display())
     })?;
     let _ = staging_dir.keep();
 

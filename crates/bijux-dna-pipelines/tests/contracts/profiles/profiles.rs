@@ -78,12 +78,7 @@ fn canonical_sha256_hex(value: &serde_json::Value) -> String {
 }
 
 fn prune_bam_downstream(value: &mut serde_json::Value) {
-    let banned = [
-        "bam.bias_mitigation",
-        "bam.genotyping",
-        "bam.haplogroups",
-        "bam.kinship",
-    ];
+    let banned = ["bam.bias_mitigation", "bam.genotyping", "bam.haplogroups", "bam.kinship"];
     match value {
         serde_json::Value::Array(items) => {
             items.retain(|item| !item.as_str().is_some_and(|entry| banned.contains(&entry)));

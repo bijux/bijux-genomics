@@ -6,10 +6,9 @@ pub fn tool_registry_toml() -> Option<toml::Value> {
     REGISTRY
         .get_or_init(|| {
             let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-            let path = manifest_dir
-                .parent()
-                .and_then(std::path::Path::parent)
-                .map(|root| bijux_dna_infra::configs_file(root, "ci/registry/tool_registry.toml"))?;
+            let path = manifest_dir.parent().and_then(std::path::Path::parent).map(|root| {
+                bijux_dna_infra::configs_file(root, "ci/registry/tool_registry.toml")
+            })?;
             if !path.exists() {
                 return None;
             }

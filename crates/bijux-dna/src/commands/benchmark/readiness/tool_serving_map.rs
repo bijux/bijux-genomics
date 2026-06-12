@@ -359,12 +359,13 @@ pub(crate) fn load_corpus_status_by_stage(repo_root: &Path) -> Result<BTreeMap<S
                     Ok(format!("fixture:{fixture_id}"))
                 }
                 "asset_backed" => {
-                    let benchmark_scope_id = entry.benchmark_scope_id.as_deref().ok_or_else(|| {
-                        anyhow!(
-                            "stage `{}` is marked asset-backed without a benchmark_scope_id",
-                            entry.stage_id
-                        )
-                    })?;
+                    let benchmark_scope_id =
+                        entry.benchmark_scope_id.as_deref().ok_or_else(|| {
+                            anyhow!(
+                                "stage `{}` is marked asset-backed without a benchmark_scope_id",
+                                entry.stage_id
+                            )
+                        })?;
                     Ok(format!("asset:{benchmark_scope_id}"))
                 }
                 "planner_only" => Ok("planner_only".to_string()),
