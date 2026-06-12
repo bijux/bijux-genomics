@@ -47,6 +47,7 @@ pub(crate) mod essential_pipeline_rendered_commands;
 pub(crate) mod essential_pipeline_report_map;
 pub(crate) mod essential_pipelines_ready;
 pub(crate) mod expected_benchmark_results;
+pub(crate) mod fastq_active_stage_tool_matrix;
 pub(crate) mod fastq_adapter_output_contract;
 pub(crate) mod fastq_command_adapter_coverage;
 pub(crate) mod fastq_comparable_metrics;

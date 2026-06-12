@@ -370,6 +370,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderFastqActiveStageToolMatrix(args) => {
+                        crate::commands::benchmark::readiness::fastq_active_stage_tool_matrix::run_render_fastq_active_stage_tool_matrix(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderFastqToolServingMap(args) => {
                         crate::commands::benchmark::readiness::tool_serving_map::run_render_fastq_tool_serving_map(
                             args,
