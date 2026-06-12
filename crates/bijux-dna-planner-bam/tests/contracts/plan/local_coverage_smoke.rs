@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use anyhow::Result;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -109,6 +111,8 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
 #[test]
 fn local_coverage_smoke_plans_reject_empty_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
+    let bam = GOVERNED_COVERAGE_BAM_PATH;
+    let regions = GOVERNED_COVERAGE_REGIONS_PATH;
     write_local_coverage_config(
         temp.path(),
         &format!(
@@ -133,8 +137,6 @@ mean_depth = 1.3333333333333333
 breadth_1x = 1.0
 covered_bases = 6
 "#,
-            bam = GOVERNED_COVERAGE_BAM_PATH,
-            regions = GOVERNED_COVERAGE_REGIONS_PATH,
         ),
     )?;
 
@@ -147,6 +149,8 @@ covered_bases = 6
 #[test]
 fn local_coverage_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
     let temp = tempfile::tempdir()?;
+    let bam = GOVERNED_COVERAGE_BAM_PATH;
+    let regions = GOVERNED_COVERAGE_REGIONS_PATH;
     write_local_coverage_config(
         temp.path(),
         &format!(
@@ -188,8 +192,6 @@ mean_depth = 0.75
 breadth_1x = 0.75
 covered_bases = 3
 "#,
-            bam = GOVERNED_COVERAGE_BAM_PATH,
-            regions = GOVERNED_COVERAGE_REGIONS_PATH,
         ),
     )?;
 

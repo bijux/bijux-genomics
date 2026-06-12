@@ -85,8 +85,7 @@ fn local_smoke_case_output_dir(
     let readiness_root = repo_root.join(BENCHMARK_READINESS_ROOT_RELATIVE);
     if resolved_root == readiness_root || resolved_root.starts_with(&readiness_root) {
         return Err(anyhow!(
-            "local-smoke output_dir must remain disposable under `runs/bench/local-smoke` and must not resolve inside `{}`",
-            BENCHMARK_READINESS_ROOT_RELATIVE
+            "local-smoke output_dir must remain disposable under `runs/bench/local-smoke` and must not resolve inside `{BENCHMARK_READINESS_ROOT_RELATIVE}`"
         ));
     }
     Ok(output_root.join(sample_id).join(tool_id))
@@ -2136,7 +2135,7 @@ fn build_local_complexity_smoke_case(
             case.sample_id
         ));
     }
-    if case.projection_points.iter().any(|point| *point == 0) {
+    if case.projection_points.contains(&0) {
         return Err(anyhow!(
             "local-smoke bam.complexity case `{}` must keep projection points greater than zero",
             case.sample_id
@@ -2230,7 +2229,7 @@ fn build_local_coverage_smoke_case(
             case.sample_id
         ));
     }
-    if case.depth_thresholds.iter().any(|threshold| *threshold == 0) {
+    if case.depth_thresholds.contains(&0) {
         return Err(anyhow!(
             "local-smoke bam.coverage case `{}` must keep depth thresholds greater than zero",
             case.sample_id
@@ -2467,8 +2466,7 @@ fn validate_local_gc_bias_expected_rows(
 ) -> Result<()> {
     if expected_rows.is_empty() {
         return Err(anyhow!(
-            "local-smoke bam.gc_bias case `{}` must declare at least one expected GC bin row",
-            sample_id
+            "local-smoke bam.gc_bias case `{sample_id}` must declare at least one expected GC bin row"
         ));
     }
 

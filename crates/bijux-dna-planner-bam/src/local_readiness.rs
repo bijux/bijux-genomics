@@ -183,7 +183,7 @@ pub fn local_align_plan(repo_root: &Path) -> Result<bijux_dna_stage_contract::St
     hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
     let strategy =
         bam_alignment_strategy_for_tool(tool_id.as_str(), Some("default")).ok_or_else(|| {
-            anyhow!("local-ready bam.align tool `{}` has no governed alignment strategy", tool_id)
+            anyhow!("local-ready bam.align tool `{tool_id}` has no governed alignment strategy")
         })?;
     let out_dir =
         config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_ALIGN_OUTPUT_DIR));
