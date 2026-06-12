@@ -81,6 +81,7 @@ struct BenchLocalSlurmSubmitInputs {
     compatibility_kind: String,
     compatibility_note: String,
     fixture_id: Option<String>,
+    benchmark_scope_id: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -199,6 +200,7 @@ pub(crate) fn render_slurm_submit_manifest(
                 compatibility_kind: compatibility.compatibility_kind.clone(),
                 compatibility_note: compatibility.compatibility_note.clone(),
                 fixture_id: compatibility.fixture_id.clone(),
+                benchmark_scope_id: compatibility.benchmark_scope_id.clone(),
             });
         }
     }
@@ -265,7 +267,7 @@ fn build_submit_job(
         }
     }
     let sample_id = (sample_ids.len() == 1).then(|| sample_ids[0].clone());
-    let corpus_id = job.fixture_id.clone();
+    let corpus_id = job.fixture_id.clone().or(job.benchmark_scope_id.clone());
     let job_name = slurm_job_name(&job.command.stage_id);
     let scope_root =
         slurm_job_scope_root(root_path, &job.command, corpus_id.as_deref(), sample_id.as_deref());

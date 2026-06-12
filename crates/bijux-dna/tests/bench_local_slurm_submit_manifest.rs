@@ -166,17 +166,27 @@ fn bench_local_render_slurm_submit_manifest_captures_governed_metadata_fields() 
             job.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.index_reference")
         })
         .expect("index reference job");
-    assert_eq!(index_reference.get("corpus_id"), Some(&serde_json::Value::Null));
+    assert_eq!(
+        index_reference.get("corpus_id").and_then(serde_json::Value::as_str),
+        Some("reference-index-assets")
+    );
     assert_eq!(index_reference.get("sample_id"), Some(&serde_json::Value::Null));
     assert_eq!(
+        index_reference
+            .get("sample_ids")
+            .and_then(serde_json::Value::as_array)
+            .map(|rows| rows.len()),
+        Some(0)
+    );
+    assert_eq!(
         index_reference.get("compatibility_kind").and_then(serde_json::Value::as_str),
-        Some("planner_only")
+        Some("asset_backed")
     );
     assert!(
         index_reference
             .get("compatibility_note")
             .and_then(serde_json::Value::as_str)
-            .is_some_and(|note| note.contains("does not consume corpus reads")),
-        "planner-only compatibility note must stay explicit"
+            .is_some_and(|note| note.contains("owned reference assets")),
+        "asset-backed compatibility note must stay explicit"
     );
 }

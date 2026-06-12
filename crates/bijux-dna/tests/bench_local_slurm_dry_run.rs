@@ -171,7 +171,7 @@ fn bench_local_render_slurm_scripts_fastq_json_reports_governed_run_paths() {
     assert_eq!(
         index_reference.get("stdout_path").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/planner-only/fastq.index_reference/sample-set/bowtie2_build/stdout.log"
+            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/bowtie2_build/stdout.log"
         )
     );
     assert_eq!(
@@ -179,7 +179,7 @@ fn bench_local_render_slurm_scripts_fastq_json_reports_governed_run_paths() {
             .get("stage_result_manifest_path")
             .and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/planner-only/fastq.index_reference/sample-set/bowtie2_build/stage-result.json"
+            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/bowtie2_build/stage-result.json"
         )
     );
 }

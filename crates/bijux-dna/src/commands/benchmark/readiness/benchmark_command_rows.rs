@@ -253,18 +253,24 @@ fn render_fastq_stage_tool_argv(
         .io
         .inputs
         .iter()
-        .map(|artifact| bijux_dna_planner_fastq::FastqStageExplicitInput {
-            input_id: artifact.name.as_str().to_string(),
-            artifact: artifact.clone(),
-            source_tool_id: explicit_input_source_tool_id(stage_id, tool_id, artifact),
+        .map(|artifact| {
+            let mut artifact = artifact.clone();
+            artifact.path = resolve_repo_input_path(repo_root, &artifact.path);
+            bijux_dna_planner_fastq::FastqStageExplicitInput {
+                input_id: artifact.name.as_str().to_string(),
+                source_tool_id: explicit_input_source_tool_id(stage_id, tool_id, &artifact),
+                artifact,
+            }
         })
         .collect::<Vec<_>>();
     let fallback_input = base_plan.io.inputs.first().ok_or_else(|| {
         anyhow!("FASTQ benchmark-ready row `{stage_id}` / `{tool_id}` has no canonical inputs")
     })?;
-    let fallback_r1 = fallback_input.path.as_path();
-    let fallback_r2 = find_fastq_input(base_plan, "reads_r2");
-    let reference_fasta = find_reference_fasta(base_plan);
+    let fallback_r1 = resolve_repo_input_path(repo_root, &fallback_input.path);
+    let fallback_r2 = find_fastq_input(base_plan, "reads_r2")
+        .map(|path| resolve_repo_input_path(repo_root, path));
+    let reference_fasta =
+        find_reference_fasta(base_plan).map(|path| resolve_repo_input_path(repo_root, path));
     let adapter_bank = load_default_fastq_adapter_bank_context(repo_root)
         .context("load default FASTQ adapter bank context")?;
     let polyx_bank = load_default_fastq_polyx_bank_context(repo_root)
@@ -287,9 +293,9 @@ fn render_fastq_stage_tool_argv(
         polyx_bank.as_ref(),
         contaminant_bank.as_ref(),
         false,
-        fallback_r1,
-        fallback_r2,
-        reference_fasta,
+        &fallback_r1,
+        fallback_r2.as_deref(),
+        reference_fasta.as_deref(),
         &explicit_inputs,
         out_dir,
     )
@@ -315,17 +321,29 @@ fn render_bam_stage_tool_argv(
         (
             Some(
                 find_first_input(base_plan, &["reads_r1", "fastq_r1"])
+                    .map(|path| resolve_repo_input_path(repo_root, path))
                     .context("resolve align reads_r1")?,
             ),
-            find_first_input(base_plan, &["reads_r2", "fastq_r2"]),
+            find_first_input(base_plan, &["reads_r2", "fastq_r2"])
+                .map(|path| resolve_repo_input_path(repo_root, path)),
         )
     } else {
         (None, None)
     };
-    let bam = if stage_id == "bam.align" { None } else { find_bam_input(base_plan) };
-    let bam_index = if stage_id == "bam.align" { None } else { find_bam_index_input(base_plan) };
+    let bam = if stage_id == "bam.align" {
+        None
+    } else {
+        find_bam_input(base_plan).map(|path| resolve_repo_input_path(repo_root, path))
+    };
+    let bam_index = if stage_id == "bam.align" {
+        None
+    } else {
+        find_bam_index_input(base_plan).map(|path| resolve_repo_input_path(repo_root, path))
+    };
     let derived_reference = find_bam_corpus_reference(repo_root, base_plan);
-    let reference = find_reference_fasta(base_plan).or(derived_reference.as_deref());
+    let reference = find_reference_fasta(base_plan)
+        .map(|path| resolve_repo_input_path(repo_root, path))
+        .or(derived_reference);
     let params = project_bam_benchmark_params_for_tool(stage_id, tool_id, base_plan);
     let params_ref = params.as_ref();
     let sample_id = params_ref
@@ -339,11 +357,11 @@ fn render_bam_stage_tool_argv(
         stage_id,
         tool: &tool,
         out_dir: &out_dir,
-        bam,
-        bam_index,
-        r1,
-        r2,
-        reference,
+        bam: bam.as_deref(),
+        bam_index: bam_index.as_deref(),
+        r1: r1.as_deref(),
+        r2: r2.as_deref(),
+        reference: reference.as_deref(),
         sample_id,
         params: params_ref,
     })
@@ -357,6 +375,10 @@ fn benchmark_command_out_dir(domain: &str, stage_id: &str, tool_id: &str) -> Res
         .join(domain)
         .join(stage_path)
         .join(tool_id))
+}
+
+fn resolve_repo_input_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() { path.to_path_buf() } else { repo_root.join(path) }
 }
 
 fn domain_label(domain: BenchLocalDomain) -> &'static str {
@@ -555,6 +577,23 @@ fn fastq_stage_params_from_plan(
                 format!("decode effective params for `{stage_id}` as FastqStatsParams")
             })?,
         )),
+        "fastq.index_reference" => Some(
+            bijux_dna_planner_fastq::FastqStageParameters::IndexReference(
+                bijux_dna_planner_fastq::IndexReferenceStageParams {
+                    threads: Some(
+                        serde_json::from_value::<
+                            bijux_dna_domain_fastq::params::reference_index::ReferenceIndexEffectiveParams,
+                        >(effective_params.clone())
+                        .with_context(|| {
+                            format!(
+                                "decode effective params for `{stage_id}` as ReferenceIndexEffectiveParams"
+                            )
+                        })?
+                        .threads,
+                    ),
+                },
+            ),
+        ),
         "fastq.remove_chimeras" => Some(
             bijux_dna_planner_fastq::FastqStageParameters::RemoveChimeras(
                 serde_json::from_value(effective_params.clone()).with_context(|| {

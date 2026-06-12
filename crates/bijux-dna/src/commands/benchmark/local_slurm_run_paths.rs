@@ -31,6 +31,7 @@ struct BenchLocalSlurmRunPathInputs {
     command: BenchLocalStageCommandEntry,
     plans: Vec<bijux_dna_stage_contract::StagePlanV1>,
     fixture_id: Option<String>,
+    benchmark_scope_id: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -86,6 +87,7 @@ pub(crate) fn collect_local_slurm_run_paths(
                 command,
                 plans: bundle.plans,
                 fixture_id: compatibility.fixture_id.clone(),
+                benchmark_scope_id: compatibility.benchmark_scope_id.clone(),
             },
             &fixture_sample_index,
         );
@@ -114,8 +116,15 @@ fn build_run_paths(
             }
         }
     }
-    let sample_scope = sample_scope_from_sample_ids(&sample_ids);
-    let corpus_scope = job.fixture_id.unwrap_or_else(|| "planner-only".to_string());
+    let sample_scope = if sample_ids.is_empty() {
+        "asset-set".to_string()
+    } else {
+        sample_scope_from_sample_ids(&sample_ids)
+    };
+    let corpus_scope = job
+        .fixture_id
+        .or(job.benchmark_scope_id)
+        .unwrap_or_else(|| "planner-only".to_string());
 
     let result_root = root_path
         .join("runs")

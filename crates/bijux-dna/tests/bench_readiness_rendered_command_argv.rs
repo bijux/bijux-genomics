@@ -47,8 +47,8 @@ fn bench_readiness_render_command_argv_reports_governed_benchmark_ready_row_slic
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/rendered-commands.argv.jsonl")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(116));
-    assert_eq!(payload.get("rows").and_then(serde_json::Value::as_array).map(Vec::len), Some(116));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(118));
+    assert_eq!(payload.get("rows").and_then(serde_json::Value::as_array).map(Vec::len), Some(118));
     assert!(payload
         .get("rows")
         .and_then(serde_json::Value::as_array)
@@ -72,6 +72,18 @@ fn bench_readiness_render_command_argv_reports_governed_benchmark_ready_row_slic
                     && argv
                         .iter()
                         .any(|arg| arg.as_str().is_some_and(|item| item.contains("kraken2")))
+            })
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.index_reference")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2_build")
+            && row.get("readiness_kind").and_then(serde_json::Value::as_str)
+                == Some("dry_run")
+            && row.get("argv").and_then(serde_json::Value::as_array).is_some_and(|argv| {
+                argv.first().and_then(serde_json::Value::as_str) == Some("sh")
+                    && argv.iter().any(|arg| {
+                        arg.as_str().is_some_and(|item| item.contains("bowtie2-build"))
+                    })
             })
     }));
     assert!(rows.iter().any(|row| {
