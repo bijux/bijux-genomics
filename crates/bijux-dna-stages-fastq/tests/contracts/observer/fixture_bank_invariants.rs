@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use anyhow::Result;
 use bijux_dna_stages_fastq::observer::{
     parse_deduplicate_report, parse_fastqvalidator_count, parse_low_complexity_report,

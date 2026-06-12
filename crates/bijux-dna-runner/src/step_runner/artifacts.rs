@@ -21,6 +21,7 @@ fn selected_environment(out_dir: &Path) -> std::collections::BTreeMap<String, St
     environment
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(super) fn write_minimum_run_artifacts(
     step: &ExecutionStep,
     input_hashes: &[String],

@@ -97,6 +97,7 @@ fn command_output(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{run_command_with_context, run_command_with_context_and_stdin};
 
