@@ -411,12 +411,11 @@ Visible aliases are part of the operator surface:
   governed JSON row per benchmark command, preserving the executable and arguments as a separated
   `argv` array so local benchmark rendering is reproducible without shell-parsing ambiguity.
 - `bijux-dna bench readiness render-vcf-commands`
-  `render-vcf-commands` writes both `benchmarks/readiness/vcf-rendered-commands.sh` and
-  `benchmarks/readiness/vcf-rendered-commands.argv.jsonl` for the canonical VCF
-  `benchmark_ready` slice. The shell script preserves the real multi-step adapter pipelines in a
-  `bash -n` parseable form, and the JSONL preserves one governed row per benchmark-ready VCF pair
-  with structured `command_steps` argv so VCF command rendering stays executable without shell
-  placeholders or synthetic `echo execute` stubs.
+  `render-vcf-commands` writes both `benchmarks/readiness/vcf/vcf-rendered-commands.sh` and
+  `benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl` for the active VCF slice. The shell
+  script preserves the real multi-step adapter pipelines in a `bash -n` parseable form, and the
+  JSONL preserves one governed row per active VCF pair with structured `command_steps` argv so VCF
+  command rendering stays executable without shell placeholders or synthetic `echo execute` stubs.
 - `bijux-dna bench readiness render-all-domain-commands`
   `render-all-domain-commands` writes both
   `benchmarks/readiness/rendered-commands-all-domains.sh` and
