@@ -29,7 +29,7 @@ Iteration-06 benchmark matrix workflow for FASTQ, BAM, VCF, and cross-domain bin
 
 ```bash
 cargo run -q -p bijux-dna -- config benchmark-matrix \
-  --config configs/hpc/campaign/lunarc-small.toml \
+  --config benchmarks/configs/hpc/campaign/lunarc-small.toml \
   --domain all \
   --out artifacts/benchmark/matrix.json \
   --json
@@ -55,7 +55,7 @@ Use `--fail-on-refuse` to fail command execution when any row is classified as `
 
 ```bash
 cargo run -q -p bijux-dna -- config benchmark-matrix \
-  --config configs/hpc/campaign/lunarc-small.toml \
+  --config benchmarks/configs/hpc/campaign/lunarc-small.toml \
   --domain all \
   --fail-on-refuse
 ```

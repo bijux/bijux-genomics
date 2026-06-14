@@ -10,7 +10,7 @@ This runbook describes the campaign planning layer for HPC benchmark execution.
 ## Scope
 
 - Covers campaign profile generation, preflight checks, dry-run planning, submission entrypoints, and bundle operations.
-- Applies to `configs/hpc/campaign/*.toml` profiles and optional policy/env inputs.
+- Applies to `benchmarks/configs/hpc/campaign/*.toml` profiles and optional policy/env inputs.
 
 ## Non-goals
 
@@ -37,39 +37,39 @@ This runbook describes the campaign planning layer for HPC benchmark execution.
 Generate baseline campaign profiles:
 
 ```bash
-bijux-dna config write-campaign-profiles --out-dir configs/hpc/campaign
+bijux-dna config write-campaign-profiles --out-dir benchmarks/configs/hpc/campaign
 ```
 
 Run campaign preflight:
 
 ```bash
 bijux-dna config campaign-preflight \
-  --config configs/hpc/campaign/lunarc-small.toml \
+  --config benchmarks/configs/hpc/campaign/lunarc-small.toml \
   --env-file configs/hpc/.env \
-  --user-overrides configs/hpc/campaign/user.policy.toml
+  --user-overrides benchmarks/configs/hpc/campaign/user.policy.toml
 ```
 
 Run campaign dry-run:
 
 ```bash
 bijux-dna config campaign-dry-run \
-  --config configs/hpc/campaign/lunarc-small.toml \
+  --config benchmarks/configs/hpc/campaign/lunarc-small.toml \
   --env-file configs/hpc/.env \
-  --user-overrides configs/hpc/campaign/user.policy.toml
+  --user-overrides benchmarks/configs/hpc/campaign/user.policy.toml
 ```
 
 Print JSON reports:
 
 ```bash
-bijux-dna config campaign-preflight --json --config configs/hpc/campaign/lunarc-small.toml
-bijux-dna config campaign-dry-run --json --config configs/hpc/campaign/lunarc-small.toml
+bijux-dna config campaign-preflight --json --config benchmarks/configs/hpc/campaign/lunarc-small.toml
+bijux-dna config campaign-dry-run --json --config benchmarks/configs/hpc/campaign/lunarc-small.toml
 ```
 
 Submit a single stage benchmark (mock mode):
 
 ```bash
 bijux-dna slurm submit-stage-benchmark \
-  --config configs/hpc/campaign/lunarc-small.toml \
+  --config benchmarks/configs/hpc/campaign/lunarc-small.toml \
   --stage fastq.validate_reads \
   --mock-submit
 ```
@@ -78,7 +78,7 @@ Submit one domain benchmark set:
 
 ```bash
 bijux-dna slurm submit-domain-benchmark \
-  --config configs/hpc/campaign/lunarc-small.toml \
+  --config benchmarks/configs/hpc/campaign/lunarc-small.toml \
   --domain fastq \
   --mock-submit
 ```
@@ -87,7 +87,7 @@ Submit a cross-domain subset:
 
 ```bash
 bijux-dna slurm submit-cross-benchmark \
-  --config configs/hpc/campaign/lunarc-small.toml \
+  --config benchmarks/configs/hpc/campaign/lunarc-small.toml \
   --domains fastq,bam \
   --mock-submit
 ```
@@ -96,7 +96,7 @@ Submit a whole campaign:
 
 ```bash
 bijux-dna slurm submit-campaign \
-  --config configs/hpc/campaign/lunarc-small.toml \
+  --config benchmarks/configs/hpc/campaign/lunarc-small.toml \
   --mock-submit
 ```
 
@@ -104,7 +104,7 @@ Write a copy-back manifest:
 
 ```bash
 bijux-dna slurm copy-back-manifest \
-  --config configs/hpc/campaign/lunarc-small.toml
+  --config benchmarks/configs/hpc/campaign/lunarc-small.toml
 ```
 
 Verify encrypted bundle integrity:
@@ -152,7 +152,7 @@ Export a minimal encrypted failure package for one benchmark row:
 
 ```bash
 bijux-dna slurm export-failure-bundle \
-  --config configs/hpc/campaign/cross-mini.toml \
+  --config benchmarks/configs/hpc/campaign/cross-mini.toml \
   --stage fastq.validate_reads \
   --tool seqkit_v2 \
   --sample sample_0001 \
@@ -165,7 +165,7 @@ Share an encrypted bundle with a collaborator profile:
 ```bash
 bijux-dna slurm share-bundle \
   --bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results \
-  --profile configs/hpc/campaign/sharing/collaborator-a.toml \
+  --profile benchmarks/configs/hpc/campaign/sharing/collaborator-a.toml \
   --out-dir artifacts/investigation/shared
 ```
 
