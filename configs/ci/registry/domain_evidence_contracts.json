@@ -41,7 +41,7 @@
       },
       {
         "stage_id": "bam.complexity",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "complexity extrapolation requires sufficient observed unique-read support before estimated_library_size and saturation_estimate can be emitted",
@@ -261,7 +261,7 @@
       },
       {
         "stage_id": "bam.qc_pre",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "samtools is the governed primary executor for flagstat, idxstats, and stats materialization",
@@ -274,7 +274,7 @@
       },
       {
         "stage_id": "bam.recalibration",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "default stage assumptions captured"
@@ -461,6 +461,7 @@
         "assumptions": [
           "contaminant decoy reference is explicitly versioned and separate from taxonomy DB.",
           "single-end input omits reads_r2 and contaminant_screened_reads_r2; paired-end input preserves mate synchronization during contaminant depletion.",
+          "removed_contaminant_reads_* artifacts carry the reads rejected by contaminant depletion while preserving mate synchronization.",
           "contaminant_screen_report_json is the canonical governed depletion report; backend-native alignment metrics remain traceable from that report."
         ],
         "invariants": [

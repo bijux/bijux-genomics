@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 1ff67989de425f6c6415b66282b126da3bbc2ea0
+# source_commit: 75c67e6efbcdd41bf016ef40315542e0b3e6d83d
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -435,7 +435,7 @@ citation = "software:https://github.com/bijux/bijux-genomics"
 pinned_commit = "release:workspace"
 pin_strategy = "workspace_commit"
 container_ref = "bijuxdna/bijux_dna:workspace"
-runtimes = ["docker", "apptainer"]
+runtimes = ["docker"]
 container = true
 version_cmd = "bijux-dna --version"
 help_cmd = "bijux-dna --help"
@@ -784,7 +784,7 @@ smoke_help_cmd = "fastp --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "fastp --help"
 expected_bin = "fastp"
-expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "raw_backend_report_json", "filtered_reads_r1", "filtered_reads_r2", "length_distribution_tsv", "length_distribution_json", "filtered_fastq_r1", "filtered_fastq_r2", "filter_report_json"]
+expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "raw_backend_report_json", "filtered_reads_r1", "filtered_reads_r2", "length_distribution_tsv", "length_distribution_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable with other governed trimming and filtering backends only when stage contract, read layout, and retained report artifacts are matched."
 dockerfile = "containers/docker/arm64/Dockerfile.fastp"
@@ -1804,7 +1804,7 @@ smoke_help_cmd = "seqfu --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "seqfu --help"
 expected_bin = "seqfu"
-expected_artifacts = ["length_distribution_tsv", "length_distribution_json", "normalized_abundance_tsv", "report_json", "qc_json", "qc_tsv"]
+expected_artifacts = ["length_distribution_tsv", "length_distribution_json", "report_json", "qc_json", "qc_tsv"]
 metrics_schema = "bijux.fastq.stats.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.seqfu"
