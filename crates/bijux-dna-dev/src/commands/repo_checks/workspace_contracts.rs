@@ -611,7 +611,11 @@ pub(crate) fn check_root_layout(
             continue;
         }
         let name = entry.file_name().to_string_lossy().to_string();
-        if name.starts_with('.') || allowlist.contains(&name.as_str()) {
+        if name.starts_with('.')
+            || name.starts_with("target")
+            || name == "runs"
+            || allowlist.contains(&name.as_str())
+        {
             continue;
         }
         offenders.push(name);

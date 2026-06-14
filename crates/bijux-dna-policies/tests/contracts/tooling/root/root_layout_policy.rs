@@ -33,7 +33,7 @@ fn policy__contracts__root_layout_policy__top_level_directories_are_allowlisted(
             continue;
         }
         let name = entry.file_name().to_string_lossy().to_string();
-        if name.starts_with('.') || name.starts_with("target") {
+        if name.starts_with('.') || name.starts_with("target") || name == "runs" {
             continue;
         }
         if !allowed.contains(name.as_str()) {
