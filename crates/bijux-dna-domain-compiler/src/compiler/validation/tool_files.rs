@@ -5,6 +5,10 @@ use super::{
 };
 use std::path::Path;
 
+fn domain_tool_key(dom: &str, tool_id: &str) -> String {
+    format!("{dom}::{tool_id}")
+}
+
 pub(super) struct ToolValidationState<'a> {
     pub(super) ids: &'a mut BTreeMap<String, String>,
     pub(super) capabilities: &'a mut BTreeMap<String, BTreeSet<String>>,
@@ -73,7 +77,7 @@ pub(super) fn validate_tool_files(
         if !tool.capabilities.is_empty() {
             state
                 .capabilities
-                .insert(tool.tool_id.clone(), tool.capabilities.iter().cloned().collect());
+                .insert(domain_tool_key(dom, &tool.tool_id), tool.capabilities.iter().cloned().collect());
         }
         if dom != "vcf" && tool.status == "supported" {
             if tool.stage_ids.is_empty() {
@@ -162,8 +166,9 @@ pub(super) fn validate_tool_files(
         } else {
             state.ids.insert(tool.tool_id.clone(), path.display().to_string());
         }
-        state.statuses.insert(tool.tool_id.clone(), tool.status.clone());
-        state.metrics_schemas.insert(tool.tool_id.clone(), tool.metrics_schema_id.clone());
+        let scoped_key = domain_tool_key(dom, &tool.tool_id);
+        state.statuses.insert(scoped_key.clone(), tool.status.clone());
+        state.metrics_schemas.insert(scoped_key, tool.metrics_schema_id.clone());
     }
     Ok(())
 }

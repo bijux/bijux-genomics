@@ -9,6 +9,10 @@ pub(super) struct ToolCatalogs<'a> {
     pub(super) metrics_schemas: &'a BTreeMap<String, String>,
 }
 
+fn domain_tool_key(dom: &str, tool_id: &str) -> String {
+    format!("{dom}::{tool_id}")
+}
+
 #[allow(clippy::too_many_lines)]
 pub(super) fn validate_index_matrix_and_pipelines(
     options: &ValidateOptions,
@@ -55,7 +59,12 @@ pub(super) fn validate_index_matrix_and_pipelines(
         .flat_map(|tools| tools.iter().cloned())
         .collect::<BTreeSet<_>>();
     for tool_id in &index.tool_ids {
-        if tool_catalogs.statuses.get(tool_id).is_some_and(|status| status != "supported") {
+        let scoped_key = domain_tool_key(dom, tool_id);
+        if tool_catalogs
+            .statuses
+            .get(&scoped_key)
+            .is_some_and(|status| status != "supported")
+        {
             continue;
         }
         if !reachable_tools.contains(tool_id) {
@@ -325,7 +334,8 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 );
             }
             if stage.status == "supported" {
-                let caps = tool_catalogs.capabilities.get(tool).ok_or_else(|| {
+                let scoped_key = domain_tool_key(dom, tool);
+                let caps = tool_catalogs.capabilities.get(&scoped_key).ok_or_else(|| {
                     anyhow!(
                         "{} missing capabilities for supported tool {}",
                         index_path.display(),
@@ -351,7 +361,10 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 );
             }
             if stage.status == "supported"
-                && tool_catalogs.statuses.get(tool).is_some_and(|status| status == "supported")
+                && tool_catalogs
+                    .statuses
+                    .get(&domain_tool_key(dom, tool))
+                    .is_some_and(|status| status == "supported")
             {
                 supported_tools_for_stage += 1;
                 supported_tool_fixture_seen.insert(tool.clone());
@@ -369,28 +382,38 @@ pub(super) fn validate_index_matrix_and_pipelines(
     }
 
     for (tool_id, status) in tool_catalogs.statuses {
-        if !index.tool_ids.contains(tool_id) || status != "supported" {
+        let Some((tool_domain, bare_tool_id)) = tool_id.split_once("::") else {
+            continue;
+        };
+        if tool_domain != dom || !index.tool_ids.contains(&bare_tool_id.to_string()) || status != "supported" {
             continue;
         }
         let has_stage =
-            index.stage_tool_compatibility.values().any(|tools| tools.contains(tool_id));
+            index.stage_tool_compatibility.values().any(|tools| tools.contains(&bare_tool_id.to_string()));
         if !has_stage {
             bail!(
                 "{} supported tool {} is not mapped to any stage in compatibility matrix",
                 index_path.display(),
-                tool_id
+                bare_tool_id
             );
         }
-        if !supported_tool_fixture_seen.contains(tool_id) {
+        if !supported_tool_fixture_seen.contains(bare_tool_id) {
             bail!(
                 "{} supported tool {} has no fixture-backed stage coverage",
                 index_path.display(),
-                tool_id
+                bare_tool_id
             );
         }
-        if tool_catalogs.metrics_schemas.get(tool_id).is_none_or(|schema| schema.trim().is_empty())
+        if tool_catalogs
+            .metrics_schemas
+            .get(tool_id)
+            .is_none_or(|schema| schema.trim().is_empty())
         {
-            bail!("{} supported tool {} missing metrics_schema_id", index_path.display(), tool_id);
+            bail!(
+                "{} supported tool {} missing metrics_schema_id",
+                index_path.display(),
+                bare_tool_id
+            );
         }
     }
 
