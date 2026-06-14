@@ -44,7 +44,6 @@ scope: pre_hpc_pre_vcf
 expected_artifacts:
 - length_distribution_tsv
 - length_distribution_json
-- normalized_abundance_tsv
 - report_json
 - qc_json
 - qc_tsv
@@ -73,9 +72,6 @@ outputs:
 - name: length_distribution_json
   data_type: json
   cardinality: One
-- name: normalized_abundance_tsv
-  data_type: tsv
-  cardinality: One
 - name: qc_json
   data_type: json
   cardinality: One
@@ -89,7 +85,6 @@ execution_contract:
   - report_json
   - length_distribution_tsv
   - length_distribution_json
-  - normalized_abundance_tsv
   - qc_json
   - qc_tsv
   forbidden_outputs: []
