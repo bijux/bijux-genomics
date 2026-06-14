@@ -5,6 +5,7 @@ use bijux_dna_core::contract::StageOperatingMode;
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
+use bijux_dna_domain_fastq::params::stats::ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_SCHEMA_VERSION;
 use bijux_dna_domain_fastq::stages::ids::STAGE_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -67,6 +68,7 @@ pub fn plan(
             "kmer_size": kmer_size,
         }),
         effective_params: serde_json::json!({
+            "schema_version": ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_SCHEMA_VERSION,
             "paired_mode": if r2.is_some() { "paired_end" } else { "single_end" },
             "complexity_policy": "prealign_kmer",
             "estimate_method": "kmer_redundancy",

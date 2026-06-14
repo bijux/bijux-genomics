@@ -30,7 +30,10 @@ use bijux_dna_domain_fastq::params::screen::{
     TaxonomyDatabaseScope, TaxonomyInterpretationBoundary, TaxonomyReportFormat,
     HOST_DEPLETION_SCHEMA_VERSION, RRNA_DEPLETION_SCHEMA_VERSION, SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
-use bijux_dna_domain_fastq::params::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
+use bijux_dna_domain_fastq::params::stats::{
+    FastqEstimateLibraryComplexityPrealignParams, FastqStatsParams,
+    ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_SCHEMA_VERSION, STATS_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::params::trim::{
     default_terminal_damage_execution_policy, parse_terminal_damage_execution_policy,
     resolve_terminal_damage_policy, resolve_terminal_damage_policy_with_override,
@@ -59,6 +62,42 @@ fn stats_params_roundtrip_and_schema_version() {
     assert_eq!(decoded.schema_version, STATS_SCHEMA_VERSION);
     assert_eq!(decoded.threads, 2);
     assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn estimate_library_complexity_params_roundtrip_with_governed_advisory_contract() {
+    let stage_id = StageId::from_static("fastq.estimate_library_complexity_prealign");
+    let params = FastqEstimateLibraryComplexityPrealignParams {
+        schema_version: ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_SCHEMA_VERSION.to_string(),
+        paired_mode: PairedMode::PairedEnd,
+        complexity_policy: "prealign_kmer".to_string(),
+        estimate_method: "kmer_redundancy".to_string(),
+        advisory_only: true,
+        modifies_reads: false,
+        kmer_size: Some(21),
+    };
+    let decoded: FastqEstimateLibraryComplexityPrealignParams = roundtrip(&params);
+    assert_eq!(decoded.schema_version, ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_SCHEMA_VERSION);
+    assert_eq!(decoded.complexity_policy, "prealign_kmer");
+    assert_eq!(decoded.estimate_method, "kmer_redundancy");
+    assert!(decoded.advisory_only);
+    assert!(!decoded.modifies_reads);
+    assert_eq!(decoded.kmer_size, Some(21));
+    assert!(decoded.missing_required_fields().is_empty());
+
+    let descriptor = stage_param_descriptor(&stage_id).unwrap_or_else(|| {
+        panic!("estimate_library_complexity_prealign must publish a governed parameter descriptor")
+    });
+    assert_eq!(descriptor.param_type_id, "fastq.estimate_library_complexity_prealign");
+    assert_eq!(descriptor.schema_version, ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_SCHEMA_VERSION);
+    let value = serde_json::to_value(&params)
+        .unwrap_or_else(|err| panic!("serialize estimate_library_complexity params: {err}"));
+    let parsed = parse_effective_params(&stage_id, &value)
+        .unwrap_or_else(|| panic!("parse estimate_library_complexity effective params"));
+    match parsed {
+        EffectiveParams::EstimateLibraryComplexityPrealign(parsed) => assert_eq!(parsed, params),
+        other => panic!("unexpected effective params variant: {other:?}"),
+    }
 }
 
 #[test]
@@ -253,6 +292,10 @@ fn remove_duplicates_parser_matches_public_stage_descriptor() {
 #[test]
 fn governed_stage_descriptors_cover_manifest_declared_fastq_knobs() {
     for (stage, expected_param_type_id) in [
+        (
+            "fastq.estimate_library_complexity_prealign",
+            "fastq.estimate_library_complexity_prealign",
+        ),
         ("fastq.profile_read_lengths", "fastq.profile_read_lengths"),
         ("fastq.profile_overrepresented_sequences", "fastq.profile_overrepresented_sequences"),
         ("fastq.profile_reads", "fastq.profile_reads"),
