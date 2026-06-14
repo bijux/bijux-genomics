@@ -84,6 +84,15 @@ fn seed_disposable_root(path: &Path) {
     std::fs::write(path, "disposable\n").expect("write disposable sentinel");
 }
 
+fn disposable_root_path(
+    root: &Path,
+    root_name: &str,
+    leaf_group: &str,
+    leaf_name: &str,
+) -> std::path::PathBuf {
+    root.join(root_name).join(leaf_group).join(leaf_name)
+}
+
 #[test]
 fn bench_paths_cleanup_proof_reports_disposable_root_deletion() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
@@ -106,9 +115,24 @@ fn bench_paths_cleanup_proof_reports_disposable_root_deletion() {
         &repo_root.path().join("benchmarks/readiness/untracked-snapshot.json"),
         "{\n  \"ok\": false\n}\n",
     );
-    seed_disposable_root(&repo_root.path().join("target/goal-315-json/sentinel.txt"));
-    seed_disposable_root(&repo_root.path().join("artifacts/goal-315-json/sentinel.txt"));
-    seed_disposable_root(&repo_root.path().join("runs/goal-315-json/sentinel.txt"));
+    seed_disposable_root(&disposable_root_path(
+        repo_root.path(),
+        "target",
+        "goal-315-json",
+        "sentinel.txt",
+    ));
+    seed_disposable_root(&disposable_root_path(
+        repo_root.path(),
+        "artifacts",
+        "goal-315-json",
+        "sentinel.txt",
+    ));
+    seed_disposable_root(&disposable_root_path(
+        repo_root.path(),
+        "runs",
+        "goal-315-json",
+        "sentinel.txt",
+    ));
 
     let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
         .current_dir(repo_root.path())

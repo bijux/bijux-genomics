@@ -44,7 +44,7 @@ fn bench_local_real_smoke_core_subset_json_reports_governed_real_execution_slice
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("target/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json")
+        Some("artifacts/benchmarks/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json")
     );
     assert_eq!(payload.get("execution_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(payload.get("stage_execution_count").and_then(serde_json::Value::as_u64), Some(3));

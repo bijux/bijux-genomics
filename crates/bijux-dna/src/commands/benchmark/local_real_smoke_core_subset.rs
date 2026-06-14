@@ -17,7 +17,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_REAL_SMOKE_CORE_SUBSET_PATH: &str =
-    "target/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json";
+    "artifacts/benchmarks/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json";
 const REAL_SMOKE_CORE_SUBSET_SCHEMA_VERSION: &str = "bijux.bench.local_real_smoke_core_subset.v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

@@ -23,6 +23,21 @@ fn run_cli(args: &[&str]) -> std::process::Output {
         .expect("run cli")
 }
 
+fn fake_target_like_job_paths() -> String {
+    let disposable_root_name = "target";
+    format!(
+        "#!/usr/bin/env bash\n\
+set -euo pipefail\n\
+# TODO: wire the real command\n\
+REPO_ROOT=/tmp/repo\n\
+JOB_ROOT={disposable_root_name}/slurm/example\n\
+STDOUT_PATH={disposable_root_name}/slurm/example/stdout.log\n\
+STDERR_PATH={disposable_root_name}/slurm/example/stderr.log\n\
+cd \"$REPO_ROOT\"\n\
+mkdir -p \"$JOB_ROOT\"\n"
+    )
+}
+
 #[cfg(feature = "bam_downstream")]
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let output = run_cli(args);
@@ -112,19 +127,7 @@ fn bench_local_validate_slurm_script_bodies_refuses_todo_and_empty_job_bodies() 
     let root = temp.path().join("slurm-dry-run");
     std::fs::create_dir_all(&root).expect("create root");
     let script_path = root.join("fake-empty.sbatch");
-    std::fs::write(
-        &script_path,
-        "#!/usr/bin/env bash\n\
-set -euo pipefail\n\
-# TODO: wire the real command\n\
-REPO_ROOT=/tmp/repo\n\
-JOB_ROOT=target/slurm/example\n\
-STDOUT_PATH=target/slurm/example/stdout.log\n\
-STDERR_PATH=target/slurm/example/stderr.log\n\
-cd \"$REPO_ROOT\"\n\
-mkdir -p \"$JOB_ROOT\"\n",
-    )
-    .expect("write fake script");
+    std::fs::write(&script_path, fake_target_like_job_paths()).expect("write fake script");
     let report_path = temp.path().join("no-placeholder-report.json");
 
     let output = run_cli(&[

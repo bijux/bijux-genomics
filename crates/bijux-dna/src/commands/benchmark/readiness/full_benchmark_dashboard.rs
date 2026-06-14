@@ -501,10 +501,10 @@ mod tests {
             tool_id: "bcftools".to_string(),
             corpus_id: "vcf_production_regression".to_string(),
             asset_profile_id: "vcf_cohort".to_string(),
-            evidence_path: "target/test.json".to_string(),
+            evidence_path: "artifacts/test.json".to_string(),
             parsed_schema_version: "schema".to_string(),
             stage_result_manifest_path: manifest_status
-                .map(|_| "target/stage-result.json".to_string()),
+                .map(|_| "artifacts/stage-result.json".to_string()),
             manifest_status: manifest_status.map(str::to_string),
             manifest_exit_code,
             normalized_metric_count,
@@ -523,7 +523,7 @@ mod tests {
     fn failed_real_smoke_count_tracks_non_passing_rows() {
         let report = RealSmokeCoreSubsetReport {
             schema_version: "schema",
-            output_path: "target/test.json".to_string(),
+            output_path: "artifacts/test.json".to_string(),
             execution_count: 2,
             stage_execution_count: 2,
             pipeline_bridge_count: 0,

@@ -32,7 +32,10 @@ fn bench_local_real_smoke_core_subset_writes_governed_summary_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "target/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmarks/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json"
+    );
 
     let summary_path = repo_root.join(rendered_path.trim());
     assert!(summary_path.is_file(), "real-smoke summary must exist");

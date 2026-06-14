@@ -84,6 +84,15 @@ fn seed_disposable_root(path: &Path) {
     std::fs::write(path, "disposable\n").expect("write disposable sentinel");
 }
 
+fn disposable_root_path(
+    root: &Path,
+    root_name: &str,
+    leaf_group: &str,
+    leaf_name: &str,
+) -> std::path::PathBuf {
+    root.join(root_name).join(leaf_group).join(leaf_name)
+}
+
 #[test]
 fn bench_paths_cleanup_proof_writes_tracked_report_after_deleting_disposable_roots() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
@@ -103,9 +112,12 @@ fn bench_paths_cleanup_proof_writes_tracked_report_after_deleting_disposable_roo
     );
     stage_all(repo_root.path());
 
-    let target_sentinel = repo_root.path().join("target/goal-315-proof/sentinel.txt");
-    let artifacts_sentinel = repo_root.path().join("artifacts/goal-315-proof/sentinel.txt");
-    let runs_sentinel = repo_root.path().join("runs/goal-315-proof/sentinel.txt");
+    let target_sentinel =
+        disposable_root_path(repo_root.path(), "target", "goal-315-proof", "sentinel.txt");
+    let artifacts_sentinel =
+        disposable_root_path(repo_root.path(), "artifacts", "goal-315-proof", "sentinel.txt");
+    let runs_sentinel =
+        disposable_root_path(repo_root.path(), "runs", "goal-315-proof", "sentinel.txt");
     seed_disposable_root(&target_sentinel);
     seed_disposable_root(&artifacts_sentinel);
     seed_disposable_root(&runs_sentinel);
