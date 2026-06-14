@@ -30,7 +30,7 @@ pub fn bench_bundles_dir() -> PathBuf {
 #[must_use]
 pub fn bench_local_config_dir() -> PathBuf {
     super::resolve_repo_root()
-        .map(|root| root.join("configs").join("bench").join("local"))
+        .map(|root| bijux_dna_infra::configs_dir(&root).join("bench").join("local"))
         .unwrap_or_else(|_| PathBuf::from("configs/bench/local"))
 }
 
@@ -81,25 +81,23 @@ mod tests {
         let temp = tempfile::tempdir()?;
         fs::write(temp.path().join("Cargo.lock"), "")?;
         fs::create_dir_all(temp.path().join("crates"))?;
-        fs::create_dir_all(temp.path().join("configs").join("bench").join("local"))?;
+        fs::create_dir_all(bijux_dna_infra::configs_dir(temp.path()).join("bench").join("local"))?;
         let _guard = RepoRootOverrideGuard::install(temp.path());
 
         assert_eq!(
             bench_local_config_dir(),
-            temp.path().join("configs").join("bench").join("local"),
+            bijux_dna_infra::configs_dir(temp.path()).join("bench").join("local"),
         );
         assert_eq!(
             bench_fastq_local_stage_matrix_path(),
-            PathBuf::from(temp.path())
-                .join("configs")
+            bijux_dna_infra::configs_dir(temp.path())
                 .join("bench")
                 .join("local")
                 .join("fastq-stage-matrix.toml"),
         );
         assert_eq!(
             bench_bam_local_stage_matrix_path(),
-            PathBuf::from(temp.path())
-                .join("configs")
+            bijux_dna_infra::configs_dir(temp.path())
                 .join("bench")
                 .join("local")
                 .join("bam-stage-matrix.toml"),

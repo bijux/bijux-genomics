@@ -15,11 +15,13 @@ fn policy__contracts__root_layout_policy__top_level_directories_are_allowlisted(
         "docs",
         "examples",
         "artifacts",
+        "benchmarks",
         "bin",
         "domain",
         "assets",
         "makes",
         "science",
+        "tests",
     ]
     .into_iter()
     .collect();
