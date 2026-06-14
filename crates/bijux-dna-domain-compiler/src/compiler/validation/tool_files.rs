@@ -75,9 +75,10 @@ pub(super) fn validate_tool_files(
             bail!("{} missing required tool fields", path.display());
         }
         if !tool.capabilities.is_empty() {
-            state
-                .capabilities
-                .insert(domain_tool_key(dom, &tool.tool_id), tool.capabilities.iter().cloned().collect());
+            state.capabilities.insert(
+                domain_tool_key(dom, &tool.tool_id),
+                tool.capabilities.iter().cloned().collect(),
+            );
         }
         if dom != "vcf" && tool.status == "supported" {
             if tool.stage_ids.is_empty() {

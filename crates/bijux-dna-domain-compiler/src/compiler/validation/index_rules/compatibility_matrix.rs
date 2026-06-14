@@ -60,11 +60,7 @@ pub(super) fn validate_index_matrix_and_pipelines(
         .collect::<BTreeSet<_>>();
     for tool_id in &index.tool_ids {
         let scoped_key = domain_tool_key(dom, tool_id);
-        if tool_catalogs
-            .statuses
-            .get(&scoped_key)
-            .is_some_and(|status| status != "supported")
-        {
+        if tool_catalogs.statuses.get(&scoped_key).is_some_and(|status| status != "supported") {
             continue;
         }
         if !reachable_tools.contains(tool_id) {
@@ -385,11 +381,16 @@ pub(super) fn validate_index_matrix_and_pipelines(
         let Some((tool_domain, bare_tool_id)) = tool_id.split_once("::") else {
             continue;
         };
-        if tool_domain != dom || !index.tool_ids.contains(&bare_tool_id.to_string()) || status != "supported" {
+        if tool_domain != dom
+            || !index.tool_ids.contains(&bare_tool_id.to_string())
+            || status != "supported"
+        {
             continue;
         }
-        let has_stage =
-            index.stage_tool_compatibility.values().any(|tools| tools.contains(&bare_tool_id.to_string()));
+        let has_stage = index
+            .stage_tool_compatibility
+            .values()
+            .any(|tools| tools.contains(&bare_tool_id.to_string()));
         if !has_stage {
             bail!(
                 "{} supported tool {} is not mapped to any stage in compatibility matrix",
@@ -404,10 +405,7 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 bare_tool_id
             );
         }
-        if tool_catalogs
-            .metrics_schemas
-            .get(tool_id)
-            .is_none_or(|schema| schema.trim().is_empty())
+        if tool_catalogs.metrics_schemas.get(tool_id).is_none_or(|schema| schema.trim().is_empty())
         {
             bail!(
                 "{} supported tool {} missing metrics_schema_id",
