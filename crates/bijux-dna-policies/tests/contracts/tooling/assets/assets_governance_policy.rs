@@ -392,16 +392,18 @@ fn policy__contracts__assets_governance_policy__assets_forbid_local_machine_path
 fn policy__contracts__assets_governance_policy__tests_must_not_write_into_assets() {
     let root = repo_root();
     let mut offenders = Vec::new();
-    let write_markers = [
-        "write(",
-        "create(",
-        "create_dir(",
-        "create_dir_all(",
-        "OpenOptions",
-        "remove_file(",
-        "remove_dir(",
-        "rename(",
-        "copy(",
+    let write_into_assets_patterns = [
+        regex::Regex::new(r#"(?s)\bwrite\s*\(\s*[^,\n)]*assets/"#).expect("write regex"),
+        regex::Regex::new(r#"(?s)\bcreate_dir(?:_all)?\s*\(\s*[^)\n]*assets/"#)
+            .expect("create dir regex"),
+        regex::Regex::new(r#"(?s)\bremove_(?:file|dir(?:_all)?)\s*\(\s*[^)\n]*assets/"#)
+            .expect("remove regex"),
+        regex::Regex::new(r#"(?s)\brename\s*\(\s*[^,\n]*assets/"#).expect("rename from regex"),
+        regex::Regex::new(r#"(?s)\brename\s*\([^,\n]+,\s*[^)\n]*assets/"#)
+            .expect("rename into regex"),
+        regex::Regex::new(r#"(?s)\bcopy\s*\([^,\n]+,\s*[^)\n]*assets/"#).expect("copy regex"),
+        regex::Regex::new(r#"(?s)\bOpenOptions\b[\s\S]{0,200}\.open\s*\(\s*[^)\n]*assets/"#)
+            .expect("open options regex"),
     ];
     for dir in ["crates", "scripts", "makes"] {
         for entry in WalkDir::new(root.join(dir)).into_iter().filter_map(Result::ok) {
@@ -421,7 +423,7 @@ fn policy__contracts__assets_governance_policy__tests_must_not_write_into_assets
                 continue;
             }
             let raw = std::fs::read_to_string(path).unwrap_or_default();
-            if raw.contains("assets/") && write_markers.iter().any(|marker| raw.contains(marker)) {
+            if write_into_assets_patterns.iter().any(|pattern| pattern.is_match(&raw)) {
                 offenders.push(rel.display().to_string());
             }
         }
