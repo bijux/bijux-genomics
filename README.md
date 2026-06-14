@@ -1,8 +1,7 @@
 # Bijux Genomics
 
-Bijux Genomics is a reproducible DNA pipeline workspace built around explicit stage contracts, deterministic planning, audited execution, and governed benchmark evidence.
-
-It is designed for operator-visible genomics work rather than opaque workflow orchestration: FASTQ, BAM, and VCF behavior is modeled in owned domain crates, planned through explicit adapters, and checked through tracked readiness and fixture proofs.
+Bijux Genomics is a governed DNA workflow workspace for FASTQ, BAM, and VCF processing.
+It emphasizes explicit stage contracts, deterministic planning, reproducible execution, and benchmark evidence that stays visible to operators and reviewers.
 
 <!-- bijux-genomics-badges:generated:start -->
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-0F766E)](https://github.com/bijux/bijux-genomics/blob/main/LICENSE)
@@ -19,22 +18,41 @@ It is designed for operator-visible genomics work rather than opaque workflow or
 [![Repository docs](https://img.shields.io/badge/docs-no%20status-9CA3AF?logo=materialformkdocs&logoColor=white)](https://github.com/bijux/bijux-genomics/tree/main/docs)
 <!-- bijux-genomics-badges:generated:end -->
 
-## What Lives Here
+## What This Repository Owns
 
-- `crates/`: the Rust workspace, including the `bijux-dna` CLI, runtime, planner, engine, API, domain, policy, and benchmark crates.
-- `domain/`: governed FASTQ, BAM, and VCF stage catalogs, metrics, and stage-level contract inputs.
-- `benchmarks/`: tracked readiness proofs, schemas, benchmark configs, and benchmark-owned fixtures.
-- `configs/`: runtime, CI, coverage, benchmark, HPC, and domain configuration surfaces.
-- `containers/`: Docker and Apptainer build surfaces and packaging support.
-- `docs/`: architecture, operations, science, policy, and reference documentation.
-- `science/`: scientific specs, generated science-facing material, and review-oriented reference artifacts.
-- `examples/`: example FASTQ, BAM, and VCF flows and failure-oriented usage slices.
+- Governed FASTQ, BAM, and VCF stage catalogs under `domain/`
+- The `bijux-dna` CLI and supporting Rust crates under `crates/`
+- Deterministic benchmark fixtures, configs, schemas, and readiness proof under `benchmarks/`
+- Runtime, CI, and registry configuration under `configs/`
+- Container build surfaces under `containers/`
+- Architecture, operations, science, and reference docs under `docs/` and `science/`
 
-## Core Domains
+## Working Model
 
-- FASTQ: read QC, trimming, taxonomy screening, decontamination, preprocessing, and amplicon-oriented stages.
-- BAM: alignment-adjacent processing, contamination, kinship, sex inference, coverage, and post-alignment QC.
-- VCF: calling, normalization, stats, imputation metrics, panel workflows, and cohort-oriented reporting.
+The repository is organized around a contract-first workflow:
+
+1. Domain manifests define stages, tools, artifacts, metrics, and defaults.
+2. Planner crates derive deterministic stage and tool selections from those manifests.
+3. Runtime and API crates execute or materialize the governed surfaces.
+4. Readiness and benchmark commands verify whether declared support is actually executable, parseable, and reportable.
+
+This keeps stage claims tied to owned code and checked fixtures instead of prose-only declarations.
+
+## Supported Domains
+
+- FASTQ: validation, QC, trimming, filtering, taxonomy screening, depletion, and amplicon-oriented interpretation
+- BAM: alignment follow-up, QC, contamination, authenticity, damage, kinship, sex inference, and downstream preparation
+- VCF: calling, normalization, QC, phasing, imputation, population reporting, and cohort-oriented analytics
+
+## Repository Layout
+
+- `benchmarks/`: benchmark configs, schemas, fixtures, readiness snapshots, and deterministic local-ready proof
+- `configs/`: generated registries, CI inputs, runtime settings, and benchmark parameter catalogs
+- `crates/`: CLI, planners, runtime, API, domain crates, policies, and benchmark/reporting crates
+- `domain/`: source-of-truth stage and tool manifests for FASTQ, BAM, and VCF
+- `docs/`: human-facing architecture, operations, and reference documentation
+- `examples/`: small usage examples and focused walkthrough inputs
+- `runs/`: local smoke and execution output roots
 
 ## Quick Start
 
@@ -42,9 +60,9 @@ Prerequisites:
 
 - Rust `1.88`
 - `make`
-- Optional local container tooling for environment and smoke commands
+- Optional Docker or Apptainer for container-backed smoke and readiness commands
 
-Common entrypoints:
+Common commands:
 
 ```bash
 cargo run -p bijux-dna -- --help
@@ -53,7 +71,7 @@ cargo run -p bijux-dna -- fixtures validate --root benchmarks/tests/fixtures --a
 cargo run -p bijux-dna -- bench active-scope validate --fast
 ```
 
-Repository verification:
+Common verification:
 
 ```bash
 make fmt
@@ -63,27 +81,27 @@ make audit
 make ci-fast
 ```
 
-## Common Operator Surfaces
+## Operator Entry Points
 
-- Environment inspection and preparation: `bijux-dna env ...`
-- Tool and stage registry queries: `bijux-dna registry ...`
-- Pipeline profile validation and explanation: `bijux-dna plan ...`
-- FASTQ execution surface: `bijux-dna run ...`
-- Analysis and comparison: `bijux-dna analyze ...`
-- Benchmark readiness, fixture, and result proofs: `bijux-dna bench ...`
+- `bijux-dna registry ...`: inspect governed stages, tools, and contracts
+- `bijux-dna plan ...`: validate and explain planner decisions
+- `bijux-dna run ...`: execute owned workflow surfaces
+- `bijux-dna analyze ...`: summarize, compare, and inspect results
+- `bijux-dna bench ...`: validate fixtures, readiness, generated commands, and benchmark proof
 
-The canonical CLI command inventory is maintained in [`crates/bijux-dna/docs/COMMANDS.md`](crates/bijux-dna/docs/COMMANDS.md).
+The full CLI inventory is maintained in [`crates/bijux-dna/docs/COMMANDS.md`](crates/bijux-dna/docs/COMMANDS.md).
 
 ## Documentation
 
-- Project intro: [`docs/00-intro/WHAT_IS_BIJUX.md`](docs/00-intro/WHAT_IS_BIJUX.md)
+- Project introduction: [`docs/00-intro/WHAT_IS_BIJUX.md`](docs/00-intro/WHAT_IS_BIJUX.md)
 - Architecture overview: [`docs/10-architecture/ARCHITECTURE_OVERVIEW.md`](docs/10-architecture/ARCHITECTURE_OVERVIEW.md)
-- CI and repository operations: [`docs/30-operations/CI.md`](docs/30-operations/CI.md)
-- HPC campaign dry-run guidance: [`docs/30-operations/HPC_CAMPAIGN_DRYRUN.md`](docs/30-operations/HPC_CAMPAIGN_DRYRUN.md)
-- Licensing reference: [`docs/50-reference/LICENSING.md`](docs/50-reference/LICENSING.md)
+- CI operations: [`docs/30-operations/CI.md`](docs/30-operations/CI.md)
+- HPC dry-run guidance: [`docs/30-operations/HPC_CAMPAIGN_DRYRUN.md`](docs/30-operations/HPC_CAMPAIGN_DRYRUN.md)
+- Licensing: [`docs/50-reference/LICENSING.md`](docs/50-reference/LICENSING.md)
 
 ## Development Notes
 
-When working from a shared Bijux workspace checkout, start from the workspace-wide contribution policy at the checkout root before editing this repository.
+- Generated benchmark proof belongs under `benchmarks/readiness/` when it is deterministic and worth checking in.
+- Disposable local execution output belongs under `artifacts/` or `runs/`.
+- Source-of-truth domain changes should be followed by the relevant index, registry, and readiness regeneration commands before commit.
 
-Generated run products, temporary reports, and local proof artifacts belong under `artifacts/` or `runs/` unless a command explicitly governs another checked-in output location.
