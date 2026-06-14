@@ -34,6 +34,8 @@ artifacts:
   type: json
 - id: phasing_out
   type: json
+- id: phased_vcf
+  type: vcf
 - id: population_structure_report
   type: json
 - id: postprocess_vcf
