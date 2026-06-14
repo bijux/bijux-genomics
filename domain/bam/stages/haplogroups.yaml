@@ -11,6 +11,18 @@ outputs:
   - name: "haplogroups_report_json"
     data_type: "json"
     cardinality: "One"
+  - name: "haplogroup_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "haplogroups"
+    data_type: "json"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
 parameters: []
 metrics:
   - name: "runtime_s"

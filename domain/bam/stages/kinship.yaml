@@ -11,6 +11,18 @@ outputs:
   - name: "kinship_report_json"
     data_type: "json"
     cardinality: "One"
+  - name: "kinship_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "population_metrics"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
 parameters: []
 metrics:
   - name: "observed_max_overlap_snps"

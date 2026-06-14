@@ -58,6 +58,7 @@ governed_stage_ids:
   - bam.align
   - bam.authenticity
   - bam.bias_mitigation
+  - bam.complexity
   - bam.contamination
   - bam.coverage
   - bam.damage
@@ -71,6 +72,8 @@ governed_stage_ids:
   - bam.mapping_summary
   - bam.mapq_filter
   - bam.overlap_correction
+  - bam.qc_pre
+  - bam.recalibration
   - bam.sex
   - bam.validate
 governed_tool_ids:
@@ -347,6 +350,7 @@ stage_default_settings:
     bedtools: { profile: "adna_sane_default", notes: "interval coverage fallback preset" }
   bam.mapping_summary:
     samtools: { profile: "adna_sane_default", notes: "flagstat/stats/idxstats summary preset" }
+    picard: { profile: "adna_sane_default", notes: "picard alignment summary preset" }
   bam.endogenous_content:
     samtools: { profile: "adna_sane_default", notes: "endogenous ratio from idxstats/flagstat preset" }
   bam.damage:
@@ -373,6 +377,7 @@ stage_default_settings:
     angsd: { profile: "adna_sane_default", notes: "likelihood-based kinship preset" }
   bam.qc_pre:
     samtools: { profile: "adna_sane_default", notes: "pre-run sanity qc preset" }
+    multiqc: { profile: "adna_sane_default", notes: "multiqc aggregation companion preset" }
   bam.markdup:
     picard: { profile: "adna_sane_default", notes: "planned duplicate marking preset" }
     samtools: { profile: "adna_sane_default", notes: "planned duplicate marking fallback preset" }
