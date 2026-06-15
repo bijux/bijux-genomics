@@ -557,6 +557,12 @@ Visible aliases are part of the operator surface:
   `parser_coverage`, `parser_status`, `support_status`, `adapter_status`, and `corpus_status`,
   proving that the benchmark-ready FASTQ slice still has full normalized parser coverage instead
   of letting parser drift hide inside the broader readiness summary.
+- `bijux-dna bench readiness render-fastq-parser-fixture-coverage`
+  `render-fastq-parser-fixture-coverage` writes
+  `benchmarks/readiness/fastq/fastq-parser-fixture-coverage.tsv` with one governed row per active
+  FASTQ binding. Each row resolves the exact parser function, schema contract, and governed shared
+  fixture case that proves the parser still accepts canonical FASTQ report payloads for that
+  stage, and the command fails closed unless coverage remains 100%.
 - `bijux-dna bench readiness render-fastq-active-stage-tool-matrix`
   `render-fastq-active-stage-tool-matrix` writes
   `benchmarks/readiness/fastq/fastq-active-stage-tool-matrix.tsv` with the governed FASTQ
