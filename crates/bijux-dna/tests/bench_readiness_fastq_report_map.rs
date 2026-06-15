@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used)]
 
+use std::collections::BTreeSet;
 use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -38,6 +39,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 #[test]
 fn bench_readiness_fastq_report_map_reports_governed_expected_result_bindings() {
     let payload = run_cli_json(&["bench", "readiness", "render-fastq-report-map", "--json"]);
+    let expected_payload =
+        run_cli_json(&["bench", "readiness", "render-expected-benchmark-results", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -47,6 +50,10 @@ fn bench_readiness_fastq_report_map_reports_governed_expected_result_bindings() 
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/fastq/fastq-report-map.tsv")
+    );
+    assert_eq!(
+        payload.get("expected_result_row_count").and_then(serde_json::Value::as_u64),
+        Some(69)
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(26));
@@ -70,6 +77,22 @@ fn bench_readiness_fastq_report_map_reports_governed_expected_result_bindings() 
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 69);
+    let expected_fastq_rows = expected_payload
+        .get("rows")
+        .and_then(serde_json::Value::as_array)
+        .expect("expected rows array")
+        .iter()
+        .filter(|row| row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq"))
+        .collect::<Vec<_>>();
+    let expected_result_ids = expected_fastq_rows
+        .iter()
+        .filter_map(|row| row.get("result_row_id").and_then(serde_json::Value::as_str))
+        .collect::<BTreeSet<_>>();
+    let report_result_ids = rows
+        .iter()
+        .filter_map(|row| row.get("result_row_id").and_then(serde_json::Value::as_str))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(report_result_ids, expected_result_ids);
 
     let index_reference = rows
         .iter()
@@ -126,6 +149,14 @@ fn bench_readiness_fastq_report_map_reports_governed_expected_result_bindings() 
     assert_eq!(
         profile_reads.get("produces_reports_only").and_then(serde_json::Value::as_bool),
         Some(true)
+    );
+    assert_eq!(
+        profile_reads.get("fixture_id").and_then(serde_json::Value::as_str),
+        Some("corpus-01-mini")
+    );
+    assert_eq!(
+        profile_reads.get("sample_scope").and_then(serde_json::Value::as_str),
+        Some("sample-set")
     );
 
     let infer_asvs = rows

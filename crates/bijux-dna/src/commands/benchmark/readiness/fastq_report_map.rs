@@ -11,7 +11,9 @@ use bijux_dna_domain_fastq::{
 };
 use serde::Serialize;
 
-use super::expected_benchmark_results::collect_expected_benchmark_result_rows;
+use super::expected_benchmark_results::{
+    collect_expected_benchmark_result_rows, ExpectedBenchmarkResultRow,
+};
 use crate::commands::benchmark::local_stage_inventory::{
     load_local_stage_inventory, BenchLocalDomain, LocalStageReadinessKind,
 };
@@ -24,8 +26,12 @@ const FASTQ_REPORT_MAP_SCHEMA_VERSION: &str = "bijux.bench.readiness.fastq_repor
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct FastqReportMapRow {
+    pub(crate) result_row_id: String,
     pub(crate) stage_id: String,
     pub(crate) tool_id: String,
+    pub(crate) corpus_family_id: String,
+    pub(crate) fixture_id: String,
+    pub(crate) sample_scope: String,
     pub(crate) canonical_stage_rank: usize,
     pub(crate) readiness_kind: String,
     pub(crate) stage_kind: String,
@@ -47,6 +53,7 @@ pub(crate) struct FastqReportMapReport {
     pub(crate) schema_version: &'static str,
     pub(crate) domain: &'static str,
     pub(crate) output_path: String,
+    pub(crate) expected_result_row_count: usize,
     pub(crate) row_count: usize,
     pub(crate) stage_count: usize,
     pub(crate) tool_count: usize,
@@ -105,6 +112,10 @@ pub(crate) fn render_fastq_report_map(
     output_path: PathBuf,
 ) -> Result<FastqReportMapReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
+    let expected_result_row_count = collect_expected_benchmark_result_rows(repo_root)?
+        .into_iter()
+        .filter(|row| row.domain == "fastq")
+        .count();
     let rows = collect_fastq_report_map_rows(repo_root)?;
     let stage_count = rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len();
     let tool_count = rows.iter().map(|row| row.tool_id.clone()).collect::<BTreeSet<_>>().len();
@@ -129,6 +140,7 @@ pub(crate) fn render_fastq_report_map(
         schema_version: FASTQ_REPORT_MAP_SCHEMA_VERSION,
         domain: "fastq",
         output_path: path_relative_to_repo(repo_root, &output_path),
+        expected_result_row_count,
         row_count: rows.len(),
         stage_count,
         tool_count,
@@ -144,12 +156,13 @@ pub(crate) fn collect_fastq_report_map_rows(repo_root: &Path) -> Result<Vec<Fast
     let stage_metadata = collect_fastq_report_stage_metadata(repo_root)?;
     let stage_admissions =
         super::catalog::load_stage_admissions(repo_root, super::catalog::ReadinessDomain::Fastq)?;
-    let mut rows = Vec::new();
-
-    for row in collect_expected_benchmark_result_rows(repo_root)?
+    let expected_rows = collect_expected_benchmark_result_rows(repo_root)?
         .into_iter()
         .filter(|row| row.domain == "fastq")
-    {
+        .collect::<Vec<_>>();
+    let mut rows = Vec::new();
+
+    for row in &expected_rows {
         let metadata = stage_metadata.get(&row.stage_id).ok_or_else(|| {
             anyhow!(
                 "FASTQ report map is missing stage metadata for expected result `{}` / `{}`",
@@ -161,12 +174,16 @@ pub(crate) fn collect_fastq_report_map_rows(repo_root: &Path) -> Result<Vec<Fast
             anyhow!("FASTQ report map is missing admitted benchmark tools for `{}`", row.stage_id)
         })?;
         let support_status = admission_support_status(admissions, row.tool_id.as_str())?;
-        let stage_id = row.stage_id;
-        let tool_id = row.tool_id;
+        let stage_id = row.stage_id.clone();
+        let tool_id = row.tool_id.clone();
 
         rows.push(FastqReportMapRow {
+            result_row_id: row.result_row_id.clone(),
             stage_id: stage_id.clone(),
             tool_id: tool_id.clone(),
+            corpus_family_id: row.corpus_family_id.clone(),
+            fixture_id: row.fixture_id.clone(),
+            sample_scope: row.sample_scope.clone(),
             canonical_stage_rank: metadata.canonical_stage_rank,
             readiness_kind: metadata.readiness_kind.clone(),
             stage_kind: metadata.stage_kind.clone(),
@@ -198,7 +215,7 @@ pub(crate) fn collect_fastq_report_map_rows(repo_root: &Path) -> Result<Vec<Fast
             .then_with(|| left.stage_id.cmp(&right.stage_id))
             .then_with(|| left.tool_id.cmp(&right.tool_id))
     });
-    ensure_fastq_report_map_contract(&rows)?;
+    ensure_fastq_report_map_contract(&rows, &expected_rows)?;
     Ok(rows)
 }
 
@@ -347,24 +364,44 @@ fn placement_for_stage(stage_id: &str) -> Option<FastqReportPlacement> {
     }
 }
 
-fn ensure_fastq_report_map_contract(rows: &[FastqReportMapRow]) -> Result<()> {
-    let unique_bindings =
-        rows.iter().map(|row| format!("{}:{}", row.stage_id, row.tool_id)).collect::<BTreeSet<_>>();
-    if unique_bindings.len() != rows.len() {
+fn ensure_fastq_report_map_contract(
+    rows: &[FastqReportMapRow],
+    expected_rows: &[ExpectedBenchmarkResultRow],
+) -> Result<()> {
+    let report_result_ids =
+        rows.iter().map(|row| row.result_row_id.as_str()).collect::<BTreeSet<_>>();
+    if report_result_ids.len() != rows.len() {
         return Err(anyhow!(
-            "FASTQ report map must keep one row per expected FASTQ stage-tool result binding"
+            "FASTQ report map must keep one row per expected FASTQ result row"
         ));
     }
 
-    if rows.len() != 69 {
+    let expected_result_ids = expected_rows
+        .iter()
+        .map(|row| row.result_row_id.as_str())
+        .collect::<BTreeSet<_>>();
+    if report_result_ids != expected_result_ids {
         return Err(anyhow!(
-            "FASTQ report map must contain 69 benchmark-ready FASTQ stage-tool rows, found {}",
+            "FASTQ report map must retain every FASTQ expected-result row; expected {} rows and found {} report rows",
+            expected_rows.len(),
             rows.len()
         ));
     }
 
+    let report_keys = rows.iter().map(report_result_key).collect::<BTreeSet<_>>();
+    let expected_keys = expected_rows.iter().map(expected_result_key).collect::<BTreeSet<_>>();
+    if report_keys != expected_keys {
+        return Err(anyhow!(
+            "FASTQ report map drifted from the governed FASTQ expected-result identity slice"
+        ));
+    }
+
     for row in rows {
-        if row.tool_id.trim().is_empty()
+        if row.result_row_id.trim().is_empty()
+            || row.tool_id.trim().is_empty()
+            || row.corpus_family_id.trim().is_empty()
+            || row.fixture_id.trim().is_empty()
+            || row.sample_scope.trim().is_empty()
             || row.support_status.trim().is_empty()
             || row.report_section_id.trim().is_empty()
             || row.summary_table_id.trim().is_empty()
@@ -461,6 +498,20 @@ fn ensure_fastq_report_map_contract(rows: &[FastqReportMapRow]) -> Result<()> {
     Ok(())
 }
 
+fn report_result_key(row: &FastqReportMapRow) -> String {
+    format!(
+        "{}:{}:{}:{}:{}",
+        row.result_row_id, row.stage_id, row.tool_id, row.corpus_family_id, row.fixture_id
+    )
+}
+
+fn expected_result_key(row: &ExpectedBenchmarkResultRow) -> String {
+    format!(
+        "{}:{}:{}:{}:{}",
+        row.result_row_id, row.stage_id, row.tool_id, row.corpus_family_id, row.fixture_id
+    )
+}
+
 fn require_row_mapping(
     rows: &[FastqReportMapRow],
     stage_id: &str,
@@ -505,13 +556,17 @@ fn report_reason(
 
 fn render_fastq_report_map_tsv(rows: &[FastqReportMapRow]) -> String {
     let mut rendered = String::from(
-        "stage_id\ttool_id\tcanonical_stage_rank\treadiness_kind\tstage_kind\tcriticality\tsupport_status\treport_section_id\treport_section_title\tsummary_table_id\tsummary_table_title\tmetric_classes\tmutates_fastq\tproduces_reports_only\treport_focus\treason\n",
+        "result_row_id\tstage_id\ttool_id\tcorpus_family_id\tfixture_id\tsample_scope\tcanonical_stage_rank\treadiness_kind\tstage_kind\tcriticality\tsupport_status\treport_section_id\treport_section_title\tsummary_table_id\tsummary_table_title\tmetric_classes\tmutates_fastq\tproduces_reports_only\treport_focus\treason\n",
     );
     for row in rows {
         rendered.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+            sanitize_tsv(&row.result_row_id),
             sanitize_tsv(&row.stage_id),
             sanitize_tsv(&row.tool_id),
+            sanitize_tsv(&row.corpus_family_id),
+            sanitize_tsv(&row.fixture_id),
+            sanitize_tsv(&row.sample_scope),
             row.canonical_stage_rank,
             sanitize_tsv(&row.readiness_kind),
             sanitize_tsv(&row.stage_kind),
@@ -628,12 +683,14 @@ fn sanitize_tsv(value: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeSet;
     use std::path::PathBuf;
 
     use super::{
         collect_fastq_report_stage_metadata, render_fastq_report_map,
         DEFAULT_FASTQ_REPORT_MAP_PATH, FASTQ_REPORT_MAP_SCHEMA_VERSION,
     };
+    use crate::commands::benchmark::readiness::expected_benchmark_results::collect_expected_benchmark_result_rows;
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -652,6 +709,7 @@ mod tests {
         assert_eq!(report.schema_version, FASTQ_REPORT_MAP_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_FASTQ_REPORT_MAP_PATH);
         assert_eq!(report.domain, "fastq");
+        assert_eq!(report.expected_result_row_count, 69);
         assert_eq!(report.row_count, 69);
         assert_eq!(report.stage_count, 26);
         assert_eq!(report.tool_count, 41);
@@ -661,6 +719,15 @@ mod tests {
         assert_eq!(report.section_counts.get("read_cleanup"), Some(&37));
         assert_eq!(report.section_counts.get("contamination_screening"), Some(&7));
         assert_eq!(report.section_counts.get("amplicon_interpretation"), Some(&5));
+        let expected_result_ids = collect_expected_benchmark_result_rows(&repo_root)
+            .expect("collect expected benchmark results")
+            .into_iter()
+            .filter(|row| row.domain == "fastq")
+            .map(|row| row.result_row_id)
+            .collect::<BTreeSet<_>>();
+        let report_result_ids =
+            report.rows.iter().map(|row| row.result_row_id.clone()).collect::<BTreeSet<_>>();
+        assert_eq!(report_result_ids, expected_result_ids);
 
         let screen_taxonomy = report
             .rows
@@ -677,6 +744,13 @@ mod tests {
             .iter()
             .find(|row| row.stage_id == "fastq.trim_reads" && row.tool_id == "fastp")
             .expect("trim reads fastp row");
+        assert_eq!(
+            trim_reads.result_row_id,
+            "fastq:corpus-01-mini:fastq.trim_reads:sample-set:fastp"
+        );
+        assert_eq!(trim_reads.corpus_family_id, "corpus-01");
+        assert_eq!(trim_reads.fixture_id, "corpus-01-mini");
+        assert_eq!(trim_reads.sample_scope, "sample-set");
         assert_eq!(trim_reads.support_status, "supported");
         assert!(!trim_reads.produces_reports_only);
         assert_eq!(trim_reads.report_section_id, "read_cleanup");
