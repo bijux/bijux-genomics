@@ -563,6 +563,12 @@ Visible aliases are part of the operator surface:
   FASTQ binding. Each row resolves the exact parser function, schema contract, and governed shared
   fixture case that proves the parser still accepts canonical FASTQ report payloads for that
   stage, and the command fails closed unless coverage remains 100%.
+- `bijux-dna bench readiness render-fastq-commands`
+  `render-fastq-commands` writes both `benchmarks/readiness/fastq/fastq-rendered-commands.sh` and
+  `benchmarks/readiness/fastq/fastq-rendered-commands.argv.jsonl` for the active FASTQ slice. The
+  shell script preserves one real command per active FASTQ binding in a `bash -n` parseable form,
+  and the JSONL preserves the same governed rows as structured `command_steps` argv for
+  shell-independent replay.
 - `bijux-dna bench readiness render-fastq-active-stage-tool-matrix`
   `render-fastq-active-stage-tool-matrix` writes
   `benchmarks/readiness/fastq/fastq-active-stage-tool-matrix.tsv` with the governed FASTQ
